@@ -1,0 +1,35 @@
+# osx
+.DS_Store
+
+
+# python
+*.pyc
+__pycache__/
+
+
+# pyenv
+.python-version
+
+
+# project
+dataset/
+tmp/
+saved/
+
+
+# personal
+rsync.sh
+rsync.*.sh
+tags
+
+# ansible
+ansible/servers.retry
+ansible/dataset_master.retry
+ansible/env
+
+# doc
+_build/
+_static/
+
+# tox
+.tox

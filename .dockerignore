@@ -1,0 +1,12 @@
+# git
+.git/
+
+# python
+*.pyc
+__pycache__/
+
+# project
+saved/
+dataset/
+config/
+tmp/

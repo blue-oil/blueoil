@@ -1,0 +1,24 @@
+# supported task types are 'classification', 'object_detection' and 'semantic_segmentation'.
+task_type: object_detection
+
+network_name: LMFYoloQuantize
+
+dataset:
+  format: DeLTA-Mark for Object Detection
+  train_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_object_detection/for_train
+  test_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_object_detection/for_validation
+
+trainer:
+  batch_size: 1
+  epochs: 1
+
+common:
+  image_size:
+    - 128  # height
+    - 128  # width
+
+  # set pretrain model name. currently, this feature is not supported, always ignored.
+  pretrain_model: false
+
+  # enable dataset prefetch, set false if weired problem happens
+  dataset_prefetch: true

@@ -1,0 +1,13 @@
+.idea/
+.vscode/
+cmake-build-debug/
+transcript
+build/
+*.o
+*.prj/
+*.elf
+*.tmp/
+*.swp
+logs/
+.python-version
+__pycache__/

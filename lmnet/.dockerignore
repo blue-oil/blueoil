@@ -1,0 +1,23 @@
+# git
+.git/
+
+
+# osx
+.DS_Store
+
+
+# python
+*.pyc
+__pycache__/
+
+
+# project
+ansible/
+saved/
+tmp/
+inputs/
+outputs/
+
+
+# pytest
+.cache/

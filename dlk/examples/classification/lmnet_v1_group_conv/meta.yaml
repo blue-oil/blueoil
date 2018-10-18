@@ -1,0 +1,24 @@
+CLASSES:
+- airplane
+- automobile
+- bird
+- cat
+- deer
+- dog
+- frog
+- horse
+- ship
+- truck
+DATA_FORMAT: NHWC
+IMAGE_SIZE:
+- 32
+- 32
+POST_PROCESSOR: null
+PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  processors:
+  - !!python/object:lmnet.pre_processor.Resize
+    size: !!python/tuple
+    - 32
+    - 32
+  - !!python/object:lmnet.pre_processor.PerImageStandardization {}
+TASK: IMAGE.CLASSIFICATION

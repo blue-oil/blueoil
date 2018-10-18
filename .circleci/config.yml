@@ -1,0 +1,40 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/repo
+    steps:
+      - checkout
+      # Build documents
+      - run: sudo pip install -r doc.requirements.txt && cd docs && make html
+      - persist_to_workspace:
+          root: ~/repo/docs/_build
+          paths:
+            - html
+
+  deploy:
+    docker:
+      - image: circleci/node:7.10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      # Attach build html files
+      - attach_workspace:
+          at: ~/repo/docs/_build
+      # Install firebase packages
+      - run: sudo npm install -g firebase-tools
+      # Deploy
+      - run: cd .firebase && firebase deploy --project "$FIREBASE_PJ" --token "$FIREBASE_TOKEN"
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master

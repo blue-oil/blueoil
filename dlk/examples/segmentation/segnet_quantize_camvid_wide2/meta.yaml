@@ -1,0 +1,21 @@
+CLASSES:
+- sky
+- building
+- pole
+- road
+- pavement
+- tree
+- signsymbol
+- fence
+- car
+- pedestrian
+- bicyclist
+DATA_FORMAT: NHWC
+IMAGE_SIZE:
+- 360
+- 480
+POST_PROCESSOR: null
+PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  processors:
+  - !!python/object:lmnet.pre_processor.DivideBy255 {}
+TASK: IMAGE.SEMANTIC_SEGMENTATION

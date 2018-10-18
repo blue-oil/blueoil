@@ -1,0 +1,24 @@
+# supported task types are 'classification', 'object_detection' and 'semantic_segmentation'.
+task_type: classification
+
+network_name: LmnetV1Quantize
+
+dataset:
+  format: Caltech101
+  train_path: ./lmnet/tests/fixtures/datasets/dummy_classification
+  test_path: ./lmnet/tests/fixtures/datasets/dummy_classification
+
+trainer:
+  batch_size: 1
+  epochs: 1
+
+common:
+  image_size:
+    - 128  # height
+    - 128  # width
+
+  # set pretrain model name. currently, this feature is not supported, always ignored.
+  pretrain_model: false
+
+  # enable dataset prefetch, set false if weired problem happens
+  dataset_prefetch: true

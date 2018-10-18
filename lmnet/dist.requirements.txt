@@ -1,0 +1,3 @@
+# for distributed training
+horovod==0.13.4
+mpi4py==3.0.0

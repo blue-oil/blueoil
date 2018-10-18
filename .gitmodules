@@ -1,0 +1,9 @@
+[submodule "runtime/yaml-cpp"]
+	path = runtime/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "lmnet/third_party/coco"]
+	path = lmnet/third_party/coco
+	url = https://github.com/pdollar/coco.git
+[submodule "lmnet/third_party/tensorflow-on-arm"]
+	path = lmnet/third_party/tensorflow-on-arm
+	url = https://github.com/lhelontra/tensorflow-on-arm.git
