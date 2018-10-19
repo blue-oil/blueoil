@@ -88,8 +88,10 @@ function init_test(){
     TASK_TYPE_NUMBER=$2
     NETWORK_NUMBER=$4
     DATASET_FORMAT_NUMBER=$5
-    TRAINING_DATASET_PATH=$6
-    VALIDATION_DATASET_PATH=$7
+    ENABLE_DATA_AUGMENTATION=$6
+    CHOOSE_TOP_TWO_AUG=$7
+    TRAINING_DATASET_PATH=$8
+    VALIDATION_DATASET_PATH=$9
     CONFIG_NAME=${TEST_CONFIG_PREFIX}_${TEST_CASE}
     TEST_YML_CONFIG_FILE=./tests/config/${TEST_CASE}.yml
     echo "## Test of ${TEST_CASE}"
@@ -104,6 +106,19 @@ function init_test(){
         send \"${VALIDATION_DATASET_PATH}\n\"
         "
     fi
+    if [ "${ENABLE_DATA_AUGMENTATION}" == "n" ]; then
+        QA_ENABLE_DATA_AUGMENTATION="
+            expect \"enable data augmentation?\"
+            send \"${ENABLE_DATA_AUGMENTATION}\n\"
+        "
+    else
+        QA_ENABLE_DATA_AUGMENTATION="
+            expect \"enable data augmentation?\"
+            send \"Y\n\"
+            expect \"Please choose augmentors:\"
+            send \" \n\"
+        "
+    fi
     expect -c "
         set timeout 5
         spawn env LANG=C ${RUN_SCRIPT} init
@@ -115,7 +130,7 @@ function init_test(){
         send \"${NETWORK_NUMBER}\n\"
         expect \"choose dataset format\"
         send \"${DATASET_FORMAT_NUMBER}\n\"
-        expect \"training dataset path:\"
+        ${QA_ENABLE_DATA_AUGMENTATION}
         send \"${TRAINING_DATASET_PATH}\n\"
         expect \"set validataion dataset?\"
         send \"${SET_VALIDATION_PATH}\n\"
@@ -127,10 +142,8 @@ function init_test(){
         expect \"how many epochs do you run training (integer):\"
         send \"\b\b\b1\n\"
         expect \"Next step:\"
-    " > /dev/null
+    "
     assert $? 0
-    # Wait for complete ${RUN_SCRIPT} init
-    sleep 1
     mv config/${CONFIG_NAME}.yml ${TMP_TEST_DIR}/
     YML_CONFIG_FILE=${TMP_TEST_DIR}/${CONFIG_NAME}.yml
     @ 0 diff ${YML_CONFIG_FILE} ${TEST_YML_CONFIG_FILE}
@@ -202,6 +215,7 @@ trap 'show_error_log; clean_exit 1' 1 2 3 15
 if [ "${YML_CONFIG_FILE}" == "" ]; then
     ADDITIONAL_TEST_FLAG=0
     TASK_TYPE_NUMBER=1
+    ENABLE_DATA_AUGMENTATION="n"
     for TASK_TYPE in "classification" "object_detection"
     do
         DATASET_FORMAT_NUMBER=1
@@ -209,9 +223,18 @@ if [ "${YML_CONFIG_FILE}" == "" ]; then
         do
             for TEST_CASE in "${DATASET_FORMAT}_${TASK_TYPE}" "${DATASET_FORMAT}_${TASK_TYPE}_has_validation"
             do
-                TRAINING_DATASET_PATH=$(get_yaml_param train_path tests/config/${TEST_CASE}.yml)
-                VALIDATION_DATASET_PATH=$(get_yaml_param test_path tests/config/${TEST_CASE}.yml)
-                init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH}
+                for ENABLE_DATA_AUGMENTATION in "Y" "n"
+                do
+                    if [ ${ENABLE_DATA_AUGMENTATION} == "n" ]; then
+                        TRAINING_DATASET_PATH=$(get_yaml_param train_path tests/config/${TEST_CASE}.yml)
+                        VALIDATION_DATASET_PATH=$(get_yaml_param test_path tests/config/${TEST_CASE}.yml)
+                        init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${ENABLE_DATA_AUGMENTATION} 0 ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH}
+                    else
+                        TRAINING_DATASET_PATH=$(get_yaml_param train_path tests/config/${TEST_CASE}_aug.yml)
+                        VALIDATION_DATASET_PATH=$(get_yaml_param test_path tests/config/${TEST_CASE}_aug.yml)
+                        init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} "n" 1 ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH}
+                    fi
+                done
                 basic_test
                 if [ ${ADDITIONAL_TEST_FLAG} -eq 0 ]; then
                     # Run additional test only once
