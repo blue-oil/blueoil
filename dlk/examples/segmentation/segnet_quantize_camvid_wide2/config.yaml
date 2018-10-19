@@ -24,7 +24,6 @@ DATASET:
       max_value: 1.25
       min_value: 0.75
     - !!python/object:lmnet.data_augmentor.FlipLeftRight
-      is_bounding_box: false
       probability: 0.5
     - !!python/object:lmnet.data_augmentor.Hue
       max_value: 10

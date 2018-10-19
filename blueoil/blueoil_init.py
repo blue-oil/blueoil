@@ -13,10 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import inspect
 import re
+import sys
 
 import whaaaaat
 from jinja2 import Environment, FileSystemLoader
+
+sys.path.insert(0, "lmnet")
+
+from lmnet.data_processor import Processor
+import lmnet.data_augmentor as augmentor
 
 task_type_choices = [
     'classification',
@@ -186,6 +193,8 @@ def save_config(blueoil_config):
 
 
 def ask_questions():
+    r = {}
+
     model_name_question = {
         'type': 'input',
         'name': 'value',
@@ -217,6 +226,38 @@ def ask_questions():
         'choices': dataset_format_choices(task_type)
     }
     dataset_format = prompt(dataset_format_question)
+
+    enable_data_augmentation = {
+        'type': 'confirm',
+        'name': 'value',
+        'message': 'enable data augmentation?',
+        'default': True
+    }
+
+    if prompt(enable_data_augmentation):
+        all_augmentor = {}
+        checkboxes = []
+        for name, obj in inspect.getmembers(augmentor):
+            if inspect.isclass(obj) and issubclass(obj, Processor):
+                argspec = inspect.getfullargspec(obj)
+                default_val = [(arg, default) for arg, default in zip(argspec.args[1:], argspec.defaults) if default]
+                default_str = " (default: {})".format(
+                    ", ".join(["{}={}".format(a, d) for a, d in default_val])) if default_val or len(
+                    argspec.args) == 1 else " (No default value is provided, please modify manually after config exported.)"
+                all_augmentor[name + default_str] = {"name": name, "defaults": default_val}
+                checkboxes.append({"name": name + default_str, "value": name})
+
+        data_augmentation_question = {
+            'type': 'checkbox',
+            'name': 'value',
+            'message': 'Please choose augmentors:',
+            'choices': checkboxes
+        }
+        data_augmentation_res = prompt(data_augmentation_question)
+        data_augmentation = {}
+        if data_augmentation_res:
+            for v in data_augmentation_res:
+                data_augmentation[all_augmentor[v]["name"]] = all_augmentor[v]["defaults"]
 
     train_dataset_path_question = {
         'type': 'input',
@@ -272,7 +313,6 @@ def ask_questions():
     }
     training_epochs = prompt(training_epochs_question)
 
-    r = {}
     for k, v in locals().items():
         if k != 'r' and not k.endswith("question"):
             r[k] = v
