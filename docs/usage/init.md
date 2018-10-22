@@ -15,6 +15,7 @@ This is an example of configuration.
   choose task type  classification
   choose network  LmnetV1Quantize
   choose dataset format  Caltech101
+  enable data augmentation?  No
   training dataset path:  {dataset_dir}/train/
   set validataion dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  yes
   validataion dataset path:  {dataset_dir}/test/
@@ -23,7 +24,7 @@ This is an example of configuration.
   how many epochs do you run training (integer):  100
 ```
 
-#### how can I change small setting? Or I need to re-run `bluoil init` again?
+#### How can I change setting?
 
+You don't need to re-run `bluoil init` again.
 `blueoil init` just generates a config file in YAML format. You can change some settings, according to comments.
-

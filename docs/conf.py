@@ -71,7 +71,7 @@ source_parsers = {
 
 from recommonmark.transform import AutoStructify
 
-github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
+github_doc_root = 'https://github.com/blue-oil/blueoil/tree/master/docs/'
 
 # The master toctree document.
 master_doc = 'index'
