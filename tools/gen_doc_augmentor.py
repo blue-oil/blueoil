@@ -20,8 +20,8 @@ def main(docs_dir):
         doc_file.write(doc)
         doc_file.write('\n\n')
 
-    with open(os.path.join(docs_dir, 'usage/augmentation.md'), 'w') as doc_file:
-        doc_file.write('Blueoil Data Augmentation\n')
+    with open(os.path.join(docs_dir, 'reference/augmentation.md'), 'w') as doc_file:
+        doc_file.write('Data Augmentation\n')
         doc_file.write('======\n\n')
 
         for name, obj in inspect.getmembers(augmentor):

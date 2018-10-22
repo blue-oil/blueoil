@@ -2,5 +2,7 @@
 Reference
 *********
 
-Reference is in preparation.
+.. toctree::
+   :maxdepth: 1
 
+   augmentation
