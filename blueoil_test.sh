@@ -131,6 +131,7 @@ function init_test(){
         expect \"choose dataset format\"
         send \"${DATASET_FORMAT_NUMBER}\n\"
         ${QA_ENABLE_DATA_AUGMENTATION}
+        expect \"training dataset path:\"
         send \"${TRAINING_DATASET_PATH}\n\"
         expect \"set validataion dataset?\"
         send \"${SET_VALIDATION_PATH}\n\"
