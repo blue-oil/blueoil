@@ -1,8 +1,12 @@
-# Blueoil
+<div align="center">
+  <img src="https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/img/blueoil_cover.png">
+</div>
 
-Blueoil provides two features, training a neural network model, converting it to an executable binary (or library), which utilize FPGAs for acceleration.
+---
 
-This file is intended for company internal use so far.
+Blueoil provides two features.
+* Training a neural network model
+* Converting a trained model to an executable binary (or library), which utilize FPGAs for acceleration.
 
 ## Documentation
 
