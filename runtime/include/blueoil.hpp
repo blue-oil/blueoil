@@ -23,9 +23,17 @@ extern "C" {
 
 
 namespace blueoil {
-struct Tensor {
+class Tensor {
+public:
   std::vector<float> data;
   std::vector<int> shape;
+  int elems();
+  static Tensor zeros(std::vector<int> shape);
+  static Tensor array(std::vector<int> shape, float *data);
+  void dump();
+  bool allequal(const Tensor &tensor);
+  bool allclose(const Tensor &tensor);
+  bool allclose(const Tensor &tensor, float rtol, float atol);
 };
 
 
