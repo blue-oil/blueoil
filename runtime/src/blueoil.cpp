@@ -7,6 +7,7 @@
 #include <numeric>
 #include <algorithm>
 #include <cstdio>
+#include <math.h> // using fabs instead of std::abs for macOS clang bug.
 
 #include "blueoil.hpp"
 #include "blueoil_data_processor.hpp"
@@ -15,6 +16,111 @@
 
 
 namespace blueoil {
+
+int Tensor::elems() {
+    int n = 1;
+    for (auto itr = shape.begin(); itr != shape.end(); ++itr) {
+        n *= *itr;
+    }
+    return n;
+}
+Tensor Tensor::zeros(std::vector<int> shape) {
+    Tensor t;
+    t.shape = shape;
+    int elems = t.elems();
+    std::vector<float> data(elems, 0);
+    t.data = data;
+    return t;
+}
+Tensor Tensor::array(std::vector<int> shape, float *arr) {
+    Tensor t;
+    t.shape = shape;
+    int elems = t.elems();
+    std::vector<float> data(elems);
+    t.data = data;
+    std::memcpy(&(t.data[0]), arr, elems * sizeof(float));
+    return t;
+}
+static void Tensor_shape_dump(std::vector<int> shape) {
+    std::cout << "shape:";
+    for (auto itr = shape.begin(); itr != shape.end(); ++itr) {
+        std::cout << *itr << " ";
+    }
+    std::cout << std::endl;
+}
+static void Tensor_data_dump(float *data, std::vector<int> shape) {
+    if (shape.size() == 1) { // 1-D array
+        auto itr = shape.begin();
+        int n = *itr;
+        for (int i = 0 ; i < n ;  i++) {
+            std::cout << data[i] << " ";
+        }
+        std::cout << std::endl;
+    } else if (shape.size() == 2) { // 2-D arra
+        auto itr = shape.begin();
+        int w = *itr;
+        int c = *(itr+1);
+        for (int x = 0 ; x < w ; x++) {
+            for (int i = 0 ; i < c ; i++) {
+                std::cout << data[c*x + i] << " ";
+            }
+            std::cout << " ";
+        }
+        std::cout << std::endl;
+    } else { // 3-D over to recursive
+        auto itr = shape.begin();
+        int n  = *itr;
+        int stride = 1;
+        for (itr++; itr != shape.end(); ++itr) {
+            stride *= *itr;
+        }
+        std::vector<int> shape2 = shape;
+        shape2.erase(shape2.begin());
+        for (int i = 0 ; i < n ; i++) {
+            Tensor_data_dump(data + i*stride, shape2);
+        }
+    }
+}
+// dump N-dimentional array
+void Tensor::dump() {
+    Tensor_shape_dump(shape);
+    Tensor_data_dump(&(data[0]), shape);
+}
+
+// all elements exact equals check.
+bool blueoil::Tensor::allequal(const Tensor &tensor) {
+    if (shape != tensor.shape) {
+        return false;
+    }
+    if (memcmp(&(data[0]), &(tensor.data[0]),
+               this->elems() * sizeof(float))) {
+        return false;
+    }
+    return true;
+}
+
+// all elements nealy equals check.
+bool Tensor::allclose(const Tensor &tensor) {
+    float rtol=1.e-5, atol=1.e-8; // same as numpy isclose
+    return this->allclose(tensor, rtol, atol);
+}
+
+bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) {
+    if (shape != tensor.shape) {
+        return false;
+    }
+    int n = this->elems();
+    for (int i = 0 ; i < n ; i++) {
+	float a = data[i];
+	float b = tensor.data[i];
+	if (fabs(a - b) > (atol + rtol * fabs(b))) {
+	    return false;
+	}
+    }
+    return true;
+}
+
+
 // mapping process node to functions vector.
 void MappingProcess(const YAML::Node processors_node, std::vector<Processor>* functions) {
   switch (processors_node.Type()) {
