@@ -7,6 +7,7 @@
 #include <numeric>
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
 #include <cmath>
 
 #include "blueoil.hpp"
@@ -92,7 +93,7 @@ bool blueoil::Tensor::allequal(const Tensor &tensor) {
     if (shape != tensor.shape) {
         return false;
     }
-    if (memcmp(&(data[0]), &(tensor.data[0]),
+    if (std::memcmp(&(data[0]), &(tensor.data[0]),
                this->elems() * sizeof(float))) {
         return false;
     }
