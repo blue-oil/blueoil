@@ -7,7 +7,7 @@
 #include <numeric>
 #include <algorithm>
 #include <cstdio>
-#include <math.h> // using fabs instead of std::abs for macOS clang bug.
+#include <cmath>
 
 #include "blueoil.hpp"
 #include "blueoil_data_processor.hpp"
@@ -113,7 +113,7 @@ bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) {
     for (int i = 0 ; i < n ; i++) {
 	float a = data[i];
 	float b = tensor.data[i];
-	if (fabs(a - b) > (atol + rtol * fabs(b))) {
+	if (std::abs(a - b) > (atol + rtol * std::abs(b))) {
 	    return false;
 	}
     }
