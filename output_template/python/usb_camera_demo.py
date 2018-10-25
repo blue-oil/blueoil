@@ -81,7 +81,7 @@ def run_inference(img):
 
 def translate_image(img, width, height):
     resized_img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LINEAR)
-    return cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB)
+    return resized_img #cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB)
 
 
 def clear_queue(queue):
