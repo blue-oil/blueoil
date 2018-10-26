@@ -30,4 +30,4 @@ You don't need to re-run `bluoil init` again.
 `blueoil init` just generates a config file in YAML format. You can change some settings, according to comments.
 
 #### How to get details about data augmentation?
-Please see <a href="../reference/augmentation.html">here</a> for reference.
+Please see <a href="../reference/data_augmentor.html">here</a> for reference.
