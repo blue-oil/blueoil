@@ -38,6 +38,8 @@ from lmnet.utils.demo import (
     add_fps,
 )
 
+import matplotlib.pyplot as plt
+
 nn = None
 pre_process = None
 post_process = None
@@ -63,6 +65,7 @@ def add_class_label(canvas,
 
 
 def run_inference(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     global nn, pre_process, post_process
     start = time.time()
 
@@ -81,7 +84,7 @@ def run_inference(img):
 
 def translate_image(img, width, height):
     resized_img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LINEAR)
-    return resized_img #cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB)
+    return cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB)
 
 
 def clear_queue(queue):
