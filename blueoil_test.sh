@@ -89,9 +89,8 @@ function init_test(){
     NETWORK_NUMBER=$4
     DATASET_FORMAT_NUMBER=$5
     ENABLE_DATA_AUGMENTATION=$6
-    CHOOSE_TOP_TWO_AUG=$7
-    TRAINING_DATASET_PATH=$8
-    VALIDATION_DATASET_PATH=$9
+    TRAINING_DATASET_PATH=$7
+    VALIDATION_DATASET_PATH=$8
     CONFIG_NAME=${TEST_CONFIG_PREFIX}_${TEST_CASE}
     TEST_YML_CONFIG_FILE=./tests/config/${TEST_CASE}.yml
     echo "## Test of ${TEST_CASE}"
@@ -228,7 +227,7 @@ if [ "${YML_CONFIG_FILE}" == "" ]; then
             do
                 TRAINING_DATASET_PATH=$(get_yaml_param train_path tests/config/${TEST_CASE}.yml)
                 VALIDATION_DATASET_PATH=$(get_yaml_param test_path tests/config/${TEST_CASE}.yml)
-                init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${ENABLE_DATA_AUGMENTATION} 0 ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH}
+                init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${ENABLE_DATA_AUGMENTATION} ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH}
                 basic_test
                 if [ ${ADDITIONAL_TEST_FLAG} -eq 0 ]; then
                     # Run additional test only once
