@@ -3,6 +3,6 @@ Reference
 *********
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   augmentation
+   data_augmentor

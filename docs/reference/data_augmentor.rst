@@ -1,0 +1,1 @@
+.. include::  ../../lmnet/docs/source/data_augmentor.rst
