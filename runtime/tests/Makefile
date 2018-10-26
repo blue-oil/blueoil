@@ -1,6 +1,7 @@
 CXX = g++ -std=c++11
-INCLUDES = -I../include/ -I../yaml-cpp/include
-LIBS = `pkg-config --cflags --libs opencv` `pkg-config --cflags --libs yaml-cpp`
+INCLUDES = -I../yaml-cpp/include -I../include/ `pkg-config --cflags opencv`
+LIBS = ../yaml-cpp/build/libyaml-cpp.a `pkg-config --cflags --libs opencv`
+
 CXXFLAGS = -g -W -Wall -Wextra $(INCLUDES)
 LDFLAGS = $(LIBS)
 PROGS = test_tensor
