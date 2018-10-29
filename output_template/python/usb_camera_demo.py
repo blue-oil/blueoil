@@ -63,7 +63,7 @@ def add_class_label(canvas,
 
 
 def run_inference(img):
-#    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     global nn, pre_process, post_process
     start = time.time()
 
