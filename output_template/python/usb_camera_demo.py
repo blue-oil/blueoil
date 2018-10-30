@@ -63,6 +63,7 @@ def add_class_label(canvas,
 
 
 def run_inference(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     global nn, pre_process, post_process
     start = time.time()
 
@@ -77,11 +78,6 @@ def run_inference(img):
 
     fps = 1.0/(time.time() - start)
     return result, fps
-
-
-def translate_image(img, width, height):
-    resized_img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LINEAR)
-    return cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB)
 
 
 def clear_queue(queue):
