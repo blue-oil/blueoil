@@ -1,7 +1,6 @@
 #include <cstdlib>
 #include <iostream>
 #include "blueoil.hpp"
-#include "blueoil_data_processor.hpp"
 
 int test_tensor() {
     blueoil::Tensor tensor= blueoil::Tensor::zeros({2, 3});
