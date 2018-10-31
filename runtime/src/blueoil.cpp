@@ -25,23 +25,25 @@ int Tensor::elems() {
     }
     return n;
 }
-Tensor Tensor::zeros(std::vector<int> shape) {
-    Tensor t;
-    t.shape = shape;
-    int elems = t.elems();
+
+Tensor::Tensor(std::vector<int> shape) {
+    this->shape = shape;
+    int elems = this->elems();
     std::vector<float> data(elems, 0);
-    t.data = data;
-    return t;
+    this->data = data;
 }
-Tensor Tensor::array(std::vector<int> shape, float *arr) {
-    Tensor t;
-    t.shape = shape;
-    int elems = t.elems();
+Tensor::Tensor(std::vector<int> shape, std::vector<float> data) {
+    this->shape = shape;
+    this->data = data;
+}
+Tensor::Tensor(std::vector<int> shape, float *arr) {
+    this->shape = shape;
+    int elems = this->elems();
     std::vector<float> data(elems);
-    t.data = data;
-    std::memcpy(&(t.data[0]), arr, elems * sizeof(float));
-    return t;
+    this->data = data;
+    std::memcpy(&(this->data[0]), arr, elems * sizeof(float));
 }
+
 static void Tensor_shape_dump(std::vector<int> shape) {
     std::cout << "shape:";
     for (auto itr = shape.begin(); itr != shape.end(); ++itr) {
@@ -250,12 +252,7 @@ Tensor Predictor::Run(const Tensor& image) {
   Tensor pre_processed = RunPreProcess(image);
 
   // build network output tensor.
-  const int size = std::accumulate(
-      network_output_shape_.begin(), network_output_shape_.end(), 1, std::multiplies<int>());
-  Tensor n_output = {
-    std::vector<float>(size, 0),
-    network_output_shape_
-  };
+  Tensor n_output(network_output_shape_);
 
   network_run(net_, pre_processed.data.data(), n_output.data.data());
 

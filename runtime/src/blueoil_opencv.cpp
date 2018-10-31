@@ -17,7 +17,7 @@ Tensor Tensor_fromCVMat(cv::Mat img) {
     if ((channels != 1) && (channels != 3)) {
 	throw std::invalid_argument("wrong channles != 1,3");
     }
-    blueoil::Tensor tensor = blueoil::Tensor::zeros({height, width, channels});
+    blueoil::Tensor tensor({height, width, channels});
     for (int y = 0 ; y < height ; y++) {
 	for (int x = 0 ; x < width ; x++) {
 	    float *tensorPixel = blueoil::image::Tensor_at(tensor, x, y);

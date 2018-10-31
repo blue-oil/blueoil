@@ -25,10 +25,8 @@ float test_hwc_data[2][2][3] =  // packed RGB format
     };
 
 int test_image() {
-    blueoil::Tensor test_chw = blueoil::Tensor::array({3, 2, 2},
-						      (float *) test_chw_data);
-    blueoil::Tensor test_hwc = blueoil::Tensor::array({2, 2, 3},
-						      (float *) test_hwc_data);
+    blueoil::Tensor test_chw({3, 2, 2}, (float *) test_chw_data);
+    blueoil::Tensor test_hwc({2, 2, 3}, (float *) test_hwc_data);
     blueoil::Tensor test_chw_hwc = blueoil::image::Tensor_CHW_to_HWC(test_chw);
     blueoil::Tensor test_hwc_chw = blueoil::image::Tensor_HWC_to_CHW(test_hwc);
 

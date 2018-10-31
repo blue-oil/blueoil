@@ -16,14 +16,10 @@ int test_tensor() {
 			       {1, 2, 3},
 			       {7, 0, 9}
     };
-    blueoil::Tensor tensor0 = blueoil::Tensor::array({2, 3},
-						     (float *) tensor_data);
-    blueoil::Tensor tensor1 = blueoil::Tensor::array({2, 3},
-						     (float *) tensor_data);
-    blueoil::Tensor tensor2 = blueoil::Tensor::array({3, 2},  // shape diff
-						     (float *) tensor_data2);
-    blueoil::Tensor tensor3 = blueoil::Tensor::array({2, 3},  // data diff
-						     (float *) tensor_data3);
+    blueoil::Tensor tensor0({2, 3}, (float *) tensor_data);
+    blueoil::Tensor tensor1({2, 3}, (float *) tensor_data);
+    blueoil::Tensor tensor2({3, 2}, (float *) tensor_data2);  // shape diff
+    blueoil::Tensor tensor3({2, 3}, (float *) tensor_data3);  // data diff
     // equal
     if ((! tensor0.allequal(tensor1)) || (! tensor0.allclose(tensor1))) {
 	std::cerr << "tensor_test: tensor0 != tensor1" << std::endl;
