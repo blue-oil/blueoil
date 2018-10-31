@@ -28,7 +28,7 @@ float *Tensor_at(Tensor &tensor, const int x, const int y) {
     const int width  = tensor.shape[1];
     const int channels  = tensor.shape[2];
     if ((channels != 1) && (channels != 3)) {
-	throw "wrong channles != 1,3"; // XXX
+	throw std::invalid_argument("wrong channles != 1,3");
     }
     const int clamped_x = clamp(x, 0, width-1);
     const int clamped_y = clamp(y, 0, height-1);
@@ -44,7 +44,7 @@ Tensor Tensor_CHW_to_HWC(Tensor &tensor) {
     const int height = tensor.shape[1];
     const int width  = tensor.shape[2];
     if ((channels != 1) && (channels != 3)) {
-	throw "wrong channles != 1,3"; // XXX
+	throw std::invalid_argument("wrong channles != 1,3");
     }
     Tensor dstTensor = Tensor::zeros({height, width, channels});
     int srcPlaneSize = width * height;
@@ -68,7 +68,7 @@ Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
     int width  = tensor.shape[1];
     int channels  = tensor.shape[2];
     if ((channels != 1) && (channels != 3)) {
-	throw "wrong channles != 1,3"; // XXX
+	throw std::invalid_argument("wrong channles != 1,3");
     }
     Tensor dstTensor = Tensor::zeros({channels, height, width});
     float *srcImagePtr = &(tensor.data[0]);
@@ -92,7 +92,7 @@ Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
 Tensor ResizeHorizontal(Tensor &tensor, const int width,
 			const enum ResizeFilter filter) {
     if (filter != RESIZE_FILTER_NEAREST_NEIGHBOR) {
-	throw "unknown ResizeFilter:"; // XXX
+	throw std::invalid_argument("unknown ResizeFilter");
     }
     const int srcHeight = tensor.shape[0];
     const int srcWidth  = tensor.shape[1];
@@ -131,7 +131,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 Tensor ResizeVertical(Tensor &tensor, const int height,
 		      const enum ResizeFilter filter) {
     if (filter != RESIZE_FILTER_NEAREST_NEIGHBOR) {
-	throw "unknown ResizeFilter:"; // XXX
+	throw std::invalid_argument("unknown ResizeFilter");
     }    
     const int srcHeight = tensor.shape[0];
     const int srcWidth  = tensor.shape[1];
@@ -173,10 +173,10 @@ Tensor Resize(const Tensor& image, const int width, const int height,
     // int width  = image.shape[1];
     int channels  = image.shape[2];
     if ((channels != 1) && (channels != 3)) { // neither grayscale nor RGB
-	throw "wrong channles != 1,3"; // XXX
+	throw std::invalid_argument("wrong channles != 1,3");
     }
     if (filter != RESIZE_FILTER_NEAREST_NEIGHBOR) {
-	throw "unknown ResizeFilter:"; // XXX
+	throw std::invalid_argument("unknown ResizeFilter");
     }
     const int srcHeight = image.shape[0];
     const int srcWidth  = image.shape[1];

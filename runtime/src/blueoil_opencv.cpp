@@ -15,7 +15,7 @@ Tensor Tensor_fromCVMat(cv::Mat img) {
     int height = img.rows;
     int channels = img.elemSize();
     if ((channels != 1) && (channels != 3)) {
-	throw "wrong channles != 1,3"; // XXX
+	throw std::invalid_argument("wrong channles != 1,3");
     }
     blueoil::Tensor tensor = blueoil::Tensor::zeros({height, width, channels});
     for (int y = 0 ; y < height ; y++) {
@@ -24,12 +24,10 @@ Tensor Tensor_fromCVMat(cv::Mat img) {
 	    uchar *imgPixel = &(img.data[ y * img.step + x * img.elemSize()]);
 	    if (channels == 1) {
 		tensorPixel[0] = imgPixel[0]; // I (grayscale)
-	    } else if (channels == 3) {
+	    } else {  // (channels == 3)
 		tensorPixel[0] = imgPixel[2]; // R
 		tensorPixel[1] = imgPixel[1]; // G
 		tensorPixel[2] = imgPixel[0]; // B
-	    } else {
-		throw "wrong channles != 1,3"; // XXX
 	    }
 	}
     }
@@ -50,7 +48,7 @@ cv::Mat Tensor_toCVMat(Tensor &tensor) {
     } else if (channels == 3) {
 	img = cv::Mat::zeros(height, width, CV_8UC3); // uchar[3] rgb color
     } else {
-	throw "wrong channles != 1,3"; // XXX
+	throw std::invalid_argument("wrong channles != 1,3");
     }
     for (int y = 0 ; y < height ; y++) {
 	for (int x = 0 ; x < width ; x++) {
@@ -58,12 +56,10 @@ cv::Mat Tensor_toCVMat(Tensor &tensor) {
 	    uchar *imgPixel = &(img.data[ y * img.step + x * img.elemSize()]);
 	    if (channels == 1) {
 		imgPixel[0] = tensorPixel[0]; // I (grayscale)
-	    } else if (channels == 3) {
+	    } else {  // (channels == 3)
 		imgPixel[2] = tensorPixel[0]; // R
 		imgPixel[1] = tensorPixel[1]; // G
 		imgPixel[0] = tensorPixel[2]; // B
-	    } else {
-		throw "wrong channles != 1,3"; // XXX
 	    }
 	}
     }
