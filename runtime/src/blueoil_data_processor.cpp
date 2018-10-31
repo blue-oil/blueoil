@@ -23,10 +23,7 @@ Tensor Resize(const Tensor& image, const std::pair<int, int>& size) {
 }
 
 Tensor DivideBy255(const Tensor& image) {
-  Tensor out = {
-    image.data,
-    image.shape
-  };
+  Tensor out(image.shape, image.data);
 
   auto div255 = [](float i) { return i/255; };
   std::transform(image.data.begin(), image.data.end(), out.data.begin(), div255);
@@ -42,9 +39,7 @@ Tensor FormatYoloV2(const Tensor& input,
                     const std::string& data_format,
                     const std::pair<int, int>& image_size,
                     const int& num_classes) {
-  Tensor t;
-  t.data = input.data;
-  t.shape = input.shape;
+  Tensor t(input.shape, input.data);
 
   return t;
 }
@@ -60,9 +55,7 @@ Tensor FormatYoloV2(const Tensor& input, const FormatYoloV2Parameters& params) {
 
 // TODO(wakisaka): impl
 Tensor ExcludeLowScoreBox(const Tensor& input, const float& threshold) {
-  Tensor t;
-  t.data = input.data;
-  t.shape = input.shape;
+  Tensor t(input.shape, input.data);
 
   return t;
 }
@@ -72,9 +65,7 @@ Tensor NMS(const Tensor& input,
            const float& iou_threshold,
            const int& max_output_size,
            const bool& per_class) {
-  Tensor t;
-  t.data = input.data;
-  t.shape = input.shape;
+  Tensor t(input.shape, input.data);
 
   return t;
 }

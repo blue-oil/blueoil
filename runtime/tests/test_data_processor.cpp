@@ -62,10 +62,8 @@ int test_data_processor_resize() {
     // CWH (3-channel, height, width)
     int width = 4, height = 4;
     const std::pair<int, int>& image_size = std::make_pair(width, height);
-    blueoil::Tensor input = blueoil::Tensor::array({3, 8, 8},
-						   (float *)test_input);
-    blueoil::Tensor expect = blueoil::Tensor::array({3, 4, 4} ,
-						    (float *)test_expect);
+    blueoil::Tensor input({3, 8, 8}, (float *)test_input);
+    blueoil::Tensor expect({3, 4, 4}, (float *)test_expect);
     input = blueoil::image::Tensor_CHW_to_HWC(input);
     expect = blueoil::image::Tensor_CHW_to_HWC(expect);
     blueoil::Tensor output = blueoil::data_processor::Resize(input,

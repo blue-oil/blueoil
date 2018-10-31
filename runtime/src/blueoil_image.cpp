@@ -46,7 +46,7 @@ Tensor Tensor_CHW_to_HWC(Tensor &tensor) {
     if ((channels != 1) && (channels != 3)) {
 	throw std::invalid_argument("wrong channles != 1,3");
     }
-    Tensor dstTensor = Tensor::zeros({height, width, channels});
+    Tensor dstTensor({height, width, channels});
     int srcPlaneSize = width * height;
     float *srcImagePtr = &(tensor.data[0]);
     float *dstImagePtr = &(dstTensor.data[0]);
@@ -70,7 +70,7 @@ Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
     if ((channels != 1) && (channels != 3)) {
 	throw std::invalid_argument("wrong channles != 1,3");
     }
-    Tensor dstTensor = Tensor::zeros({channels, height, width});
+    Tensor dstTensor({channels, height, width});
     float *srcImagePtr = &(tensor.data[0]);
     float *dstImagePtr = &(dstTensor.data[0]);
     for (int c = 0 ; c < channels ; c++) {
@@ -98,7 +98,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
     const int srcWidth  = tensor.shape[1];
     const int channels  = tensor.shape[2];
     const int height = srcHeight;
-    Tensor dstTensor = Tensor::zeros({height, width, channels});
+    Tensor dstTensor({height, width, channels});
     float xScale = static_cast<float>(width) / static_cast<float>(srcWidth);
     int xSrcWindow = std::floor(1/xScale);
     xSrcWindow = 1; // Nearest
@@ -137,7 +137,7 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
     const int srcWidth  = tensor.shape[1];
     const int channels  = tensor.shape[2];
     const int width = srcWidth;
-    Tensor dstTensor = Tensor::zeros({height, width, channels});
+    Tensor dstTensor({height, width, channels});
     float yScale = static_cast<float> (height) / static_cast<float>(srcHeight);
     int ySrcWindow = std::floor(1/yScale);
     ySrcWindow = 1; // Nearest
