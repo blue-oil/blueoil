@@ -3,32 +3,46 @@
 #include "blueoil.hpp"
 
 int test_tensor() {
-    blueoil::Tensor tensor= blueoil::Tensor::zeros({2, 3});
-    tensor.data[0] = 1;
-    tensor.data[1] = 2;
-    tensor.data[2] = 3;
-    tensor.data[3] = 7;
-    tensor.data[4] = 8;
-    tensor.data[5] = 9;
-    float expected_data[][3] = {
-				{1, 2, 3},
-				{7, 8, 9}
+    float tensor_data[][3] = {
+			      {1, 2, 3},
+			      {7, 8, 9}
     };
-    blueoil::Tensor expect = blueoil::Tensor::array({2, 3},
-						    (float *) expected_data);
-    if ((tensor.allequal(expect) == false) ||
-	(tensor.allclose(expect) == false)) {
-	std::cerr << "tensor_test: output != expect" << std::endl;
-	tensor.dump();
-	expect.dump();
+    float tensor_data2[][2] = {  // equals data, different shape.
+			       {1, 2},
+			       {3, 7},
+			       {8, 9}
+    };
+    float tensor_data3[][3] = {  // equals shape, different data.
+			       {1, 2, 3},
+			       {7, 0, 9}
+    };
+    blueoil::Tensor tensor0 = blueoil::Tensor::array({2, 3},
+						     (float *) tensor_data);
+    blueoil::Tensor tensor1 = blueoil::Tensor::array({2, 3},
+						     (float *) tensor_data);
+    blueoil::Tensor tensor2 = blueoil::Tensor::array({3, 2},  // shape diff
+						     (float *) tensor_data2);
+    blueoil::Tensor tensor3 = blueoil::Tensor::array({2, 3},  // data diff
+						     (float *) tensor_data3);
+    // equal
+    if ((! tensor0.allequal(tensor1)) || (! tensor0.allclose(tensor1))) {
+	std::cerr << "tensor_test: tensor0 != tensor1" << std::endl;
+	tensor0.dump();
+	tensor1.dump();
 	return EXIT_FAILURE;
     }
-    tensor.data[3] = 11; // NG data
-    if ((tensor.allequal(expect) == true) ||
-	(tensor.allclose(expect) == true)) {
-	std::cerr << "tensor_test: output(modified) == expect" << std::endl;
-	tensor.dump();
-	expect.dump();
+    // shape different
+    if (tensor1.allequal(tensor2) || tensor1.allclose(tensor2)) {
+	std::cerr << "tensor_test: tensor1 == tensor2" << std::endl;
+	tensor1.dump();
+	tensor2.dump();
+	return EXIT_FAILURE;
+     }
+    // data different
+    if (tensor1.allequal(tensor3) || tensor1.allclose(tensor3)) {
+	std::cerr << "tensor_test: tensor1 == tensor3" << std::endl;
+	tensor1.dump();
+	tensor3.dump();
 	return EXIT_FAILURE;
      }
     return EXIT_SUCCESS;
