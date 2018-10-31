@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "blueoil.hpp"
+#include "blueoil_image.hpp"
 #include "blueoil_data_processor.hpp"
 
 namespace blueoil {
@@ -15,24 +16,10 @@ namespace data_processor {
 
 // TODO(wakisaka): imple resize.
 Tensor Resize(const Tensor& image, const std::pair<int, int>& size) {
-  const int height = size.first;
-  const int width = size.second;
-  const int channel = 3;
-  const int num = 1;
-
-  Tensor t;
-  const int data_size = channel * width * height * num;
-  std::vector<float> data(data_size, 0);
-  std::vector<int> shape = {num, height, width, channel};
-
-  for (int i = 0; i < data.size(); ++i) {
-    float f_rand = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 255;
-    data[i] = f_rand;
-  }
-
-  t.data = data;
-  t.shape = shape;
-  return t;
+    const int width = size.first;
+    const int height = size.second;
+    return blueoil::image::Resize(image, width, height,
+				  blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
 }
 
 Tensor DivideBy255(const Tensor& image) {
