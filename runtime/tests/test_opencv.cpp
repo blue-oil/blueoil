@@ -39,7 +39,7 @@ int test_opencv() {
     return EXIT_SUCCESS;
 }
 
-int main(int argc, char **argv) {
+int main(void) {
     int status_code = 0;
     status_code = test_opencv();
     if (status_code != EXIT_FAILURE) {
