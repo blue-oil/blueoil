@@ -113,7 +113,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 		for (int x = -xSrcWindow ; x < xSrcWindow; x++){
 		    float *srcRGB = blueoil::image::Tensor_at(tensor,
 							      srcX + x, srcY);
-		    float d = fabs((float)x / (float)xSrcWindow);
+		    float d = std::abs((float)x / (float)xSrcWindow);
 		    float w = (d<0.5)?1.0:0.0; // NearestNeighbor
 		    // float w = 1.0 - d; // Bi-Linear
 		    v += w * srcRGB[c];
@@ -152,7 +152,7 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 		for (int y = -ySrcWindow ; y < ySrcWindow ; y++) {
 		    float *srcRGB = blueoil::image::Tensor_at(tensor,
 							      srcX, srcY + y);
-		    float d = fabs((float)y / (float)ySrcWindow);
+		    float d = std::abs((float)y / (float)ySrcWindow);
 		    float w = (d<0.5)?1.0:0.0; // NearestNeighbor
 		    // float w = 1.0 - d; // Bi-Linear
 		    v += w * srcRGB[c];
