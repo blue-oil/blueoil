@@ -74,13 +74,11 @@ int test_resize() {
 						    width, height,
 						    blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
     if (! output.allclose(expect)) {
-	std::cerr << "resize_test: output != expect" << std::endl;
+	std::cerr << "test_resize: output != expect" << std::endl;
 	output = blueoil::image::Tensor_HWC_to_CHW(output);
 	expect = blueoil::image::Tensor_HWC_to_CHW(expect);
 	output.dump();
 	expect.dump();
-	// blueoil::Tensor output2 = blueoil::image::Tensor_HWC_to_CHW(output);
-	// output2.dump();
 	return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
