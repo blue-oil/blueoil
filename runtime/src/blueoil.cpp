@@ -28,8 +28,7 @@ int Tensor::elems() {
 
 Tensor::Tensor(std::vector<int> shape) {
     this->shape = shape;
-    int elems = this->elems();
-    std::vector<float> data(elems, 0);
+    std::vector<float> data(this->elems(), 0);
     this->data = data;
 }
 Tensor::Tensor(std::vector<int> shape, std::vector<float> data) {
@@ -38,10 +37,8 @@ Tensor::Tensor(std::vector<int> shape, std::vector<float> data) {
 }
 Tensor::Tensor(std::vector<int> shape, float *arr) {
     this->shape = shape;
-    int elems = this->elems();
-    std::vector<float> data(elems);
+    std::vector<float> data(arr, arr + this->elems());
     this->data = data;
-    std::memcpy(&(this->data[0]), arr, elems * sizeof(float));
 }
 
 static void Tensor_shape_dump(std::vector<int> shape) {
