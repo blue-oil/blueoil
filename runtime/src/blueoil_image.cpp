@@ -107,23 +107,22 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 	for (int dstX = 0 ; dstX < width ; dstX++) {
 	    int srcX = (int) floorf(dstX/xScale);
 	    int srcY = dstY;
-	    float r = 0.0, g = 0.0, b = 0.0;
-	    float totalW = 0.0;
-	    for (int x = -xSrcWindow ; x < xSrcWindow; x++){
-		float *srcRGB = blueoil::image::Tensor_at(tensor,
-							srcX + x, srcY);
-		float d = fabs((float)x / (float)xSrcWindow);
-		float w = (d<0.5)?1.0:0.0; // NearestNeighbor
-		// float w = 1.0 - d; // Bi-Linear
-		r += w * srcRGB[0];
-		g += w * srcRGB[1];
-		b += w * srcRGB[2];
-		totalW += w;
+	    for (int c = 0 ; c < channels ; c++) {
+		float v = 0.0;
+		float totalW = 0.0;
+		for (int x = -xSrcWindow ; x < xSrcWindow; x++){
+		    float *srcRGB = blueoil::image::Tensor_at(tensor,
+							      srcX + x, srcY);
+		    float d = fabs((float)x / (float)xSrcWindow);
+		    float w = (d<0.5)?1.0:0.0; // NearestNeighbor
+		    // float w = 1.0 - d; // Bi-Linear
+		    v += w * srcRGB[c];
+		    totalW += w;
+		}
+		float *dstRGB = blueoil::image::Tensor_at(dstTensor,
+							  dstX, dstY);
+		dstRGB[c] = v / totalW;
 	    }
-	    float *dstRGB = blueoil::image::Tensor_at(dstTensor, dstX, dstY);
-	    dstRGB[0] = r / totalW;
-	    dstRGB[1] = g / totalW;
-	    dstRGB[2] = b / totalW;
 	}
     }
     return dstTensor;
@@ -147,23 +146,22 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 	for (int dstX = 0 ; dstX < width ; dstX++) {
 	    int srcX = dstX;
 	    int srcY = (int) floorf(dstY/yScale);
-	    float r = 0.0, g = 0.0, b = 0.0;
-	    float totalW = 0.0;
-	    for (int y = -ySrcWindow ; y < ySrcWindow ; y++) {
-		float *srcRGB = blueoil::image::Tensor_at(tensor,
-							srcX, srcY + y);
-		float d = fabs((float)y / (float)ySrcWindow);
-		float w = (d<0.5)?1.0:0.0; // NearestNeighbor
-		// float w = 1.0 - d; // Bi-Linear
-		r += w * srcRGB[0];
-		g += w * srcRGB[1];
-		b += w * srcRGB[2];
-		totalW += w;
+	    for (int c = 0 ; c < channels ; c++) {
+		float v = 0.0;
+		float totalW = 0.0;
+		for (int y = -ySrcWindow ; y < ySrcWindow ; y++) {
+		    float *srcRGB = blueoil::image::Tensor_at(tensor,
+							      srcX, srcY + y);
+		    float d = fabs((float)y / (float)ySrcWindow);
+		    float w = (d<0.5)?1.0:0.0; // NearestNeighbor
+		    // float w = 1.0 - d; // Bi-Linear
+		    v += w * srcRGB[c];
+		    totalW += w;
+		}
+		float *dstRGB = blueoil::image::Tensor_at(dstTensor,
+							  dstX, dstY);
+		dstRGB[c] = v / totalW;
 	    }
-	    float *dstRGB = blueoil::image::Tensor_at(dstTensor, dstX, dstY);
-	    dstRGB[0] = r / totalW;
-	    dstRGB[1] = g / totalW;
-	    dstRGB[2] = b / totalW;
 	}
     }
     return dstTensor;
@@ -171,6 +169,12 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 
 Tensor Resize(const Tensor& image, const int width, const int height,
 	      const enum ResizeFilter filter) {
+    // int height = image.shape[0];
+    // int width  = image.shape[1];
+    int channels  = image.shape[2];
+    if ((channels != 1) && (channels != 3)) { // neither grayscale nor RGB
+	throw "wrong channles != 1,3"; // XXX
+    }
     if (filter != RESIZE_FILTER_NEAREST_NEIGHBOR) {
 	throw "unknown ResizeFilter:"; // XXX
     }
