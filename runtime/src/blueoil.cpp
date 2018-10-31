@@ -19,11 +19,8 @@
 namespace blueoil {
 
 int Tensor::elems() {
-    int n = 1;
-    for (auto itr = shape.begin(); itr != shape.end(); ++itr) {
-        n *= *itr;
-    }
-    return n;
+    return std::accumulate(shape.begin(), shape.end(),
+			   1, std::multiplies<int>());
 }
 
 Tensor::Tensor(std::vector<int> shape) {
