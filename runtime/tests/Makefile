@@ -3,8 +3,8 @@ INCLUDES = -I../yaml-cpp/include -I../include/ `pkg-config --cflags opencv`
 LIBS = ../yaml-cpp/build/libyaml-cpp.a `pkg-config --cflags --libs opencv`
 CXXFLAGS = -g -W -Wall -Wextra $(INCLUDES)
 LDFLAGS = $(LIBS)
-PROGS = test_tensor test_resize
-MAIN_SRCS = test_tensor.cpp test_resize.cpp
+PROGS = test_tensor test_image test_opencv test_resize
+MAIN_SRCS = $(PROGS:=.cpp)
 MAIN_OBJS = $(MAIN_SRCS:.cpp=.o)
 SRCS = network_dummy.cpp ../src/blueoil.cpp ../src/blueoil_data_processor.cpp ../src/blueoil_image.cpp  ../src/blueoil_opencv.cpp
 OBJS := $(SRCS:.cpp=.o)
