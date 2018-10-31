@@ -30,10 +30,8 @@ int test_opencv() {
     expect = blueoil::image::Tensor_CHW_to_HWC(expect);
     if (! input.allequal(expect)) {
 	std::cerr << "test_opencv: input != expect" << std::endl;
-	input = blueoil::image::Tensor_HWC_to_CHW(input);
-	expect = blueoil::image::Tensor_HWC_to_CHW(expect);
-	input.dump();
-	expect.dump();
+	blueoil::image::Tensor_HWC_to_CHW(input).dump();
+	blueoil::image::Tensor_HWC_to_CHW(expect).dump();
 	return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
