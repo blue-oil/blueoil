@@ -99,7 +99,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
     const int channels  = tensor.shape[2];
     const int height = srcHeight;
     Tensor dstTensor = Tensor::zeros({height, width, channels});
-    float xScale = (float) width / (float) srcWidth;
+    float xScale = static_cast<float>(width) / static_cast<float>(srcWidth);
     int xSrcWindow = std::floor(1/xScale);
     xSrcWindow = 1; // Nearest
     //xSrcWindow = (xSrcWindow < 2)? 2 :xSrcWindow; // Bi-Liner
@@ -113,7 +113,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 		for (int x = -xSrcWindow ; x < xSrcWindow; x++){
 		    float *srcRGB = blueoil::image::Tensor_at(tensor,
 							      srcX + x, srcY);
-		    float d = std::abs((float)x / (float)xSrcWindow);
+		    float d = std::abs(static_cast<float>(x) / static_cast<float> (xSrcWindow));
 		    float w = (d<0.5)?1.0:0.0; // NearestNeighbor
 		    // float w = 1.0 - d; // Bi-Linear
 		    v += w * srcRGB[c];
@@ -138,7 +138,7 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
     const int channels  = tensor.shape[2];
     const int width = srcWidth;
     Tensor dstTensor = Tensor::zeros({height, width, channels});
-    float yScale = (float) height / (float) srcHeight;
+    float yScale = static_cast<float> (height) / static_cast<float>(srcHeight);
     int ySrcWindow = std::floor(1/yScale);
     ySrcWindow = 1; // Nearest
     // ySrcWindow = (ySrcWindow < 2)? 2 :ySrcWindow; // Bi-Linear
@@ -152,7 +152,7 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 		for (int y = -ySrcWindow ; y < ySrcWindow ; y++) {
 		    float *srcRGB = blueoil::image::Tensor_at(tensor,
 							      srcX, srcY + y);
-		    float d = std::abs((float)y / (float)ySrcWindow);
+		    float d = std::abs(static_cast<float>(y) / static_cast<float> (ySrcWindow));
 		    float w = (d<0.5)?1.0:0.0; // NearestNeighbor
 		    // float w = 1.0 - d; // Bi-Linear
 		    v += w * srcRGB[c];
