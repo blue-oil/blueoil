@@ -16,7 +16,7 @@ enum ResizeFilter {
 		   RESIZE_FILTER_BI_LINEAR
 };
 
-Tensor Resize(const Tensor& image, const int width, const int height,
+Tensor Resize(const Tensor& image, const std::pair<int, int>& size,
 	      const enum ResizeFilter filter);
     
 } // namespace image

@@ -167,11 +167,11 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
     return dstTensor;
 } 
 
-Tensor Resize(const Tensor& image, const int width, const int height,
+Tensor Resize(const Tensor& image, const std::pair<int, int>& size,
 	      const enum ResizeFilter filter) {
-    // int height = image.shape[0];
-    // int width  = image.shape[1];
     int channels  = image.shape[2];
+    const int width = size.first;
+    const int height = size.second;
     if ((channels != 1) && (channels != 3)) { // neither grayscale nor RGB
 	throw std::invalid_argument("wrong channles != 1,3");
     }
