@@ -27,7 +27,7 @@ class Tensor {
 public:
   std::vector<float> data;
   std::vector<int> shape;
-  int elems();
+  int shapeVolume();
   Tensor(std::vector<int> shape);
   Tensor(std::vector<int> shape, std::vector<float> data);
   Tensor(std::vector<int> shape, float *data);

@@ -18,14 +18,14 @@
 
 namespace blueoil {
 
-int Tensor::elems() {
+int Tensor::shapeVolume() {
     return std::accumulate(shape.begin(), shape.end(),
 			   1, std::multiplies<int>());
 }
 
 Tensor::Tensor(std::vector<int> shape) {
     this->shape = std::move(shape);
-    std::vector<float> data(this->elems(), 0);
+    std::vector<float> data(this->shapeVolume(), 0);
     this->data = std::move(data);
 }
 Tensor::Tensor(std::vector<int> shape, std::vector<float> data) {
@@ -34,7 +34,7 @@ Tensor::Tensor(std::vector<int> shape, std::vector<float> data) {
 }
 Tensor::Tensor(std::vector<int> shape, float *arr) {
     this->shape = std::move(shape);
-    std::vector<float> data(arr, arr + this->elems());
+    std::vector<float> data(arr, arr + this->shapeVolume());
     this->data = std::move(data);
 }
 
@@ -102,7 +102,7 @@ bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) {
     if (shape != tensor.shape) {
         return false;
     }
-    int n = this->elems();
+    int n = this->data.size();
     for (int i = 0 ; i < n ; i++) {
 	float a = data[i];
 	float b = tensor.data[i];
