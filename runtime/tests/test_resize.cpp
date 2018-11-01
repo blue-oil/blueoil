@@ -76,13 +76,23 @@ int test_resize() {
     return EXIT_SUCCESS;
 }
 
-int command_resize(char **argv) {
+int command_resize(int argc, char **argv) {
     char *infile = argv[1];
     int width = atoi(argv[2]);
     int height = atoi(argv[3]);
+    blueoil::image::ResizeFilter filter = blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR;
     if ((width <= 0) || (height <= 0)) {
 	std::cerr << "width <= 0 || height <= 0" << std::endl;
 	return EXIT_FAILURE;
+    }
+    if (5 < argc) {
+	int f = atoi(argv[4]);
+	if ((f != blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR) &&
+	    ( f != blueoil::image::RESIZE_FILTER_BI_LINEAR)) {
+	    std::cerr << "unknown filter:" << f << std::endl;
+	    return EXIT_FAILURE;
+	}
+	filter = static_cast<blueoil::image::ResizeFilter>(f);
     }
     char *outfile = argv[4];
     std::cout << "infile:" << infile << " width:" << width <<
@@ -95,7 +105,7 @@ int command_resize(char **argv) {
     blueoil::Tensor input = blueoil::opencv::Tensor_fromCVMat(img);
     const std::pair<int, int>& size = std::make_pair(width, height);
     blueoil::Tensor output = blueoil::image::Resize(input, size,
-						    blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
+						    filter);
     cv::Mat img2 = blueoil::opencv::Tensor_toCVMat(output);
     cv::imwrite(outfile, img2);
     return EXIT_SUCCESS;
@@ -103,8 +113,8 @@ int command_resize(char **argv) {
 
 int main(int argc, char **argv) {
     int status_code = 0;
-    if (argc == 5) {
-	status_code = command_resize(argv);
+    if ((argc == 5) || (argc == 6)) {
+	status_code = command_resize(argc, argv);
 	std::exit(status_code);	
     }
     if (argc == 1) {
@@ -116,6 +126,6 @@ int main(int argc, char **argv) {
     }
     std::cerr <<
 	"Usage: " << argv[0] << " # unit test. no news is good news" << std::endl <<
-	"Usage: " << argv[0] << " <input image> <dstWidth> <dstHeight> <output  image>" << std::endl;
+	"Usage: " << argv[0] << " <input image> <dstWidth> <dstHeight> <output  image> [<filter(1:nn,2:bl)>]" << std::endl;
     std::exit(EXIT_SUCCESS);
 }

@@ -91,9 +91,6 @@ Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
  */
 Tensor ResizeHorizontal(Tensor &tensor, const int width,
 			const enum ResizeFilter filter) {
-    if (filter != RESIZE_FILTER_NEAREST_NEIGHBOR) {
-	throw std::invalid_argument("unknown ResizeFilter");
-    }
     const int srcHeight = tensor.shape[0];
     const int srcWidth  = tensor.shape[1];
     const int channels  = tensor.shape[2];
@@ -101,8 +98,11 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
     Tensor dstTensor({height, width, channels});
     float xScale = static_cast<float>(width) / static_cast<float>(srcWidth);
     int xSrcWindow = std::floor(1/xScale);
-    xSrcWindow = 1; // Nearest
-    //xSrcWindow = (xSrcWindow < 2)? 2 :xSrcWindow; // Bi-Liner
+    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
+	xSrcWindow = 1; // Nearest
+    } else {
+	xSrcWindow = (xSrcWindow < 2)? 2 :xSrcWindow; // Bi-Liner
+    }
     for (int dstY = 0 ; dstY < height ; dstY++) {
 	for (int dstX = 0 ; dstX < width ; dstX++) {
 	    int srcX = (int) std::floor(dstX/xScale);
@@ -114,8 +114,12 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 		    float *srcRGB = blueoil::image::Tensor_at(tensor,
 							      srcX + x, srcY);
 		    float d = std::abs(static_cast<float>(x) / static_cast<float> (xSrcWindow));
-		    float w = (d<0.5)?1.0:0.0; // NearestNeighbor
-		    // float w = 1.0 - d; // Bi-Linear
+		    float w;
+		    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
+			w = (d<0.5)?1.0:0.0; // NearestNeighbor
+		    } else {
+			w = 1.0 - d; // Bi-Linear
+		    }
 		    v += w * srcRGB[c];
 		    totalW += w;
 		}
@@ -130,9 +134,6 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 
 Tensor ResizeVertical(Tensor &tensor, const int height,
 		      const enum ResizeFilter filter) {
-    if (filter != RESIZE_FILTER_NEAREST_NEIGHBOR) {
-	throw std::invalid_argument("unknown ResizeFilter");
-    }    
     const int srcHeight = tensor.shape[0];
     const int srcWidth  = tensor.shape[1];
     const int channels  = tensor.shape[2];
@@ -140,8 +141,11 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
     Tensor dstTensor({height, width, channels});
     float yScale = static_cast<float> (height) / static_cast<float>(srcHeight);
     int ySrcWindow = std::floor(1/yScale);
-    ySrcWindow = 1; // Nearest
-    // ySrcWindow = (ySrcWindow < 2)? 2 :ySrcWindow; // Bi-Linear
+    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
+	ySrcWindow = 1; // Nearest
+    } else {  // Bi-Linear
+	ySrcWindow = (ySrcWindow < 2)? 2 :ySrcWindow;
+    }
     for (int dstY = 0 ; dstY < height ; dstY++) {
 	for (int dstX = 0 ; dstX < width ; dstX++) {
 	    int srcX = dstX;
@@ -153,8 +157,12 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 		    float *srcRGB = blueoil::image::Tensor_at(tensor,
 							      srcX, srcY + y);
 		    float d = std::abs(static_cast<float>(y) / static_cast<float> (ySrcWindow));
-		    float w = (d<0.5)?1.0:0.0; // NearestNeighbor
-		    // float w = 1.0 - d; // Bi-Linear
+		    float w;
+		    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
+			w = (d<0.5)?1.0:0.0; // NearestNeighbor
+		    } else {
+			w = 1.0 - d; // Bi-Linear
+		    }
 		    v += w * srcRGB[c];
 		    totalW += w;
 		}
@@ -175,7 +183,8 @@ Tensor Resize(const Tensor& image, const std::pair<int, int>& size,
     if ((channels != 1) && (channels != 3)) { // neither grayscale nor RGB
 	throw std::invalid_argument("wrong channles != 1,3");
     }
-    if (filter != RESIZE_FILTER_NEAREST_NEIGHBOR) {
+    if ((filter != RESIZE_FILTER_NEAREST_NEIGHBOR) &&
+	(filter != RESIZE_FILTER_BI_LINEAR)) {
 	throw std::invalid_argument("unknown ResizeFilter");
     }
     const int srcHeight = image.shape[0];

@@ -12,8 +12,8 @@ Tensor Tensor_CHW_to_HWC(Tensor &tensor);
 Tensor Tensor_HWC_to_CHW(Tensor &tensor);
 
 enum ResizeFilter {
-		   RESIZE_FILTER_NEAREST_NEIGHBOR = 0,
-		   RESIZE_FILTER_BI_LINEAR
+		   RESIZE_FILTER_NEAREST_NEIGHBOR = 1,
+		   RESIZE_FILTER_BI_LINEAR = 2,
 };
 
 Tensor Resize(const Tensor& image, const std::pair<int, int>& size,
