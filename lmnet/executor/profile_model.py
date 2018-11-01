@@ -181,6 +181,10 @@ def run(experiment_id, restore_path, config_file, bit, unquant_layers):
         environment.init(experiment_id)
         config = config_util.load(config_file)
 
+    config.BATCH_SIZE = 1
+    config.NETWORK.BATCH_SIZE = 1
+    config.DATASET.BATCH_SIZE = 1
+
     executor.init_logging(config)
     config_util.display(config)
 
