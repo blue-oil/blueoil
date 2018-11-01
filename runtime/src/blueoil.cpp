@@ -26,19 +26,17 @@ int Tensor::shapeVolume(std::vector<int> shape) {
 			   1, std::multiplies<int>());
 }
 
-Tensor::Tensor(std::vector<int> shape) {
-    this->shape = std::move(shape);
-    std::vector<float> data(this->shapeVolume(), 0);
-    this->data = std::move(data);
+Tensor::Tensor(std::vector<int> shape)
+    : shape(std::move(shape)),
+      data(std::vector<float>(this->shapeVolume(shape), 0)) {
 }
-Tensor::Tensor(std::vector<int> shape, std::vector<float> data) {
-    this->shape = std::move(shape);
-    this->data = std::move(data);
+Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
+    : shape(std::move(shape)),
+      data(std::move(data)) {
 }
-Tensor::Tensor(std::vector<int> shape, float *arr) {
-    this->shape = std::move(shape);
-    std::vector<float> data(arr, arr + this->shapeVolume());
-    this->data = std::move(data);
+Tensor::Tensor(std::vector<int> shape, float *arr)
+    : shape(std::move(shape)),
+      data(std::vector<float>(arr, arr + this->shapeVolume(shape))) {
 }
 
 static void Tensor_shape_dump(std::vector<int> shape) {
