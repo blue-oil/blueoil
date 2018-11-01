@@ -24,19 +24,27 @@ extern "C" {
 
 namespace blueoil {
 class Tensor {
-public:
+private:
   std::vector<float> m_data;
   std::vector<int> m_shape;
+  int shapeVolume();
+  int shapeVolume(std::vector<int> shape);
+public:
   Tensor(std::vector<int> shape);
   Tensor(std::vector<int> shape, std::vector<float> data);
   Tensor(std::vector<int> shape, float *data);
+  Tensor(const Tensor &tensor);
+  std::vector<int> shape();
+  std::vector<int> shape() const;
+  float* data();
   void dump();
+  std::vector<float>::const_iterator begin() const;
+  std::vector<float>::const_iterator end() const;
+  std::vector<float>::iterator begin();
+  std::vector<float>::iterator end();
   bool allequal(const Tensor &tensor);
   bool allclose(const Tensor &tensor);
   bool allclose(const Tensor &tensor, float rtol, float atol);
-private:
-  int shapeVolume();
-  int shapeVolume(std::vector<int> shape);
 };
 
 

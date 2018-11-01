@@ -39,9 +39,10 @@ Tensor Tensor_fromCVMat(cv::Mat img) {
  * generate BGR OpenCV Mat images (not RGB)
  */
 cv::Mat Tensor_toCVMat(Tensor &tensor) {
-    int height = tensor.m_shape[0];
-    int width  = tensor.m_shape[1];
-    int channels = tensor.m_shape[2];
+    auto shape = tensor.shape();
+    int height = shape[0];
+    int width  = shape[1];
+    int channels = shape[2];
     cv::Mat img;
     if (channels == 1) {
 	img = cv::Mat::zeros(height, width, CV_8U);   // uchar[1] grayscale

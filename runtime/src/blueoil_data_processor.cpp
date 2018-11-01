@@ -21,10 +21,10 @@ Tensor Resize(const Tensor& image, const std::pair<int, int>& size) {
 }
 
 Tensor DivideBy255(const Tensor& image) {
-  Tensor out(image.m_shape, image.m_data);
+  Tensor out(image);
 
   auto div255 = [](float i) { return i/255; };
-  std::transform(image.m_data.begin(), image.m_data.end(), out.m_data.begin(), div255);
+  std::transform(image.begin(), image.end(), out.begin(), div255);
 
   return out;
 }
@@ -37,7 +37,7 @@ Tensor FormatYoloV2(const Tensor& input,
                     const std::string& data_format,
                     const std::pair<int, int>& image_size,
                     const int& num_classes) {
-  Tensor t(input.m_shape, input.m_data);
+  Tensor t(input);
 
   return t;
 }
@@ -53,7 +53,7 @@ Tensor FormatYoloV2(const Tensor& input, const FormatYoloV2Parameters& params) {
 
 // TODO(wakisaka): impl
 Tensor ExcludeLowScoreBox(const Tensor& input, const float& threshold) {
-  Tensor t(input.m_shape, input.m_data);
+  Tensor t(input);
 
   return t;
 }
@@ -63,7 +63,7 @@ Tensor NMS(const Tensor& input,
            const float& iou_threshold,
            const int& max_output_size,
            const bool& per_class) {
-  Tensor t(input.m_shape, input.m_data);
+  Tensor t(input);
 
   return t;
 }
@@ -77,5 +77,3 @@ Tensor NMS(const Tensor& input, const NMSParameters& params){
 };
 }  // namespace data_processor
 }  // namespace blueoil
-
-
