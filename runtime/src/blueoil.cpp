@@ -19,6 +19,9 @@
 namespace blueoil {
 
 int Tensor::shapeVolume() {
+    return this->shapeVolume(shape);
+}
+int Tensor::shapeVolume(std::vector<int> shape) {
     return std::accumulate(shape.begin(), shape.end(),
 			   1, std::multiplies<int>());
 }
