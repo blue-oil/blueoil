@@ -86,7 +86,7 @@ void Tensor::dump() {
 }
 
 // all elements exact equals check.
-bool blueoil::Tensor::allequal(const Tensor &tensor) {
+bool Tensor::allequal(const Tensor &tensor) {
     if ((shape != tensor.shape) || (data != tensor.data)) {
         return false;
     }
