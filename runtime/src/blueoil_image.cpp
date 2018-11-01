@@ -97,11 +97,12 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
     const int height = srcHeight;
     Tensor dstTensor({height, width, channels});
     float xScale = static_cast<float>(width) / static_cast<float>(srcWidth);
-    int xSrcWindow = std::floor(1/xScale);
+    int xSrcWindow;
     if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
-	xSrcWindow = 1; // Nearest
+	xSrcWindow = 1;  // Nearest
     } else {
-	xSrcWindow = (xSrcWindow < 2)? 2 :xSrcWindow; // Bi-Liner
+	xSrcWindow = std::floor(1/xScale);  // Bi-Liner
+	xSrcWindow = (xSrcWindow < 2)? 2 :xSrcWindow;
     }
     for (int dstY = 0 ; dstY < height ; dstY++) {
 	for (int dstX = 0 ; dstX < width ; dstX++) {
@@ -140,10 +141,11 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
     const int width = srcWidth;
     Tensor dstTensor({height, width, channels});
     float yScale = static_cast<float> (height) / static_cast<float>(srcHeight);
-    int ySrcWindow = std::floor(1/yScale);
+    int ySrcWindow;
     if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
-	ySrcWindow = 1; // Nearest
-    } else {  // Bi-Linear
+	ySrcWindow = 1;  // Nearest
+    } else {
+	ySrcWindow = std::floor(1/yScale);  // Bi-Linear
 	ySrcWindow = (ySrcWindow < 2)? 2 :ySrcWindow;
     }
     for (int dstY = 0 ; dstY < height ; dstY++) {
