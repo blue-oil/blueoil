@@ -19,7 +19,7 @@
 namespace blueoil {
 
 int Tensor::shapeVolume() {
-    return this->shapeVolume(shape);
+    return this->shapeVolume(m_shape);
 }
 int Tensor::shapeVolume(std::vector<int> shape) {
     return std::accumulate(shape.begin(), shape.end(),
@@ -27,16 +27,16 @@ int Tensor::shapeVolume(std::vector<int> shape) {
 }
 
 Tensor::Tensor(std::vector<int> shape)
-    : shape(std::move(shape)),
-      data(std::vector<float>(this->shapeVolume(shape), 0)) {
+    : m_shape(std::move(shape)),
+      m_data(std::vector<float>(this->shapeVolume(shape), 0)) {
 }
 Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
-    : shape(std::move(shape)),
-      data(std::move(data)) {
+    : m_shape(std::move(shape)),
+      m_data(std::move(data)) {
 }
 Tensor::Tensor(std::vector<int> shape, float *arr)
-    : shape(std::move(shape)),
-      data(std::vector<float>(arr, arr + this->shapeVolume(shape))) {
+    : m_shape(std::move(shape)),
+      m_data(std::vector<float>(arr, arr + this->shapeVolume(shape))) {
 }
 
 static void Tensor_shape_dump(std::vector<int> shape) {
@@ -81,13 +81,13 @@ static void Tensor_data_dump(float *data, std::vector<int> shape) {
 }
 // dump N-dimentional array
 void Tensor::dump() {
-    Tensor_shape_dump(shape);
-    Tensor_data_dump(&(data[0]), shape);
+    Tensor_shape_dump(m_shape);
+    Tensor_data_dump(&(m_data[0]), m_shape);
 }
 
 // all elements exact equals check.
 bool Tensor::allequal(const Tensor &tensor) {
-    if ((shape != tensor.shape) || (data != tensor.data)) {
+    if ((m_shape != tensor.m_shape) || (m_data != tensor.m_data)) {
         return false;
     }
     return true;
@@ -100,13 +100,13 @@ bool Tensor::allclose(const Tensor &tensor) {
 }
 
 bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) {
-    if (shape != tensor.shape) {
+    if (m_shape != tensor.m_shape) {
         return false;
     }
-    int n = this->data.size();
+    int n = this->m_data.size();
     for (int i = 0 ; i < n ; i++) {
-	float a = data[i];
-	float b = tensor.data[i];
+	float a = m_data[i];
+	float b = tensor.m_data[i];
 	if (std::abs(a - b) > (atol + rtol * std::abs(b))) {
 	    return false;
 	}
@@ -245,7 +245,7 @@ Tensor Predictor::Run(const Tensor& image) {
   // build network output tensor.
   Tensor n_output(network_output_shape_);
 
-  network_run(net_, pre_processed.data.data(), n_output.data.data());
+  network_run(net_, pre_processed.m_data.data(), n_output.m_data.data());
 
   Tensor post_processed = RunPostProcess(n_output);
 
