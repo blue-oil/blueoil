@@ -24,18 +24,18 @@ int Tensor::elems() {
 }
 
 Tensor::Tensor(std::vector<int> shape) {
-    this->shape = shape;
+    this->shape = std::move(shape);
     std::vector<float> data(this->elems(), 0);
-    this->data = data;
+    this->data = std::move(data);
 }
 Tensor::Tensor(std::vector<int> shape, std::vector<float> data) {
-    this->shape = shape;
-    this->data = data;
+    this->shape = std::move(shape);
+    this->data = std::move(data);
 }
 Tensor::Tensor(std::vector<int> shape, float *arr) {
-    this->shape = shape;
+    this->shape = std::move(shape);
     std::vector<float> data(arr, arr + this->elems());
-    this->data = data;
+    this->data = std::move(data);
 }
 
 static void Tensor_shape_dump(std::vector<int> shape) {
