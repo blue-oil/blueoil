@@ -38,6 +38,19 @@ Tensor::Tensor(std::vector<int> shape, float *arr)
     : m_shape(std::move(shape)),
       m_data(std::vector<float>(arr, arr + this->shapeVolume(shape))) {
 }
+Tensor::Tensor(const Tensor &tensor)
+    : m_shape(tensor.m_shape),
+      m_data(tensor.m_data) {
+}
+std::vector<int> Tensor::shape() {
+    return m_shape;
+}
+std::vector<int> Tensor::shape() const {
+    return m_shape;
+}
+float* Tensor::data() {
+    return &(m_data[0]);
+}
 
 static void Tensor_shape_dump(std::vector<int> shape) {
     std::cout << "shape:";
@@ -83,6 +96,19 @@ static void Tensor_data_dump(float *data, std::vector<int> shape) {
 void Tensor::dump() {
     Tensor_shape_dump(m_shape);
     Tensor_data_dump(&(m_data[0]), m_shape);
+}
+
+std::vector<float>::const_iterator Tensor::begin() const {
+    return this->m_data.begin();
+}
+std::vector<float>::const_iterator Tensor::end() const {
+    return this->m_data.end();
+}
+std::vector<float>::iterator Tensor::begin() {
+    return this->m_data.begin();
+}
+std::vector<float>::iterator Tensor::end() {
+    return this->m_data.end();
 }
 
 // all elements exact equals check.
@@ -245,7 +271,7 @@ Tensor Predictor::Run(const Tensor& image) {
   // build network output tensor.
   Tensor n_output(network_output_shape_);
 
-  network_run(net_, pre_processed.m_data.data(), n_output.m_data.data());
+  network_run(net_, pre_processed.data(), n_output.data());
 
   Tensor post_processed = RunPostProcess(n_output);
 
