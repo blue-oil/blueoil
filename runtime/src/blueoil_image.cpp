@@ -24,32 +24,32 @@ T clamp(const T x, const T lowerLimit, const T upperLimit) {
  * return RGB float array
  */
 float *Tensor_at(Tensor &tensor, const int x, const int y) {
-    const int height = tensor.shape[0];
-    const int width  = tensor.shape[1];
-    const int channels  = tensor.shape[2];
+    const int height = tensor.m_shape[0];
+    const int width  = tensor.m_shape[1];
+    const int channels  = tensor.m_shape[2];
     if ((channels != 1) && (channels != 3)) {
 	throw std::invalid_argument("wrong channles != 1,3");
     }
     const int clamped_x = clamp(x, 0, width-1);
     const int clamped_y = clamp(y, 0, height-1);
     const int scanlineSize = width * channels;
-    float *imagePtr = &(tensor.data[0]);
+    float *imagePtr = &(tensor.m_data[0]);
     float *scanlinePtr = imagePtr + clamped_y * scanlineSize;
     float *pixelPtr = scanlinePtr + clamped_x * channels;
     return pixelPtr;
 }
 
 Tensor Tensor_CHW_to_HWC(Tensor &tensor) {
-    const int channels  = tensor.shape[0];
-    const int height = tensor.shape[1];
-    const int width  = tensor.shape[2];
+    const int channels  = tensor.m_shape[0];
+    const int height = tensor.m_shape[1];
+    const int width  = tensor.m_shape[2];
     if ((channels != 1) && (channels != 3)) {
 	throw std::invalid_argument("wrong channles != 1,3");
     }
     Tensor dstTensor({height, width, channels});
     int srcPlaneSize = width * height;
-    float *srcImagePtr = &(tensor.data[0]);
-    float *dstImagePtr = &(dstTensor.data[0]);
+    float *srcImagePtr = &(tensor.m_data[0]);
+    float *dstImagePtr = &(dstTensor.m_data[0]);
     for (int y = 0 ; y < height ; y++) {
 	for (int x = 0 ; x < width ; x++) {
 	    float *srcPixelPtr0 = srcImagePtr + x + (y * height);
@@ -64,15 +64,15 @@ Tensor Tensor_CHW_to_HWC(Tensor &tensor) {
 }
 
 Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
-    int height = tensor.shape[0];
-    int width  = tensor.shape[1];
-    int channels  = tensor.shape[2];
+    int height = tensor.m_shape[0];
+    int width  = tensor.m_shape[1];
+    int channels  = tensor.m_shape[2];
     if ((channels != 1) && (channels != 3)) {
 	throw std::invalid_argument("wrong channles != 1,3");
     }
     Tensor dstTensor({channels, height, width});
-    float *srcImagePtr = &(tensor.data[0]);
-    float *dstImagePtr = &(dstTensor.data[0]);
+    float *srcImagePtr = &(tensor.m_data[0]);
+    float *dstImagePtr = &(dstTensor.m_data[0]);
     for (int c = 0 ; c < channels ; c++) {
 	float *srcPixelPtr = srcImagePtr + c;
 	for (int y = 0 ; y < height ; y++) {
@@ -91,9 +91,9 @@ Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
  */
 Tensor ResizeHorizontal(Tensor &tensor, const int width,
 			const enum ResizeFilter filter) {
-    const int srcHeight = tensor.shape[0];
-    const int srcWidth  = tensor.shape[1];
-    const int channels  = tensor.shape[2];
+    const int srcHeight = tensor.m_shape[0];
+    const int srcWidth  = tensor.m_shape[1];
+    const int channels  = tensor.m_shape[2];
     const int height = srcHeight;
     Tensor dstTensor({height, width, channels});
     float xScale = static_cast<float>(width) / static_cast<float>(srcWidth);
@@ -135,9 +135,9 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 
 Tensor ResizeVertical(Tensor &tensor, const int height,
 		      const enum ResizeFilter filter) {
-    const int srcHeight = tensor.shape[0];
-    const int srcWidth  = tensor.shape[1];
-    const int channels  = tensor.shape[2];
+    const int srcHeight = tensor.m_shape[0];
+    const int srcWidth  = tensor.m_shape[1];
+    const int channels  = tensor.m_shape[2];
     const int width = srcWidth;
     Tensor dstTensor({height, width, channels});
     float yScale = static_cast<float> (height) / static_cast<float>(srcHeight);
@@ -179,7 +179,7 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 
 Tensor Resize(const Tensor& image, const std::pair<int, int>& size,
 	      const enum ResizeFilter filter) {
-    int channels  = image.shape[2];
+    int channels  = image.m_shape[2];
     const int width = size.first;
     const int height = size.second;
     if ((channels != 1) && (channels != 3)) { // neither grayscale nor RGB
@@ -189,8 +189,8 @@ Tensor Resize(const Tensor& image, const std::pair<int, int>& size,
 	(filter != RESIZE_FILTER_BI_LINEAR)) {
 	throw std::invalid_argument("unknown ResizeFilter");
     }
-    const int srcHeight = image.shape[0];
-    const int srcWidth  = image.shape[1];
+    const int srcHeight = image.m_shape[0];
+    const int srcWidth  = image.m_shape[1];
     Tensor dstImage = image;
     if  (srcWidth != width) {
 	dstImage = ResizeHorizontal(dstImage, width, filter);
