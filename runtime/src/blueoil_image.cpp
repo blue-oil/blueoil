@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <cassert>
 
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
@@ -28,9 +29,7 @@ float *Tensor_at(Tensor &tensor, const int x, const int y) {
     const int height = shape[0];
     const int width  = shape[1];
     const int channels = shape[2];
-    if ((channels != 1) && (channels != 3)) {
-	throw std::invalid_argument("wrong channles != 1,3");
-    }
+    assert((channels == 1) || (channels == 3)); // grayscale or RGB
     const int clamped_x = clamp(x, 0, width-1);
     const int clamped_y = clamp(y, 0, height-1);
     const int scanlineSize = width * channels;
@@ -45,9 +44,7 @@ Tensor Tensor_CHW_to_HWC(Tensor &tensor) {
     const int channels  = shape[0];
     const int height = shape[1];
     const int width  = shape[2];
-    if ((channels != 1) && (channels != 3)) {
-	throw std::invalid_argument("wrong channles != 1,3");
-    }
+    assert((channels == 1) || (channels == 3)); // grayscale or RGB
     Tensor dstTensor({height, width, channels});
     int srcPlaneSize = width * height;
     float *srcImagePtr = tensor.data();
@@ -70,9 +67,7 @@ Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
     int height = shape[0];
     int width  = shape[1];
     int channels = shape[2];
-    if ((channels != 1) && (channels != 3)) {
-	throw std::invalid_argument("wrong channles != 1,3");
-    }
+    assert((channels == 1) || (channels == 3)); // grayscale or RGB
     Tensor dstTensor({channels, height, width});
     float *srcImagePtr = tensor.data();
     float *dstImagePtr = dstTensor.data();
@@ -188,13 +183,8 @@ Tensor Resize(const Tensor& image, const std::pair<int, int>& size,
     int channels = shape[2];
     const int width = size.first;
     const int height = size.second;
-    if ((channels != 1) && (channels != 3)) { // neither grayscale nor RGB
-	throw std::invalid_argument("wrong channles != 1,3");
-    }
-    if ((filter != RESIZE_FILTER_NEAREST_NEIGHBOR) &&
-	(filter != RESIZE_FILTER_BI_LINEAR)) {
-	throw std::invalid_argument("unknown ResizeFilter");
-    }
+    assert((channels == 1) || (channels == 3)); // grayscale or RGB
+    assert((filter == RESIZE_FILTER_NEAREST_NEIGHBOR) || (channels == RESIZE_FILTER_BI_LINEAR));
     const int srcHeight = shape[0];
     const int srcWidth  = shape[1];
     Tensor dstImage = image;
