@@ -15,12 +15,9 @@
 # =============================================================================
 import inspect
 import re
-import sys
 
 import whaaaaat
 from jinja2 import Environment, FileSystemLoader
-
-sys.path.insert(0, "lmnet")
 
 from lmnet.data_processor import Processor
 import lmnet.data_augmentor as augmentor
@@ -193,8 +190,6 @@ def save_config(blueoil_config):
 
 
 def ask_questions():
-    r = {}
-
     model_name_question = {
         'type': 'input',
         'name': 'value',
@@ -241,12 +236,12 @@ def ask_questions():
             if inspect.isclass(obj) and issubclass(obj, Processor):
                 argspec = inspect.getfullargspec(obj)
                 default_val = [(arg, default) for arg, default in zip(argspec.args[1:], argspec.defaults) if default]
-                default_str = " (default: {})".format(
-                    ", ".join(["{}={}".format(a, d) for a, d in default_val])) if default_val or len(
-                    argspec.args) == 1 else " (No default value is provided, please modify manually after config exported.)"
+                if default_val or len(argspec.args) == 1:
+                    default_str = " (default: {})".format(", ".join(["{}={}".format(a, d) for a, d in default_val]))
+                else:
+                    default_str = " (No default value is provided, please modify manually after config exported.)"
                 all_augmentor[name + default_str] = {"name": name, "defaults": default_val}
                 checkboxes.append({"name": name + default_str, "value": name})
-
         data_augmentation_question = {
             'type': 'checkbox',
             'name': 'value',
@@ -313,6 +308,7 @@ def ask_questions():
     }
     training_epochs = prompt(training_epochs_question)
 
+    r = {}
     for k, v in locals().items():
         if k != 'r' and not k.endswith("question"):
             r[k] = v
