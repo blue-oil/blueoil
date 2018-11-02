@@ -1,5 +1,7 @@
 /* Copyright 2018 Leapmind Inc. */
 
+#include <cassert>
+
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
 #include "blueoil_opencv.hpp"
@@ -14,9 +16,7 @@ Tensor Tensor_fromCVMat(cv::Mat img) {
     int width = img.cols;
     int height = img.rows;
     int channels = img.elemSize();
-    if ((channels != 1) && (channels != 3)) {
-	throw std::invalid_argument("wrong channles != 1,3");
-    }
+    assert((channels == 1) || (channels == 3)); // grayscale or RGB
     blueoil::Tensor tensor({height, width, channels});
     for (int y = 0 ; y < height ; y++) {
 	for (int x = 0 ; x < width ; x++) {
@@ -44,12 +44,11 @@ cv::Mat Tensor_toCVMat(Tensor &tensor) {
     int width  = shape[1];
     int channels = shape[2];
     cv::Mat img;
+    assert((channels == 1) || (channels == 3)); // grayscale or RGB
     if (channels == 1) {
 	img = cv::Mat::zeros(height, width, CV_8U);   // uchar[1] grayscale
-    } else if (channels == 3) {
+    } else { //  (channels == 3)
 	img = cv::Mat::zeros(height, width, CV_8UC3); // uchar[3] rgb color
-    } else {
-	throw std::invalid_argument("wrong channles != 1,3");
     }
     for (int y = 0 ; y < height ; y++) {
 	for (int x = 0 ; x < width ; x++) {
