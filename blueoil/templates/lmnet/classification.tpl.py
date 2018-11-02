@@ -32,6 +32,7 @@ from lmnet.data_augmentor import (
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
+    PerImageStandardization
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -68,7 +69,11 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
+{% if first_layer_quantization == "yes" %}
     DivideBy255()
+{% else %}
+    PerImageStandardization()
+{% endif %}
 ])
 POST_PROCESSOR = None
 
@@ -88,6 +93,7 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 }
 NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
+NETWORK.QUANTIZE_FIRST_CONVOLUTION = {% if first_layer_quantization == "yes" %} True {% else %} False {% endif %}
 
 # dataset
 DATASET = EasyDict()

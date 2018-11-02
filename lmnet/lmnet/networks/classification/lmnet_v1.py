@@ -127,6 +127,7 @@ class LmnetV1Quantize(LmnetV1):
 
     def __init__(
             self,
+            quantize_first_convolution=True,
             activation_quantizer=None,
             activation_quantizer_kwargs=None,
             weight_quantizer=None,
