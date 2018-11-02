@@ -235,11 +235,18 @@ def ask_questions():
         for name, obj in inspect.getmembers(augmentor):
             if inspect.isclass(obj) and issubclass(obj, Processor):
                 argspec = inspect.getfullargspec(obj)
-                default_val = [(arg, default) for arg, default in zip(argspec.args[1:], argspec.defaults) if default]
-                if default_val or len(argspec.args) == 1:
+                # ignore self
+                args = argspec.args[1:]
+                defaults = argspec.defaults
+                if len(args) == len(defaults):
+                    default_val = [(arg, default) for arg, default in zip(args, defaults)]
                     default_str = " (default: {})".format(", ".join(["{}={}".format(a, d) for a, d in default_val]))
                 else:
-                    default_str = " (No default value is provided, please modify manually after config exported.)"
+                    defaults = ("# Please fill a value.",) * (len(args) - len(defaults)) + defaults
+                    default_val = [(arg, default) for arg, default in zip(args, defaults)]
+                    default_str = " (**caution**: No default value is provided, \
+please modify manually after config exported.)"
+
                 all_augmentor[name + default_str] = {"name": name, "defaults": default_val}
                 checkboxes.append({"name": name + default_str, "value": name})
         data_augmentation_question = {
