@@ -75,62 +75,62 @@ typedef struct Conv_params_type {
   bool has_thresholds;
 } Conv_params_t;
 
-#define new_Conv_params(NAME)    \
-  {NAME::num_pe,                 \
-   NAME::nbits_per_word,         \
-   NAME::nbits_in_data,          \
-   NAME::nbits_k_data,           \
-   NAME::num_thresholds,         \
-                                 \
-   NAME::pad_w,                  \
-   NAME::pad_h,                  \
-   NAME::stride_w,               \
-   NAME::stride_h,               \
-                                 \
-   NAME::max_in_w,               \
-   NAME::max_in_h,               \
-   NAME::max_in_w_with_pad,      \
-   NAME::max_in_h_with_pad,      \
-   NAME::max_in_c,               \
-   NAME::max_in_c_by_word,       \
-   NAME::min_in_c,               \
-   NAME::min_in_c_by_word,       \
-   NAME::max_k_c,                \
-   NAME::max_k_c_by_word,        \
-                                 \
-   NAME::num_in_by_unit,         \
-   NAME::log_num_in_by_unit,     \
-   NAME::max_num_in_unit,        \
-                                 \
-   NAME::in_w,                   \
-   NAME::in_h,                   \
-   NAME::in_w_with_pad,          \
-   NAME::in_h_with_pad,          \
-   NAME::in_c,                   \
-   NAME::in_c_by_word,           \
-   NAME::in_size,                \
-   NAME::in_size_packed,         \
-                                 \
-   NAME::k_h,                    \
-   NAME::k_w,                    \
-   NAME::k_c,                    \
-   NAME::k_n,                    \
-   NAME::k_c_by_word,            \
-   NAME::k_size,                 \
-                                 \
-   NAME::out_h,                  \
-   NAME::out_w,                  \
-   NAME::out_c,                  \
-   NAME::out_size,               \
-                                 \
-   NAME::in_size_hp,             \
-   NAME::in_size_hp_packed,      \
-   NAME::in_size_hp_packed_spec, \
-   NAME::k_size_packed,          \
-                                 \
-   NAME::inb_h,                  \
-   NAME::inb_w,                  \
-   NAME::num_in_line,            \
+#define new_Conv_params(NAME)                                                  \
+  {NAME::num_pe,                                                               \
+   NAME::nbits_per_word,                                                       \
+   NAME::nbits_in_data,                                                        \
+   NAME::nbits_k_data,                                                         \
+   NAME::num_thresholds,                                                       \
+                                                                               \
+   NAME::pad_w,                                                                \
+   NAME::pad_h,                                                                \
+   NAME::stride_w,                                                             \
+   NAME::stride_h,                                                             \
+                                                                               \
+   NAME::max_in_w,                                                             \
+   NAME::max_in_h,                                                             \
+   NAME::max_in_w_with_pad,                                                    \
+   NAME::max_in_h_with_pad,                                                    \
+   NAME::max_in_c,                                                             \
+   NAME::max_in_c_by_word,                                                     \
+   NAME::min_in_c,                                                             \
+   NAME::min_in_c_by_word,                                                     \
+   NAME::max_k_c,                                                              \
+   NAME::max_k_c_by_word,                                                      \
+                                                                               \
+   NAME::num_in_by_unit,                                                       \
+   NAME::log_num_in_by_unit,                                                   \
+   NAME::max_num_in_unit,                                                      \
+                                                                               \
+   NAME::in_w,                                                                 \
+   NAME::in_h,                                                                 \
+   NAME::in_w_with_pad,                                                        \
+   NAME::in_h_with_pad,                                                        \
+   NAME::in_c,                                                                 \
+   NAME::in_c_by_word,                                                         \
+   NAME::in_size,                                                              \
+   NAME::in_size_packed,                                                       \
+                                                                               \
+   NAME::k_h,                                                                  \
+   NAME::k_w,                                                                  \
+   NAME::k_c,                                                                  \
+   NAME::k_n,                                                                  \
+   NAME::k_c_by_word,                                                          \
+   NAME::k_size,                                                               \
+                                                                               \
+   NAME::out_h,                                                                \
+   NAME::out_w,                                                                \
+   NAME::out_c,                                                                \
+   NAME::out_size,                                                             \
+                                                                               \
+   NAME::in_size_hp,                                                           \
+   NAME::in_size_hp_packed,                                                    \
+   NAME::in_size_hp_packed_spec,                                               \
+   NAME::k_size_packed,                                                        \
+                                                                               \
+   NAME::inb_h,                                                                \
+   NAME::inb_w,                                                                \
+   NAME::num_in_line,                                                          \
    NAME::has_thresholds};
 
 namespace conv_common_params {
@@ -142,7 +142,9 @@ static const unsigned num_thresholds = 4;
 
 static const unsigned max_in_c = 1024;
 static const unsigned max_in_c_by_word = max_in_c / nbits_per_word;
-}  // namespace conv_common_params
+static const unsigned min_in_c = 32;
+static const unsigned min_in_c_by_word = min_in_c / nbits_per_word;
+} // namespace conv_common_params
 
 namespace conv3x3_params {
 static const unsigned num_pe = conv_common_params::num_pe;
@@ -162,23 +164,26 @@ static const unsigned max_in_w_with_pad = max_in_w + (2 * pad_w);
 static const unsigned max_in_h_with_pad = max_in_h + (2 * pad_h);
 static const unsigned max_in_c = conv_common_params::max_in_c;
 static const unsigned max_in_c_by_word = conv_common_params::max_in_c_by_word;
-static const unsigned min_in_c = 32;
-static const unsigned min_in_c_by_word = min_in_c / nbits_per_word;
+static const unsigned min_in_c = conv_common_params::min_in_c;
+static const unsigned min_in_c_by_word = conv_common_params::min_in_c_by_word;
 static const unsigned max_k_c = max_in_c;
 static const unsigned max_k_c_by_word = max_k_c / nbits_per_word;
 
-static const unsigned num_in_by_unit = min_in_c_by_word;  // 4
-static const unsigned log_num_in_by_unit = 2;             // log2(num_in_by_unit) = log2(4) = 2
-static const unsigned max_num_in_unit = (max_in_c_by_word + (num_in_by_unit - 1)) >> log_num_in_by_unit;  // / 4
+static const unsigned num_in_by_unit = min_in_c_by_word; // 4
+static const unsigned log_num_in_by_unit =
+    2; // log2(num_in_by_unit) = log2(4) = 2
+static const unsigned max_num_in_unit =
+    (max_in_c_by_word + (num_in_by_unit - 1)) >> log_num_in_by_unit; // / 4
 
-static const unsigned in_w = 4;
-static const unsigned in_h = 4;
+static const unsigned in_w = 16;
+static const unsigned in_h = 16;
 static const unsigned in_w_with_pad = in_w + (2 * pad_w);
 static const unsigned in_h_with_pad = in_h + (2 * pad_h);
 static const unsigned in_c = 32;
 static const unsigned in_c_by_word = in_c / nbits_per_word;
 static const unsigned in_size = in_h * in_w * in_c;
-static const unsigned in_size_packed = in_h * in_w * in_c_by_word * nbits_in_data;
+static const unsigned in_size_packed =
+    in_h * in_w * in_c_by_word * nbits_in_data;
 
 static const unsigned k_h = 3;
 static const unsigned k_w = 3;
@@ -192,17 +197,20 @@ static const unsigned out_w = (in_w_with_pad - k_w) + 1;
 static const unsigned out_c = k_n;
 static const unsigned out_size = out_h * out_w * out_c;
 
-static const unsigned in_size_hp = (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c;
-static const unsigned in_size_hp_packed = (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c_by_word * nbits_in_data;
-static const unsigned in_size_hp_packed_spec =
-    ((in_h + 1) + 2 * pad_h) * (in_w + 2 * pad_w) * in_c_by_word * nbits_in_data;
+static const unsigned in_size_hp =
+    (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c;
+static const unsigned in_size_hp_packed =
+    (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c_by_word * nbits_in_data;
+static const unsigned in_size_hp_packed_spec = ((in_h + 1) + 2 * pad_h) *
+                                               (in_w + 2 * pad_w) *
+                                               in_c_by_word * nbits_in_data;
 static const unsigned k_size_packed = k_h * k_w * k_c_by_word * nbits_k_data;
 
 static const unsigned inb_h = k_h + 1;
 static const unsigned inb_w = k_w + 1;
 static const unsigned num_in_line = (max_in_w_with_pad * (k_h - 1)) + k_w;
 static const bool has_thresholds = true;
-}  // namespace conv3x3_params
+} // namespace conv3x3_params
 
 namespace conv1x1_params {
 static const unsigned num_pe = conv3x3_params::num_pe;
@@ -222,23 +230,26 @@ static const unsigned max_in_w_with_pad = max_in_w + (2 * pad_w);
 static const unsigned max_in_h_with_pad = max_in_h + (2 * pad_h);
 static const unsigned max_in_c = conv_common_params::max_in_c;
 static const unsigned max_in_c_by_word = conv_common_params::max_in_c_by_word;
-static const unsigned min_in_c = 32;
-static const unsigned min_in_c_by_word = min_in_c / nbits_per_word;
+static const unsigned min_in_c = conv_common_params::min_in_c;
+static const unsigned min_in_c_by_word = conv_common_params::min_in_c_by_word;
 static const unsigned max_k_c = max_in_c;
 static const unsigned max_k_c_by_word = max_k_c / nbits_per_word;
 
-static const unsigned num_in_by_unit = min_in_c_by_word;  // 4
-static const unsigned log_num_in_by_unit = 2;             // log2(num_in_by_unit) = log2(4) = 2
-static const unsigned max_num_in_unit = (max_in_c_by_word + (num_in_by_unit - 1)) >> log_num_in_by_unit;  // / 4
+static const unsigned num_in_by_unit = min_in_c_by_word; // 4
+static const unsigned log_num_in_by_unit =
+    2; // log2(num_in_by_unit) = log2(4) = 2
+static const unsigned max_num_in_unit =
+    (max_in_c_by_word + (num_in_by_unit - 1)) >> log_num_in_by_unit; // / 4
 
-static const unsigned in_w = 4;
-static const unsigned in_h = 4;
+static const unsigned in_w = 16;
+static const unsigned in_h = 16;
 static const unsigned in_w_with_pad = in_w + (2 * pad_w);
 static const unsigned in_h_with_pad = in_h + (2 * pad_h);
-static const unsigned in_c = 128;
+static const unsigned in_c = 32;
 static const unsigned in_c_by_word = in_c / nbits_per_word;
 static const unsigned in_size = in_h * in_w * in_c;
-static const unsigned in_size_packed = in_h * in_w * in_c_by_word * nbits_in_data;
+static const unsigned in_size_packed =
+    in_h * in_w * in_c_by_word * nbits_in_data;
 
 static const unsigned k_h = 1;
 static const unsigned k_w = 1;
@@ -252,17 +263,20 @@ static const unsigned out_w = (in_w_with_pad - k_w) + 1;
 static const unsigned out_c = k_n;
 static const unsigned out_size = out_h * out_w * out_c;
 
-static const unsigned in_size_hp = (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c;
-static const unsigned in_size_hp_packed = (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c_by_word * nbits_in_data;
-static const unsigned in_size_hp_packed_spec =
-    ((in_h + 1) + 2 * pad_h) * (in_w + 2 * pad_w) * in_c_by_word * nbits_in_data;
+static const unsigned in_size_hp =
+    (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c;
+static const unsigned in_size_hp_packed =
+    (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c_by_word * nbits_in_data;
+static const unsigned in_size_hp_packed_spec = ((in_h + 1) + 2 * pad_h) *
+                                               (in_w + 2 * pad_w) *
+                                               in_c_by_word * nbits_in_data;
 static const unsigned k_size_packed = k_h * k_w * k_c_by_word * nbits_k_data;
 
 static const unsigned inb_h = k_h + 1;
 static const unsigned inb_w = k_w + 1;
 static const unsigned num_in_line = (max_in_w_with_pad * (k_h - 1)) + k_w;
 static const bool has_thresholds = true;
-}  // namespace conv1x1_params
+} // namespace conv1x1_params
 
 namespace a8w1_conv3x3_params {
 static const unsigned num_pe = 8;
@@ -279,7 +293,8 @@ static const unsigned max_in_c = conv_common_params::max_in_c;
 static const unsigned min_in_c = 32;
 static const unsigned max_k_c = max_in_c;
 
-static const unsigned log_num_in_by_unit = 2;  // log2(num_in_by_unit) = log2(4) = 2
+static const unsigned log_num_in_by_unit =
+    2; // log2(num_in_by_unit) = log2(4) = 2
 
 static const unsigned in_w = 320;
 static const unsigned in_h = 320;
@@ -299,13 +314,28 @@ static const unsigned out_w = (in_w_with_pad - k_w) + 1;
 static const unsigned out_c = k_n;
 static const unsigned out_size = out_h * out_w * out_c;
 
-static const unsigned in_size_hp = (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c;
+static const unsigned in_size_hp =
+    (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c;
 
 static const unsigned tile_h = 32;
 static const unsigned tile_w = 32;
-static const unsigned tile_offset = tile_w - (k_w - 1);        // 30
-static const unsigned num_in_line = tile_w * (k_h - 1) + k_w;  // 77
+static const unsigned tile_offset = tile_w - (k_w - 1);       // 30
+static const unsigned num_in_line = tile_w * (k_h - 1) + k_w; // 77
 
 static const unsigned num_thresholds = conv_common_params::num_thresholds;
 static const bool has_thresholds = false;
-}  // namespace a8w1_conv3x3_params
+} // namespace a8w1_conv3x3_params
+
+namespace conv_kn2row_params {
+static const unsigned num_pe = conv_common_params::num_pe;
+static const unsigned num_thresholds = conv_common_params::num_thresholds;
+
+static const unsigned max_in_c = conv_common_params::max_in_c;
+static const unsigned max_in_c_by_word = conv_common_params::max_in_c_by_word;
+static const unsigned min_in_c = conv_common_params::min_in_c;
+static const unsigned min_in_c_by_word = conv_common_params::min_in_c_by_word;
+
+static const unsigned tile_h = 10;
+static const unsigned tile_w = 10;
+static const unsigned out_c = num_pe;
+} // namespace conv_kn2row_params
