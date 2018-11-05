@@ -18,38 +18,22 @@ limitations under the License.
 #define T_buf int16
 
 hls_avalon_slave_component void intel_hls_qconv_with_kn2row_impl(
-    hls_avalon_slave_register_argument ihc::mm_master<T_in_hls,
-                                                      ihc::aspace<1>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &in_data,
-    hls_avalon_slave_register_argument ihc::mm_master<T_out_hls,
-                                                      ihc::aspace<2>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &out_data,
-    hls_avalon_slave_register_argument ihc::mm_master<T_k_hls,
-                                                      ihc::aspace<3>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &k_data,
-    hls_avalon_slave_register_argument ihc::mm_master<T_out_hls,
-                                                      ihc::aspace<4>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &out_data_partial,
+    hls_avalon_slave_register_argument
+        ihc::mm_master<T_in_hls, ihc::aspace<1>, ihc::awidth<32>,
+                       ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+                       ihc::align<16>, ihc::waitrequest<true>> &in_data,
+    hls_avalon_slave_register_argument
+        ihc::mm_master<T_out_hls, ihc::aspace<2>, ihc::awidth<32>,
+                       ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+                       ihc::align<16>, ihc::waitrequest<true>> &out_data,
+    hls_avalon_slave_register_argument
+        ihc::mm_master<T_k_hls, ihc::aspace<3>, ihc::awidth<32>,
+                       ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+                       ihc::align<16>, ihc::waitrequest<true>> &k_data,
+    hls_avalon_slave_register_argument ihc::mm_master<
+        T_out_hls, ihc::aspace<4>, ihc::awidth<32>, ihc::dwidth<128>,
+        ihc::latency<0>, ihc::maxburst<32>, ihc::align<16>,
+        ihc::waitrequest<true>> &out_data_partial,
     hls_avalon_slave_register_argument int32 in_w,
     hls_avalon_slave_register_argument int32 in_h,
     hls_avalon_slave_register_argument int32 in_c_by_word,
@@ -66,7 +50,8 @@ hls_avalon_slave_component void intel_hls_qconv_with_kn2row_impl(
   for (char kh = 0; kh < k_h; kh++) {
     for (char kw = 0; kw < k_w; kw++) {
       for (short oc = 0; oc < out_c; oc += num_pe) {
-        hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4, 5) T_q k_local[max_in_c_by_word][num_pe];
+        hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4, 5)
+            T_q k_local[max_in_c_by_word][num_pe];
 
         for (unsigned short kc = 0; kc < in_c_by_word; kc++) {
 #pragma unroll
@@ -74,7 +59,9 @@ hls_avalon_slave_component void intel_hls_qconv_with_kn2row_impl(
             const int _k_w = int(k_w);
             const int _out_c = int(out_c);
             const int _in_c = int(in_c_by_word);
-            k_local[kc][kn] = k_data[kh * _k_w * _out_c * _in_c + kw * _out_c * _in_c + oc * _in_c + kc * num_pe + kn];
+            k_local[kc][kn] =
+                k_data[kh * _k_w * _out_c * _in_c + kw * _out_c * _in_c +
+                       oc * _in_c + kc * num_pe + kn];
           }
         }
 
@@ -86,10 +73,13 @@ hls_avalon_slave_component void intel_hls_qconv_with_kn2row_impl(
             const int ow = _iw - kw;
 
             bool first_load = ((kh == 0) && (kw == 0));
-            bool input_on = ((ih >= 0) && (ih < in_h) && (iw >= 0) && (iw < in_w));
-            bool output_on = ((oh >= 0) && (oh < out_h) && (ow >= 0) && (ow < out_w));
+            bool input_on =
+                ((ih >= 0) && (ih < in_h) && (iw >= 0) && (iw < in_w));
+            bool output_on =
+                ((oh >= 0) && (oh < out_h) && (ow >= 0) && (ow < out_w));
 
-            // unsigned idx_out = oh * short(out_w) * short(out_c) + ow * short(out_c) + oc;
+            // unsigned idx_out = oh * short(out_w) * short(out_c) + ow *
+            // short(out_c) + oc;
 
             hls_register T_buf out0[num_pe];
             hls_register T_buf out1[num_pe];
@@ -100,7 +90,8 @@ hls_avalon_slave_component void intel_hls_qconv_with_kn2row_impl(
               for (unsigned short kn = 0; kn < num_pe; kn++) {
                 const int _out_w = int(out_w);
                 const int _out_c = int(out_c);
-                T_buf out = out_data_partial[oh * _out_w * _out_c + ow * _out_c + oc + kn];
+                T_buf out = out_data_partial[oh * _out_w * _out_c +
+                                             ow * _out_c + oc + kn];
                 out0[kn] = (first_load) ? T_buf(0) : out;
               }
             } else {
@@ -124,8 +115,11 @@ hls_avalon_slave_component void intel_hls_qconv_with_kn2row_impl(
                 if (input_on) {
                   const int _in_c = int(in_c_by_word);
                   const int _in_w = int(in_w);
-                  // unsigned idx_in = nbits_in_data * (ih * short(in_w) * in_c + iw * in_c + ic);
-                  in0 = in_data[nbits_in_data * (ih * _in_w * _in_c + iw * _in_c + ic) + ib];
+                  // unsigned idx_in = nbits_in_data * (ih * short(in_w) * in_c
+                  // + iw * in_c + ic);
+                  in0 = in_data[nbits_in_data *
+                                    (ih * _in_w * _in_c + iw * _in_c + ic) +
+                                ib];
                 }
 
                 T_q in1 = in0;
@@ -150,7 +144,8 @@ hls_avalon_slave_component void intel_hls_qconv_with_kn2row_impl(
               for (unsigned short kn = 0; kn < num_pe; kn++) {
                 const int _out_w = int(out_w);
                 const int _out_c = int(out_c);
-                out_data[oh * _out_w * _out_c + ow * _out_c + oc + kn] = out2[kn];
+                out_data[oh * _out_w * _out_c + ow * _out_c + oc + kn] =
+                    out2[kn];
               }
             }
           }
@@ -163,38 +158,22 @@ hls_avalon_slave_component void intel_hls_qconv_with_kn2row_impl(
 #define T_buf_k2c int16
 
 hls_avalon_slave_component void intel_hls_a8w1_qconv_with_kn2row_impl(
-    hls_avalon_slave_register_argument ihc::mm_master<T_in_k2c,
-                                                      ihc::aspace<1>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &in_data,
-    hls_avalon_slave_register_argument ihc::mm_master<T_out_k2c,
-                                                      ihc::aspace<2>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &out_data,
-    hls_avalon_slave_register_argument ihc::mm_master<T_k_k2c,
-                                                      ihc::aspace<3>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &k_data,
-    hls_avalon_slave_register_argument ihc::mm_master<T_out_k2c,
-                                                      ihc::aspace<4>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &out_data_partial,
+    hls_avalon_slave_register_argument
+        ihc::mm_master<T_in_k2c, ihc::aspace<1>, ihc::awidth<32>,
+                       ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+                       ihc::align<16>, ihc::waitrequest<true>> &in_data,
+    hls_avalon_slave_register_argument
+        ihc::mm_master<T_out_k2c, ihc::aspace<2>, ihc::awidth<32>,
+                       ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+                       ihc::align<16>, ihc::waitrequest<true>> &out_data,
+    hls_avalon_slave_register_argument
+        ihc::mm_master<T_k_k2c, ihc::aspace<3>, ihc::awidth<32>,
+                       ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+                       ihc::align<16>, ihc::waitrequest<true>> &k_data,
+    hls_avalon_slave_register_argument ihc::mm_master<
+        T_out_k2c, ihc::aspace<4>, ihc::awidth<32>, ihc::dwidth<128>,
+        ihc::latency<0>, ihc::maxburst<32>, ihc::align<16>,
+        ihc::waitrequest<true>> &out_data_partial,
     hls_avalon_slave_register_argument int32 in_w,
     hls_avalon_slave_register_argument int32 in_h,
     hls_avalon_slave_register_argument int32 in_c,
@@ -287,37 +266,26 @@ hls_avalon_slave_component void intel_hls_a8w1_qconv_with_kn2row_impl(
 }
 
 hls_avalon_slave_component void intel_hls_apply_thresholds_impl(
-    hls_avalon_slave_register_argument ihc::mm_master<T_out_hls,
-                                                      ihc::aspace<1>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &in_data,
-    hls_avalon_slave_register_argument ihc::mm_master<T_out_hls,
-                                                      ihc::aspace<2>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &out_data,
-    hls_avalon_slave_register_argument ihc::mm_master<T_out_hls,
-                                                      ihc::aspace<3>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<128>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<16>,
-                                                      ihc::waitrequest<true> > &th_data,
+    hls_avalon_slave_register_argument
+        ihc::mm_master<T_out_hls, ihc::aspace<1>, ihc::awidth<32>,
+                       ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+                       ihc::align<16>, ihc::waitrequest<true>> &in_data,
+    hls_avalon_slave_register_argument
+        ihc::mm_master<T_out_hls, ihc::aspace<2>, ihc::awidth<32>,
+                       ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+                       ihc::align<16>, ihc::waitrequest<true>> &out_data,
+    hls_avalon_slave_register_argument
+        ihc::mm_master<T_out_hls, ihc::aspace<3>, ihc::awidth<32>,
+                       ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+                       ihc::align<16>, ihc::waitrequest<true>> &th_data,
     hls_avalon_slave_register_argument int32 out_w,
     hls_avalon_slave_register_argument int32 out_h,
     hls_avalon_slave_register_argument int32 out_c) {
 
   static const unsigned num_th = conv_common_params::num_thresholds;
   static const unsigned max_in_c = conv_common_params::max_in_c;
-  hls_memory hls_singlepump hls_bankbits(0,1,2,3,4) T_out_hls th_local[max_in_c][num_th];
+  hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4)
+      T_out_hls th_local[max_in_c][num_th];
 
   for (short oc = 0; oc < out_c; oc++) {
 #pragma unroll
@@ -343,7 +311,7 @@ hls_avalon_slave_component void intel_hls_apply_thresholds_impl(
         T_buf t2 = th_local[oc][2];
         T_buf flag = th_local[oc][3];
 
-        if (flag == 1)  // increasing function
+        if (flag == 1) // increasing function
         {
           if (x < t0)
             out_buf = 0;
@@ -353,7 +321,7 @@ hls_avalon_slave_component void intel_hls_apply_thresholds_impl(
             out_buf = 2;
           else
             out_buf = 3;
-        } else if (flag == -1)  // decreasing function
+        } else if (flag == -1) // decreasing function
         {
           if (x > t2)
             out_buf = 0;
@@ -365,7 +333,7 @@ hls_avalon_slave_component void intel_hls_apply_thresholds_impl(
             out_buf = 3;
         } else {
           // max value of 2 bit
-          out_buf = flag - 2;                 // note: 2 is a magic number!
+          out_buf = flag - 2; // note: 2 is a magic number!
         }
 
         out_data[idx_out] = out_buf;
