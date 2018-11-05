@@ -37,8 +37,10 @@ bool test_conv(input_type &in_type, Conv_params_t &p) {
 
   T_out *out_data = new T_out[p.out_size];
   T_out *out_data_gemm = new T_out[p.out_size];
+  T_out *out_data_conv_kn2row_tiling = new T_out[p.out_size];
   T_out *out_data_packed = new T_out[p.out_size];
-  T_out *out_data_qgemm = new T_out[p.out_size];
+  T_out *out_data_with_kn2row = new T_out[p.out_size];
+  T_out *out_data_qconv_kn2row_tiling = new T_out[p.out_size];
   T_out *out_data_hls = new T_out[p.out_size];
   T_out *out_data_hls_qgemm = new T_out[p.out_size];
   T_out *out_data_fpga = new T_out[p.out_size];
@@ -67,7 +69,8 @@ bool test_conv(input_type &in_type, Conv_params_t &p) {
             << "  width: " << p.out_w << std::endl
             << "  channel: " << p.out_c << std::endl
             << "num_pe: " << p.num_pe << std::endl
-            << "threhsold_skipping: " << ((p.has_thresholds) ? "on" : "off") << std::endl;
+            << "threhsold_skipping: " << ((p.has_thresholds) ? "on" : "off")
+            << std::endl;
   std::cout << "-------------------------------------------" << std::endl;
 
   if (in_type == SEQUENTIAL) {
@@ -109,34 +112,59 @@ bool test_conv(input_type &in_type, Conv_params_t &p) {
     }
   }
 
-  cpp::conv<KH, KW>(in_data, out_data, k_data, threshold_data, p.in_w, p.in_h, p.in_c, p.out_w, p.out_h, p.out_c,
-                    p.pad_w, p.stride_w);
+  cpp::conv<KH, KW>(in_data, out_data, k_data, threshold_data, p.in_w, p.in_h,
+                    p.in_c, p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
 
-  pack_input_channel_wise(in_data, in_data_packed, p.in_h, p.in_w, p.in_c, p.nbits_in_data);
+  cpp::conv_kn2row_tiling<KH, KW>(
+      in_data, out_data_conv_kn2row_tiling, k_data, threshold_data, p.in_w,
+      p.in_h, p.in_c, p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
+  comp_packed = compare_output(out_data_qconv_kn2row_tiling, out_data,
+                               "conv_kn2row_tiling", p.out_h, p.out_w, p.out_c);
+
+  pack_input_channel_wise(in_data, in_data_packed, p.in_h, p.in_w, p.in_c,
+                          p.nbits_in_data);
 
   pack_kernel_channel_wise(k_data, k_data_packed, p.k_h, p.k_w, p.k_c, p.k_n);
 
-  kernel_transform_NHWC_to_NoHWCNi(k_data_packed, k_data_packed_t, p.k_n, p.k_h, p.k_w, p.k_c_by_word, p.num_pe);
+  kernel_transform_NHWC_to_NoHWCNi(k_data_packed, k_data_packed_t, p.k_n, p.k_h,
+                                   p.k_w, p.k_c_by_word, p.num_pe);
 
-  kernel_transform_NHWC_to_HWNoCNi(k_data_packed, k_data_packed_hwnocni, p.k_n, p.k_h, p.k_w, p.k_c_by_word, p.num_pe);
+  kernel_transform_NHWC_to_HWNoCNi(k_data_packed, k_data_packed_hwnocni, p.k_n,
+                                   p.k_h, p.k_w, p.k_c_by_word, p.num_pe);
 
-  cpp::qconv_with_kn2row<KH, KW>(in_data_packed, out_data_qgemm, k_data_packed_hwnocni, threshold_data, p.in_w, p.in_h,
-                                 p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
-  comp_packed = compare_output(out_data_qgemm, out_data, "qconv_with_kn2row", p.out_h, p.out_w, p.out_c);
+  cpp::qconv_with_kn2row<KH, KW>(
+      in_data_packed, out_data_with_kn2row, k_data_packed_hwnocni,
+      threshold_data, p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w,
+      p.out_h, p.out_c, p.pad_w, p.stride_w);
+  comp_packed = compare_output(out_data_with_kn2row, out_data,
+                               "qconv_with_kn2row", p.out_h, p.out_w, p.out_c);
+
+  cpp::qconv_kn2row_tiling<KH, KW>(
+      in_data_packed, out_data_qconv_kn2row_tiling, k_data_packed_hwnocni,
+      threshold_data, p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w,
+      p.out_h, p.out_c, p.pad_w, p.stride_w);
+  comp_packed =
+      compare_output(out_data_qconv_kn2row_tiling, out_data,
+                     "qconv_kn2row_tiling", p.out_h, p.out_w, p.out_c);
 
 #if defined _INTEL_HLS_
 
-  intel_hls_qconv_with_kn2row(in_data_packed, out_data_hls_qgemm, k_data_packed_hwnocni, threshold_data, p.in_w, p.in_h,
-                              p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.k_w, p.k_h, p.pad_w,
-                              p.stride_w);
-  comp_packed = compare_output(out_data_hls_qgemm, out_data, "hls_qgemm", p.out_h, p.out_w, p.out_c);
+  intel_hls_qconv_with_kn2row(
+      in_data_packed, out_data_hls_qgemm, k_data_packed_hwnocni, threshold_data,
+      p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h,
+      p.out_c, p.k_w, p.k_h, p.pad_w, p.stride_w);
+  comp_packed = compare_output(out_data_hls_qgemm, out_data, "hls_qgemm",
+                               p.out_h, p.out_w, p.out_c);
 
 #elif defined _DE10_NANO_
 
-  de10_nano::qconv_with_kn2row(p.k_w, p.k_h, in_data_packed, out_data_fpga, k_data_packed_hwnocni, p.in_w, p.in_h,
-                               p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
+  de10_nano::qconv_with_kn2row(p.k_w, p.k_h, in_data_packed, out_data_fpga,
+                               k_data_packed_hwnocni, p.in_w, p.in_h,
+                               p.in_c_by_word, p.nbits_in_data, p.out_w,
+                               p.out_h, p.out_c, p.pad_w, p.stride_w);
 
-  comp_fpga = compare_output(out_data_fpga, out_data, "fpga", p.out_h, p.out_w, p.out_c);
+  comp_fpga = compare_output(out_data_fpga, out_data, "fpga", p.out_h, p.out_w,
+                             p.out_c);
 
 #endif
 
@@ -150,7 +178,7 @@ bool test_conv(input_type &in_type, Conv_params_t &p) {
   delete[] out_data;
   delete[] out_data_gemm;
   delete[] out_data_packed;
-  delete[] out_data_qgemm;
+  delete[] out_data_with_kn2row;
   delete[] out_data_hls;
   delete[] out_data_hls_qgemm;
   delete[] out_data_fpga;
