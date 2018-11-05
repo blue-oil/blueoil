@@ -4,8 +4,6 @@ project(conv_sample CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
 
 get_filename_component(ROOT_DIR ${CMAKE_SOURCE_DIR} ABSOLUTE)
 get_filename_component(INTEL_HLS_DIR "${SRC_DIR}/intel_hls" ABSOLUTE)
@@ -29,17 +27,17 @@ elseif(UNIX AND NOT APPLE)
     get_filename_component(INTEL_HLS_LIB_DIR "$ENV{HLS_INSTALL_DIR}/host/linux64/lib/" ABSOLUTE)
 endif()
 
-
 include_directories(${INCLUDE_DIR})
-# link_directories(${HLS_LIB_DIR})
 
 file(GLOB_RECURSE TB_SRC "${TB_DIR}/*.cpp")
 file(GLOB_RECURSE CPP_SRC "${CPP_DIR}/*.cpp")
 file(GLOB_RECURSE INTEL_HLS_SRC "${INTEL_HLS_DIR}/*.cpp")
 set(SRC ${TB_SRC} ${CPP_SRC})
 
+enable_testing() 
 add_executable(x86 ${SRC})
 target_compile_options(x86 PRIVATE -std=c++0x
+                                   -O0
                                    -Wall
                                    -Wextra
                                    -Werror
@@ -47,7 +45,15 @@ target_compile_options(x86 PRIVATE -std=c++0x
                                    -Wno-unused-function
                                    -Wno-unused-parameter
                                    -Wno-unused-variable
-                                   -Wno-sign-compare)
+                                   -Wno-sign-compare
+                                   -fno-omit-frame-pointer
+                                   -fsanitize=address)
+target_link_libraries(x86
+  -fsanitize=address
+)
+add_test(NAME x86_test 
+         COMMAND x86 random
+         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 
 if(UNIX AND NOT APPLE)
