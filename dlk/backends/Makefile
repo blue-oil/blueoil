@@ -52,7 +52,7 @@ clean:
 
 
 x86:	CXX = g++
-x86:	FLAGS += $(INCLUDE) -O3 -std=c++0x -g
+x86:	FLAGS += $(INCLUDE) -O0 -std=c++0x -g
 
 arm:	CXX = arm-linux-gnueabihf-g++
 arm:    FLAGS += $(INCLUDE) -static -s -std=c++0x -O3
