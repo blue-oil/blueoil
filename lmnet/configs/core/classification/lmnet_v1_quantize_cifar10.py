@@ -23,7 +23,6 @@ from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
-    PerImageStandardization,
 )
 from lmnet.data_augmentor import (
     Crop,
