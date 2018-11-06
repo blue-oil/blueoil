@@ -69,7 +69,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-{% if first_layer_quantization == "yes" %}
+{% if quantize_first_convolution %}
     DivideBy255()
 {% else %}
     PerImageStandardization()
@@ -93,7 +93,6 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 }
 NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
-NETWORK.QUANTIZE_FIRST_CONVOLUTION = {% if first_layer_quantization == "yes" %} True {% else %} False {% endif %}
 
 # dataset
 DATASET = EasyDict()

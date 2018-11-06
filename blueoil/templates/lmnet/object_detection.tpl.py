@@ -72,7 +72,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     ResizeWithGtBoxes(size=IMAGE_SIZE),
-{% if first_layer_quantization == "yes" %}
+{% if quantize_first_convolution %}
     DivideBy255()
 {% else %}
     PerImageStandardization()
@@ -129,7 +129,7 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 }
 NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
-NETWORK.QUANTIZE_FIRST_CONVOLUTION = {% if first_layer_quantization == "yes" %} True {% else %} False {% endif %}
+NETWORK.QUANTIZE_FIRST_CONVOLUTION = True
 NETWORK.QUANTIZE_LAST_CONVOLUTION = False
 
 # dataset
