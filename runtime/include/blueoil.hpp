@@ -37,6 +37,7 @@ public:
   std::vector<int> shape();
   std::vector<int> shape() const;
   float* data();
+  float *dataAt(std::vector<int> indices, bool clamp);
   void dump();
   std::vector<float>::const_iterator begin() const;
   std::vector<float>::const_iterator end() const;

@@ -51,6 +51,34 @@ std::vector<int> Tensor::shape() const {
 float* Tensor::data() {
     return &(m_data[0]);
 }
+float *Tensor::dataAt(std::vector<int> indices, bool clamp) {
+    if (this->m_shape.size() != indices.size() ) {
+        throw std::invalid_argument("shape.size != indices.size");
+    }
+    int i = 0;
+    if (! clamp) {
+        for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+            if (*itr >= this->m_shape[i]) {
+                throw std::invalid_argument("indices out of shape range");
+            }
+        }
+    } else {
+        for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+            if (*itr < 0) {
+                *itr = 0;
+            } else if (*itr >= this->m_shape[i]) {
+                *itr = this->m_shape[i] - 1;
+            }
+        }
+    }
+    int offset = 0, size = this->m_data.size();
+    i = 0;
+    for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+	size /= this->m_shape[i];
+        offset += (*itr) * size;
+    }
+    return &(this->m_data[offset]);
+}
 
 static void Tensor_shape_dump(std::vector<int> shape) {
     std::cout << "shape:";

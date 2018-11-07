@@ -7,7 +7,6 @@
 namespace blueoil {
 namespace image {
 
-float *Tensor_at(Tensor &tensor, const int x, const int y); // return RGB
 Tensor Tensor_CHW_to_HWC(Tensor &tensor);
 Tensor Tensor_HWC_to_CHW(Tensor &tensor);
 

@@ -20,7 +20,7 @@ Tensor Tensor_fromCVMat(cv::Mat img) {
     blueoil::Tensor tensor({height, width, channels});
     for (int y = 0 ; y < height ; y++) {
 	for (int x = 0 ; x < width ; x++) {
-	    float *tensorPixel = blueoil::image::Tensor_at(tensor, x, y);
+	    float *tensorPixel = tensor.dataAt({y, x, 0}, false);
 	    uchar *imgPixel = &(img.data[ y * img.step + x * img.elemSize()]);
 	    if (channels == 1) {
 		tensorPixel[0] = imgPixel[0]; // I (grayscale)
@@ -52,7 +52,7 @@ cv::Mat Tensor_toCVMat(Tensor &tensor) {
     }
     for (int y = 0 ; y < height ; y++) {
 	for (int x = 0 ; x < width ; x++) {
-	    float *tensorPixel = blueoil::image::Tensor_at(tensor, x, y);
+	    float *tensorPixel = tensor.dataAt({y, x, 0}, false);
 	    uchar *imgPixel = &(img.data[ y * img.step + x * img.elemSize()]);
 	    if (channels == 1) {
 		imgPixel[0] = tensorPixel[0]; // I (grayscale)
