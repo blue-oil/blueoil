@@ -153,12 +153,10 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
     return dstTensor;
 } 
 
-Tensor Resize(const Tensor& image, const std::pair<int, int>& size,
+Tensor Resize(const Tensor& image, const int width, const int height,
 	      const enum ResizeFilter filter) {
     auto shape = image.shape();
     int channels = shape[2];
-    const int width = size.first;
-    const int height = size.second;
     assert((channels == 1) || (channels == 3)); // grayscale or RGB
     assert((filter == RESIZE_FILTER_NEAREST_NEIGHBOR) || (channels == RESIZE_FILTER_BI_LINEAR));
     const int srcHeight = shape[0];

@@ -16,7 +16,9 @@ namespace data_processor {
 
 // TODO(wakisaka): imple resize.
 Tensor Resize(const Tensor& image, const std::pair<int, int>& size) {
-  return blueoil::image::Resize(image, size,
+  const int width = size.first;
+  const int height = size.second;
+  return blueoil::image::Resize(image, width, height,
 				blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
 }
 

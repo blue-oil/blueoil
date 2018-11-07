@@ -60,12 +60,11 @@ float test_expect[3][4][4] =
 int test_resize() {
     // CWH (3-channel, height, width)
     int width = 4, height = 4;
-    const std::pair<int, int>& size = std::make_pair(width, height);
     blueoil::Tensor input({3, 8, 8}, (float *)test_input);
     blueoil::Tensor expect({3, 4, 4}, (float *)test_expect);
     input = blueoil::image::Tensor_CHW_to_HWC(input);
     expect = blueoil::image::Tensor_CHW_to_HWC(expect);
-    blueoil::Tensor output = blueoil::image::Resize(input, size,
+    blueoil::Tensor output = blueoil::image::Resize(input, width, height,
 						    blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
     if (! output.allclose(expect)) {
 	std::cerr << "test_resize: output != expect" << std::endl;
@@ -103,8 +102,7 @@ int command_resize(int argc, char **argv) {
 	return EXIT_FAILURE;
     }
     blueoil::Tensor input = blueoil::opencv::Tensor_fromCVMat(img);
-    const std::pair<int, int>& size = std::make_pair(width, height);
-    blueoil::Tensor output = blueoil::image::Resize(input, size,
+    blueoil::Tensor output = blueoil::image::Resize(input, width, height,
 						    filter);
     cv::Mat img2 = blueoil::opencv::Tensor_toCVMat(output);
     cv::imwrite(outfile, img2);
