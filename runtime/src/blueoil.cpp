@@ -49,7 +49,7 @@ std::vector<int> Tensor::shape() const {
     return m_shape;
 }
 float* Tensor::data() {
-    return &(m_data[0]);
+    return m_data.data();
 }
 float *Tensor::dataAt(std::vector<int> indices, bool clamp) {
     if (this->m_shape.size() != indices.size() ) {
@@ -77,7 +77,7 @@ float *Tensor::dataAt(std::vector<int> indices, bool clamp) {
 	size /= this->m_shape[i];
         offset += (*itr) * size;
     }
-    return &(this->m_data[offset]);
+    return this->m_data.data() + offset;
 }
 
 static void Tensor_shape_dump(std::vector<int> shape) {
