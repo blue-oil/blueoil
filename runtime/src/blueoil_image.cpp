@@ -44,7 +44,6 @@ Tensor Tensor_CHW_to_HWC(Tensor &tensor) {
     const int channels  = shape[0];
     const int height = shape[1];
     const int width  = shape[2];
-    assert((channels == 1) || (channels == 3)); // grayscale or RGB
     Tensor dstTensor({height, width, channels});
     int srcPlaneSize = width * height;
     float *srcImagePtr = tensor.data();
@@ -67,7 +66,6 @@ Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
     int height = shape[0];
     int width  = shape[1];
     int channels = shape[2];
-    assert((channels == 1) || (channels == 3)); // grayscale or RGB
     Tensor dstTensor({channels, height, width});
     float *srcImagePtr = tensor.data();
     float *dstImagePtr = dstTensor.data();
@@ -76,7 +74,7 @@ Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
 	for (int y = 0 ; y < height ; y++) {
 	    for (int x = 0 ; x < width ; x++) {
 		*dstImagePtr = *srcPixelPtr;
-		srcPixelPtr += 3;
+		srcPixelPtr += channels;
 		dstImagePtr++;
 	    }
 	}
