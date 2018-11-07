@@ -30,12 +30,6 @@ int test_image() {
     blueoil::Tensor test_chw_hwc = blueoil::image::Tensor_CHW_to_HWC(test_chw);
     blueoil::Tensor test_hwc_chw = blueoil::image::Tensor_HWC_to_CHW(test_hwc);
 
-    float *rgb = test_hwc.dataAt({0, 1, 0}, false); // {y,x,c}={0,1,0}
-    if ((rgb[0] != 255) || (rgb[1] != 255) || (rgb[2] != 0)) {
-	std::cerr << "test_image: at(1, 0) != (255,255,0)" << std::endl;
-	test_hwc.dump();
-	return EXIT_FAILURE;
-    }
     if (test_chw.allequal(test_hwc_chw) == false) {
 	std::cerr << "test_image: test_chw != test_hwc_chw" << std::endl;
 	test_chw.dump();
