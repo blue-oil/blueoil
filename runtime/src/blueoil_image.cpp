@@ -21,24 +21,6 @@ T clamp(const T x, const T lowerLimit, const T upperLimit) {
     return x;
 }
 
-/*
- * return RGB float array
- */
-float *Tensor_at(Tensor &tensor, const int x, const int y) {
-    auto shape = tensor.shape();
-    const int height = shape[0];
-    const int width  = shape[1];
-    const int channels = shape[2];
-    assert((channels == 1) || (channels == 3)); // grayscale or RGB
-    const int clamped_x = clamp(x, 0, width-1);
-    const int clamped_y = clamp(y, 0, height-1);
-    const int scanlineSize = width * channels;
-    float *imagePtr = tensor.data();
-    float *scanlinePtr = imagePtr + clamped_y * scanlineSize;
-    float *pixelPtr = scanlinePtr + clamped_x * channels;
-    return pixelPtr;
-}
-
 Tensor Tensor_CHW_to_HWC(Tensor &tensor) {
     auto shape = tensor.shape();
     const int channels  = shape[0];
@@ -109,8 +91,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 		float v = 0.0;
 		float totalW = 0.0;
 		for (int x = -xSrcWindow ; x < xSrcWindow; x++){
-		    float *srcRGB = blueoil::image::Tensor_at(tensor,
-							      srcX + x, srcY);
+		    float *srcRGB = tensor.dataAt({srcY, srcX + x, 0}, true);
 		    float d = std::abs(static_cast<float>(x) / static_cast<float> (xSrcWindow));
 		    float w;
 		    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
@@ -121,8 +102,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 		    v += w * srcRGB[c];
 		    totalW += w;
 		}
-		float *dstRGB = blueoil::image::Tensor_at(dstTensor,
-							  dstX, dstY);
+		float *dstRGB = dstTensor.dataAt({dstY, dstX, 0}, false);
 		dstRGB[c] = v / totalW;
 	    }
 	}
@@ -154,8 +134,7 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 		float v = 0.0;
 		float totalW = 0.0;
 		for (int y = -ySrcWindow ; y < ySrcWindow ; y++) {
-		    float *srcRGB = blueoil::image::Tensor_at(tensor,
-							      srcX, srcY + y);
+		    float *srcRGB = tensor.dataAt({srcY + y, srcX, 0}, true);
 		    float d = std::abs(static_cast<float>(y) / static_cast<float> (ySrcWindow));
 		    float w;
 		    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
@@ -166,8 +145,7 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 		    v += w * srcRGB[c];
 		    totalW += w;
 		}
-		float *dstRGB = blueoil::image::Tensor_at(dstTensor,
-							  dstX, dstY);
+		float *dstRGB = dstTensor.dataAt({dstY, dstX, 0}, false);
 		dstRGB[c] = v / totalW;
 	    }
 	}
