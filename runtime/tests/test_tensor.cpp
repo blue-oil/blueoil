@@ -20,6 +20,13 @@ int test_tensor() {
     blueoil::Tensor tensor1({2, 3}, (float *) tensor_data);
     blueoil::Tensor tensor2({3, 2}, (float *) tensor_data2);  // shape diff
     blueoil::Tensor tensor3({2, 3}, (float *) tensor_data3);  // data diff
+
+    float *arr = tensor0.dataAt({1, 0}, false);
+    if ((arr[0] != 7) || (arr[1] != 8) || (arr[2] != 9)) {
+	std::cerr << "tensor0: at(1, 0) != {7, 8, 9}" << std::endl;
+	tensor0.dump();
+	return EXIT_FAILURE;
+    }
     // equal
     if ((! tensor0.allequal(tensor1)) || (! tensor0.allclose(tensor1))) {
 	std::cerr << "tensor_test: tensor0 != tensor1" << std::endl;
