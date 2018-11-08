@@ -11,7 +11,9 @@ dataset:
 trainer:
   batch_size: {{ batch_size }}
   epochs: {{ training_epochs }}
-  first_layer: {{ quantize_first_convolution }}
+
+network:
+  quantize_first_convolution: {{ quantize_first_convolution }}
 
 common:
   image_size:
