@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(conv_sample CXX)
+project(dlk_backends CXX)
 
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
