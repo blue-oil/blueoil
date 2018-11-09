@@ -15,6 +15,7 @@ limitations under the License.
 
 #pragma once
 #include <cstdlib>
+#include <cstdio>
 
 using std::cout;
 using std::endl;
@@ -134,8 +135,7 @@ bool compare_output(T out[], T expected[], const string name, unsigned out_h,
                << "out_w: " << ow << "\n"
                << "out_c: " << oc << "\n"
                << endl;
-          cout << "expect: " << expected[idx] << ", " << name << ": "
-               << out[idx] << endl;
+          printf("expect: %d, %s: %d\n" ,expected[idx], name.c_str(), out[idx]);
           return false;
         }
         idx++;
@@ -165,7 +165,8 @@ void kernel_transform_NHWC_to_NoCHWNi(T_q in_k[], T_q out_k[], unsigned kn,
           }
 }
 
-void kernel_transform_NHWC_to_NoHWCNi(T_q src[], T_q dst[], unsigned kn,
+template <class T>
+void kernel_transform_NHWC_to_NoHWCNi(T src[], T dst[], unsigned kn,
                                       unsigned kh, unsigned kw, unsigned kc,
                                       unsigned kn_in) {
   unsigned idx_src = 0;
