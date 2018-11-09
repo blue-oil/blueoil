@@ -32,6 +32,7 @@ bool test_conv(input_type &in_type, Conv_params_t &p)
   T_in *in_data_packed = new T_in[p.in_size_packed];
 
   T_k *k_data = new T_k[p.k_size * p.k_n];
+  T_k *k_data_with_kn2row = new T_k[p.k_size * p.k_n];
   T_q *k_data_packed = new T_q[p.k_size_packed * p.k_n];
   T_q *k_data_packed_t = new T_q[p.k_size_packed * p.k_n];
   T_q *k_data_packed_hwnocni = new T_q[p.k_size_packed * p.k_n];
@@ -133,10 +134,12 @@ bool test_conv(input_type &in_type, Conv_params_t &p)
   cpp::conv<KH, KW>(in_data, out_data, k_data, threshold_data, p.in_w, p.in_h,
                     p.in_c, p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
 
+  kernel_transform_NHWC_to_NoHWCNi(k_data, k_data_with_kn2row, p.k_n, KH, KW,
+                                   p.k_c, p.num_pe);
   cpp::conv_kn2row_tiling<KH, KW>(
-      in_data, out_data_conv_kn2row_tiling, k_data, threshold_data, p.in_w,
-      p.in_h, p.in_c, p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
-  comp_packed = compare_output(out_data_qconv_kn2row_tiling, out_data,
+      in_data, out_data_conv_kn2row_tiling, k_data_with_kn2row, threshold_data,
+      p.in_w, p.in_h, p.in_c, p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
+  comp_packed = compare_output(out_data_conv_kn2row_tiling, out_data,
                                "conv_kn2row_tiling", p.out_h, p.out_w, p.out_c);
 
   pack_input_channel_wise(in_data, in_data_packed, p.in_h, p.in_w, p.in_c,
@@ -157,13 +160,13 @@ bool test_conv(input_type &in_type, Conv_params_t &p)
   comp_packed = compare_output(out_data_with_kn2row, out_data,
                                "qconv_with_kn2row", p.out_h, p.out_w, p.out_c);
 
-  cpp::qconv_kn2row_tiling<KH, KW>(
-      in_data_packed, out_data_qconv_kn2row_tiling, k_data_packed_hwnocni,
-      threshold_data, p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w,
-      p.out_h, p.out_c, p.pad_w, p.stride_w);
-  comp_packed =
-      compare_output(out_data_qconv_kn2row_tiling, out_data,
-                     "qconv_kn2row_tiling", p.out_h, p.out_w, p.out_c);
+  // cpp::qconv_kn2row_tiling<KH, KW>(
+  //     in_data_packed, out_data_qconv_kn2row_tiling, k_data_packed_hwnocni,
+  //     threshold_data, p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data,
+  //     p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
+  // comp_packed =
+  //     compare_output(out_data_qconv_kn2row_tiling, out_data,
+  //                    "qconv_kn2row_tiling", p.out_h, p.out_w, p.out_c);
 
 #if defined _INTEL_HLS_
 
