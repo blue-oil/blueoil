@@ -97,6 +97,7 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 }
 NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
+NETWORK.QUANTIZE_FIRST_CONVOLUTION = {% if quantize_first_convolution %} True {% else %} False {% endif %}
 
 # dataset
 DATASET = EasyDict()

@@ -127,6 +127,7 @@ class LmnetV1Quantize(LmnetV1):
 
     def __init__(
             self,
+            quantize_first_convolution=True,
             activation_quantizer=None,
             activation_quantizer_kwargs=None,
             weight_quantizer=None,
@@ -145,13 +146,15 @@ class LmnetV1Quantize(LmnetV1):
         activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
         weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
 
+        self.quantize_first_convolution = quantize_first_convolution
         self.activation = activation_quantizer(**activation_quantizer_kwargs)
         weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
         self.custom_getter = functools.partial(self._quantized_variable_getter,
+                                               quantize_first_convolution=quantize_first_convolution,
                                                weight_quantization=weight_quantization)
 
     @staticmethod
-    def _quantized_variable_getter(getter, name, weight_quantization=None, *args, **kwargs):
+    def _quantized_variable_getter(getter, name, quantize_first_convolution, weight_quantization=None, *args, **kwargs):
         """Get the quantized variables.
 
         Use if to choose or skip the target should be quantized.
@@ -167,6 +170,10 @@ class LmnetV1Quantize(LmnetV1):
         var = getter(name, *args, **kwargs)
         with tf.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
+            if not quantize_first_convolution:
+                if var.op.name.startswith("conv1/"):
+                    return var
+
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)
         return var
