@@ -42,9 +42,6 @@ Tensor::Tensor(const Tensor &tensor)
     : m_shape(tensor.m_shape),
       m_data(tensor.m_data) {
 }
-std::vector<int> Tensor::shape() {
-    return m_shape;
-}
 std::vector<int> Tensor::shape() const {
     return m_shape;
 }
