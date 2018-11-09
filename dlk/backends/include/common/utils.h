@@ -135,7 +135,7 @@ bool compare_output(T out[], T expected[], const string name, unsigned out_h,
                << "out_w: " << ow << "\n"
                << "out_c: " << oc << "\n"
                << endl;
-          printf("expect: %d, %s: %d\n" ,expected[idx], name.c_str(), out[idx]);
+          cout << "expect: " << expected[idx] << ", " << name << ": " << out[idx] << endl;
           return false;
         }
         idx++;
