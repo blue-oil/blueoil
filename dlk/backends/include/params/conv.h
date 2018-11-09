@@ -142,9 +142,9 @@ static const unsigned nbits_in_data = 2;
 static const unsigned nbits_k_data = 1;
 static const unsigned num_thresholds = 4;
 
-static const unsigned max_in_c = 32;
+static const unsigned max_in_c = 1024;
 static const unsigned max_in_c_by_word = max_in_c / nbits_per_word;
-static const unsigned min_in_c = 1;
+static const unsigned min_in_c = 32;
 static const unsigned min_in_c_by_word = min_in_c / nbits_per_word;
 static const unsigned max_in_b = 2;
 static const unsigned min_in_b = 2;
@@ -214,7 +214,7 @@ static const unsigned k_size_packed = k_h * k_w * k_c_by_word * nbits_k_data;
 static const unsigned inb_h = k_h + 1;
 static const unsigned inb_w = k_w + 1;
 static const unsigned num_in_line = (max_in_w_with_pad * (k_h - 1)) + k_w;
-static const bool has_thresholds = true;
+static const bool has_thresholds = false;
 } // namespace conv3x3_params
 
 namespace conv1x1_params
@@ -281,7 +281,7 @@ static const unsigned k_size_packed = k_h * k_w * k_c_by_word * nbits_k_data;
 static const unsigned inb_h = k_h + 1;
 static const unsigned inb_w = k_w + 1;
 static const unsigned num_in_line = (max_in_w_with_pad * (k_h - 1)) + k_w;
-static const bool has_thresholds = true;
+static const bool has_thresholds = false;
 } // namespace conv1x1_params
 
 namespace a8w1_conv3x3_params
@@ -343,8 +343,8 @@ static const unsigned max_in_c = conv_common_params::max_in_c;
 static const unsigned max_in_c_by_word = conv_common_params::max_in_c_by_word;
 static const unsigned min_in_c = conv_common_params::min_in_c;
 static const unsigned min_in_c_by_word = conv_common_params::min_in_c_by_word;
-static const unsigned max_in_b = conv_common_params::max_in_c;
-static const unsigned min_in_b = conv_common_params::min_in_c;
+static const unsigned max_in_b = conv_common_params::max_in_b;
+static const unsigned min_in_b = conv_common_params::min_in_b;
 
 static const unsigned max_k_h = 3;
 static const unsigned max_k_w = 3;
