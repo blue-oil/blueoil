@@ -14,9 +14,9 @@ limitations under the License.
 ==============================================================================*/
 
 #pragma once
-#include "common/global.h"
-#include "HLS/hls.h"
 #include "HLS/ac_int.h"
+#include "HLS/hls.h"
+#include "common/global.h"
 
 using namespace ihc;
 using namespace std;
