@@ -11,6 +11,7 @@ dataset:
 trainer:
   batch_size: {{ batch_size }}
   epochs: {{ training_epochs }}
+  optimizer: {{ training_optimizer }}
 
 common:
   image_size:
