@@ -14,8 +14,8 @@ limitations under the License.
 ==============================================================================*/
 
 #pragma once
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
 
 using std::cout;
 using std::endl;
@@ -23,8 +23,8 @@ using std::string;
 
 #define NBITS(T) (sizeof(T) * 8)
 
-unsigned pack_kernel_channel_wise(T_k k_data[], T_q k_data_packed[], int k_h,
-                                  int k_w, int k_c, int k_n) {
+unsigned pack_kernel_channel_wise(T_k k_data[], T_q k_data_packed[], int k_h, int k_w, int k_c, int k_n)
+{
   namespace p = conv1x1_params;
 
   unsigned idx_out = 0;
@@ -49,8 +49,9 @@ unsigned pack_kernel_channel_wise(T_k k_data[], T_q k_data_packed[], int k_h,
   return idx_out;
 }
 
-unsigned pack_input_channel_wise(T_in in_data[], T_q in_data_packed[], int in_h,
-                                 int in_w, int in_c, unsigned nbits_in_data) {
+unsigned pack_input_channel_wise(T_in in_data[], T_q in_data_packed[], int in_h, int in_w, int in_c,
+                                 unsigned nbits_in_data)
+{
   namespace p = conv1x1_params;
 
   const unsigned nbits_per_word = sizeof(T_in) * 8;
@@ -63,9 +64,7 @@ unsigned pack_input_channel_wise(T_in in_data[], T_q in_data_packed[], int in_h,
 
       for (int bq = 0; bq < nbits_in_data; bq++) {
         T_q out[p::nbits_in_data];
-        for (int i = 0; i < nbits_in_data; i++) {
-          out[i] = 0;
-        }
+        for (int i = 0; i < nbits_in_data; i++) { out[i] = 0; }
 
         for (int bw = 0; bw < nbits_per_word; bw++) {
           T_q in = in_data[idx_in + bw];
@@ -81,8 +80,8 @@ unsigned pack_input_channel_wise(T_in in_data[], T_q in_data_packed[], int in_h,
   return idx_out;
 }
 
-unsigned pack_input_channel_wise_hp(T_in in_data[], T_q in_data_packed[],
-                                    int in_h, int in_w, int in_c, int pad) {
+unsigned pack_input_channel_wise_hp(T_in in_data[], T_q in_data_packed[], int in_h, int in_w, int in_c, int pad)
+{
   namespace p = conv1x1_params;
 
   unsigned idx_in = 0;
@@ -95,9 +94,7 @@ unsigned pack_input_channel_wise_hp(T_in in_data[], T_q in_data_packed[],
 
         for (int bq = 0; bq < p::nbits_in_data; bq++) {
           T_q out[p::nbits_in_data];
-          for (int i = 0; i < p::nbits_in_data; i++) {
-            out[i] = 0;
-          }
+          for (int i = 0; i < p::nbits_in_data; i++) { out[i] = 0; }
 
           for (int bw = 0; bw < p::nbits_per_word; bw++) {
             T_q in = 0;
@@ -121,8 +118,8 @@ unsigned pack_input_channel_wise_hp(T_in in_data[], T_q in_data_packed[],
 }
 
 template <class T>
-bool compare_output(T out[], T expected[], const string name, unsigned out_h,
-                    unsigned out_w, unsigned out_c) {
+bool compare_output(T out[], T expected[], const string name, unsigned out_h, unsigned out_w, unsigned out_c)
+{
   unsigned idx = 0;
 
   for (unsigned oh = 0; oh < out_h; oh++)
@@ -145,9 +142,9 @@ bool compare_output(T out[], T expected[], const string name, unsigned out_h,
   return true;
 }
 
-void kernel_transform_NHWC_to_NoCHWNi(T_q in_k[], T_q out_k[], unsigned kn,
-                                      unsigned kh, unsigned kw, unsigned kc,
-                                      unsigned kn_in) {
+void kernel_transform_NHWC_to_NoCHWNi(T_q in_k[], T_q out_k[], unsigned kn, unsigned kh, unsigned kw, unsigned kc,
+                                      unsigned kn_in)
+{
   unsigned idx_src = 0;
   const unsigned kn_out = kn / kn_in;
 
@@ -166,9 +163,9 @@ void kernel_transform_NHWC_to_NoCHWNi(T_q in_k[], T_q out_k[], unsigned kn,
 }
 
 template <class T>
-void kernel_transform_NHWC_to_NoHWCNi(T src[], T dst[], unsigned kn,
-                                      unsigned kh, unsigned kw, unsigned kc,
-                                      unsigned kn_in) {
+void kernel_transform_NHWC_to_NoHWCNi(T src[], T dst[], unsigned kn, unsigned kh, unsigned kw, unsigned kc,
+                                      unsigned kn_in)
+{
   unsigned idx_src = 0;
   const unsigned kn_out = kn / kn_in;
 
@@ -187,9 +184,9 @@ void kernel_transform_NHWC_to_NoHWCNi(T src[], T dst[], unsigned kn,
 }
 
 template <class T>
-void kernel_transform_NHWC_to_HWNoCNi(T src[], T dst[], unsigned kn,
-                                      unsigned kh, unsigned kw, unsigned kc,
-                                      unsigned kn_in) {
+void kernel_transform_NHWC_to_HWNoCNi(T src[], T dst[], unsigned kn, unsigned kh, unsigned kw, unsigned kc,
+                                      unsigned kn_in)
+{
   unsigned idx_src = 0;
   const unsigned kn_out = kn / kn_in;
 
@@ -207,8 +204,8 @@ void kernel_transform_NHWC_to_HWNoCNi(T src[], T dst[], unsigned kn,
           }
 }
 
-void input_packed_transform_HWBC(T_q src[], T_q dst[], unsigned ih, unsigned iw,
-                                 unsigned ic, unsigned ib) {
+void input_packed_transform_HWBC(T_q src[], T_q dst[], unsigned ih, unsigned iw, unsigned ic, unsigned ib)
+{
   unsigned idx_src = 0;
   for (unsigned h = 0; h < ih; h++)
     for (unsigned w = 0; w < iw; w++)
@@ -223,8 +220,8 @@ void input_packed_transform_HWBC(T_q src[], T_q dst[], unsigned ih, unsigned iw,
 }
 
 template <class T>
-void kernel_transform_NHWC_to_HWCN(T src[], T dst[], unsigned kn, unsigned kh,
-                                   unsigned kw, unsigned kc) {
+void kernel_transform_NHWC_to_HWCN(T src[], T dst[], unsigned kn, unsigned kh, unsigned kw, unsigned kc)
+{
   unsigned idx_src = 0;
 
   for (unsigned n = 0; n < kn; n++)
@@ -239,8 +236,8 @@ void kernel_transform_NHWC_to_HWCN(T src[], T dst[], unsigned kn, unsigned kh,
         }
 }
 
-template <class T> void print_array(T array[], size_t n) {
-  for (size_t i = 0; i < n; ++i) {
-    std::cout << "[" << i << "]: " << array[i] << std::endl;
-  }
+template <class T>
+void print_array(T array[], size_t n)
+{
+  for (size_t i = 0; i < n; ++i) { std::cout << "[" << i << "]: " << array[i] << std::endl; }
 }

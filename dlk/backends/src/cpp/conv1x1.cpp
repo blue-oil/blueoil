@@ -19,9 +19,9 @@ limitations under the License.
 namespace cpp {
 namespace p = conv1x1_params;
 
-void conv1x1_impl(T_in in_data[], T_out out_data[], T_k k_data[],
-                  T_out threshold_data[], unsigned in_w, unsigned in_h,
-                  unsigned in_c, unsigned out_c) {
+void conv1x1_impl(T_in in_data[], T_out out_data[], T_k k_data[], T_out threshold_data[], unsigned in_w, unsigned in_h,
+                  unsigned in_c, unsigned out_c)
+{
   unsigned idx_k = 0;
   unsigned idx_in = 0;
   unsigned idx_out = 0;
@@ -31,16 +31,12 @@ void conv1x1_impl(T_in in_data[], T_out out_data[], T_k k_data[],
   T_out threshold_local[p::out_c][p::num_thresholds];
 
   for (int oc = 0; oc < out_c; oc++) {
-    for (unsigned ic = 0; ic < in_c; ic++) {
-      k_local[ic][oc] = k_data[idx_k++];
-    }
+    for (unsigned ic = 0; ic < in_c; ic++) { k_local[ic][oc] = k_data[idx_k++]; }
   }
 
   if (threshold_data != NULL) {
     for (unsigned oc = 0; oc < p::out_c; oc++) {
-      for (unsigned i = 0; i < p::num_thresholds; i++) {
-        threshold_local[oc][i] = threshold_data[idx_t++];
-      }
+      for (unsigned i = 0; i < p::num_thresholds; i++) { threshold_local[oc][i] = threshold_data[idx_t++]; }
     }
   }
 
@@ -48,9 +44,7 @@ void conv1x1_impl(T_in in_data[], T_out out_data[], T_k k_data[],
     for (unsigned iw = 0; iw < in_w; ++iw) {
       T_out out[out_c];
 
-      for (int oc = 0; oc < out_c; oc++) {
-        out[oc] = 0;
-      }
+      for (int oc = 0; oc < out_c; oc++) { out[oc] = 0; }
 
       for (unsigned ic = 0; ic < in_c; ic++) {
         T_in in_buf = in_data[idx_in++];
@@ -105,26 +99,23 @@ void conv1x1_impl(T_in in_data[], T_out out_data[], T_k k_data[],
     } // for LOOP_CONV_INPUT
 }
 
-void qconv1x1_impl(T_q in_data[], T_out out_data[], T_q k_data[], unsigned in_w,
-                   unsigned in_h, unsigned in_c_by_word, unsigned out_c) {
+void qconv1x1_impl(T_q in_data[], T_out out_data[], T_q k_data[], unsigned in_w, unsigned in_h, unsigned in_c_by_word,
+                   unsigned out_c)
+{
   unsigned idx_k = 0;
   unsigned idx_in = 0;
   unsigned idx_out = 0;
 
   T_k k_local[in_c_by_word][out_c];
   for (int oc = 0; oc < out_c; oc++) {
-    for (unsigned ic = 0; ic < in_c_by_word; ic++) {
-      k_local[ic][oc] = k_data[idx_k++];
-    }
+    for (unsigned ic = 0; ic < in_c_by_word; ic++) { k_local[ic][oc] = k_data[idx_k++]; }
   }
 
   for (unsigned ih = 0; ih < in_h; ++ih)
     for (unsigned iw = 0; iw < in_w; ++iw) {
       T_out out[out_c];
 
-      for (int oc = 0; oc < out_c; oc++) {
-        out[oc] = 0;
-      }
+      for (int oc = 0; oc < out_c; oc++) { out[oc] = 0; }
 
       for (int ic = 0; ic < in_c_by_word; ic++) {
         T_q in_buf0 = in_data[idx_in++];
@@ -137,9 +128,7 @@ void qconv1x1_impl(T_q in_data[], T_out out_data[], T_q k_data[], unsigned in_w,
         idx_k++;
       }
 
-      for (int oc = 0; oc < out_c; oc++) {
-        out_data[idx_out + oc] = out[oc];
-      }
+      for (int oc = 0; oc < out_c; oc++) { out_data[idx_out + oc] = out[oc]; }
       idx_out += out_c;
     } // for LOOP_CONV_INPUT
 }

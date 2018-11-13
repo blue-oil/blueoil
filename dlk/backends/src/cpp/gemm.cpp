@@ -22,7 +22,8 @@ namespace cpp {
 using namespace type;
 
 template <class Ta, class Tb, class Ty>
-void gemm(Ta A[], Tb B[], Ty Y[], u32 a_row, u32 a_col, u32 b_col) {
+void gemm(Ta A[], Tb B[], Ty Y[], u32 a_row, u32 a_col, u32 b_col)
+{
   const unsigned y_row = a_row;
   const unsigned y_col = b_col;
 
@@ -43,7 +44,8 @@ template void gemm<i32, i32, i32>(i32[], i32[], i32[], u32, u32, u32);
 template void gemm<u32, i32, i32>(u32[], i32[], i32[], u32, u32, u32);
 
 template <class Tx, class Ty, int Nbit_a, int Nbit_b>
-void qgemm(Tx A_packed[], Tx B_packed[], Ty Y[], u32 a_row, u32 a_col_by_word, u32 b_col) {
+void qgemm(Tx A_packed[], Tx B_packed[], Ty Y[], u32 a_row, u32 a_col_by_word, u32 b_col)
+{
   const unsigned y_row = a_row;
   const unsigned y_col = b_col;
 
@@ -64,20 +66,10 @@ void qgemm(Tx A_packed[], Tx B_packed[], Ty Y[], u32 a_row, u32 a_col_by_word, u
 }
 template void qgemm<u32, i32, 2, 1>(u32[], u32[], i32[], u32, u32, u32);
 
-void qconv_with_kn2row_impl(T_q in_data[],
-                            T_out out_data[],
-                            T_q k_data[],
-                            T_out partial_out_data[],
-                            T_out threshold_data[],
-                            unsigned in_w,
-                            unsigned in_h,
-                            unsigned in_c_by_word,
-                            unsigned out_w,
-                            unsigned out_h,
-                            unsigned out_c,
-                            unsigned k_w,
-                            unsigned k_h,
-                            unsigned pad) {
+void qconv_with_kn2row_impl(T_q in_data[], T_out out_data[], T_q k_data[], T_out partial_out_data[],
+                            T_out threshold_data[], unsigned in_w, unsigned in_h, unsigned in_c_by_word, unsigned out_w,
+                            unsigned out_h, unsigned out_c, unsigned k_w, unsigned k_h, unsigned pad)
+{
   static const unsigned num_pe = conv_common_params::num_pe;
   static const unsigned nbits_in_data = conv_common_params::nbits_in_data;
   static const unsigned num_thresholds = conv_common_params::num_thresholds;
@@ -93,16 +85,12 @@ void qconv_with_kn2row_impl(T_q in_data[],
         T_q* k_local = new T_q[in_c_by_word * num_pe];
 
         for (uint16_t kc = 0; kc < in_c_by_word; kc++) {
-          for (uint16_t kn = 0; kn < num_pe; kn++) {
-            k_local[kc * num_pe + kn] = k_data[idx_k++];
-          }
+          for (uint16_t kn = 0; kn < num_pe; kn++) { k_local[kc * num_pe + kn] = k_data[idx_k++]; }
         }
 
         if (threshold_data != NULL) {
           for (unsigned kn = 0; kn < num_pe; kn++) {
-            for (unsigned i = 0; i < num_thresholds; i++) {
-              threshold_local[kn][i] = threshold_data[idx_t++];
-            }
+            for (unsigned i = 0; i < num_thresholds; i++) { threshold_local[kn][i] = threshold_data[idx_t++]; }
           }
         }
 
@@ -144,9 +132,7 @@ void qconv_with_kn2row_impl(T_q in_data[],
               }
             }
 
-            for (uint16_t kn = 0; kn < num_pe; kn++) {
-              out1[kn] = out0[kn];
-            }
+            for (uint16_t kn = 0; kn < num_pe; kn++) { out1[kn] = out0[kn]; }
 
             if (output_on) {
               for (uint16_t kn = 0; kn < num_pe; kn++) {
@@ -161,7 +147,7 @@ void qconv_with_kn2row_impl(T_q in_data[],
                   T_out ts2 = threshold_local[kn][2];
                   T_out flag = threshold_local[kn][3];
 
-                  if (flag == 1)  // increasing function
+                  if (flag == 1) // increasing function
                   {
                     if (conv_result < ts0)
                       out_buf = 0;
@@ -171,7 +157,7 @@ void qconv_with_kn2row_impl(T_q in_data[],
                       out_buf = 2;
                     else
                       out_buf = 3;
-                  } else if (flag == -1)  // decreasing function
+                  } else if (flag == -1) // decreasing function
                   {
                     if (conv_result > ts2)
                       out_buf = 0;
@@ -199,5 +185,5 @@ void qconv_with_kn2row_impl(T_q in_data[],
       }
     }
   }
-}  // namespace cpp
-}  // namespace cpp
+} // namespace cpp
+} // namespace cpp
