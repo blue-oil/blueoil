@@ -78,7 +78,34 @@ POST_PROCESSOR = None
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{learning_rate}}}
+
+NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
+step_per_epoch = int(50000 / BATCH_SIZE)
+
+if '{{lr_setting}}' != 'fixed':
+    NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
+
+
+if '{{lr_setting}}' == 'tune1':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{learning_rate}}, {{learning_rate}} / 10, {{learning_rate}} / 100],
+        "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) / 2), int(step_per_epoch * (MAX_EPOCHS - 1))],
+    }
+elif '{{lr_setting}}' == 'tune2':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{learning_rate}}, {{learning_rate}} / 10, {{learning_rate}} / 100, {{learning_rate}} / 1000],
+        "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
+    }
+elif '{{lr_setting}}' == 'tune3':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{learning_rate}} / 1000, {{learning_rate}}, {{learning_rate}} / 10, {{learning_rate}} / 100, {{learning_rate}} / 1000],
+        "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 4), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 4), int((step_per_epoch * (MAX_EPOCHS - 1)) * 3 / 4), int(step_per_epoch * (MAX_EPOCHS - 1))],
+    }
+elif '{{lr_setting}}' == 'fixed':
+    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{learning_rate}}}
+else:
+    raise ValueError
+
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT

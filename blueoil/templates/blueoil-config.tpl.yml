@@ -11,6 +11,8 @@ dataset:
 trainer:
   batch_size: {{ batch_size }}
   epochs: {{ training_epochs }}
+  training_learning_rate: {{ training_learning_rate }}
+  initial_learning_rate: {{ initial_learning_value }}  
 
 common:
   image_size:
