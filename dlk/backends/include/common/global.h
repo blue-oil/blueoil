@@ -14,10 +14,10 @@ limitations under the License.
 ==============================================================================*/
 
 #pragma once
-#include <iostream>
-#include <cmath>
 #include <assert.h>
+#include <cmath>
 #include <cstring>
+#include <iostream>
 #include "common/type_info.h"
 
 #include "params/conv.h"
@@ -25,9 +25,9 @@ limitations under the License.
 
 #define IP_CSR_ADDR 0xFF200000
 #define A8W1_IP_CSR_ADDR 0xFF200100
-#define IN_DATA_ADDR  0x20000000
+#define IN_DATA_ADDR 0x20000000
 #define OUT0_DATA_ADDR 0x2C000000
 #define OUT1_DATA_ADDR 0x32000000
 #define OUT_DATA_ADDR OUT0_DATA_ADDR
-#define K_DATA_ADDR   0x38000000
+#define K_DATA_ADDR 0x38000000
 #define THRESHOLDS_ADDR 0x3F00000

@@ -18,33 +18,18 @@ limitations under the License.
 namespace p = conv1x1_params;
 
 hls_avalon_slave_component void intel_hls_qgemm_impl(
-    hls_avalon_slave_register_argument ihc::mm_master<T_A_hls,
-                                                      ihc::aspace<1>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<NBITS_BW_IN>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<32>,
-                                                      ihc::waitrequest<true> > &A_packed,
-    hls_avalon_slave_register_argument ihc::mm_master<T_B_hls,
-                                                      ihc::aspace<2>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<NBITS_BW_K>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<32>,
-                                                      ihc::waitrequest<true> > &B_packed,
-    hls_avalon_slave_register_argument ihc::mm_master<T_Y_hls,
-                                                      ihc::aspace<3>,
-                                                      ihc::awidth<32>,
-                                                      ihc::dwidth<NBITS_BW_OUT>,
-                                                      ihc::latency<0>,
-                                                      ihc::maxburst<32>,
-                                                      ihc::align<32>,
-                                                      ihc::waitrequest<true> > &Y,
-    hls_avalon_slave_register_argument uint32 a_row,
-    hls_avalon_slave_register_argument uint32 a_col_by_word,
-    hls_avalon_slave_register_argument uint32 b_col) {
+  hls_avalon_slave_register_argument
+    ihc::mm_master<T_A_hls, ihc::aspace<1>, ihc::awidth<32>, ihc::dwidth<NBITS_BW_IN>, ihc::latency<0>,
+                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true>> &A_packed,
+  hls_avalon_slave_register_argument
+    ihc::mm_master<T_B_hls, ihc::aspace<2>, ihc::awidth<32>, ihc::dwidth<NBITS_BW_K>, ihc::latency<0>,
+                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true>> &B_packed,
+  hls_avalon_slave_register_argument
+    ihc::mm_master<T_Y_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<NBITS_BW_OUT>, ihc::latency<0>,
+                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true>> &Y,
+  hls_avalon_slave_register_argument uint32 a_row, hls_avalon_slave_register_argument uint32 a_col_by_word,
+  hls_avalon_slave_register_argument uint32 b_col)
+{
   static const unsigned gemm_max_a_col_by_word = 32 * 9;
   assert(gemm_max_a_col_by_word > p::max_in_c_by_word);
   unsigned idx_b = 0;
@@ -55,9 +40,7 @@ hls_avalon_slave_component void intel_hls_qgemm_impl(
 #pragma unroll 4
     for (unsigned br = 0; br < a_col_by_word; br++) {
 #pragma unroll
-      for (unsigned bc_in = 0; bc_in < p::num_pe; bc_in++) {
-        B_local[br][bc_in] = B_packed[idx_b++];
-      }
+      for (unsigned bc_in = 0; bc_in < p::num_pe; bc_in++) { B_local[br][bc_in] = B_packed[idx_b++]; }
     }
 
     unsigned idx_y = bc_out;
@@ -84,13 +67,9 @@ hls_avalon_slave_component void intel_hls_qgemm_impl(
       }
 
 #pragma unroll
-      for (unsigned bc_in = 0; bc_in < p::num_pe; bc_in++) {
-        y1[bc_in] = y0[bc_in];
-      }
+      for (unsigned bc_in = 0; bc_in < p::num_pe; bc_in++) { y1[bc_in] = y0[bc_in]; }
 #pragma unroll
-      for (unsigned bc_in = 0; bc_in < p::num_pe; bc_in++) {
-        Y[idx_y + bc_in] = y1[bc_in];
-      }
+      for (unsigned bc_in = 0; bc_in < p::num_pe; bc_in++) { Y[idx_y + bc_in] = y1[bc_in]; }
       idx_y += b_col;
     }
   }

@@ -14,29 +14,24 @@ limitations under the License.
 ==============================================================================*/
 
 #pragma once
-#include "common/global.h"
-#include <iostream>
+#include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <sys/mman.h>
-#include <stdint.h>
-#include <fcntl.h>
 #include <unistd.h>
-
+#include <iostream>
+#include "common/global.h"
 
 namespace p = conv3x3_params;
-
 
 class MappedMem
 {
 public:
   using memtype = volatile void;
 
-  MappedMem(unsigned long g_paddr,
-            uint32_t g_count,
-            uint32_t g_size)
-    : mem(NULL), aligned_size(0)
+  MappedMem(unsigned long g_paddr, uint32_t g_count, uint32_t g_size) : mem(NULL), aligned_size(0)
   {
-    memtype* aligned_vaddr;
+    memtype *aligned_vaddr;
     unsigned long aligned_paddr;
 
     /* Align address to access size */
@@ -50,11 +45,7 @@ public:
     if ((fd = open("/dev/mem", O_RDWR, 0)) < 0)
       return;
 
-    aligned_vaddr = mmap(NULL,
-                         aligned_size,
-                         PROT_READ | PROT_WRITE,
-                         MAP_SHARED,
-                         fd, aligned_paddr);
+    aligned_vaddr = mmap(NULL, aligned_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, aligned_paddr);
 
     if (aligned_vaddr == NULL) {
       printf("Error mapping address %x\n", aligned_paddr);
@@ -67,86 +58,71 @@ public:
 
   ~MappedMem()
   {
-    if(mem != NULL) {
-      munmap((void*)mem, aligned_size);
+    if (mem != NULL) {
+      munmap((void *)mem, aligned_size);
     }
   }
 
-
-  template<typename T>
+  template <typename T>
   memtype Write(T data)
   {
-    T *mem_ptr = (T *) mem;
+    T *mem_ptr = (T *)mem;
     *mem_ptr = data;
   }
 
-  template<typename T>
+  template <typename T>
   bool Check(T data)
   {
-    T *mem_ptr = (T *) mem;
+    T *mem_ptr = (T *)mem;
     return *mem_ptr == data;
   }
 
-
-  template<typename T>
+  template <typename T>
   memtype Read(T &data)
   {
-    T *mem_ptr = (T *) mem;
+    T *mem_ptr = (T *)mem;
     data = *mem_ptr;
   }
 
-
-  template<typename T>
+  template <typename T>
   memtype Write(T *data, unsigned int size)
   {
-    T *mem_ptr = (T *) mem;
-    for(unsigned int i = 0; i < size; i++) {
-      *mem_ptr++ = data[i];
-    }
+    T *mem_ptr = (T *)mem;
+    for (unsigned int i = 0; i < size; i++) { *mem_ptr++ = data[i]; }
   }
 
-
-  template<typename T>
+  template <typename T>
   bool Check(T *data, unsigned int size)
   {
     bool success = true;
-    T *mem_ptr = (T *) mem;
+    T *mem_ptr = (T *)mem;
 
-    for(unsigned int i = 0; i < size; i++)
-    {
+    for (unsigned int i = 0; i < size; i++) {
       success &= (*mem_ptr++ == data[i]);
-      if(!success) { break; }
+      if (!success) {
+        break;
+      }
     }
 
     return success;
   }
 
-
-  template<typename T>
+  template <typename T>
   memtype Read(T *data, unsigned int size)
   {
     // volatile T* _data = data;
-    T *mem_ptr = (T *) mem;
-    for(unsigned int i = 0; i < size; i++) {
-      data[i] = *mem_ptr++;
-    }
+    T *mem_ptr = (T *)mem;
+    for (unsigned int i = 0; i < size; i++) { data[i] = *mem_ptr++; }
   }
 
-
-  memtype* get()
-  {
-    return mem;
-  }
-
+  memtype *get() { return mem; }
 
 private:
   MappedMem();
   MappedMem(const MappedMem &);
-  MappedMem& operator=(const MappedMem &);
+  MappedMem &operator=(const MappedMem &);
 
 private:
   memtype *mem;
   uint32_t aligned_size;
 };
-
-
