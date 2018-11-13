@@ -24,29 +24,20 @@ bool parse_input_type(int argc, char const *argv[], input_type &in_type)
 {
   bool flag = true;
 
-  if (argc != 2)
-  {
+  if (argc != 2) {
     cout << "Error: 1st arg " << argv[0] << " is not supported..." << endl;
     cout << "Available input type: <sequential|random|add_1>" << endl;
     flag = false;
   }
 
-  if (std::strcmp(argv[1], "sequential") == 0)
-  {
+  if (std::strcmp(argv[1], "sequential") == 0) {
     in_type = SEQUENTIAL;
-  }
-  else if (std::strcmp(argv[1], "random") == 0)
-  {
+  } else if (std::strcmp(argv[1], "random") == 0) {
     in_type = RANDOM;
-  }
-  else if (std::strcmp(argv[1], "all_1") == 0)
-  {
+  } else if (std::strcmp(argv[1], "all_1") == 0) {
     in_type = ALL_1;
-  }
-  else
-  {
-    cout << "Error: input type is not supported." << endl
-         << "Available input type: <sequential|random|add_1>" << endl;
+  } else {
+    cout << "Error: input type is not supported." << endl << "Available input type: <sequential|random|add_1>" << endl;
     flag = false;
   }
 
@@ -60,12 +51,10 @@ bool test_conv(input_type &in_type)
   bool res = true;
 
   // test conv1x1
-  Conv_params_t conv1x1_p = new_Conv_params(conv1x1_params) res &=
-      test_conv<1, 1>(in_type, conv1x1_p);
+  Conv_params_t conv1x1_p = new_Conv_params(conv1x1_params) res &= test_conv<1, 1>(in_type, conv1x1_p);
 
   // test conv3x3
-  Conv_params_t conv3x3_p = new_Conv_params(conv3x3_params) res &=
-      test_conv<3, 3>(in_type, conv3x3_p);
+  Conv_params_t conv3x3_p = new_Conv_params(conv3x3_params) res &= test_conv<3, 3>(in_type, conv3x3_p);
 
   return res;
 }
@@ -83,8 +72,7 @@ int main(int argc, char const *argv[])
   input_type in_type;
 
   bool input_valid = parse_input_type(argc, argv, in_type);
-  if (!input_valid)
-  {
+  if (!input_valid) {
     return 1;
   }
 

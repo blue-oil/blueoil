@@ -24,29 +24,27 @@ using std::endl;
 namespace de10_nano {
 using namespace type;
 
-class FPGA {
- public:
+class FPGA
+{
+public:
   FPGA()
-      : start(IP_CSR_ADDR + 0x08, 1, sizeof(u32)),
-        done(IP_CSR_ADDR + 0x18, 1, sizeof(u32)),
-        in_data_reg(IP_CSR_ADDR + 0x20, 1, sizeof(u32)),
-        out_data_reg(IP_CSR_ADDR + 0x28, 1, sizeof(u32)),
-        k_data_reg(IP_CSR_ADDR + 0x30, 1, sizeof(u32)),
-        in_w_reg(IP_CSR_ADDR + 0x38, 1, sizeof(u32)),
-        in_h_reg(IP_CSR_ADDR + 0x40, 1, sizeof(u32)),
-        in_c_reg(IP_CSR_ADDR + 0x48, 1, sizeof(u32)),
-        out_w_reg(IP_CSR_ADDR + 0x50, 1, sizeof(u32)),
-        out_h_reg(IP_CSR_ADDR + 0x58, 1, sizeof(u32)),
-        out_c_reg(IP_CSR_ADDR + 0x60, 1, sizeof(u32)),
-        out_c_offset_reg(IP_CSR_ADDR + 0x68, 1, sizeof(u32)) {}
+    : start(IP_CSR_ADDR + 0x08, 1, sizeof(u32))
+    , done(IP_CSR_ADDR + 0x18, 1, sizeof(u32))
+    , in_data_reg(IP_CSR_ADDR + 0x20, 1, sizeof(u32))
+    , out_data_reg(IP_CSR_ADDR + 0x28, 1, sizeof(u32))
+    , k_data_reg(IP_CSR_ADDR + 0x30, 1, sizeof(u32))
+    , in_w_reg(IP_CSR_ADDR + 0x38, 1, sizeof(u32))
+    , in_h_reg(IP_CSR_ADDR + 0x40, 1, sizeof(u32))
+    , in_c_reg(IP_CSR_ADDR + 0x48, 1, sizeof(u32))
+    , out_w_reg(IP_CSR_ADDR + 0x50, 1, sizeof(u32))
+    , out_h_reg(IP_CSR_ADDR + 0x58, 1, sizeof(u32))
+    , out_c_reg(IP_CSR_ADDR + 0x60, 1, sizeof(u32))
+    , out_c_offset_reg(IP_CSR_ADDR + 0x68, 1, sizeof(u32))
+  {}
 
-  void conv3x3(unsigned in_w,
-               unsigned in_h,
-               unsigned in_c,
-               unsigned out_w,
-               unsigned out_h,
-               unsigned out_c,
-               unsigned out_c_offset) {
+  void conv3x3(unsigned in_w, unsigned in_h, unsigned in_c, unsigned out_w, unsigned out_h, unsigned out_c,
+               unsigned out_c_offset)
+  {
     in_data_reg.Write(IN_DATA_ADDR);
     out_data_reg.Write(OUT_DATA_ADDR);
     k_data_reg.Write(K_DATA_ADDR);
@@ -62,18 +60,12 @@ class FPGA {
     start.Write(0x1);
 
     volatile u32 done_flag = 0;
-    while (!(done_flag & 0x2)) {
-      done.Read(done_flag);
-    }
+    while (!(done_flag & 0x2)) { done.Read(done_flag); }
   }
 
-  void conv1x1(unsigned in_w,
-               unsigned in_h,
-               unsigned in_c,
-               unsigned out_w,
-               unsigned out_h,
-               unsigned out_c,
-               unsigned out_c_offset) {
+  void conv1x1(unsigned in_w, unsigned in_h, unsigned in_c, unsigned out_w, unsigned out_h, unsigned out_c,
+               unsigned out_c_offset)
+  {
     in_data_reg.Write(IN_DATA_ADDR);
     out_data_reg.Write(OUT_DATA_ADDR);
     k_data_reg.Write(K_DATA_ADDR);
@@ -89,12 +81,10 @@ class FPGA {
     start.Write(0x1);
 
     volatile u32 done_flag = 0;
-    while (!(done_flag & 0x2)) {
-      done.Read(done_flag);
-    }
+    while (!(done_flag & 0x2)) { done.Read(done_flag); }
   }
 
- private:
+private:
   MappedMem start;
   MappedMem done;
   MappedMem in_data_reg;
@@ -109,20 +99,10 @@ class FPGA {
   MappedMem out_c_offset_reg;
 };
 
-void qconv(unsigned k_w,
-           unsigned k_h,
-           T_q in_data_packed[],
-           T_out out_data[],
-           T_q k_data_packed[],
-           unsigned in_w,
-           unsigned in_h,
-           unsigned in_c_by_word,
-           unsigned nbits_in_data,
-           unsigned out_w,
-           unsigned out_h,
-           unsigned out_c,
-           unsigned pad,
-           unsigned stride) {
+void qconv(unsigned k_w, unsigned k_h, T_q in_data_packed[], T_out out_data[], T_q k_data_packed[], unsigned in_w,
+           unsigned in_h, unsigned in_c_by_word, unsigned nbits_in_data, unsigned out_w, unsigned out_h, unsigned out_c,
+           unsigned pad, unsigned stride)
+{
   const unsigned in_size = in_h * in_w * in_c_by_word * nbits_in_data;
   const unsigned out_size = out_h * out_w * out_c;
   const unsigned k_size = k_h * k_w * in_c_by_word * out_c;
@@ -153,34 +133,30 @@ void qconv(unsigned k_w,
   }
 }
 
-class QconvWithQgemm {
- public:
+class QconvWithQgemm
+{
+public:
   QconvWithQgemm()
-      : start(IP_CSR_ADDR + 0x08, 1, sizeof(u32)),
-        done(IP_CSR_ADDR + 0x18, 1, sizeof(u32)),
-        in_data_reg(IP_CSR_ADDR + 0x20, 1, sizeof(u32)),
-        out_data_reg(IP_CSR_ADDR + 0x28, 1, sizeof(u32)),
-        k_data_reg(IP_CSR_ADDR + 0x30, 1, sizeof(u32)),
-        out_data_partial_reg(IP_CSR_ADDR + 0x38, 1, sizeof(u32)),
-        in_w_reg(IP_CSR_ADDR + 0x40, 1, sizeof(u32)),
-        in_h_reg(IP_CSR_ADDR + 0x48, 1, sizeof(u32)),
-        in_c_reg(IP_CSR_ADDR + 0x50, 1, sizeof(u32)),
-        out_w_reg(IP_CSR_ADDR + 0x58, 1, sizeof(u32)),
-        out_h_reg(IP_CSR_ADDR + 0x60, 1, sizeof(u32)),
-        out_c_reg(IP_CSR_ADDR + 0x68, 1, sizeof(u32)),
-        k_w_reg(IP_CSR_ADDR + 0x70, 1, sizeof(u32)),
-        k_h_reg(IP_CSR_ADDR + 0x78, 1, sizeof(u32)),
-        pad_reg(IP_CSR_ADDR + 0x80, 1, sizeof(u32)) {}
+    : start(IP_CSR_ADDR + 0x08, 1, sizeof(u32))
+    , done(IP_CSR_ADDR + 0x18, 1, sizeof(u32))
+    , in_data_reg(IP_CSR_ADDR + 0x20, 1, sizeof(u32))
+    , out_data_reg(IP_CSR_ADDR + 0x28, 1, sizeof(u32))
+    , k_data_reg(IP_CSR_ADDR + 0x30, 1, sizeof(u32))
+    , out_data_partial_reg(IP_CSR_ADDR + 0x38, 1, sizeof(u32))
+    , in_w_reg(IP_CSR_ADDR + 0x40, 1, sizeof(u32))
+    , in_h_reg(IP_CSR_ADDR + 0x48, 1, sizeof(u32))
+    , in_c_reg(IP_CSR_ADDR + 0x50, 1, sizeof(u32))
+    , out_w_reg(IP_CSR_ADDR + 0x58, 1, sizeof(u32))
+    , out_h_reg(IP_CSR_ADDR + 0x60, 1, sizeof(u32))
+    , out_c_reg(IP_CSR_ADDR + 0x68, 1, sizeof(u32))
+    , k_w_reg(IP_CSR_ADDR + 0x70, 1, sizeof(u32))
+    , k_h_reg(IP_CSR_ADDR + 0x78, 1, sizeof(u32))
+    , pad_reg(IP_CSR_ADDR + 0x80, 1, sizeof(u32))
+  {}
 
-  void run(unsigned in_w,
-           unsigned in_h,
-           unsigned in_c,
-           unsigned out_w,
-           unsigned out_h,
-           unsigned out_c,
-           unsigned k_w,
-           unsigned k_h,
-           unsigned pad) {
+  void run(unsigned in_w, unsigned in_h, unsigned in_c, unsigned out_w, unsigned out_h, unsigned out_c, unsigned k_w,
+           unsigned k_h, unsigned pad)
+  {
     in_data_reg.Write(IN_DATA_ADDR);
     out_data_reg.Write(OUT_DATA_ADDR);
     k_data_reg.Write(K_DATA_ADDR);
@@ -199,12 +175,10 @@ class QconvWithQgemm {
     start.Write(0x1);
 
     volatile u32 done_flag = 0;
-    while (!(done_flag & 0x2)) {
-      done.Read(done_flag);
-    }
+    while (!(done_flag & 0x2)) { done.Read(done_flag); }
   }
 
- private:
+private:
   MappedMem start;
   MappedMem done;
   MappedMem in_data_reg;
@@ -222,20 +196,10 @@ class QconvWithQgemm {
   MappedMem pad_reg;
 };
 
-void qconv_with_kn2row(unsigned k_w,
-                       unsigned k_h,
-                       T_q in_data_packed[],
-                       T_out out_data[],
-                       T_q k_data_packed[],
-                       unsigned in_w,
-                       unsigned in_h,
-                       unsigned in_c_by_word,
-                       unsigned nbits_in_data,
-                       unsigned out_w,
-                       unsigned out_h,
-                       unsigned out_c,
-                       unsigned pad,
-                       unsigned stride) {
+void qconv_with_kn2row(unsigned k_w, unsigned k_h, T_q in_data_packed[], T_out out_data[], T_q k_data_packed[],
+                       unsigned in_w, unsigned in_h, unsigned in_c_by_word, unsigned nbits_in_data, unsigned out_w,
+                       unsigned out_h, unsigned out_c, unsigned pad, unsigned stride)
+{
   assert((k_h == 1 && k_w == 1) || (k_h == 3 && k_w == 3));
 
   const unsigned in_size = in_h * in_w * in_c_by_word * nbits_in_data;
@@ -263,37 +227,30 @@ void qconv_with_kn2row(unsigned k_w,
   std::cout << "out_size: " << out_size << std::endl;
 }
 
-class A8W1_Qconv {
- public:
+class A8W1_Qconv
+{
+public:
   A8W1_Qconv()
-      : start(A8W1_IP_CSR_ADDR + 0x08, 1, sizeof(u32)),
-        done(A8W1_IP_CSR_ADDR + 0x18, 1, sizeof(u32)),
-        in_data_reg(A8W1_IP_CSR_ADDR + 0x20, 1, sizeof(u32)),
-        out_data_reg(A8W1_IP_CSR_ADDR + 0x28, 1, sizeof(u32)),
-        k_data_reg(A8W1_IP_CSR_ADDR + 0x30, 1, sizeof(u32)),
-        out_data_partial_reg(A8W1_IP_CSR_ADDR + 0x38, 1, sizeof(u32)),
-        in_w_reg(A8W1_IP_CSR_ADDR + 0x40, 1, sizeof(u32)),
-        in_h_reg(A8W1_IP_CSR_ADDR + 0x48, 1, sizeof(u32)),
-        in_c_reg(A8W1_IP_CSR_ADDR + 0x50, 1, sizeof(u32)),
-        out_w_reg(A8W1_IP_CSR_ADDR + 0x58, 1, sizeof(u32)),
-        out_h_reg(A8W1_IP_CSR_ADDR + 0x60, 1, sizeof(u32)),
-        out_c_reg(A8W1_IP_CSR_ADDR + 0x68, 1, sizeof(u32)),
-        kw_reg(A8W1_IP_CSR_ADDR + 0x70, 1, sizeof(u32)),
-        kh_reg(A8W1_IP_CSR_ADDR + 0x78, 1, sizeof(u32)),
-        pad_reg(A8W1_IP_CSR_ADDR + 0x80, 1, sizeof(u32)) {}
+    : start(A8W1_IP_CSR_ADDR + 0x08, 1, sizeof(u32))
+    , done(A8W1_IP_CSR_ADDR + 0x18, 1, sizeof(u32))
+    , in_data_reg(A8W1_IP_CSR_ADDR + 0x20, 1, sizeof(u32))
+    , out_data_reg(A8W1_IP_CSR_ADDR + 0x28, 1, sizeof(u32))
+    , k_data_reg(A8W1_IP_CSR_ADDR + 0x30, 1, sizeof(u32))
+    , out_data_partial_reg(A8W1_IP_CSR_ADDR + 0x38, 1, sizeof(u32))
+    , in_w_reg(A8W1_IP_CSR_ADDR + 0x40, 1, sizeof(u32))
+    , in_h_reg(A8W1_IP_CSR_ADDR + 0x48, 1, sizeof(u32))
+    , in_c_reg(A8W1_IP_CSR_ADDR + 0x50, 1, sizeof(u32))
+    , out_w_reg(A8W1_IP_CSR_ADDR + 0x58, 1, sizeof(u32))
+    , out_h_reg(A8W1_IP_CSR_ADDR + 0x60, 1, sizeof(u32))
+    , out_c_reg(A8W1_IP_CSR_ADDR + 0x68, 1, sizeof(u32))
+    , kw_reg(A8W1_IP_CSR_ADDR + 0x70, 1, sizeof(u32))
+    , kh_reg(A8W1_IP_CSR_ADDR + 0x78, 1, sizeof(u32))
+    , pad_reg(A8W1_IP_CSR_ADDR + 0x80, 1, sizeof(u32))
+  {}
 
-  void run(unsigned out0_data_addr,
-           unsigned out1_data_addr,
-           unsigned k_data_addr,
-           unsigned in_w,
-           unsigned in_h,
-           unsigned in_c,
-           unsigned out_w,
-           unsigned out_h,
-           unsigned out_c,
-           unsigned kw,
-           unsigned kh,
-           unsigned pad) {
+  void run(unsigned out0_data_addr, unsigned out1_data_addr, unsigned k_data_addr, unsigned in_w, unsigned in_h,
+           unsigned in_c, unsigned out_w, unsigned out_h, unsigned out_c, unsigned kw, unsigned kh, unsigned pad)
+  {
     in_data_reg.Write(IN_DATA_ADDR);
     out_data_reg.Write(out0_data_addr);
     k_data_reg.Write(k_data_addr);
@@ -312,12 +269,10 @@ class A8W1_Qconv {
     start.Write(0x1);
 
     volatile u32 done_flag = 0;
-    while (!(done_flag & 0x2)) {
-      done.Read(done_flag);
-    }
+    while (!(done_flag & 0x2)) { done.Read(done_flag); }
   }
 
- private:
+private:
   MappedMem start;
   MappedMem done;
   MappedMem in_data_reg;
@@ -335,19 +290,10 @@ class A8W1_Qconv {
   MappedMem pad_reg;
 };
 
-void A8W1_qconv(T_in_k2c in_data[],
-                T_out_k2c out_data[],
-                T_k_k2c k_data[],
-                unsigned in_w,
-                unsigned in_h,
-                unsigned in_c,
-                unsigned out_w,
-                unsigned out_h,
-                unsigned out_c,
-                unsigned k_w,
-                unsigned k_h,
-                unsigned pad,
-                unsigned stride) {
+void A8W1_qconv(T_in_k2c in_data[], T_out_k2c out_data[], T_k_k2c k_data[], unsigned in_w, unsigned in_h, unsigned in_c,
+                unsigned out_w, unsigned out_h, unsigned out_c, unsigned k_w, unsigned k_h, unsigned pad,
+                unsigned stride)
+{
   assert((k_h == 1 && k_w == 1) || (k_h == 3 && k_w == 3));
 
   const unsigned in_size = in_h * in_w * in_c;
@@ -394,4 +340,4 @@ void A8W1_qconv(T_in_k2c in_data[],
 
   std::cout << "out_size: " << out_size << std::endl;
 }
-}  // namespace de10_nano
+} // namespace de10_nano
