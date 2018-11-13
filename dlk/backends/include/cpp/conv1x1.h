@@ -16,26 +16,11 @@ limitations under the License.
 #pragma once
 #include "common/global.h"
 
-namespace cpp
-{
-  void conv1x1_impl(
-    T_in in_data[],
-    T_out out_data[],
-    T_k k_data[],
-    unsigned in_w,
-    unsigned in_h,
-    unsigned in_c,
-    unsigned out_c
-  );
+namespace cpp {
+void conv1x1_impl(T_in in_data[], T_out out_data[], T_k k_data[], unsigned in_w, unsigned in_h, unsigned in_c,
+                  unsigned out_c);
 
-  void qconv1x1_impl(
-    T_q in_data_packed[],
-    T_out out_data[],
-    T_q k_data_packed[],
-    unsigned in_w,
-    unsigned in_h,
-    unsigned in_c_by_word,
-    unsigned out_c
-  );
+void qconv1x1_impl(T_q in_data_packed[], T_out out_data[], T_q k_data_packed[], unsigned in_w, unsigned in_h,
+                   unsigned in_c_by_word, unsigned out_c);
 
-}
+} // namespace cpp

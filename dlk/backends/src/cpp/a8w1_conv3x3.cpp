@@ -18,45 +18,29 @@ limitations under the License.
 
 #define NBITS(T) (sizeof(T) * 8)
 
-namespace cpp
+namespace cpp {
+using namespace type;
+
+void a8w1_conv3x3_impl(T_in_k2c in_data[], T_out_k2c out_data[], T_k_k2c k_data[], unsigned in_w, unsigned in_h,
+                       unsigned in_c, unsigned out_w, unsigned out_h, unsigned out_c, unsigned pad, unsigned stride)
 {
-  using namespace type;
+  namespace p = a8w1_conv3x3_params;
 
-  void a8w1_conv3x3_impl(
-    T_in_k2c in_data[],
-    T_out_k2c out_data[],
-    T_k_k2c k_data[],
-    unsigned in_w,
-    unsigned in_h,
-    unsigned in_c,
-    unsigned out_w,
-    unsigned out_h,
-    unsigned out_c,
-    unsigned pad,
-    unsigned stride)
-  {
-    namespace p = a8w1_conv3x3_params;
+  T_k_k2c k_local[p::k_size * p::k_n];
+  int idx_k = 0;
 
-    T_k_k2c k_local[p::k_size * p::k_n];
-    int idx_k = 0;
+  for (unsigned kn = 0; kn < p::k_n; kn++) {
+    for (unsigned k = 0; k < p::k_size; k++) { k_local[k * p::k_n + kn] = k_data[idx_k++]; }
+  }
 
-    for (unsigned kn = 0; kn < p::k_n; kn++) {
-      for(unsigned k = 0; k < p::k_size; k++) {
-        k_local[k * p::k_n + kn] = k_data[idx_k++];
-      }
-    }
+  unsigned idx_out = 0;
 
-    unsigned idx_out = 0;
-
-    for(unsigned oh = 0; oh < out_h; ++oh)
-    for(unsigned ow = 0; ow < out_w; ++ow)
-    {
+  for (unsigned oh = 0; oh < out_h; ++oh)
+    for (unsigned ow = 0; ow < out_w; ++ow) {
       unsigned idx_k_local = 0;
       T_out_k2c out[p::k_n];
 
-      for(unsigned i = 0; i < p::k_n; i++) {
-        out[i] = 0;
-      }
+      for (unsigned i = 0; i < p::k_n; i++) { out[i] = 0; }
 
       for (unsigned kh = 0; kh < p::k_h; kh++) {
         for (unsigned kw = 0; kw < p::k_w; kw++) {
@@ -79,86 +63,66 @@ namespace cpp
         }
       }
 
-      for (int kn = 0; kn < p::k_n; kn++) {
-        out_data[idx_out++] = out[kn];
-      }
+      for (int kn = 0; kn < p::k_n; kn++) { out_data[idx_out++] = out[kn]; }
     } // for LOOP_CONV_INPUT
-  }
+}
 
+void a8w1_conv3x3_with_kn2row_impl(T_in_k2c in_data[], T_out_k2c out_data[], T_k_k2c k_data[],
+                                   T_out_k2c out_data_partial[], unsigned in_w, unsigned in_h, unsigned in_c,
+                                   unsigned out_w, unsigned out_h, unsigned out_c, unsigned pad)
+{
+  namespace p = a8w1_conv3x3_params;
 
-  void a8w1_conv3x3_with_kn2row_impl(
-      T_in_k2c  in_data[],
-      T_out_k2c out_data[],
-      T_k_k2c   k_data[],
-      T_out_k2c out_data_partial[],
-      unsigned in_w,
-      unsigned in_h,
-      unsigned in_c,
-      unsigned out_w,
-      unsigned out_h,
-      unsigned out_c,
-      unsigned pad)
-  {
-    namespace p = a8w1_conv3x3_params;
+  unsigned idx_k = 0;
 
-    unsigned idx_k = 0;
+  for (int8_t kh = 0; kh < p::k_h; kh++) {
+    for (int8_t kw = 0; kw < p::k_w; kw++) {
+      T_k_k2c k_local[p::in_c * p::out_c];
 
-    for (int8_t kh = 0; kh < p::k_h; kh++) {
-      for (int8_t kw = 0; kw < p::k_w; kw++)
-      {
-        T_k_k2c k_local[p::in_c * p::out_c];
+      for (uint16_t kc = 0; kc < p::in_c; kc++) {
+        for (uint16_t kn = 0; kn < p::out_c; kn++) { k_local[kc * p::out_c + kn] = k_data[idx_k++]; }
+      }
 
-        for (uint16_t kc = 0; kc < p::in_c; kc++) {
+      unsigned idx_in = 0;
+      unsigned idx_out = 0;
+
+      for (int16_t _ih = 0; _ih < in_h + 2 * p::pad_h; _ih++) {
+        for (int16_t _iw = 0; _iw < in_w + 2 * p::pad_w; _iw++) {
+          int16_t ih = _ih - p::pad_h;
+          int16_t iw = _iw - p::pad_w;
+          int16_t oh = _ih - kh;
+          int16_t ow = _iw - kw;
+
+          bool first_load = ((kh == 0) && (kw == 0));
+          bool input_on = ((ih >= 0) && (ih < in_h) && (iw >= 0) && (iw < in_w));
+          bool output_on = ((oh >= 0) && (oh < out_h) && (ow >= 0) && (ow < out_w));
+
+          T_out_k2c out[p::out_c];
+
           for (uint16_t kn = 0; kn < p::out_c; kn++) {
-            k_local[kc * p::out_c + kn] = k_data[idx_k++];
+            out[kn] = (output_on && !first_load) ? out_data_partial[idx_out + kn] : 0;
           }
-        }
 
-        unsigned idx_in = 0;
-        unsigned idx_out = 0;
+          for (uint16_t ic = 0; ic < p::in_c; ic++) {
+            T_out_k2c in = 0;
 
-        for (int16_t _ih = 0; _ih < in_h + 2 * p::pad_h; _ih++) {
-          for (int16_t _iw = 0; _iw < in_w + 2 * p::pad_w; _iw++) {
-            int16_t ih = _ih - p::pad_h;
-            int16_t iw = _iw - p::pad_w;
-            int16_t oh = _ih - kh;
-            int16_t ow = _iw - kw;
-
-            bool first_load  = ((kh == 0) && (kw == 0));
-            bool input_on  = ((ih >= 0) && (ih < in_h)  && (iw >= 0) && (iw < in_w));
-            bool output_on = ((oh >= 0) && (oh < out_h) && (ow >= 0) && (ow < out_w));
-
-            T_out_k2c out[p::out_c];
-
-            for(uint16_t kn = 0; kn < p::out_c; kn++) {
-              out[kn] = (output_on && !first_load) ? out_data_partial[idx_out + kn] : 0;
+            if (input_on) {
+              in = T_out_k2c(in_data[idx_in++]);
             }
 
-            for (uint16_t ic = 0; ic < p::in_c; ic++) {
-              T_out_k2c in = 0;
-
-              if (input_on) {
-                in = T_out_k2c(in_data[idx_in++]);
-              }
-
-              for (uint16_t kn = 0; kn < p::out_c; kn++) {
-                T_out_k2c k = T_out_k2c(k_local[ic * p::out_c + kn]);
-                out[kn] += in * k;
-              }
+            for (uint16_t kn = 0; kn < p::out_c; kn++) {
+              T_out_k2c k = T_out_k2c(k_local[ic * p::out_c + kn]);
+              out[kn] += in * k;
             }
+          }
 
-            if (output_on) {
-              for (uint16_t kn = 0; kn < p::out_c; kn++) {
-                out_data[idx_out + kn] = out[kn];
-              }
-              idx_out += p::out_c;
-            }
+          if (output_on) {
+            for (uint16_t kn = 0; kn < p::out_c; kn++) { out_data[idx_out + kn] = out[kn]; }
+            idx_out += p::out_c;
           }
         }
       }
     }
   }
 }
-
-
-
+} // namespace cpp
