@@ -20,13 +20,13 @@ namespace p = conv1x1_params;
 hls_avalon_slave_component void intel_hls_qgemm_impl(
   hls_avalon_slave_register_argument
     ihc::mm_master<T_A_hls, ihc::aspace<1>, ihc::awidth<32>, ihc::dwidth<NBITS_BW_IN>, ihc::latency<0>,
-                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true>> &A_packed,
+                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true> > &A_packed,
   hls_avalon_slave_register_argument
     ihc::mm_master<T_B_hls, ihc::aspace<2>, ihc::awidth<32>, ihc::dwidth<NBITS_BW_K>, ihc::latency<0>,
-                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true>> &B_packed,
+                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true> > &B_packed,
   hls_avalon_slave_register_argument
     ihc::mm_master<T_Y_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<NBITS_BW_OUT>, ihc::latency<0>,
-                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true>> &Y,
+                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true> > &Y,
   hls_avalon_slave_register_argument uint32 a_row, hls_avalon_slave_register_argument uint32 a_col_by_word,
   hls_avalon_slave_register_argument uint32 b_col)
 {
