@@ -57,11 +57,11 @@ TASK = Tasks.OBJECT_DETECTION
 # In order to get instance property `classes`, instantiate DATASET_CLASS.
 CLASSES = DATASET_CLASS(subset="train", batch_size=1).classes
 
-{% if max_epochs %}
+{% if max_epochs -%}
 MAX_EPOCHS = {{max_epochs}}
-{% elif max_steps %}
+{%- elif max_steps -%}
 MAX_STEPS = {{max_steps}}
-{% endif %}
+{%- endif %}
 SAVE_STEPS = {{save_steps}}
 TEST_STEPS = {{test_steps}}
 SUMMARISE_STEPS = {{summarise_steps}}
@@ -77,11 +77,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     ResizeWithGtBoxes(size=IMAGE_SIZE),
-{% if quantize_first_convolution %}
-    DivideBy255()
-{% else %}
-    PerImageStandardization()
-{% endif %}
+    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 anchors = [
     (1.3221, 1.73145), (3.19275, 4.00944), (5.05587, 8.09892), (9.47112, 4.84053), (11.2364, 10.0071)
