@@ -50,7 +50,9 @@ BATCH_SIZE = {{batch_size}}
 DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
 # In order to get instance property `classes`, instantiate DATASET_CLASS.
-CLASSES = DATASET_CLASS(subset="train", batch_size=1).classes
+dataset_obj = DATASET_CLASS(subset="train", batch_size=1)
+CLASSES = dataset_obj.classes
+step_per_epoch = int(dataset_obj.num_per_epoch/BATCH_SIZE)
 
 {% if max_epochs %}
 MAX_EPOCHS = {{max_epochs}}
@@ -79,11 +81,9 @@ POST_PROCESSOR = None
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-dataset_obj = DATASET_CLASS(subset="train", batch_size=1)
-step_per_epoch = int(dataset_obj.num_per_epoch/BATCH_SIZE)
-
-if '{{learning_rate_setting}}' != 'fixed': NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
+if '{{learning_rate_setting}}' != 'fixed':
+    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
+    NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 
 if '{{learning_rate_setting}}' == 'tune1 -> "2 times decay"':
     NETWORK.LEARNING_RATE_KWARGS = {
