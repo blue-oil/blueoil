@@ -12,6 +12,9 @@ trainer:
   batch_size: 1
   epochs: 1
 
+network:
+  quantize_first_convolution: yes
+
 common:
   image_size:
     - 128  # height
