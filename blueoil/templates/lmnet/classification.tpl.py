@@ -85,17 +85,17 @@ step_per_epoch = int(dataset_obj.num_per_epoch/BATCH_SIZE)
 
 if '{{learning_rate_setting}}' != 'fixed': NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 
-if '{{learning_rate_setting}}' == 'tune1':
+if '{{learning_rate_setting}}' == 'tune1 -> "2 times decay"':
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100],
         "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) / 2), int(step_per_epoch * (MAX_EPOCHS - 1))],
     }
-elif '{{learning_rate_setting}}' == 'tune2':
+elif '{{learning_rate_setting}}' == 'tune2 -> "3 times decay"':
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
         "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
     }
-elif '{{learning_rate_setting}}' == 'tune3':
+elif '{{learning_rate_setting}}' == 'tune3 -> "warm-up and 3 times decay"':
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}} / 1000, {{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
         "boundaries": [int(step_per_epoch * 1), int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
