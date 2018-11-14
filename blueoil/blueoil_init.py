@@ -272,22 +272,22 @@ def ask_questions():
     }
     training_epochs = prompt(training_epochs_question)
 
-    initial_lr_value_question = {
+    initial_learning_rate_value_question = {
         'type': 'input',
         'name': 'value',
         'message': 'initial learning rate:',
         'default': '0.001'
     }
-    initial_learning_value = prompt(initial_lr_value_question)
+    initial_learning_rate_value = prompt(initial_learning_rate_value_question)
 
-    training_lr_question = {
+    training_learning_rate_question = {
         'type': 'rawlist',
         'name': 'value',
         'message': 'choose learning rate setting (tune1 / tune2 / tune3 / fixed):',
         'choices': ['tune1', 'tune2', 'tune3', 'fixed'],
         'default': 'tune1',
     }
-    training_learning_rate = prompt(training_lr_question)
+    training_learning_rate_setting = prompt(training_learning_rate_question)
 
     r = {}
     for k, v in locals().items():
