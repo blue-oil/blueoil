@@ -153,11 +153,11 @@ class LmnetV0Quantize(LmnetV0, BaseQuantize):
         Use if to choose or skip the target should be quantized.
  
         Args:
-        getter: Default from tensorflow.
-        name: Default from tensorflow.
-        weight_quantization: Callable object which quantize variable.
-        args: Args.
-        kwargs: Kwargs.
+            getter: Default from tensorflow.
+            name: Default from tensorflow.
+            weight_quantization: Callable object which quantize variable.
+            args: Args.
+            kwargs: Kwargs.
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
