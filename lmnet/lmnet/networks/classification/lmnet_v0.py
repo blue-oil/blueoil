@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from lmnet.blocks import lmnet_block
 from lmnet.networks.classification.base import Base
-
+from lmnet.networks.base_quantize import BaseQuantize
 
 class LmnetV0(Base):
     """Lmnet network for classification, version 0.
@@ -105,7 +105,7 @@ class LmnetV0(Base):
         return self.base_output
 
 
-class LmnetV0Quantize(LmnetV0):
+class LmnetV0Quantize(LmnetV0, BaseQuantize):
     """Lmnet quantize network for classification, version 1.0
 
     Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
@@ -128,34 +128,42 @@ class LmnetV0Quantize(LmnetV0):
             *args,
             **kwargs
     ):
-        super().__init__(
+        LmnetV0.__init__(
             *args,
             **kwargs
         )
 
-        assert weight_quantizer
-        assert activation_quantizer
+        BaseQuantize.__init__(
+            activation_quantizer, 
+            activation_quantizer_kwargs, 
+            weight_quantizer, 
+            weight_quantizer_kwargs
+        )
 
-        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
-
-        self.activation = activation_quantizer(**activation_quantizer_kwargs)
-        weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
+#        assert weight_quantizer
+#         assert activation_quantizer
+# 
+#         activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
+#        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
+# 
+#         self.activation = activation_quantizer(**activation_quantizer_kwargs)
+#        weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
         self.custom_getter = functools.partial(self._quantized_variable_getter,
-                                               weight_quantization=weight_quantization)
+                                               weight_quantization=self.weight_quantization)
+
 
     @staticmethod
     def _quantized_variable_getter(getter, name, weight_quantization=None, *args, **kwargs):
         """Get the quantized variables.
-
+        
         Use if to choose or skip the target should be quantized.
-
+ 
         Args:
-            getter: Default from tensorflow.
-            name: Default from tensorflow.
-            weight_quantization: Callable object which quantize variable.
-            args: Args.
-            kwargs: Kwargs.
+        getter: Default from tensorflow.
+        name: Default from tensorflow.
+        weight_quantization: Callable object which quantize variable.
+        args: Args.
+        kwargs: Kwargs.
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)

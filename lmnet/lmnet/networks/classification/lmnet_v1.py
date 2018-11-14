@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from lmnet.blocks import lmnet_block
 from lmnet.networks.classification.base import Base
-
+from lmnet.networks.base_quantize import BaseQuantize
 
 class LmnetV1(Base):
     """Lmnet v1 for classification.
@@ -111,7 +111,7 @@ class LmnetV1(Base):
         return self.base_output
 
 
-class LmnetV1Quantize(LmnetV1):
+class LmnetV1Quantize(LmnetV1, BaseQuantize):
     """Lmnet quantize network for classification, version 1.0
 
     Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
@@ -135,23 +135,35 @@ class LmnetV1Quantize(LmnetV1):
             *args,
             **kwargs
     ):
-        super().__init__(
+        LmnetV1.__init__(
+            self,
             *args,
             **kwargs
         )
 
-        assert weight_quantizer
-        assert activation_quantizer
+        BaseQuantize.__init__(
+            self,
+            activation_quantizer, 
+            activation_quantizer_kwargs, 
+            weight_quantizer, 
+            weight_quantizer_kwargs,
+            quantize_first_convolution,
+        )
 
-        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
+        self.first_layer_name = "conv1/"
 
-        self.quantize_first_convolution = quantize_first_convolution
-        self.activation = activation_quantizer(**activation_quantizer_kwargs)
-        weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
+#        assert weight_quantizer
+#        assert activation_quantizer
+
+#        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
+#        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
+
+#        self.quantize_first_convolution = quantize_first_convolution
+#        self.activation = activation_quantizer(**activation_quantizer_kwargs)
+#        weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
         self.custom_getter = functools.partial(self._quantized_variable_getter,
-                                               quantize_first_convolution=quantize_first_convolution,
-                                               weight_quantization=weight_quantization)
+                                               quantize_first_convolution=self.quantize_first_convolution,
+                                               weight_quantization=self.weight_quantization)
 
     @staticmethod
     def _quantized_variable_getter(getter, name, quantize_first_convolution, weight_quantization=None, *args, **kwargs):
@@ -166,6 +178,7 @@ class LmnetV1Quantize(LmnetV1):
             args: Args.
             kwargs: Kwargs.
         """
+
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
         with tf.variable_scope(name):
@@ -173,7 +186,7 @@ class LmnetV1Quantize(LmnetV1):
             if not quantize_first_convolution:
                 if var.op.name.startswith("conv1/"):
                     return var
-
+                    
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)
         return var

@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from lmnet.blocks import lmnet_block
 from lmnet.networks.segmentation.base import Base
-
+from lmnet.networks.base_quantize import BaseQuantize
 
 class LmSegnetV1(Base):
     """LM original semantic segmentation network.
@@ -90,7 +90,7 @@ class LmSegnetV1(Base):
         return x
 
 
-class LmSegnetV1Quantize(LmSegnetV1):
+class LmSegnetV1Quantize(LmSegnetV1, BaseQuantize):
     """LM original quantize semantic segmentation network.
 
     Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
@@ -112,21 +112,21 @@ class LmSegnetV1Quantize(LmSegnetV1):
             *args,
             **kwargs
     ):
-        super().__init__(
+        LmSegnetV1.__init__(
             *args,
             **kwargs
         )
 
-        assert weight_quantizer
-        assert activation_quantizer
+#        assert weight_quantizer
+#        assert activation_quantizer
 
-        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
+#        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
+#        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
 
-        self.activation = activation_quantizer(**activation_quantizer_kwargs)
-        weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
+#        self.activation = activation_quantizer(**activation_quantizer_kwargs)
+#        weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
         self.custom_getter = functools.partial(self._quantized_variable_getter,
-                                               weight_quantization=weight_quantization)
+                                               weight_quantization=self.weight_quantization)
 
     @staticmethod
     def _quantized_variable_getter(getter, name, weight_quantization=None, *args, **kwargs):

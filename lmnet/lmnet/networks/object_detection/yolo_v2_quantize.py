@@ -18,9 +18,9 @@ from functools import partial
 import tensorflow as tf
 
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
+from lmnet.networks.base_quantize import BaseQuantize
 
-
-class YoloV2Quantize(YoloV2):
+class YoloV2Quantize(YoloV2, BaseQuantize):
 
     """Quantize YOLOv2 Network.
 
@@ -48,22 +48,22 @@ class YoloV2Quantize(YoloV2):
             activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
         """
 
-        super().__init__(
+        YoloV2.__init__(
             *args,
             **kwargs,
         )
 
-        self.quantize_first_convolution = quantize_first_convolution
-        self.quantize_last_convolution = quantize_last_convolution
+#        self.quantize_first_convolution = quantize_first_convolution
+#        self.quantize_last_convolution = quantize_last_convolution
 
-        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
+#        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
+#        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)
 
-        self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
-        self.activation = activation_quantizer(**activation_quantizer_kwargs)
+#        self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
+#        self.activation = activation_quantizer(**activation_quantizer_kwargs)
 
         if self.quantize_last_convolution:
             self.before_last_activation = self.activation

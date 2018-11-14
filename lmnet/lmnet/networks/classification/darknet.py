@@ -20,7 +20,7 @@ import tensorflow as tf
 from lmnet.networks.classification.base import Base
 from lmnet.layers import conv2d, max_pooling2d
 from lmnet.blocks import darknet as darknet_block
-
+from lmnet.networks.base_quantize import BaseQuantize
 
 class Darknet(Base):
     """Darknet 19 layer"""
@@ -261,7 +261,7 @@ class Darknet(Base):
         return self.base_output
 
 
-class DarknetQuantize(Darknet):
+class DarknetQuantize(Darknet, BaseQuantize):
 
     """Quantize Darknet Network."""
 
@@ -286,22 +286,22 @@ class DarknetQuantize(Darknet):
             activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
         """
 
-        super().__init__(
+        Darknet.__init__(
             *args,
             **kwargs,
         )
 
-        self.quantize_first_convolution = quantize_first_convolution
-        self.quantize_last_convolution = quantize_last_convolution
+#        self.quantize_first_convolution = quantize_first_convolution
+#        self.quantize_last_convolution = quantize_last_convolution
 
-        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
+#        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
+#        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)
 
-        self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
-        self.activation = activation_quantizer(**activation_quantizer_kwargs)
+#        self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
+#        self.activation = activation_quantizer(**activation_quantizer_kwargs)
 
         if self.quantize_last_convolution:
             self.before_last_activation = self.activation

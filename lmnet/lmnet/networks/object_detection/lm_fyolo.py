@@ -19,7 +19,7 @@ import tensorflow as tf
 from lmnet.blocks import darknet
 from lmnet.layers import conv2d
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
-
+from lmnet.networks.base_quantize import BaseQuantize
 
 class LMFYolo(YoloV2):
     """LM original objecte detection network based on Yolov2 and F-Yolo.
@@ -144,7 +144,7 @@ class LMFYolo(YoloV2):
         return output
 
 
-class LMFYoloQuantize(LMFYolo):
+class LMFYoloQuantize(LMFYolo, BaseQuantize):
 
     def __init__(
             self,
@@ -167,22 +167,22 @@ class LMFYoloQuantize(LMFYolo):
             activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
         """
 
-        super().__init__(
+        LMFYolo.__init__(
             *args,
             **kwargs,
         )
 
-        self.quantize_first_convolution = quantize_first_convolution
-        self.quantize_last_convolution = quantize_last_convolution
+#        self.quantize_first_convolution = quantize_first_convolution
+#        self.quantize_last_convolution = quantize_last_convolution
 
-        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
+#        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
+#        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)
 
-        self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
-        self.activation = activation_quantizer(**activation_quantizer_kwargs)
+#        self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
+#        self.activation = activation_quantizer(**activation_quantizer_kwargs)
 
         if self.quantize_last_convolution:
             self.before_last_activation = self.activation
