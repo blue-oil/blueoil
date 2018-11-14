@@ -33,13 +33,13 @@ T_out_hls PE(uint32 k_buf, uint32 in_buf[2])
 hls_avalon_slave_component void intel_hls_qconv3x3_impl(
   hls_avalon_slave_register_argument
     ihc::mm_master<T_in_hls, ihc::aspace<1>, ihc::awidth<32>, ihc::dwidth<NBITS_BW_IN>, ihc::latency<0>,
-                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true>> &in_data,
+                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true> > &in_data,
   hls_avalon_slave_register_argument
     ihc::mm_master<T_out_hls, ihc::aspace<2>, ihc::awidth<32>, ihc::dwidth<NBITS_BW_OUT>, ihc::latency<0>,
-                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true>> &out_data,
+                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true> > &out_data,
   hls_avalon_slave_register_argument
     ihc::mm_master<T_k_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<NBITS_BW_K>, ihc::latency<0>,
-                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true>> &k_data,
+                   ihc::maxburst<32>, ihc::align<32>, ihc::waitrequest<true> > &k_data,
   hls_avalon_slave_register_argument uint32 in_w, hls_avalon_slave_register_argument uint32 in_h,
   hls_avalon_slave_register_argument uint32 in_c_by_word, hls_avalon_slave_register_argument uint32 out_w,
   hls_avalon_slave_register_argument uint32 out_h, hls_avalon_slave_register_argument uint32 out_c,
