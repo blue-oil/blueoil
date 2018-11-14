@@ -125,18 +125,19 @@ class LmSegnetV0Quantize(LmSegnetV0, BaseQuantize):
             **kwargs
     ):
         LmSegnetV0.__init__(
+            self,
             *args,
             **kwargs
         )
 
-#        assert weight_quantizer
-#        assert activation_quantizer
-
-#        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
-#        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
-
-#        self.activation = activation_quantizer(**activation_quantizer_kwargs)
-#        weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
+        BaseQuantize.__init__(
+            self,
+            activation_quantizer, 
+            activation_quantizer_kwargs, 
+            weight_quantizer, 
+            weight_quantizer_kwargs,
+        )
+            
         self.custom_getter = functools.partial(self._quantized_variable_getter,
                                                weight_quantization=self.weight_quantization)
 

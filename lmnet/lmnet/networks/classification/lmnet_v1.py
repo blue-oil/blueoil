@@ -150,17 +150,6 @@ class LmnetV1Quantize(LmnetV1, BaseQuantize):
             quantize_first_convolution,
         )
 
-        self.first_layer_name = "conv1/"
-
-#        assert weight_quantizer
-#        assert activation_quantizer
-
-#        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
-#        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
-
-#        self.quantize_first_convolution = quantize_first_convolution
-#        self.activation = activation_quantizer(**activation_quantizer_kwargs)
-#        weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
         self.custom_getter = functools.partial(self._quantized_variable_getter,
                                                quantize_first_convolution=self.quantize_first_convolution,
                                                weight_quantization=self.weight_quantization)

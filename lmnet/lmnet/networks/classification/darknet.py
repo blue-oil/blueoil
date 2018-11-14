@@ -287,21 +287,23 @@ class DarknetQuantize(Darknet, BaseQuantize):
         """
 
         Darknet.__init__(
+            self,
             *args,
             **kwargs,
         )
 
-#        self.quantize_first_convolution = quantize_first_convolution
-#        self.quantize_last_convolution = quantize_last_convolution
-
-#        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
-#        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
+        BaseQuantize.__init__(
+            self,
+            activation_quantizer, 
+            activation_quantizer_kwargs, 
+            weight_quantizer, 
+            weight_quantizer_kwargs,
+            quantize_first_convolution,
+            quantize_last_convolution,
+        )
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)
-
-#        self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
-#        self.activation = activation_quantizer(**activation_quantizer_kwargs)
 
         if self.quantize_last_convolution:
             self.before_last_activation = self.activation
