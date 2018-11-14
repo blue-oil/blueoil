@@ -18,36 +18,47 @@
 
 namespace blueoil {
 
+
 int Tensor::shapeVolume() {
     return this->shapeVolume(m_shape);
 }
+
 int Tensor::shapeVolume(std::vector<int> shape) {
     return std::accumulate(shape.begin(), shape.end(),
 			   1, std::multiplies<int>());
 }
 
+
 Tensor::Tensor(std::vector<int> shape)
     : m_shape(std::move(shape)),
       m_data(std::vector<float>(this->shapeVolume(shape), 0)) {
 }
+
 Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
     : m_shape(std::move(shape)),
       m_data(std::move(data)) {
 }
+
 Tensor::Tensor(std::vector<int> shape, float *arr)
     : m_shape(std::move(shape)),
       m_data(std::vector<float>(arr, arr + this->shapeVolume(shape))) {
 }
+
 Tensor::Tensor(const Tensor &tensor)
     : m_shape(tensor.m_shape),
       m_data(tensor.m_data) {
 }
+
+
 std::vector<int> Tensor::shape() const {
     return m_shape;
 }
+
+
 float* Tensor::data() {
     return m_data.data();
 }
+
 float *Tensor::dataAt(std::vector<int> indices, bool clamp) {
     if (this->m_shape.size() != indices.size() ) {
         throw std::invalid_argument("shape.size != indices.size");
@@ -77,6 +88,7 @@ float *Tensor::dataAt(std::vector<int> indices, bool clamp) {
     return this->m_data.data() + offset;
 }
 
+
 static void Tensor_shape_dump(std::vector<int> shape) {
     std::cout << "shape:";
     for (auto itr = shape.begin(); itr != shape.end(); ++itr) {
@@ -84,6 +96,7 @@ static void Tensor_shape_dump(std::vector<int> shape) {
     }
     std::cout << std::endl;
 }
+
 static void Tensor_data_dump(float *data, std::vector<int> shape) {
     if (shape.size() == 1) { // 1-D array
         auto itr = shape.begin();
@@ -117,24 +130,30 @@ static void Tensor_data_dump(float *data, std::vector<int> shape) {
         }
     }
 }
+
 // dump N-dimentional array
 void Tensor::dump() {
     Tensor_shape_dump(m_shape);
     Tensor_data_dump(&(m_data[0]), m_shape);
 }
 
+
 std::vector<float>::const_iterator Tensor::begin() const {
     return this->m_data.begin();
 }
+
 std::vector<float>::const_iterator Tensor::end() const {
     return this->m_data.end();
 }
+
 std::vector<float>::iterator Tensor::begin() {
     return this->m_data.begin();
 }
+
 std::vector<float>::iterator Tensor::end() {
     return this->m_data.end();
 }
+
 
 // all elements exact equals check.
 bool Tensor::allequal(const Tensor &tensor) {
@@ -143,6 +162,7 @@ bool Tensor::allequal(const Tensor &tensor) {
     }
     return true;
 }
+
 
 // all elements nealy equals check.
 bool Tensor::allclose(const Tensor &tensor) {

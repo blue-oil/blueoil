@@ -9,6 +9,7 @@
 namespace blueoil {
 namespace opencv {
 
+
 /*
  * accept BGR OpenCV Mat images (not RGB)
  */
@@ -66,7 +67,6 @@ cv::Mat Tensor_toCVMat(Tensor &tensor) {
     return img;
 }
 
+
 }  // namespace opencv
 }  // namespace blueoil
-
-

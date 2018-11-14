@@ -10,6 +10,7 @@
 namespace blueoil {
 namespace image {
 
+
 template <typename T>
 T clamp(const T x, const T lowerLimit, const T upperLimit) {
     if (x < lowerLimit) {
@@ -20,6 +21,7 @@ T clamp(const T x, const T lowerLimit, const T upperLimit) {
     }
     return x;
 }
+
 
 Tensor Tensor_CHW_to_HWC(Tensor &tensor) {
     auto shape = tensor.shape();
@@ -63,6 +65,7 @@ Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
     }
     return dstTensor;
 }
+
 
 /*
  * Resize Image
@@ -170,6 +173,7 @@ Tensor Resize(const Tensor& image, const int width, const int height,
     }
     return dstImage;
 }   
+
 
 } // namespace image
 } // namespace blueoil
