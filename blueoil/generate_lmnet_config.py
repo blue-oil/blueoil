@@ -135,7 +135,7 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
-    initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"],
+    initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"]
     learning_rate_setting = blueoil_config["trainer"]["training_learning_rate"]
 
     # common
