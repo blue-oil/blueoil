@@ -11,6 +11,8 @@ dataset:
 trainer:
   batch_size: 1
   epochs: 1
+  training_learning_rate: tune1
+  initial_learning_rate: 0.001
 
 common:
   image_size:
