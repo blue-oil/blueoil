@@ -217,8 +217,8 @@ if [ "${YML_CONFIG_FILE}" == "" ]; then
             do
                 TRAINING_DATASET_PATH=$(get_yaml_param train_path tests/config/${TEST_CASE}.yml)
                 VALIDATION_DATASET_PATH=$(get_yaml_param test_path tests/config/${TEST_CASE}.yml)
-                INTIAL_LEARNING_RATE=$(get_yaml_param initial_leraning_rate tests/config/${TEST_CASE}.yml)
-                TRAINING_LEARNING_RATE=$(get_yaml_param training_leraning_rate tests/config/${TEST_CASE}.yml)
+                INTIAL_LEARNING_RATE=$(get_yaml_param initial_learning_rate tests/config/${TEST_CASE}.yml)
+                TRAINING_LEARNING_RATE=$(get_yaml_param training_learning_rate tests/config/${TEST_CASE}.yml)
 		init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH} ${INITIAL_LEARNING_RATE} ${TRAINING_LEARNING_RATE}
                 basic_test
                 if [ ${ADDITIONAL_TEST_FLAG} -eq 0 ]; then
