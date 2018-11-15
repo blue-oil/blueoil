@@ -1,7 +1,4 @@
-import tensorflow as tf
-
 class BaseQuantize(object):
-    
 
     def __init__(
             self,
@@ -24,4 +21,4 @@ class BaseQuantize(object):
 
         self.quantize_first_convolution = quantize_first_convolution
         self.first_layer_name = None
-        self.quantize_last_convolution = quantize_last_convolution                                            
+        self.quantize_last_convolution = quantize_last_convolution

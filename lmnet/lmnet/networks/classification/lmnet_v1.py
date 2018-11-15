@@ -21,6 +21,7 @@ from lmnet.blocks import lmnet_block
 from lmnet.networks.classification.base import Base
 from lmnet.networks.base_quantize import BaseQuantize
 
+
 class LmnetV1(Base):
     """Lmnet v1 for classification.
     """
@@ -143,9 +144,9 @@ class LmnetV1Quantize(LmnetV1, BaseQuantize):
 
         BaseQuantize.__init__(
             self,
-            activation_quantizer, 
-            activation_quantizer_kwargs, 
-            weight_quantizer, 
+            activation_quantizer,
+            activation_quantizer_kwargs,
+            weight_quantizer,
             weight_quantizer_kwargs,
             quantize_first_convolution,
         )
@@ -175,7 +176,7 @@ class LmnetV1Quantize(LmnetV1, BaseQuantize):
             if not quantize_first_convolution:
                 if var.op.name.startswith("conv1/"):
                     return var
-                    
+
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)
         return var

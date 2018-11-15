@@ -21,6 +21,7 @@ from lmnet.layers import conv2d
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
 from lmnet.networks.base_quantize import BaseQuantize
 
+
 class LMFYolo(YoloV2):
     """LM original objecte detection network based on Yolov2 and F-Yolo.
 
@@ -175,9 +176,9 @@ class LMFYoloQuantize(LMFYolo, BaseQuantize):
 
         BaseQuantize.__init__(
             self,
-            activation_quantizer, 
-            activation_quantizer_kwargs, 
-            weight_quantizer, 
+            activation_quantizer,
+            activation_quantizer_kwargs,
+            weight_quantizer,
             weight_quantizer_kwargs,
             quantize_first_convolution,
             quantize_last_convolution,

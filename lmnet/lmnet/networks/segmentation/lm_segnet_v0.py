@@ -23,6 +23,7 @@ from lmnet.layers.experiment import max_unpool_with_argmax
 from lmnet.networks.segmentation.base import Base
 from lmnet.networks.base_quantize import BaseQuantize
 
+
 class LmSegnetV0(Base):
     """LM customized SegNet Network."""
 
@@ -132,12 +133,12 @@ class LmSegnetV0Quantize(LmSegnetV0, BaseQuantize):
 
         BaseQuantize.__init__(
             self,
-            activation_quantizer, 
-            activation_quantizer_kwargs, 
-            weight_quantizer, 
+            activation_quantizer,
+            activation_quantizer_kwargs,
+            weight_quantizer,
             weight_quantizer_kwargs,
         )
-            
+
         self.custom_getter = functools.partial(self._quantized_variable_getter,
                                                weight_quantization=self.weight_quantization)
 

@@ -21,6 +21,7 @@ from lmnet.blocks import lmnet_block
 from lmnet.networks.classification.base import Base
 from lmnet.networks.base_quantize import BaseQuantize
 
+
 class LmnetV0(Base):
     """Lmnet network for classification, version 0.
     """
@@ -136,22 +137,21 @@ class LmnetV0Quantize(LmnetV0, BaseQuantize):
 
         BaseQuantize.__init__(
             self,
-            activation_quantizer, 
-            activation_quantizer_kwargs, 
-            weight_quantizer, 
+            activation_quantizer,
+            activation_quantizer_kwargs,
+            weight_quantizer,
             weight_quantizer_kwargs
         )
 
         self.custom_getter = functools.partial(self._quantized_variable_getter,
                                                weight_quantization=self.weight_quantization)
 
-
     @staticmethod
     def _quantized_variable_getter(getter, name, weight_quantization=None, *args, **kwargs):
         """Get the quantized variables.
-        
+
         Use if to choose or skip the target should be quantized.
- 
+
         Args:
             getter: Default from tensorflow.
             name: Default from tensorflow.

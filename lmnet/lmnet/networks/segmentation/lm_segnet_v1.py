@@ -21,6 +21,7 @@ from lmnet.blocks import lmnet_block
 from lmnet.networks.segmentation.base import Base
 from lmnet.networks.base_quantize import BaseQuantize
 
+
 class LmSegnetV1(Base):
     """LM original semantic segmentation network.
     This network is composed of 11 convolution layers with space_to_depth and depth_to_space."""
@@ -120,9 +121,9 @@ class LmSegnetV1Quantize(LmSegnetV1, BaseQuantize):
 
         BaseQuantize.__init__(
             self,
-            activation_quantizer, 
-            activation_quantizer_kwargs, 
-            weight_quantizer, 
+            activation_quantizer,
+            activation_quantizer_kwargs,
+            weight_quantizer,
             weight_quantizer_kwargs,
         )
 

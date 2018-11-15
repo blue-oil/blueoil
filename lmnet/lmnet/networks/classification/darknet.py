@@ -22,6 +22,7 @@ from lmnet.layers import conv2d, max_pooling2d
 from lmnet.blocks import darknet as darknet_block
 from lmnet.networks.base_quantize import BaseQuantize
 
+
 class Darknet(Base):
     """Darknet 19 layer"""
 
@@ -294,9 +295,9 @@ class DarknetQuantize(Darknet, BaseQuantize):
 
         BaseQuantize.__init__(
             self,
-            activation_quantizer, 
-            activation_quantizer_kwargs, 
-            weight_quantizer, 
+            activation_quantizer,
+            activation_quantizer_kwargs,
+            weight_quantizer,
             weight_quantizer_kwargs,
             quantize_first_convolution,
             quantize_last_convolution,

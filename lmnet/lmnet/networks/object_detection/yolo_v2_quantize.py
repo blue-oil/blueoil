@@ -20,6 +20,7 @@ import tensorflow as tf
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
 from lmnet.networks.base_quantize import BaseQuantize
 
+
 class YoloV2Quantize(YoloV2, BaseQuantize):
 
     """Quantize YOLOv2 Network.
@@ -56,9 +57,9 @@ class YoloV2Quantize(YoloV2, BaseQuantize):
 
         BaseQuantize.__init__(
             self,
-            activation_quantizer, 
-            activation_quantizer_kwargs, 
-            weight_quantizer, 
+            activation_quantizer,
+            activation_quantizer_kwargs,
+            weight_quantizer,
             weight_quantizer_kwargs,
             quantize_first_convolution,
             quantize_last_convolution,
