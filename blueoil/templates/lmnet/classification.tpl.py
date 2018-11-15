@@ -77,8 +77,19 @@ PRE_PROCESSOR = Sequence([
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{learning_rate}}}
+
+if '{{optimizer}}' == 'GradientDescentOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.GradientDescentOptimizer
+    NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.01}
+elif '{{optimizer}}' == 'MomentumOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{learning_rate}}}
+elif '{{optimizer}}' == 'AdamOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
+    NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
+else:
+    raise ValueError
+
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT

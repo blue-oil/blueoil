@@ -136,6 +136,7 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
+    optimizer  = blueoil_config["trainer"]["optimizer"]
 
     # common
     image_size = blueoil_config["common"]["image_size"]
@@ -153,6 +154,7 @@ def _blueoil_to_lmnet(blueoil_config):
         "batch_size": batch_size,
         "max_epochs": "",
         "max_steps": "",
+        "optimizer" : optimizer,
         
         "image_size": image_size,
 
