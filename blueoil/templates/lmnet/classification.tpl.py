@@ -52,7 +52,7 @@ TASK = Tasks.CLASSIFICATION
 # In order to get instance property `classes`, instantiate DATASET_CLASS.
 dataset_obj = DATASET_CLASS(subset="train", batch_size=1)
 CLASSES = dataset_obj.classes
-step_per_epoch = int(float(dataset_obj.num_per_epoch)/BATCH_SIZE)
+step_per_epoch = float(dataset_obj.num_per_epoch)/BATCH_SIZE
 
 {% if max_epochs %}
 MAX_EPOCHS = {{max_epochs}}
