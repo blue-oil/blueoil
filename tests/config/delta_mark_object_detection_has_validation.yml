@@ -1,4 +1,5 @@
 # supported task types are 'classification', 'object_detection' and 'semantic_segmentation'.
+# support optimizer selector
 task_type: object_detection
 
 network_name: LMFYoloQuantize
@@ -11,6 +12,7 @@ dataset:
 trainer:
   batch_size: 1
   epochs: 1
+  optimizer: MomentumOptimizer
 
 common:
   image_size:
