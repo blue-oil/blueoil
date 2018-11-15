@@ -52,7 +52,7 @@ TASK = Tasks.CLASSIFICATION
 # In order to get instance property `classes`, instantiate DATASET_CLASS.
 dataset_obj = DATASET_CLASS(subset="train", batch_size=1)
 CLASSES = dataset_obj.classes
-step_per_epoch = int(dataset_obj.num_per_epoch/BATCH_SIZE)
+step_per_epoch = int(float(dataset_obj.num_per_epoch)/BATCH_SIZE)
 
 {% if max_epochs %}
 MAX_EPOCHS = {{max_epochs}}
@@ -81,26 +81,26 @@ POST_PROCESSOR = None
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 
-if '{{learning_rate_setting}}' != 'fixed':
+if '{{training_learning_rate}}' != 'fixed':
     NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
     NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 
-if '{{learning_rate_setting}}' == 'tune1 -> "2 times decay"':
+if '{{training_learning_rate}}' == 'tune1':
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100],
         "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) / 2), int(step_per_epoch * (MAX_EPOCHS - 1))],
     }
-elif '{{learning_rate_setting}}' == 'tune2 -> "3 times decay"':
+elif '{{training_learning_rate}}' == 'tune2':
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
         "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
     }
-elif '{{learning_rate_setting}}' == 'tune3 -> "warm-up and 3 times decay"':
+elif '{{training_learning_rate}}' == 'tune3':
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}} / 1000, {{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
         "boundaries": [int(step_per_epoch * 1), int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
     }
-elif '{{learning_rate_setting}}' == 'fixed':
+elif '{{training_learning_rate}}' == 'fixed':
     NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{initial_learning_rate}}}
 else:
     raise ValueError
