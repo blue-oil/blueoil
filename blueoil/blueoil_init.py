@@ -287,7 +287,14 @@ def ask_questions():
         'choices': ['tune1 -> "2 times decay"', 'tune2 -> "3 times decay"', 'tune3 -> "warm-up and 3 times decay"', 'fixed'],
         'default': 'tune1 -> "2 times decay"',
     }
-    training_learning_rate_setting = prompt(training_learning_rate_question)
+    choices_key_map = {
+        'tune1 -> "2 times decay"': 'tune1',
+        'tune2 -> "3 times decay"': 'tune2',
+        'tune3 -> "warm-up and 3 times decay"': 'tune3',
+        'fixed': 'fixed',
+    }
+    tmp_learning_rate_setting = prompt(training_learning_rate_question)
+    training_learning_rate_setting = choices_key_map[tmp_learning_rate_setting]
 
     r = {}
     for k, v in locals().items():
