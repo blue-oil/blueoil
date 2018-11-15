@@ -126,6 +126,8 @@ function init_test(){
         send \"\n\"
         expect \"how many epochs do you run training (integer):\"
         send \"\b\b\b1\n\"
+        expect \"select optimizer:\"
+        send \"\n\"
         expect \"Next step:\"
     " > /dev/null
     assert $? 0
