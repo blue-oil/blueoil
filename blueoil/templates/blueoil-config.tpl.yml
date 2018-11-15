@@ -1,5 +1,4 @@
 # supported task types are 'classification', 'object_detection' and 'semantic_segmentation'.
-# support optimizer selector
 task_type: {{ task_type }}
 
 network_name: {{ network_name }}
@@ -12,6 +11,7 @@ dataset:
 trainer:
   batch_size: {{ batch_size }}
   epochs: {{ training_epochs }}
+# supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
   optimizer: {{ training_optimizer }}
 
 common:
