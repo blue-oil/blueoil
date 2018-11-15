@@ -30,8 +30,8 @@ int Tensor::shapeVolume(std::vector<int> shape) {
 
 
 Tensor::Tensor(std::vector<int> shape)
-    : m_shape(std::move(shape)),
-      m_data(std::vector<float>(this->shapeVolume(shape), 0)) {
+    : m_shape(shape),
+      m_data(std::vector<float>(this->shapeVolume(std::move(shape)), 0)) {
 }
 
 Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
@@ -40,8 +40,9 @@ Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
 }
 
 Tensor::Tensor(std::vector<int> shape, float *arr)
-    : m_shape(std::move(shape)),
-      m_data(std::vector<float>(arr, arr + this->shapeVolume(shape))) {
+    : m_shape(shape),
+      m_data(std::vector<float>(arr,
+				arr + this->shapeVolume(std::move(shape)))) {
 }
 
 Tensor::Tensor(const Tensor &tensor)

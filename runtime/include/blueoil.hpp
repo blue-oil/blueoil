@@ -25,8 +25,8 @@ extern "C" {
 namespace blueoil {
 class Tensor {
 private:
-  std::vector<float> m_data;
   std::vector<int> m_shape;
+  std::vector<float> m_data;
   int shapeVolume();
   int shapeVolume(std::vector<int> shape);
 public:
