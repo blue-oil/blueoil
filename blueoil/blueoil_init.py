@@ -272,6 +272,15 @@ def ask_questions():
     }
     training_epochs = prompt(training_epochs_question)
 
+    training_optimizer_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'select optimizer:',
+        'choices': ['MomentumOptimizer', 'GradientDescentOptimizer', 'AdamOptimizer'],
+        'default': 'MomentumOptimizer'
+    }
+    training_optimizer = prompt(training_optimizer_question)
+
     r = {}
     for k, v in locals().items():
         if k != 'r' and not k.endswith("question"):
