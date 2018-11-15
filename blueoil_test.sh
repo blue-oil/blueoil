@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 NAME=$0 # Name of the script
 BASE_DIR=$(dirname $0)
