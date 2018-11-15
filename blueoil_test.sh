@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 NAME=$0 # Name of the script
 BASE_DIR=$(dirname $0)
@@ -90,8 +90,6 @@ function init_test(){
     DATASET_FORMAT_NUMBER=$5
     TRAINING_DATASET_PATH=$6
     VALIDATION_DATASET_PATH=$7
-    INITIAL_LEARNING_RATE=$8
-    TRAINING_LEARNING_RATE=$9
     CONFIG_NAME=${TEST_CONFIG_PREFIX}_${TEST_CASE}
     TEST_YML_CONFIG_FILE=./tests/config/${TEST_CASE}.yml
     echo "## Test of ${TEST_CASE}"
@@ -129,9 +127,9 @@ function init_test(){
         expect \"how many epochs do you run training (integer):\"
         send \"\b\b\b1\n\"
         expect \"initial learning rate:\"
-        send \"${INITIAL_LEARNING_RATE}\n\"
+        send \"\n\"
         expect \"choose learning rate setting(tune1 / tune2 / tune3 / fixed):\"
-        send \"${TRAINING_LEARNING_RATE}\n\"
+        send \"\n\"
         expect \"Next step:\"
     " > /dev/null
     assert $? 0
@@ -219,7 +217,7 @@ if [ "${YML_CONFIG_FILE}" == "" ]; then
                 VALIDATION_DATASET_PATH=$(get_yaml_param test_path tests/config/${TEST_CASE}.yml)
                 INITIAL_LEARNING_RATE=$(get_yaml_param initial_learning_rate tests/config/${TEST_CASE}.yml)
                 TRAINING_LEARNING_RATE=$(get_yaml_param training_learning_rate tests/config/${TEST_CASE}.yml)
-		init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH} ${INITIAL_LEARNING_RATE} ${TRAINING_LEARNING_RATE}
+		init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH} 
                 basic_test
                 if [ ${ADDITIONAL_TEST_FLAG} -eq 0 ]; then
                     # Run additional test only once
