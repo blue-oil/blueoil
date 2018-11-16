@@ -36,7 +36,7 @@ public:
   Tensor(const Tensor &tensor);
   std::vector<int> shape() const;
   float* data();
-  float *dataAt(std::vector<int> indices, bool clamp);
+  float *dataAt(std::vector<int> indices);
   void dump();
   std::vector<float>::const_iterator begin() const;
   std::vector<float>::const_iterator end() const;

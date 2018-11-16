@@ -94,7 +94,8 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 		float v = 0.0;
 		float totalW = 0.0;
 		for (int x = -xSrcWindow ; x < xSrcWindow; x++){
-		    float *srcRGB = tensor.dataAt({srcY, srcX + x, 0}, true);
+		    int srcX2 = clamp(srcX + x, 0, srcWidth - 1);
+		    float *srcRGB = tensor.dataAt({srcY, srcX2, 0});
 		    float d = std::abs(static_cast<float>(x) / static_cast<float> (xSrcWindow));
 		    float w;
 		    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
@@ -105,7 +106,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 		    v += w * srcRGB[c];
 		    totalW += w;
 		}
-		float *dstRGB = dstTensor.dataAt({dstY, dstX, 0}, false);
+		float *dstRGB = dstTensor.dataAt({dstY, dstX, 0});
 		dstRGB[c] = v / totalW;
 	    }
 	}
@@ -137,7 +138,8 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 		float v = 0.0;
 		float totalW = 0.0;
 		for (int y = -ySrcWindow ; y < ySrcWindow ; y++) {
-		    float *srcRGB = tensor.dataAt({srcY + y, srcX, 0}, true);
+		    int srcY2 = clamp(srcY + y, 0, srcHeight - 1);
+		    float *srcRGB = tensor.dataAt({srcY2, srcX, 0});
 		    float d = std::abs(static_cast<float>(y) / static_cast<float> (ySrcWindow));
 		    float w;
 		    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
@@ -148,7 +150,7 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 		    v += w * srcRGB[c];
 		    totalW += w;
 		}
-		float *dstRGB = dstTensor.dataAt({dstY, dstX, 0}, false);
+		float *dstRGB = dstTensor.dataAt({dstY, dstX, 0});
 		dstRGB[c] = v / totalW;
 	    }
 	}

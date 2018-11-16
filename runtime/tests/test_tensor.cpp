@@ -21,7 +21,7 @@ int test_tensor() {
     blueoil::Tensor tensor2({3, 2}, (float *) tensor_data2);  // shape diff
     blueoil::Tensor tensor3({2, 3}, (float *) tensor_data3);  // data diff
 
-    float *arr = tensor0.dataAt({1, 0}, false);
+    float *arr = tensor0.dataAt({1, 0});
     if ((arr[0] != 7) || (arr[1] != 8) || (arr[2] != 9)) {
 	std::cerr << "tensor0: at(1, 0) != {7, 8, 9}" << std::endl;
 	tensor0.dump();
