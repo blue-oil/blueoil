@@ -62,43 +62,44 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
   assert(k_w <= p::max_k_w);
   assert(k_w >= p::min_k_w);
 
-  for (int oc_high = 0; oc_high < out_c; oc_high += out_c_low) {
-    T_out threshold_buf[out_c_low][p::num_thresholds];
+  for (int ih_high = 0; ih_high < in_h + 2 * pad; ih_high += p::tile_h) {
+    for (int iw_high = 0; iw_high < in_w + 2 * pad; iw_high += p::tile_w) {
 
-    if (use_threshold > 0) {
-      for (unsigned oc = 0; oc < out_c_low; oc++) {
-        for (unsigned i = 0; i < p::num_thresholds; i++) {
-          unsigned idx_th = (oc_high + oc) * p::num_thresholds + i;
-          threshold_buf[oc][i] = threshold_data[idx_th];
+      T_in_hls in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c_by_word][p::max_in_b];
+
+      /// preload input
+      for (int ih_low = 0; ih_low < p::in_tile_h; ++ih_low) {
+        for (int iw_low = 0; iw_low < p::in_tile_w; ++iw_low) {
+          /// index must care the padding, so we skip the padding part that
+          /// doesn't exist in actuall memory.
+          int ih = (ih_low + ih_high - pad);
+
+          int iw = (iw_low + iw_high - pad);
+          bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
+
+          for (int ic = 0; ic < in_c_by_word; ic++) {
+            for (int ib = 0; ib < p::max_in_b; ib++) {
+              const int _in_w = int(in_w);
+              const int _in_c = int(in_c_by_word);
+              in_buf[ih_low][iw_low][ic][ib] =
+                (input_on)
+                  ? in_data[ih * _in_w * _in_c * p::max_in_b + iw * _in_c * p::max_in_b + ic * p::max_in_b + ib]
+                  : T_in_hls(0);
+            }
+          }
         }
       }
-    }
 
-    for (int ih_high = 0; ih_high < in_h + 2 * pad; ih_high += p::tile_h) {
-      for (int iw_high = 0; iw_high < in_w + 2 * pad; iw_high += p::tile_w) {
-        T_in_hls in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c_by_word][p::max_in_b];
+      for (int oc_high = 0; oc_high < out_c; oc_high += out_c_low) {
         T_out_hls out_buf[p::tile_w][p::tile_w][out_c_low];
         T_k_hls k_buf[p::max_in_c_by_word][out_c_low];
+        T_out threshold_buf[out_c_low][p::num_thresholds];
 
-        /// preload input
-        for (int ih_low = 0; ih_low < p::in_tile_h; ++ih_low) {
-          for (int iw_low = 0; iw_low < p::in_tile_w; ++iw_low) {
-            /// index must care the padding, so we skip the padding part that
-            /// doesn't exist in actuall memory.
-            int ih = (ih_low + ih_high - pad);
-
-            int iw = (iw_low + iw_high - pad);
-            bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
-
-            for (int ic = 0; ic < in_c_by_word; ic++) {
-              for (int ib = 0; ib < p::max_in_b; ib++) {
-                const int _in_w = int(in_w);
-                const int _in_c = int(in_c_by_word);
-                in_buf[ih_low][iw_low][ic][ib] =
-                  (input_on)
-                    ? in_data[ih * _in_w * _in_c * p::max_in_b + iw * _in_c * p::max_in_b + ic * p::max_in_b + ib]
-                    : T_in_hls(0);
-              }
+        if (use_threshold > 0) {
+          for (unsigned oc = 0; oc < out_c_low; oc++) {
+            for (unsigned i = 0; i < p::num_thresholds; i++) {
+              unsigned idx_th = (oc_high + oc) * p::num_thresholds + i;
+              threshold_buf[oc][i] = threshold_data[idx_th];
             }
           }
         }
