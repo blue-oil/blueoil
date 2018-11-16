@@ -45,6 +45,7 @@ bool test_conv(input_type &in_type, Conv_params_t &p)
   T_out *out_data_qconv_kn2row_tiling = new T_out[p.out_size];
   T_out *out_data_hls = new T_out[p.out_size];
   T_out *out_data_hls_qgemm = new T_out[p.out_size];
+  T_out *out_data_hls_qconv_kn2row_tiling = new T_out[p.out_size];
   T_out *out_data_fpga = new T_out[p.out_size];
 
   T_out *threshold_data = NULL;
@@ -134,6 +135,12 @@ bool test_conv(input_type &in_type, Conv_params_t &p)
                               p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.k_w, p.k_h, p.pad_w,
                               p.stride_w);
   comp_packed = compare_output(out_data_hls_qgemm, out_data, "qconv_with_kn2row_hls", p.out_h, p.out_w, p.out_c);
+
+  intel_hls_qconv_kn2row_tiling(in_data_packed, out_data_hls_qconv_kn2row_tiling, k_data_packed_t, threshold_data,
+                                p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.k_w,
+                                p.k_h, p.pad_w, p.stride_w);
+  comp_packed =
+    compare_output(out_data_hls_qconv_kn2row_tiling, out_data, "hls_qconv_kn2row_tiling", p.out_h, p.out_w, p.out_c);
 
 #elif defined _DE10_NANO_
 
