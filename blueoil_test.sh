@@ -129,6 +129,7 @@ function init_test(){
         expect \"initial learning rate:\"
         send \"\n\"
         expect \"choose learning rate setting(tune1 / tune2 / tune3 / fixed):\"
+        expect \"apply quantization at the first layer?:\"
         send \"\n\"
         expect \"Next step:\"
     " > /dev/null

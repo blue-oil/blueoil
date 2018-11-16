@@ -32,6 +32,7 @@ from lmnet.data_augmentor import (
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
+    PerImageStandardization
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -54,11 +55,11 @@ dataset_obj = DATASET_CLASS(subset="train", batch_size=1)
 CLASSES = dataset_obj.classes
 step_per_epoch = float(dataset_obj.num_per_epoch)/BATCH_SIZE
 
-{% if max_epochs %}
+{% if max_epochs -%}
 MAX_EPOCHS = {{max_epochs}}
-{% elif max_steps %}
+{%- elif max_steps -%}
 MAX_STEPS = {{max_steps}}
-{% endif %}
+{%- endif %}
 SAVE_STEPS = {{save_steps}}
 TEST_STEPS = {{test_steps}}
 SUMMARISE_STEPS = {{summarise_steps}}
@@ -74,7 +75,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    DivideBy255()
+    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 POST_PROCESSOR = None
 

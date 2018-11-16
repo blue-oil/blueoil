@@ -296,6 +296,14 @@ def ask_questions():
     tmp_learning_rate_setting = prompt(training_learning_rate_question)
     training_learning_rate_setting = choices_key_map[tmp_learning_rate_setting]
 
+    quantize_first_convolution_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'apply quantization at the first layer?',
+        'choices': ['yes', 'no']
+    }
+    quantize_first_convolution= prompt(quantize_first_convolution_question)
+
     r = {}
     for k, v in locals().items():
         if k != 'r' and not k.endswith("question"):
