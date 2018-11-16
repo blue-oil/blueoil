@@ -1,3 +1,15 @@
+'''
+Auto config yaml generator (for unit test)
+
+usage:
+  python make_yml_config.py
+
+how to modify:
+  add comment or array for each setting
+  and
+  display them.
+'''
+
 header_line = "# supported task types are 'classification', 'object_detection' and 'semantic_segmentation'.\n"
 
 output_files = [
