@@ -19,6 +19,9 @@ trainer:
   learning_rate_setting: {{ training_learning_rate_setting }}
   initial_learning_rate: {{ initial_learning_rate_value }}
 
+network:
+  quantize_first_convolution: {{ quantize_first_convolution }}
+
 common:
   image_size:
     - {{ image_size[0] }}  # height
