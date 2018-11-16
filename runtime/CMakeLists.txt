@@ -48,7 +48,8 @@ if(VERBOSE)
 endif()
 
 
-include_directories(include yaml-cpp/include)
+find_package( OpenCV REQUIRED )
+include_directories(include yaml-cpp/include ${OpenCV_INCLUDE_DIRS})
 
 
 # Add dlk static lib.
