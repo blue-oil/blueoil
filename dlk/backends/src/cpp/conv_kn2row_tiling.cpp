@@ -24,43 +24,42 @@ void conv_kn2row_tiling_impl(T_in in_data[], T_out out_data[], T_k k_data[], T_o
   assert(k_w <= p::max_k_w);
   assert(k_w >= p::min_k_w);
 
-  for (int oc_high = 0; oc_high < out_c; oc_high += out_c_low) {
-    T_out threshold_buf[out_c_low][p::num_thresholds];
+  for (int ih_high = 0; ih_high < in_h + 2 * pad; ih_high += p::tile_h) {
+    for (int iw_high = 0; iw_high < in_w + 2 * pad; iw_high += p::tile_w) {
+      T_in in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c];
 
-    if (threshold_data != NULL) {
-      for (unsigned oc = 0; oc < out_c_low; oc++) {
-        for (unsigned i = 0; i < p::num_thresholds; i++) {
-          unsigned idx_th = (oc_high + oc) * p::num_thresholds + i;
-          threshold_buf[oc][i] = threshold_data[idx_th];
+      /// preload input
+      for (int ih_low = 0; ih_low < p::in_tile_h; ++ih_low) {
+        for (int iw_low = 0; iw_low < p::in_tile_w; ++iw_low) {
+          /// index must care the padding, so we skip the padding part that
+          /// doesn't exist in actuall memory.
+          int ih = (ih_low + ih_high - pad);
+          int iw = (iw_low + iw_high - pad);
+          bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
+
+          for (int ic = 0; ic < in_c; ic++) {
+            int idx_in = ih * in_w * in_c + iw * in_c + ic;
+            in_buf[ih_low][iw_low][ic] = (input_on) ? in_data[idx_in] : T_in(0);
+          }
         }
       }
-    }
 
-    for (int ih_high = 0; ih_high < in_h + 2 * pad; ih_high += p::tile_h) {
-      for (int iw_high = 0; iw_high < in_w + 2 * pad; iw_high += p::tile_w) {
-        T_in in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c];
+      for (int oc_high = 0; oc_high < out_c; oc_high += out_c_low) {
         T_out out_buf[p::tile_w][p::tile_w][out_c_low];
         T_k k_buf[p::max_in_c][out_c_low];
+        T_out threshold_buf[out_c_low][p::num_thresholds];
 
-        /// preload input
-        for (int ih_low = 0; ih_low < p::in_tile_h; ++ih_low) {
-          for (int iw_low = 0; iw_low < p::in_tile_w; ++iw_low) {
-            /// index must care the padding, so we skip the padding part that
-            /// doesn't exist in actuall memory.
-            int ih = (ih_low + ih_high - pad);
-            int iw = (iw_low + iw_high - pad);
-            bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
-
-            for (int ic = 0; ic < in_c; ic++) {
-              int idx_in = ih * in_w * in_c + iw * in_c + ic;
-              in_buf[ih_low][iw_low][ic] = (input_on) ? in_data[idx_in] : T_in(0);
+        if (threshold_data != NULL) {
+          for (unsigned oc = 0; oc < out_c_low; oc++) {
+            for (unsigned i = 0; i < p::num_thresholds; i++) {
+              unsigned idx_th = (oc_high + oc) * p::num_thresholds + i;
+              threshold_buf[oc][i] = threshold_data[idx_th];
             }
           }
         }
 
         /// initialize output_buf
-        /// TODO: this could be done at the same time in the accumuratoin
-        /// step.
+        // TODO: this could be done at the same time in the accumuratoin step
         for (int oh = 0; oh < p::tile_h; ++oh) {
           for (int ow = 0; ow < p::tile_w; ++ow) {
             for (int oc = 0; oc < out_c_low; ++oc) { out_buf[oh][ow][oc] = 0; }
@@ -184,38 +183,38 @@ void qconv_kn2row_tiling_impl(T_q in_data[], T_out out_data[], T_q k_data[], T_o
   assert(k_w <= p::max_k_w);
   assert(k_w >= p::min_k_w);
 
-  for (int oc_high = 0; oc_high < out_c; oc_high += out_c_low) {
-    T_out threshold_buf[out_c_low][p::num_thresholds];
+  for (int ih_high = 0; ih_high < in_h + 2 * pad; ih_high += p::tile_h) {
+    for (int iw_high = 0; iw_high < in_w + 2 * pad; iw_high += p::tile_w) {
+      T_q in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c_by_word][p::max_in_b];
 
-    if (threshold_data != NULL) {
-      for (unsigned oc = 0; oc < out_c_low; oc++) {
-        for (unsigned i = 0; i < p::num_thresholds; i++) {
-          unsigned idx_th = (oc_high + oc) * p::num_thresholds + i;
-          threshold_buf[oc][i] = threshold_data[idx_th];
+      /// preload input
+      for (int ih_low = 0; ih_low < p::in_tile_h; ++ih_low) {
+        for (int iw_low = 0; iw_low < p::in_tile_w; ++iw_low) {
+          /// index must care the padding, so we skip the padding part that
+          /// doesn't exist in actuall memory.
+          int ih = (ih_low + ih_high - pad);
+          int iw = (iw_low + iw_high - pad);
+          bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
+
+          for (int ic = 0; ic < in_c_by_word; ic++) {
+            for (int ib = 0; ib < in_b; ib++) {
+              int idx_in = ih * in_w * in_c_by_word * in_b + iw * in_c_by_word * in_b + ic * in_b + ib;
+              in_buf[ih_low][iw_low][ic][ib] = (input_on) ? in_data[idx_in] : T_q(0);
+            }
+          }
         }
       }
-    }
 
-    for (int ih_high = 0; ih_high < in_h + 2 * pad; ih_high += p::tile_h) {
-      for (int iw_high = 0; iw_high < in_w + 2 * pad; iw_high += p::tile_w) {
-        T_q in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c_by_word][p::max_in_b];
+      for (int oc_high = 0; oc_high < out_c; oc_high += out_c_low) {
         T_out out_buf[p::tile_w][p::tile_w][out_c_low];
         T_q k_buf[p::max_in_c_by_word][out_c_low];
+        T_out threshold_buf[out_c_low][p::num_thresholds];
 
-        /// preload input
-        for (int ih_low = 0; ih_low < p::in_tile_h; ++ih_low) {
-          for (int iw_low = 0; iw_low < p::in_tile_w; ++iw_low) {
-            /// index must care the padding, so we skip the padding part that
-            /// doesn't exist in actuall memory.
-            int ih = (ih_low + ih_high - pad);
-            int iw = (iw_low + iw_high - pad);
-            bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
-
-            for (int ic = 0; ic < in_c_by_word; ic++) {
-              for (int ib = 0; ib < in_b; ib++) {
-                int idx_in = ih * in_w * in_c_by_word * in_b + iw * in_c_by_word * in_b + ic * in_b + ib;
-                in_buf[ih_low][iw_low][ic][ib] = (input_on) ? in_data[idx_in] : T_q(0);
-              }
+        if (threshold_data != NULL) {
+          for (unsigned oc = 0; oc < out_c_low; oc++) {
+            for (unsigned i = 0; i < p::num_thresholds; i++) {
+              unsigned idx_th = (oc_high + oc) * p::num_thresholds + i;
+              threshold_buf[oc][i] = threshold_data[idx_th];
             }
           }
         }
