@@ -141,6 +141,17 @@ trainer_initial_lrs = [
     '  initial_learning_rate: 0.001\n',
 ]
 
+network_quantize_first_convolution = [
+    '  quantize_first_convolution: yes\n',
+    '  quantize_first_convolution: yes\n',
+    '  quantize_first_convolution: yes\n',
+    '  quantize_first_convolution: yes\n',
+    '  quantize_first_convolution: yes\n',
+    '  quantize_first_convolution: yes\n',
+    '  quantize_first_convolution: yes\n',
+    '  quantize_first_convolution: yes\n',
+]
+
 common_image_size_heights = [
     '    - 128  # height\n',
     '    - 128  # height\n',
@@ -230,6 +241,12 @@ def learning_settings_to_yaml(index):
     #fp.write(str(trainer_lr_settings[index]))
     # trainer initial lr
     #fp.write(str(trainer_initial_lrs[index]))
+    fp.write('\n')
+
+    # network
+    fp.write("network:\n")
+    # network quantize first convolution
+    fp.write(str(network_quantize_first_convolution[index]))
     fp.write('\n')
 
     # common
