@@ -88,6 +88,19 @@ trainer_epochs = [
     '  epochs: 1\n',
 ]
 
+trainer_optimizer_comment = "# supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.\n"
+
+trainer_optimizers = [
+    '  optimizer: MomentumOptimizer\n',
+    '  optimizer: MomentumOptimizer\n',
+    '  optimizer: MomentumOptimizer\n',
+    '  optimizer: MomentumOptimizer\n',
+    '  optimizer: MomentumOptimizer\n',
+    '  optimizer: MomentumOptimizer\n',
+    '  optimizer: MomentumOptimizer\n',
+    '  optimizer: MomentumOptimizer\n',
+]
+
 trainer_lr_setting_comment = "# supported 'learning_rate_setting' is 'tune1', 'tune2', 'tune3', 'fixed'.\n\
 #   'tune1' is 2 times decay, learning rate reduce to 1/10 on epoch/2 and epoch-1.\n\
 #   'tune2' is 3 times decay, learning rate reduce to 1/10 on epoch/3 and epoch*2/3 and epoch-1.\n\
@@ -195,6 +208,10 @@ def learning_settings_to_yaml(index):
     fp.write(str(trainer_batch_sizes[index]))
     # trainer epochs
     fp.write(str(trainer_epochs[index]))
+    # trainer optimizer comment
+    #fp.write(str(trainer_optimizer_comment))
+    # trainer optimizer 
+    #fp.write(str(trainer_optimizers[index]))
     # trainer lr setting comment
     #fp.write(str(trainer_lr_setting_comment))
     # trainer lr setting
