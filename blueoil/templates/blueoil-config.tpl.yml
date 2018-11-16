@@ -14,6 +14,9 @@ trainer:
 # supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
   optimizer: {{ training_optimizer }}
 
+network:
+  quantize_first_convolution: {{ quantize_first_convolution }}
+
 common:
   image_size:
     - {{ image_size[0] }}  # height

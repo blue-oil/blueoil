@@ -281,6 +281,14 @@ def ask_questions():
     }
     training_optimizer = prompt(training_optimizer_question)
 
+    quantize_first_convolution_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'apply quantization at the first layer?',
+        'choices': ['yes', 'no']
+    }
+    quantize_first_convolution= prompt(quantize_first_convolution_question)
+
     r = {}
     for k, v in locals().items():
         if k != 'r' and not k.endswith("question"):

@@ -127,6 +127,7 @@ function init_test(){
         expect \"how many epochs do you run training (integer):\"
         send \"\b\b\b1\n\"
         expect \"select optimizer:\"
+        expect \"apply quantization at the first layer?:\"
         send \"\n\"
         expect \"Next step:\"
     " > /dev/null
