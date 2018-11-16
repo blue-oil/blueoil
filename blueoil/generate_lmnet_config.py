@@ -141,6 +141,9 @@ def _blueoil_to_lmnet(blueoil_config):
     # common
     image_size = blueoil_config["common"]["image_size"]
 
+    # quantize first layer
+    quantize_first_convolution = blueoil_config["network"]["quantize_first_convolution"]
+
     config = {
         "model_name": model_name,
         "template_file": template_file,
@@ -157,6 +160,8 @@ def _blueoil_to_lmnet(blueoil_config):
         "optimizer" : optimizer,
         
         "image_size": image_size,
+
+        "quantize_first_convolution": quantize_first_convolution,
 
         "dataset": dataset,
     }
