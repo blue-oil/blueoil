@@ -12,6 +12,9 @@ trainer:
   batch_size: {{ batch_size }}
   epochs: {{ training_epochs }}
 
+network:
+  quantize_first_convolution: {{ quantize_first_convolution }}
+
 common:
   image_size:
     - {{ image_size[0] }}  # height
