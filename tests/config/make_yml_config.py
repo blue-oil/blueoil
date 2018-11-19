@@ -236,11 +236,11 @@ def learning_settings_to_yaml(index):
     # trainer optimizer 
     #fp.write(str(trainer_optimizers[index]))
     # trainer lr setting comment
-    #fp.write(str(trainer_lr_setting_comment))
+    fp.write(str(trainer_lr_setting_comment))
     # trainer lr setting
-    #fp.write(str(trainer_lr_settings[index]))
+    fp.write(str(trainer_lr_settings[index]))
     # trainer initial lr
-    #fp.write(str(trainer_initial_lrs[index]))
+    fp.write(str(trainer_initial_lrs[index]))
     fp.write('\n')
 
     # network
