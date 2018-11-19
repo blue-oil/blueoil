@@ -21,6 +21,7 @@ This is an example of configuration.
   batch size (integer):  64
   image size (integer x integer):  32x32
   how many epochs do you run training (integer):  100
+  select optimizer: MomentumOptimizer
   apply quantization at the first layer: yes
 ```
 
