@@ -109,7 +109,6 @@ def _blueoil_to_lmnet(blueoil_config):
         "save_steps": 1000,
         "test_steps": 1000,
         "summarise_steps": 100,
-        "learning_rate": 1e-3,
     }
     dataset = {
 
@@ -137,6 +136,8 @@ def _blueoil_to_lmnet(blueoil_config):
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
     optimizer  = blueoil_config["trainer"]["optimizer"]
+    initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"]
+    learning_rate_setting = blueoil_config["trainer"]["learning_rate_setting"]
 
     # common
     image_size = blueoil_config["common"]["image_size"]
@@ -158,6 +159,8 @@ def _blueoil_to_lmnet(blueoil_config):
         "max_epochs": "",
         "max_steps": "",
         "optimizer" : optimizer,
+        "initial_learning_rate": initial_learning_rate,
+        "learning_rate_setting": learning_rate_setting,
         
         "image_size": image_size,
 
