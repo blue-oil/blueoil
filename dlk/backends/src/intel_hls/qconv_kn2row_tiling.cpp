@@ -52,35 +52,47 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
 {
   /// just alias for better understanding
   static const unsigned out_c_low = p::num_pe;
-  assert((out_c % out_c_low) == 0);
-  assert(in_c_by_word <= p::max_in_c_by_word);
-  assert(in_c_by_word >= p::min_in_c_by_word);
+  // assert((out_c % out_c_low) == 0);
+  // assert(in_c_by_word <= p::max_in_c_by_word);
+  // assert(in_c_by_word >= p::min_in_c_by_word);
   // assert(in_b <= p::max_in_b);
   // assert(in_b >= p::min_in_b);
-  assert(k_h <= p::max_k_h);
-  assert(k_h >= p::min_k_h);
-  assert(k_w <= p::max_k_w);
-  assert(k_w >= p::min_k_w);
+  // assert(k_h <= p::max_k_h);
+  // assert(k_h >= p::min_k_h);
+  // assert(k_w <= p::max_k_w);
+  // assert(k_w >= p::min_k_w);
 
+#pragma unroll 1
   for (int ih_high = 0; ih_high < in_h + 2 * pad; ih_high += p::tile_h) {
+#pragma unroll 1
     for (int iw_high = 0; iw_high < in_w + 2 * pad; iw_high += p::tile_w) {
-
-      T_in_hls in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c_by_word][p::max_in_b];
+      // in_buf shoule be banked by 8 elems, because this has 2 bits per an element, and
+      // 4 inputs are computed along with input channel dimension at a cycle.
+      // This also should be doublepump because this loads next data from bus while computing the others.
+      hls_memory hls_doublepump hls_bankbits(0, 1, 2)
+        T_in_hls in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c_by_word][p::max_in_b];
 
       /// preload input
+#pragma unroll 1
       for (int ih_low = 0; ih_low < p::in_tile_h; ++ih_low) {
+#pragma unroll 1
         for (int iw_low = 0; iw_low < p::in_tile_w; ++iw_low) {
           /// index must care the padding, so we skip the padding part that
           /// doesn't exist in actuall memory.
-          int ih = (ih_low + ih_high - pad);
+          const int ih = (ih_low + ih_high - pad);
+          const int iw = (iw_low + iw_high - pad);
+          const bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
 
-          int iw = (iw_low + iw_high - pad);
-          bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
-
+// input load module.
+// factor 4 because in_buf is banked by 8 elems.
+#pragma unroll 4
           for (int ic = 0; ic < in_c_by_word; ic++) {
+#pragma unroll
             for (int ib = 0; ib < p::max_in_b; ib++) {
               const int _in_w = int(in_w);
               const int _in_c = int(in_c_by_word);
+              // loading inputs from bus.
+              // if the coordinates on the padding, this stores 0 instead of loading the data.
               in_buf[ih_low][iw_low][ic][ib] =
                 (input_on)
                   ? in_data[ih * _in_w * _in_c * p::max_in_b + iw * _in_c * p::max_in_b + ic * p::max_in_b + ib]
@@ -90,13 +102,24 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
         }
       }
 
+#pragma unroll 1
       for (int oc_high = 0; oc_high < out_c; oc_high += out_c_low) {
-        T_out_hls out_buf[p::tile_w][p::tile_w][out_c_low];
-        T_k_hls k_buf[p::max_in_c_by_word][out_c_low];
+        // out_buf shoule be banked by 16 elems, because out_c_low is 16, which log2 is 4.
+        // This also should should be doublepump, because accumulation happens at every cycle,
+        // requiring reading a data and computing it, then rewriting it to the same address.
+        hls_memory hls_doublepump hls_bankbits(0, 1, 2, 3) T_out_hls out_buf[p::tile_w][p::tile_w][out_c_low];
+        // k_buf shoule be banked by 64 elems, because
+        // 16 kernels are needed to produce 16 outputs which is fully banked by 16 on out_c_low
+        // Also per 1 output, 4 kernels are additionally needed to product with the 8 inputs coming from bus.
+        // Only singlepump is OK for kernel.
+        hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4, 5) T_k_hls k_buf[p::max_in_c_by_word][out_c_low];
         T_out threshold_buf[out_c_low][p::num_thresholds];
 
+        // threshold loading module.
+        // just relay on automatic unroll.
         if (use_threshold > 0) {
           for (unsigned oc = 0; oc < out_c_low; oc++) {
+#pragma unroll
             for (unsigned i = 0; i < p::num_thresholds; i++) {
               unsigned idx_th = (oc_high + oc) * p::num_thresholds + i;
               threshold_buf[oc][i] = threshold_data[idx_th];
@@ -105,47 +128,55 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
         }
 
         /// initialize output_buf
-        // TODO: this could be done at the same time in the accumuratoin step.
+        // TODO: this could be done at the same time in the accumulatoin step.
         for (int oh = 0; oh < p::tile_h; ++oh) {
+#pragma unroll
           for (int ow = 0; ow < p::tile_w; ++ow) {
             for (int oc = 0; oc < out_c_low; ++oc) { out_buf[oh][ow][oc] = 0; }
           }
         }
 
-        /// main convolution loop
+#pragma unroll 1
         for (int kh = 0; kh < k_h; ++kh) {
+#pragma unroll 1
           for (int kw = 0; kw < k_w; ++kw) {
-            /// preload kernel
+
+            // kernel load module.
+            // just relay on automatic unroll.
             for (int ic = 0; ic < in_c_by_word; ic++) {
-              for (int ib = 0; ib < p::max_in_b; ib++) {
-                for (int oc = 0; oc < out_c_low; oc++) {
-                  /// currently kernel oerder is NoHWCNi, which means the
-                  /// outermost dimension "N" is split into 2 high and low
-                  /// parts. we should be carefull when compute the index.
-                  const int _in_c = int(in_c_by_word);
-                  const int _out_c = int(out_c);
-                  const int _k_w = int(k_w);
-                  const int _k_h = int(k_h);
-                  int idx_k = (kh * _k_w * _in_c * out_c_low) + (kw * _in_c * out_c_low) + (ic * out_c_low) + oc +
-                              (oc_high * _k_h * _k_w * _in_c);
-                  k_buf[ic][oc] = k_data[idx_k];
-                }
+#pragma unroll
+              for (int oc = 0; oc < out_c_low; oc++) {
+                /// currently kernel order is NoHWCNi, which means the
+                /// outermost dimension "N" is split into 2 high and low
+                /// parts. we should be carefull when compute the index.
+                const int _in_c = int(in_c_by_word);
+                const int _out_c = int(out_c);
+                const int _k_w = int(k_w);
+                const int _k_h = int(k_h);
+                const int idx_k = (kh * _k_w * _in_c * out_c_low) + (kw * _in_c * out_c_low) + (ic * out_c_low) + oc +
+                                  (oc_high * _k_h * _k_w * _in_c);
+                k_buf[ic][oc] = k_data[idx_k];
               }
             }
 
+            // MAC compute module.
+#pragma unroll 1
             for (int ih = 0; ih < p::in_tile_h; ++ih) {
+#pragma unroll 1
               for (int iw = 0; iw < p::in_tile_w; ++iw) {
-                int oh = ih - kh;
-                int ow = iw - kw;
-                bool output_on = (oh >= 0) && (ow >= 0) && (oh < p::tile_h) && (ow < p::tile_w);
+                const int oh = ih - kh;
+                const int ow = iw - kw;
+                const bool output_on = (oh >= 0) && (ow >= 0) && (oh < p::tile_h) && (ow < p::tile_w);
 
+#pragma unroll 4
                 for (int ic = 0; ic < in_c_by_word; ic++) {
-                  T_in_hls in_elems[p::max_in_b];
+                  hls_register T_in_hls in_elems[p::max_in_b];
+#pragma unroll
                   for (int ib = 0; ib < p::max_in_b; ib++) { in_elems[ib] = in_buf[ih][iw][ic][ib]; }
-
+#pragma unroll
                   for (int oc = 0; oc < out_c_low; oc++) {
-                    T_k_hls k_elem = k_buf[ic][oc];
-                    T_out_hls acc_tmp = PE_kn2row_tiling(k_elem, in_elems);
+                    const T_k_hls k_elem = k_buf[ic][oc];
+                    const T_out_hls acc_tmp = PE_kn2row_tiling(k_elem, in_elems);
 
                     if (output_on) {
                       out_buf[oh][ow][oc] += acc_tmp;
@@ -157,18 +188,21 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
           }
         }
 
-        /// export data in output buffer step
+        /// output store module.
+#pragma unroll 1
         for (int oh = 0; oh < p::tile_h; ++oh) {
+#pragma unroll 1
           for (int ow = 0; ow < p::tile_w; ++ow) {
+#pragma unroll
             for (int oc = 0; oc < out_c_low; oc++) {
-              T_out_hls out = out_buf[oh][ow][oc];
+              const T_out_hls out = out_buf[oh][ow][oc];
               T_out_hls tmp;
 
               if (use_threshold > 0) {
-                T_out_hls ts0 = threshold_buf[oc][0];
-                T_out_hls ts1 = threshold_buf[oc][1];
-                T_out_hls ts2 = threshold_buf[oc][2];
-                T_out_hls flag = threshold_buf[oc][3];
+                const T_out_hls ts0 = threshold_buf[oc][0];
+                const T_out_hls ts1 = threshold_buf[oc][1];
+                const T_out_hls ts2 = threshold_buf[oc][2];
+                const T_out_hls flag = threshold_buf[oc][3];
 
                 if (flag == 1) /// increasing function
                 {
@@ -192,7 +226,7 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
                     tmp = 3;
                 } else {
                   /// max value of 2 bits
-                  T_out_hls k = 3 * 3 * out_c * 3;
+                  const T_out_hls k = 3 * 3 * out_c * 3;
                   tmp = flag - k;
                 }
               } else {
@@ -200,18 +234,15 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
               }
 
               /// export out data to actual memory space.
-              unsigned oh_ = ih_high + oh;
-              unsigned ow_ = iw_high + ow;
-              unsigned oc_ = oc_high + oc;
+              const unsigned oh_ = ih_high + oh;
+              const unsigned ow_ = iw_high + ow;
+              const unsigned oc_ = oc_high + oc;
 
-              bool output_on = ((oh_ < out_h) && (ow_ < out_w) && (oc_ < out_c));
+              const bool output_on = ((oh_ < out_h) && (ow_ < out_w) && (oc_ < out_c));
               if (output_on) {
                 const int _out_w = int(out_w);
                 const int _out_c = int(out_c);
                 int idx_out = oh_ * _out_w * _out_c + ow_ * _out_c + oc_;
-                // printf("oh: %d, ow: %d, oc: %d, idx: %d, tmp: %d\n", oh_,
-                // ow_,
-                //        oc_, idx_out, tmp);
                 out_data[idx_out] = T_out_hls(tmp);
               }
             }
