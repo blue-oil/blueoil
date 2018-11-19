@@ -127,6 +127,7 @@ function init_test(){
         expect \"how many epochs do you run training (integer):\"
         send \"\b\b\b1\n\"
         expect \"select optimizer:\"
+        send \"\n\"
         expect \"initial learning rate:\"
         send \"\n\"
         expect \"choose learning rate setting(tune1 / tune2 / tune3 / fixed):\"
