@@ -1,6 +1,6 @@
 # Training for Object Detection
 
-This guide trains a neural network model to object detection of Human Arm and Human Face in the [Open Images Dataset V4](https://storage.googleapis.com/openimages/web/index.html) dataset on GPU server.
+This guide trains a neural network model to object detection of Human Face and Human Hand in the [Open Images Dataset V4](https://storage.googleapis.com/openimages/web/index.html) on GPU server.
 
 <img src="../_static/openimages_v4.png" width="600">
 
@@ -23,7 +23,7 @@ You can download subset of Open Images V4 from
 	$ tar xzf openimages.tgz
 
 
-This dataset consists of 5,000 color images in 2 classes, with 2,500 images per class.
+This dataset consists of 5,000 color images in 2 classes, with 2,500 images per class.
 
 ## Generate a configuration file
 
