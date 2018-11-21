@@ -23,19 +23,15 @@ limitations under the License.
 using namespace std;
 
 // TODO: delete this func. it is for debug. 
-blueoil::Tensor RandomImage(int num, int height, int width, int channel) {
-    blueoil::Tensor t;
-    const int data_size = channel * width * height * num;
-    vector<float> data(data_size, 0);
-    vector<int> shape = {num, height, width, channel};
+blueoil::Tensor RandomImage(int height, int width, int channel) {
+    blueoil::Tensor t({height, width, channel});
+    vector<float> data = t.data();
 
     for (int i = 0; i < data.size(); ++i) {
         const float f_rand = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 255;
         data[i] = f_rand;
     }
 
-    t.data = data;
-    t.shape = shape;
     return t;
 }
 
@@ -58,13 +54,13 @@ int main() {
         std::cout << j << "\n";
     }
 
-    blueoil::Tensor random_image = RandomImage(1, 256, 256, 3);
+    blueoil::Tensor random_image = RandomImage(256, 256, 3);
 
     cout << "Run" << endl;
     blueoil::Tensor output =  predictor.Run(random_image);
 
     cout << "Results !" << endl;
-    for (float j: output.data) {
+    for (float j: output.data()) {
         cout << j << endl;
     }
 
