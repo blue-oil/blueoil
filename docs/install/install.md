@@ -117,14 +117,12 @@ But if the user wants to expand the root partition to fill the whole free space 
 
 ---
 
-## Create Linux system on microSD card
+## [OPTIONAL] Create your own Linux image on microSD card
 
-When you already done the ['Setup an FPGA Board'](#setup-an-fpga-board), you can skip this section.
+### **NOTE:** if you have already used the provided OS image per ['Setup an FPGA Board'](#setup-an-fpga-board), there is no need to go through this section. This is only for someone who wants to build from the original OS image.
 
-The original image is available from the Terasic's official web site.
-
-### Download From Terasic's official (On your PC)
-please follow the link as below:
+### Download Terasic's official system image (On your PC)
+The original image is available from the Terasic's official web site. please follow the link as below:
 
 1. Go to [Terasic's official web site](https://www.terasic.com.tw/en/)
 2. Select "Products"
