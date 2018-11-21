@@ -54,7 +54,7 @@ void conv3x3_kn2row(T input[],
   assert(p.input_height > 0);
   assert(p.input_width > 0);
 
-  U *buf = new U[MAX_SIZE_KN2ROW_BUFFER_PER_LAYER]();
+  static T_FLOAT buf[MAX_SIZE_KN2ROW_BUFFER_PER_LAYER];
 
   Measurement::Stop();
 
@@ -65,7 +65,6 @@ void conv3x3_kn2row(T input[],
 
   dlk::matrix_multiplication(kernels_, input_, buf_);
   dlk::matrix_shift_add(buf_, output_, p);
-  delete[] buf;
 
   Measurement::Stop();
 }
