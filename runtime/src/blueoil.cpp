@@ -55,12 +55,18 @@ std::vector<int> Tensor::shape() const {
     return m_shape;
 }
 
-
-float* Tensor::data() {
-    return m_data.data();
+std::vector<float> &Tensor::data() {
+  return m_data;
 }
 
-float *Tensor::dataAt(std::vector<int> indices) {
+float *Tensor::dataAsArray() {
+  if (this->m_shape.size() == 0) {
+    throw std::invalid_argument("Tensor have no shape");
+  }
+  return &(m_data[0]);
+}
+
+float *Tensor::dataAsArray(std::vector<int> indices) {
     if (this->m_shape.size() != indices.size() ) {
         throw std::invalid_argument("shape.size != indices.size");
     }
@@ -307,7 +313,7 @@ Tensor Predictor::Run(const Tensor& image) {
   // build network output tensor.
   Tensor n_output(network_output_shape_);
 
-  network_run(net_, pre_processed.data(), n_output.data());
+  network_run(net_, pre_processed.dataAsArray(), n_output.dataAsArray());
 
   Tensor post_processed = RunPostProcess(n_output);
 
