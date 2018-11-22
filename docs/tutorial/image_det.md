@@ -89,7 +89,6 @@ You can also do it like  <a href="./image_cls.html">Classification example</a>.
 
 - Check inference result
 
-
 	```
 	{
 	    "classes": [
