@@ -37,6 +37,7 @@ from lmnet.pre_processor import (
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
+    twn_weight_quantizer,
 )
 
 IS_DEBUG = False
@@ -83,11 +84,13 @@ POST_PROCESSOR = None
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{learning_rate}}}
+NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": 0.1}
+#{"momentum": 0.9, {{learning_rate}}}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
-NETWORK.WEIGHT_DECAY_RATE = 0.0005
+NETWORK.WEIGHT_DECAY_RATE = 0.0001
+#0.0005
 
 # quantize
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
@@ -95,7 +98,8 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,
     'max_value': 2
 }
-NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
+NETWORK.WEIGHT_QUANTIZER = twn_weight_quantizer
+#binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 NETWORK.QUANTIZE_FIRST_CONVOLUTION = {% if quantize_first_convolution %} True {% else %} False {% endif %}
 
@@ -109,9 +113,9 @@ DATASET.AUGMENTOR = Sequence([
     Pad(4),
     Crop(size=IMAGE_SIZE),
     FlipLeftRight(),
-    Brightness((0.75, 1.25)),
-    Color((0.75, 1.25)),
-    Contrast((0.75, 1.25)),
-    Hue((-10, 10)),
+#    Brightness((0.75, 1.25)),
+#    Color((0.75, 1.25)),
+#    Contrast((0.75, 1.25)),
+#    Hue((-10, 10)),
 ])
 

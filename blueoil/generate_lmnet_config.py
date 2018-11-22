@@ -41,6 +41,10 @@ _NETWORK_NAME_NETWORK_MODULE_CLASS = {
         "network_module": "lm_fyolo",
         "network_class": "LMFYoloQuantize",
     },
+    "Vgg7Network": {
+        "network_module": "vgg7",
+        "network_class": "Vgg7Quantize",
+    },
 }
 
 _DATASET_FORMAT_DATASET_MODULE_CLASS = {
@@ -59,6 +63,10 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
     "DeLTA-Mark for Object Detection": {
         "dataset_module": "delta_mark",
         "dataset_class": "ObjectDetectionBase",
+    },
+    "Cifar10": {
+        "dataset_module": "cifar10",
+        "dataset_class": "Cifar10",
     },
 }
 
