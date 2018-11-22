@@ -51,19 +51,19 @@ apply quantization at the first layer?  yes
 
 ## Train a neural network
 
-You can train same as <a href="./image_cls.html">Classification example</a>.
+You can do it like 
+ <a href="./image_cls.html">Classification example</a>.
 
 ## Convert training result to FPGA ready format.
 
-You can convert same as <a href="./image_cls.html">Classification example</a>.
+You can also do it like  <a href="./image_cls.html">Classification example</a>.
 
 ## Run inference script on x86 Linux (Ubuntu 16.04)
 
 - Prepare inference images (not included in the training dataset)
 
-    [ for example: sitting_man ]
+	You can find test imgaes on [Creative Commons](https://ccsearch.creativecommons.org/). [Sample](https://ccsearch.creativecommons.org/photos/ddfd33a6-140f-49a3-85b8-3bf58a877990)
 
-    <img src="../_static/sitting_man.jpg" width=128>
 - Run inference script
 
     Explore into the `output/python` directory, and
@@ -71,11 +71,59 @@ You can convert same as <a href="./image_cls.html">Classification example</a>.
 
     Note: If you run the script for the first time, you have to setup a python environment (2.7 or 3.5+) and install requirements python packages.
 
-```
-$ cd {output/python directory}
-$ sudo pip install -r requirements.txt  # only the first time
-$ python run.py \
-      -i {inference image path} \
-      -l ../models/lib/lib_x86.so \
-      -c ../models/meta.yaml
-```
+	```
+	$ cd {output/python directory}
+	$ sudo pip install -r requirements.txt  # only the first time
+	$ python run.py \
+	      -i {inference image path} \
+	      -l ../models/lib/lib_x86.so \
+	      -c ../models/meta.yaml
+	```
+
+	*Tips:* The default thredhold for object detection is `0.05`. If you find too many boxses when running demo, you can edit `meta.yml` and set threshold about `0.4` or `0.5` as below code.
+
+	```
+	ExcludeLowScoreBox:
+	    threshold: 0.4
+	```
+
+- Check inference result
+
+
+	```
+	{
+	    "classes": [
+	        {
+	            "id": 0,
+	            "name": "Humanface"
+	        },
+	        {
+	            "id": 1,
+	            "name": "Humanhand"
+	        }
+	    ],
+	    "date": "2018-11-22T12:32:26.145586",
+	    "results": [
+	        {
+	            "file_path": "{inference_image_path}",
+	            "prediction": [
+	                {
+	                    "box": [
+	                        1306.8501420021057,
+	                        409.00918841362,
+	                        587.2840890884399,
+	                        939.6917223930359
+	                    ],
+	                    "class": {
+	                        "id": 0,
+	                        "name": "Humanface"
+	                    },
+	                    "score": "0.6719009876251221"
+	                }
+	            ]
+	        }
+	    ],
+	    "task": "IMAGE.OBJECT_DETECTION",
+	    "version": 0.2
+	}
+	```
