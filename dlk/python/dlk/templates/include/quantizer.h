@@ -48,16 +48,17 @@ void func_QTZ_binary_channel_wise_mean_scaling(
   T_UINT in_channel)
 {
   unsigned num_elems_in_channel = in_height * in_width * in_depth;
-  T_FLOAT sum;
+  T_FLOAT sum, mean;
 
   for(unsigned i = 0; i < in_channel; i++) {
     sum = 0;
     for(unsigned j = 0; j < num_elems_in_channel; j++) {
       sum += std::abs(input[i * num_elems_in_channel + j]);
-      for(unsigned j = 0; j < num_elems_in_channel; j++) {
-	unsigned in_index = i * num_elems_in_channel + j;
-	output[in_index] = (input[in_index] >= 0) ? sum / num_elems_in_channel : -1 * sum / num_elems_in_channel;
-      }
+    }
+    mean = sum / num_elems_in_channel;
+    for(unsigned j = 0; j < num_elems_in_channel; j++) {
+      unsigned in_index = i * num_elems_in_channel + j;
+      output[in_index] = (input[in_index] >= 0) ? mean : -1 * mean;
     }
   }
 }
