@@ -322,9 +322,12 @@ class DarknetQuantize(Darknet, BaseQuantize):
     def base(self, images, is_training):
         custom_getter = partial(
             self._quantized_variable_getter,
-            self.weight_quantization,
-            self.quantize_first_convolution,
-            self.quantize_last_convolution,
+            weight_quantization=self.weight_quantization,
+            use_histogram=True,
+            first_layer_name="block_1/",
+            last_layer_name="conv_23/",
+            quantize_first_convolution=self.quantize_first_convolution,
+            quantize_last_convolution=self.quantize_last_convolution,
         )
         with tf.variable_scope("", custom_getter=custom_getter):
             return super().base(images, is_training)
