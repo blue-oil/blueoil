@@ -51,12 +51,50 @@ apply quantization at the first layer?  yes
 
 ## Train a neural network
 
-You can do it like 
- <a href="./image_cls.html">Classification example</a>.
+Train your model by running `blueoil train` command with model configuration. 
+
+    $ ./blueoil.sh train config/{Model name}.yml
+
+When training is started, training log and checkpoints are generated under `./saved/{Mode name}_{TIMESTAMP}` directory.
+
+Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process. 
+
+    $ ./blueoil.sh tensorboard saved/{Model name}_{TIMESTAMP} {Port}
 
 ## Convert training result to FPGA ready format.
 
-You can also do it like  <a href="./image_cls.html">Classification example</a>.
+Convert trained model to executable binary files for x86, ARM, and FPGA.
+Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
+
+    $ ./blueoil.sh convert config/[Model name].yml saved/{Mode name}_{TIMESTAMP}
+
+`Blueoil convert` automatically executes some conversion processes.
+- Convert Tensorflow checkpoint to protocol buffer graph.
+- Optimize graph
+- Generate source code for executable binary
+- Compile for x86, ARM and FPGA
+
+If conversion is successful, output files are generated under `./saved/{Mode name}_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
+
+```
+output
+ ├── fpga (include preloader and FPGA configuration file)
+ │   ├── preloader-mkpimage.bin
+ │   └── soc_system.rbf
+ ├── models
+ │   ├── lib (include trained model library)
+ │   │   ├── lib_arm.so
+ │   │   ├── lib_fpga.so
+ │   │   └── lib_x86.so
+ │   └── meta.yaml (model configuration)
+ ├── python
+ │   ├── lmnet (include pre-process/post-process)
+ │   ├── README.md
+ │   ├── requirements.txt
+ │   ├── run.py (inference script)
+ │   └── usb_camera_demo.py (demo script for object detection)
+ └── README.md
+```
 
 ## Run inference script on x86 Linux (Ubuntu 16.04)
 
