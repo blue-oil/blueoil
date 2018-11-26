@@ -72,7 +72,7 @@ inline void matrix_multiplication_col3(
       float32x4_t rhs0 = vdupq_n_f32((float)(*B.data(0, i)));
       float32x4_t rhs1 = vdupq_n_f32((float)(*B.data(1, i)));
       float32x4_t rhs2 = vdupq_n_f32((float)(*B.data(2, i)));
-      for (std::size_t j = 0; j + 3 < A.rows(); j += 4) {
+      for (std::size_t j = 0; j + 3 < Arows; j += 4) {
 	float32x4_t lhs0 = vld1q_f32(A_colm.data(j, 0));
 	float32x4_t lhs1 = vld1q_f32(A_colm.data(j, 1));
 	float32x4_t lhs2 = vld1q_f32(A_colm.data(j, 2));
