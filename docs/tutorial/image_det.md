@@ -66,7 +66,7 @@ Training is running on TensorFlow backend. So you can use TensorBoard to visuali
 Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
-    $ ./blueoil.sh convert config/[Model name].yml saved/{Mode name}_{TIMESTAMP}
+    $ ./blueoil.sh convert config/{Model name}.yml saved/{Mode name}_{TIMESTAMP}
 
 `Blueoil convert` automatically executes some conversion processes.
 - Convert Tensorflow checkpoint to protocol buffer graph.
