@@ -6,7 +6,7 @@ This guide trains a neural network model to object detection of Human Face and H
 
 ## Preparation
 
-The Open Images V4 dataset is available from official website, but original dataset is too large for the tutorial. We provide reduced dataset.
+The Open Images V4 dataset is available from official website, but original dataset is too large for the tutorial. So, We provide reduced dataset.
 
 Blueoil supports 2 formats for object detection.
 
@@ -20,7 +20,7 @@ You can download subset of Open Images V4 from
 
 
 	$ wget https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/openimages.tgz
-	$ tar xzf openimages.tgz
+	$ tar xf openimages.tgz
 
 
 This dataset consists of 5,000 color images in 2 classes, with 2,500 images per class.
@@ -31,7 +31,7 @@ Generate your model configuration file interactively by running `blueoil init` c
 
     $ ./blueoil.sh init
 
-This is an example of configuration.
+This is an example of initialization.
 
 ```
 #### Generate config ####
@@ -49,7 +49,7 @@ choose learning rate setting(tune1 / tune2 / tune3 / fixed):  tune1 -> "2 times 
 apply quantization at the first layer?  yes
 ```
 
-## Train a neural network
+## Train a network model
 
 Train your model by running `blueoil train` command with model configuration. 
 
@@ -98,20 +98,22 @@ output
 
 ## Run inference script on x86 Linux (Ubuntu 16.04)
 
-- Prepare inference images (not included in the training dataset)
+- Prepare images for inference (not included in the training dataset)
 
 	You can find test imgaes on [Creative Commons](https://ccsearch.creativecommons.org/). [Sample](https://ccsearch.creativecommons.org/photos/ddfd33a6-140f-49a3-85b8-3bf58a877990)
+
+		$ wget https://farm4.staticflickr.com/1172/1144309435_eff42ee683_o.jpg
 
 - Run inference script
 
     Explore into the `output/python` directory, and
     run `run.py` and inference result is saved in `./output/output.json`.
 
-    Note: If you run the script for the first time, you have to setup a python environment (2.7 or 3.5+) and install requirements python packages.
+    Note: If you run the script for the first time, you have to setup a python environment (2.7 or 3.5+) and required python packages.
 
 	```
 	$ cd {output/python directory}
-	$ sudo pip install -r requirements.txt  # only the first time
+	$ sudo pip install -r requirements.txt  # for the first time only
 	$ python run.py \
 	      -i {inference image path} \
 	      -l ../models/lib/lib_x86.so \
