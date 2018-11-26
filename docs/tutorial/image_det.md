@@ -120,7 +120,7 @@ output
 	      -c ../models/meta.yaml
 	```
 
-	*Tips:* The default thredhold for object detection is `0.05`. If you find too many boxses when running demo, you can edit `meta.yml` and set threshold about `0.4` or `0.5` as below code.
+	*Tips:* The default thredhold for object detection is `0.05`. If you find too many boxses when running demo, you can edit `meta.yml` and set threshold to 0.4 or 0.5 as below code.
 
 	```
 	ExcludeLowScoreBox:
