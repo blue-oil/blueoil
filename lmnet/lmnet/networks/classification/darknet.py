@@ -311,7 +311,6 @@ class DarknetQuantize(Darknet, BaseQuantize):
         else:
             self.before_last_activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
 
-
     def base(self, images, is_training):
         custom_getter = partial(
             self._quantized_variable_getter,
