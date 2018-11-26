@@ -4,7 +4,7 @@ import tensorflow as tf
 class BaseQuantize(object):
     """BaseQuantize.
 
-    This base quantize class is a base class for quantized network of all kinds of task 
+    This base quantize class is a base class for quantized network of all kinds of task
     (classification, object detection, and segmentation).
     Every sub task's base network class with quantized layer should extend this class.
 
