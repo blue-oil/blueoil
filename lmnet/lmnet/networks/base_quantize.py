@@ -1,9 +1,11 @@
 import tensorflow as tf
 
+
 class BaseQuantize(object):
     """BaseQuantize.
 
-    This base quantize class is a base class for quantized network of all kinds of task (classification, object detection, and segmentation).
+    This base quantize class is a base class for quantized network of all kinds of task 
+    (classification, object detection, and segmentation).
     Every sub task's base network class with quantized layer should extend this class.
 
     Args:
@@ -11,8 +13,8 @@ class BaseQuantize(object):
         activation_quantizer_kwargs (dict): A dictionary of arguments for the activation quantization function
         weight_quantizer (callable): A weight quantization function
         weight_quantizer_kwargs (dict): A dictionary of arguments for the weight quantization function
-        quantize_first_convolution (boolean): True if using quantization at the first layer, False otherwise 
-        quantize_last_convolution (boolean): True if using quantization at the last layer, False otherwise 
+        quantize_first_convolution (boolean): True if using quantization at the first layer, False otherwise
+        quantize_last_convolution (boolean): True if using quantization at the last layer, False otherwise
     """
 
     def __init__(
@@ -39,15 +41,15 @@ class BaseQuantize(object):
         self.quantize_last_convolution = quantize_last_convolution
 
     @staticmethod
-    def _quantized_variable_getter(getter, 
-                                   name, 
-                                   weight_quantization=None, 
-                                   quantize_first_convolution=None, 
+    def _quantized_variable_getter(getter,
+                                   name,
+                                   weight_quantization=None,
+                                   quantize_first_convolution=None,
                                    quantize_last_convolution=None,
-                                   first_layer_name=None, 
-                                   last_layer_name=None, 
-                                   use_histogram=False, 
-                                   *args, 
+                                   first_layer_name=None,
+                                   last_layer_name=None,
+                                   use_histogram=False,
+                                   *args,
                                    **kwargs):
         """Get the quantized variables.
         Use if to choose or skip the target should be quantized.
@@ -55,11 +57,11 @@ class BaseQuantize(object):
             getter: Default from tensorflow.
             name: Default from tensorflow.
             weight_quantization: Callable object which quantize variable.
-            quantize_first_convolution (boolean): True if using quantization at the first layer, False otherwise 
+            quantize_first_convolution (boolean): True if using quantization at the first layer, False otherwise
             quantize_last_convolution (boolean): True if using quantization at the last layer, False otherwise
             first_layer_name (string): prefix of name of the weight nodes in the first layer
             last_layer_name (string): prefix of name of the weight nodes in the last layer
-            use_histogram (boolean): True to return tf.summary.histogram of quantized var, False to return normal quantized var
+            use_histogram (boolean): True to return tf.summary.histogram of quantized var
             args: Args.
             kwargs: Kwargs.
         """
@@ -75,10 +77,10 @@ class BaseQuantize(object):
                 if quantize_last_convolution is not None and last_layer_name is not None:
                     if not quantize_last_convolution and var.op.name.startswith(last_layer_name):
                         return var
-                
+
                 if use_histogram:
                     return tf.summary.histogram("quantized_kernel", weight_quantization(var))
                 else:
                     return weight_quantization(var)
-            
+
         return var
