@@ -145,24 +145,3 @@ class LmnetV0Quantize(LmnetV0, BaseQuantize):
 
         self.custom_getter = functools.partial(self._quantized_variable_getter,
                                                weight_quantization=self.weight_quantization)
-
-    @staticmethod
-    def _quantized_variable_getter(getter, name, weight_quantization=None, *args, **kwargs):
-        """Get the quantized variables.
-
-        Use if to choose or skip the target should be quantized.
-
-        Args:
-            getter: Default from tensorflow.
-            name: Default from tensorflow.
-            weight_quantization: Callable object which quantize variable.
-            args: Args.
-            kwargs: Kwargs.
-        """
-        assert callable(weight_quantization)
-        var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
-            # Apply weight quantize to variable whose last word of name is "kernel".
-            if "kernel" == var.op.name.split("/")[-1]:
-                return weight_quantization(var)
-        return var

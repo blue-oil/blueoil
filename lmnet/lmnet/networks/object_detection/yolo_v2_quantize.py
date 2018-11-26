@@ -73,45 +73,13 @@ class YoloV2Quantize(YoloV2, BaseQuantize):
         else:
             self.before_last_activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
 
-    @staticmethod
-    def _quantized_variable_getter(
-            weight_quantization,
-            quantize_first_convolution,
-            quantize_last_convolution,
-            getter,
-            name,
-            *args,
-            **kwargs):
-        """Get the quantized variables.
-
-        Use if to choose or skip the target should be quantized.
-
-        Args:
-            getter: Default from tensorflow.
-            name: Default from tensorflow.
-            weight_quantization: Callable object which quantize variable.
-            args: Args.
-            kwargs: Kwargs.
-        """
-        assert callable(weight_quantization)
-        var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
-            if "kernel" == var.op.name.split("/")[-1]:
-
-                if not quantize_first_convolution:
-                    if var.op.name.startswith("block_1/"):
-                        return var
-
-                if not quantize_last_convolution:
-                    if var.op.name.startswith("conv_23/"):
-                        return var
-
-                # Apply weight quantize to variable whose last word of name is "kernel".
-                quantized_kernel = weight_quantization(var)
-                tf.summary.histogram("quantized_kernel", quantized_kernel)
-                return quantized_kernel
-
-        return var
+        self.custom_getter = functools.partial(self._quantized_variable_getter,
+                                               weight_quantization=self.weight_quantization,
+                                               first_layer_name="block_1/",
+                                               last_layer_name="conv_23/",
+                                               quantize_first_convolution=self.quantize_first_convolution,
+                                               quantize_last_convolution=self.quantize_last_convolution,
+                                               use_histogram=True)
 
     def base(self, images, is_training):
         custom_getter = partial(

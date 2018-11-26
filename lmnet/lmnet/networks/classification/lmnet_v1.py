@@ -153,30 +153,6 @@ class LmnetV1Quantize(LmnetV1, BaseQuantize):
 
         self.custom_getter = functools.partial(self._quantized_variable_getter,
                                                quantize_first_convolution=self.quantize_first_convolution,
-                                               weight_quantization=self.weight_quantization)
-
-    @staticmethod
-    def _quantized_variable_getter(getter, name, quantize_first_convolution, weight_quantization=None, *args, **kwargs):
-        """Get the quantized variables.
-
-        Use if to choose or skip the target should be quantized.
-
-        Args:
-            getter: Default from tensorflow.
-            name: Default from tensorflow.
-            weight_quantization: Callable object which quantize variable.
-            args: Args.
-            kwargs: Kwargs.
-        """
-
-        assert callable(weight_quantization)
-        var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
-            # Apply weight quantize to variable whose last word of name is "kernel".
-            if not quantize_first_convolution:
-                if var.op.name.startswith("conv1/"):
-                    return var
-
-            if "kernel" == var.op.name.split("/")[-1]:
-                return weight_quantization(var)
-        return var
+                                               weight_quantization=self.weight_quantization,
+                                               first_layer_name = "conv1/",
+                                           )
