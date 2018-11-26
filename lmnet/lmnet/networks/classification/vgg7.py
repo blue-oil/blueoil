@@ -73,7 +73,7 @@ class Vgg7Network(Base):
 #                                 use_bias=False,
 #                                 data_format=channels_data_format)
 
-    def base(self, images, is_training):
+    def base(self, images, is_training=None):
         self.images = images
 
 #        channels_data_format = 'channels_last' if self.data_format == 'NHWC' else 'channels_first'
@@ -81,7 +81,7 @@ class Vgg7Network(Base):
 
 #        keep_prob = tf.cond(is_training, lambda: tf.constant(0.5), lambda: tf.constant(1.0))
 
-#        self.input = self.convert_rbg_to_bgr(images)
+        self.input = self.convert_rbg_to_bgr(images)
         self.input = tf.cast(images, dtype=tf.float32)
 
         #self.conv1 = _lmnet_block("conv1", self.input, 128, 3)
@@ -114,7 +114,7 @@ class Vgg7Network(Base):
 #        self.fc16 = self.fc_layer("fc16", self.fc15, filters=self.num_classes, activation=None)
 
 
-        return self.base_output
+        return self.fc1#self.base_output
 
     def conv_layer(
         self,
@@ -136,15 +136,13 @@ class Vgg7Network(Base):
         else:
             data_format = 'channels_first'
 
-        activation = self.activation
-        print("------- custom getter = ", self.custom_getter)
         with tf.variable_scope(name, custom_getter=self.custom_getter):
             output = tf.layers.conv2d(name=name,
                                       inputs=inputs,
                                       filters=filters,
                                       kernel_size=kernel_size,
                                       kernel_initializer=kernel_initializer,
-                                      activation=activation,
+                                      activation=tf.nn.relu,
                                       use_bias=False,
                                       #bias_initializer=biases_initializer,
                                       padding=padding,
