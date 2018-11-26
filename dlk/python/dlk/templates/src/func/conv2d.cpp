@@ -54,7 +54,7 @@ void conv3x3_kn2row(T input[],
   assert(p.input_height > 0);
   assert(p.input_width > 0);
 
-  static T_FLOAT buf[MAX_SIZE_KN2ROW_BUFFER_PER_LAYER];
+  static U buf[MAX_SIZE_KN2ROW_BUFFER_PER_LAYER];
 
   Measurement::Stop();
 
