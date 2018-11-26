@@ -11,6 +11,13 @@ dataset:
 trainer:
   batch_size: 1
   epochs: 1
+# supported 'learning_rate_setting' is 'tune1', 'tune2', 'tune3', 'fixed'.
+#   'tune1' is 2 times decay, learning rate reduce to 1/10 on epoch/2 and epoch-1.
+#   'tune2' is 3 times decay, learning rate reduce to 1/10 on epoch/3 and epoch*2/3 and epoch-1.
+#   'tune3' is warmup and 3 times decay, warmup learning rate 1/1000 in 1 epoch, then train same as 'tune2'.
+#   'fixed' is constant learning rate.
+  learning_rate_setting: tune1
+  initial_learning_rate: 0.001
 
 network:
   quantize_first_convolution: yes
