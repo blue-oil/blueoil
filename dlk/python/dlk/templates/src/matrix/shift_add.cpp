@@ -95,8 +95,6 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 		  r__ = vaddq_f32(b2_, r2_);
 		  vst1q_f32(r+j+4, r__); 
 		}
-		r__ = vaddq_f32(b_, r_);		
-		vst1q_f32(r+oc, r__);
 	      } else {
 		for (; j + 3 < oc; j += 4) {
 		  float32x4_t b_ = vld1q_f32(b+j);
@@ -193,8 +191,6 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 		  r__ = vaddq_s32(b2_, r2_);
 		  vst1q_s32(r+j+4, r__);		  
 		}
-		r__ = vaddq_s32(b_, r_);		
-		vst1q_s32(r+oc, r__);
 	      } else {
 		for (; j + 3 < oc; j += 4) {
 		  int32x4_t b_ = vld1q_s32(b+j);
