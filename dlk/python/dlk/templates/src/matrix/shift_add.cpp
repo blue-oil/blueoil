@@ -45,14 +45,12 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 
   for (unsigned int j = 0; j < buf.cols(); ++j) {
     for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first_column(j, w) && is_cfi(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      } else if (is_last_column(j, w) && is_adg(i, p.output_channels)) {
+      if ((is_last_column(j, w) && is_adg(i, p.output_channels)) || ((is_first_column(j, w) && is_cfi(i, p.output_channels)))) {
         buf.set(i, j, 0);
       }
     }
   }
-
+  
   Measurement::Stop();
 
   Measurement::Start("matrix_shift_add_f2");
@@ -81,11 +79,11 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 	      
               unsigned int j = 0;
 #ifdef USE_NEON
-	      if (oc % 8 == 0) {
+	      if (oc % 8 == 0 && oc > 8) {
 		float32x4_t b_ = vld1q_f32(b);
 		float32x4_t r_ = vld1q_f32(r);
 		float32x4_t r__;		
-		for (; j + 7 < oc; j += 8) {
+		for (; j + 11 < oc; j += 8) {
 		  float32x4_t b2_ = vld1q_f32(b+j+4);
 		  float32x4_t r2_ = vld1q_f32(r+j+4);		
 		  r__ = vaddq_f32(b_, r_);
@@ -95,6 +93,8 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 		  r__ = vaddq_f32(b2_, r2_);
 		  vst1q_f32(r+j+4, r__); 
 		}
+		r__ = vaddq_f32(b_, r_);
+		vst1q_f32(r+oc, r__); 		
 	      } else {
 		for (; j + 3 < oc; j += 4) {
 		  float32x4_t b_ = vld1q_f32(b+j);
@@ -141,9 +141,7 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 
   for (unsigned int j = 0; j < buf.cols(); ++j) {
     for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first_column(j, w) && is_cfi(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      } else if (is_last_column(j, w) && is_adg(i, p.output_channels)) {
+      if ((is_first_column(j, w) && is_cfi(i, p.output_channels)) || (is_last_column(j, w) && is_adg(i, p.output_channels))) {
         buf.set(i, j, 0);
       }
     }
@@ -177,11 +175,11 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 
               unsigned int j = 0;
 #ifdef USE_NEON
-	      if (oc % 8 == 0) {
+	      if (oc % 8 == 0 && oc > 8) {
 		int32x4_t b_ = vld1q_s32(b);
 		int32x4_t r_ = vld1q_s32(r);
 		int32x4_t r__;		
-		for (; j + 7 < oc; j += 8) {
+		for (; j + 11 < oc; j += 8) {
 		  int32x4_t b2_ = vld1q_s32(b+j+4);
 		  int32x4_t r2_ = vld1q_s32(r+j+4);
 		  r__ = vaddq_s32(b_, r_);
@@ -191,6 +189,8 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 		  r__ = vaddq_s32(b2_, r2_);
 		  vst1q_s32(r+j+4, r__);		  
 		}
+		r__ = vaddq_s32(b_, r_);
+		vst1q_s32(r+oc, r__);		  		
 	      } else {
 		for (; j + 3 < oc; j += 4) {
 		  int32x4_t b_ = vld1q_s32(b+j);
