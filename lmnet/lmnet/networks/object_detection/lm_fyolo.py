@@ -202,4 +202,4 @@ class LMFYoloQuantize(LMFYolo, BaseQuantize):
             use_histogram=True
         )
         with tf.variable_scope("", custom_getter=custom_getter):
-            return super().base(images, is_training)
+            return YoloV2.base(images, is_training)
