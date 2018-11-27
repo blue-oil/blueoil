@@ -131,10 +131,11 @@ bool test_conv(input_type &in_type, Conv_params_t &p)
 
 #if defined _INTEL_HLS_
 
-  intel_hls_qconv_with_kn2row(in_data_packed, out_data_hls_qgemm, k_data_packed_hwnocni, threshold_data, p.in_w, p.in_h,
-                              p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.k_w, p.k_h, p.pad_w,
-                              p.stride_w);
-  comp_packed = compare_output(out_data_hls_qgemm, out_data, "qconv_with_kn2row_hls", p.out_h, p.out_w, p.out_c);
+  // intel_hls_qconv_with_kn2row(in_data_packed, out_data_hls_qgemm, k_data_packed_hwnocni, threshold_data, p.in_w,
+  // p.in_h,
+  //                             p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.k_w, p.k_h, p.pad_w,
+  //                             p.stride_w);
+  // comp_packed = compare_output(out_data_hls_qgemm, out_data, "hls_qgemm", p.out_h, p.out_w, p.out_c);
 
   intel_hls_qconv_kn2row_tiling(in_data_packed, out_data_hls_qconv_kn2row_tiling, k_data_packed_t, threshold_data,
                                 p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.k_w,
