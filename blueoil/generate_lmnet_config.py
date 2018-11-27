@@ -18,7 +18,6 @@ import os
 import re
 
 import yaml
-import whaaaaat
 from jinja2 import Environment, FileSystemLoader
 
 # TODO(wakisaka): objecte detection, segmentation
@@ -108,7 +107,6 @@ def _blueoil_to_lmnet(blueoil_config):
         "save_steps": 1000,
         "test_steps": 1000,
         "summarise_steps": 100,
-        "learning_rate": 1e-3,
     }
     dataset = {
 
@@ -136,6 +134,8 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
+    initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"]
+    learning_rate_setting = blueoil_config["trainer"]["learning_rate_setting"]
 
     # common
     image_size = blueoil_config["common"]["image_size"]
@@ -151,6 +151,9 @@ def _blueoil_to_lmnet(blueoil_config):
             values.append(value)
         data_augmentation.append((key, values))
 
+    # quantize first layer
+    quantize_first_convolution = blueoil_config["network"]["quantize_first_convolution"]
+
     config = {
         "model_name": model_name,
         "template_file": template_file,
@@ -164,19 +167,22 @@ def _blueoil_to_lmnet(blueoil_config):
         "batch_size": batch_size,
         "max_epochs": "",
         "max_steps": "",
-        
+        "initial_learning_rate": initial_learning_rate,
+        "learning_rate_setting": learning_rate_setting,
+
         "image_size": image_size,
+
+        "quantize_first_convolution": quantize_first_convolution,
 
         "dataset": dataset,
         "data_augmentation": data_augmentation
     }
-    
+
     # max_epochs or max_steps
     if "steps" in blueoil_config["trainer"].keys():
         config["max_steps"] = blueoil_config["trainer"]["steps"]
     elif "epochs" in blueoil_config["trainer"].keys():
         config["max_epochs"] = blueoil_config["trainer"]["epochs"]
-
 
     # merge dict
     lmnet_config = default_lmnet_config.copy()
