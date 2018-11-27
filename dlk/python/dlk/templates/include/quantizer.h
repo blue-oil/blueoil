@@ -115,33 +115,60 @@ void func_QTZ_linear_mid_tread_half_body(
   T_UINT end)
 
 {
-  T_FLOAT max_value_r = 1.0 / max_value;
-
-  T_FLOAT min_value = 0;
-  T_FLOAT n = (1 << nbit) - 1;
+  const T_FLOAT max_value_r = 1.0 / max_value;
+  const T_FLOAT min_value = 0.0f;
+  const T_FLOAT n = (1 << nbit) - 1;
   int i = begin;
 
 #ifdef USE_NEON
-  float32x4_t max_value_x4 = vdupq_n_f32(max_value);
-  float32x4_t min_value_x4 = vdupq_n_f32(min_value);
-  float32x4_t round_offset = vdupq_n_f32(0.5);
-  float32x4_t max_value_rn = vdupq_n_f32(max_value_r * n);
+  const float32x4_t max_value_x4 = vdupq_n_f32(max_value);
+  const float32x4_t min_value_x4 = {0.0f, 0.0f, 0.0f, 0.0f};
+  const float32x4_t round_offset = {0.5f, 0.5f, 0.5f, 0.5f};
+  const float32x4_t max_value_rn = vdupq_n_f32(max_value_r * n);
 
-  for (; i <= static_cast<int>(end) - 4; i += 4)
-  {
+  if ((end - begin) % 8 == 0) {
     float32x4_t tmp = vld1q_f32(&input[i]);
+    int32x4_t r;
+    for (; i + 7 < end; i += 8) {
+      float32x4_t tmp2 = vld1q_f32(&input[i+4]);
+      tmp = vmaxq_f32(tmp, min_value_x4);
+      tmp = vminq_f32(tmp, max_value_x4);
+      tmp = vmlaq_f32(round_offset, tmp, max_value_rn);
+      r = vcvtq_s32_f32(tmp);
+      output[i]   = r[0];
+      output[i+1] = r[1];
+      output[i+2] = r[2];
+      output[i+3] = r[3];
+      tmp  = vld1q_f32(&input[i+8]);
+      tmp2 = vmaxq_f32(tmp2, min_value_x4);
+      tmp2 = vminq_f32(tmp2, max_value_x4);
+      tmp2 = vmlaq_f32(round_offset, tmp2, max_value_rn);
+      r = vcvtq_s32_f32(tmp2);
+      output[i+4]   = r[0];
+      output[i+1+4] = r[1];
+      output[i+2+4] = r[2];
+      output[i+3+4] = r[3];
+    }
     tmp = vmaxq_f32(tmp, min_value_x4);
     tmp = vminq_f32(tmp, max_value_x4);
-    //    tmp = vmlaq_f32(tmp, max_value_rn, round_offset);
-    tmp = vmulq_f32(tmp, max_value_rn);
-    tmp = vaddq_f32(tmp, round_offset);
-    int32x4_t r = vcvtq_s32_f32(tmp);
-    int r_tmp[4];
-    vst1q_s32(r_tmp, r);
-    output[i] = r_tmp[0];
-    output[i+1] = r_tmp[1];
-    output[i+2] = r_tmp[2];
-    output[i+3] = r_tmp[3];
+    tmp = vmlaq_f32(round_offset, tmp, max_value_rn);
+    r = vcvtq_s32_f32(tmp);
+    output[end]   = r[0];
+    output[end+1] = r[1];
+    output[end+2] = r[2];
+    output[end+3] = r[3];
+  } else {
+    for (; i + 3 < end; i += 4) {
+      float32x4_t tmp = vld1q_f32(&input[i]);
+      tmp = vmaxq_f32(tmp, min_value_x4);
+      tmp = vminq_f32(tmp, max_value_x4);
+      tmp = vmlaq_f32(round_offset, tmp, max_value_rn);
+      int32x4_t r = vcvtq_s32_f32(tmp);
+      output[i]   = r[0];
+      output[i+1] = r[1];
+      output[i+2] = r[2];
+      output[i+3] = r[3];
+    }
   }
 #endif
 
