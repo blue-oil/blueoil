@@ -37,26 +37,61 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
   float32x4_t scale_b, shift_b;
 
   int i = 0;
-  for (; i <= static_cast<int>(out_depth) - 4; i += 4) {
-    float32x4_t gamma_batch = vld1q_f32(&gamma[i]);
-    float32x4_t var_batch = vld1q_f32(&variance[i]);
-    float32x4_t beta_batch = vld1q_f32(&beta[i]);
-    float32x4_t mu_batch = vld1q_f32(&mean[i]);
+  if (out_depth % 8 ==0) {
+    float32x4_t gamma_batch = vld1q_f32(&gamma[0]);
+    float32x4_t var_batch = vld1q_f32(&variance[0]);
+    float32x4_t beta_batch = vld1q_f32(&beta[0]);
+    float32x4_t mu_batch = vld1q_f32(&mean[0]);    
+    float32x4_t rsqrt_est;
+    for (; i + 7 < out_depth; i += 8) {
+      float32x4_t gamma_batch2 = vld1q_f32(&gamma[i+4]);
+      float32x4_t var_batch2 = vld1q_f32(&variance[i+4]);
+      float32x4_t beta_batch2 = vld1q_f32(&beta[i+4]);
+      float32x4_t mu_batch2 = vld1q_f32(&mean[i+4]);
+      scale_b = vaddq_f32(var_batch, eps_batch);
+      rsqrt_est = vrsqrteq_f32(scale_b);
+      rsqrt_est = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
+      scale_b = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
+      scale_b = vmulq_f32(scale_b, gamma_batch);
+      shift_b = vmlsq_f32(beta_batch, scale_b, mu_batch);
+      vst1q_f32(&scale[i], scale_b);
+      vst1q_f32(&shift[i], shift_b);
 
-    scale_b = vaddq_f32(var_batch, eps_batch);
-    float32x4_t rsqrt_est = vrsqrteq_f32(scale_b);
-    rsqrt_est = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
-    scale_b = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
-
-    scale_b = vmulq_f32(scale_b, gamma_batch);
-    shift_b = vmlsq_f32(beta_batch, scale_b, mu_batch);
-    vst1q_f32(&scale[i], scale_b);
-    vst1q_f32(&shift[i], shift_b);
-  }
-
-  for (; i < static_cast<int>(out_depth); i++) {
-    scale[i] = gamma[i] * (1.0 / std::sqrt(variance[i] + epsilon));
-    shift[i] = beta[i] - (scale[i] * mean[i]);
+      gamma_batch = vld1q_f32(&gamma[i+8]);
+      var_batch = vld1q_f32(&variance[i+8]);
+      beta_batch = vld1q_f32(&beta[i+8]);
+      mu_batch = vld1q_f32(&mean[i+8]);    
+      scale_b = vaddq_f32(var_batch2, eps_batch);
+      rsqrt_est = vrsqrteq_f32(scale_b);
+      rsqrt_est = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
+      scale_b = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
+      scale_b = vmulq_f32(scale_b, gamma_batch2);
+      shift_b = vmlsq_f32(beta_batch2, scale_b, mu_batch2);
+      vst1q_f32(&scale[i+4], scale_b);
+      vst1q_f32(&shift[i+4], shift_b);      
+    }
+  } else {
+    for (; i <= static_cast<int>(out_depth) - 4; i += 4) {
+      float32x4_t gamma_batch = vld1q_f32(&gamma[i]);
+      float32x4_t var_batch = vld1q_f32(&variance[i]);
+      float32x4_t beta_batch = vld1q_f32(&beta[i]);
+      float32x4_t mu_batch = vld1q_f32(&mean[i]);
+      
+      scale_b = vaddq_f32(var_batch, eps_batch);
+      float32x4_t rsqrt_est = vrsqrteq_f32(scale_b);
+      rsqrt_est = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
+      scale_b = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
+      
+      scale_b = vmulq_f32(scale_b, gamma_batch);
+      shift_b = vmlsq_f32(beta_batch, scale_b, mu_batch);
+      vst1q_f32(&scale[i], scale_b);
+      vst1q_f32(&shift[i], shift_b);
+    }
+    
+    for (; i < static_cast<int>(out_depth); i++) {
+      scale[i] = gamma[i] * (1.0 / std::sqrt(variance[i] + epsilon));
+      shift[i] = beta[i] - (scale[i] * mean[i]);
+    }
   }
 
 // TODO(nlpng): remove use of OpenMP library
