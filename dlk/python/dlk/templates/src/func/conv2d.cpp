@@ -45,17 +45,14 @@ void conv3x3_kn2row(T input[],
   assert(kh == 3 && kw == 3);
   assert(MAX_SIZE_KN2ROW_BUFFER_PER_LAYER >= oc * kh * kw * ih * iw);
 
-  // need to initialize output
-  std::memset(output, 0, oc * ih * iw * sizeof(U));
-
   Measurement::Start("kn2row");
   Measurement::Start("kn2row-buf");
 
   assert(p.input_height > 0);
   assert(p.input_width > 0);
 
-  U *buf = new U[MAX_SIZE_KN2ROW_BUFFER_PER_LAYER]();
-
+  static U buf[MAX_SIZE_KN2ROW_BUFFER_PER_LAYER];
+  
   Measurement::Stop();
 
   auto kernels_ = dlk::MatrixView<T, dlk::MatrixOrder::RowMajor>(kernels, oc * kh * kw, ic);
@@ -65,7 +62,6 @@ void conv3x3_kn2row(T input[],
 
   dlk::matrix_multiplication(kernels_, input_, buf_);
   dlk::matrix_shift_add(buf_, output_, p);
-  delete[] buf;
 
   Measurement::Stop();
 }
@@ -178,7 +174,7 @@ void convolution(
     return;
   } else if (p.kernel_height == 3 && p.kernel_width == 3 && p.padding == 1) {
     int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
-    T* kernels_hwoi = new T[kernels_size]();
+    T* kernels_hwoi = new T[kernels_size];
     ohwi_to_hwoi(kernels, kernels_hwoi, p);
     conv3x3_kn2row(input, kernels_hwoi, output, p);
     delete[] kernels_hwoi;
