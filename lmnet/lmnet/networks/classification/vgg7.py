@@ -114,7 +114,7 @@ class Vgg7Network(Base):
 #        self.fc16 = self.fc_layer("fc16", self.fc15, filters=self.num_classes, activation=None)
 
 
-        return self.fc1#self.base_output
+        return self.fc1  #self.base_output
 
     def conv_layer(
         self,

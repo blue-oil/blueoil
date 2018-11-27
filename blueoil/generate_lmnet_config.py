@@ -43,6 +43,10 @@ _NETWORK_NAME_NETWORK_MODULE_CLASS = {
     },
     "Vgg7Network": {
         "network_module": "vgg7",
+        "network_class": "Vgg7Network",
+    },
+    "Vgg7Quantize": {
+        "network_module": "vgg7",
         "network_class": "Vgg7Quantize",
     },
 }
