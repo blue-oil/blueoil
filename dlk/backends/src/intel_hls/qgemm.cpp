@@ -48,9 +48,9 @@ hls_avalon_slave_component void intel_hls_qgemm_impl(
 
     for (unsigned ar = 0; ar < a_row; ar++) {
 #pragma unroll 8
-      hls_register int16 y0[p::num_pe] = {0, 0, 0, 0, 0, 0, 0, 0};
+      hls_register int16 y0[p::num_pe] = {0, 0, 0, 0};
 
-      hls_register int16 y1[p::num_pe] = {0, 0, 0, 0, 0, 0, 0, 0};
+      hls_register int16 y1[p::num_pe] = {0, 0, 0, 0};
 
       for (unsigned ac = 0; ac < a_col_by_word; ac++) {
         T_A_hls a0 = A_packed[idx_a++];

@@ -135,7 +135,7 @@ typedef struct Conv_params_type
    NAME::has_thresholds};
 
 namespace conv_common_params {
-static const unsigned num_pe = 16;
+static const unsigned num_pe = 8;
 static const unsigned nbits_per_word = 32;
 static const unsigned nbits_in_data = 2;
 static const unsigned nbits_k_data = 1;
@@ -206,7 +206,7 @@ static const unsigned k_size_packed = k_h * k_w * k_c_by_word * nbits_k_data;
 static const unsigned inb_h = k_h + 1;
 static const unsigned inb_w = k_w + 1;
 static const unsigned num_in_line = (max_in_w_with_pad * (k_h - 1)) + k_w;
-static const bool has_thresholds = false;
+static const bool has_thresholds = true;
 } // namespace conv3x3_params
 
 namespace conv1x1_params {
@@ -266,7 +266,7 @@ static const unsigned k_size_packed = k_h * k_w * k_c_by_word * nbits_k_data;
 static const unsigned inb_h = k_h + 1;
 static const unsigned inb_w = k_w + 1;
 static const unsigned num_in_line = (max_in_w_with_pad * (k_h - 1)) + k_w;
-static const bool has_thresholds = false;
+static const bool has_thresholds = true;
 } // namespace conv1x1_params
 
 namespace a8w1_conv3x3_params {
