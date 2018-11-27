@@ -37,7 +37,7 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
   float32x4_t scale_b, shift_b;
 
   int i = 0;
-  if (out_depth % 8 ==0) {
+  if (out_depth % 8 == 4 && out_depth > 8) {
     float32x4_t gamma_batch = vld1q_f32(&gamma[0]);
     float32x4_t var_batch = vld1q_f32(&variance[0]);
     float32x4_t beta_batch = vld1q_f32(&beta[0]);
@@ -70,6 +70,14 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
       vst1q_f32(&scale[i+4], scale_b);
       vst1q_f32(&shift[i+4], shift_b);      
     }
+    scale_b = vaddq_f32(var_batch, eps_batch);
+    rsqrt_est = vrsqrteq_f32(scale_b);
+    rsqrt_est = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
+    scale_b = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
+    scale_b = vmulq_f32(scale_b, gamma_batch);
+    shift_b = vmlsq_f32(beta_batch, scale_b, mu_batch);
+    vst1q_f32(&scale[out_depth], scale_b);
+    vst1q_f32(&shift[out_depth], shift_b);          
   } else {
     for (; i <= static_cast<int>(out_depth) - 4; i += 4) {
       float32x4_t gamma_batch = vld1q_f32(&gamma[i]);
@@ -93,14 +101,14 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
       shift[i] = beta[i] - (scale[i] * mean[i]);
     }
   }
-
+  
 // TODO(nlpng): remove use of OpenMP library
 #pragma omp parallel for
   for (T_UINT f = 0; f < size; f++) {
 
     T_FLOAT *in_temp = &input[f * out_depth];
     T_FLOAT *out_temp = &output[f * out_depth];
-
+    
     T_UINT d = 0;
     for (; d < out_depth; d += 4) {
       asm volatile("vldmia %0, {d16,d17}    \t\n" // q8(d16,d17) scale
