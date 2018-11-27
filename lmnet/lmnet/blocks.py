@@ -37,9 +37,9 @@ def darknet(name, inputs, filters, kernel_size, is_training=tf.constant(False), 
             def activation(x): return tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
 
         conv = conv2d("conv", inputs, filters=filters, kernel_size=kernel_size,
-                      activation=None,
-                      kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),  # he initializer
-                      use_bias=False, data_format=channel_data_format,)
+                      activation=None, use_bias=False, data_format=channel_data_format,
+                      kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),)  # he initializer
+
 
         # TODO(wakisaka): Should be the same as darknet batrch norm.
         # https://github.com/tensorflow/tensorflow/blob/r1.1/tensorflow/contrib/layers/python/layers/layers.py
