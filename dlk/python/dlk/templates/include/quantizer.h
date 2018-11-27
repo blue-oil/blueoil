@@ -149,14 +149,6 @@ void func_QTZ_linear_mid_tread_half_body(
       output[i+2+4] = r[2];
       output[i+3+4] = r[3];
     }
-    tmp = vmaxq_f32(tmp, min_value_x4);
-    tmp = vminq_f32(tmp, max_value_x4);
-    tmp = vmlaq_f32(round_offset, tmp, max_value_rn);
-    r = vcvtq_s32_f32(tmp);
-    output[end]   = r[0];
-    output[end+1] = r[1];
-    output[end+2] = r[2];
-    output[end+3] = r[3];
   } else {
     for (; i + 3 < end; i += 4) {
       float32x4_t tmp = vld1q_f32(&input[i]);
