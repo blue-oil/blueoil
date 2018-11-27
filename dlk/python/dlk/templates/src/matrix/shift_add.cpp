@@ -79,11 +79,11 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 	      
               unsigned int j = 0;
 #ifdef USE_NEON
-	      if (oc % 8 == 0 && oc > 8) {
+	      if (oc % 8 == 4 && oc > 8) {
 		float32x4_t b_ = vld1q_f32(b);
 		float32x4_t r_ = vld1q_f32(r);
 		float32x4_t r__;		
-		for (; j + 11 < oc; j += 8) {
+		for (; j + 7 < oc; j += 8) {
 		  float32x4_t b2_ = vld1q_f32(b+j+4);
 		  float32x4_t r2_ = vld1q_f32(r+j+4);		
 		  r__ = vaddq_f32(b_, r_);
@@ -175,11 +175,11 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 
               unsigned int j = 0;
 #ifdef USE_NEON
-	      if (oc % 8 == 0 && oc > 8) {
+	      if (oc % 8 == 4 && oc > 8) {
 		int32x4_t b_ = vld1q_s32(b);
 		int32x4_t r_ = vld1q_s32(r);
 		int32x4_t r__;		
-		for (; j + 11 < oc; j += 8) {
+		for (; j + 7 < oc; j += 8) {
 		  int32x4_t b2_ = vld1q_s32(b+j+4);
 		  int32x4_t r2_ = vld1q_s32(r+j+4);
 		  r__ = vaddq_s32(b_, r_);
