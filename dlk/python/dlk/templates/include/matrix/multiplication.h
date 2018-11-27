@@ -36,7 +36,7 @@ inline void matrix_multiplication_col3(
   auto A_colm = row_major_to_col_major(A);
 
   const int Arows = A.rows();
-  if (Arows % 8 == 0 && Arows > 8) {
+  if (Arows % 8 == 4 && Arows > 8) {
     for (std::size_t i = 0; i < B.cols(); ++i) {
       const float32x4_t rhs0 = vdupq_n_f32((float)(*B.data(0, i)));
       const float32x4_t rhs1 = vdupq_n_f32((float)(*B.data(1, i)));
@@ -46,7 +46,7 @@ inline void matrix_multiplication_col3(
       float32x4_t lhs1 = vld1q_f32(A_colm.data(0, 1));
       float32x4_t lhs2 = vld1q_f32(A_colm.data(0, 2));
       float32x4_t r;
-      for (std::size_t j = 0; j + 11 < Arows; j += 8) {
+      for (std::size_t j = 0; j + 7 < Arows; j += 8) {
 	float32x4_t lhs20 = vld1q_f32(A_colm.data(j+4, 0));
 	float32x4_t lhs21 = vld1q_f32(A_colm.data(j+4, 1));
 	float32x4_t lhs22 = vld1q_f32(A_colm.data(j+4, 2));
