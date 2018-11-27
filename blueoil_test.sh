@@ -141,6 +141,12 @@ function init_test(){
         send \"\n\"
         expect \"how many epochs do you run training (integer):\"
         send \"\b\b\b1\n\"
+        expect \"initial learning rate:\"
+        send \"\n\"
+        expect \"choose learning rate setting(tune1 / tune2 / tune3 / fixed):\"
+        send \"\n\"
+        expect \"apply quantization at the first layer?:\"
+        send \"\n\"
         expect \"Next step:\"
     " > /dev/null
     assert $? 0
@@ -257,3 +263,4 @@ else
     show_error_log
     clean_exit 1
 fi
+

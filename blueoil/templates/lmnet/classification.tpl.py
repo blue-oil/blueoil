@@ -26,6 +26,7 @@ from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
+    PerImageStandardization
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -44,13 +45,15 @@ BATCH_SIZE = {{batch_size}}
 DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
 # In order to get instance property `classes`, instantiate DATASET_CLASS.
-CLASSES = DATASET_CLASS(subset="train", batch_size=1).classes
+dataset_obj = DATASET_CLASS(subset="train", batch_size=1)
+CLASSES = dataset_obj.classes
+step_per_epoch = float(dataset_obj.num_per_epoch)/BATCH_SIZE
 
-{% if max_epochs %}
+{% if max_epochs -%}
 MAX_EPOCHS = {{max_epochs}}
-{% elif max_steps %}
+{%- elif max_steps -%}
 MAX_STEPS = {{max_steps}}
-{% endif %}
+{%- endif %}
 SAVE_STEPS = {{save_steps}}
 TEST_STEPS = {{test_steps}}
 SUMMARISE_STEPS = {{summarise_steps}}
@@ -66,13 +69,37 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    DivideBy255()
+    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{learning_rate}}}
+
+if '{{learning_rate_setting}}' != 'fixed':
+    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
+    NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
+
+if '{{learning_rate_setting}}' == 'tune1':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100],
+        "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) / 2), int(step_per_epoch * (MAX_EPOCHS - 1))],
+    }
+elif '{{learning_rate_setting}}' == 'tune2':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
+        "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
+    }
+elif '{{learning_rate_setting}}' == 'tune3':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{initial_learning_rate}} / 1000, {{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
+        "boundaries": [int(step_per_epoch * 1), int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
+    }
+elif '{{learning_rate_setting}}' == 'fixed':
+    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{initial_learning_rate}}}
+else:
+    raise ValueError
+
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
