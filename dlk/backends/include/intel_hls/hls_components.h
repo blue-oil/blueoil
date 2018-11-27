@@ -295,15 +295,15 @@ void intel_hls_a8w1_qconv_with_kn2row(T_in_k2c in_data[], T_out_k2c out_data[], 
 
 hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
   hls_avalon_slave_register_argument
-    ihc::mm_master<T_in_hls, ihc::aspace<1>, ihc::awidth<32>, ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+    ihc::mm_master<T_in_hls, ihc::aspace<1>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
                    ihc::align<16>, ihc::waitrequest<true> > &in_data,
   hls_avalon_slave_register_argument
-    ihc::mm_master<T_out_hls, ihc::aspace<2>, ihc::awidth<32>, ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+    ihc::mm_master<T_out_hls, ihc::aspace<2>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
                    ihc::align<16>, ihc::waitrequest<true> > &out_data,
   hls_avalon_slave_register_argument
-    ihc::mm_master<T_k_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+    ihc::mm_master<T_k_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
                    ihc::align<16>, ihc::waitrequest<true> > &k_data,
-  ihc::mm_master<T_out_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+  ihc::mm_master<T_out_hls, ihc::aspace<4>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
                  ihc::align<16>, ihc::waitrequest<true> > &threshold_data,
   hls_avalon_slave_register_argument int32 in_w, hls_avalon_slave_register_argument int32 in_h,
   hls_avalon_slave_register_argument int32 in_c_by_word, hls_avalon_slave_register_argument int32 out_w,
@@ -326,19 +326,19 @@ void intel_hls_qconv_kn2row_tiling(T_q in_data_packed[], T_out out_data[], T_q k
   const unsigned num_th = conv_common_params::num_thresholds;
   const int use_threshold = (th_data != NULL) ? 1 : 0;
 
-  ihc::mm_master<T_in_hls, ihc::aspace<1>, ihc::awidth<32>, ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+  ihc::mm_master<T_in_hls, ihc::aspace<1>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
                  ihc::align<16>, ihc::waitrequest<true> >
     avmm_in(in_data_packed, (in_size + in_w * in_c_by_word) * sizeof(T_in_hls));
 
-  ihc::mm_master<T_out_hls, ihc::aspace<2>, ihc::awidth<32>, ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+  ihc::mm_master<T_out_hls, ihc::aspace<2>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
                  ihc::align<16>, ihc::waitrequest<true> >
     avmm_out(out_data, out_size * sizeof(T_out_hls));
 
-  ihc::mm_master<T_k_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+  ihc::mm_master<T_k_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
                  ihc::align<16>, ihc::waitrequest<true> >
     avmm_k(k_data_packed, k_size * sizeof(T_k_hls));
 
-  ihc::mm_master<T_out_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<128>, ihc::latency<0>, ihc::maxburst<32>,
+  ihc::mm_master<T_out_hls, ihc::aspace<4>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
                  ihc::align<16>, ihc::waitrequest<true> >
     avmm_th(th_data, out_c * num_th * sizeof(T_out_hls));
 
