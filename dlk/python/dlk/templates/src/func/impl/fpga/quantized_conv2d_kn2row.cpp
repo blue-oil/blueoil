@@ -126,14 +126,9 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
     const T_UINT k_size = k_n_aligend_with_num_pe * k_h * k_w * k_c_by_word;
 
     T_UINT kernel_hwnocni[k_size];
-    T_UINT kernel_filled_extra[k_size];
-
-    for (size_t k = 0; k < k_n * k_h * k_w * k_c_by_word; k++) {
-      kernel_filled_extra[k] = kernel[k];
-    }
 
     Measurement::Start("Kernel transpose NHWC to HWNoCNi");
-    kernel_transform_NHWC_to_HWNoCNi(kernel_filled_extra, kernel_hwnocni,
+    kernel_transform_NHWC_to_HWNoCNi(kernel, kernel_hwnocni,
                                      k_n_aligend_with_num_pe, k_h, k_w,
                                      k_c_by_word, NUM_PE);
     Measurement::Stop();
