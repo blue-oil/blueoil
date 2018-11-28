@@ -191,7 +191,7 @@ class LMFYoloQuantize(LMFYolo, BaseQuantize):
         else:
             self.before_last_activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
 
-    def base(self, images, is_training):
+#    def base(self, images, is_training):
         custom_getter = partial(
             self._quantized_variable_getter,
             weight_quantization=self.weight_quantization,
@@ -201,5 +201,5 @@ class LMFYoloQuantize(LMFYolo, BaseQuantize):
             quantize_last_convolution=self.quantize_last_convolution,
             use_histogram=True
         )
-        with tf.variable_scope("", custom_getter=custom_getter):
-            return LMFYolo.base(self, images, is_training)
+#        with tf.variable_scope("", custom_getter=custom_getter):
+#            return LMFYolo.base(self, images, is_training)

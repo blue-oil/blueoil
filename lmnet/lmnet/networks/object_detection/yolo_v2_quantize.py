@@ -73,7 +73,7 @@ class YoloV2Quantize(YoloV2, BaseQuantize):
         else:
             self.before_last_activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
 
-    def base(self, images, is_training):
+#    def base(self, images, is_training):
         custom_getter = partial(
             self._quantized_variable_getter,
             weight_quantization=self.weight_quantization,
@@ -83,5 +83,5 @@ class YoloV2Quantize(YoloV2, BaseQuantize):
             quantize_last_convolution=self.quantize_last_convolution,
             use_histogram=True
         )
-        with tf.variable_scope("", custom_getter=custom_getter):
-            return YoloV2.base(self, images, is_training)
+#        with tf.variable_scope("", custom_getter=custom_getter):
+#            return YoloV2.base(self, images, is_training)
