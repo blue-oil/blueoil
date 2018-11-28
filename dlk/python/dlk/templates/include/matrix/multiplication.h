@@ -87,11 +87,11 @@ inline void matrix_multiplication_col3(
 	r = vmulq_f32(lhs0, rhs0);
 	r = vmlaq_f32(r, lhs1, rhs1);
 	r = vmlaq_f32(r, lhs2, rhs2);
-	vst1q_f32(C.data(Arows-4, i), r);
+	vst1q_f32(C.data(Arows-8, i), r);
 	r = vmulq_f32(lhs20, rhs0);
 	r = vmlaq_f32(r, lhs21, rhs1);
 	r = vmlaq_f32(r, lhs22, rhs2);
-	vst1q_f32(C.data(Arows, i), r);           	
+	vst1q_f32(C.data(Arows-4, i), r);           	
       }
     } else if (Arows % 8 == 4) {
       for (std::size_t i = 0; i < B.cols(); ++i) {
