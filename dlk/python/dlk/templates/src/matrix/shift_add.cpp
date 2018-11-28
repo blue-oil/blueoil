@@ -123,9 +123,9 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 		  float32x4_t b2_ = vld1q_f32(b+j+4);
 		  float32x4_t r2_ = vld1q_f32(r+j+4);		
 		  r__ = vaddq_f32(b_, r_);
-		  vst1q_f32(r+oc-4, r__);		  
+		  vst1q_f32(r+oc-8, r__);		  
 		  r__ = vaddq_f32(b2_, r2_);
-		  vst1q_f32(r+oc, r__);
+		  vst1q_f32(r+oc-4, r__);
 		} else {
 		  for (; j + 3 < oc; j += 4) {
 		    float32x4_t b_ = vld1q_f32(b+j);
@@ -218,7 +218,23 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 		  r[j] += b[j];
 		}
 	      } else {
-		if (oc % 8 == 0) {
+		if (oc % 8 == 4) {
+		  int32x4_t b_ = vld1q_s32(b);
+		  int32x4_t r_ = vld1q_s32(r);
+		  int32x4_t r__;		
+		  for (; j + 7 < oc; j += 8) {
+		    int32x4_t b2_ = vld1q_s32(b+j+4);
+		    int32x4_t r2_ = vld1q_s32(r+j+4);
+		    r__ = vaddq_s32(b_, r_);
+		    vst1q_s32(r+j, r__);
+		    b_ = vld1q_s32(b+j+8);
+		    r_ = vld1q_s32(r+j+8);
+		    r__ = vaddq_s32(b2_, r2_);
+		    vst1q_s32(r+j+4, r__);
+		  }
+		  r__ = vaddq_s32(b_, r_);
+		  vst1q_s32(r+oc, r__);		
+		} else if (oc % 8 == 0) {
 		  int32x4_t b_ = vld1q_s32(b);
 		  int32x4_t r_ = vld1q_s32(r);
 		  int32x4_t r__;		
@@ -235,25 +251,9 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 		  int32x4_t b2_ = vld1q_s32(b+j+4);
 		  int32x4_t r2_ = vld1q_s32(r+j+4);
 		  r__ = vaddq_s32(b_, r_);
-		  vst1q_s32(r+oc-4, r__);		  
+		  vst1q_s32(r+oc-8, r__);		  
 		  r__ = vaddq_s32(b2_, r2_);
-		  vst1q_s32(r+oc, r__);		  
-		} else if (oc % 8 == 4) {
-		  int32x4_t b_ = vld1q_s32(b);
-		  int32x4_t r_ = vld1q_s32(r);
-		  int32x4_t r__;		
-		  for (; j + 7 < oc; j += 8) {
-		    int32x4_t b2_ = vld1q_s32(b+j+4);
-		    int32x4_t r2_ = vld1q_s32(r+j+4);
-		    r__ = vaddq_s32(b_, r_);
-		    vst1q_s32(r+j, r__);
-		    b_ = vld1q_s32(b+j+8);
-		    r_ = vld1q_s32(r+j+8);
-		    r__ = vaddq_s32(b2_, r2_);
-		    vst1q_s32(r+j+4, r__);
-		  }
-		  r__ = vaddq_s32(b_, r_);
-		  vst1q_s32(r+oc, r__);
+		  vst1q_s32(r+oc-4, r__);
 		} else {
 		  for (; j + 3 < oc; j += 4) {
 		    int32x4_t b_ = vld1q_s32(b+j);
