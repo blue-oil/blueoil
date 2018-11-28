@@ -64,42 +64,22 @@ class Vgg7Network(Base):
             data_format,
         )
 
-#    def _get_lmnet_block(self, is_training, channels_data_format):
-#        return functools.partial(lmnet_block,
-#                                 activation=self.activation,
-#                                 custom_getter=self.custom_getter,
-#                                 is_training=is_training,
-#                                 is_debug=self.is_debug,
-#                                 use_bias=False,
-#                                 data_format=channels_data_format)
-
     def base(self, images, is_training=None):
         self.images = images
-
-#        channels_data_format = 'channels_last' if self.data_format == 'NHWC' else 'channels_first'
-#        _lmnet_block = self._get_lmnet_block(is_training, channels_data_format)
-
-#        keep_prob = tf.cond(is_training, lambda: tf.constant(0.5), lambda: tf.constant(1.0))
 
         self.input = self.convert_rbg_to_bgr(images)
         self.input = tf.cast(images, dtype=tf.float32)
 
-        #self.conv1 = _lmnet_block("conv1", self.input, 128, 3)
-        #self.conv2 = _lmnet_block("conv2", self.conv1, 128, 3)
         self.conv1 = self.conv_layer("conv1", self.input, filters=128, kernel_size=3)
         self.conv2 = self.conv_layer("conv2", self.conv1, filters=128, kernel_size=3)
 
         self.pool1 = self.max_pool("pool1", self.conv2, kernel_size=3, strides=2)
 
-        #self.conv3 = _lmnet_block("conv3", self.pool1, 256, 3) 
-        #self.conv4 = _lmnet_block("conv4", self.conv3, 256, 3) 
         self.conv3 = self.conv_layer("conv3", self.pool1, filters=256, kernel_size=3)
         self.conv4 = self.conv_layer("conv4", self.conv3, filters=256, kernel_size=3)
 
         self.pool2 = self.max_pool("pool2", self.conv4, kernel_size=3, strides=2)
 
-        #self.conv5 = _lmnet_block("conv5", self.pool2, 512, 3) 
-        #self.conv6 = _lmnet_block("conv6", self.conv5, 512, 3)
         self.conv5 = self.conv_layer("conv5", self.pool2, filters=512, kernel_size=3)
         self.conv6 = self.conv_layer("conv6", self.conv5, filters=512, kernel_size=3)
         
@@ -109,12 +89,8 @@ class Vgg7Network(Base):
 
         self.fc1 = self.fc_layer("fc1", self.flatten, filters=self.num_classes, activation=None)
         self.base_output = tf.reshape(self.fc1, [-1, self.num_classes], name='fc1_reshape')
-#        self.fc14 = tf.nn.dropout(fc14, keep_prob)
 
-#        self.fc16 = self.fc_layer("fc16", self.fc15, filters=self.num_classes, activation=None)
-
-
-        return self.fc1  #self.base_output
+        return self.base_output
 
     def conv_layer(
         self,
@@ -124,7 +100,7 @@ class Vgg7Network(Base):
         kernel_size,
         strides=1,
         padding="SAME",
-        #activation=tf.nn.relu,
+        activation=tf.nn.relu,
         *args,
         **kwargs
     ):
@@ -143,8 +119,8 @@ class Vgg7Network(Base):
                                       kernel_size=kernel_size,
                                       kernel_initializer=kernel_initializer,
                                       activation=tf.nn.relu,
-                                      use_bias=False,
-                                      #bias_initializer=biases_initializer,
+                                      #use_bias=False,
+                                      bias_initializer=biases_initializer,
                                       padding=padding,
                                       strides=strides,
                                       data_format=data_format)

@@ -84,7 +84,7 @@ POST_PROCESSOR = None
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": 0.1}
+NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": 0.01}
 #{"momentum": 0.9, {{learning_rate}}}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
