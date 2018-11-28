@@ -140,7 +140,7 @@ void func_QTZ_linear_mid_tread_half_body(
       output[i+3] = r[3];
     }
   } else {
-#if 0 // maybe slow in short length
+#if 0 // this code is slow(?)
     if (length % 8 == 0) {
       float32x4_t tmp = vld1q_f32(&input[i]);
       int32x4_t r;
@@ -169,21 +169,21 @@ void func_QTZ_linear_mid_tread_half_body(
       tmp = vminq_f32(tmp, max_value_x4);
       tmp = vmlaq_f32(round_offset, tmp, max_value_rn);
       r = vcvtq_s32_f32(tmp);
-      output[i]   = r[0];
-      output[i+1] = r[1];
-      output[i+2] = r[2];
-      output[i+3] = r[3];
+      output[length-8]   = r[0];
+      output[length+1-8] = r[1];
+      output[length+2-8] = r[2];
+      output[length+3-8] = r[3];
       tmp2 = vmaxq_f32(tmp2, min_value_x4);
       tmp2 = vminq_f32(tmp2, max_value_x4);
       tmp2 = vmlaq_f32(round_offset, tmp2, max_value_rn);
       r = vcvtq_s32_f32(tmp2);
-      output[i+4]   = r[0];
-      output[i+1+4] = r[1];
-      output[i+2+4] = r[2];
-      output[i+3+4] = r[3];      
+      output[length-4]   = r[0];
+      output[length+1-4] = r[1];
+      output[length+2-4] = r[2];
+      output[length+3-4] = r[3];      
     } else
-#endif // end #if 0
-      if (length % 8 == 4) {
+#endif // end if 0
+    if (length % 8 == 4) {
       float32x4_t tmp = vld1q_f32(&input[i]);
       int32x4_t r;
       for (; i + 7 < length; i += 8) {
