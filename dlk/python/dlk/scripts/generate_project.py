@@ -30,12 +30,222 @@ from core.params import Params
 from core.optimizer import Optimizer
 from code_generater import CodeGenerater
 from frontend import TensorFlowIO
+from core.graph_pattern_matching import GraphMatcher, Pattern
+from core.operators import Constant
 
 import utils
 
 SCRITPS_DIR = path.abspath(path.dirname(__file__))
 DLK_ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '..'))
 ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '../../..'))
+
+
+def pass_print(graph: Graph, name=str()):
+
+    gm = GraphMatcher(graph)
+
+    print('--- ', name, '---')
+    matches = list()
+    p = Pattern("*")
+    gm.get_op_type_matches(p, matches)
+
+    for m in matches:
+        print('Match: ', m.node.name, m.node.op_type, m.node.dimension)
+        for input_node in m.node.input_nodes:
+            print('   -> ', input_node.name, input_node.op_type)
+
+    print('---')
+
+
+def pass_dot_graph(graph: Graph, filename):
+
+    dot_script = 'digraph {'
+
+    code = {}
+    counter = 0
+    for node in graph.operators:
+        code[node.name] = counter
+        counter += 1
+
+    for node in graph.operators:
+        for input_node in node.input_nodes:
+            quant = node.quantizer.name if node.op_type == 'Conv' and node.quantizer else 'None'
+            aquant = node.a_quantizer[0].name if node.op_type == 'Conv' and node.a_quantizer else 'None'
+
+            dot_script += '"' + format(code[input_node.name], '04X') + '-' + input_node.op_type + '"' + ' -> ' \
+                        + '"' + format(code[node.name], '04X') + '-' + node.op_type + '-' + aquant + '/' + quant + '"' + ';'
+
+    dot_script += '}'
+
+    with open(filename, 'w') as f:
+        f.write(dot_script)
+
+
+def pass_remove_identities(graph: Graph):
+
+    gm = GraphMatcher(graph)
+
+    to_be_removed = list()
+    matches = list()
+    p = Pattern("Identity")
+    gm.get_op_type_matches(p, matches)
+
+    for m in matches:
+        # print('Match: ', m.node.name, m.node.op_type)
+        # for input_node in m.node.input_nodes:
+        #     print('   -> ', input_node.name, input_node.op_type)
+
+        """skip all identity."""
+        in_op = m.node.input_ops['input']
+        out_ops = m.node.output_ops['output']
+        for out_op in out_ops:
+            for k, v in out_op.input_ops.items():
+                if v == m.node:
+                    # change the output's input to this identity's input
+                    out_op.add_input(k, in_op)
+                    # change the input's output to this identity's output
+                    for k2, v2 in in_op.output_ops.items():
+                        if m.node in v2:
+                            v2.remove(m.node)
+                            v2.append(out_op)
+                            break
+                    break
+
+        to_be_removed.append(m.node)
+
+    for op in to_be_removed:
+        graph.remove_op(op)
+
+
+def pass_transpose(graph):
+
+    gm = GraphMatcher(graph)
+
+    matches = list()
+    p = Pattern("*")
+    gm.get_op_type_matches(p, matches)
+
+    for m in matches:
+        # print('Match: ', m.node.name, m.node.op_type)
+        # for input_node in m.node.input_nodes:
+        #     print('   -> ', input_node.name, input_node.op_type)
+
+        dim = m.node.dimension
+        shape = m.node.shape
+        if len(shape) != 4 or len(dim) != 4 or not set(dim).issubset({'N', 'H', 'W', 'C', 'I', 'O'}):
+            continue
+
+        dim = dim.replace('I', 'C')
+        dim = dim.replace('O', 'N')
+
+        permutation = list(map(lambda s: dim.index(s), 'NHWC'))
+        m.node.transpose(permutation)
+
+
+def pass_precompute(graph) -> int:
+
+    gm = GraphMatcher(graph)
+
+    to_be_removed = list()
+    matches = list()
+    p = Pattern("*")
+    gm.get_op_type_matches(p, matches)
+
+    for m in matches:
+
+        # We want operators with inputs
+        if not m.node.input_nodes:
+            continue
+
+        # Leave out nodes which execution will lose information.
+        # They will have a special processing later.
+        if m.node.run_it_will_lose_information:
+            continue
+
+        precomputable = True
+        for input_node in m.node.input_nodes:
+            if input_node.op_type != 'Constant':
+                precomputable = False
+
+        if not precomputable:
+            continue
+
+        to_be_removed += m.node.input_nodes
+        to_be_removed.append(m.node)
+
+        m.node.run_forward()
+
+        new_constant = Constant(
+            m.node.name + '_new',
+            m.node.dtype,
+            m.node.data,
+            dimension_format=m.node.dimension
+        )
+
+        graph.add_op(new_constant)
+
+        new_constant.add_outputs(m.node.output_ops)
+        for output_name, consumer_list in m.node.output_ops.items():
+            for consumer_node in consumer_list:
+                for input_name, input_node in consumer_node.input_ops.items():
+                    if input_node == m.node:
+                        consumer_node.add_input(input_name, new_constant)
+                        break
+
+    for op in to_be_removed:
+        graph.remove_op(op)
+
+    return len(to_be_removed)
+
+
+def pass_propagate_quantization_details_into_conv(graph):
+
+    gm = GraphMatcher(graph)
+
+    matches = list()
+    p = Pattern('*')
+    gm.get_op_type_matches(p, matches)
+
+    quantization_types = [
+        'QTZ_binary_mean_scaling',
+        'QTZ_linear_mid_tread_half',
+        'QTZ_binary_channel_wise_mean_scaling'
+    ]
+
+    quantization_details = {}
+    for m in matches:
+        if not m.node.preserve_quantization:
+            quantization_details[m.node.name] = None
+            continue
+
+        current_node_quant_details = []
+        for input_node in m.node.input_nodes:
+            if input_node.op_type in quantization_types:
+                current_node_quant_details.append(input_node)
+            else:
+                current_node_quant_details.append(quantization_details[input_node.name])
+
+        if m.node.op_type == 'Conv':
+            m.node.a_quantizer = [current_node_quant_details[0]] if current_node_quant_details[0] else []
+            m.node.quantizer = current_node_quant_details[1]
+            quantization_details[m.node.name] = None
+        else:
+            all_quantizers = True
+            for quantizer in current_node_quant_details:
+                if not quantizer:
+                    all_quantizers = False
+                    break
+
+            if not all_quantizers:
+                same_nbits = False
+            else:
+                same_nbits = all(quantizer.nbit == current_node_quant_details[0].nbit
+                                 for quantizer in current_node_quant_details)
+
+            quantization_details[m.node.name] = current_node_quant_details[0] if same_nbits else None
+
+            if not same_nbits:
+                print(f'Warning: Not every input node of {m.node.name} is quantized to the same bit-width')
 
 
 def optimize_graph_step(model: Model, config: Config) -> None:
@@ -51,6 +261,26 @@ def optimize_graph_step(model: Model, config: Config) -> None:
 
     """
     graph: Graph = model.graph
+
+    pass_print(graph, 'Before')
+    pass_dot_graph(graph, '/tmp/original.dot')
+
+    pass_remove_identities(graph)
+    pass_print(graph, 'After identity')
+    pass_dot_graph(graph, '/tmp/prune_identities.dot')
+
+    pass_transpose(graph)
+    pass_print(graph, 'After transpose')
+    pass_dot_graph(graph, '/tmp/transposed.dot')
+
+    pass_precompute(graph)
+    pass_print(graph, 'After precompute')
+
+    pass_propagate_quantization_details_into_conv(graph)
+    pass_print(graph, 'After propagate')
+
+    pass_dot_graph(graph, '/tmp/final.dot')
+
     optim = Optimizer()
     optim.transpose_NHWC(graph)
     optim.precompute(graph, config.activate_hard_quantization)
