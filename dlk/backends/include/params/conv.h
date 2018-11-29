@@ -333,7 +333,7 @@ static const unsigned min_k_h = 1;
 static const unsigned min_k_w = 1;
 
 static const unsigned tile_h = 16;
-static const unsigned tile_w = 16;
+static const unsigned tile_w = 32;
 
 static const unsigned in_tile_h = tile_h + (max_k_h - 1) * 2;
 static const unsigned in_tile_w = tile_w + (max_k_w - 1) * 2;
