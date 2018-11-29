@@ -303,8 +303,9 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
   hls_avalon_slave_register_argument
     ihc::mm_master<T_k_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
                    ihc::align<16>, ihc::waitrequest<true> > &k_data,
-  ihc::mm_master<T_out_hls, ihc::aspace<4>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
-                 ihc::align<16>, ihc::waitrequest<true> > &threshold_data,
+  hls_avalon_slave_register_argument
+    ihc::mm_master<T_out_hls, ihc::aspace<4>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
+                   ihc::align<16>, ihc::waitrequest<true> > &threshold_data,
   hls_avalon_slave_register_argument int32 in_w, hls_avalon_slave_register_argument int32 in_h,
   hls_avalon_slave_register_argument int32 in_c_by_word, hls_avalon_slave_register_argument int32 out_w,
   hls_avalon_slave_register_argument int32 out_h, hls_avalon_slave_register_argument int32 out_c,

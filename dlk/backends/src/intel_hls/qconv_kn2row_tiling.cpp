@@ -42,8 +42,9 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
   hls_avalon_slave_register_argument
     ihc::mm_master<T_k_hls, ihc::aspace<3>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
                    ihc::align<16>, ihc::waitrequest<true> > &k_data,
-  ihc::mm_master<T_out_hls, ihc::aspace<4>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
-                 ihc::align<16>, ihc::waitrequest<true> > &threshold_data,
+  hls_avalon_slave_register_argument
+    ihc::mm_master<T_out_hls, ihc::aspace<4>, ihc::awidth<32>, ihc::dwidth<BW_>, ihc::latency<0>, ihc::maxburst<32>,
+                   ihc::align<16>, ihc::waitrequest<true> > &threshold_data,
   hls_avalon_slave_register_argument int32 in_w, hls_avalon_slave_register_argument int32 in_h,
   hls_avalon_slave_register_argument int32 in_c_by_word, hls_avalon_slave_register_argument int32 out_w,
   hls_avalon_slave_register_argument int32 out_h, hls_avalon_slave_register_argument int32 out_c,
@@ -52,15 +53,6 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
 {
   /// just alias for better understanding
   static const unsigned out_c_low = p::num_pe;
-  // assert((out_c % out_c_low) == 0);
-  // assert(in_c_by_word <= p::max_in_c_by_word);
-  // assert(in_c_by_word >= p::min_in_c_by_word);
-  // assert(in_b <= p::max_in_b);
-  // assert(in_b >= p::min_in_b);
-  // assert(k_h <= p::max_k_h);
-  // assert(k_h >= p::min_k_h);
-  // assert(k_w <= p::max_k_w);
-  // assert(k_w >= p::min_k_w);
 
 OUTSIDE_TILE_LOOP:
 #pragma max_concurrency 1
@@ -73,7 +65,7 @@ OUTSIDE_TILE_LOOP:
         // in_buf shoule be banked by 8 elems, because this has 2 bits per an element, and
         // 4 inputs are computed along with input channel dimension at a cycle.
         // This also should be doublepump because this loads next data from bus while computing the others.
-        hls_memory hls_singlepump hls_bankbits(0, 1)
+        hls_memory hls_singlepump hls_bankbits(0, 1, 2)
           T_in_hls in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c_by_word][p::max_in_b];
 
         // out_buf shoule be banked by 16 elems, because out_c_low is 16, which log2 is 4.
@@ -168,7 +160,7 @@ OUTSIDE_TILE_LOOP:
                 hls_register T_out_hls out_regs[out_c_low] = {0, 0, 0, 0, 0, 0, 0, 0};
 
                 // MAC compute module.
-#pragma unroll 2
+#pragma unroll 4
                 for (int ic = 0; ic < in_c_by_word; ic++) {
                   hls_register T_in_hls in_elems[p::max_in_b];
 
