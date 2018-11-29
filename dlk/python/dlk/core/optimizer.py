@@ -21,7 +21,7 @@ from core.graph import Graph, GraphRunner
 from core.operators import Add, AveragePool, BatchNormalization, Constant, Conv, Identity, Input, \
     MaxPool, Operator, Output, Transpose, Quantizer, QTZ_binary_mean_scaling, QTZ_linear_mid_tread_half, \
     Reshape, Softmax, Relu, Flatten, Dropout, Gemm, SpaceToDepth, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth,\
-    Maximum, DepthToSpace, Split
+    Maximum, DepthToSpace, Split, Variable
 
 from typing import Any, Dict, List, Optional, Set, cast
 from functools import reduce
@@ -642,4 +642,3 @@ class Optimizer(object):
         kwargs: Dict[str, Any] = {}
         runner1.run(**kwargs)
         return graph
-

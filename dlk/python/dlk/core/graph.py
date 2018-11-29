@@ -93,9 +93,9 @@ class Graph(object):
             del self.__op_type_list[t][i]
 
     @property
-    def operartors(self) -> List[Operator]:
+    def operators(self) -> List[Operator]:
         """List up all operators in this graph."""
-        return list(self.__ops.keys())
+        return list(self.__ops.values())
 
     def get_inputs(self) -> List[Operator]:
         return list(self.__op_type_list['Input'])

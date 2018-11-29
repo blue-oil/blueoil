@@ -56,6 +56,8 @@ class Operator(object):
         self._check_consistency()
         self._rank = len(shape)
         self._available_buffer = ''
+        self._visited = False
+        self._prop_details = Dict
 
     def __update_shape(self, shape: List[int], dimension_format: str) -> None:
         self._shape: List[int] = shape
@@ -169,6 +171,19 @@ class Operator(object):
 
         """
         return cls._input_names
+
+    @property
+    def input_nodes(self) -> List['Operator']:
+        """Return a list of input operators in proper order (original protobuf argument order).
+
+        Returns
+        -------
+        ops : List of operators
+            This list is already ordered following the order of the arguments in the original
+             protobuf operators (positional order in the list of arguments).
+
+        """
+        return [self._input_ops[i] for i in self.input_names if self.input_ops.get(i)]
 
     @property
     def output_ops(self) -> OutOps:
@@ -545,6 +560,22 @@ class Operator(object):
         """
         raise NotImplementedError(f'operator {cls.__name__} cannot infer its shape.')
 
+    @property
+    def visited(self) -> bool:
+        return self._visited
+
+    @visited.setter
+    def visited(self, v: Bool) -> None:
+        self._visited = v
+
+    @property
+    def run_it_will_lose_information(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Variable(Operator):
     """Variable class, which must be Input, Output or a constant."""
@@ -694,6 +725,10 @@ class Identity(Operator):
                     attrs: Dict[str, Any]) -> List[int]:
         return lists['input']
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Quantizer(Operator):
     """Base class for quantizers."""
@@ -739,6 +774,11 @@ class Quantizer(Operator):
         """
         raise NotImplementedError(
             f'operator {self.op_type} need to implement the binarizer method')
+
+    @property
+    def run_it_will_lose_information(self) -> bool:
+        return True
+
 
 
 class QTZ_binary_mean_scaling(Quantizer):
@@ -853,6 +893,10 @@ class SpaceToDepth(Operator):
                     attrs: Dict[str, Any]) -> List[int]:
         return lists['input']
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Transpose(Operator):
     """Transpose operator.
@@ -914,6 +958,10 @@ class Transpose(Operator):
                     attrs: Dict[str, Any]) -> List[int]:
         perm = attrs['perm']
         return [lists['data'][i] for i in perm]
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
 
 
 class Conv(Operator):
@@ -1240,6 +1288,10 @@ class Conv(Operator):
 
         NCHW = [N, C, H, W]
         return [NCHW[i] for i in [format.index(s) for s in 'NCHW']]
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
 
 
 class BatchNormalization(Operator):
@@ -1812,6 +1864,10 @@ class Reshape(Operator):
     def is_monotonic(self) -> bool:
         return False
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Softmax(Operator):
     r"""Softmax operator.
@@ -1956,6 +2012,10 @@ class Flatten(Operator):
     @property
     def is_monotonic(self) -> bool:
         return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
 
 
 class Dropout(Operator):
@@ -2313,6 +2373,10 @@ class ConcatOnDepth(Operator):
     def is_monotonic(self) -> bool:
         return False
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Maximum(Operator):
     """Maximum operator.
@@ -2411,6 +2475,10 @@ class DepthToSpace(Operator):
                     attrs: Dict[str, Any]) -> List[int]:
         return lists['input']
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Split(Operator):
     """Split operator.
@@ -2484,3 +2552,7 @@ class Split(Operator):
             out_shape[ch_idx] = int(in_shape[ch_idx] / split)
 
         return out_shape
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
