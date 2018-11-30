@@ -85,11 +85,11 @@ if '{{optimizer}}' == 'GradientDescentOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.GradientDescentOptimizer
 elif '{{optimizer}}' == 'MomentumOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}    
 elif '{{optimizer}}' == 'AdamOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
 
 if '{{learning_rate_setting}}' != 'fixed':
-    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
     NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 
 if '{{learning_rate_setting}}' == 'tune1':
