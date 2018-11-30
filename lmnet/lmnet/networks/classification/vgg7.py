@@ -34,7 +34,7 @@ class Vgg7Network(Base):
             weight_quantizer_kwargs=None,
             weight_decay_rate=None,
             classes=(),
-            optimizer_class=tf.train.GradientDescentOptimizer,
+            optimizer_class=tf.train.MomentumOptimizer,
             optimizer_kwargs=None,
             is_debug=False,
             learning_rate_func=None,
@@ -66,9 +66,9 @@ class Vgg7Network(Base):
 
     def base(self, images, is_training=None):
         self.images = images
-
+        
         self.input = self.convert_rbg_to_bgr(images)
-        self.input = tf.cast(images, dtype=tf.float32)
+        self.input = tf.cast(self.input, dtype=tf.float32)
 
         self.conv1 = self.conv_layer("conv1", self.input, filters=128, kernel_size=3)
         self.conv2 = self.conv_layer("conv2", self.conv1, filters=128, kernel_size=3)
@@ -104,7 +104,7 @@ class Vgg7Network(Base):
         *args,
         **kwargs
     ):
-        kernel_initializer = tf.contrib.layers.xavier_initializer()
+        kernel_initializer = tf.initializers.random_normal(mean=0.0, stddev=0.1)
         biases_initializer = tf.zeros_initializer()
         
         if self.data_format == 'NHWC':
@@ -119,7 +119,6 @@ class Vgg7Network(Base):
                                       kernel_size=kernel_size,
                                       kernel_initializer=kernel_initializer,
                                       activation=tf.nn.relu,
-                                      #use_bias=False,
                                       bias_initializer=biases_initializer,
                                       padding=padding,
                                       strides=strides,
@@ -135,7 +134,7 @@ class Vgg7Network(Base):
             *args,
             **kwargs
     ):
-        kernel_initializer = tf.contrib.layers.xavier_initializer()
+        kernel_initializer = tf.initializers.random_normal(mean=0.0, stddev=0.1)
         biases_initializer = tf.zeros_initializer()
 
         output = tf.contrib.layers.fully_connected(
