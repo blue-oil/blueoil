@@ -180,7 +180,7 @@ class Base(BaseNetwork):
                 softmax = tf.Print(softmax,
                                    [tf.shape(softmax), tf.argmax(softmax, 1)], message="softmax:", summarize=200)
 
-            argmax_labels = tf.cast( tf.argmax(labels, 1), tf.int32)
+            argmax_labels = tf.cast(tf.argmax(labels, 1), tf.int32)
 
             _, top_predicted_indices = tf.nn.top_k(softmax, k=1)
             accuracy, accuracy_update = tf.metrics.mean(

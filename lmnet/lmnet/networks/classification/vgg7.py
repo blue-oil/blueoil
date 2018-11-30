@@ -43,7 +43,7 @@ class Vgg7Network(Base):
             batch_size=64,
             data_format='NHWC',
             *args,
-            **kwargs,
+            **kwargs
     ):
 
         self.num_classes = len(classes)
@@ -66,7 +66,7 @@ class Vgg7Network(Base):
 
     def base(self, images, is_training=None):
         self.images = images
-        
+
         self.input = self.convert_rbg_to_bgr(images)
         self.input = tf.cast(self.input, dtype=tf.float32)
 
@@ -82,7 +82,7 @@ class Vgg7Network(Base):
 
         self.conv5 = self.conv_layer("conv5", self.pool2, filters=512, kernel_size=3)
         self.conv6 = self.conv_layer("conv6", self.conv5, filters=512, kernel_size=3)
-        
+
         self.pool3 = self.max_pool("pool3", self.conv6, kernel_size=3, strides=2)
 
         self.flatten = tf.contrib.layers.flatten(self.pool3)
@@ -106,7 +106,7 @@ class Vgg7Network(Base):
     ):
         kernel_initializer = tf.initializers.random_normal(mean=0.0, stddev=0.1)
         biases_initializer = tf.zeros_initializer()
-        
+
         if self.data_format == 'NHWC':
             data_format = 'channels_last'
         else:
@@ -138,7 +138,7 @@ class Vgg7Network(Base):
         biases_initializer = tf.zeros_initializer()
 
         output = tf.contrib.layers.fully_connected(
-            inputs = inputs,
+            inputs=inputs,
             num_outputs=filters,
             weights_initializer=kernel_initializer,
             biases_initializer=biases_initializer,
@@ -161,7 +161,7 @@ class Vgg7Network(Base):
             self,
             name,
             inputs,
-            kernel_size, 
+            kernel_size,
             strides
     ):
         if self.data_format == 'NHWC':
@@ -184,7 +184,7 @@ class Vgg7Quantize(Vgg7Network, BaseQuantize):
     version = 1.0
 
     def __init__(
-            self,        
+            self,
             quantize_first_convolution=True,
             activation_quantizer=None,
             activation_quantizer_kwargs=None,
@@ -211,7 +211,6 @@ class Vgg7Quantize(Vgg7Network, BaseQuantize):
                                                quantize_first_convolution=self.quantize_first_convolution,
                                                weight_quantization=self.weight_quantization)
 
-        
     @staticmethod
     def _quantized_variable_getter(getter, name, quantize_first_convolution, weight_quantization=None, *args, **kwargs):
         """Get the quantized variables.

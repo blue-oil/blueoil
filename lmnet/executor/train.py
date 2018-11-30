@@ -227,12 +227,12 @@ def start_training(config):
 
     for step in range(last_step, max_steps):
         num_epoch = step/(train_dataset.num_per_epoch/config.BATCH_SIZE)
- 
+
         if num_epoch == 80 or num_epoch == 120:
             model.optimizer_kwargs["learning_rate"] *= 0.1
 
-        print("step", step, "   epoch", num_epoch, "    LR = ",  model.optimizer_kwargs["learning_rate"] )
-        
+        print("step", step, "   epoch", num_epoch, "    LR = ",  model.optimizer_kwargs["learning_rate"])
+
         if config.IS_DISTRIBUTION:
             # scatter dataset
             if step % step_per_epoch == 0:
