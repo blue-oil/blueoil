@@ -55,11 +55,9 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
   static const unsigned out_c_low = p::num_pe;
 
 OUTSIDE_TILE_LOOP:
-#pragma max_concurrency 1
 #pragma loop_coalesce 2
   for (int ih_high = 0; ih_high < in_h + 2 * pad; ih_high += p::tile_h) {
     for (int iw_high = 0; iw_high < in_w + 2 * pad; iw_high += p::tile_w) {
-#pragma max_concurrency 1
 #pragma unroll 1
       for (int oc_high = 0; oc_high < out_c; oc_high += out_c_low) {
         // in_buf shoule be banked by 8 elems, because this has 2 bits per an element, and
@@ -77,7 +75,7 @@ OUTSIDE_TILE_LOOP:
         // 16 kernels are needed to produce 16 outputs which is fully banked by 16 on out_c_low
         // Also per 1 output, 4 kernels are additionally needed to product with the 8 inputs coming from bus.
         // Only singlepump is OK for kernel.
-        hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3) hls_memory T_k_hls k_buf[p::max_in_c_by_word][out_c_low];
+        hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4) hls_memory T_k_hls k_buf[p::max_in_c_by_word][out_c_low];
         hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4) T_out_hls threshold_buf[out_c_low][p::num_thresholds];
 
         // threshold loading module.
@@ -95,7 +93,6 @@ OUTSIDE_TILE_LOOP:
         }
 
       INPUT_LOAD_MODULE:
-#pragma max_concurrency 1
 #pragma loop_coalesce 2
         for (int ih_low = 0; ih_low < p::in_tile_h; ++ih_low) {
           for (int iw_low = 0; iw_low < p::in_tile_w; ++iw_low) {
@@ -123,7 +120,6 @@ OUTSIDE_TILE_LOOP:
         }
 
       KN2ROW_KERNEL_LOOP:
-#pragma max_concurrency 1
 #pragma loop_coalesce 2
         for (int kh = 0; kh < k_h; ++kh) {
           for (int kw = 0; kw < k_w; ++kw) {
@@ -149,14 +145,13 @@ OUTSIDE_TILE_LOOP:
 
             // computation module over the tile
           MAC_COMPUTATION_MODULE:
-#pragma max_concurrency 1
 #pragma loop_coalesce 2
             for (int ih = 0; ih < p::in_tile_h; ++ih) {
               for (int iw = 0; iw < p::in_tile_w; ++iw) {
                 const int oh = ih - kh;
                 const int ow = iw - kw;
                 const bool output_on = (oh >= 0) && (ow >= 0) && (oh < p::tile_h) && (ow < p::tile_w);
-                // now, num_pe == 16
+                // now, num_pe == 8
                 hls_register T_out_hls out_regs[out_c_low] = {0, 0, 0, 0, 0, 0, 0, 0};
 
                 // MAC compute module.
@@ -189,7 +184,6 @@ OUTSIDE_TILE_LOOP:
         }
 
       OUTPUT_STORE_MODULE:
-#pragma max_concurrency 1
 #pragma loop_coalesce 2
         for (int oh = 0; oh < p::tile_h; ++oh) {
           for (int ow = 0; ow < p::tile_w; ++ow) {

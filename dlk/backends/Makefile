@@ -1,5 +1,5 @@
 DEVICE := 5CSEBA6U23I7
-CLOCK  := 125MHz
+CLOCK  := 100MHz
 
 CXX :=
 # COMPONENTS := --component intel_hls_a8w1_qconv_with_kn2row_impl,intel_hls_qconv_with_kn2row_impl
