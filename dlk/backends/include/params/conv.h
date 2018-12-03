@@ -176,11 +176,11 @@ static const unsigned num_in_by_unit = min_in_c_by_word; // 4
 static const unsigned log_num_in_by_unit = 2;            // log2(num_in_by_unit) = log2(4) = 2
 static const unsigned max_num_in_unit = (max_in_c_by_word + (num_in_by_unit - 1)) >> log_num_in_by_unit; // / 4
 
-static const unsigned in_w = 32;
-static const unsigned in_h = 32;
+static const unsigned in_w = 128;
+static const unsigned in_h = 128;
 static const unsigned in_w_with_pad = in_w + (2 * pad_w);
 static const unsigned in_h_with_pad = in_h + (2 * pad_h);
-static const unsigned in_c = 128;
+static const unsigned in_c = 256;
 static const unsigned in_c_by_word = in_c / nbits_per_word;
 static const unsigned in_size = in_h * in_w * in_c;
 static const unsigned in_size_packed = in_h * in_w * in_c_by_word * nbits_in_data;
@@ -266,7 +266,7 @@ static const unsigned k_size_packed = k_h * k_w * k_c_by_word * nbits_k_data;
 static const unsigned inb_h = k_h + 1;
 static const unsigned inb_w = k_w + 1;
 static const unsigned num_in_line = (max_in_w_with_pad * (k_h - 1)) + k_w;
-static const bool has_thresholds = true;
+static const bool has_thresholds = false;
 } // namespace conv1x1_params
 
 namespace a8w1_conv3x3_params {
@@ -332,7 +332,7 @@ static const unsigned max_k_w = 3;
 static const unsigned min_k_h = 1;
 static const unsigned min_k_w = 1;
 
-static const unsigned tile_h = 16;
+static const unsigned tile_h = 32;
 static const unsigned tile_w = 32;
 
 static const unsigned in_tile_h = tile_h + (max_k_h - 1) * 2;
