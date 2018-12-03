@@ -17,7 +17,6 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.blocks import lmnet_block
 from lmnet.networks.classification.base import Base
 from lmnet.networks.base_quantize import BaseQuantize
 
