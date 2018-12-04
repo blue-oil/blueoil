@@ -109,11 +109,7 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy dlk sources to docker image
-#COPY dlk /home/blueoil/dlk
-# Install dlk
 WORKDIR /home/blueoil/dlk
-#RUN PYTHONPATH=python/dlk python setup.py install
 
 # Copy blueoil sources to docker image
 COPY blueoil /home/blueoil/blueoil
@@ -143,7 +139,9 @@ RUN wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu
 COPY omplib.tar.gz /usr/local/
 RUN cd /usr/local/ && tar -xf omplib.tar.gz
 
+# Copy dlk sources to docker image
 COPY dlk /home/blueoil/dlk
 WORKDIR /home/blueoil/dlk
+# Install dlk
 RUN PYTHONPATH=python/dlk python setup.py install
 WORKDIR /home/blueoil
