@@ -29,7 +29,6 @@ class YoloV2Quantize(QuantizeParamInit, YoloV2):
 
     YoloV2 does not use lmnet_block, need to define a scope for custom_getter in base function.
     """
-
     def base(self, images, is_training):
         with tf.variable_scope("", custom_getter=self.custom_getter):
             return super().base(images, is_training)
