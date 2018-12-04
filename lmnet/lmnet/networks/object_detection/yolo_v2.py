@@ -105,7 +105,7 @@ class YoloV2(BaseNetwork):
         self.is_dynamic_image_size = is_dynamic_image_size
         self.change_base_output = change_base_output
 
-        #name of the scope in the first and last layer
+        # name of the scope in the first and last layer
         self.first_layer_name = "block_1/"
         self.last_layer_name = "conv_23/"
 

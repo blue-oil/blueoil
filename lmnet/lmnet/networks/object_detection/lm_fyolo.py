@@ -32,7 +32,7 @@ class LMFYolo(YoloV2):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        #name of the scope in the first and last layer
+        # name of the scope in the first and last layer
         self.first_layer_name = "block_1/"
         self.last_layer_name = "block_last/"
 

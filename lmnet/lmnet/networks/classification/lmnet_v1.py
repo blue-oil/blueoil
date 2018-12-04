@@ -40,7 +40,7 @@ class LmnetV1(Base):
         self.activation = tf.nn.relu
         self.custom_getter = None
 
-        #name of the scope in the first and last layer
+        # name of the scope in the first and last layer
         self.first_layer_name = "conv1/"
         self.last_layer_name = "conv7/"
 

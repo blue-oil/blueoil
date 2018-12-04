@@ -37,7 +37,7 @@ class Darknet(Base):
         self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
         self.before_last_activation = self.activation
 
-        #name of the scope in the first and last layer
+        # name of the scope in the first and last layer
         self.first_layer_name = "block_1/"
         self.last_layer_name = "conv_19/"
 
