@@ -51,7 +51,7 @@ bool test_conv(input_type &in_type)
   bool res = true;
 
   // test conv1x1
-  // Conv_params_t conv1x1_p = new_Conv_params(conv1x1_params) res &= test_conv<1, 1>(in_type, conv1x1_p);
+  Conv_params_t conv1x1_p = new_Conv_params(conv1x1_params) res &= test_conv<1, 1>(in_type, conv1x1_p);
 
   // test conv3x3
   Conv_params_t conv3x3_p = new_Conv_params(conv3x3_params) res &= test_conv<3, 3>(in_type, conv3x3_p);
