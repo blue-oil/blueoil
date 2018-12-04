@@ -312,7 +312,9 @@ void qconv_kn2row_tiling(unsigned k_w, unsigned k_h, T_q in_data_packed[], T_out
 
   in_data_mem.Write(in_data_packed, in_size);
   k_data_mem.Write(k_data_packed, k_size);
-  th_data_mem.Write(th_data, th_size);
+  if (th_data != NULL) {
+    th_data_mem.Write(th_data, th_size);
+  }
 
   unsigned use_threshold = (th_data != NULL) ? 1 : 0;
 
