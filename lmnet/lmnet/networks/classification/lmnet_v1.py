@@ -123,4 +123,3 @@ class LmnetV1Quantize(QuantizeParamInit, LmnetV1):
     Scope of custom_getter is defined in lmnet_block so there is no need to define base function.
     """
     pass
-

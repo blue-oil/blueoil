@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from functools import partial
-
 import tensorflow as tf
 
 from lmnet.networks.object_detection.yolo_v2 import YoloV2

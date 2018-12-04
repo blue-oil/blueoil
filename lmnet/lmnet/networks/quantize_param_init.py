@@ -27,7 +27,7 @@ class QuantizeParamInit:
             quantize_first_convolution=None,
             quantize_last_convolution=None,
             *args,
-            **kwargs,
+            **kwargs
     ):
         super(QuantizeParamInit, self).__init__(*args, **kwargs)
 
@@ -95,7 +95,7 @@ class QuantizeParamInit:
                 quantized_kernel = weight_quantization(var)
                 if use_histogram:
                     tf.summary.histogram("quantized_kernel", quantized_kernel)
-                
+
                 return quantized_kernel
 
         return var

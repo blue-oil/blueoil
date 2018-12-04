@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from functools import partial
-
 import tensorflow as tf
 
 from lmnet.networks.classification.base import Base
@@ -40,8 +38,8 @@ class Darknet(Base):
         self.before_last_activation = self.activation
 
         #name of the scope in the first and last layer
-        self.first_layer_name="block_1/"
-        self.last_layer_name="conv_19/"
+        self.first_layer_name = "block_1/"
+        self.last_layer_name = "conv_19/"
 
     def base(self, images, is_training):
         if self.data_format == "NCHW":

@@ -30,11 +30,11 @@ class LMFYolo(YoloV2):
         YoloV2 https://arxiv.org/abs/1612.08242
     """
     def __init__(self, *args, **kwargs):
-        super().__init__( *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         #name of the scope in the first and last layer
-        self.first_layer_name="block_1/"
-        self.last_layer_name="block_last/"          
+        self.first_layer_name = "block_1/"
+        self.last_layer_name = "block_last/"
 
     def train(self, loss, optimizer, global_step=tf.Variable(0, trainable=False), var_list=[]):
         with tf.name_scope("train"):

@@ -41,8 +41,8 @@ class LmnetV0(Base):
         self.custom_getter = None
 
         #name of the scope in the first and last layer
-        self.first_layer_name="conv1/"
-        self.last_layer_name="conv7/"
+        self.first_layer_name = "conv1/"
+        self.last_layer_name = "conv7/"
 
     def _get_lmnet_block(self, is_training, channels_data_format):
         return functools.partial(lmnet_block,
