@@ -59,7 +59,7 @@ arm:	CXX = arm-linux-gnueabihf-g++
 arm:    FLAGS += $(INCLUDE) -static -s -std=c++0x -O3
 
 fpga:	CXX = arm-linux-gnueabihf-g++
-fpga:	FLAGS += $(INCLUDE) -static -s -std=c++0x -O3 -D_DE10_NANO_
+fpga:	FLAGS += $(INCLUDE) -static -std=c++0x -s -O3 -D_DE10_NANO_
 
 sim:   CXX = i++
 sim:   FLAGS += -march=x86-64 $(INTEL_HLS_INCLUDE) -lm $(COMPONENTS) -D_INTEL_HLS_
