@@ -20,7 +20,7 @@ import tensorflow as tf
 from lmnet.networks.classification.base import Base
 from lmnet.layers import conv2d, max_pooling2d
 from lmnet.blocks import darknet as darknet_block
-from lmnet.networks.base_quantize import BaseQuantize
+from lmnet.networks.quantize_param_init import QuantizeParamInit
 
 
 class Darknet(Base):
@@ -38,6 +38,10 @@ class Darknet(Base):
 
         self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
         self.before_last_activation = self.activation
+
+        #name of the scope in the first and last layer
+        self.first_layer_name="block_1/"
+        self.last_layer_name="conv_19/"
 
     def base(self, images, is_training):
         if self.data_format == "NCHW":
@@ -262,64 +266,13 @@ class Darknet(Base):
         return self.base_output
 
 
-class DarknetQuantize(Darknet, BaseQuantize):
+class DarknetQuantize(QuantizeParamInit, Darknet):
+    """Quantize Darknet Network.
+    QuantizeParamInit is a mixin class used to initialize variables for quantization and custom_getter.
 
-    """Quantize Darknet Network."""
-
-    def __init__(
-            self,
-            quantize_first_convolution=True,
-            quantize_last_convolution=True,
-            activation_quantizer=None,
-            activation_quantizer_kwargs=None,
-            weight_quantizer=None,
-            weight_quantizer_kwargs=None,
-            *args,
-            **kwargs
-    ):
-        """
-        Args:
-            quantize_first_convolution(bool): use quantization in first conv.
-            quantize_last_convolution(bool): use quantization in last conv.
-            weight_quantizer (callable): weight quantizer.
-            weight_quantize_kwargs(dict): Initialize kwargs for weight quantizer.
-            activation_quantizer (callable): activation quantizer
-            activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
-        """
-
-        Darknet.__init__(
-            self,
-            *args,
-            **kwargs,
-        )
-
-        BaseQuantize.__init__(
-            self,
-            activation_quantizer,
-            activation_quantizer_kwargs,
-            weight_quantizer,
-            weight_quantizer_kwargs,
-            quantize_first_convolution,
-            quantize_last_convolution,
-        )
-
-        assert callable(weight_quantizer)
-        assert callable(activation_quantizer)
-
-        if self.quantize_last_convolution:
-            self.before_last_activation = self.activation
-        else:
-            self.before_last_activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
+    Darknet does not use lmnet_block, need to define a scope for custom_getter in base function.
+    """
 
     def base(self, images, is_training):
-        custom_getter = partial(
-            self._quantized_variable_getter,
-            weight_quantization=self.weight_quantization,
-            use_histogram=True,
-            first_layer_name="block_1/",
-            last_layer_name="conv_23/",
-            quantize_first_convolution=self.quantize_first_convolution,
-            quantize_last_convolution=self.quantize_last_convolution,
-        )
-        with tf.variable_scope("", custom_getter=custom_getter):
+        with tf.variable_scope("", custom_getter=self.custom_getter):
             return super().base(images, is_training)

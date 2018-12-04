@@ -19,7 +19,7 @@ import tensorflow as tf
 from lmnet.blocks import darknet
 from lmnet.layers import conv2d
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
-from lmnet.networks.base_quantize import BaseQuantize
+from lmnet.networks.quantize_param_init import QuantizeParamInit
 
 
 class LMFYolo(YoloV2):
@@ -29,6 +29,12 @@ class LMFYolo(YoloV2):
         F-Yolo https://arxiv.org/abs/1805.06361
         YoloV2 https://arxiv.org/abs/1612.08242
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+
+        #name of the scope in the first and last layer
+        self.first_layer_name="block_1/"
+        self.last_layer_name="block_last/"          
 
     def train(self, loss, optimizer, global_step=tf.Variable(0, trainable=False), var_list=[]):
         with tf.name_scope("train"):
@@ -145,61 +151,13 @@ class LMFYolo(YoloV2):
         return output
 
 
-class LMFYoloQuantize(LMFYolo, BaseQuantize):
+class LMFYoloQuantize(QuantizeParamInit, LMFYolo):
+    """Quantize LMFYolo Network.
+    QuantizeParamInit is a mixin class used to initialize variables for quantization and custom_getter.
 
-    def __init__(
-            self,
-            quantize_first_convolution=True,
-            quantize_last_convolution=True,
-            activation_quantizer=None,
-            activation_quantizer_kwargs=None,
-            weight_quantizer=None,
-            weight_quantizer_kwargs=None,
-            *args,
-            **kwargs
-    ):
-        """
-        Args:
-            quantize_first_convolution(bool): use quantization in first conv.
-            quantize_last_convolution(bool): use quantization in last conv.
-            weight_quantizer (callable): weight quantizer.
-            weight_quantize_kwargs(dict): Initialize kwargs for weight quantizer.
-            activation_quantizer (callable): activation quantizer
-            activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
-        """
-
-        LMFYolo.__init__(
-            self,
-            *args,
-            **kwargs,
-        )
-
-        BaseQuantize.__init__(
-            self,
-            activation_quantizer,
-            activation_quantizer_kwargs,
-            weight_quantizer,
-            weight_quantizer_kwargs,
-            quantize_first_convolution,
-            quantize_last_convolution,
-        )
-        assert callable(weight_quantizer)
-        assert callable(activation_quantizer)
-
-        if self.quantize_last_convolution:
-            self.before_last_activation = self.activation
-        else:
-            self.before_last_activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
+    LMFYolo does not use lmnet_block, need to define a scope for custom_getter in base function.
+    """
 
     def base(self, images, is_training):
-        custom_getter = partial(
-            self._quantized_variable_getter,
-            weight_quantization=self.weight_quantization,
-            first_layer_name="block_1/",
-            last_layer_name="block_last/",
-            quantize_first_convolution=self.quantize_first_convolution,
-            quantize_last_convolution=self.quantize_last_convolution,
-            use_histogram=True
-        )
-        with tf.variable_scope("", custom_getter=custom_getter):
-            return LMFYolo.base(self, images, is_training)
+        with tf.variable_scope("", custom_getter=self.custom_getter):
+            return super().base(images, is_training)

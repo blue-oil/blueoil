@@ -105,6 +105,10 @@ class YoloV2(BaseNetwork):
         self.is_dynamic_image_size = is_dynamic_image_size
         self.change_base_output = change_base_output
 
+        #name of the scope in the first and last layer
+        self.first_layer_name = "block_1/"
+        self.last_layer_name = "conv_23/"
+
         # Assert image size can mod `32`.
         # TODO(wakisaka): Be enable to cnahge `32`. it depends on pooling times.
         assert self.image_size[0] % 32 == 0

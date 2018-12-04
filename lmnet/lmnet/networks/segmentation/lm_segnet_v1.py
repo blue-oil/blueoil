@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from lmnet.blocks import lmnet_block
 from lmnet.networks.segmentation.base import Base
-from lmnet.networks.base_quantize import BaseQuantize
+from lmnet.networks.quantize_param_init import QuantizeParamInit
 
 
 class LmSegnetV1(Base):
@@ -38,6 +38,10 @@ class LmSegnetV1(Base):
 
         self.activation = tf.nn.relu
         self.custom_getter = None
+
+        #name of the scope in the first and last layer
+        self.first_layer_name = "conv1/"
+        self.last_layer_name = "conv11/"
 
     def _get_lmnet_block(self, is_training, channels_data_format):
         return functools.partial(lmnet_block,
@@ -91,41 +95,10 @@ class LmSegnetV1(Base):
         return x
 
 
-class LmSegnetV1Quantize(LmSegnetV1, BaseQuantize):
+class LmSegnetV1Quantize(QuantizeParamInit, LmSegnetV1):
     """LM original quantize semantic segmentation network.
+    QuantizeParamInit is a mixin class used to initialize variables for quantization and custom_getter.
 
-    Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
-    ``weight_quantizer``, ``weight_quantizer_kwargs``.
-
-    Args:
-        activation_quantizer (callable): Weight quantizater. See more at `lmnet.quantizations`.
-        activation_quantizer_kwargs (dict): Kwargs for `activation_quantizer`.
-        weight_quantizer (callable): Activation quantizater. See more at `lmnet.quantizations`.
-        weight_quantizer_kwargs (dict): Kwargs for `weight_quantizer`.
+    Scope of custom_getter is defined in lmnet_block so there is no need to define base function.
     """
-
-    def __init__(
-            self,
-            activation_quantizer=None,
-            activation_quantizer_kwargs=None,
-            weight_quantizer=None,
-            weight_quantizer_kwargs=None,
-            *args,
-            **kwargs
-    ):
-        LmSegnetV1.__init__(
-            self,
-            *args,
-            **kwargs
-        )
-
-        BaseQuantize.__init__(
-            self,
-            activation_quantizer,
-            activation_quantizer_kwargs,
-            weight_quantizer,
-            weight_quantizer_kwargs,
-        )
-
-        self.custom_getter = functools.partial(self._quantized_variable_getter,
-                                               weight_quantization=self.weight_quantization)
+    pass
