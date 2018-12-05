@@ -108,3 +108,7 @@ else()
   install(FILES ${PUBLIC_HEADERS} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 
 endif()
+
+# CTest
+enable_testing()
+add_subdirectory(test)
