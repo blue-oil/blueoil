@@ -22,6 +22,7 @@ Script that automatically runs all of the folllowing steps.
 import click
 from os import path
 import shutil
+import numpy as np
 
 from core.config import Config
 from core.graph import Graph
@@ -30,9 +31,10 @@ from core.params import Params
 from core.optimizer import Optimizer
 from code_generater import CodeGenerater
 from frontend import TensorFlowIO
-from core.graph_pattern_matching import GraphMatcher, Pattern
+from core.graph_pattern_matching import GraphMatcher, Pattern, match_to_execution_list
 from core.operators import Constant
 
+from collections import defaultdict
 import utils
 
 SCRITPS_DIR = path.abspath(path.dirname(__file__))
@@ -69,11 +71,9 @@ def pass_dot_graph(graph: Graph, filename):
 
     for node in graph.operators:
         for input_node in node.input_nodes:
-            quant = node.quantizer.name if node.op_type == 'Conv' and node.quantizer else 'None'
-            aquant = node.a_quantizer[0].name if node.op_type == 'Conv' and node.a_quantizer else 'None'
 
             dot_script += '"' + format(code[input_node.name], '04X') + '-' + input_node.op_type + '"' + ' -> ' \
-                        + '"' + format(code[node.name], '04X') + '-' + node.op_type + '-' + aquant + '/' + quant + '"' + ';'
+                        + '"' + format(code[node.name], '04X') + '-' + node.op_type + '"' + ';'
 
     dot_script += '}'
 
@@ -248,6 +248,95 @@ def pass_propagate_quantization_details_into_conv(graph):
                 print(f'Warning: Not every input node of {m.node.name} is quantized to the same bit-width')
 
 
+def pass_compute_thresholds(graph):
+
+    gm = GraphMatcher(graph)
+
+    quantization_types_pattern = \
+        'QTZ_linear_mid_tread_half'
+
+    matches = list()
+    p = Pattern(quantization_types_pattern,
+                [
+                    Pattern('BatchNormalization',
+                            [
+                                Pattern('Conv'),
+                                Pattern('*'),
+                                Pattern('*'),
+                                Pattern('*'),
+                                Pattern('*')
+                            ]),
+                    Pattern('*'),
+                    Pattern('*'),
+                ])
+
+    gm.get_op_type_matches(p, matches)
+
+    for m in matches:
+
+        quantizer_conv_output_node = m.node
+        batch_norm_node = quantizer_conv_output_node.input_nodes[0]
+        conv_node = batch_norm_node.input_nodes[0]
+
+        # check if this is a quantized convolution
+        if not conv_node.quantizer or not conv_node.a_quantizer:
+            continue
+
+        quantizer_conv_weights = conv_node.quantizer
+        quantizer_conv_weights.run_forward()
+        scaling_factor = quantizer_conv_weights.scaling_factor
+
+        match_execution_list = list()
+        match_to_execution_list(m, match_execution_list)
+
+        ths = defaultdict(list)
+        computed_quantized_results = defaultdict(set)
+        magic_number = 2
+
+        # TODO: make '3' function on the number of bits of the number of bits
+        for value in range(0, 3):
+            for idx in range(scaling_factor.size):
+
+                # assume that the output value will be a 16-bit signed integer
+                low = -(2**15)
+                high = 2**15 - 1
+
+                # binary search
+                while low <= high:
+                    mid = low + (high - low) // 2
+                    input_data = (scaling_factor * mid) * 2.0 / 3.0 # TODO: get from quantizers (n_bits, max_value)
+                    data_dict = batch_norm_node.run(data=input_data)
+                    data_dict = quantizer_conv_output_node.run(data=data_dict['data'])
+                    result = data_dict['data'][idx]
+                    computed_quantized_results[idx].add(result)
+
+                    if result > value:
+                        high = mid - 1
+                    else:
+                        low = mid + 1
+
+                ths[idx].append(low)
+
+        # check if increasing, decreasing or constant
+        for channel, values in computed_quantized_results.items():
+            if len(values) == 1:
+                ths[channel].append(values.pop() + magic_number)
+            else:
+                first_threshold_result = values.pop()
+                second_threshold_result = values.pop()
+
+                if first_threshold_result < second_threshold_result:
+                    ths[channel].append(1)
+                else:
+                    ths[channel].append(-1)
+
+        # put everything into a list to be compatible with the rest of the code
+        ths_list = []
+        for channel in sorted(ths.keys()):
+            ths_list += ths[channel]
+        conv_node.thresholds = ths_list
+
+
 def optimize_graph_step(model: Model, config: Config) -> None:
     """Optimze graph in the model.
 
@@ -273,11 +362,14 @@ def optimize_graph_step(model: Model, config: Config) -> None:
     pass_print(graph, 'After transpose')
     pass_dot_graph(graph, '/tmp/transposed.dot')
 
+    # TODO: call until pass_precompute returns 0
     pass_precompute(graph)
     pass_print(graph, 'After precompute')
 
     pass_propagate_quantization_details_into_conv(graph)
     pass_print(graph, 'After propagate')
+
+    pass_compute_thresholds(graph)
 
     pass_dot_graph(graph, '/tmp/final.dot')
 
