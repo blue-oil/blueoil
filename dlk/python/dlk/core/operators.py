@@ -653,6 +653,9 @@ class Constant(Variable):
         self._packed = packed
         super().__init__(name, shape, dtype, {}, data, dimension_format=dimension_format)
 
+    def run_forward(self) -> np.ndarray:
+        return self._data
+
     @property
     def is_packed(self) -> bool:
         return self._packed
