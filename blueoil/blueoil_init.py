@@ -272,6 +272,38 @@ def ask_questions():
     }
     training_epochs = prompt(training_epochs_question)
 
+    initial_learning_rate_value_question = {
+        'type': 'input',
+        'name': 'value',
+        'message': 'initial learning rate:',
+        'default': '0.001'
+    }
+    initial_learning_rate_value = prompt(initial_learning_rate_value_question)
+
+    training_learning_rate_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'choose learning rate setting(tune1 / tune2 / tune3 / fixed):',
+        'choices': ['tune1 -> "2 times decay"', 'tune2 -> "3 times decay"', 'tune3 -> "warm-up and 3 times decay"', 'fixed'],
+        'default': 'tune1 -> "2 times decay"',
+    }
+    choices_key_map = {
+        'tune1 -> "2 times decay"': 'tune1',
+        'tune2 -> "3 times decay"': 'tune2',
+        'tune3 -> "warm-up and 3 times decay"': 'tune3',
+        'fixed': 'fixed',
+    }
+    tmp_learning_rate_setting = prompt(training_learning_rate_question)
+    training_learning_rate_setting = choices_key_map[tmp_learning_rate_setting]
+
+    quantize_first_convolution_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'apply quantization at the first layer?',
+        'choices': ['yes', 'no']
+    }
+    quantize_first_convolution= prompt(quantize_first_convolution_question)
+
     r = {}
     for k, v in locals().items():
         if k != 'r' and not k.endswith("question"):
