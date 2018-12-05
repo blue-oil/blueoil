@@ -110,5 +110,7 @@ else()
 endif()
 
 # CTest
-enable_testing()
-add_subdirectory(test)
+if(DCORE_BUILD_SHARED_LIBS)
+  enable_testing()
+  add_subdirectory(test)
+endif()
