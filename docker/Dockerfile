@@ -109,11 +109,7 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy dlk sources to docker image
-COPY dlk /home/blueoil/dlk
-# Install dlk
 WORKDIR /home/blueoil/dlk
-RUN PYTHONPATH=python/dlk python setup.py install
 
 # Copy blueoil sources to docker image
 COPY blueoil /home/blueoil/blueoil
@@ -131,3 +127,21 @@ COPY output_template /home/blueoil/output_template
 
 # Set __init__.py for python modules
 RUN touch lmnet/lmnet/__init__.py
+
+RUN wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && \
+    wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-armv7a-linux-gnueabihf.tar.xz && \
+    mv clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz /usr/local/ && \
+    mv clang+llvm-7.0.0-armv7a-linux-gnueabihf.tar.xz /usr/local/ && \    
+    cd /usr/local/ && \
+    tar -xf clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && \
+    tar -xf clang+llvm-7.0.0-armv7a-linux-gnueabihf.tar.xz        
+
+COPY omplib.tar.gz /usr/local/
+RUN cd /usr/local/ && tar -xf omplib.tar.gz
+
+# Copy dlk sources to docker image
+COPY dlk /home/blueoil/dlk
+# Install dlk
+WORKDIR /home/blueoil/dlk
+RUN PYTHONPATH=python/dlk python setup.py install
+WORKDIR /home/blueoil
