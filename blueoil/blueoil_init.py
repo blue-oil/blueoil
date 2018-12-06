@@ -276,7 +276,10 @@ def ask_questions():
         'type': 'rawlist',
         'name': 'value',
         'message': 'select optimizer:',
-        'choices': ['MomentumOptimizer', 'GradientDescentOptimizer', 'AdamOptimizer'],
+        'choices': ['MomentumOptimizer',
+                    'GradientDescentOptimizer',
+                    'AdamOptimizer',
+                    'AdadeltaOptimizer'],
         'default': 'MomentumOptimizer'
     }
     training_optimizer = prompt(training_optimizer_question)
