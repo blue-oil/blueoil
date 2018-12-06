@@ -181,20 +181,21 @@ class Base(BaseNetwork):
                                    [tf.shape(softmax), tf.argmax(softmax, 1)], message="softmax:", summarize=200)
 
             argmax_labels = tf.cast(tf.argmax(labels, 1), tf.int32)
+            argmax_labels = tf.expand_dims(argmax_labels, 1)
 
             _, top_predicted_indices = tf.nn.top_k(softmax, k=1)
             accuracy, accuracy_update = tf.metrics.mean(
-                tf.cast(tf.reduce_any(tf.equal(tf.transpose(top_predicted_indices), argmax_labels), 0), tf.float32)
+                tf.cast(tf.reduce_any(tf.equal(top_predicted_indices, argmax_labels), axis=1), tf.float32)
             )
 
             _, top_predicted_indices = tf.nn.top_k(softmax, k=3)
             accuracy_top3, accuracy_top3_update = tf.metrics.mean(
-                tf.cast(tf.reduce_any(tf.equal(tf.transpose(top_predicted_indices), argmax_labels), 0), tf.float32)
+                tf.cast(tf.reduce_any(tf.equal(top_predicted_indices, argmax_labels), axis=1), tf.float32)
             )
 
             _, top_predicted_indices = tf.nn.top_k(softmax, k=5)
             accuracy_top5, accuracy_top5_update = tf.metrics.mean(
-                tf.cast(tf.reduce_any(tf.equal(tf.transpose(top_predicted_indices), argmax_labels), 0), tf.float32)
+                tf.cast(tf.reduce_any(tf.equal(top_predicted_indices, argmax_labels), axis=1), tf.float32)
             )
 
             updates = tf.group(accuracy_update, accuracy_top3_update, accuracy_top5_update)
