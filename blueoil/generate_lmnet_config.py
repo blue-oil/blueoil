@@ -49,6 +49,14 @@ _NETWORK_NAME_NETWORK_MODULE_CLASS = {
         "network_module": "vgg7",
         "network_class": "Vgg7Quantize",
     },
+    "Resnet18Network": {
+        "network_module": "resnet18",
+        "network_class": "Resnet18",
+    },
+    "Resnet18Quantize": {
+        "network_module": "resnet18",
+        "network_class": "Resnet18Quantize",
+    },
 }
 
 _DATASET_FORMAT_DATASET_MODULE_CLASS = {
@@ -71,6 +79,10 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
     "Cifar10": {
         "dataset_module": "cifar10",
         "dataset_class": "Cifar10",
+    },
+    "ImageNet": {
+        "dataset_module": "ilsvrc_2012",
+        "dataset_class": "Ilsvrc2012",
     },
 }
 
@@ -148,6 +160,8 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
+    initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"]
+    learning_rate_setting = blueoil_config["trainer"]["learning_rate_setting"]
 
     # common
     image_size = blueoil_config["common"]["image_size"]
@@ -168,6 +182,8 @@ def _blueoil_to_lmnet(blueoil_config):
         "batch_size": batch_size,
         "max_epochs": "",
         "max_steps": "",
+        "initial_learning_rate": initial_learning_rate,
+        "learning_rate_setting": learning_rate_setting,
         
         "image_size": image_size,
 

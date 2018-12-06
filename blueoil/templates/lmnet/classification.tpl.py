@@ -31,8 +31,8 @@ from lmnet.data_augmentor import (
 )
 from lmnet.pre_processor import (
     Resize,
-    DivideBy255,
-    PerImageStandardization
+#    DivideBy255,
+#    PerImageStandardization
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -74,11 +74,11 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-{% if quantize_first_convolution %}
-    DivideBy255()
-{% else %}
-    PerImageStandardization()
-{% endif %}
+#{% if quantize_first_convolution %}
+#    DivideBy255()
+#{% else %}
+#    PerImageStandardization()
+#{% endif %}
 ])
 POST_PROCESSOR = None
 
@@ -106,6 +106,16 @@ elif '{{learning_rate_setting}}' == 'tune3':
     }
 elif '{{learning_rate_setting}}' == 'fixed':
     NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{initial_learning_rate}}}
+elif '{{learning_rate_setting}}' == 'vgg':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}}/100],
+        "boundaries": [ int(500*80), int(500*120) ], 
+    }
+elif '{{learning_rate_setting}}' == 'resnet':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}}/100, {{initial_learning_rate}}/1000],
+        "boundaries": [ int(20000*30), int(20000*40), int(20000*50) ], 
+    }
 else:
     raise ValueError
 
@@ -121,8 +131,8 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,
     'max_value': 2
 }
-NETWORK.WEIGHT_QUANTIZER = twn_weight_quantizer
-#binary_mean_scaling_quantizer
+NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
+twn_weight_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 NETWORK.QUANTIZE_FIRST_CONVOLUTION = {% if quantize_first_convolution %} True {% else %} False {% endif %}
 

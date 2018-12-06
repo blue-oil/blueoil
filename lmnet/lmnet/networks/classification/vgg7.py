@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import functools
+from functools import partial
 
 import tensorflow as tf
 
@@ -24,6 +24,7 @@ VGG_MEAN = [103.939, 116.779, 123.68]
 
 
 class Vgg7Network(Base):
+
     def __init__(
             self,
             quantize_first_convolution=True,
@@ -64,32 +65,35 @@ class Vgg7Network(Base):
         )
 
     def base(self, images, is_training=None):
+        keep_prob = tf.cond(is_training, lambda: tf.constant(0.5), lambda: tf.constant(1.0))
         self.images = images
 
         self.input = self.convert_rbg_to_bgr(images)
         self.input = tf.cast(self.input, dtype=tf.float32)
+        self.input = tf.div(self.input, 255)
 
-        self.conv1 = self.conv_layer("conv1", self.input, filters=128, kernel_size=3)
-        self.conv2 = self.conv_layer("conv2", self.conv1, filters=128, kernel_size=3)
+        self.conv1 = self.conv_layer("conv1", self.input, filters=128, kernel_size=3, is_training=is_training)
+        self.conv2 = self.conv_layer("conv2", self.conv1, filters=128, kernel_size=3, is_training=is_training)
 
-        self.pool1 = self.max_pool("pool1", self.conv2, kernel_size=3, strides=2)
+        self.pool1 = self.max_pool("pool1", self.conv2, kernel_size=2, strides=2)
 
-        self.conv3 = self.conv_layer("conv3", self.pool1, filters=256, kernel_size=3)
-        self.conv4 = self.conv_layer("conv4", self.conv3, filters=256, kernel_size=3)
+        self.conv3 = self.conv_layer("conv3", self.pool1, filters=256, kernel_size=3, is_training=is_training)
+        self.conv4 = self.conv_layer("conv4", self.conv3, filters=256, kernel_size=3, is_training=is_training)
 
-        self.pool2 = self.max_pool("pool2", self.conv4, kernel_size=3, strides=2)
+        self.pool2 = self.max_pool("pool2", self.conv4, kernel_size=2, strides=2)
 
-        self.conv5 = self.conv_layer("conv5", self.pool2, filters=512, kernel_size=3)
-        self.conv6 = self.conv_layer("conv6", self.conv5, filters=512, kernel_size=3)
+        self.conv5 = self.conv_layer("conv5", self.pool2, filters=512, kernel_size=3, is_training=is_training)
+        self.conv6 = self.conv_layer("conv6", self.conv5, filters=512, kernel_size=3, is_training=is_training)
 
-        self.pool3 = self.max_pool("pool3", self.conv6, kernel_size=3, strides=2)
+        self.pool3 = self.max_pool("pool3", self.conv6, kernel_size=2, strides=2)
 
         self.flatten = tf.contrib.layers.flatten(self.pool3)
 
-        self.fc1 = self.fc_layer("fc1", self.flatten, filters=self.num_classes, activation=None)
-        self.base_output = tf.reshape(self.fc1, [-1, self.num_classes], name='fc1_reshape')
+        self.fc1 = self.fc_layer("fc1", self.flatten, filters=1024, activation=tf.nn.relu)
+        self.fc1_drop = tf.nn.dropout(self.fc1, keep_prob)
+        self.fc2 = self.fc_layer("fc2", self.fc1_drop, filters=self.num_classes, activation=None)
 
-        return self.base_output
+        return self.fc2
 
     def conv_layer(
         self,
@@ -97,13 +101,14 @@ class Vgg7Network(Base):
         inputs,
         filters,
         kernel_size,
+        is_training=True,
         strides=1,
         padding="SAME",
         activation=tf.nn.relu,
         *args,
         **kwargs
     ):
-        kernel_initializer = tf.initializers.random_normal(mean=0.0, stddev=0.1)
+        kernel_initializer = tf.contrib.layers.xavier_initializer()
         biases_initializer = tf.zeros_initializer()
 
         if self.data_format == 'NHWC':
@@ -111,17 +116,32 @@ class Vgg7Network(Base):
         else:
             data_format = 'channels_first'
 
-        with tf.variable_scope(name, custom_getter=self.custom_getter):
-            output = tf.layers.conv2d(name=name,
-                                      inputs=inputs,
-                                      filters=filters,
-                                      kernel_size=kernel_size,
-                                      kernel_initializer=kernel_initializer,
-                                      activation=tf.nn.relu,
-                                      bias_initializer=biases_initializer,
-                                      padding=padding,
-                                      strides=strides,
-                                      data_format=data_format)
+        #with tf.variable_scope(name, custom_getter=self.custom_getter):
+        conv = tf.layers.conv2d(inputs=inputs,
+                                filters=filters,
+                                kernel_size=kernel_size,
+                                kernel_initializer=kernel_initializer,
+                                #activation=None,
+                                #bias_initializer=biases_initializer,
+                                use_bias=False,
+                                padding=padding,
+                                strides=strides,
+                                data_format=data_format,
+                                kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0001),
+        )
+
+        batch_normed = tf.contrib.layers.batch_norm(conv,
+                                                    decay=0.99,
+                                                    scale=True,
+                                                    center=True,
+                                                    updates_collections=None,
+                                                    is_training=is_training,
+                                                    data_format=self.data_format)
+
+        #bias = tf.get_variable('bias', shape=filters, initializer=tf.zeros_initializer)
+        #biased = batch_normed + bias
+
+        output = tf.nn.relu(batch_normed)
 
         return output
 
@@ -130,10 +150,11 @@ class Vgg7Network(Base):
             name,
             inputs,
             filters,
+            activation,
             *args,
             **kwargs
     ):
-        kernel_initializer = tf.initializers.random_normal(mean=0.0, stddev=0.1)
+        kernel_initializer = tf.contrib.layers.xavier_initializer()
         biases_initializer = tf.zeros_initializer()
 
         output = tf.contrib.layers.fully_connected(
@@ -141,6 +162,7 @@ class Vgg7Network(Base):
             num_outputs=filters,
             weights_initializer=kernel_initializer,
             biases_initializer=biases_initializer,
+            activation_fn=activation,
         )
 
         return output
@@ -160,8 +182,8 @@ class Vgg7Network(Base):
             self,
             name,
             inputs,
-            kernel_size,
-            strides
+            kernel_size=2,
+            strides=2
     ):
         if self.data_format == 'NHWC':
             data_format = 'channels_last'
@@ -206,9 +228,9 @@ class Vgg7Quantize(Vgg7Network, BaseQuantize):
             weight_quantizer_kwargs,
             quantize_first_convolution,
         )
-        self.custom_getter = functools.partial(self._quantized_variable_getter,
-                                               quantize_first_convolution=self.quantize_first_convolution,
-                                               weight_quantization=self.weight_quantization)
+#        self.custom_getter = functools.partial(self._quantized_variable_getter,
+#                                               quantize_first_convolution=self.quantize_first_convolution,
+#                                               weight_quantization=self.weight_quantization)
 
     @staticmethod
     def _quantized_variable_getter(getter, name, quantize_first_convolution, weight_quantization=None, *args, **kwargs):
@@ -235,3 +257,12 @@ class Vgg7Quantize(Vgg7Network, BaseQuantize):
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)
         return var
+
+    def base(self, images, is_training):
+        custom_getter = partial(
+            self._quantized_variable_getter,
+            weight_quantization=self.weight_quantization,
+            quantize_first_convolution=self.quantize_first_convolution,
+        )
+        with tf.variable_scope("", custom_getter=custom_getter):
+            return super().base(images, is_training)

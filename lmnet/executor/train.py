@@ -231,8 +231,6 @@ def start_training(config):
         if num_epoch == 80 or num_epoch == 120:
             model.optimizer_kwargs["learning_rate"] *= 0.1
 
-        print("step", step, "   epoch", num_epoch, "    LR = ",  model.optimizer_kwargs["learning_rate"])
-
         if config.IS_DISTRIBUTION:
             # scatter dataset
             if step % step_per_epoch == 0:
@@ -250,6 +248,10 @@ def start_training(config):
             images_placeholder: images,
             labels_placeholder: labels,
         }
+
+        result = sess.run([output], feed_dict=feed_dict)
+        print("output = ",result)
+        print("step", step, "   epoch", num_epoch)
 
         if step * ((step + 1) % config.SUMMARISE_STEPS) == 0 and rank == 0:
             # Runtime statistics for develop.
