@@ -415,31 +415,6 @@ class View(object):
                 """
             )
 
-            if len(input_ops) != 2:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            main_op = input_ops[0]
-            sub_op = input_ops[1]
-
-            if op.broadcast == 1:
-                # temporary:
-                # because current dlk cpp implementation doesn't support real broadcast
-                if main_op.shape == sub_op.shape:
-                    func_name = "func_Mul"
-                else:
-                    func_name = "func_Mul_broadcast"
-            else:
-                func_name = "func_Mul"
-
-            inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape)
-
-            return self.format_string(
-                f"""
-                {func_name}({inputs_string}, {op.name}, {shape_string});
-                """
-            )
-
         elif self.op.op_type == 'Relu':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
