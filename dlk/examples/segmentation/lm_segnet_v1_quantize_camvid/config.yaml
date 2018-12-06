@@ -31,7 +31,6 @@ DATASET:
       min_value: -10
   BATCH_SIZE: 1
   DATA_FORMAT: NHWC
-  ENABLE_PREFETCH: true
   PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     processors:
     - !!python/object:lmnet.pre_processor.DivideBy255 {}
@@ -59,7 +58,7 @@ NETWORK:
     learning_rate: 0.001
   WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:lmnet.networks.segmentation.lm_segnet_v1_s2d.LmSegnetV1Quantize ''
+NETWORK_CLASS: !!python/name:lmnet.networks.segmentation.lm_segnet_v1.LmSegnetV1Quantize ''
 POST_PROCESSOR: null
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
