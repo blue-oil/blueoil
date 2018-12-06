@@ -43,7 +43,7 @@ if CURRENT_PYTHON < REQUIRED_PYTHON:
 
 install_requirements = [
     'numpy',
-    'tensorflow==1.4.1',
+    'tensorflow==1.12.0',
     'click',
     'pyyaml',
     'jinja2',
