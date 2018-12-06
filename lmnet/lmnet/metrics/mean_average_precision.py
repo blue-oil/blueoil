@@ -119,7 +119,7 @@ def _streaming_tp_fp_array(
         num_gt_boxes_value = metrics_impl.metric_variable(name='num_gt_boxes_value',
                                                           shape=[],
                                                           dtype=tf.int64,
-                                                          validate_shape=True )
+                                                          validate_shape=True)
 
         # Update operations.
         tp_op = tf.assign(tp_value, tf.concat([tp_value, tp], axis=0), validate_shape=False)
