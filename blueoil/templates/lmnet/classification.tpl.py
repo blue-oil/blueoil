@@ -90,10 +90,14 @@ elif '{{optimizer}}' == 'AdamOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
 elif '{{optimizer}}' == 'AdadeltaOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.AdadeltaOptimizer
+elif '{{optimizer}}' == 'AdagradOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.AdagradOptimizer
+elif '{{optimizer}}' == 'ProximalAdagradOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.ProximalAdagradOptimizer
     
-if '{{learning_rate_setting}}' != 'fixed' and '{{learning_rate_setting}}' != 'AdadeltaOptimizer':
+if '{{learning_rate_setting}}' != 'fixed':
     NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-
+    
 if '{{learning_rate_setting}}' == 'tune1':
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100],
@@ -109,12 +113,10 @@ elif '{{learning_rate_setting}}' == 'tune3':
         "values": [{{initial_learning_rate}} / 1000, {{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
         "boundaries": [int(step_per_epoch * 1), int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
     }
-elif '{{learning_rate_setting}}' == 'fixed':
+elif '{{learning_rate_setting}}' == 'fixed' and '{{optimizer}}' == 'MomentumOptimizer':
     NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{initial_learning_rate}}}
-elif '{{learning_rate_setting}}' == 'AdadeltaOptimizer':
-    NETWORK.OPTIMIZER_KWARGS = {"learning_rate": {{initial_learning_rate}}}
 else:
-    raise ValueError
+    NETWORK.OPTIMIZER_KWARGS = {"learning_rate": {{initial_learning_rate}}}
 
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
