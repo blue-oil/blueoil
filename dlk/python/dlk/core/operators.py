@@ -2484,3 +2484,118 @@ class Split(Operator):
             out_shape[ch_idx] = int(in_shape[ch_idx] / split)
 
         return out_shape
+
+
+class Pad(Operator):
+    """Pad operator.
+    Pad a tensor. This operation pads a tensor according to the paddings specified
+    Input
+    -----
+    A
+        The tensor to pad
+    B
+        The paddings
+    Output
+    ------
+    C
+        A Tensor. Has the same type as input tensor
+    """
+
+    _input_names = ['A', 'B']
+    _output_names = ['C']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        """Init the split operator."""
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def _dispatch_name(self) -> str:
+        return type(self).__name__
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        a_shape = lists['A']
+        padding_constant = attrs['padding_const']
+        new_shape = []
+        for padding, dim in zip(padding_constant, a_shape):
+            if padding is None or dim is None or any((x is None for x in padding)):
+                new_shape.append(None)
+            else:
+                new_shape.append(sum(padding) + dim)
+
+        return new_shape
+
+
+class MatMul(Operator):
+    """Matrix Multiplication operator.
+    Matrix product. Multiplies matrix a by matrix b, producing a * b
+    Generalized universal function signature, e.g., ``(m,n),(n,p)->(m,p)`` for ``np.matmul``.
+    Input
+    -----
+    A
+        2-dimensional matrix A
+    B
+        2-dimensional matrix B
+    Output
+    ------
+    C
+        Matrix multiply results from A * B
+    """
+
+    _input_names = ['A', 'B']
+    _output_names = ['C']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        """Init the split operator."""
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+        a_shape = self._input_ops["A"].shape
+        b_shape = self._input_ops["B"].shape
+        message = f'operands could not be scalar, use * instead'
+        # scalars are rejected
+        self._assert(len(a_shape) != 1 or len(b_shape) != 1, message)
+        # Shape alignment
+        message = f'operand shapes are not aligned'
+        self._assert(a_shape[1] == b_shape[0], message)
+
+    @property
+    def _dispatch_name(self) -> str:
+        return type(self).__name__
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        a_shape = lists['A']
+        b_shape = lists['B']
+        output_shape = [a_shape[0], b_shape[1]]
+        return output_shape
+
+    def run_forward(self) -> np.ndarray:
+        a_data = self.input_ops['A'].data
+        b_data = self.input_ops['B'].data
+        self._data = np.matmul(a_data, b_data)
+        return self._data
