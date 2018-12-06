@@ -133,7 +133,6 @@ def _blueoil_to_lmnet(blueoil_config):
         "save_steps": 1000,
         "test_steps": 1000,
         "summarise_steps": 100,
-        "learning_rate": 1e-3,
     }
     dataset = {
 

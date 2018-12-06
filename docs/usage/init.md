@@ -21,9 +21,10 @@ This is an example of configuration.
   batch size (integer):  64
   image size (integer x integer):  32x32
   how many epochs do you run training (integer):  100
+  apply quantization at the first layer: yes
 ```
 
-#### how can I change small setting? Or I need to re-run `bluoil init` again?
+#### how can I change small setting? Or I need to re-run `blueoil init` again?
 
 `blueoil init` just generates a config file in YAML format. You can change some settings, according to comments.
 
