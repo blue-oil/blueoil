@@ -88,8 +88,10 @@ elif '{{optimizer}}' == 'MomentumOptimizer':
     NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}    
 elif '{{optimizer}}' == 'AdamOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
-
-if '{{learning_rate_setting}}' != 'fixed':
+elif '{{optimizer}}' == 'AdadeltaOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.AdadeltaOptimizer
+    
+if '{{learning_rate_setting}}' != 'fixed' and '{{learning_rate_setting}}' != 'AdadeltaOptimizer':
     NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 
 if '{{learning_rate_setting}}' == 'tune1':
@@ -109,6 +111,8 @@ elif '{{learning_rate_setting}}' == 'tune3':
     }
 elif '{{learning_rate_setting}}' == 'fixed':
     NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{initial_learning_rate}}}
+elif '{{learning_rate_setting}}' == 'AdadeltaOptimizer':
+    NETWORK.OPTIMIZER_KWARGS = {"learning_rate": {{initial_learning_rate}}}
 else:
     raise ValueError
 
