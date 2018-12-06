@@ -50,7 +50,7 @@ class LmResnet(Base):
             output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
-    def basicblock(self, x, out_ch, strides, training, name=''):
+    def basicblock(self, x, out_ch, strides, training):
         in_ch = x.get_shape().as_list()[1 if self.data_format in ['NCHW', 'channels_first'] else 3]
         shortcut = x
 
@@ -83,7 +83,7 @@ class LmResnet(Base):
 
         self.images = images
 
-        x = self._conv2d_fix_padding(images, self.init_filters, 3, 1)
+        x = self._conv2d_fix_padding(images, self.init_ch, 3, 1)
         x = self.resnet_group(x, self.init_ch * 1, self.num_blocks[0], 1, is_training, 'group0')
         x = self.resnet_group(x, self.init_ch * 2, self.num_blocks[1], 2, is_training, 'group1')
         x = self.resnet_group(x, self.init_ch * 4, self.num_blocks[2], 2, is_training, 'group2')
