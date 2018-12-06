@@ -76,6 +76,7 @@ DLK_OPERATOR_MAP: Dict[str, str] = {
 TF_ATTR_TYPE_MAP: Dict[str, str] = {
     'padding': 's',
     'data_format': 's',
+    '_gradient_op_type': 's',
     'strides': 'list.i',
     'ksize': 'list.i',
     'epsilon': 'f',
@@ -298,7 +299,6 @@ class Importer(object):
         self.node_dic: Dict[str, Any] = {}
         node_obj: Any = None
         for node in self.tf_gp.node:
-            # print(node)
             if node.op == 'Const' or node.op == 'Placeholder':
                 node_obj = Input(node)
                 self.in_lst.append(node_obj)
