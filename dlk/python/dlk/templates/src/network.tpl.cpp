@@ -31,6 +31,7 @@ limitations under the License.
 #include "func/max.h"
 #include "func/max_pool.h"
 #include "func/minimum.h"
+#include "func/pad.h"
 #include "func/mul.h"
 #include "func/quantize.h"
 #include "func/quantized_conv2d.h"

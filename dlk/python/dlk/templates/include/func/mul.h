@@ -36,4 +36,6 @@ void func_Mul_broadcast(T_FLOAT factor, T_FLOAT input[], T_FLOAT output[], T_UIN
 
 void func_Mul(T_FLOAT input[], T_FLOAT factor[], T_FLOAT output[], T_UINT out_depth);
 
+void func_Matmul(T_FLOAT input[], T_FLOAT factor[], T_FLOAT output[], T_UINT in_size, T_UINT out_depth);
+
 #endif // DLK_FUNC_MUL_H_INCLUDED
