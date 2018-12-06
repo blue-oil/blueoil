@@ -104,10 +104,22 @@ def _streaming_tp_fp_array(
             scores = tf.boolean_mask(scores, mask)
 
         # Local variables accumlating information over batches.
-        tp_value = metrics_impl.metric_variable(name='tp_value', shape=[0, ], dtype=tf.bool, validate_shape=False)
-        fp_value = metrics_impl.metric_variable(name='fp_value', shape=[0, ], dtype=tf.bool, validate_shape=False)
-        scores_value = metrics_impl.metric_variable(name='scores_value', shape=[0, ], dtype=tf.float32,  validate_shape=False)
-        num_gt_boxes_value = metrics_impl.metric_variable(name='num_gt_boxes_value', shape=[], dtype=tf.int64, validate_shape=True )
+        tp_value = metrics_impl.metric_variable(name='tp_value',
+                                                shape=[0, ],
+                                                dtype=tf.bool,
+                                                validate_shape=False)
+        fp_value = metrics_impl.metric_variable(name='fp_value',
+                                                shape=[0, ],
+                                                dtype=tf.bool,
+                                                validate_shape=False)
+        scores_value = metrics_impl.metric_variable(name='scores_value',
+                                                    shape=[0, ],
+                                                    dtype=tf.float32,
+                                                    validate_shape=False)
+        num_gt_boxes_value = metrics_impl.metric_variable(name='num_gt_boxes_value',
+                                                          shape=[],
+                                                          dtype=tf.int64,
+                                                          validate_shape=True )
 
         # Update operations.
         tp_op = tf.assign(tp_value, tf.concat([tp_value, tp], axis=0), validate_shape=False)
