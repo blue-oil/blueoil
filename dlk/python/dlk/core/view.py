@@ -262,8 +262,6 @@ class View(object):
             )
 
         elif self.op.op_type == 'MaxPoolWithArgmax':
-            raise NotImplemented
-
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
@@ -305,8 +303,6 @@ class View(object):
             )
 
         elif self.op.op_type == 'Unpooling':
-            raise NotImplemented
-
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
@@ -719,6 +715,35 @@ class View(object):
                 f"""
                 {op.dtype.cpptype()} *{op.name}[] = {{ {outputs_string} }};
                 func_Split({inputs_string}, {op.name}, {ns}, {shape_string});
+                """
+            )
+        elif self.op.op_type == 'Pad':
+            if len(input_ops) != 2:
+                self.raise_invalid_args_exception(op, input_ops, output_ops)
+
+            inputs_string = self.inputs_to_string(input_ops)
+            shape_string = self.shape_to_string(op.shape)
+
+            a_op = input_ops['A']
+            ic = a_op.channel
+
+            return self.format_string(
+                f"""
+                func_Pad({inputs_string}, {op.name}, {ic}, {shape_string});
+                """
+            )
+        elif self.op.op_type == 'MatMul':
+            if len(input_ops) != 2:
+                self.raise_invalid_args_exception(op, input_ops, output_ops)
+
+            inputs_string = self.inputs_to_string(input_ops)
+            shape_string = self.shape_to_string(op.shape)
+
+            ia_size = input_ops['A'].size
+
+            return self.format_string(
+                f"""
+                func_Matmul({inputs_string}, {op.name}, {ia_size}, {shape_string});
                 """
             )
 

@@ -21,7 +21,7 @@ import functools
 from core.operators import Add, AveragePool, BatchNormalization, Constant, Conv, Identity, Input, \
     MaxPool, Operator, Output, Transpose, QTZ_binary_mean_scaling, QTZ_linear_mid_tread_half, Reshape, Softmax, \
     Relu, Flatten, Dropout, Gemm, SpaceToDepth, Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, \
-    DepthToSpace, Split
+    DepthToSpace, Split, Pad, MatMul
 
 
 class Graph(object):
@@ -484,6 +484,18 @@ class GraphRunner(object):
     def run_forward_Split(self, node: Split, **kwargs: Any) -> None:
         self.run_forward_by_default(node, **kwargs)
 
+    def run_backward_Pad(self, node: Pad, **kwargs: Any) -> None:
+        self.run_backward_by_default(node, **kwargs)
+
+    def run_forward_Pad(self, node: Pad, **kwargs: Any) -> None:
+        self.run_forward_by_default(node, **kwargs)
+
+    def run_backward_MatMul(self, node: MatMul, **kwargs: Any) -> None:
+        self.run_backward_by_default(node, **kwargs)
+
+    def run_forward_MatMul(self, node: MatMul, **kwargs: Any) -> None:
+        self.run_forward_by_default(node, **kwargs)
+
 
 class NodesSorter(GraphRunner):
     """Class for sorting the nodes of a graph
@@ -569,3 +581,8 @@ class NodesSorter(GraphRunner):
     def run_forward_Split(self, node: Split, **kwargs: Any) -> None:
         kwargs['node_list'].append(node)
 
+    def run_forward_Pad(self, node: Pad, **kwargs: Any) -> None:
+        kwargs['node_list'].append(node)
+
+    def run_forward_MatMul(self, node: MatMul, **kwargs: Any) -> None:
+        kwargs['node_list'].append(node)
