@@ -5,9 +5,9 @@ import functools
 class QuantizeParamInit:
     """QuantizeParamInit.
 
-    This base quantize class is a base class for quantized network of all kinds of task
+    This QuantizeParamInit class is a mixin class for quantized network of all kinds of task
     (classification, object detection, and segmentation).
-    Every sub task's base network class with quantized layer should extend this class.
+    Every sub task's network class with quantized layer should extend this class.
 
     Args:
         activation_quantizer (callable): An activation quantization function
@@ -72,9 +72,9 @@ class QuantizeParamInit:
             weight_quantization: Callable object which quantize variable.
             quantize_first_convolution (boolean): True if using quantization at the first layer, False otherwise
             quantize_last_convolution (boolean): True if using quantization at the last layer, False otherwise
-            first_layer_name (string): prefix of name of the weight nodes in the first layer
-            last_layer_name (string): prefix of name of the weight nodes in the last layer
             use_histogram (boolean): True to summarize tf.summary.histogram of quantized var before return
+            first_layer_name (string): name of the first layer's variable_scope
+            last_layer_name (string): name of the last layer's variable_scope
             args: Args.
             kwargs: Kwargs.
         """
