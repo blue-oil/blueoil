@@ -96,7 +96,7 @@ elif '{{optimizer}}' == 'ProximalAdagradOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.ProximalAdagradOptimizer
     
 if '{{learning_rate_setting}}' != 'fixed':
-    NETWORK.OPTIMIZER_CLASS = tf.train.AdagradOptimizer    
+    NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
     
 if '{{learning_rate_setting}}' == 'tune1':
     NETWORK.LEARNING_RATE_KWARGS = {
