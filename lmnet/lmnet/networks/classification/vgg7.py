@@ -89,9 +89,9 @@ class Vgg7Network(Base):
 
         self.flatten = tf.contrib.layers.flatten(self.pool3)
 
-        self.fc1 = self.fc_layer("fc1", self.flatten, filters=1024, activation=tf.nn.relu)
-        self.fc1_drop = tf.nn.dropout(self.fc1, keep_prob)
-        self.fc2 = self.fc_layer("fc2", self.fc1_drop, filters=self.num_classes, activation=None)
+        #self.fc1 = self.fc_layer("fc1", self.flatten, filters=1024, activation=tf.nn.relu)
+        #self.fc1_drop = tf.nn.dropout(self.fc1, keep_prob)
+        self.fc2 = self.fc_layer("fc2", self.flatten, filters=self.num_classes, activation=None)
 
         return self.fc2
 
@@ -131,7 +131,7 @@ class Vgg7Network(Base):
         )
 
         batch_normed = tf.contrib.layers.batch_norm(conv,
-                                                    decay=0.99,
+                                                    decay=0.999,
                                                     scale=True,
                                                     center=True,
                                                     updates_collections=None,
@@ -151,8 +151,6 @@ class Vgg7Network(Base):
             inputs,
             filters,
             activation,
-            *args,
-            **kwargs
     ):
         kernel_initializer = tf.contrib.layers.xavier_initializer()
         biases_initializer = tf.zeros_initializer()

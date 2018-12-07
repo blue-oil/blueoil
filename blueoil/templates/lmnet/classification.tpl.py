@@ -76,15 +76,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-<<<<<<< HEAD
-#{% if quantize_first_convolution %}
-#    DivideBy255()
-#{% else %}
-#    PerImageStandardization()
-#{% endif %}
-=======
-    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
->>>>>>> b2ffd3272bd14c80ec8c3fa8c6475318576814b6
+#    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 POST_PROCESSOR = None
 
