@@ -182,23 +182,23 @@ class Base(BaseNetwork):
 
             argmax_labels = tf.cast(tf.argmax(labels, 1), tf.int32)
 
-            def calc_top_k(softmax, labels, k):
+            def calc_top_k(softmax, argmax_labels, k):
 
-                truth_top_k, _ = tf.nn.top_k(softmax, k)
+                predicted_top_k, _ = tf.nn.top_k(softmax, k)
                 inclusive_accuracy = tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k), tf.float32)
                 count_border_values = tf.reduce_sum(tf.cast(tf.equal(softmax,
-                                                            tf.expand_dims(truth_top_k[:, k-1], 1)), tf.float32), axis=-1)
+                                                            tf.expand_dims(predicted_top_k[:, k-1], 1)), tf.float32), axis=-1)
                 return tf.div(inclusive_accuracy, count_border_values)
 
-            accuracy, accuracy_update = tf.metrics.mean(calc_top_k(softmax, labels, 1))
+            accuracy, accuracy_update = tf.metrics.mean(calc_top_k(softmax, argmax_labels, 1))
 
             if(self.num_classes > 3):
-                accuracy_top3, accuracy_top3_update = tf.metrics.mean(calc_top_k(softmax, labels, 3))
+                accuracy_top3, accuracy_top3_update = tf.metrics.mean(calc_top_k(softmax, argmax_labels, 3))
             else:
                 accuracy_top3, accuracy_top3_update = tf.metrics.mean(tf.ones(self.batch_size))
 
             if(self.num_classes > 5):
-                accuracy_top5, accuracy_top5_update = tf.metrics.mean(calc_top_k(softmax, labels, 5))
+                accuracy_top5, accuracy_top5_update = tf.metrics.mean(calc_top_k(softmax, argmax_labels, 5))
             else:
                 accuracy_top5, accuracy_top5_update = tf.metrics.mean(tf.ones(self.batch_size))
 
