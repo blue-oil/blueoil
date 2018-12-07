@@ -184,18 +184,18 @@ class Base(BaseNetwork):
             top_5, _ = tf.nn.top_k(softmax, k=5)
 
             current_accuracy = tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k=1), tf.float32)
-            count_border_values = tf.reduce_sum(tf.cast([tf.equal(softmax,
-                                                tf.expand_dims(top_5[:, 0], 1))], tf.float32), axis=-1)
+            count_border_values = tf.reduce_sum(tf.cast(tf.equal(softmax,
+                                                tf.expand_dims(top_5[:, 0], 1)), tf.float32), axis=-1)
             accuracy, accuracy_update = tf.metrics.mean(tf.div(current_accuracy, count_border_values))
 
             current_accuracy = tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k=3), tf.float32)
-            count_border_values = tf.reduce_sum(tf.cast([tf.equal(softmax,
-                                                tf.expand_dims(top_5[:, 2], 1))], tf.float32), axis=-1)
+            count_border_values = tf.reduce_sum(tf.cast(tf.equal(softmax,
+                                                tf.expand_dims(top_5[:, 2], 1)), tf.float32), axis=-1)
             accuracy_top3, accuracy_top3_update = tf.metrics.mean(tf.div(current_accuracy, count_border_values))
 
             current_accuracy = tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k=5), tf.float32)
-            count_border_values = tf.reduce_sum(tf.cast([tf.equal(softmax,
-                                                tf.expand_dims(top_5[:, 4], 1))], tf.float32), axis=-1)
+            count_border_values = tf.reduce_sum(tf.cast(tf.equal(softmax,
+                                                tf.expand_dims(top_5[:, 4], 1)), tf.float32), axis=-1)
             accuracy_top5, accuracy_top5_update = tf.metrics.mean(tf.div(current_accuracy, count_border_values))
 
             updates = tf.group(accuracy_update, accuracy_top3_update, accuracy_top5_update)
