@@ -181,22 +181,22 @@ class Base(BaseNetwork):
                                    [tf.shape(softmax), tf.argmax(softmax, 1)], message="softmax:", summarize=200)
 
             argmax_labels = tf.cast(tf.argmax(labels, 1), tf.int32)
-            argmax_labels = tf.expand_dims(argmax_labels, 1)
+            top_5, _ = tf.nn.top_k(softmax, k=5)
 
-            _, top_predicted_indices = tf.nn.top_k(softmax, k=1)
-            accuracy, accuracy_update = tf.metrics.mean(
-                tf.cast(tf.reduce_any(tf.equal(top_predicted_indices, argmax_labels), axis=1), tf.float32)
-            )
+            current_accuracy = tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k=1), tf.float32)
+            count_border_values = tf.reduce_sum(tf.cast([tf.equal(softmax,
+                                                tf.expand_dims(top_5[:, 0], 1))], tf.float32), axis=-1)
+            accuracy, accuracy_update = tf.metrics.mean(tf.div(current_accuracy, count_border_values))
 
-            _, top_predicted_indices = tf.nn.top_k(softmax, k=3)
-            accuracy_top3, accuracy_top3_update = tf.metrics.mean(
-                tf.cast(tf.reduce_any(tf.equal(top_predicted_indices, argmax_labels), axis=1), tf.float32)
-            )
+            current_accuracy = tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k=3), tf.float32)
+            count_border_values = tf.reduce_sum(tf.cast([tf.equal(softmax,
+                                                tf.expand_dims(top_5[:, 2], 1))], tf.float32), axis=-1)
+            accuracy_top3, accuracy_top3_update = tf.metrics.mean(tf.div(current_accuracy, count_border_values))
 
-            _, top_predicted_indices = tf.nn.top_k(softmax, k=5)
-            accuracy_top5, accuracy_top5_update = tf.metrics.mean(
-                tf.cast(tf.reduce_any(tf.equal(top_predicted_indices, argmax_labels), axis=1), tf.float32)
-            )
+            current_accuracy = tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k=5), tf.float32)
+            count_border_values = tf.reduce_sum(tf.cast([tf.equal(softmax,
+                                                tf.expand_dims(top_5[:, 4], 1))], tf.float32), axis=-1)
+            accuracy_top5, accuracy_top5_update = tf.metrics.mean(tf.div(current_accuracy, count_border_values))
 
             updates = tf.group(accuracy_update, accuracy_top3_update, accuracy_top5_update)
 
