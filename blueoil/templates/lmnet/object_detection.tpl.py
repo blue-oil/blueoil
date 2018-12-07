@@ -113,7 +113,9 @@ elif '{{optimizer}}' == 'AdagradOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.AdagradOptimizer
 elif '{{optimizer}}' == 'ProximalAdagradOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.ProximalAdagradOptimizer
-
+elif '{{optimizer}}' == 'ProximalGradientDescentOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.ProximalGradientDescentOptimizer
+        
 if '{{learning_rate_setting}}' != 'fixed':
     NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 

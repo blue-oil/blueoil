@@ -281,7 +281,8 @@ def ask_questions():
                     'AdamOptimizer',
                     'AdadeltaOptimizer',
                     'AdagradOptimizer',
-                    'ProximalAdagradOptimizer'],
+                    'ProximalAdagradOptimizer',
+                    'ProximalGradientDescentOptimizer'],
         'default': 'MomentumOptimizer'
     }
     training_optimizer = prompt(training_optimizer_question)
