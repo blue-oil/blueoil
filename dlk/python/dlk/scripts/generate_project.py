@@ -33,7 +33,9 @@ from code_generater import CodeGenerater
 from frontend import TensorFlowIO
 from core.graph_pattern_matching import GraphMatcher, Pattern, match_to_execution_list
 from core.operators import Constant
-
+from modules.packer import Packer
+from core.data_types import Uint32, QUANTIZED_NOT_PACKED
+from typing import cast
 from collections import defaultdict
 import utils
 
@@ -69,11 +71,22 @@ def pass_dot_graph(graph: Graph, filename):
         code[node.name] = counter
         counter += 1
 
-    for node in graph.operators:
-        for input_node in node.input_nodes:
+    # for node in graph.operators:
+    #     for input_node in node.input_nodes:
+    #
+    #         dot_script += '"' + format(code[input_node.name], '04X') + '-' + input_node.op_type + '"' + ' -> ' \
+    #                     + '"' + format(code[node.name], '04X') + '-' + node.op_type + '"' + ';'
 
-            dot_script += '"' + format(code[input_node.name], '04X') + '-' + input_node.op_type + '"' + ' -> ' \
-                        + '"' + format(code[node.name], '04X') + '-' + node.op_type + '"' + ';'
+    for node in graph.operators:
+
+        shape = '-'
+        if node.shape:
+            shape = 'x'.join(str(x) for x in node.shape)
+        shape += '(' + node.dimension + ')'
+
+        dot_script += node.name + '[label="<f0> ' + format(code[node.name], '04X') + '| <f1> ' + node.op_type + '| <f2> ' + shape + '| <f3> ' + node.dtype.cpptype() + '" shape = "record"];'
+        for i in node.input_nodes:
+            dot_script += i.name + ' -> ' + node.name + ';'
 
     dot_script += '}'
 
@@ -91,10 +104,6 @@ def pass_remove_identities(graph: Graph):
     gm.get_op_type_matches(p, matches)
 
     for m in matches:
-        # print('Match: ', m.node.name, m.node.op_type)
-        # for input_node in m.node.input_nodes:
-        #     print('   -> ', input_node.name, input_node.op_type)
-
         """skip all identity."""
         in_op = m.node.input_ops['input']
         out_ops = m.node.output_ops['output']
@@ -126,10 +135,6 @@ def pass_transpose(graph):
     gm.get_op_type_matches(p, matches)
 
     for m in matches:
-        # print('Match: ', m.node.name, m.node.op_type)
-        # for input_node in m.node.input_nodes:
-        #     print('   -> ', input_node.name, input_node.op_type)
-
         dim = m.node.dimension
         shape = m.node.shape
         if len(shape) != 4 or len(dim) != 4 or not set(dim).issubset({'N', 'H', 'W', 'C', 'I', 'O'}):
@@ -142,24 +147,22 @@ def pass_transpose(graph):
         m.node.transpose(permutation)
 
 
-def pass_precompute(graph) -> int:
+def pass_precompute(graph, processed_nodes):
 
     gm = GraphMatcher(graph)
 
-    to_be_removed = list()
     matches = list()
-    p = Pattern("*")
+    p = Pattern('*')
     gm.get_op_type_matches(p, matches)
 
+    processed_before_precompute = len(processed_nodes)
+
     for m in matches:
+        if m.node in processed_nodes:
+            continue
 
         # We want operators with inputs
         if not m.node.input_nodes:
-            continue
-
-        # Leave out nodes which execution will lose information.
-        # They will have a special processing later.
-        if m.node.run_it_will_lose_information:
             continue
 
         precomputable = True
@@ -170,8 +173,8 @@ def pass_precompute(graph) -> int:
         if not precomputable:
             continue
 
-        to_be_removed += m.node.input_nodes
-        to_be_removed.append(m.node)
+        processed_nodes += m.node.input_nodes
+        processed_nodes.append(m.node)
 
         m.node.run_forward()
 
@@ -192,10 +195,7 @@ def pass_precompute(graph) -> int:
                         consumer_node.add_input(input_name, new_constant)
                         break
 
-    for op in to_be_removed:
-        graph.remove_op(op)
-
-    return len(to_be_removed)
+    return len(processed_nodes) > processed_before_precompute
 
 
 def pass_propagate_quantization_details_into_conv(graph):
@@ -286,9 +286,6 @@ def pass_compute_thresholds(graph):
         quantizer_conv_weights.run_forward()
         scaling_factor = quantizer_conv_weights.scaling_factor
 
-        match_execution_list = list()
-        match_to_execution_list(m, match_execution_list)
-
         ths = defaultdict(list)
         computed_quantized_results = defaultdict(set)
         magic_number = 2
@@ -298,8 +295,9 @@ def pass_compute_thresholds(graph):
             for idx in range(scaling_factor.size):
 
                 # assume that the output value will be a 16-bit signed integer
-                low = -(2**15)
-                high = 2**15 - 1
+                n = 2**15
+                low = -n + 1
+                high = n - 2
 
                 # binary search
                 while low <= high:
@@ -336,6 +334,72 @@ def pass_compute_thresholds(graph):
             ths_list += ths[channel]
         conv_node.thresholds = ths_list
 
+        # Disconnect batchnorm and the quantizer
+        out_ops = quantizer_conv_output_node.output_ops['output']
+        for output_node in out_ops:
+            for input_name, input_node in output_node.input_ops.items():
+                if input_node == quantizer_conv_output_node:
+                    output_node.add_input(input_name, conv_node)
+
+        conv_node.remove_output('Y')
+        conv_node.add_outputs({'Y': out_ops})
+
+        # TODO: temporary (only for drawing better graphs)
+        batch_norm_node.remove_input('X')
+
+
+def pass_pack_weights(graph):
+
+    gm = GraphMatcher(graph)
+
+    quantization_types = [
+        'QTZ_binary_mean_scaling',
+        'QTZ_linear_mid_tread_half',
+        'QTZ_binary_channel_wise_mean_scaling'
+    ]
+
+    matches = list()
+    p = Pattern('Conv')
+
+    gm.get_op_type_matches(p, matches)
+
+    # TODO: pass proper parameters
+    packer = Packer(1, 32)
+
+    for m in matches:
+        conv_node = m.node
+
+        # check if this is a quantized convolution
+        if not conv_node.quantizer or not conv_node.a_quantizer:
+            continue
+
+        weight_quantizer = conv_node.quantizer
+        if weight_quantizer.op_type not in quantization_types:
+            continue
+
+        # Quantize the weights
+        weight_quantizer.run_forward()
+        op_data = weight_quantizer.binarizer(weight_quantizer.data)
+        data = packer.run(op_data.astype(np.float32), weight_quantizer.dimension)
+
+        quantized_constant = Constant(
+            weight_quantizer.name + '_new',
+            Uint32(),
+            data,
+            packed=True,
+            actual_shape=weight_quantizer.shape
+        )
+
+        graph.add_op(quantized_constant)
+
+        quantized_constant.add_outputs(weight_quantizer.output_ops)
+        for output_name, consumer_list in weight_quantizer.output_ops.items():
+            for consumer_node in consumer_list:
+                for input_name, input_node in consumer_node.input_ops.items():
+                    if input_node == weight_quantizer:
+                        consumer_node.add_input(input_name, quantized_constant)
+                        break
+
 
 def optimize_graph_step(model: Model, config: Config) -> None:
     """Optimze graph in the model.
@@ -362,22 +426,26 @@ def optimize_graph_step(model: Model, config: Config) -> None:
     pass_print(graph, 'After transpose')
     pass_dot_graph(graph, '/tmp/transposed.dot')
 
-    # TODO: call until pass_precompute returns 0
-    pass_precompute(graph)
-    pass_print(graph, 'After precompute')
-
     pass_propagate_quantization_details_into_conv(graph)
     pass_print(graph, 'After propagate')
 
     pass_compute_thresholds(graph)
+    pass_pack_weights(graph)
+
+    # processed_nodes = []
+    # while pass_precompute(graph, processed_nodes=processed_nodes):
+    #     pass
+    # pass_print(graph, 'After precompute')
 
     pass_dot_graph(graph, '/tmp/final.dot')
 
     optim = Optimizer()
-    optim.transpose_NHWC(graph)
+    # optim.transpose_NHWC(graph)
     optim.precompute(graph, config.activate_hard_quantization)
     if config.threshold_skipping:
         optim.threshold_skipping(graph)
+
+
 
 
 def generate_code_step(model: Model, config: Config) -> None:

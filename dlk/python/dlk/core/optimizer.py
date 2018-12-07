@@ -485,87 +485,88 @@ class ApplyThresholdSkipping(GraphRunner):
 
         if start is not None and finish is not None:
 
-            def linear_qtz2float(x: np.ndarray, n_value: int, max_value: float) -> np.ndarray:
-                real_x = x / np.float64(n_value) * np.float64(max_value)
-                return real_x.astype(np.float64)
+            # def linear_qtz2float(x: np.ndarray, n_value: int, max_value: float) -> np.ndarray:
+            #     real_x = x / np.float64(n_value) * np.float64(max_value)
+            #     return real_x.astype(np.float64)
 
             # Step 1: Compute thresholds for Convolution operators
-            aqtzer = cast(Quantizer, start.a_quantizer[0])  # Activation Quantizers should all have the same bits
-            bit = aqtzer.nbit
-            max_v = aqtzer.max_v
-            if bit is None or max_v is None:
-                ValueError(f'activation quantizer of node {start.name} has bit or max value of None')
+            # aqtzer = cast(Quantizer, start.a_quantizer[0])  # Activation Quantizers should all have the same bits
+            # bit = aqtzer.nbit
+            # max_v = aqtzer.max_v
+            # if bit is None or max_v is None:
+            #     ValueError(f'activation quantizer of node {start.name} has bit or max value of None')
 
-            n = 2 ** bit - 1
-            ch = start.channel
-            lch = start.input_ops['X'].channel
-            k = start.kernel_height * start.kernel_width * lch * n
-            qtzer = cast(Quantizer, start.quantizer)
-            conv_results = [x for x in range(-k, k + 1, 1)]
-            th_tmp = np.empty([ch, n + 1], dtype=np.int32)
-            v_now = dict.fromkeys([x for x in range(ch)], 0)
-            th_now = 0
-            val_neg_flag = -1
-            val_pos_flag = 1
-            all_transdata: Dict[int, Dict[str, Any]] = {}
+            # n = 2 ** bit - 1
+            # ch = start.channel
+            # lch = start.input_ops['X'].channel
+            # k = start.kernel_height * start.kernel_width * lch * n
+            # qtzer = cast(Quantizer, start.quantizer)
+            # conv_results = [x for x in range(-k, k + 1, 1)]
+            # th_tmp = np.empty([ch, n + 1], dtype=np.int32)
+            # v_now = dict.fromkeys([x for x in range(ch)], 0)
+            # th_now = 0
+            # val_neg_flag = -1
+            # val_pos_flag = 1
+            # all_transdata: Dict[int, Dict[str, Any]] = {}
 
             # Step 1-1: initalize thresholds
-            for conv_res in conv_results:
-                conv_out = np.full(ch, conv_res, dtype=np.float64)
-                conv_out *= qtzer.scaling_factor if qtzer.scaling_factor is not None \
-                    else ValueError(f'oops Quantizer of node {start.name} has scaling factor of None')
-
-                conv_data = linear_qtz2float(conv_out, n, max_v)
-
-                trans_data: Dict[str, Any] = {'data': conv_data}
-                for idx, op in sorted(transitions.items(), reverse=True):
-                    trans_data = op.run(**trans_data)
-
-                for depth in range(ch):
-                    init = -k if depth in trans_data['nega_idx'] else k
-                    th_tmp[depth, :] = init
-
-                all_transdata[conv_res] = trans_data
+            # for conv_res in conv_results:
+            #     conv_out = np.full(ch, conv_res, dtype=np.float64)
+            #     conv_out *= qtzer.scaling_factor if qtzer.scaling_factor is not None \
+            #         else ValueError(f'oops Quantizer of node {start.name} has scaling factor of None')
+            #
+            #     conv_data = linear_qtz2float(conv_out, n, max_v)
+            #
+            #     trans_data: Dict[str, Any] = {'data': conv_data}
+            #     for idx, op in sorted(transitions.items(), reverse=True):
+            #         trans_data = op.run(**trans_data)
+            #
+            #     for depth in range(ch):
+            #         init = -k if depth in trans_data['nega_idx'] else k
+            #         th_tmp[depth, :] = init
+            #
+            #     all_transdata[conv_res] = trans_data
 
             # Step 1-2: update thresholds
-            for conv_res in conv_results:
-                trans_data = all_transdata[conv_res]
-                qtz_out = trans_data['data']
-                qtz_mu = np.mean(qtz_out)
-                if qtz_mu != th_now:
-                    for depth in range(ch):
-                        is_negative = depth in trans_data['nega_idx']
-                        if v_now.get(depth) != qtz_out[depth]:
-                            if is_negative:
-                                th_tmp[depth, abs(n - qtz_out[depth] - 1)] = conv_res
-                            else:
-                                th_tmp[depth, qtz_out[depth] - 1] = conv_res
-                            v_now[depth] = qtz_out[depth]
-                        th_tmp[depth, n] = -1 if is_negative else 1
-                for depth in range(ch):
-                    constant = reduce(lambda x, y: x and y,
-                                      [th_tmp[depth, i] == th_tmp[depth, i + 1] for i in range(n - 1)])
-                    th_tmp[depth, n] = qtz_out[depth] + 2 if constant else th_tmp[depth, n]
-                    # note: 2 above is a magic number. the result value must not be 1 nor -1.
-                th_now = qtz_mu
+            # for conv_res in conv_results:
+            #     trans_data = all_transdata[conv_res]
+            #     qtz_out = trans_data['data']
+            #     qtz_mu = np.mean(qtz_out)
+            #     if qtz_mu != th_now:
+            #         for depth in range(ch):
+            #             is_negative = depth in trans_data['nega_idx']
+            #             if v_now.get(depth) != qtz_out[depth]:
+            #                 if is_negative:
+            #                     th_tmp[depth, abs(n - qtz_out[depth] - 1)] = conv_res
+            #                 else:
+            #                     th_tmp[depth, qtz_out[depth] - 1] = conv_res
+            #                 v_now[depth] = qtz_out[depth]
+            #             th_tmp[depth, n] = -1 if is_negative else 1
+            #     for depth in range(ch):
+            #         constant = reduce(lambda x, y: x and y,
+            #                           [th_tmp[depth, i] == th_tmp[depth, i + 1] for i in range(n - 1)])
+            #         th_tmp[depth, n] = qtz_out[depth] + 2 if constant else th_tmp[depth, n]
+            #         # note: 2 above is a magic number. the result value must not be 1 nor -1.
+            #     th_now = qtz_mu
 
-            start.thresholds = th_tmp.flatten().tolist()
+            # start.thresholds = th_tmp.flatten().tolist()
 
             # Step 2: Skipping unused operators, e.g. batch normalization, linear activation quantizer
-            if start.has_thresholds:
-                if start.dtype is not finish.dtype:
-                    start.dtype = finish.dtype
-                for consumers in finish.output_ops.values():
-                    for consumer in consumers:
-                        for idex, y in start.output_ops.items():
-                            if not bool(set(consumers) & set(y)):
-                                start.remove_output(idex)
-                            start.add_output(idex, consumer)
-
-                        for indent, v in consumer.input_ops.items():
-                            if v == finish:
-                                consumer.add_input(indent, start)
-                                break
+            pass
+            # if start.has_thresholds:
+            #     if start.dtype is not finish.dtype:
+            #         start.dtype = finish.dtype
+            #     for consumers in finish.output_ops.values():
+            #         for consumer in consumers:
+            #             for idex, y in start.output_ops.items():
+            #                 if not bool(set(consumers) & set(y)):
+            #                     start.remove_output(idex)
+            #                 start.add_output(idex, consumer)
+            #
+            #             for indent, v in consumer.input_ops.items():
+            #                 if v == finish:
+            #                     consumer.add_input(indent, start)
+            #                     break
         else:
             pass
 

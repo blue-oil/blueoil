@@ -569,10 +569,6 @@ class Operator(object):
         self._visited = v
 
     @property
-    def run_it_will_lose_information(self) -> bool:
-        return False
-
-    @property
     def preserve_quantization(self) -> bool:
         return False
 
@@ -778,9 +774,6 @@ class Quantizer(Operator):
         raise NotImplementedError(
             f'operator {self.op_type} need to implement the binarizer method')
 
-    @property
-    def run_it_will_lose_information(self) -> bool:
-        return True
 
 
 
