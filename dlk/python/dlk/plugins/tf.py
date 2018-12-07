@@ -533,7 +533,6 @@ class Importer(object):
                                       'dtype': dtype,
                                       'input_ops': input_ops,
                                       'dimension_format': current_format}
-
         params: Dict[str, Any] = {}
         for args in members.parameters.keys():
             if args in basic_args.keys():
@@ -551,10 +550,6 @@ class Importer(object):
                 else:
                     filt_h = input_ops['W'].shape[input_format_list[1].index('H')]
                     filt_w = input_ops['W'].shape[input_format_list[1].index('W')]
-
-                # input_format = input_format_list[0]
-                # in_h = input_ops['X'].shape[input_format.index('H')]
-                # in_w = input_ops['X'].shape[input_format.index('W')]
 
                 in_h = input_ops['X'].height
                 in_w = input_ops['X'].width

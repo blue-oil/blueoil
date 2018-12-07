@@ -2446,9 +2446,9 @@ class Split(Operator):
                  dtype: DataType,
                  input_ops: Ops,
                  dimension_format: str = 'NHWC',
-                 split: int = 1) -> None:
+                 num_split: int = 1) -> None:
         """Init the split operator."""
-        self._split = split
+        self._split = num_split
         self._axis = input_ops['A'].data[0]
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
