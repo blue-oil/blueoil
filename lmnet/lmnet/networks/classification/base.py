@@ -190,20 +190,17 @@ class Base(BaseNetwork):
                                                             tf.expand_dims(truth_top_k[:, k-1], 1)), tf.float32), axis=-1)
                 return tf.div(inclusive_accuracy, count_border_values)
 
-            total_classes = labels.get_shape().as_list()[1]
-            batch_size = labels.get_shape().as_list()[0]
-
             accuracy, accuracy_update = tf.metrics.mean(calc_top_k(softmax, labels, 1))
 
-            if(total_classes > 3):
+            if(self.num_classes > 3):
                 accuracy_top3, accuracy_top3_update = tf.metrics.mean(calc_top_k(softmax, labels, 3))
             else:
-                accuracy_top3, accuracy_top3_update = tf.metrics.mean(tf.ones(batch_size))
+                accuracy_top3, accuracy_top3_update = tf.metrics.mean(tf.ones(self.batch_size))
 
-            if(total_classes > 5):
+            if(self.num_classes > 5):
                 accuracy_top5, accuracy_top5_update = tf.metrics.mean(calc_top_k(softmax, labels, 5))
             else:
-                accuracy_top5, accuracy_top5_update = tf.metrics.mean(tf.ones(batch_size))
+                accuracy_top5, accuracy_top5_update = tf.metrics.mean(tf.ones(self.batch_size))
 
             updates = tf.group(accuracy_update, accuracy_top3_update, accuracy_top5_update)
 
