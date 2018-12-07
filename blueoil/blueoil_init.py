@@ -281,7 +281,10 @@ def ask_questions():
                     'AdamOptimizer',
                     'AdadeltaOptimizer',
                     'AdagradOptimizer',
-                    'ProximalAdagradOptimizer'],
+                    'ProximalAdagradOptimizer',
+                    'ProximalGradientDescentOptimizer',
+                    'RMSPropOptimizer',
+                    'FtrlOptimizer'],
         'default': 'MomentumOptimizer'
     }
     training_optimizer = prompt(training_optimizer_question)
@@ -298,7 +301,10 @@ def ask_questions():
         'type': 'rawlist',
         'name': 'value',
         'message': 'choose learning rate setting(tune1 / tune2 / tune3 / fixed):',
-        'choices': ['tune1 -> "2 times decay"', 'tune2 -> "3 times decay"', 'tune3 -> "warm-up and 3 times decay"', 'fixed'],
+        'choices': ['tune1 -> "2 times decay"',
+                    'tune2 -> "3 times decay"',
+                    'tune3 -> "warm-up and 3 times decay"',
+                    'fixed'],
         'default': 'tune1 -> "2 times decay"',
     }
     choices_key_map = {
