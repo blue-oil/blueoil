@@ -96,7 +96,9 @@ elif '{{optimizer}}' == 'ProximalAdagradOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.ProximalAdagradOptimizer
 elif '{{optimizer}}' == 'ProximalGradientDescentOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.ProximalGradientDescentOptimizer
-    
+elif '{{optimizer}}' == 'RMSPropOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.RMSPropOptimizer
+
 if '{{learning_rate_setting}}' != 'fixed':
     NETWORK.OPTIMIZER_CLASS = tf.train.AdagradOptimizer    
     
