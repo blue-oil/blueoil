@@ -21,6 +21,7 @@ from lmnet.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
 from lmnet.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
+    Resize,
     DivideBy255,
 )
 from lmnet.data_augmentor import (
@@ -66,6 +67,7 @@ PRETRAIN_FILE = ""
 # IS_DEBUG = True
 
 PRE_PROCESSOR = Sequence([
+    Resize(size=IMAGE_SIZE),
     DivideBy255(),
 ])
 POST_PROCESSOR = None
