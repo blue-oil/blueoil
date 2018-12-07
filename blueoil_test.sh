@@ -129,7 +129,6 @@ function init_test(){
         send \"${NETWORK_NUMBER}\n\"
         expect \"choose dataset format\"
         send \"${DATASET_FORMAT_NUMBER}\n\"
-        ${QA_ENABLE_DATA_AUGMENTATION}
         expect \"training dataset path:\"
         send \"${TRAINING_DATASET_PATH}\n\"
         expect \"set validataion dataset?\"
@@ -145,6 +144,7 @@ function init_test(){
         send \"\n\"
         expect \"choose learning rate setting(tune1 / tune2 / tune3 / fixed):\"
         send \"\n\"
+        ${QA_ENABLE_DATA_AUGMENTATION}
         expect \"apply quantization at the first layer?:\"
         send \"\n\"
         expect \"Next step:\"
@@ -223,7 +223,7 @@ trap 'show_error_log; clean_exit 1' 1 2 3 15
 if [ "${YML_CONFIG_FILE}" == "" ]; then
     ADDITIONAL_TEST_FLAG=0
     TASK_TYPE_NUMBER=1
-    ENABLE_DATA_AUGMENTATION="n"
+    ENABLE_DATA_AUGMENTATION="y"
     for TASK_TYPE in "classification" "object_detection"
     do
         DATASET_FORMAT_NUMBER=1
