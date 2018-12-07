@@ -104,13 +104,15 @@ if '{{optimizer}}' == 'GradientDescentOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.GradientDescentOptimizer
 elif '{{optimizer}}' == 'MomentumOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
+    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}    
 elif '{{optimizer}}' == 'AdamOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
 elif '{{optimizer}}' == 'AdadeltaOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.AdadeltaOptimizer
 elif '{{optimizer}}' == 'AdagradOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.AdagradOptimizer
+elif '{{optimizer}}' == 'FtrlOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.FtrlOptimizer
 elif '{{optimizer}}' == 'ProximalAdagradOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.ProximalAdagradOptimizer
 elif '{{optimizer}}' == 'ProximalGradientDescentOptimizer':

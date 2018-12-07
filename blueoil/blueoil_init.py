@@ -283,7 +283,8 @@ def ask_questions():
                     'AdagradOptimizer',
                     'ProximalAdagradOptimizer',
                     'ProximalGradientDescentOptimizer',
-                    'RMSPropOptimizer'],
+                    'RMSPropOptimizer'
+                    'FtrlOptimizer'],
         'default': 'MomentumOptimizer'
     }
     training_optimizer = prompt(training_optimizer_question)
