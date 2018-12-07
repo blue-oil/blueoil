@@ -186,8 +186,8 @@ class Base(BaseNetwork):
 
                 predicted_top_k, _ = tf.nn.top_k(softmax, k)
                 inclusive_accuracy = tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k), tf.float32)
-                count_border_values = tf.reduce_sum(tf.cast(tf.equal(softmax,
-                                                            tf.expand_dims(predicted_top_k[:, k-1], 1)), tf.float32), axis=-1)
+                count_border_values = tf.reduce_sum(tf.cast(
+                    tf.equal(softmax, tf.expand_dims(predicted_top_k[:, k-1], 1)), tf.float32), axis=-1)
                 return tf.div(inclusive_accuracy, count_border_values)
 
             accuracy, accuracy_update = tf.metrics.mean(calc_top_k(softmax, argmax_labels, 1))
