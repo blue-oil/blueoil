@@ -822,6 +822,14 @@ class QTZ_binary_mean_scaling(Quantizer):
         in_data = self.input_ops['input'].data
         self._scaling_factor = np.mean(np.abs(in_data))
         self._data = np.sign(in_data)
+
+        return self._data * self._scaling_factor
+
+    def run_forward_no_scaling_factor(self) -> np.ndarray:
+        in_data = self.input_ops['input'].data
+        self._scaling_factor = np.mean(np.abs(in_data))
+        self._data = np.sign(in_data)
+
         return self._data
 
     @classmethod
@@ -2303,6 +2311,17 @@ class QTZ_binary_channel_wise_mean_scaling(Quantizer):
         return False
 
     def run_forward(self) -> np.ndarray:
+        in_data = self.input_ops['input'].data
+        self._scaling_factor = np.mean(np.abs(in_data), axis=(1, 2, 3)).astype(np.float32)
+        self._data = np.sign(in_data)
+
+        scaling = copy.deepcopy(self._scaling_factor)
+        extra_dims = tuple(np.ones((len(self._data.shape) - len(scaling.shape)), dtype=np.int32))
+        scaling = scaling.reshape(scaling.shape + extra_dims)
+
+        return scaling * self._data
+
+    def run_forward_no_scaling_factor(self) -> np.ndarray:
         in_data = self.input_ops['input'].data
         self._scaling_factor = np.mean(np.abs(in_data), axis=(1, 2, 3)).astype(np.float32)
         self._data = np.sign(in_data)

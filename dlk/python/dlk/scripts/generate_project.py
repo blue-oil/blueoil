@@ -176,12 +176,12 @@ def pass_precompute(graph, processed_nodes):
         processed_nodes += m.node.input_nodes
         processed_nodes.append(m.node)
 
-        m.node.run_forward()
+        data = m.node.run_forward()
 
         new_constant = Constant(
             m.node.name + '_new',
             m.node.dtype,
-            m.node.data,
+            data,
             dimension_format=m.node.dimension
         )
 
@@ -206,46 +206,37 @@ def pass_propagate_quantization_details_into_conv(graph):
     p = Pattern('*')
     gm.get_op_type_matches(p, matches)
 
-    quantization_types = [
+    qtypes = [
         'QTZ_binary_mean_scaling',
         'QTZ_linear_mid_tread_half',
         'QTZ_binary_channel_wise_mean_scaling'
     ]
 
-    quantization_details = {}
+    quant_details = defaultdict(list)
     for m in matches:
         if not m.node.preserve_quantization:
-            quantization_details[m.node.name] = None
+            quant_details[m.node.name] = []
             continue
 
-        current_node_quant_details = []
-        for input_node in m.node.input_nodes:
-            if input_node.op_type in quantization_types:
-                current_node_quant_details.append(input_node)
-            else:
-                current_node_quant_details.append(quantization_details[input_node.name])
-
         if m.node.op_type == 'Conv':
-            m.node.a_quantizer = [current_node_quant_details[0]] if current_node_quant_details[0] else []
-            m.node.quantizer = current_node_quant_details[1]
-            quantization_details[m.node.name] = None
+            input_node = m.node.input_nodes[0]
+            weight_node = m.node.input_nodes[1]
+
+            m.node.a_quantizer = [input_node] if input_node.op_type in qtypes else quant_details[input_node.name]
+            m.node.quantizer = weight_node if weight_node.op_type in qtypes else quant_details[weight_node.name]
+
+            quant_details[m.node.name] = []
         else:
-            all_quantizers = True
-            for quantizer in current_node_quant_details:
-                if not quantizer:
-                    all_quantizers = False
-                    break
+            qtzs = []
+            for n in m.node.input_nodes:
+                if n.op_type in qtypes:
+                    qtzs.append(n)
+                else:
+                    for q in quant_details[n.name]:
+                        qtzs.append(q)
 
-            if not all_quantizers:
-                same_nbits = False
-            else:
-                same_nbits = all(quantizer.nbit == current_node_quant_details[0].nbit
-                                 for quantizer in current_node_quant_details)
-
-            quantization_details[m.node.name] = current_node_quant_details[0] if same_nbits else None
-
-            if not same_nbits:
-                print(f'Warning: Not every input node of {m.node.name} is quantized to the same bit-width')
+            quant_details[m.node.name] = qtzs if len(qtzs) == len(m.node.input_nodes) else []
+            # TODO: check if the quantizers use same n_bits
 
 
 def pass_compute_thresholds(graph):
@@ -283,7 +274,7 @@ def pass_compute_thresholds(graph):
             continue
 
         quantizer_conv_weights = conv_node.quantizer
-        quantizer_conv_weights.run_forward()
+        quantizer_conv_weights.run_forward_no_scaling_factor()
         scaling_factor = quantizer_conv_weights.scaling_factor
 
         ths = defaultdict(list)
@@ -292,7 +283,7 @@ def pass_compute_thresholds(graph):
 
         # TODO: make '3' function on the number of bits of the number of bits
         for value in range(0, 3):
-            for idx in range(scaling_factor.size):
+            for idx in range(conv_node.channel):
 
                 # assume that the output value will be a 16-bit signed integer
                 n = 2**15
@@ -345,7 +336,7 @@ def pass_compute_thresholds(graph):
         conv_node.add_outputs({'Y': out_ops})
 
         # TODO: temporary (only for drawing better graphs)
-        batch_norm_node.remove_input('X')
+        # batch_norm_node.remove_input('X')
 
 
 def pass_pack_weights(graph):
@@ -401,6 +392,47 @@ def pass_pack_weights(graph):
                         break
 
 
+def pass_quantize_convolutions(graph):
+
+    gm = GraphMatcher(graph)
+
+    matches = list()
+    p = Pattern('Conv')
+    gm.get_op_type_matches(p, matches)
+
+    for m in matches:
+        conv_node = m.node
+
+        # check if this is a quantized convolution
+        if not conv_node.quantizer or not conv_node.a_quantizer:
+            continue
+
+        # Mark as quantized convolution
+        conv_node.is_quantized = True
+
+        # change the output data type of the convolution if thresholds are available
+        if conv_node.has_thresholds:
+            conv_node.dtype = QUANTIZED_NOT_PACKED
+
+        # change the output data type of the quantizers
+        conv_node.quantizer.dtype = Uint32
+        for qtz in conv_node.a_quantizer:
+            qtz.dtype = QUANTIZED_NOT_PACKED
+
+
+def pass_propagate_datatypes(graph):
+
+    gm = GraphMatcher(graph)
+
+    matches = list()
+    p = Pattern('*')
+    gm.get_op_type_matches(p, matches)
+
+    for m in matches:
+        if m.node.op_type != 'Conv' and m.node.preserve_quantization:
+            m.node.dtype = m.node.input_nodes[0].dtype
+
+
 def optimize_graph_step(model: Model, config: Config) -> None:
     """Optimze graph in the model.
 
@@ -431,21 +463,21 @@ def optimize_graph_step(model: Model, config: Config) -> None:
 
     pass_compute_thresholds(graph)
     pass_pack_weights(graph)
+    pass_quantize_convolutions(graph)
+    pass_propagate_datatypes(graph)
 
-    # processed_nodes = []
-    # while pass_precompute(graph, processed_nodes=processed_nodes):
-    #     pass
-    # pass_print(graph, 'After precompute')
+    processed_nodes = []
+    while pass_precompute(graph, processed_nodes=processed_nodes):
+        pass
+    pass_print(graph, 'After precompute')
 
     pass_dot_graph(graph, '/tmp/final.dot')
 
     optim = Optimizer()
     # optim.transpose_NHWC(graph)
-    optim.precompute(graph, config.activate_hard_quantization)
-    if config.threshold_skipping:
-        optim.threshold_skipping(graph)
-
-
+    # optim.precompute(graph, config.activate_hard_quantization)
+    # if config.threshold_skipping:
+    #    optim.threshold_skipping(graph)
 
 
 def generate_code_step(model: Model, config: Config) -> None:
