@@ -280,7 +280,7 @@ def pass_compute_thresholds(graph):
         # assume that the output value will be a 16-bit signed integer
         n = 2 ** 2 - 1
         ch = conv_node.channel
-        max_th_value = 2 ** 15
+        max_th_value = 2 ** 15 - 1
 
         # The threshold_table is ndarray that holds the threshold values for all channels
         threshold_table = np.empty([ch, n + 1], dtype=np.int32)
@@ -306,13 +306,14 @@ def pass_compute_thresholds(graph):
                         if (scaling_factor < 0) ^ (ch_id in trans_th['nega_idx']) \
                         else int(math.ceil(th_per_ch))
 
-                # take care of threshold values that are larger than 16-bit signed integer
-                if abs(threshold_table[ch_id, th_id]) > max_th_value:
-                    raise ValueError(f'the threshold value {th_id} is larger than 16-bit signed integer')
+        # take care of threshold values that are larger than 16-bit signed integer
+        threshold_table[abs(threshold_table) > max_th_value] = max_th_value
 
         for c in range(ch):
             threshold_table[c, -1] = 1 \
                 if np.all(threshold_table[c, 1:-1] > threshold_table[c, :-2], axis=0) else -1
+            if np.all(threshold_table[c, 1:-1] == threshold_table[c, :-2], axis=0):
+                threshold_table[c, -1] = 2
 
         # Put the thresholds into list
         conv_node.thresholds = threshold_table.flatten().tolist()
