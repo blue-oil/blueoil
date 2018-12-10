@@ -89,11 +89,9 @@ class Vgg7Network(Base):
 
         self.flatten = tf.contrib.layers.flatten(self.pool3)
 
-        #self.fc1 = self.fc_layer("fc1", self.flatten, filters=1024, activation=tf.nn.relu)
-        #self.fc1_drop = tf.nn.dropout(self.fc1, keep_prob)
-        self.fc2 = self.fc_layer("fc2", self.flatten, filters=self.num_classes, activation=None)
+        self.fc1 = self.fc_layer("fc1", self.flatten, filters=self.num_classes, activation=None)
 
-        return self.fc2
+        return self.fc1
 
     def conv_layer(
         self,
@@ -116,30 +114,24 @@ class Vgg7Network(Base):
         else:
             data_format = 'channels_first'
 
-        #with tf.variable_scope(name, custom_getter=self.custom_getter):
         conv = tf.layers.conv2d(inputs=inputs,
                                 filters=filters,
                                 kernel_size=kernel_size,
                                 kernel_initializer=kernel_initializer,
-                                #activation=None,
-                                #bias_initializer=biases_initializer,
                                 use_bias=False,
                                 padding=padding,
                                 strides=strides,
                                 data_format=data_format,
-                                kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0001),
         )
 
         batch_normed = tf.contrib.layers.batch_norm(conv,
+                                                    epsilon=0.00001,
                                                     decay=0.999,
                                                     scale=True,
                                                     center=True,
                                                     updates_collections=None,
                                                     is_training=is_training,
                                                     data_format=self.data_format)
-
-        #bias = tf.get_variable('bias', shape=filters, initializer=tf.zeros_initializer)
-        #biased = batch_normed + bias
 
         output = tf.nn.relu(batch_normed)
 
@@ -161,6 +153,7 @@ class Vgg7Network(Base):
             weights_initializer=kernel_initializer,
             biases_initializer=biases_initializer,
             activation_fn=activation,
+            weights_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0001)
         )
 
         return output
@@ -226,9 +219,6 @@ class Vgg7Quantize(Vgg7Network, BaseQuantize):
             weight_quantizer_kwargs,
             quantize_first_convolution,
         )
-#        self.custom_getter = functools.partial(self._quantized_variable_getter,
-#                                               quantize_first_convolution=self.quantize_first_convolution,
-#                                               weight_quantization=self.weight_quantization)
 
     @staticmethod
     def _quantized_variable_getter(getter, name, quantize_first_convolution, weight_quantization=None, *args, **kwargs):
