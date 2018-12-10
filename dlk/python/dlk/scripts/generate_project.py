@@ -32,7 +32,7 @@ from core.optimizer import Optimizer
 from code_generater import CodeGenerater
 from frontend import TensorFlowIO
 from core.graph_pattern_matching import GraphMatcher, Pattern, match_to_execution_list
-from core.operators import Constant
+from core.operators import Constant, Operator
 from modules.packer import Packer
 from core.data_types import Uint32, QUANTIZED_NOT_PACKED
 from typing import cast
@@ -265,10 +265,28 @@ def pass_compute_thresholds(graph):
 
     for m in matches:
 
+        # TODO: Neil-san, please use this to apply your threshold. 'p' is the path from qtz to conv (both included)
+        # TODO: Neil-san, you can access to the quantizers thorugh 'conv.a_quantizer' and 'conv.quantizer'
+        # p = [m.node]
+        # while p[-1].op_type != 'Conv':
+        #     non_variable_input = [inode for inode in p[-1].input_nodes
+        #                           if (not cast(Operator, inode).is_variable and inode.is_monotonic)
+        #                           or inode.op_type == 'Conv']
+        #     if len(non_variable_input) != 1:
+        #         break
+        #     p.append(non_variable_input[-1])
+        #
+        # if p[-1].op_type != 'Conv':
+        #     continue
+        # quantizer_conv_output_node = p[0]
+        # conv_node = p[-1]
+
+        # TODO: Neil-san, you can delete this
         quantizer_conv_output_node = m.node
         batch_norm_node = quantizer_conv_output_node.input_nodes[0]
         conv_node = batch_norm_node.input_nodes[0]
 
+        # TODO: Neil-san, you should keep this
         # check if this is a quantized convolution
         if not conv_node.quantizer or not conv_node.a_quantizer:
             continue
@@ -306,6 +324,7 @@ def pass_compute_thresholds(graph):
 
                 ths[idx].append(low)
 
+        # TODO: Neil-san, you don't probably need this
         # check if increasing, decreasing or constant
         for channel, values in computed_quantized_results.items():
             if len(values) == 1:
@@ -319,12 +338,14 @@ def pass_compute_thresholds(graph):
                 else:
                     ths[channel].append(-1)
 
+        # TODO: Neil-san, you keep the things in a list already
         # put everything into a list to be compatible with the rest of the code
         ths_list = []
         for channel in sorted(ths.keys()):
             ths_list += ths[channel]
         conv_node.thresholds = ths_list
 
+        # TODO: Neil-san, you should keep this
         # Disconnect batchnorm and the quantizer
         out_ops = quantizer_conv_output_node.output_ops['output']
         for output_node in out_ops:
