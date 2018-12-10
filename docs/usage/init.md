@@ -22,8 +22,9 @@ This is an example of configuration.
   image size (integer x integer):  32x32
   how many epochs do you run training (integer):  100
   select optimizer: MomentumOptimizer
+  initial learning rate: 0.001
+  message': 'choose learning rate setting(tune1 / tune2 / tune3 / fixed): tune1 -> "2 times decay"
   apply quantization at the first layer: yes
-```
 
 #### how can I change small setting? Or I need to re-run `blueoil init` again?
 
