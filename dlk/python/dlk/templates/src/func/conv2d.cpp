@@ -45,6 +45,9 @@ void conv3x3_kn2row(T input[],
   assert(kh == 3 && kw == 3);
   assert(MAX_SIZE_KN2ROW_BUFFER_PER_LAYER >= oc * kh * kw * ih * iw);
 
+  // need to initialize output
+  std::memset(output, 0, oc * ih * iw * sizeof(U));
+
   Measurement::Start("kn2row");
   Measurement::Start("kn2row-buf");
 
