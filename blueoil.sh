@@ -92,6 +92,7 @@ SHARED_DOCKER_OPTIONS="--rm -t -u ${USER_ID}:${GROUP_ID} ${PYHONPATHS}"
 # Mount source code directories if they are exist on host.
 # Docker's -v option overwrite container's directory with mounted host directory.
 if [ -e lmnet ] && [ -e dlk ]  &&  [ -e blueoil ] ; then
+	touch lmnet/lmnet/__init__.py
 	SHARED_DOCKER_OPTIONS=${SHARED_DOCKER_OPTIONS}" \
 		-v ${ABS_BASE_DIR}/lmnet:${GUEST_HOME_DIR}/lmnet \
 		-v ${ABS_BASE_DIR}/dlk:${GUEST_HOME_DIR}/dlk \
