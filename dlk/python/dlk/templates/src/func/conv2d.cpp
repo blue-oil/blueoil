@@ -99,7 +99,7 @@ void conv1x1_kn2row(T input[],
 
    assert(p.input_height > 0);
    assert(p.input_width > 0);
-  
+
    auto kernels_ = dlk::MatrixView<T, dlk::MatrixOrder::RowMajor>(kernels, oc * kh * kw, ic);
    auto input_ = dlk::MatrixView<T, dlk::MatrixOrder::ColMajor>(input, ic, p.input_height * p.input_width);
    auto output_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(output, oc, p.input_height * p.input_width);
@@ -131,22 +131,22 @@ void conv_general(
       for(T_UINT ki = 0; ki < p.kernel_height; ki++)
       {
         T_INT row = (wi * p.stride_along_height) - p.padding + ki;
-	if (row < 0 || row >= p.input_height) { current_kernel_index += p.kernel_width * p.kernel_depth; continue; }
-				   
+        if (row < 0 || row >= p.input_height) { current_kernel_index += p.kernel_width * p.kernel_depth; continue; }
+
         for(T_UINT kj = 0; kj < p.kernel_width; kj++)
         {
           T_INT col = (wj * p.stride_along_width)  - p.padding + kj;
-	  if (col < 0 || col >= p.input_width) { current_kernel_index += p.kernel_depth; continue; }
+          if (col < 0 || col >= p.input_width) { current_kernel_index += p.kernel_depth; continue; }
 
           for(T_UINT kz = 0; kz < p.kernel_depth; kz++)
           {
-	    unsigned in_idx = row * (p.input_width * p.kernel_depth) + col * (p.kernel_depth) + kz;
-	    unsigned k_idx = current_kernel_index + kernel_offset;	    
+            unsigned in_idx = row * (p.input_width * p.kernel_depth) + col * (p.kernel_depth) + kz;
+            unsigned k_idx = current_kernel_index + kernel_offset;
 
-	    T in_data = input[in_idx];
-	    T k_data = kernels[k_idx];
-	    
-	    out += in_data * k_data;
+            T in_data = input[in_idx];
+            T k_data = kernels[k_idx];
+
+            out += in_data * k_data;
             current_kernel_index++;
           }
         }
@@ -173,7 +173,7 @@ void convolution(
     int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
     T* kernels_hwoi = new T[kernels_size];
     ohwi_to_hwoi(kernels, kernels_hwoi, p);
-    conv3x3_kn2row(input, kernels_hwoi, output, p);      
+    conv3x3_kn2row(input, kernels_hwoi, output, p);
     delete[] kernels_hwoi;
     return;
   }
