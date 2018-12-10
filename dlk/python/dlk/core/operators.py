@@ -1377,6 +1377,17 @@ class BatchNormalization(Operator):
         kwargs['data'] = scale * x_norm + beta
         return kwargs
 
+    def de_run(self, **kwargs) -> Dict:
+        scale = np.float64(self._input_ops['scale'].data)
+        beta = np.float64(self._input_ops['B'].data)
+        mean = np.float64(self._input_ops['mean'].data)
+        var = np.float64(self._input_ops['var'].data)
+
+        kwargs['nega_idx'] = [v for v in range(len(scale)) if scale[v] < 0]
+
+        kwargs['data'] = (((kwargs['data'] - beta) / scale) * np.sqrt(var + self.epsilon)) + mean
+        return kwargs
+
     def run_forward(self) -> np.ndarray:
         kwdata = {'data': self.input_ops['X'].data}
         data_dict = self.run(**kwdata)
@@ -1443,6 +1454,15 @@ class QTZ_linear_mid_tread_half(Quantizer):
         n = 2 ** bit - 1
         np.clip(in_data, 0, max_value, out=in_data)
         kwargs['data'] = np.round(in_data * n / max_value).astype(np.int32)
+        return kwargs
+
+    def de_run(self, **kwargs) -> Dict:
+        bit = self._input_ops['Y'].data
+        max_value = np.float64(self._input_ops['Z'].data)
+        in_data = np.float64(kwargs['data'])
+
+        n = 2 ** bit - 1
+        kwargs['data'] = (in_data * np.float64(max_value)) / np.float64(n)
         return kwargs
 
     def run_forward(self) -> np.ndarray:

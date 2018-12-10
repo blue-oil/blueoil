@@ -22,6 +22,7 @@ Script that automatically runs all of the folllowing steps.
 import click
 from os import path
 import shutil
+import math
 import numpy as np
 
 from core.config import Config
@@ -243,23 +244,8 @@ def pass_compute_thresholds(graph):
 
     gm = GraphMatcher(graph)
 
-    quantization_types_pattern = \
-        'QTZ_linear_mid_tread_half'
-
     matches = list()
-    p = Pattern(quantization_types_pattern,
-                [
-                    Pattern('BatchNormalization',
-                            [
-                                Pattern('Conv'),
-                                Pattern('*'),
-                                Pattern('*'),
-                                Pattern('*'),
-                                Pattern('*')
-                            ]),
-                    Pattern('*'),
-                    Pattern('*'),
-                ])
+    p = Pattern('QTZ_linear_mid_tread_half')
 
     gm.get_op_type_matches(p, matches)
 
@@ -267,24 +253,19 @@ def pass_compute_thresholds(graph):
 
         # TODO: Neil-san, please use this to apply your threshold. 'p' is the path from qtz to conv (both included)
         # TODO: Neil-san, you can access to the quantizers thorugh 'conv.a_quantizer' and 'conv.quantizer'
-        # p = [m.node]
-        # while p[-1].op_type != 'Conv':
-        #     non_variable_input = [inode for inode in p[-1].input_nodes
-        #                           if (not cast(Operator, inode).is_variable and inode.is_monotonic)
-        #                           or inode.op_type == 'Conv']
-        #     if len(non_variable_input) != 1:
-        #         break
-        #     p.append(non_variable_input[-1])
-        #
-        # if p[-1].op_type != 'Conv':
-        #     continue
-        # quantizer_conv_output_node = p[0]
-        # conv_node = p[-1]
+        p = [m.node]
+        while p[-1].op_type != 'Conv':
+            non_variable_input = [inode for inode in p[-1].input_nodes
+                                  if (not cast(Operator, inode).is_variable and inode.is_monotonic)
+                                  or inode.op_type == 'Conv']
+            if len(non_variable_input) != 1:
+                break
+            p.append(non_variable_input[-1])
 
-        # TODO: Neil-san, you can delete this
-        quantizer_conv_output_node = m.node
-        batch_norm_node = quantizer_conv_output_node.input_nodes[0]
-        conv_node = batch_norm_node.input_nodes[0]
+        if p[-1].op_type != 'Conv':
+            continue
+        quantizer_conv_output_node = p[0]
+        conv_node = p[-1]
 
         # TODO: Neil-san, you should keep this
         # check if this is a quantized convolution
@@ -295,55 +276,46 @@ def pass_compute_thresholds(graph):
         quantizer_conv_weights.run_forward_no_scaling_factor()
         scaling_factor = quantizer_conv_weights.scaling_factor
 
-        ths = defaultdict(list)
-        computed_quantized_results = defaultdict(set)
-        magic_number = 2
-
         # TODO: make '3' function on the number of bits of the number of bits
-        for value in range(0, 3):
-            for idx in range(conv_node.channel):
+        # assume that the output value will be a 16-bit signed integer
+        n = 2 ** 2 - 1
+        ch = conv_node.channel
+        max_th_value = 2 ** 15
 
-                # assume that the output value will be a 16-bit signed integer
-                n = 2**15
-                low = -n + 1
-                high = n - 2
+        # The threshold_table is ndarray that holds the threshold values for all channels
+        threshold_table = np.empty([ch, n + 1], dtype=np.int32)
 
-                # binary search
-                while low <= high:
-                    mid = low + (high - low) // 2
-                    input_data = (scaling_factor * mid) * 2.0 / 3.0 # TODO: get from quantizers (n_bits, max_value)
-                    data_dict = batch_norm_node.run(data=input_data)
-                    data_dict = quantizer_conv_output_node.run(data=data_dict['data'])
-                    result = data_dict['data'][idx]
-                    computed_quantized_results[idx].add(result)
+        # Compute threshold (t0, t1, t2)
+        for th_id, th_v in enumerate([0.5, 1.5, 2.5]):
+            init_threshold = np.full(ch, th_v, dtype=np.float64)
 
-                    if result > value:
-                        high = mid - 1
-                    else:
-                        low = mid + 1
+            # run calculation in reverse order: q -> bn -> scaling
+            # TODO: make sure the order of pattern is always valid
+            trans_th = {'data': init_threshold}
+            for op in p[:-1]:
+                trans_th = op.de_run(**trans_th)
+            threshold = (trans_th['data'] * np.float64(n)) / (np.float64(2.0) * scaling_factor)
 
-                ths[idx].append(low)
-
-        # TODO: Neil-san, you don't probably need this
-        # check if increasing, decreasing or constant
-        for channel, values in computed_quantized_results.items():
-            if len(values) == 1:
-                ths[channel].append(values.pop() + magic_number)
-            else:
-                first_threshold_result = values.pop()
-                second_threshold_result = values.pop()
-
-                if first_threshold_result < second_threshold_result:
-                    ths[channel].append(1)
+            for ch_id, th_per_ch in enumerate(threshold):
+                if quantizer_conv_weights.op_type == 'QTZ_binary_channel_wise_mean_scaling':
+                    threshold_table[ch_id, th_id] = int(math.floor(th_per_ch)) \
+                        if (scaling_factor[ch_id] < 0) ^ (ch_id in trans_th['nega_idx']) \
+                        else int(math.ceil(th_per_ch))
                 else:
-                    ths[channel].append(-1)
+                    threshold_table[ch_id, th_id] = int(math.floor(th_per_ch)) \
+                        if (scaling_factor < 0) ^ (ch_id in trans_th['nega_idx']) \
+                        else int(math.ceil(th_per_ch))
 
-        # TODO: Neil-san, you keep the things in a list already
-        # put everything into a list to be compatible with the rest of the code
-        ths_list = []
-        for channel in sorted(ths.keys()):
-            ths_list += ths[channel]
-        conv_node.thresholds = ths_list
+                # take care of threshold values that are larger than 16-bit signed integer
+                if abs(threshold_table[ch_id, th_id]) > max_th_value:
+                    raise ValueError(f'the threshold value {th_id} is larger than 16-bit signed integer')
+
+        for c in range(ch):
+            threshold_table[c, -1] = 1 \
+                if np.all(threshold_table[c, 1:-1] > threshold_table[c, :-2], axis=0) else -1
+
+        # Put the thresholds into list
+        conv_node.thresholds = threshold_table.flatten().tolist()
 
         # TODO: Neil-san, you should keep this
         # Disconnect batchnorm and the quantizer
