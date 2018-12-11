@@ -93,10 +93,6 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
   if (out_c_less_than_num_pe) {
 
     const T_UINT out_c_aligend_with_num_pe = ((k_n + (NUM_PE - 1)) / NUM_PE) * NUM_PE;
-
-    Measurement::Start("Kernel transpose NHWC to HWNoCNi");
-    Measurement::Stop();
-
     T_UINT input_byte_size =
         (cp.input_height * cp.input_width * cp.kernel_depth * in_nbits) /
         byte_nbits;
@@ -137,9 +133,6 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
         }
 
   } else {
-    Measurement::Start("Kernel transpose NHWC to HWNoCNi");
-    Measurement::Stop();
-
     T_UINT input_byte_size =
         (cp.input_height * cp.input_width * cp.kernel_depth * in_nbits) /
         byte_nbits;
