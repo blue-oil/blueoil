@@ -277,10 +277,10 @@ def pass_compute_thresholds(graph):
         scaling_factor = quantizer_conv_weights.scaling_factor
 
         # TODO: make '3' function on the number of bits of the number of bits
-        # assume that the output value will be a 16-bit signed integer
         n = 2 ** 2 - 1
         ch = conv_node.channel
-        max_th_value = 2 ** 15 - 1
+        # assume that the threshold values will be a 13-bit signed integer
+        max_th_value = 2 ** 12 - 1
 
         # The threshold_table is ndarray that holds the threshold values for all channels
         threshold_table = np.empty([ch, n + 1], dtype=np.int32)
@@ -290,7 +290,6 @@ def pass_compute_thresholds(graph):
             init_threshold = np.full(ch, th_v, dtype=np.float64)
 
             # run calculation in reverse order: q -> bn -> scaling
-            # TODO: make sure the order of pattern is always valid
             trans_th = {'data': init_threshold}
             for op in p[:-1]:
                 trans_th = op.de_run(**trans_th)
@@ -461,7 +460,7 @@ def optimize_graph_step(model: Model, config: Config) -> None:
             pass_compute_thresholds(graph)
         pass_pack_weights(graph)
         pass_quantize_convolutions(graph)
-        
+
     pass_propagate_datatypes(graph)
 
     processed_nodes = []
