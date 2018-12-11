@@ -312,6 +312,7 @@ def pass_compute_thresholds(graph):
         for c in range(ch):
             threshold_table[c, -1] = 1 \
                 if np.all(threshold_table[c, 1:-1] > threshold_table[c, :-2], axis=0) else -1
+            # Applying the magic number
             if np.all(threshold_table[c, 1:-1] == threshold_table[c, :-2], axis=0):
                 threshold_table[c, -1] = 2
 
@@ -452,12 +453,15 @@ def optimize_graph_step(model: Model, config: Config) -> None:
     pass_print(graph, 'After transpose')
     pass_dot_graph(graph, '/tmp/transposed.dot')
 
-    pass_propagate_quantization_details_into_conv(graph)
-    pass_print(graph, 'After propagate')
+    if config.activate_hard_quantization:
+        pass_propagate_quantization_details_into_conv(graph)
+        pass_print(graph, 'After propagate')
 
-    pass_compute_thresholds(graph)
-    pass_pack_weights(graph)
-    pass_quantize_convolutions(graph)
+        if config.threshold_skipping:
+            pass_compute_thresholds(graph)
+        pass_pack_weights(graph)
+        pass_quantize_convolutions(graph)
+        
     pass_propagate_datatypes(graph)
 
     processed_nodes = []
