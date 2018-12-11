@@ -17,7 +17,7 @@ import copy
 from core.data_types import *
 from textwrap import dedent
 
-
+qconv_idx = 0
 class View(object):
     def __init__(self, op):
         self.op = op
@@ -36,6 +36,7 @@ class View(object):
         return ','.join(map(lambda x: str(x), self.op.shape))
 
     def run(self):
+        global qconv_idx;
         op = self.op
         input_ops = op.input_ops
         output_ops = op.output_ops
@@ -108,7 +109,6 @@ class View(object):
             nbit_qinput = 8 if x_op.op_type == 'Input' else 2
 
             if op.is_quantized and nbit_qinput == 2:
-                qconv_idx = 0  # temporary
                 qk_elems = w_op.data.shape[1]
 
                 kh = self.op.kernel_height
@@ -134,6 +134,46 @@ class View(object):
                     conv_func = 'func_QuantizedConv2D'
                     nbit_aqtz = 2
                     max_value = 2.0
+
+                NUM_PE          = 16
+                NBIT_QDYPE      = 32
+                MAX_NBIT_QINPUT = 2
+                MAX_NBIT_KERNEL = 1
+                num_qinput_per_qword    = int(NBIT_QDYPE / MAX_NBIT_QINPUT)
+                num_qkernel_per_qword   = int(NBIT_QDYPE / MAX_NBIT_KERNEL)
+                k_c_by_word             = int((kd + (num_qkernel_per_qword - 1)) / num_qkernel_per_qword);
+                k_n_aligned_with_num_pe = int(((od + (NUM_PE - 1)) / NUM_PE) * NUM_PE);
+                if od < NUM_PE:
+                    k_size = k_n_aligned_with_num_pe * kh * kw * k_c_by_word;
+                else:
+                    k_size = od * kh * kw * k_c_by_word;
+
+                flatten_value = []
+                for elem in input_ops['W'].data:
+                    flatten_value.extend(elem)
+                copy_value = [0] * k_size
+                for i in range(od * kh * kw * k_c_by_word):
+                    copy_value[i] = flatten_value[i]
+
+                transpose_values = [0] * k_size
+                if (od < NUM_PE):
+                    kn_out = int(k_n_aligned_with_num_pe / NUM_PE)
+                else:
+                    kn_out = int(od / NUM_PE)
+                idx_src = 0
+                for no in range(kn_out):
+                    for ni in range(NUM_PE):
+                        for h in range(kh):
+                            for w in range(kw):
+                                for c in range(k_c_by_word):
+                                    idx_dst = h * (kw * kn_out * k_c_by_word * NUM_PE)
+                                    idx_dst += w * (kn_out * k_c_by_word * NUM_PE)
+                                    idx_dst += no * (k_c_by_word * NUM_PE)
+                                    idx_dst += c * (NUM_PE)
+                                    idx_dst += ni
+                                    transpose_values[idx_dst] = copy_value[idx_src]
+                                    idx_src += 1
+                transpose_string = "{" + ",".join([str(temp) for temp in transpose_values]) + "}"
 
                 # temporary: formula which derive number of qinput is not complete
                 render_string = self.format_string(
@@ -164,9 +204,12 @@ class View(object):
                     binConv2D_struct.n_bit = {nbit_aqtz};
                     binConv2D_struct.max_value = {max_value};
 
+                    static T_UINT kernel_hwnocni{qconv_idx}[{k_size}] = {transpose_string};
+                    vecCoefficient.emplace_back(kernel_hwnocni{qconv_idx});
                     {conv_func}({inputs_string}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
                     """
                 )
+                qconv_idx += 1
 
             else:
                 # temporary
