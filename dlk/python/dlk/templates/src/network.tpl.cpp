@@ -136,6 +136,8 @@ void save_uint32_data(const std::string &name, uint32_t size, uint32_t *data, fl
 {{ '\n' -}}
 /////////////////////////////////////////
 
+std::vector<T_UINT*> vecCoefficient;
+
 Network::Network()
 {}
 
