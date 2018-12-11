@@ -706,7 +706,7 @@ class View(object):
                 """
             )
         elif self.op.op_type == 'Split':
-            if len(input_ops) != 2:
+            if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(input_ops)
