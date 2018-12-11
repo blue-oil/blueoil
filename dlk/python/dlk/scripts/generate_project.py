@@ -45,23 +45,6 @@ DLK_ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '..'))
 ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '../../..'))
 
 
-def pass_print(graph: Graph, name=str()):
-
-    gm = GraphMatcher(graph)
-
-    print('--- ', name, '---')
-    matches = list()
-    p = Pattern("*")
-    gm.get_op_type_matches(p, matches)
-
-    for m in matches:
-        print('Match: ', m.node.name, m.node.op_type, m.node.dimension)
-        for input_node in m.node.input_nodes:
-            print('   -> ', input_node.name, input_node.op_type)
-
-    print('---')
-
-
 def pass_dot_graph(graph: Graph, filename):
 
     dot_script = 'digraph {'
@@ -427,6 +410,28 @@ def pass_propagate_datatypes(graph):
             m.node.dtype = m.node.input_nodes[0].dtype
 
 
+def pass_propagate_output_type_backward(graph):
+
+    gm = GraphMatcher(graph)
+
+    matches = list()
+    p = Pattern('*')
+
+    gm.get_op_type_matches(p, matches)
+
+    def find_input(node, otype):
+        for n in node.input_nodes:
+            if n.op_type == 'Conv' and n.is_quantized:
+                n.dtype = otype
+                return
+            find_input(n, otype)
+
+    output_node = matches[-1].node
+
+    output_type = output_node.dtype
+    find_input(output_node, output_type)
+
+
 def optimize_graph_step(model: Model, config: Config) -> None:
     """Optimze graph in the model.
 
@@ -441,23 +446,19 @@ def optimize_graph_step(model: Model, config: Config) -> None:
     """
     graph: Graph = model.graph
 
-    pass_print(graph, 'Before')
     pass_dot_graph(graph, '/tmp/original.dot')
 
     pass_remove_identities(graph)
-    pass_print(graph, 'After identity')
     pass_dot_graph(graph, '/tmp/prune_identities.dot')
 
     pass_transpose(graph)
-    pass_print(graph, 'After transpose')
     pass_dot_graph(graph, '/tmp/transposed.dot')
 
     if config.activate_hard_quantization:
         pass_propagate_quantization_details_into_conv(graph)
-        pass_print(graph, 'After propagate')
-
         if config.threshold_skipping:
             pass_compute_thresholds(graph)
+            pass_propagate_output_type_backward(graph)
         pass_pack_weights(graph)
         pass_quantize_convolutions(graph)
 
@@ -466,8 +467,6 @@ def optimize_graph_step(model: Model, config: Config) -> None:
     processed_nodes = []
     while pass_precompute(graph, processed_nodes=processed_nodes):
         pass
-    pass_print(graph, 'After precompute')
-
     pass_dot_graph(graph, '/tmp/final.dot')
 
     optim = Optimizer()
