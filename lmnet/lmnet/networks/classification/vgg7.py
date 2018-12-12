@@ -90,8 +90,17 @@ class Vgg7Network(Base):
         self.flatten = tf.contrib.layers.flatten(self.pool3)
 
         self.fc1 = self.fc_layer("fc1", self.flatten, filters=1024, activation=None)
-        self.fc1_drop = tf.layers.dropout(self.fc1, rate=keep_prob, name="dropout_fc1")
-        self.fc2 = self.fc_layer("fc2", self.fc1_drop, filters=self.num_classes, activation=None)
+        self.batch_normed1 = tf.contrib.layers.batch_norm(self.fc1,
+                                                          epsilon=0.00001,
+                                                          #decay=0.999,
+                                                          scale=True,
+                                                          center=True,
+                                                          updates_collections=None,
+                                                          is_training=is_training,
+                                                          data_format=self.data_format)
+        
+        self.activated1 = tf.nn.relu(self.batch_normed1)
+        self.fc2 = self.fc_layer("fc2", self.activated1, filters=self.num_classes, activation=None)
 
         return self.fc2
 
@@ -128,8 +137,8 @@ class Vgg7Network(Base):
             )
             
         batch_normed = tf.contrib.layers.batch_norm(conv,
-                                                    #epsilon=0.00001,
-                                                    decay=0.999,
+                                                    epsilon=0.00001,
+                                                    #decay=0.999,
                                                     scale=True,
                                                     center=True,
                                                     updates_collections=None,
@@ -157,7 +166,7 @@ class Vgg7Network(Base):
                 weights_initializer=kernel_initializer,
                 biases_initializer=biases_initializer,
                 activation_fn=activation,
-                #weights_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0001)
+                weights_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0001)
             )
 
         return output
