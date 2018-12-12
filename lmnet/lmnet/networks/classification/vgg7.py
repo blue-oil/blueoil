@@ -89,9 +89,11 @@ class Vgg7Network(Base):
 
         self.flatten = tf.contrib.layers.flatten(self.pool3)
 
-        self.fc1 = self.fc_layer("fc1", self.flatten, filters=self.num_classes, activation=None)
+        self.fc1 = self.fc_layer("fc1", self.flatten, filters=1024, activation=None)
+        self.fc1_drop = tf.layers.dropout(self.fc1, rate=keep_prob, name="dropout_fc1")
+        self.fc2 = self.fc_layer("fc2", self.fc1_drop, filters=self.num_classes, activation=None)
 
-        return self.fc1
+        return self.fc2
 
     def conv_layer(
         self,
@@ -114,18 +116,19 @@ class Vgg7Network(Base):
         else:
             data_format = 'channels_first'
 
-        conv = tf.layers.conv2d(inputs=inputs,
-                                filters=filters,
-                                kernel_size=kernel_size,
-                                kernel_initializer=kernel_initializer,
-                                use_bias=False,
-                                padding=padding,
-                                strides=strides,
-                                data_format=data_format,
-        )
-
+        with tf.variable_scope(name):
+            conv = tf.layers.conv2d(inputs=inputs,
+                                    filters=filters,
+                                    kernel_size=kernel_size,
+                                    kernel_initializer=kernel_initializer,
+                                    use_bias=False,
+                                    padding=padding,
+                                    strides=strides,
+                                    data_format=data_format,
+            )
+            
         batch_normed = tf.contrib.layers.batch_norm(conv,
-                                                    epsilon=0.00001,
+                                                    #epsilon=0.00001,
                                                     decay=0.999,
                                                     scale=True,
                                                     center=True,
@@ -147,14 +150,15 @@ class Vgg7Network(Base):
         kernel_initializer = tf.contrib.layers.xavier_initializer()
         biases_initializer = tf.zeros_initializer()
 
-        output = tf.contrib.layers.fully_connected(
-            inputs=inputs,
-            num_outputs=filters,
-            weights_initializer=kernel_initializer,
-            biases_initializer=biases_initializer,
-            activation_fn=activation,
-            weights_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0001)
-        )
+        with tf.variable_scope(name):
+            output = tf.contrib.layers.fully_connected(
+                inputs=inputs,
+                num_outputs=filters,
+                weights_initializer=kernel_initializer,
+                biases_initializer=biases_initializer,
+                activation_fn=activation,
+                #weights_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0001)
+            )
 
         return output
 
@@ -244,6 +248,10 @@ class Vgg7Quantize(Vgg7Network, BaseQuantize):
 
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)
+
+            if var.op.name.startswith("fc1/") or var.op.name.startswith("fc2/"):
+                if "weights" == var.op.name.split("/")[-1]:
+                    return weight_quantization(var)
         return var
 
     def base(self, images, is_training):
