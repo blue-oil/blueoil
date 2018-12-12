@@ -271,23 +271,6 @@ def ask_questions():
         'default': '100'
     }
     training_epochs = prompt(training_epochs_question)
-
-    training_optimizer_question = {
-        'type': 'rawlist',
-        'name': 'value',
-        'message': 'select optimizer:',
-        'choices': ['MomentumOptimizer',
-                    'GradientDescentOptimizer',
-                    'AdamOptimizer',
-                    'AdadeltaOptimizer',
-                    'AdagradOptimizer',
-                    'ProximalAdagradOptimizer',
-                    'ProximalGradientDescentOptimizer',
-                    'RMSPropOptimizer',
-                    'FtrlOptimizer'],
-        'default': 'MomentumOptimizer'
-    }
-    training_optimizer = prompt(training_optimizer_question)
     
     initial_learning_rate_value_question = {
         'type': 'input',
@@ -301,10 +284,7 @@ def ask_questions():
         'type': 'rawlist',
         'name': 'value',
         'message': 'choose learning rate setting(tune1 / tune2 / tune3 / fixed):',
-        'choices': ['tune1 -> "2 times decay"',
-                    'tune2 -> "3 times decay"',
-                    'tune3 -> "warm-up and 3 times decay"',
-                    'fixed'],
+        'choices': ['tune1 -> "2 times decay"', 'tune2 -> "3 times decay"', 'tune3 -> "warm-up and 3 times decay"', 'fixed'],
         'default': 'tune1 -> "2 times decay"',
     }
     choices_key_map = {
@@ -313,9 +293,15 @@ def ask_questions():
         'tune3 -> "warm-up and 3 times decay"': 'tune3',
         'fixed': 'fixed',
     }
-    tmp_learning_rate_setting = prompt(training_learning_rate_question)
-    training_learning_rate_setting = choices_key_map[tmp_learning_rate_setting]
-
+    while True:
+        tmp_learning_rate_setting = prompt(training_learning_rate_question)
+        training_learning_rate_setting = choices_key_map[tmp_learning_rate_setting]
+        if int(training_epochs) < 4 and training_learning_rate_setting == 'tune3':
+            print ("when epochs < 4, choose not 'tune3'")
+            continue
+        else:
+            break
+        
     quantize_first_convolution_question = {
         'type': 'rawlist',
         'name': 'value',
