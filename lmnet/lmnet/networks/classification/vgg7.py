@@ -258,7 +258,7 @@ class Vgg7Quantize(Vgg7Network, BaseQuantize):
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)
 
-            if var.op.name.startswith("fc1/"):
+            if var.op.name.startswith("fc1/"):# or var.op.name.startswith("fc2/"):
                 if "weights" == var.op.name.split("/")[-1]:
                     return weight_quantization(var)
         return var
