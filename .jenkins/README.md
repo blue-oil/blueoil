@@ -1,6 +1,7 @@
 ## Jenkins Server
-Here is Jenkins server for CI with GPU: https://jenkins.blue-oil.org
-Here is Jenkins server for CI with FPGA: https://jenkins.leapmind.local:8080 (only for local access)
+Here are Jenkins servers for CI
+* With GPU : https://jenkins.blue-oil.org
+* With FPGA : https://jenkins.leapmind.local:8080 (only for local access)
 
 ## Auto Test with PR
 This test will be run automatically by PR.
@@ -28,4 +29,4 @@ The triggers to run tests are below.
 
 ### [dlk] jenkins test
 * Cofiguration URL : http://jenkins.leapmind.local:8080/job/blueoil_dlk_test/configure
-* Script run by Jenkins: `./.jenkins/test_dlk.sh`
+* Script run by Jenkins : `./.jenkins/test_dlk.sh`
