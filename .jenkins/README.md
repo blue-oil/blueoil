@@ -1,31 +1,31 @@
 ## Jenkins Server
-Here is jenkins server for CI : https://jenkins.leapmind:8443
+Here is Jenkins server for CI with GPU: https://jenkins.blue-oil.org
+Here is Jenkins server for CI with FPGA: https://jenkins.leapmind.local:8080 (only for local access)
 
 ## Auto Test with PR
 This test will be run automatically by PR.
 
-The triggers of running test are below.
+The triggers to run tests are below.
 * Create PR
 * Push commit to branch related PR
-* Comment `run test` in PR
+* Comment in PR
+    * Run all tests
+        * Comment `run test`
+    * Run the specified test individually
+        * blueoil test : `run blueoil test`
+        * lmnet test : `run lmnet test`
+        * dlk test : `run dlk test`
 
-### Test scripts
-This test executes `./.jenkins/lmnet.sh`
 
-### Test setting
-The detail of setting : https://jenkins.leapmind:8443/job/lmnet/
+## Test Jobs
+### [blueoil] jenkins test
+* Cofiguration URL : https://jenkins.blue-oil.org/job/blueoil_main/configure
+* Script run by Jenkins : `./.jenkins/test_blueoil.sh`
 
-## Auto Document Builder for master branch
-There is a job of document builder on jenkins.
+### [lmnet] jenkins test
+* Cofiguration URL : https://jenkins.blue-oil.org/job/blueoil_lmnet/configure
+* Script run by Jenkins : `./.jenkins/test_lmnet.sh`
 
-This job is triggered by pushing to master branch (poling each 2 minutes).
-
-Current master branch is protected, so this job will be kicked only by merging PR.
-
-This job update documents and restart document server, so we can always access latest document in https://lmnet.docs.leapmind:8000/
-
-### Job scripts
-This job executes `./.jenkins/lmnet_doc_builder.sh`
-
-### Job setting
-The detail of setting : https://jenkins.leapmind:8443/job/lmnet_doc_builder/
+### [dlk] jenkins test
+* Cofiguration URL : http://jenkins.leapmind.local:8080/job/blueoil_dlk_test/configure
+* Script run by Jenkins: `./.jenkins/test_dlk.sh`
