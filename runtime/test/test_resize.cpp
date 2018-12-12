@@ -58,7 +58,7 @@ float test_expect[3][4][4] =
       } };
 
 int test_resize() {
-    // CWH (3-channel, height, width)
+    // CHW (3-channel, height, width)
     int width = 4, height = 4;
     blueoil::Tensor input({3, 8, 8}, (float *)test_input);
     blueoil::Tensor expect({3, 4, 4}, (float *)test_expect);
