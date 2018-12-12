@@ -63,7 +63,7 @@ def pass_dot_graph(graph: Graph, filename):
         shape += '(' + node.dimension + ')'
 
         dot_script += node.name + '[label="<f0> ' + format(code[node.name], '04X') + '| <f1> ' + \
-                      node.op_type + '| <f2> ' + shape + '| <f3> ' + node.dtype.cpptype() + '" shape = "record"];'
+            node.op_type + '| <f2> ' + shape + '| <f3> ' + node.dtype.cpptype() + '" shape = "record"];'
         for i in node.input_nodes:
             dot_script += i.name + ' -> ' + node.name + ';'
 
@@ -229,8 +229,6 @@ def pass_compute_thresholds(graph):
 
     for m in matches:
 
-        # TODO: Neil-san, please use this to apply your threshold. 'p' is the path from qtz to conv (both included)
-        # TODO: Neil-san, you can access to the quantizers thorugh 'conv.a_quantizer' and 'conv.quantizer'
         p = [m.node]
         while p[-1].op_type != 'Conv':
             non_variable_input = [inode for inode in p[-1].input_nodes
@@ -245,7 +243,6 @@ def pass_compute_thresholds(graph):
         quantizer_conv_output_node = p[0]
         conv_node = p[-1]
 
-        # TODO: Neil-san, you should keep this
         # check if this is a quantized convolution
         if not conv_node.quantizer or not conv_node.a_quantizer:
             continue
