@@ -55,12 +55,6 @@ def pass_dot_graph(graph: Graph, filename):
         code[node.name] = counter
         counter += 1
 
-    # for node in graph.operators:
-    #     for input_node in node.input_nodes:
-    #
-    #         dot_script += '"' + format(code[input_node.name], '04X') + '-' + input_node.op_type + '"' + ' -> ' \
-    #                     + '"' + format(code[node.name], '04X') + '-' + node.op_type + '"' + ';'
-
     for node in graph.operators:
 
         shape = '-'
@@ -68,7 +62,8 @@ def pass_dot_graph(graph: Graph, filename):
             shape = 'x'.join(str(x) for x in node.shape)
         shape += '(' + node.dimension + ')'
 
-        dot_script += node.name + '[label="<f0> ' + format(code[node.name], '04X') + '| <f1> ' + node.op_type + '| <f2> ' + shape + '| <f3> ' + node.dtype.cpptype() + '" shape = "record"];'
+        dot_script += node.name + '[label="<f0> ' + format(code[node.name], '04X') + '| <f1> ' + \
+                      node.op_type + '| <f2> ' + shape + '| <f3> ' + node.dtype.cpptype() + '" shape = "record"];'
         for i in node.input_nodes:
             dot_script += i.name + ' -> ' + node.name + ';'
 
