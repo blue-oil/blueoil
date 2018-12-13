@@ -118,8 +118,10 @@ elif '{{optimizer}}' == 'ProximalAdagradOptimizer':
 elif '{{optimizer}}' == 'ProximalGradientDescentOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.ProximalGradientDescentOptimizer
 elif '{{optimizer}}' == 'RMSPropOptimizer':
-    NETWORK.OPTIMIZER_CLASS = tf.train.RMSPropOptimizer    
-    
+    NETWORK.OPTIMIZER_CLASS = tf.train.RMSPropOptimizer
+else:
+    NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+
 if '{{learning_rate_setting}}' != 'fixed':
     NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 
