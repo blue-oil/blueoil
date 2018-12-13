@@ -23,6 +23,8 @@ from core.operators import Add, AveragePool, BatchNormalization, Constant, Conv,
     Relu, Flatten, Dropout, Gemm, SpaceToDepth, Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, \
     DepthToSpace, Split
 
+from core.graph_pattern_matching import sort_graph, find_pattern, Pattern
+
 
 class Graph(object):
     """Graph class. This class was formerly named as 'Nodes'."""
@@ -109,10 +111,9 @@ class Graph(object):
 
     @property
     def non_variables(self) -> List[Operator]:
-        kwargs: Dict[str, List[Operator]] = {'node_list': []}
-        sorter = NodesSorter(self)
-        sorter.run(**kwargs)
-        return [node for node in kwargs['node_list'] if not cast(Operator, node).is_variable]
+        node_list = sort_graph(self)
+        node_list = [node for node in node_list if not cast(Operator, node).is_variable]
+        return node_list
 
     def find_node_by_op_type(self, op_type: str) -> List[Operator]:
         """Find nodes which op_type is specified by the argument.
