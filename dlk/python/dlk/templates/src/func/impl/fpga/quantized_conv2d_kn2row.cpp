@@ -66,8 +66,6 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
   using namespace dlk;
 
   convolution_parameters cp = p.normal_conv_params;
-  static QUANTIZED_NOT_PACKED
-      im2col_input_buf[MAX_SIZE_IM2COL_INPUTS_PER_LAYER] = {};
   const T_UINT out_c = cp.output_channels;
 
 
