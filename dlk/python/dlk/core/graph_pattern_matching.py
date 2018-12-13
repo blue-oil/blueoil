@@ -15,9 +15,6 @@
 # =============================================================================
 """Graph pattern matching module."""
 
-from core.operators import Operator
-from core.graph import Graph
-
 
 class Pattern:
     def __init__(self, op=str(), inputs=list()):
@@ -67,6 +64,15 @@ def top_order(output_node, exec_list, visited):
     visited[output_node.name] = True
 
 
+def get_nodes_in_branch(starting_node, stop_node, node_list):
+    if starting_node == stop_node:
+        return
+    node_list.append(starting_node)
+
+    for node in starting_node.input_nodes:
+        get_nodes_in_branch(node, stop_node, node_list)
+
+
 def match_to_execution_list(match, execution_list):
     for input_node in match.inputs:
         match_to_execution_list(input_node, execution_list)
@@ -74,7 +80,7 @@ def match_to_execution_list(match, execution_list):
 
 
 class GraphMatcher:
-    def __init__(self, input_graph=Graph()):
+    def __init__(self, input_graph):
         self.graph_node_list = list()
         self.graph_node_list = sort_graph(input_graph)
 

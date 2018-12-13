@@ -18,7 +18,7 @@ import math
 import numpy as np
 
 from core.graph import Graph
-from core.graph_pattern_matching import find_pattern, Pattern
+from core.graph_pattern_matching import find_pattern, Pattern, get_nodes_in_branch
 from core.operators import Constant, Operator
 from core.data_types import Uint32, QUANTIZED_NOT_PACKED
 from typing import cast
@@ -103,6 +103,7 @@ def pass_precompute(graph: Graph, processed_nodes) -> bool:
     p = Pattern('*')
     matches = find_pattern(graph, p)
     processed_before_precompute = len(processed_nodes)
+    to_be_removed = []
 
     for m in matches:
         if m.node in processed_nodes:
@@ -131,8 +132,10 @@ def pass_precompute(graph: Graph, processed_nodes) -> bool:
             data,
             dimension_format=m.node.dimension
         )
-
         graph.add_op(new_constant)
+
+        # get nodes to be removed after being disconnected
+        get_nodes_in_branch(m.node, None, to_be_removed)
 
         new_constant.add_outputs(m.node.output_ops)
         for output_name, consumer_list in m.node.output_ops.items():
@@ -141,6 +144,10 @@ def pass_precompute(graph: Graph, processed_nodes) -> bool:
                     if input_node == m.node:
                         consumer_node.add_input(input_name, new_constant)
                         break
+
+    for op in to_be_removed:
+        graph.remove_op(op)
+
     return len(processed_nodes) > processed_before_precompute
 
 
@@ -184,8 +191,8 @@ def pass_compute_thresholds(graph: Graph) -> None:
     p = Pattern('QTZ_linear_mid_tread_half')
     matches = find_pattern(graph, p)
 
+    to_be_removed = []
     for m in matches:
-
         p = [m.node]
         while p[-1].op_type != 'Conv':
             non_variable_input = [inode for inode in p[-1].input_nodes
@@ -262,15 +269,22 @@ def pass_compute_thresholds(graph: Graph) -> None:
         # Put the thresholds into list
         conv_node.thresholds = threshold_table.flatten().tolist()
 
-        # Disconnect batchnorm and the quantizer
+        # get nodes to be removed after being disconnected
+        get_nodes_in_branch(quantizer_conv_output_node, conv_node, to_be_removed)
+
+        # Disconnect the outputs of the quantizer
         out_ops = quantizer_conv_output_node.output_ops['output']
         for output_node in out_ops:
             for input_name, input_node in output_node.input_ops.items():
                 if input_node == quantizer_conv_output_node:
                     output_node.add_input(input_name, conv_node)
 
+        # Disconnect the outputs of the conv
         conv_node.remove_output('Y')
         conv_node.add_outputs({'Y': out_ops})
+
+    for op in to_be_removed:
+        graph.remove_op(op)
 
 
 def pass_pack_weights(graph: Graph) -> None:
@@ -285,6 +299,7 @@ def pass_pack_weights(graph: Graph) -> None:
     word_size = 32
     weight_bitwidth = 1
     packer = Packer(weight_bitwidth, word_size)
+    to_be_removed = []
 
     for m in matches:
         conv_node = m.node
@@ -312,6 +327,9 @@ def pass_pack_weights(graph: Graph) -> None:
             actual_shape=weight_quantizer.shape
         )
 
+        # get nodes to be removed after being disconnected
+        get_nodes_in_branch(weight_quantizer, None, to_be_removed)
+
         # Add the constant to the graph and connect the new constant
         graph.add_op(quantized_constant)
         quantized_constant.add_outputs(weight_quantizer.output_ops)
@@ -322,6 +340,8 @@ def pass_pack_weights(graph: Graph) -> None:
                         consumer_node.add_input(input_name, quantized_constant)
                         break
 
+    for op in to_be_removed:
+        graph.remove_op(op)
 
 def pass_quantize_convolutions(graph: Graph) -> None:
     p = Pattern('Conv')
