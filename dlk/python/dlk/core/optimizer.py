@@ -18,7 +18,7 @@ import math
 import numpy as np
 
 from core.graph import Graph
-from core.graph_pattern_matching import GraphMatcher, Pattern
+from core.graph_pattern_matching import find_pattern, Pattern
 from core.operators import Constant, Operator
 from core.data_types import Uint32, QUANTIZED_NOT_PACKED
 from typing import cast
@@ -55,11 +55,8 @@ def pass_dot_graph(graph: Graph, filename) -> None:
 
 
 def pass_remove_identities(graph: Graph) -> None:
-
-    gm = GraphMatcher(graph)
     p = Pattern("Identity")
-    matches = gm.get_op_type_matches(p)
-
+    matches = find_pattern(graph, p)
     to_be_removed = list()
 
     for m in matches:
@@ -86,10 +83,8 @@ def pass_remove_identities(graph: Graph) -> None:
 
 
 def pass_transpose(graph: Graph) -> None:
-
-    gm = GraphMatcher(graph)
     p = Pattern("*")
-    matches = gm.get_op_type_matches(p)
+    matches = find_pattern(graph, p)
 
     for m in matches:
         dim = m.node.dimension
@@ -105,11 +100,8 @@ def pass_transpose(graph: Graph) -> None:
 
 
 def pass_precompute(graph: Graph, processed_nodes) -> bool:
-
-    gm = GraphMatcher(graph)
     p = Pattern('*')
-    matches = gm.get_op_type_matches(p)
-
+    matches = find_pattern(graph, p)
     processed_before_precompute = len(processed_nodes)
 
     for m in matches:
@@ -153,11 +145,8 @@ def pass_precompute(graph: Graph, processed_nodes) -> bool:
 
 
 def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
-
-    gm = GraphMatcher(graph)
     p = Pattern('*')
-    matches = gm.get_op_type_matches(p)
-
+    matches = find_pattern(graph, p)
     qtypes = [
         'QTZ_binary_mean_scaling',
         'QTZ_linear_mid_tread_half',
@@ -192,10 +181,8 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
 
 
 def pass_compute_thresholds(graph: Graph) -> None:
-
-    gm = GraphMatcher(graph)
     p = Pattern('QTZ_linear_mid_tread_half')
-    matches = gm.get_op_type_matches(p)
+    matches = find_pattern(graph, p)
 
     for m in matches:
 
@@ -287,11 +274,8 @@ def pass_compute_thresholds(graph: Graph) -> None:
 
 
 def pass_pack_weights(graph: Graph) -> None:
-
-    gm = GraphMatcher(graph)
     p = Pattern('Conv')
-    matches = gm.get_op_type_matches(p)
-
+    matches = find_pattern(graph, p)
     quantization_types = [
         'QTZ_binary_mean_scaling',
         'QTZ_linear_mid_tread_half',
@@ -340,10 +324,8 @@ def pass_pack_weights(graph: Graph) -> None:
 
 
 def pass_quantize_convolutions(graph: Graph) -> None:
-
-    gm = GraphMatcher(graph)
     p = Pattern('Conv')
-    matches = gm.get_op_type_matches(p)
+    matches = find_pattern(graph, p)
 
     for m in matches:
         conv_node = m.node
@@ -366,10 +348,8 @@ def pass_quantize_convolutions(graph: Graph) -> None:
 
 
 def pass_propagate_datatypes(graph) -> None:
-
-    gm = GraphMatcher(graph)
     p = Pattern('*')
-    matches = gm.get_op_type_matches(p)
+    matches = find_pattern(graph, p)
 
     for m in matches:
         if m.node.op_type != 'Conv' and m.node.preserve_quantization:
@@ -377,10 +357,8 @@ def pass_propagate_datatypes(graph) -> None:
 
 
 def pass_propagate_output_type_backward(graph: Graph) -> None:
-
-    gm = GraphMatcher(graph)
     p = Pattern('*')
-    matches = gm.get_op_type_matches(p)
+    matches = find_pattern(graph, p)
 
     def find_input(node, otype):
         for n in node.input_nodes:

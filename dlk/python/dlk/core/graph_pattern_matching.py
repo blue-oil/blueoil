@@ -31,6 +31,11 @@ class NodeMatch:
         self.inputs = list()
 
 
+def find_pattern(graph, pattern):
+    gm = GraphMatcher(graph)
+    return gm.get_op_type_matches(pattern)
+
+
 def sort_graph(graph):
     exec_list = list()
     input_nodes = list()
