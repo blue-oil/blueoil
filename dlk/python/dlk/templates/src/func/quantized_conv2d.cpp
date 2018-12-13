@@ -36,7 +36,6 @@ void func_linear_to_float(BIN_CONV_OUTPUT input[], T_INT nbit,
                           T_FLOAT max_value, T_FLOAT output[], T_UINT in_height,
                           T_UINT in_width, T_UINT in_depth,
                           T_UINT in_channel = 1) {
-  T_FLOAT min_value = 0;
   T_FLOAT n = (1 << nbit) - 1;
   unsigned num_elems = in_height * in_width * in_depth * in_channel;
 
