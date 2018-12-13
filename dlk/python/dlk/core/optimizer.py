@@ -343,6 +343,7 @@ def pass_pack_weights(graph: Graph) -> None:
     for op in to_be_removed:
         graph.remove_op(op)
 
+
 def pass_quantize_convolutions(graph: Graph) -> None:
     p = Pattern('Conv')
     matches = find_pattern(graph, p)
@@ -359,12 +360,12 @@ def pass_quantize_convolutions(graph: Graph) -> None:
 
         # change the output data type of the convolution if thresholds are available
         if conv_node.has_thresholds:
-            conv_node.dtype = QUANTIZED_NOT_PACKED
+            conv_node.dtype = QUANTIZED_NOT_PACKED()
 
         # change the output data type of the quantizers
         conv_node.quantizer.dtype = Uint32
         for qtz in conv_node.a_quantizer:
-            qtz.dtype = QUANTIZED_NOT_PACKED
+            qtz.dtype = QUANTIZED_NOT_PACKED()
 
 
 def pass_propagate_datatypes(graph) -> None:
