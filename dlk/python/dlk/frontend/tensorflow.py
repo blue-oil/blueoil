@@ -17,11 +17,7 @@
 from .base import BaseIO
 from core.model import Model
 from plugins.tf import Importer
-import tensorflow as tf
 from tensorflow.core.framework import graph_pb2
-from tensorflow.python.lib.io import file_io
-from frontend.tf_export import Exporter
-
 from os import path
 
 
@@ -59,7 +55,4 @@ class TensorFlowIO(BaseIO):
         return model
 
     def write(self, model: Model, path: str) -> None:
-        graph: tf.Graph = Exporter.export_graph(model)
-        graph_def = graph.as_graph_def(add_shapes=True)
-
-        file_io.atomic_write_string_to_file(path, graph_def.SerializeToString())
+        raise NotImplementedError
