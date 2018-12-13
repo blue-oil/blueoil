@@ -271,7 +271,24 @@ def ask_questions():
         'default': '100'
     }
     training_epochs = prompt(training_epochs_question)
-    
+
+    training_optimizer_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'select optimizer:',
+        'choices': ['MomentumOptimizer',
+                    'GradientDescentOptimizer',
+                    'AdamOptimizer',
+                    'AdadeltaOptimizer',
+                    'AdagradOptimizer',
+                    'ProximalAdagradOptimizer',
+                    'ProximalGradientDescentOptimizer',
+                    'RMSPropOptimizer',
+                    'FtrlOptimizer'],
+        'default': 'MomentumOptimizer'
+    }
+    training_optimizer = prompt(training_optimizer_question)
+
     initial_learning_rate_value_question = {
         'type': 'input',
         'name': 'value',
