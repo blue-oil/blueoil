@@ -21,6 +21,8 @@ This is an example of configuration.
   batch size (integer):  64
   image size (integer x integer):  32x32
   how many epochs do you run training (integer):  100
+  initial learning rate: 0.001
+  message': 'choose learning rate setting(tune1 / tune2 / tune3 / fixed): tune1 -> "2 times decay"
   enable data augmentation?  No
   apply quantization at the first layer: yes
 ```
