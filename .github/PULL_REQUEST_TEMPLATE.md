@@ -9,7 +9,7 @@
 
 ## How has this been tested?
 <!--- 🙆👌🙆 Please describe in detail how you tested your changes. 🙆👌🙆 -->
-<!--- Include details of your testing environment, details of your manually tests, snippet code or commands of your manually tests, table of experiments results metrics, tests ran to see how your change affects other areas of the code, etc. -->
+<!--- Include details of your testing environment, details of your manual tests, snippet code or commands of your manual tests, table of experiments results metrics, tests ran to see how your change affects other areas of the code, etc. -->
 <!--- If you have experiments report documents please link to here. -->
 
 ## Screenshots (if appropriate):
