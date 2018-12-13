@@ -17,10 +17,8 @@
 import math
 import numpy as np
 
-from typing import Any, Dict, List, Optional, Set, cast
-
 from core.graph import Graph
-from core.graph_pattern_matching import GraphMatcher, Pattern, match_to_execution_list, NodeMatch
+from core.graph_pattern_matching import GraphMatcher, Pattern
 from core.operators import Constant, Operator
 from core.data_types import Uint32, QUANTIZED_NOT_PACKED
 from typing import cast
@@ -59,11 +57,10 @@ def pass_dot_graph(graph: Graph, filename) -> None:
 def pass_remove_identities(graph: Graph) -> None:
 
     gm = GraphMatcher(graph)
+    p = Pattern("Identity")
+    matches = gm.get_op_type_matches(p)
 
     to_be_removed = list()
-    matches: List[NodeMatch] = list()
-    p = Pattern("Identity")
-    gm.get_op_type_matches(p, matches)
 
     for m in matches:
         """skip all identity."""
@@ -91,10 +88,8 @@ def pass_remove_identities(graph: Graph) -> None:
 def pass_transpose(graph: Graph) -> None:
 
     gm = GraphMatcher(graph)
-
-    matches: List[NodeMatch] = list()
     p = Pattern("*")
-    gm.get_op_type_matches(p, matches)
+    matches = gm.get_op_type_matches(p)
 
     for m in matches:
         dim = m.node.dimension
@@ -112,10 +107,8 @@ def pass_transpose(graph: Graph) -> None:
 def pass_precompute(graph: Graph, processed_nodes) -> bool:
 
     gm = GraphMatcher(graph)
-
-    matches: List[NodeMatch] = list()
     p = Pattern('*')
-    gm.get_op_type_matches(p, matches)
+    matches = gm.get_op_type_matches(p)
 
     processed_before_precompute = len(processed_nodes)
 
@@ -162,10 +155,8 @@ def pass_precompute(graph: Graph, processed_nodes) -> bool:
 def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
 
     gm = GraphMatcher(graph)
-
-    matches: List[NodeMatch] = list()
     p = Pattern('*')
-    gm.get_op_type_matches(p, matches)
+    matches = gm.get_op_type_matches(p)
 
     qtypes = [
         'QTZ_binary_mean_scaling',
@@ -203,11 +194,8 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
 def pass_compute_thresholds(graph: Graph) -> None:
 
     gm = GraphMatcher(graph)
-
-    matches: List[NodeMatch] = list()
     p = Pattern('QTZ_linear_mid_tread_half')
-
-    gm.get_op_type_matches(p, matches)
+    matches = gm.get_op_type_matches(p)
 
     for m in matches:
 
@@ -301,6 +289,8 @@ def pass_compute_thresholds(graph: Graph) -> None:
 def pass_pack_weights(graph: Graph) -> None:
 
     gm = GraphMatcher(graph)
+    p = Pattern('Conv')
+    matches = gm.get_op_type_matches(p)
 
     quantization_types = [
         'QTZ_binary_mean_scaling',
@@ -308,13 +298,9 @@ def pass_pack_weights(graph: Graph) -> None:
         'QTZ_binary_channel_wise_mean_scaling'
     ]
 
-    matches: List[NodeMatch] = list()
-    p = Pattern('Conv')
-
-    gm.get_op_type_matches(p, matches)
-
-    # TODO: pass proper parameters
-    packer = Packer(1, 32)
+    word_size = 32
+    weight_bitwidth = 1
+    packer = Packer(weight_bitwidth, word_size)
 
     for m in matches:
         conv_node = m.node
@@ -323,6 +309,7 @@ def pass_pack_weights(graph: Graph) -> None:
         if not conv_node.quantizer or not conv_node.a_quantizer:
             continue
 
+        # Check if we support this kind of quantizer
         weight_quantizer = conv_node.quantizer
         if weight_quantizer.op_type not in quantization_types:
             continue
@@ -332,6 +319,7 @@ def pass_pack_weights(graph: Graph) -> None:
         op_data = weight_quantizer.binarizer(weight_quantizer.data)
         data = packer.run(op_data.astype(np.float32), weight_quantizer.dimension)
 
+        # Create the new constant with the quantized weights
         quantized_constant = Constant(
             weight_quantizer.name + '_new',
             Uint32(),
@@ -340,8 +328,8 @@ def pass_pack_weights(graph: Graph) -> None:
             actual_shape=weight_quantizer.shape
         )
 
+        # Add the constant to the graph and connect the new constant
         graph.add_op(quantized_constant)
-
         quantized_constant.add_outputs(weight_quantizer.output_ops)
         for output_name, consumer_list in weight_quantizer.output_ops.items():
             for consumer_node in consumer_list:
@@ -354,10 +342,8 @@ def pass_pack_weights(graph: Graph) -> None:
 def pass_quantize_convolutions(graph: Graph) -> None:
 
     gm = GraphMatcher(graph)
-
-    matches: List[NodeMatch] = list()
     p = Pattern('Conv')
-    gm.get_op_type_matches(p, matches)
+    matches = gm.get_op_type_matches(p)
 
     for m in matches:
         conv_node = m.node
@@ -382,10 +368,8 @@ def pass_quantize_convolutions(graph: Graph) -> None:
 def pass_propagate_datatypes(graph) -> None:
 
     gm = GraphMatcher(graph)
-
-    matches: List[NodeMatch] = list()
     p = Pattern('*')
-    gm.get_op_type_matches(p, matches)
+    matches = gm.get_op_type_matches(p)
 
     for m in matches:
         if m.node.op_type != 'Conv' and m.node.preserve_quantization:
@@ -395,11 +379,8 @@ def pass_propagate_datatypes(graph) -> None:
 def pass_propagate_output_type_backward(graph: Graph) -> None:
 
     gm = GraphMatcher(graph)
-
-    matches: List[NodeMatch] = list()
     p = Pattern('*')
-
-    gm.get_op_type_matches(p, matches)
+    matches = gm.get_op_type_matches(p)
 
     def find_input(node, otype):
         for n in node.input_nodes:
@@ -408,7 +389,7 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
                 return
             find_input(n, otype)
 
+    # propagate output data type to the last quantized convolution
     output_node = matches[-1].node
-
     output_type = output_node.dtype
     find_input(output_node, output_type)

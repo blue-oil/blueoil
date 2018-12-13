@@ -561,14 +561,6 @@ class Operator(object):
         raise NotImplementedError(f'operator {cls.__name__} cannot infer its shape.')
 
     @property
-    def visited(self) -> bool:
-        return self._visited
-
-    @visited.setter
-    def visited(self, v: Bool) -> None:
-        self._visited = v
-
-    @property
     def preserve_quantization(self) -> bool:
         return False
 

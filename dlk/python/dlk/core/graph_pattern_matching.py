@@ -31,10 +31,8 @@ class NodeMatch:
         self.inputs = list()
 
 
-def sort_graph(graph, exec_list):
-    for node in graph.operators:
-        node.visited = False
-
+def sort_graph(graph):
+    exec_list = list()
     input_nodes = list()
     for node in graph.operators:
         input_nodes += [n.name for n in node.input_nodes]
@@ -44,18 +42,24 @@ def sort_graph(graph, exec_list):
         if node not in input_nodes:
             output_nodes.append(node)
 
+    visited = {}
+    for node in graph.operators:
+        visited[node.name] = False
+
     for node in output_nodes:
-        top_order(node, exec_list)
+        top_order(node, exec_list, visited)
+
+    return exec_list
 
 
-def top_order(output_node, exec_list):
-    if output_node.visited:
+def top_order(output_node, exec_list, visited):
+    if visited[output_node.name]:
         return
     for input_node in output_node.input_nodes:
-        top_order(input_node, exec_list)
+        top_order(input_node, exec_list, visited)
 
     exec_list.append(output_node)
-    output_node.visited = True
+    visited[output_node.name] = True
 
 
 def match_to_execution_list(match, execution_list):
@@ -67,7 +71,7 @@ def match_to_execution_list(match, execution_list):
 class GraphMatcher:
     def __init__(self, input_graph=Graph()):
         self.graph_node_list = list()
-        sort_graph(input_graph, self.graph_node_list)
+        self.graph_node_list = sort_graph(input_graph)
 
         self._node_map = {node.name: node for node in self.graph_node_list}
 
@@ -76,7 +80,8 @@ class GraphMatcher:
         for input_node in match.inputs:
             self.record_matched_nodes(input_node, matched_nodes)
 
-    def get_op_type_matches(self, pattern, matches):
+    def get_op_type_matches(self, pattern):
+        matches = list()
         matched_nodes = set()
         for node in self.graph_node_list:
             if node in matched_nodes:
@@ -86,6 +91,7 @@ class GraphMatcher:
             if self.does_op_type_match(node, pattern, matched_nodes, match):
                 self.record_matched_nodes(match, matched_nodes)
                 matches.append(match)
+        return matches
 
     def does_op_type_match(self, node, pattern, previously_matched_nodes, match):
         if node.name in previously_matched_nodes:
