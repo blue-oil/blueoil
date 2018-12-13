@@ -50,7 +50,9 @@ BATCH_SIZE = {{batch_size}}
 DATA_FORMAT = "NHWC"
 TASK = Tasks.OBJECT_DETECTION
 # In order to get instance property `classes`, instantiate DATASET_CLASS.
-CLASSES = DATASET_CLASS(subset="train", batch_size=1).classes
+dataset_obj = DATASET_CLASS(subset="train", batch_size=1)
+CLASSES = dataset_obj.classes
+step_per_epoch = float(dataset_obj.num_per_epoch)/BATCH_SIZE
 
 {% if max_epochs -%}
 MAX_EPOCHS = {{max_epochs}}
@@ -92,16 +94,40 @@ POST_PROCESSOR = Sequence([
 ])
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-# In the origianl yolov2 Paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
-# Train data num per epoch is 16551
-step_per_epoch = int(16551 / BATCH_SIZE)
-NETWORK.LEARNING_RATE_KWARGS = {
-        "values": [5e-4, 2e-2, 5e-3, 5e-4],
-        "boundaries": [step_per_epoch, step_per_epoch * 80, step_per_epoch * 120],
-}
+
+if '{{optimizer}}' == 'GradientDescentOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.GradientDescentOptimizer
+elif '{{optimizer}}' == 'MomentumOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
+elif '{{optimizer}}' == 'AdamOptimizer':
+    NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
+
+if '{{learning_rate_setting}}' != 'fixed':
+    NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
+                
+if '{{learning_rate_setting}}' == 'tune1':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100],
+        "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) / 2), int(step_per_epoch * (MAX_EPOCHS - 1))],
+    }
+elif '{{learning_rate_setting}}' == 'tune2':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
+        "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
+    }
+elif '{{learning_rate_setting}}' == 'tune3':
+    if MAX_EPOCHS < 4:
+        raise ValueError("epoch number must be >= 4, when tune3 is selected.")
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{initial_learning_rate}} / 1000, {{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
+        "boundaries": [int(step_per_epoch * 1), int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
+    }
+elif '{{learning_rate_setting}}' == 'fixed':
+    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{initial_learning_rate}}}
+else:
+    raise ValueError
+
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
