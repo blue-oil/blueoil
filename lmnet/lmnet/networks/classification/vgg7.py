@@ -91,7 +91,7 @@ class Vgg7Network(Base):
 
         self.fc1 = self.fc_layer("fc1", self.flatten, filters=1024, activation=None)
         self.batch_normed1 = tf.contrib.layers.batch_norm(self.fc1,
-                                                          epsilon=0.00001,
+                                                          #epsilon=0.00001,
                                                           #decay=0.999,
                                                           scale=True,
                                                           center=True,
@@ -258,7 +258,7 @@ class Vgg7Quantize(Vgg7Network, BaseQuantize):
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)
 
-            if var.op.name.startswith("fc1/"):# or var.op.name.startswith("fc2/"):
+            if var.op.name.startswith("fc1/") or var.op.name.startswith("fc2/"):
                 if "weights" == var.op.name.split("/")[-1]:
                     return weight_quantization(var)
         return var
