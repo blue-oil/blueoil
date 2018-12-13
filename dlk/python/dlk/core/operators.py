@@ -25,7 +25,6 @@ from abc import abstractmethod
 from .data_types import *
 
 if TYPE_CHECKING:
-    from core.graph import GraphRunner
     import core.operators as ops
 
 Ops = Dict[str, 'Operator']
@@ -475,81 +474,9 @@ class Operator(object):
         raise NotImplementedError(
             f'operator {self.op_type} does not have runtime implemenatation yet.')
 
-    def accept(self, runner: 'GraphRunner', **kwargs: Any) -> None:
-        """Accept the graph runner and dispatch.
-
-        This should not be accessed directly, but be called inside.
-        A bit conplicated use of the visitor pattern.
-
-        runner : GraphRunner
-            Runner that runs through the graph from outputs to inputs (go backward),
-            then runs again from inputs to outputs (go forward).
-
-        **kwargs : Any
-            Any keyward arguments that can be referred and updated during the run.
-
-        """
-        if runner.is_visited(cast('ops.Operator', self)):
-            return
-
-        # run backward
-        self._dispatch_backward(runner, **kwargs)
-
-        # go inside the inputs
-        for i in self.input_ops.values():
-            i.accept(runner, **kwargs)
-
-        # run forward
-        self._dispatch_forward(runner, **kwargs)
-
-        # record visit
-        runner.visit(cast('ops.Operator', self))
-
-    def accept_backward(self, runner: 'GraphRunner', **kwargs: Any) -> List['Operator']:
-        """Accept the graph runner and dispatch for backward traversal, in a breadth-first ."""
-        if runner.is_visited(cast('ops.Operator', self)):
-            return []
-
-        # run backward
-        self._dispatch_backward(runner, **kwargs)
-
-        # record visit
-        runner.visit(cast('ops.Operator', self))
-
-        # return its inputs as next accepters
-        return list(self._input_ops.values())
-
-    def accept_forward(self, runner: 'GraphRunner', **kwargs: Any) -> List['Operator']:
-        """Accept the graph runner and dispatch for forward traversal, in a breadth-first ."""
-
-        # Note that all 'is_visited' flag is inverted, as this is already used in the backward run
-        if not runner.is_visited(cast('ops.Operator', self)):
-            return []
-
-        # run forward
-        self._dispatch_forward(runner, **kwargs)
-
-        # record (un)visit
-        runner.unvisit(cast('ops.Operator', self))
-
-        # return its outputs as next accepters
-        return self.output_op_list
-
     @property
     def _dispatch_name(self) -> str:
         return type(self).__name__.lower()
-
-    def _dispatch_backward(self, runner: 'GraphRunner', **kwargs: Any) -> None:
-        """Dispatch `runner.run_backward_xxx()` inside."""
-        method_name = 'run_backward_' + self._dispatch_name
-        method_body = getattr(runner, method_name)
-        method_body(self, **kwargs)
-
-    def _dispatch_forward(self, runner: 'GraphRunner', **kwargs: Any) -> None:
-        """Dispatch `runner.run_forward_xxx()` inside."""
-        method_name = 'run_forward_' + self._dispatch_name
-        method_body = getattr(runner, method_name)
-        method_body(self, **kwargs)
 
     @classmethod
     def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
