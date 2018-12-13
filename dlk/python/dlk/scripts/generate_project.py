@@ -29,7 +29,7 @@ from core.model import Model
 from core.params import Params
 from code_generater import CodeGenerater
 from frontend import TensorFlowIO
-from core.optimizer import pass_dot_graph, pass_remove_identities, pass_transpose, pass_precompute, \
+from core.optimizer import pass_remove_identities, pass_transpose, pass_precompute, \
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
     pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
 
