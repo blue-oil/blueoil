@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""Test file for GraphRunner."""
+"""Test file for Optimizer."""
 import unittest
 from core.data_types import Float32, Uint32, Int32, QUANTIZED_NOT_PACKED
 from core.optimizer import pass_remove_identities, pass_transpose, pass_precompute, \
