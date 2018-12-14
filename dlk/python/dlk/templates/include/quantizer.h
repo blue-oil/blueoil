@@ -84,7 +84,7 @@ void func_QTZ_binary_mean_scaling(
   T_UINT in_depth,
   T_UINT in_channel)
 {
-  T_FLOAT sum = 0;
+  T_FLOAT sum = 0.f;
   unsigned num_elems = in_height * in_width * in_depth * in_channel;
 
   for(unsigned i = 0; i < num_elems; i++)
@@ -115,10 +115,10 @@ void func_QTZ_linear_mid_tread_half_body(
   T_UINT end)
 
 {
-  T_FLOAT max_value_r = 1.0 / max_value;
+  T_FLOAT max_value_r = 1.0f / max_value;
 
-  T_FLOAT min_value = 0;
-  T_FLOAT n = (1 << nbit) - 1;
+  T_FLOAT min_value = 0.f;
+  T_FLOAT n = (1 << nbit) - 1.f;
   int i = begin;
 
 #ifdef USE_NEON
@@ -200,8 +200,8 @@ void func_QTZ_linear_mid_tread_half(
 {
   Measurement::Start("func_QTZ_linear_mid_tread_half");
 
-  T_FLOAT min_value = 0;
-  T_FLOAT n = (1 << nbit) - 1;
+  T_FLOAT min_value = 0.f;
+  T_FLOAT n = (1 << nbit) - 1.f;
   unsigned num_elems = in_height * in_width * in_depth * in_channel;
 
   for (unsigned i = 0; i < num_elems; i++)
