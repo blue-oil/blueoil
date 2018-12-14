@@ -379,6 +379,8 @@ def run(network, dataset, config_file, experiment_id, recreate):
         dataset_class = module_loader.load_dataset_class(dataset)
         config.DATASET_CLASS = dataset_class
 
+    config_util.check_config(config, "training")
+
     config_util.display(config)
     executor.init_logging(config)
 

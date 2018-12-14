@@ -23,6 +23,7 @@ from PIL import Image, ImageEnhance, ImageFilter
 
 from lmnet import data_processor
 from lmnet import pre_processor
+from lmnet.common import Tasks
 
 
 class Blur(data_processor.Processor):
@@ -34,6 +35,8 @@ class Blur(data_processor.Processor):
     Args:
         value (int | list | tuple): Blur radius. Default is random number from 0 to 1. References default is 2.
     """
+    available_tasks = (
+        Tasks.CLASSIFICATION, Tasks.SEMANTIC_SEGMENTATION, Tasks.OBJECT_DETECTION, )
 
     def __init__(self, value=(0, 1)):
 
@@ -73,6 +76,8 @@ class Brightness(data_processor.Processor):
         value (int | list | tuple): An enhancement factor of 0.0 gives a black image.
             A factor of 1.0 gives the original image.
     """
+    available_tasks = (
+        Tasks.CLASSIFICATION, Tasks.SEMANTIC_SEGMENTATION, Tasks.OBJECT_DETECTION, )
 
     def __init__(self, value=(0.75, 1.25)):
 
@@ -113,6 +118,8 @@ class Color(data_processor.Processor):
         value (int | list | tuple): An enhancement factor of 0.0 gives a black and white image.
             A factor of 1.0 gives the original image.
     """
+    available_tasks = (
+        Tasks.CLASSIFICATION, Tasks.SEMANTIC_SEGMENTATION, Tasks.OBJECT_DETECTION, )
 
     def __init__(self, value=(0.75, 1.25)):
 
@@ -153,6 +160,8 @@ class Contrast(data_processor.Processor):
         value (int | list | tuple): An enhancement factor of 0.0 gives a solid grey image.
             A factor of 1.0 gives the original image.
     """
+    available_tasks = (
+        Tasks.CLASSIFICATION, Tasks.SEMANTIC_SEGMENTATION, Tasks.OBJECT_DETECTION, )
 
     def __init__(self, value=(0.75, 1.25)):
 
@@ -190,6 +199,7 @@ class Crop(data_processor.Processor):
         size (int | list | tuple): Crop to this size.
         resize (int | list | tuple): If there are resize param, resize and crop.
     """
+    available_tasks = (Tasks.CLASSIFICATION,)
 
     def __init__(self, size, resize=None):
 
@@ -273,6 +283,8 @@ class FlipLeftRight(data_processor.Processor):
     Args:
         probability (number): Probability for flipping.
     """
+    available_tasks = (
+        Tasks.CLASSIFICATION, Tasks.SEMANTIC_SEGMENTATION, Tasks.OBJECT_DETECTION, )
 
     def __init__(self, probability=0.5):
         self.probability = probability
@@ -314,6 +326,8 @@ class FlipTopBottom(data_processor.Processor):
     Args:
         probability (number): Probability for flipping.
     """
+    available_tasks = (
+        Tasks.CLASSIFICATION, Tasks.SEMANTIC_SEGMENTATION, Tasks.OBJECT_DETECTION, )
 
     def __init__(self, probability=0.5):
         self.probability = probability
@@ -350,6 +364,8 @@ class Hue(data_processor.Processor):
     Args:
         value (int | list | tuple): Assume the value in -255, 255. When the value is 0, nothing to do.
     """
+    available_tasks = (
+        Tasks.CLASSIFICATION, Tasks.SEMANTIC_SEGMENTATION, Tasks.OBJECT_DETECTION, )
 
     def __init__(self, value=(-10, 10)):
 
@@ -491,6 +507,8 @@ class Pad(data_processor.Processor):
             respectively.
         fill (int): Pixel fill value. Default is 0.
     """
+    available_tasks = (
+        Tasks.CLASSIFICATION, Tasks.SEMANTIC_SEGMENTATION, )
 
     def __init__(self, value, fill=0):
         if type(value) is int:
@@ -547,6 +565,7 @@ class RandomPatchCut(data_processor.Processor):
         max_size (int): maximum size of the patch edge, in percentages of image size
         square (bool): force square aspect ratio for patch shape
     """
+    available_tasks = (Tasks.CLASSIFICATION,)
 
     def __init__(self, num_patch=1, max_size=10, square=True):
         self.num_patch = int(num_patch)
@@ -595,6 +614,7 @@ class RandomErasing(data_processor.Processor):
         content_type (string): type of erasing value: {"mean", "random"}
         mean (list): erasing value if you use "mean" mode (mean ImageNet pixel value)
     """
+    available_tasks = (Tasks.CLASSIFICATION,)
 
     def __init__(self, probability=0.5, sl=0.02, sh=0.4, r1=0.3, content_type="mean", mean=[125, 122, 114]):
         self.hyper_params = {'probability': probability, 'sl': sl,
@@ -633,6 +653,7 @@ class RandomErasingForDetection(data_processor.Processor):
         i_a (bool): image-aware, random erase an entire image.
         o_a (bool): object-aware, random erase each object bounding boxes.
     """
+    available_tasks = (Tasks.OBJECT_DETECTION,)
 
     def __init__(self, probability=0.5, sl=0.02, sh=0.2, r1=0.3,
                  content_type="mean", mean=[125, 122, 114], i_a=True, o_a=True):
@@ -708,6 +729,7 @@ class SSDRandomCrop(data_processor.Processor):
     Args:
         min_crop_ratio (number): Minimum crop ratio for cropping the
     """
+    available_tasks = (Tasks.OBJECT_DETECTION,)
 
     def __init__(self, min_crop_ratio=0.3):
         self.sample_options = (
@@ -817,6 +839,8 @@ class Rotate(data_processor.Processor):
     Args:
         angle_range (int | list | tuple): Angle range.
     """
+    available_tasks = (
+        Tasks.CLASSIFICATION, Tasks.SEMANTIC_SEGMENTATION, )
 
     def __init__(self, angle_range=(0, 90)):
 

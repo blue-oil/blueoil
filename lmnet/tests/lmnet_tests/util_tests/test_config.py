@@ -13,9 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from lmnet.utils import config as config_util
-
 from easydict import EasyDict
+import pytest
+
+from lmnet.common import Tasks
+from lmnet.data_augmentor import SSDRandomCrop
+from lmnet.utils.config import (
+    merge,
+    _check_config_augmentor,
+)
 
 
 def test_merge():
@@ -25,9 +31,36 @@ def test_merge():
 
     expected = EasyDict({"a": "_a", "nest": EasyDict({"b": "_b", "c": "cc"}), "d": "dd"})
 
-    config = config_util.merge(base_config, override_config)
+    config = merge(base_config, override_config)
     assert config == expected
+
+
+def test_check_config_augmentor():
+    config = EasyDict({
+        "TASK": Tasks.OBJECT_DETECTION,
+        "DATASET": {
+            "AUGMENTOR": [
+                SSDRandomCrop(),
+            ],
+        }
+    })
+    _check_config_augmentor(config)
+
+    raise_exception_config = EasyDict({
+        "TASK": Tasks.CLASSIFICATION,
+        "DATASET": {
+            "AUGMENTOR": [
+                SSDRandomCrop(),
+            ],
+        }
+    })
+
+    with pytest.raises(Exception) as excinfo:
+        _check_config_augmentor(raise_exception_config)
+
+    assert "The SSDRandomCrop augmentation can't be used in IMAGE.CLASSIFICATION task" in str(excinfo.value)
 
 
 if __name__ == '__main__':
     test_merge()
+    test_check_config_augmentor()
