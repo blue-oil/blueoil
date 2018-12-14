@@ -26,9 +26,6 @@ void max_pooling(
     struct max_pooling_parameters p)
 {
   const TYPE lowest = -10000000;
-
-  T_UINT feature_map_size = p.output_height * p.output_width;
-  T_UINT input_size = (p.input_height * p.input_width);
   T_UINT index = 0;
 
   // important to be zero (minimum value for T_UINT)
@@ -65,9 +62,6 @@ void max_pooling_with_argmax(
     struct MaxPoolWithArgmax_parameters p)
 {
   const TYPE lowest = -10000000;
-
-  T_UINT feature_map_size = p.output_height * p.output_width;
-  T_UINT input_size = (p.input_height * p.input_width);
 
   // important to be zero (minimum value for T_UINT)
   for(T_UINT i = 0; i < p.output_elements; i++) { output[i] = lowest; }
