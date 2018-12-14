@@ -141,7 +141,7 @@ void qconv_with_kn2row(unsigned long input_addr, unsigned long output_addr,
   MappedMem k_data_mem(KERNEL_ADDR, k_size, sizeof(T_UINT));
   k_data_mem.Write(k_data_packed, k_size);
 
-  if (th_data == NULL) {
+  if (th_data == nullptr) {
     qwq.run_qconv_with_kn2row(input_addr, output_addr, KERNEL_ADDR, in_w, in_h,
                               in_c_by_word, out_w, out_h, out_c, k_w, k_h, pad);
 
