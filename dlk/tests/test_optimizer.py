@@ -15,15 +15,16 @@
 # =============================================================================
 """Test file for GraphRunner."""
 import unittest
-import numpy as np
 from core.data_types import Float32, Uint32, Int32, QUANTIZED_NOT_PACKED
-from core.graph import Graph
 from core.optimizer import pass_remove_identities, pass_transpose, pass_precompute, \
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
     pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward, pass_dot_graph
+from core.graph import Graph
 from core.operators import Add, AveragePool, BatchNormalization, Constant, Conv, Identity, Input, \
     MaxPool, Operator, Output, Transpose, QTZ_binary_mean_scaling, QTZ_linear_mid_tread_half, Reshape, Softmax
-from typing import Any, Dict, List, Tuple
+
+import numpy as np
+from typing import Tuple
 
 
 class TestOptimizer(unittest.TestCase):
@@ -40,11 +41,6 @@ class TestOptimizer(unittest.TestCase):
         pass_remove_identities(graph1)
         pass_transpose(graph1)
 
-        pass_propagate_quantization_details_into_conv(graph1)
-        pass_pack_weights(graph1)
-        pass_quantize_convolutions(graph1)
-        pass_propagate_datatypes(graph1)
-
         processed_nodes = []
         while pass_precompute(graph1, processed_nodes=processed_nodes):
             pass
@@ -53,32 +49,31 @@ class TestOptimizer(unittest.TestCase):
 
         print("Precompute test #1 passed!")
 
-    # def test_precompute2(self) -> None:
-    #     """Test code for precompute optimizer."""
-    #     data1 = np.random.rand(3, 2, 2, 3)
-    #     data2 = np.random.rand(3, 2, 2, 3)
-    #     data3 = np.random.rand(3, 2, 2, 3)
-    #     graph1 = self.create_sample_graph(data1, data2, data3)
-    #     graph2, scaling1, scaling2 = self.create_quantized_graph(data1, data2, data3)
-    #
-    #     # optim = Optimizer()
-    #     # optim.precompute(graph1, hard_quantized=True)
-    #     pass_remove_identities(graph1)
-    #     pass_transpose(graph1)
-    #
-    #     pass_propagate_quantization_details_into_conv(graph1)
-    #     pass_pack_weights(graph1)
-    #     pass_quantize_convolutions(graph1)
-    #     pass_propagate_datatypes(graph1)
-    #
-    #     processed_nodes = []
-    #     while pass_precompute(graph1, processed_nodes=processed_nodes):
-    #         pass
-    #
-    #     self.assertEqual(graph1, graph2, 'precompute failed.')
-    #     self.assertAlmostEqual(graph1.get_op('conv2').quantizer.scaling_factor, scaling2)  # type: ignore
-    #
-    #     print("Precompute test #2 passed!")
+    def test_precompute2(self) -> None:
+        """Test code for precompute optimizer."""
+        data1 = np.random.rand(3, 2, 2, 3)
+        data2 = np.random.rand(3, 2, 2, 3)
+        data3 = np.random.rand(3, 2, 2, 3)
+        graph1 = self.create_sample_graph(data1, data2, data3)
+        graph2, scaling1, scaling2 = self.create_quantized_graph(data1, data2, data3)
+
+        pass_remove_identities(graph1)
+        pass_transpose(graph1)
+
+        pass_propagate_quantization_details_into_conv(graph1)
+        pass_pack_weights(graph1)
+        pass_quantize_convolutions(graph1)
+
+        pass_propagate_datatypes(graph1)
+
+        processed_nodes = []
+        while pass_precompute(graph1, processed_nodes=processed_nodes):
+            pass
+
+        self.assertEqual(graph1, graph2, 'precompute failed.')
+        self.assertAlmostEqual(graph1.get_op('conv2').quantizer.scaling_factor, scaling2)  # type: ignore
+
+        print("Precompute test #2 passed!")
 
     def test_precompute3(self) -> None:
         """Test code for precompute optimizer."""
@@ -94,6 +89,7 @@ class TestOptimizer(unittest.TestCase):
         pass_propagate_quantization_details_into_conv(graph1)
         pass_pack_weights(graph1)
         pass_quantize_convolutions(graph1)
+
         pass_propagate_datatypes(graph1)
 
         processed_nodes = []

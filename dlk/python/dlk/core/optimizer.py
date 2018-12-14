@@ -137,7 +137,7 @@ def pass_precompute(graph: Graph, processed_nodes) -> bool:
         # get nodes to be removed after being disconnected
         get_nodes_in_branch(m.node, None, to_be_removed)
 
-        new_constant.add_outputs(m.node.output_ops)
+        new_constant.add_outputs({'output': m.node.output_ops.values()})
         for output_name, consumer_list in m.node.output_ops.items():
             for consumer_node in consumer_list:
                 for input_name, input_node in consumer_node.input_ops.items():
