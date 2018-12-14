@@ -133,8 +133,6 @@ void qconv_with_kn2row(unsigned long input_addr, unsigned long output_addr,
                        unsigned stride) {
   assert((k_h == 1 && k_w == 1) || (k_h == 3 && k_w == 3));
 
-  const unsigned in_size = in_h * in_w * in_c_by_word * nbits_in_data;
-  const unsigned out_size = out_h * out_w * out_c;
   const unsigned k_size = k_h * k_w * in_c_by_word * out_c;
   static QconvWithKn2row qwq;
 
