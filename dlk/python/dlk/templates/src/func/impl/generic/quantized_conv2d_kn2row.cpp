@@ -151,7 +151,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 
   delete[] kernel_hwoi;
 
-  if (p.thresholds != NULL) {
+  if (p.thresholds != nullptr) {
     ApplyThresholds(output_, p);
   }
 
