@@ -22,7 +22,7 @@ limitations under the License.
 void func_Softmax(T_FLOAT input[], T_FLOAT output[], T_UINT out_width) {
   Measurement::Start("SoftMax");
 
-  T_FLOAT sum = 0;
+  T_FLOAT sum = 0.f;
   for(T_UINT d = 0; d < out_width; d++)
     sum += std::exp(input[d]);
 
