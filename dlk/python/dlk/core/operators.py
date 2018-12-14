@@ -281,10 +281,7 @@ class Operator(object):
             All the key names have to be in list `output_names`.
 
         """
-        x = set(outputs.keys())
-        y = set(self._output_names)
-        assert set(outputs.keys()).issubset(
-            set(self._output_names)), f"Illegal output names {y} included {x}"
+        assert set(outputs.keys()).issubset(set(self._output_names)), f"Illegal output names included"
         for n in outputs.keys():
             lst = self._output_ops.get(n)
             if lst is not None:
