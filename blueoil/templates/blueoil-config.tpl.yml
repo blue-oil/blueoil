@@ -37,7 +37,7 @@ common:
 {%- for name, defaults in data_augmentation.items() %}
     - {{ name }}:
       {%- for d_name, d_value in defaults %}
-        - {{ d_name }}: {{ d_value }}
+        - {{ d_name }}: {{ d_value|replace("None", "null") }}
       {%- endfor -%}
 {% endfor %}
 {% endif %}
