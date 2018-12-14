@@ -96,7 +96,7 @@ void func_QuantizedConv2D(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
                        p.normal_conv_params.output_channels;
 
   // temporary: (2^n - 1) * (max - min)
-  T_FLOAT post_qtz_factor = 2.0 / 3.0;
+  const T_FLOAT post_qtz_factor = 2.0f / 3.0f;
 
   for (unsigned i = 0; i < out_elems; ++i) {
     output[i] = (scaling_factor * post_qtz_factor) * p.device_output_buf[i];
