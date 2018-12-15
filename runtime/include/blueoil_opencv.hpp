@@ -1,4 +1,3 @@
-/* Copyright 2018 Leapmind Inc. */
 #ifndef RUNTIME_INCLUDE_BLUEOIL_OPENCV_HPP_
 #define RUNTIME_INCLUDE_BLUEOIL_OPENCV_HPP_
 

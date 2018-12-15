@@ -1,5 +1,3 @@
-/* Copyright 2018 Leapmind Inc. */
-
 #include <iostream>
 #include <cmath>
 #include <cassert>

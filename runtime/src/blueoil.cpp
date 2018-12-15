@@ -1,5 +1,3 @@
-/* Copyright 2018 Leapmind Inc. */
-
 #include <dlfcn.h>
 #include <string>
 #include <vector>

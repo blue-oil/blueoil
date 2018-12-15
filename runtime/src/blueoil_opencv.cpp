@@ -1,5 +1,3 @@
-/* Copyright 2018 Leapmind Inc. */
-
 #include <cassert>
 
 #include "blueoil.hpp"
