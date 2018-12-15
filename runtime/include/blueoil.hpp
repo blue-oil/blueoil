@@ -44,6 +44,8 @@ public:
   std::vector<float>::iterator end();
   bool allequal(const Tensor &tensor);
   bool allclose(const Tensor &tensor);
+  // rtol: relative tolerance parameter
+  // atol: absolute tolerance parameter
   bool allclose(const Tensor &tensor, float rtol, float atol);
 };
 
