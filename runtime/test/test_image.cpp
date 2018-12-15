@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "blueoil.hpp"
-#include "blueoil_image.hpp"
+#include "tensor_util.hpp"
 
 float test_chw_data[3][2][2] =  // planar RGB format
     { {  // Red
@@ -27,8 +27,8 @@ float test_hwc_data[2][2][3] =  // packed RGB format
 int test_image() {
     blueoil::Tensor test_chw({3, 2, 2}, (float *) test_chw_data);
     blueoil::Tensor test_hwc({2, 2, 3}, (float *) test_hwc_data);
-    blueoil::Tensor test_chw_hwc = blueoil::image::Tensor_CHW_to_HWC(test_chw);
-    blueoil::Tensor test_hwc_chw = blueoil::image::Tensor_HWC_to_CHW(test_hwc);
+    blueoil::Tensor test_chw_hwc = blueoil::util::Tensor_CHW_to_HWC(test_chw);
+    blueoil::Tensor test_hwc_chw = blueoil::util::Tensor_HWC_to_CHW(test_hwc);
 
     if (test_chw.allequal(test_hwc_chw) == false) {
 	std::cerr << "test_image: test_chw != test_hwc_chw" << std::endl;

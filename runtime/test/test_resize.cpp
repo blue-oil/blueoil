@@ -4,6 +4,7 @@
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
 #include "blueoil_opencv.hpp"
+#include "tensor_util.hpp"
 
 float test_input[3][8][8] =
     { { // Red
@@ -62,14 +63,14 @@ int test_resize() {
     int width = 4, height = 4;
     blueoil::Tensor input({3, 8, 8}, (float *)test_input);
     blueoil::Tensor expect({3, 4, 4}, (float *)test_expect);
-    input = blueoil::image::Tensor_CHW_to_HWC(input);
-    expect = blueoil::image::Tensor_CHW_to_HWC(expect);
+    input = blueoil::util::Tensor_CHW_to_HWC(input);
+    expect = blueoil::util::Tensor_CHW_to_HWC(expect);
     blueoil::Tensor output = blueoil::image::Resize(input, width, height,
 						    blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
     if (! output.allclose(expect)) {
 	std::cerr << "test_resize: output != expect" << std::endl;
-	blueoil::image::Tensor_HWC_to_CHW(output).dump();
-	blueoil::image::Tensor_HWC_to_CHW(expect).dump();
+	blueoil::util::Tensor_HWC_to_CHW(output).dump();
+	blueoil::util::Tensor_HWC_to_CHW(expect).dump();
 	return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
