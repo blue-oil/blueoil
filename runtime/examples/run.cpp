@@ -22,7 +22,7 @@ limitations under the License.
 
 using namespace std;
 
-// TODO: delete this func. it is for debug. 
+// TODO: delete this func. it is for debug.
 blueoil::Tensor RandomImage(int height, int width, int channel) {
     blueoil::Tensor t({height, width, channel});
     vector<float>& data = t.data();
