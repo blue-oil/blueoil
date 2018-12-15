@@ -57,6 +57,32 @@ std::vector<float> &Tensor::data() {
   return m_data;
 }
 
+const float *Tensor::dataAsArray() const {
+  if (this->m_shape.size() == 0) {
+    throw std::invalid_argument("Tensor have no shape");
+  }
+  return &(m_data[0]);
+}
+
+const float *Tensor::dataAsArray(std::vector<int> indices) const {
+    if (this->m_shape.size() != indices.size() ) {
+        throw std::invalid_argument("shape.size != indices.size");
+    }
+    int i = 0;
+    for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+	if ((*itr < 0) || (this->m_shape[i] <= *itr)) {
+	    throw std::invalid_argument("indices out of shape range");
+	}
+    }
+    int offset = 0, size = this->m_data.size();
+    i = 0;
+    for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+	size /= this->m_shape[i];
+        offset += (*itr) * size;
+    }
+    return this->m_data.data() + offset;
+}
+
 float *Tensor::dataAsArray() {
   if (this->m_shape.size() == 0) {
     throw std::invalid_argument("Tensor have no shape");
@@ -84,7 +110,7 @@ float *Tensor::dataAsArray(std::vector<int> indices) {
 }
 
 
-static void Tensor_shape_dump(std::vector<int> shape) {
+static void Tensor_shape_dump(const std::vector<int>& shape) {
     std::cout << "shape:";
     for (auto itr = shape.begin(); itr != shape.end(); ++itr) {
         std::cout << *itr << " ";
@@ -92,7 +118,7 @@ static void Tensor_shape_dump(std::vector<int> shape) {
     std::cout << std::endl;
 }
 
-static void Tensor_data_dump(float *data, std::vector<int> shape) {
+static void Tensor_data_dump(const float *data, const std::vector<int>& shape){
     if (shape.size() == 1) { // 1-D array
         auto itr = shape.begin();
         int n = *itr;
@@ -127,7 +153,7 @@ static void Tensor_data_dump(float *data, std::vector<int> shape) {
 }
 
 // dump N-dimentional array
-void Tensor::dump() {
+void Tensor::dump() const {
     Tensor_shape_dump(m_shape);
     Tensor_data_dump(&(m_data[0]), m_shape);
 }
@@ -151,7 +177,7 @@ std::vector<float>::iterator Tensor::end() {
 
 
 // all elements exact equals check.
-bool Tensor::allequal(const Tensor &tensor) {
+bool Tensor::allequal(const Tensor &tensor) const {
     if ((m_shape != tensor.m_shape) || (m_data != tensor.m_data)) {
         return false;
     }
@@ -160,12 +186,12 @@ bool Tensor::allequal(const Tensor &tensor) {
 
 
 // all elements nealy equals check.
-bool Tensor::allclose(const Tensor &tensor) {
+bool Tensor::allclose(const Tensor &tensor) const {
     float rtol=1.e-5, atol=1.e-8; // same as numpy isclose
     return this->allclose(tensor, rtol, atol);
 }
 
-bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) {
+bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) const {
     if (m_shape != tensor.m_shape) {
         return false;
     }
@@ -322,7 +348,7 @@ Tensor Predictor::Run(const Tensor& image) {
 namespace box_util {
 
 // TODO(wakiska): implement this func.
-std::vector<DetectedBox> FormatDetectedBox(blueoil::Tensor output_tensor);
+std::vector<DetectedBox> FormatDetectedBox(const blueoil::Tensor& output_tensor);
 }  // namespace box_util
 
 }  // namespace blueoil
