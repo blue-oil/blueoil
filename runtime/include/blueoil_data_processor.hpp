@@ -1,6 +1,6 @@
 /* Copyright 2018 Leapmind Inc. */
-#ifndef RUNTIME_INCLUDE_DCORE_DATA_PROCESSOR_HPP_
-#define RUNTIME_INCLUDE_DCORE_DATA_PROCESSOR_HPP_
+#ifndef RUNTIME_INCLUDE_BLUEOIL_DATA_PROCESSOR_HPP_
+#define RUNTIME_INCLUDE_BLUEOIL_DATA_PROCESSOR_HPP_
 
 
 #include <string>
@@ -94,4 +94,4 @@ struct convert<blueoil::data_processor::NMSParameters>{
 }  // namespace YAML
 
 
-#endif  // RUNTIME_INCLUDE_DCORE_DATA_PROCESSOR_HPP_
+#endif  // RUNTIME_INCLUDE_BLUEOIL_DATA_PROCESSOR_HPP_

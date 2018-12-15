@@ -1,6 +1,6 @@
 /* Copyright 2018 Leapmind Inc. */
-#ifndef RUNTIME_INCLUDE_DCORE_HPP_
-#define RUNTIME_INCLUDE_DCORE_HPP_
+#ifndef RUNTIME_INCLUDE_BLUEOIL_HPP_
+#define RUNTIME_INCLUDE_BLUEOIL_HPP_
 
 
 #include <string>
@@ -101,4 +101,4 @@ std::vector<DetectedBox> FormatDetectedBox(Tensor output_tensor);
 }  // namespace box_util
 }  // namespace blueoil
 
-#endif  // RUNTIME_INCLUDE_DCORE_HPP_
+#endif  // RUNTIME_INCLUDE_BLUEOIL_HPP_
