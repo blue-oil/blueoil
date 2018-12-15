@@ -349,4 +349,3 @@ std::vector<DetectedBox> FormatDetectedBox(const blueoil::Tensor& output_tensor)
 }  // namespace box_util
 
 }  // namespace blueoil
-

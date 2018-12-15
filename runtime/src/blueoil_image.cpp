@@ -109,7 +109,7 @@ Tensor ResizeVertical(const Tensor &tensor, const int height,
 	}
     }
     return dstTensor;
-} 
+}
 
 Tensor Resize(const Tensor& image, const int width, const int height,
 	      const enum ResizeFilter filter) {
@@ -128,7 +128,7 @@ Tensor Resize(const Tensor& image, const int width, const int height,
 	dstImage = ResizeVertical(dstImage, height, filter);
     }
     return dstImage;
-}   
+}
 
 
 } // namespace image
