@@ -23,7 +23,7 @@ T clamp(const T x, const T lowerLimit, const T upperLimit) {
 /*
  * Resize Image
  */
-Tensor ResizeHorizontal(Tensor &tensor, const int width,
+Tensor ResizeHorizontal(const Tensor &tensor, const int width,
 			const enum ResizeFilter filter) {
     auto shape = tensor.shape();
     const int srcHeight = shape[0];
@@ -48,7 +48,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 		float totalW = 0.0;
 		for (int x = -xSrcWindow ; x < xSrcWindow; x++){
 		    int srcX2 = clamp(srcX + x, 0, srcWidth - 1);
-		    float *srcRGB = tensor.dataAsArray({srcY, srcX2, 0});
+		    const float *srcRGB = tensor.dataAsArray({srcY, srcX2, 0});
 		    float d = std::abs(static_cast<float>(x) / static_cast<float> (xSrcWindow));
 		    float w;
 		    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
@@ -67,7 +67,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
     return dstTensor;
 }
 
-Tensor ResizeVertical(Tensor &tensor, const int height,
+Tensor ResizeVertical(const Tensor &tensor, const int height,
 		      const enum ResizeFilter filter) {
     auto shape = tensor.shape();
     const int srcHeight = shape[0];
@@ -92,7 +92,7 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 		float totalW = 0.0;
 		for (int y = -ySrcWindow ; y < ySrcWindow ; y++) {
 		    int srcY2 = clamp(srcY + y, 0, srcHeight - 1);
-		    float *srcRGB = tensor.dataAsArray({srcY2, srcX, 0});
+		    const float *srcRGB = tensor.dataAsArray({srcY2, srcX, 0});
 		    float d = std::abs(static_cast<float>(y) / static_cast<float> (ySrcWindow));
 		    float w;
 		    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
