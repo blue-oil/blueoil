@@ -16,20 +16,14 @@
 
 namespace blueoil {
 
-
-int Tensor::shapeVolume() {
-    return shapeVolume(m_shape);
-}
-
-int Tensor::shapeVolume(std::vector<int> shape) {
+int calcVolume(const std::vector<int>& shape) {
     return std::accumulate(shape.begin(), shape.end(),
 			   1, std::multiplies<int>());
 }
 
-
 Tensor::Tensor(std::vector<int> shape)
     : m_shape(shape),
-      m_data(std::vector<float>(shapeVolume(std::move(shape)), 0)) {
+      m_data(std::vector<float>(calcVolume(std::move(shape)), 0)) {
 }
 
 Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
@@ -40,7 +34,7 @@ Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
 Tensor::Tensor(std::vector<int> shape, float *arr)
     : m_shape(shape),
       m_data(std::vector<float>(arr,
-                                arr + shapeVolume(std::move(shape)))) {
+                                arr + calcVolume(std::move(shape)))) {
 }
 
 Tensor::Tensor(const Tensor &tensor)
@@ -48,6 +42,9 @@ Tensor::Tensor(const Tensor &tensor)
       m_data(tensor.m_data) {
 }
 
+int Tensor::shapeVolume() {
+    return calcVolume(m_shape);
+}
 
 std::vector<int> Tensor::shape() const {
     return m_shape;
