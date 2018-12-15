@@ -40,7 +40,7 @@ Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
 Tensor::Tensor(std::vector<int> shape, float *arr)
     : m_shape(shape),
       m_data(std::vector<float>(arr,
-				arr + shapeVolume(std::move(shape)))) {
+                                arr + shapeVolume(std::move(shape)))) {
 }
 
 Tensor::Tensor(const Tensor &tensor)
