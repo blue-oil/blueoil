@@ -63,7 +63,7 @@ Tensor NMS(const Tensor& input,
 namespace YAML {
 
 template<>
-struct convert<blueoil::data_processor::FormatYoloV2Parameters>{
+struct convert<blueoil::data_processor::FormatYoloV2Parameters> {
   static Node encode(const blueoil::data_processor::FormatYoloV2Parameters& params);
   static bool decode(const Node& node,
                      blueoil::data_processor::FormatYoloV2Parameters& params) {  // NOLINT
@@ -78,7 +78,7 @@ struct convert<blueoil::data_processor::FormatYoloV2Parameters>{
 };
 
 template<>
-struct convert<blueoil::data_processor::NMSParameters>{
+struct convert<blueoil::data_processor::NMSParameters> {
   static Node encode(const blueoil::data_processor::NMSParameters& params);
   static bool decode(const Node& node,
                      blueoil::data_processor::NMSParameters& params) {  // NOLINT
