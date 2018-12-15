@@ -16,10 +16,10 @@ int test_tensor() {
 			       {1, 2, 3},
 			       {7, 0, 9}
     };
-    blueoil::Tensor tensor0({2, 3}, (float *) tensor_data);
-    blueoil::Tensor tensor1({2, 3}, (float *) tensor_data);
-    blueoil::Tensor tensor2({3, 2}, (float *) tensor_data2);  // shape diff
-    blueoil::Tensor tensor3({2, 3}, (float *) tensor_data3);  // data diff
+    blueoil::Tensor tensor0({2, 3}, reinterpret_cast<float*>(tensor_data));
+    blueoil::Tensor tensor1({2, 3}, reinterpret_cast<float*>(tensor_data));
+    blueoil::Tensor tensor2({3, 2}, reinterpret_cast<float*>(tensor_data2));  // shape diff
+    blueoil::Tensor tensor3({2, 3}, reinterpret_cast<float*>(tensor_data3));  // data diff
 
     float *arr = tensor0.dataAsArray({1, 0});
     if ((arr[0] != 7) || (arr[1] != 8) || (arr[2] != 9)) {
