@@ -63,7 +63,7 @@ float *Tensor::dataAsArray() {
   if (m_shape.size() == 0) {
     throw std::invalid_argument("Tensor have no shape");
   }
-  return &(m_data[0]);
+  return m_data.data();
 }
 
 float *Tensor::dataAsArray(std::vector<int> indices) {
@@ -131,7 +131,7 @@ static void Tensor_data_dump(float *data, std::vector<int> shape) {
 // dump N-dimentional array
 void Tensor::dump() {
   Tensor_shape_dump(m_shape);
-  Tensor_data_dump(&(m_data[0]), m_shape);
+  Tensor_data_dump(m_data.data(), m_shape);
 }
 
 
