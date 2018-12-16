@@ -97,6 +97,8 @@ elif '{{learning_rate_setting}}' == 'tune2':
         "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
     }
 elif '{{learning_rate_setting}}' == 'tune3':
+    if MAX_EPOCHS < 4:
+        raise ValueError("epoch number must be >= 4, when tune3 is selected.")
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}} / 1000, {{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
         "boundaries": [int(step_per_epoch * 1), int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
