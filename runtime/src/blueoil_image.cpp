@@ -68,10 +68,9 @@ Tensor Tensor_HWC_to_CHW(Tensor &tensor) {
 
 
 /*
- * Resize Image
+ * Resize Image (Nearest Neighbor)
  */
-Tensor ResizeHorizontal(Tensor &tensor, const int width,
-			const enum ResizeFilter filter) {
+Tensor ResizeHorizontal_NearestNeighbor(Tensor &tensor, const int width) {
     auto shape = tensor.shape();
     const int srcHeight = shape[0];
     const int srcWidth  = shape[1];
@@ -79,13 +78,55 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
     const int height = srcHeight;
     Tensor dstTensor({height, width, channels});
     float xScale = static_cast<float>(width) / static_cast<float>(srcWidth);
-    int xSrcWindow;
-    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
-	xSrcWindow = 1;  // Nearest
-    } else {
-	xSrcWindow = std::floor(1/xScale);  // Bi-Liner
-	xSrcWindow = (xSrcWindow < 2)? 2 :xSrcWindow;
+    for (int dstY = 0 ; dstY < height ; dstY++) {
+	for (int dstX = 0 ; dstX < width ; dstX++) {
+	    int srcX = (int) std::floor(dstX/xScale);
+	    int srcY = dstY;
+	    for (int c = 0 ; c < channels ; c++) {
+	      float *srcRGB = tensor.dataAsArray({srcY, srcX, 0});
+	      float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
+	      dstRGB[c] = srcRGB[c];
+	    }
+	}
     }
+    return dstTensor;
+}
+
+Tensor ResizeVertical_NearestNeighbor(Tensor &tensor, const int height) {
+    auto shape = tensor.shape();
+    const int srcHeight = shape[0];
+    const int srcWidth  = shape[1];
+    const int channels  = shape[2];
+    const int width = srcWidth;
+    Tensor dstTensor({height, width, channels});
+    float yScale = static_cast<float> (height) / static_cast<float>(srcHeight);
+    for (int dstY = 0 ; dstY < height ; dstY++) {
+	for (int dstX = 0 ; dstX < width ; dstX++) {
+	    int srcX = dstX;
+	    int srcY = (int) std::floor(dstY/yScale);
+	    for (int c = 0 ; c < channels ; c++) {
+	      float *srcRGB = tensor.dataAsArray({srcY, srcX, 0});
+	      float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
+	      dstRGB[c] = srcRGB[c];
+	    }
+	}
+    }
+    return dstTensor;
+}
+
+/*
+ * Resize Image (Bi-Linear)
+ */
+Tensor ResizeHorizontal_BiLinear(Tensor &tensor, const int width) {
+    auto shape = tensor.shape();
+    const int srcHeight = shape[0];
+    const int srcWidth  = shape[1];
+    const int channels  = shape[2];
+    const int height = srcHeight;
+    Tensor dstTensor({height, width, channels});
+    float xScale = static_cast<float>(width) / static_cast<float>(srcWidth);
+    int xSrcWindow = std::floor(1/xScale);
+    xSrcWindow = (xSrcWindow < 2)? 2 :xSrcWindow;
     for (int dstY = 0 ; dstY < height ; dstY++) {
 	for (int dstX = 0 ; dstX < width ; dstX++) {
 	    int srcX = (int) std::floor(dstX/xScale);
@@ -97,12 +138,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
 		    int srcX2 = clamp(srcX + x, 0, srcWidth - 1);
 		    float *srcRGB = tensor.dataAsArray({srcY, srcX2, 0});
 		    float d = std::abs(static_cast<float>(x) / static_cast<float> (xSrcWindow));
-		    float w;
-		    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
-			w = (d<0.5)?1.0:0.0; // NearestNeighbor
-		    } else {
-			w = 1.0 - d; // Bi-Linear
-		    }
+		    float w = 1.0 - d; // Bi-Linear
 		    v += w * srcRGB[c];
 		    totalW += w;
 		}
@@ -114,8 +150,7 @@ Tensor ResizeHorizontal(Tensor &tensor, const int width,
     return dstTensor;
 }
 
-Tensor ResizeVertical(Tensor &tensor, const int height,
-		      const enum ResizeFilter filter) {
+Tensor ResizeVertical_BiLinear(Tensor &tensor, const int height) {
     auto shape = tensor.shape();
     const int srcHeight = shape[0];
     const int srcWidth  = shape[1];
@@ -123,13 +158,8 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
     const int width = srcWidth;
     Tensor dstTensor({height, width, channels});
     float yScale = static_cast<float> (height) / static_cast<float>(srcHeight);
-    int ySrcWindow;
-    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
-	ySrcWindow = 1;  // Nearest
-    } else {
-	ySrcWindow = std::floor(1/yScale);  // Bi-Linear
-	ySrcWindow = (ySrcWindow < 2)? 2 :ySrcWindow;
-    }
+    int ySrcWindow = std::floor(1/yScale);
+    ySrcWindow = (ySrcWindow < 2)? 2 :ySrcWindow;
     for (int dstY = 0 ; dstY < height ; dstY++) {
 	for (int dstX = 0 ; dstX < width ; dstX++) {
 	    int srcX = dstX;
@@ -141,12 +171,7 @@ Tensor ResizeVertical(Tensor &tensor, const int height,
 		    int srcY2 = clamp(srcY + y, 0, srcHeight - 1);
 		    float *srcRGB = tensor.dataAsArray({srcY2, srcX, 0});
 		    float d = std::abs(static_cast<float>(y) / static_cast<float> (ySrcWindow));
-		    float w;
-		    if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
-			w = (d<0.5)?1.0:0.0; // NearestNeighbor
-		    } else {
-			w = 1.0 - d; // Bi-Linear
-		    }
+		    float w = 1.0 - d; // Bi-Linear
 		    v += w * srcRGB[c];
 		    totalW += w;
 		}
@@ -169,10 +194,18 @@ Tensor Resize(const Tensor& image, const int width, const int height,
     const int srcWidth  = shape[1];
     Tensor dstImage = image;
     if  (srcWidth != width) {
-	dstImage = ResizeHorizontal(dstImage, width, filter);
+      if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
+	dstImage = ResizeHorizontal_NearestNeighbor(dstImage, width);
+      } else {  // RESIZE_FILTER_BI_LINEAR
+	dstImage = ResizeHorizontal_BiLinear(dstImage, width);
+      }
     }
     if  (srcHeight != height) {
-	dstImage = ResizeVertical(dstImage, height, filter);
+      if (filter == RESIZE_FILTER_NEAREST_NEIGHBOR) {
+	dstImage = ResizeVertical_NearestNeighbor(dstImage, height);
+      } else {  // RESIZE_FILTER_BI_LINEAR
+	dstImage = ResizeVertical_BiLinear(dstImage, height);
+      }
     }
     return dstImage;
 }   
