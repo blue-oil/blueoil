@@ -20,39 +20,39 @@ namespace blueoil {
 
 
 int Tensor::shapeVolume() {
-    return shapeVolume(m_shape);
+  return shapeVolume(m_shape);
 }
 
 int Tensor::shapeVolume(std::vector<int> shape) {
-    return std::accumulate(shape.begin(), shape.end(),
-			   1, std::multiplies<int>());
+  return std::accumulate(shape.begin(), shape.end(),
+			 1, std::multiplies<int>());
 }
 
 
 Tensor::Tensor(std::vector<int> shape)
-    : m_shape(shape),
-      m_data(std::vector<float>(shapeVolume(std::move(shape)), 0)) {
+  : m_shape(shape),
+    m_data(std::vector<float>(shapeVolume(std::move(shape)), 0)) {
 }
 
 Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
-    : m_shape(std::move(shape)),
-      m_data(std::move(data)) {
+  : m_shape(std::move(shape)),
+    m_data(std::move(data)) {
 }
 
 Tensor::Tensor(std::vector<int> shape, float *arr)
-    : m_shape(shape),
-      m_data(std::vector<float>(arr,
-				arr + shapeVolume(std::move(shape)))) {
+  : m_shape(shape),
+    m_data(std::vector<float>(arr,
+			      arr + shapeVolume(std::move(shape)))) {
 }
 
 Tensor::Tensor(const Tensor &tensor)
-    : m_shape(tensor.m_shape),
-      m_data(tensor.m_data) {
+  : m_shape(tensor.m_shape),
+    m_data(tensor.m_data) {
 }
 
 
 std::vector<int> Tensor::shape() const {
-    return m_shape;
+  return m_shape;
 }
 
 std::vector<float> &Tensor::data() {
@@ -67,119 +67,119 @@ float *Tensor::dataAsArray() {
 }
 
 float *Tensor::dataAsArray(std::vector<int> indices) {
-    if (m_shape.size() != indices.size() ) {
-        throw std::invalid_argument("shape.size != indices.size");
+  if (m_shape.size() != indices.size() ) {
+    throw std::invalid_argument("shape.size != indices.size");
+  }
+  int i = 0;
+  for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+    if ((*itr < 0) || (m_shape[i] <= *itr)) {
+      throw std::invalid_argument("indices out of shape range");
     }
-    int i = 0;
-    for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-	if ((*itr < 0) || (m_shape[i] <= *itr)) {
-	    throw std::invalid_argument("indices out of shape range");
-	}
-    }
-    int offset = 0, size = m_data.size();
-    i = 0;
-    for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-	size /= m_shape[i];
-        offset += (*itr) * size;
-    }
-    return m_data.data() + offset;
+  }
+  int offset = 0, size = m_data.size();
+  i = 0;
+  for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+    size /= m_shape[i];
+    offset += (*itr) * size;
+  }
+  return m_data.data() + offset;
 }
 
 
 static void Tensor_shape_dump(std::vector<int> shape) {
-    std::cout << "shape:";
-    for (auto itr = shape.begin(); itr != shape.end(); ++itr) {
-        std::cout << *itr << " ";
-    }
-    std::cout << std::endl;
+  std::cout << "shape:";
+  for (auto itr = shape.begin(); itr != shape.end(); ++itr) {
+    std::cout << *itr << " ";
+  }
+  std::cout << std::endl;
 }
 
 static void Tensor_data_dump(float *data, std::vector<int> shape) {
-    if (shape.size() == 1) { // 1-D array
-        auto itr = shape.begin();
-        int n = *itr;
-        for (int i = 0 ; i < n ;  i++) {
-            std::cout << data[i] << " ";
-        }
-        std::cout << std::endl;
-    } else if (shape.size() == 2) { // 2-D arra
-        auto itr = shape.begin();
-        int w = *itr;
-        int c = *(itr+1);
-        for (int x = 0 ; x < w ; x++) {
-            for (int i = 0 ; i < c ; i++) {
-                std::cout << data[c*x + i] << " ";
-            }
-            std::cout << " ";
-        }
-        std::cout << std::endl;
-    } else { // 3-D over to recursive
-        auto itr = shape.begin();
-        int n  = *itr;
-        int stride = 1;
-        for (itr++; itr != shape.end(); ++itr) {
-            stride *= *itr;
-        }
-        std::vector<int> shape2 = shape;
-        shape2.erase(shape2.begin());
-        for (int i = 0 ; i < n ; i++) {
-            Tensor_data_dump(data + i*stride, shape2);
-        }
+  if (shape.size() == 1) { // 1-D array
+    auto itr = shape.begin();
+    int n = *itr;
+    for (int i = 0 ; i < n ;  i++) {
+      std::cout << data[i] << " ";
     }
+    std::cout << std::endl;
+  } else if (shape.size() == 2) { // 2-D arra
+    auto itr = shape.begin();
+    int w = *itr;
+    int c = *(itr+1);
+    for (int x = 0 ; x < w ; x++) {
+      for (int i = 0 ; i < c ; i++) {
+	std::cout << data[c*x + i] << " ";
+      }
+      std::cout << " ";
+    }
+    std::cout << std::endl;
+  } else { // 3-D over to recursive
+    auto itr = shape.begin();
+    int n  = *itr;
+    int stride = 1;
+    for (itr++; itr != shape.end(); ++itr) {
+      stride *= *itr;
+    }
+    std::vector<int> shape2 = shape;
+    shape2.erase(shape2.begin());
+    for (int i = 0 ; i < n ; i++) {
+      Tensor_data_dump(data + i*stride, shape2);
+    }
+  }
 }
 
 // dump N-dimentional array
 void Tensor::dump() {
-    Tensor_shape_dump(m_shape);
-    Tensor_data_dump(&(m_data[0]), m_shape);
+  Tensor_shape_dump(m_shape);
+  Tensor_data_dump(&(m_data[0]), m_shape);
 }
 
 
 std::vector<float>::const_iterator Tensor::begin() const {
-    return m_data.begin();
+  return m_data.begin();
 }
 
 std::vector<float>::const_iterator Tensor::end() const {
-    return m_data.end();
+  return m_data.end();
 }
 
 std::vector<float>::iterator Tensor::begin() {
-    return m_data.begin();
+  return m_data.begin();
 }
 
 std::vector<float>::iterator Tensor::end() {
-    return m_data.end();
+  return m_data.end();
 }
 
 
 // all elements exact equals check.
 bool Tensor::allequal(const Tensor &tensor) {
-    if ((m_shape != tensor.m_shape) || (m_data != tensor.m_data)) {
-        return false;
-    }
-    return true;
+  if ((m_shape != tensor.m_shape) || (m_data != tensor.m_data)) {
+    return false;
+  }
+  return true;
 }
 
 
 // all elements nealy equals check.
 bool Tensor::allclose(const Tensor &tensor) {
-    float rtol=1.e-5, atol=1.e-8; // same as numpy isclose
-    return allclose(tensor, rtol, atol);
+  float rtol=1.e-5, atol=1.e-8; // same as numpy isclose
+  return allclose(tensor, rtol, atol);
 }
 
 bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) {
-    if (m_shape != tensor.m_shape) {
-        return false;
+  if (m_shape != tensor.m_shape) {
+    return false;
+  }
+  int n = m_data.size();
+  for (int i = 0 ; i < n ; i++) {
+    float a = m_data[i];
+    float b = tensor.m_data[i];
+    if (std::abs(a - b) > (atol + rtol * std::abs(b))) {
+      return false;
     }
-    int n = m_data.size();
-    for (int i = 0 ; i < n ; i++) {
-	float a = m_data[i];
-	float b = tensor.m_data[i];
-	if (std::abs(a - b) > (atol + rtol * std::abs(b))) {
-	    return false;
-	}
-    }
-    return true;
+  }
+  return true;
 }
 
 
