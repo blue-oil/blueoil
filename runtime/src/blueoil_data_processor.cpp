@@ -19,7 +19,7 @@ Tensor Resize(const Tensor& image, const std::pair<int, int>& size) {
   const int width = size.first;
   const int height = size.second;
   return blueoil::image::Resize(image, width, height,
-				blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
+                                blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
 }
 
 Tensor DivideBy255(const Tensor& image) {

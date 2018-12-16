@@ -11,7 +11,7 @@ namespace opencv {
 
 Tensor Tensor_fromCVMat(cv::Mat img);
 cv::Mat Tensor_toCVMat(Tensor &tensor);
-    
+
 }  // namespace opencv
 }  // namespace blueoil
 
