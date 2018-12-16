@@ -20,7 +20,7 @@ namespace blueoil {
 
 
 int Tensor::shapeVolume() {
-    return this->shapeVolume(m_shape);
+    return shapeVolume(m_shape);
 }
 
 int Tensor::shapeVolume(std::vector<int> shape) {
@@ -31,7 +31,7 @@ int Tensor::shapeVolume(std::vector<int> shape) {
 
 Tensor::Tensor(std::vector<int> shape)
     : m_shape(shape),
-      m_data(std::vector<float>(this->shapeVolume(std::move(shape)), 0)) {
+      m_data(std::vector<float>(shapeVolume(std::move(shape)), 0)) {
 }
 
 Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
@@ -42,7 +42,7 @@ Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
 Tensor::Tensor(std::vector<int> shape, float *arr)
     : m_shape(shape),
       m_data(std::vector<float>(arr,
-				arr + this->shapeVolume(std::move(shape)))) {
+				arr + shapeVolume(std::move(shape)))) {
 }
 
 Tensor::Tensor(const Tensor &tensor)
@@ -60,29 +60,29 @@ std::vector<float> &Tensor::data() {
 }
 
 float *Tensor::dataAsArray() {
-  if (this->m_shape.size() == 0) {
+  if (m_shape.size() == 0) {
     throw std::invalid_argument("Tensor have no shape");
   }
   return &(m_data[0]);
 }
 
 float *Tensor::dataAsArray(std::vector<int> indices) {
-    if (this->m_shape.size() != indices.size() ) {
+    if (m_shape.size() != indices.size() ) {
         throw std::invalid_argument("shape.size != indices.size");
     }
     int i = 0;
     for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-	if ((*itr < 0) || (this->m_shape[i] <= *itr)) {
+	if ((*itr < 0) || (m_shape[i] <= *itr)) {
 	    throw std::invalid_argument("indices out of shape range");
 	}
     }
-    int offset = 0, size = this->m_data.size();
+    int offset = 0, size = m_data.size();
     i = 0;
     for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-	size /= this->m_shape[i];
+	size /= m_shape[i];
         offset += (*itr) * size;
     }
-    return this->m_data.data() + offset;
+    return m_data.data() + offset;
 }
 
 
@@ -136,19 +136,19 @@ void Tensor::dump() {
 
 
 std::vector<float>::const_iterator Tensor::begin() const {
-    return this->m_data.begin();
+    return m_data.begin();
 }
 
 std::vector<float>::const_iterator Tensor::end() const {
-    return this->m_data.end();
+    return m_data.end();
 }
 
 std::vector<float>::iterator Tensor::begin() {
-    return this->m_data.begin();
+    return m_data.begin();
 }
 
 std::vector<float>::iterator Tensor::end() {
-    return this->m_data.end();
+    return m_data.end();
 }
 
 
@@ -164,14 +164,14 @@ bool Tensor::allequal(const Tensor &tensor) {
 // all elements nealy equals check.
 bool Tensor::allclose(const Tensor &tensor) {
     float rtol=1.e-5, atol=1.e-8; // same as numpy isclose
-    return this->allclose(tensor, rtol, atol);
+    return allclose(tensor, rtol, atol);
 }
 
 bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) {
     if (m_shape != tensor.m_shape) {
         return false;
     }
-    int n = this->m_data.size();
+    int n = m_data.size();
     for (int i = 0 ; i < n ; i++) {
 	float a = m_data[i];
 	float b = tensor.m_data[i];
