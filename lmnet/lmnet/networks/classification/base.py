@@ -173,7 +173,7 @@ class Base(BaseNetwork):
         Args:
             softmax (Tensor): class predictions from the softmax. Shape is [batch_size, num_classes].
             labels (Tensor): onehot ground truth labels. Shape is [batch_size, num_classes].
-            k (int): number of top predictions to use.
+            k (Int): number of top predictions to use.
         """
 
         argmax_labels = tf.cast(tf.argmax(labels, 1), tf.int32)
