@@ -36,9 +36,9 @@ Tensor ResizeHorizontal_NearestNeighbor(const Tensor &tensor, const int width) {
       int srcX = (int) std::floor(dstX/xScale);
       int srcY = dstY;
       for (int c = 0 ; c < channels ; c++) {
-	const float *srcRGB = tensor.dataAsArray({srcY, srcX, 0});
-	float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
-	dstRGB[c] = srcRGB[c];
+        const float *srcRGB = tensor.dataAsArray({srcY, srcX, 0});
+        float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
+        dstRGB[c] = srcRGB[c];
       }
     }
   }
@@ -58,9 +58,9 @@ Tensor ResizeVertical_NearestNeighbor(const Tensor &tensor, const int height) {
       int srcX = dstX;
       int srcY = (int) std::floor(dstY/yScale);
       for (int c = 0 ; c < channels ; c++) {
-	const float *srcRGB = tensor.dataAsArray({srcY, srcX, 0});
-	float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
-	dstRGB[c] = srcRGB[c];
+        const float *srcRGB = tensor.dataAsArray({srcY, srcX, 0});
+        float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
+        dstRGB[c] = srcRGB[c];
       }
     }
   }
@@ -85,18 +85,18 @@ Tensor ResizeHorizontal_BiLinear(const Tensor &tensor, const int width) {
       int srcX = (int) std::floor(dstX/xScale);
       int srcY = dstY;
       for (int c = 0 ; c < channels ; c++) {
-	float v = 0.0;
-	float totalW = 0.0;
-	for (int x = -xSrcWindow ; x < xSrcWindow; x++){
-	  int srcX2 = clamp(srcX + x, 0, srcWidth - 1);
-	  const float *srcRGB = tensor.dataAsArray({srcY, srcX2, 0});
-	  float d = std::abs(static_cast<float>(x) / static_cast<float> (xSrcWindow));
-	  float w = 1.0 - d; // Bi-Linear
-	  v += w * srcRGB[c];
-	  totalW += w;
-	}
-	float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
-	dstRGB[c] = v / totalW;
+        float v = 0.0;
+        float totalW = 0.0;
+        for (int x = -xSrcWindow ; x < xSrcWindow; x++){
+          int srcX2 = clamp(srcX + x, 0, srcWidth - 1);
+          const float *srcRGB = tensor.dataAsArray({srcY, srcX2, 0});
+          float d = std::abs(static_cast<float>(x) / static_cast<float> (xSrcWindow));
+          float w = 1.0 - d; // Bi-Linear
+          v += w * srcRGB[c];
+          totalW += w;
+        }
+        float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
+        dstRGB[c] = v / totalW;
       }
     }
   }
@@ -118,18 +118,18 @@ Tensor ResizeVertical_BiLinear(const Tensor &tensor, const int height) {
       int srcX = dstX;
       int srcY = (int) std::floor(dstY/yScale);
       for (int c = 0 ; c < channels ; c++) {
-	float v = 0.0;
-	float totalW = 0.0;
-	for (int y = -ySrcWindow ; y < ySrcWindow ; y++) {
-	  int srcY2 = clamp(srcY + y, 0, srcHeight - 1);
-	  const float *srcRGB = tensor.dataAsArray({srcY2, srcX, 0});
-	  float d = std::abs(static_cast<float>(y) / static_cast<float> (ySrcWindow));
-	  float w = 1.0 - d; // Bi-Linear
-	  v += w * srcRGB[c];
-	  totalW += w;
-	}
-	float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
-	dstRGB[c] = v / totalW;
+        float v = 0.0;
+        float totalW = 0.0;
+        for (int y = -ySrcWindow ; y < ySrcWindow ; y++) {
+          int srcY2 = clamp(srcY + y, 0, srcHeight - 1);
+          const float *srcRGB = tensor.dataAsArray({srcY2, srcX, 0});
+          float d = std::abs(static_cast<float>(y) / static_cast<float> (ySrcWindow));
+          float w = 1.0 - d; // Bi-Linear
+          v += w * srcRGB[c];
+          totalW += w;
+        }
+        float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
+        dstRGB[c] = v / totalW;
       }
     }
   }
