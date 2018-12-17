@@ -108,27 +108,27 @@ elif '{{optimizer}}' == 'MomentumOptimizer':
 elif '{{optimizer}}' == 'AdamOptimizer':
     NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
 
-if '{{learning_rate_setting}}' != 'fixed':
+if '{{learning_rate_setting}}' != 'constant':
     NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
                 
-if '{{learning_rate_setting}}' == 'tune1':
+if '{{learning_rate_setting}}' == '2-step-decay':
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100],
         "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) / 2), int(step_per_epoch * (MAX_EPOCHS - 1))],
     }
-elif '{{learning_rate_setting}}' == 'tune2':
+elif '{{learning_rate_setting}}' == '3-step-decay':
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
         "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
     }
-elif '{{learning_rate_setting}}' == 'tune3':
+elif '{{learning_rate_setting}}' == '3-step-decay-with-warmup':
     if MAX_EPOCHS < 4:
-        raise ValueError("epoch number must be >= 4, when tune3 is selected.")
+        raise ValueError("epoch number must be >= 4, when 3-step-decay-with-warmup is selected.")
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}} / 1000, {{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
         "boundaries": [int(step_per_epoch * 1), int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
     }
-elif '{{learning_rate_setting}}' == 'fixed':
+elif '{{learning_rate_setting}}' == 'constant':
     NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{initial_learning_rate}}}
 else:
     raise ValueError
