@@ -89,9 +89,9 @@ class Vgg7Network(Base):
 
         self.flatten = tf.contrib.layers.flatten(self.pool3)
 
-        self.fc1 = self.fc_layer("fc1", self.flatten, filters=1024, activation=None)
+        self.fc1 = self.fc_layer("fc1", self.flatten, filters=1024, activation=None, biases_initializer=None)
         self.batch_normed1 = tf.contrib.layers.batch_norm(self.fc1,
-                                                          #epsilon=0.00001,
+                                                          epsilon=0.00001,
                                                           #decay=0.999,
                                                           scale=True,
                                                           center=True,
@@ -137,7 +137,7 @@ class Vgg7Network(Base):
             )
             
         batch_normed = tf.contrib.layers.batch_norm(conv,
-                                                    epsilon=0.00001,
+                                                    #epsilon=0.00001,
                                                     #decay=0.999,
                                                     scale=True,
                                                     center=True,
@@ -155,9 +155,9 @@ class Vgg7Network(Base):
             inputs,
             filters,
             activation,
+            biases_initializer=tf.zeros_initializer(),
     ):
         kernel_initializer = tf.contrib.layers.xavier_initializer()
-        biases_initializer = tf.zeros_initializer()
 
         with tf.variable_scope(name):
             output = tf.contrib.layers.fully_connected(
@@ -204,7 +204,14 @@ class Vgg7Network(Base):
 
         return output
 
+    def loss(self, softmax, labels):
+        loss = super().loss(softmax, labels)
 
+        fc_regularized_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        loss += fc_regularized_loss
+
+        return loss
+        
 class Vgg7Quantize(Vgg7Network, BaseQuantize):
     version = 1.0
 
@@ -258,7 +265,7 @@ class Vgg7Quantize(Vgg7Network, BaseQuantize):
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)
 
-            if var.op.name.startswith("fc1/") or var.op.name.startswith("fc2/"):
+            if var.op.name.startswith("fc1/"):# or var.op.name.startswith("fc2/"):
                 if "weights" == var.op.name.split("/")[-1]:
                     return weight_quantization(var)
         return var
