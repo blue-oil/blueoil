@@ -47,7 +47,7 @@ void func_QTZ_binary_channel_wise_mean_scaling(
   T_UINT in_depth,
   T_UINT in_channel)
 {
-  unsigned num_elems_in_channel = in_height * in_width * in_depth;
+  const unsigned num_elems_in_channel = in_height * in_width * in_depth;
   T_FLOAT sum[in_channel];
   T_FLOAT mean[in_channel];
 
@@ -70,7 +70,7 @@ void func_QTZ_binary_channel_wise_mean_scaling(
   for(unsigned i = 0; i < in_channel; i++)
   for(unsigned j = 0; j < num_elems_in_channel; j++)
   {
-    unsigned in_index = i * num_elems_in_channel + j;
+    const unsigned in_index = i * num_elems_in_channel + j;
     output[in_index] = (input[in_index] >= 0) ? mean[i] : -1 * mean[i];
   }
 }
@@ -85,15 +85,15 @@ void func_QTZ_binary_mean_scaling(
   T_UINT in_channel)
 {
   T_FLOAT sum = 0;
-  unsigned num_elems = in_height * in_width * in_depth * in_channel;
+  const unsigned num_elems = in_height * in_width * in_depth * in_channel;
 
   for(unsigned i = 0; i < num_elems; i++)
   {
     sum += std::abs(input[i]);
   }
 
-  T_FLOAT mean = sum / num_elems;
-  T_FLOAT mean_minus = -1 * mean;
+  const T_FLOAT mean = sum / num_elems;
+  const T_FLOAT mean_minus = -1 * mean;
 
   for(unsigned i = 0; i < num_elems; i++)
   {
@@ -115,33 +115,28 @@ void func_QTZ_linear_mid_tread_half_body(
   T_UINT end)
 
 {
-  T_FLOAT max_value_r = 1.0 / max_value;
-
-  T_FLOAT min_value = 0;
-  T_FLOAT n = (1 << nbit) - 1;
+  const T_FLOAT max_value_r = 1.0 / max_value;
+  const T_FLOAT min_value = 0;
+  const T_FLOAT n = (1 << nbit) - 1;
   int i = begin;
 
 #ifdef USE_NEON
-  float32x4_t max_value_x4 = vdupq_n_f32(max_value);
-  float32x4_t min_value_x4 = vdupq_n_f32(min_value);
-  float32x4_t round_offset = vdupq_n_f32(0.5);
-  float32x4_t max_value_rn = vdupq_n_f32(max_value_r * n);
+  const float32x4_t max_value_x4 = vdupq_n_f32(max_value);
+  const float32x4_t min_value_x4 = vdupq_n_f32(min_value);
+  const float32x4_t round_offset = vdupq_n_f32(0.5);
+  const float32x4_t max_value_rn = vdupq_n_f32(max_value_r * n);
 
   for (; i <= static_cast<int>(end) - 4; i += 4)
   {
     float32x4_t tmp = vld1q_f32(&input[i]);
     tmp = vmaxq_f32(tmp, min_value_x4);
     tmp = vminq_f32(tmp, max_value_x4);
-    //    tmp = vmlaq_f32(tmp, max_value_rn, round_offset);
-    tmp = vmulq_f32(tmp, max_value_rn);
-    tmp = vaddq_f32(tmp, round_offset);
+    tmp = vmlaq_f32(round_offset, tmp, max_value_rn);
     int32x4_t r = vcvtq_s32_f32(tmp);
-    int r_tmp[4];
-    vst1q_s32(r_tmp, r);
-    output[i] = r_tmp[0];
-    output[i+1] = r_tmp[1];
-    output[i+2] = r_tmp[2];
-    output[i+3] = r_tmp[3];
+    output[i] =   r[0];
+    output[i+1] = r[1];
+    output[i+2] = r[2];
+    output[i+3] = r[3];
   }
 #endif
 
@@ -165,7 +160,7 @@ void func_QTZ_linear_mid_tread_half(
 {
   Measurement::Start("QTZ_linear_mid_tread_half");
 
-  unsigned num_elems = in_height * in_width * in_depth * in_channel;
+  const unsigned num_elems = in_height * in_width * in_depth * in_channel;
 
   unsigned int chunk_size = num_elems / std::thread::hardware_concurrency();
   if (chunk_size == 0) {
@@ -200,9 +195,9 @@ void func_QTZ_linear_mid_tread_half(
 {
   Measurement::Start("func_QTZ_linear_mid_tread_half");
 
-  T_FLOAT min_value = 0;
-  T_FLOAT n = (1 << nbit) - 1;
-  unsigned num_elems = in_height * in_width * in_depth * in_channel;
+  const T_FLOAT min_value = 0;
+  const T_FLOAT n = (1 << nbit) - 1;
+  const unsigned num_elems = in_height * in_width * in_depth * in_channel;
 
   for (unsigned i = 0; i < num_elems; i++)
   {
