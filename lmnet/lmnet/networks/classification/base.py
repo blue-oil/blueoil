@@ -166,6 +166,15 @@ class Base(BaseNetwork):
                     tf.summary.image(class_name, overlap, max_outputs=1)
 
     def _calc_top_k(self, softmax, labels, k):
+        """Calculate the mean top k accuracy.
+        In the case that multiple classes are on the top k boundary, the order of the class indices is used
+        to break the tie - lower indices given preference - so that only k predictions are included in the top k.
+
+        Args:
+            softmax (Tensor): class predictions from the softmax. Shape is [batch_size, num_classes].
+            labels (Tensor): onehot ground truth labels. Shape is [batch_size, num_classes].
+            k (int): number of top predictions to use.
+        """
 
         argmax_labels = tf.cast(tf.argmax(labels, 1), tf.int32)
         argmax_labels = tf.expand_dims(argmax_labels, 1)
