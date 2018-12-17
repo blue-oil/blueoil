@@ -5,6 +5,7 @@
 #include "blueoil_image.hpp"
 #include "blueoil_opencv.hpp"
 #include "blueoil_data_processor.hpp"
+#include "tensor_util.hpp"
 
 float test_input[3][8][8] =
     { { // Red
@@ -64,14 +65,14 @@ int test_data_processor_resize() {
     const std::pair<int, int>& image_size = std::make_pair(width, height);
     blueoil::Tensor input({3, 8, 8}, (float *)test_input);
     blueoil::Tensor expect({3, 4, 4}, (float *)test_expect);
-    input = blueoil::image::Tensor_CHW_to_HWC(input);
-    expect = blueoil::image::Tensor_CHW_to_HWC(expect);
+    input = blueoil::util::Tensor_CHW_to_HWC(input);
+    expect = blueoil::util::Tensor_CHW_to_HWC(expect);
     blueoil::Tensor output = blueoil::data_processor::Resize(input,
 							     image_size);
     if (! output.allclose(expect)) {
 	std::cerr << "test_data_processor_resize: output != expect" << std::endl;
-	output = blueoil::image::Tensor_HWC_to_CHW(output);
-	expect = blueoil::image::Tensor_HWC_to_CHW(expect);
+	output = blueoil::util::Tensor_HWC_to_CHW(output);
+	expect = blueoil::util::Tensor_HWC_to_CHW(expect);
 	output.dump();
 	expect.dump();
 	return EXIT_FAILURE;
