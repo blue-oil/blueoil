@@ -22,11 +22,11 @@ Tensor Tensor_fromCVMat(cv::Mat img) {
       float *tensorPixel = tensor.dataAsArray({y, x, 0});
       uchar *imgPixel = &(img.data[ y * img.step + x * img.elemSize()]);
       if (channels == 1) {
-	tensorPixel[0] = imgPixel[0]; // I (grayscale)
+        tensorPixel[0] = imgPixel[0]; // I (grayscale)
       } else {  // (channels == 3)
-	tensorPixel[0] = imgPixel[2]; // R
-	tensorPixel[1] = imgPixel[1]; // G
-	tensorPixel[2] = imgPixel[0]; // B
+        tensorPixel[0] = imgPixel[2]; // R
+        tensorPixel[1] = imgPixel[1]; // G
+        tensorPixel[2] = imgPixel[0]; // B
       }
     }
   }
@@ -54,11 +54,11 @@ cv::Mat Tensor_toCVMat(Tensor &tensor) {
       float *tensorPixel = tensor.dataAsArray({y, x, 0});
       uchar *imgPixel = &(img.data[ y * img.step + x * img.elemSize()]);
       if (channels == 1) {
-	imgPixel[0] = tensorPixel[0]; // I (grayscale)
+        imgPixel[0] = tensorPixel[0]; // I (grayscale)
       } else {  // (channels == 3)
-	imgPixel[2] = tensorPixel[0]; // R
-	imgPixel[1] = tensorPixel[1]; // G
-	imgPixel[0] = tensorPixel[2]; // B
+        imgPixel[2] = tensorPixel[0]; // R
+        imgPixel[1] = tensorPixel[1]; // G
+        imgPixel[0] = tensorPixel[2]; // B
       }
     }
   }
