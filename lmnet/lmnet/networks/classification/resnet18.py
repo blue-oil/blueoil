@@ -145,7 +145,8 @@ class Resnet18(Base):
 
         for i in range(0, self.num_residual):
             with tf.variable_scope("unit3_{}".format(i)):
-                if i == 0:                    out = self._residual(out, in_filters=128, out_filters=256, strides=2, is_training=is_training)
+                if i == 0:
+                    out = self._residual(out, in_filters=128, out_filters=256, strides=2, is_training=is_training)
                 else:
                     out = self._residual(out, in_filters=256, out_filters=256, strides=1, is_training=is_training)
 
@@ -238,6 +239,11 @@ class Resnet18Quantize(Resnet18, BaseQuantize):
                                                quantize_first_convolution=self.quantize_first_convolution,
                                                weight_quantization=self.weight_quantization)
 
+
+    def base(self, images, is_training):
+        with tf.variable_scope("", custom_getter=self.custom_getter):
+            return super().base(images, is_training)
+        
         
     @staticmethod
     def _quantized_variable_getter(getter, name, quantize_first_convolution, weight_quantization=None, *args, **kwargs):
@@ -261,5 +267,7 @@ class Resnet18Quantize(Resnet18, BaseQuantize):
             #        return var
 
             if "kernel" == var.op.name.split("/")[-1]:
+                return weight_quantization(var)
+            if "weights" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)
         return var
