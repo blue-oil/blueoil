@@ -33,3 +33,7 @@ common:
 
   # enable dataset prefetch, set false if weired problem happens
   dataset_prefetch: true
+
+  data_augmentation:
+    - Blur:
+        - value: (0, 1)

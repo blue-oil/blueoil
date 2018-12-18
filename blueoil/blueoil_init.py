@@ -13,10 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import inspect
 import re
 
 import whaaaaat
 from jinja2 import Environment, FileSystemLoader
+
+from lmnet.data_processor import Processor
+import lmnet.data_augmentor as augmentor
 
 task_type_choices = [
     'classification',
@@ -225,6 +229,13 @@ def ask_questions():
     }
     dataset_format = prompt(dataset_format_question)
 
+    enable_data_augmentation = {
+        'type': 'confirm',
+        'name': 'value',
+        'message': 'enable data augmentation?',
+        'default': True
+    }
+
     train_dataset_path_question = {
         'type': 'input',
         'name': 'value',
@@ -298,13 +309,45 @@ def ask_questions():
     _tmp_learning_rate_schedule = prompt(learning_rate_schedule_question)
     learning_rate_schedule = learning_rate_schedule_map[_tmp_learning_rate_schedule]
 
+    if prompt(enable_data_augmentation):
+        all_augmentor = {}
+        checkboxes = []
+        for name, obj in inspect.getmembers(augmentor):
+            if inspect.isclass(obj) and issubclass(obj, Processor):
+                argspec = inspect.getfullargspec(obj)
+                # ignore self
+                args = argspec.args[1:]
+                defaults = argspec.defaults
+                if len(args) == len(defaults):
+                    default_val = [(arg, default) for arg, default in zip(args, defaults)]
+                    default_str = " (default: {})".format(", ".join(["{}={}".format(a, d) for a, d in default_val]))
+                else:
+                    defaults = ("# Please fill a value.",) * (len(args) - len(defaults)) + defaults
+                    default_val = [(arg, default) for arg, default in zip(args, defaults)]
+                    default_str = " (**caution**: No default value is provided, \
+please modify manually after config exported.)"
+
+                all_augmentor[name + default_str] = {"name": name, "defaults": default_val}
+                checkboxes.append({"name": name + default_str, "value": name})
+        data_augmentation_question = {
+            'type': 'checkbox',
+            'name': 'value',
+            'message': 'Please choose augmentors:',
+            'choices': checkboxes
+        }
+        data_augmentation_res = prompt(data_augmentation_question)
+        data_augmentation = {}
+        if data_augmentation_res:
+            for v in data_augmentation_res:
+                data_augmentation[all_augmentor[v]["name"]] = all_augmentor[v]["defaults"]
+
     quantize_first_convolution_question = {
         'type': 'rawlist',
         'name': 'value',
         'message': 'apply quantization at the first layer?',
         'choices': ['yes', 'no']
     }
-    quantize_first_convolution= prompt(quantize_first_convolution_question)
+    quantize_first_convolution = prompt(quantize_first_convolution_question)
 
     r = {}
     for k, v in locals().items():
