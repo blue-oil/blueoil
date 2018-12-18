@@ -136,6 +136,7 @@ def _blueoil_to_lmnet(blueoil_config):
     batch_size = blueoil_config["trainer"]["batch_size"]
     initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"]
     learning_rate_setting = blueoil_config["trainer"]["learning_rate_setting"]
+    max_epochs = blueoil_config["trainer"]["epochs"]
 
     # common
     image_size = blueoil_config["common"]["image_size"]
@@ -165,8 +166,7 @@ def _blueoil_to_lmnet(blueoil_config):
         "dataset_class_property": dataset_class_property,
 
         "batch_size": batch_size,
-        "max_epochs": "",
-        "max_steps": "",
+        "max_epochs": max_epochs,
         "initial_learning_rate": initial_learning_rate,
         "learning_rate_setting": learning_rate_setting,
 
@@ -177,12 +177,6 @@ def _blueoil_to_lmnet(blueoil_config):
         "dataset": dataset,
         "data_augmentation": data_augmentation
     }
-
-    # max_epochs or max_steps
-    if "steps" in blueoil_config["trainer"].keys():
-        config["max_steps"] = blueoil_config["trainer"]["steps"]
-    elif "epochs" in blueoil_config["trainer"].keys():
-        config["max_epochs"] = blueoil_config["trainer"]["epochs"]
 
     # merge dict
     lmnet_config = default_lmnet_config.copy()
