@@ -113,7 +113,7 @@ trainer_optimizers = [
     '  optimizer: MomentumOptimizer\n',
 ]
 
-trainer_lr_schedule_comment = """
+trainer_lr_schedule_comment = """\
   # supported 'learning_rate_schedule' is 'constant', '2-step-decay', '3-step-decay', '3-step-decay-with-warmup'.
   #   'constant' -> constant learning rate.
   #   '2-step-decay' -> learning rate reduce to 1/10 on epochs/2 and epochs-1.
@@ -244,7 +244,7 @@ def learning_settings_to_yaml(index):
     #fp.write(str(trainer_optimizer_comment))
     # trainer optimizer 
     #fp.write(str(trainer_optimizers[index]))
-    # trainer lr setting comment
+    # trainer lr schedule comment
     fp.write(str(trainer_lr_schedule_comment))
     # trainer lr schedule
     fp.write(str(trainer_lr_schedules[index]))

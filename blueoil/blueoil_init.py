@@ -307,7 +307,9 @@ def ask_questions():
         'default': learning_rate_schedule_map["constant"],
     }
     _tmp_learning_rate_schedule = prompt(learning_rate_schedule_question)
-    learning_rate_schedule = learning_rate_schedule_map[_tmp_learning_rate_schedule]
+    for key, value in learning_rate_schedule_map.items():
+        if value == _tmp_learning_rate_schedule:
+            learning_rate_schedule = key
 
     if prompt(enable_data_augmentation):
         all_augmentor = {}
