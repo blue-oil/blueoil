@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 # Copyright 2018 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,6 +86,7 @@ class Resnet18(Base):
                 strides=1,
                 is_debug=self.is_debug,
             )
+            bn2 = batch_norm("bn2", conv2, is_training=is_training)
 
             with tf.variable_scope('sub_add'):
                 if in_filters != out_filters:
@@ -99,8 +100,8 @@ class Resnet18(Base):
                         inputs,
                         [[0, 0], [0, 0], [0, 0], [(out_filters - in_filters)//2, (out_filters - in_filters)//2]]
                     )
-            output = conv2 + inputs
-            bn2 = batch_norm("bn2", output, is_training=is_training)
+
+            output = bn2 + inputs
             with tf.variable_scope('relu2'):
                 relu2 = tf.nn.relu(output)
 
@@ -199,7 +200,8 @@ class Resnet18(Base):
         for var in tf.trainable_variables():
             # exclude batch norm variable
             if not ("bn" in var.name and "beta" in var.name):
-                costs.append(tf.nn.l2_loss(var))
+                if not ("relu" in var.name):
+                    costs.append(tf.nn.l2_loss(var))
 
         return tf.add_n(costs) * self.weight_decay_rate
 
