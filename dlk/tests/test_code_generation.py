@@ -46,6 +46,18 @@ def dict_codegen_classification_x86() -> dict:
             }
 
 
+def dict_codegen_resnet_classification_x86() -> dict:
+    """Test parameters for testing code generation for classification on CPU (float only)"""
+    return {'model_path': os.path.join('examples', 'classification', 'resnet_quantize_cifar10'),
+            'expected_output_set_name': '9984_horse.png',
+            'prefix': 'resnet_cls',
+            'input_name': '000_images_placeholder:0.npy',
+            'output_npy_name': '368_output:0.npy',
+            'hard_quantize': False,
+            'threshold_skipping': False
+            }
+
+
 def dict_codegen_group_conv_classification_x86() -> dict:
     """Test parameters for testing code generation for classification on CPU"""
     return {'model_path': os.path.join('examples', 'classification', 'lmnet_v1_group_conv'),
@@ -172,6 +184,12 @@ def get_configurations():
         dict_codegen_group_conv_classification_x86(),
         updated_dict(dict_codegen_group_conv_classification_x86(), {'hard_quantize': True}),
         dict_codegen_classification_cpu_hq_ts(),
+
+        # Classification resnet / x86
+        dict_codegen_resnet_classification_x86(),
+        updated_dict(dict_codegen_resnet_classification_x86(), {'hard_quantize': True}),
+        updated_dict(dict_codegen_resnet_classification_x86(),
+                     {'hard_quantize': True, 'threshold_skipping': True}),
 
         # Detection / x86
         dict_codegen_object_detection_x86(),
