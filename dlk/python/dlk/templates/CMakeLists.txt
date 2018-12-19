@@ -39,6 +39,7 @@ list(APPEND SRC_LIB_ALL
     src/func/max.cpp
     src/func/max_pool.cpp
     src/func/minimum.cpp
+    src/func/pad.cpp
     src/func/mul.cpp
     src/func/quantize.cpp
     src/func/quantized_conv2d.cpp
