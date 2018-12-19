@@ -186,9 +186,9 @@ def get_configurations():
 
         # Classification resnet / x86
         dict_codegen_resnet_classification_x86(),
-        # updated_dict(dict_codegen_resnet_classification_x86(), {'hard_quantize': True}),
-        # updated_dict(dict_codegen_resnet_classification_x86(),
-        #              {'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(dict_codegen_resnet_classification_x86(), {'hard_quantize': True}),
+        updated_dict(dict_codegen_resnet_classification_x86(),
+                     {'hard_quantize': True, 'threshold_skipping': True}),
 
         dict_codegen_classification_cpu_hq_ts(),
 
