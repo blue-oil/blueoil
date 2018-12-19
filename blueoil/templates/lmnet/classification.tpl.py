@@ -49,11 +49,7 @@ dataset_obj = DATASET_CLASS(subset="train", batch_size=1)
 CLASSES = dataset_obj.classes
 step_per_epoch = float(dataset_obj.num_per_epoch)/BATCH_SIZE
 
-{% if max_epochs -%}
 MAX_EPOCHS = {{max_epochs}}
-{%- elif max_steps -%}
-MAX_STEPS = {{max_steps}}
-{%- endif %}
 SAVE_STEPS = {{save_steps}}
 TEST_STEPS = {{test_steps}}
 SUMMARISE_STEPS = {{summarise_steps}}
