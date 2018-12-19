@@ -65,6 +65,10 @@ IMAGE_SIZE_VALIDATION = {
         "max_size": 512,
         "divider": 16,
     },
+    "ResNetQuantize": {
+        "max_size": 512,
+        "divider": 16,
+    },
     "LMFYoloQuantize": {
         "max_size": 480,
         "divider": 32,
