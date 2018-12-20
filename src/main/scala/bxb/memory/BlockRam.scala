@@ -8,16 +8,14 @@ import chisel3._
 class BlockRam(size: Int, width: Int) extends Module {
   val addrWidth = Chisel.log2Up(size)
   val io = IO(new Bundle {
-    val readAddr = Input(UInt(addrWidth.W))
-    val writeAddr = Input(UInt(addrWidth.W))
-    val writeData = Input(UInt(width.W))
-    val writeEnable = Input(Bool())
+    val read = Input(ReadPort(addrWidth))
+    val write = Input(WritePort(addrWidth, width))
     val readQ = Output(UInt(width.W))
   })
   val bank = SyncReadMem(size, UInt(width.W))
-  io.readQ := bank.read(io.readAddr, true.B)
-  when(io.writeEnable) {
-    bank.write(io.writeAddr, io.writeData)
+  io.readQ := bank.read(io.read.addr, true.B)
+  when(io.write.enable) {
+    bank.write(io.write.addr, io.write.data)
   }
 }
 
