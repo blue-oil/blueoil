@@ -23,88 +23,88 @@ int calcVolume(const std::vector<int>& shape) {
 }
 
 Tensor::Tensor(std::vector<int> shape)
-  : m_shape(shape),
-    m_data(std::vector<float>(calcVolume(std::move(shape)), 0)) {
+  : shape_(shape),
+    data_(std::vector<float>(calcVolume(std::move(shape)), 0)) {
 }
 
 Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
-  : m_shape(std::move(shape)),
-    m_data(std::move(data)) {
+  : shape_(std::move(shape)),
+    data_(std::move(data)) {
 }
 
 Tensor::Tensor(std::vector<int> shape, float *arr)
-  : m_shape(shape),
-    m_data(std::vector<float>(arr,
+  : shape_(shape),
+    data_(std::vector<float>(arr,
 			      arr + calcVolume(std::move(shape)))) {
 }
 
 Tensor::Tensor(const Tensor &tensor)
-  : m_shape(tensor.m_shape),
-    m_data(tensor.m_data) {
+  : shape_(tensor.shape_),
+    data_(tensor.data_) {
 }
 
 int Tensor::shapeVolume() {
-  return calcVolume(m_shape);
+  return calcVolume(shape_);
 }
 
 std::vector<int> Tensor::shape() const {
-  return m_shape;
+  return shape_;
 }
 
 std::vector<float> &Tensor::data() {
-  return m_data;
+  return data_;
 }
 
 const float *Tensor::dataAsArray() const {
-  if (m_shape.size() == 0) {
+  if (shape_.size() == 0) {
     throw std::invalid_argument("Tensor have no shape");
   }
-  return m_data.data();
+  return data_.data();
 }
 
 const float *Tensor::dataAsArray(std::vector<int> indices) const {
-  if (m_shape.size() != indices.size() ) {
+  if (shape_.size() != indices.size() ) {
     throw std::invalid_argument("shape.size != indices.size");
   }
   int i = 0;
   for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-    if ((*itr < 0) || (m_shape[i] <= *itr)) {
+    if ((*itr < 0) || (shape_[i] <= *itr)) {
       throw std::invalid_argument("indices out of shape range");
     }
   }
-  int offset = 0, size = m_data.size();
+  int offset = 0, size = data_.size();
   i = 0;
   for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-    size /= m_shape[i];
+    size /= shape_[i];
     offset += (*itr) * size;
   }
-  return m_data.data() + offset;
+  return data_.data() + offset;
 }
 
 float *Tensor::dataAsArray() {
-  if (m_shape.size() == 0) {
+  if (shape_.size() == 0) {
     throw std::invalid_argument("Tensor have no shape");
   }
-  return m_data.data();
+  return data_.data();
 }
 
 float *Tensor::dataAsArray(std::vector<int> indices) {
-  if (m_shape.size() != indices.size() ) {
+  if (shape_.size() != indices.size() ) {
     throw std::invalid_argument("shape.size != indices.size");
   }
   int i = 0;
   for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-    if ((*itr < 0) || (m_shape[i] <= *itr)) {
+    if ((*itr < 0) || (shape_[i] <= *itr)) {
       throw std::invalid_argument("indices out of shape range");
     }
   }
-  int offset = 0, size = m_data.size();
+  int offset = 0, size = data_.size();
   i = 0;
   for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-    size /= m_shape[i];
+    size /= shape_[i];
     offset += (*itr) * size;
   }
-  return m_data.data() + offset;
+  return data_.data() + offset;
 }
 
 
@@ -152,31 +152,31 @@ static void Tensor_data_dump(const float *data, const std::vector<int>& shape){
 
 // dump N-dimentional array
 void Tensor::dump() const {
-  Tensor_shape_dump(m_shape);
-  Tensor_data_dump(m_data.data(), m_shape);
+  Tensor_shape_dump(shape_);
+  Tensor_data_dump(data_.data(), shape_);
 }
 
 
 std::vector<float>::const_iterator Tensor::begin() const {
-  return m_data.begin();
+  return data_.begin();
 }
 
 std::vector<float>::const_iterator Tensor::end() const {
-  return m_data.end();
+  return data_.end();
 }
 
 std::vector<float>::iterator Tensor::begin() {
-  return m_data.begin();
+  return data_.begin();
 }
 
 std::vector<float>::iterator Tensor::end() {
-  return m_data.end();
+  return data_.end();
 }
 
 
 // all elements exact equals check.
 bool Tensor::allequal(const Tensor &tensor) const {
-  if ((m_shape != tensor.m_shape) || (m_data != tensor.m_data)) {
+  if ((shape_ != tensor.shape_) || (data_ != tensor.data_)) {
     return false;
   }
   return true;
@@ -190,13 +190,13 @@ bool Tensor::allclose(const Tensor &tensor) const {
 }
 
 bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) const {
-  if (m_shape != tensor.m_shape) {
+  if (shape_ != tensor.shape_) {
     return false;
   }
-  int n = m_data.size();
+  int n = data_.size();
   for (int i = 0 ; i < n ; i++) {
-    float a = m_data[i];
-    float b = tensor.m_data[i];
+    float a = data_[i];
+    float b = tensor.data_[i];
     if (std::abs(a - b) > (atol + rtol * std::abs(b))) {
       return false;
     }
