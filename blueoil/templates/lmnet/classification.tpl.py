@@ -19,16 +19,10 @@ import tensorflow as tf
 from lmnet.common import Tasks
 from lmnet.networks.classification.{{network_module}} import {{network_class}}
 from lmnet.datasets.{{dataset_module}} import {{dataset_class}}
+{% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
+    {{ augmentor[0] }},{% endfor %}
+){% endif %}
 from lmnet.data_processor import Sequence
-from lmnet.data_augmentor import (
-    Crop,
-    FlipLeftRight,
-    Pad,
-    Brightness,
-    Color,
-    Contrast,
-    Hue,
-)
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
@@ -55,11 +49,7 @@ dataset_obj = DATASET_CLASS(subset="train", batch_size=1)
 CLASSES = dataset_obj.classes
 step_per_epoch = float(dataset_obj.num_per_epoch)/BATCH_SIZE
 
-{% if max_epochs -%}
 MAX_EPOCHS = {{max_epochs}}
-{%- elif max_steps -%}
-MAX_STEPS = {{max_steps}}
-{%- endif %}
 SAVE_STEPS = {{save_steps}}
 TEST_STEPS = {{test_steps}}
 SUMMARISE_STEPS = {{summarise_steps}}
@@ -127,14 +117,7 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([
-    Resize(size=IMAGE_SIZE),
-    Pad(4),
-    Crop(size=IMAGE_SIZE),
-    FlipLeftRight(),
-    Brightness((0.75, 1.25)),
-    Color((0.75, 1.25)),
-    Contrast((0.75, 1.25)),
-    Hue((-10, 10)),
-])
+DATASET.AUGMENTOR = Sequence([{% if data_augmentation %}{% for augmentor in data_augmentation %}
+    {{ augmentor[0] }}({% for d_name, d_value in augmentor[1] %}{{ d_name }}={{ d_value }}, {% endfor %}),{% endfor %}
+{% endif %}])
 
