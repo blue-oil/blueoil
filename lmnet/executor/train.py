@@ -97,6 +97,7 @@ def start_training(config):
                 classes=train_dataset.classes,
                 num_max_boxes=train_dataset.num_max_boxes,
                 is_debug=config.IS_DEBUG,
+                distribution_num_worker=num_worker,
                 **network_kwargs,
             )
         elif ModelClass.__module__.startswith("lmnet.networks.segmentation"):
@@ -104,12 +105,14 @@ def start_training(config):
                 classes=train_dataset.classes,
                 label_colors=train_dataset.label_colors,
                 is_debug=config.IS_DEBUG,
+                distribution_num_worker=num_worker,
                 **network_kwargs,
             )
         else:
             model = ModelClass(
                 classes=train_dataset.classes,
                 is_debug=config.IS_DEBUG,
+                distribution_num_worker=num_worker,
                 **network_kwargs,
             )
 
@@ -367,7 +370,7 @@ def start_training(config):
     print("reach max step")
 
 
-def run(network, dataset, config_file, experiment_id, recreate):
+def run(network, dataset, config_file, experiment_id, recreate, distribute):
     environment.init(experiment_id)
 
     config = config_util.load(config_file)
@@ -378,6 +381,8 @@ def run(network, dataset, config_file, experiment_id, recreate):
     if dataset:
         dataset_class = module_loader.load_dataset_class(dataset)
         config.DATASET_CLASS = dataset_class
+    if distribute:
+        config.IS_DISTRIBUTION = True
 
     config_util.display(config)
     executor.init_logging(config)
@@ -420,8 +425,14 @@ def run(network, dataset, config_file, experiment_id, recreate):
     "--dataset",
     help="dataset name which is the source of this training. override config.NETWORK_CLASS",
 )
-def main(network, dataset, config_file, experiment_id, recreate):
-    run(network, dataset, config_file, experiment_id, recreate)
+@click.option(
+    "--distribute",
+    is_flag=True,
+    help="run as distributed training. override config.IS_DISTRIBUTION",
+    default=False,
+)
+def main(network, dataset, config_file, experiment_id, recreate, distribute):
+    run(network, dataset, config_file, experiment_id, recreate, distribute)
 
 
 if __name__ == '__main__':

@@ -8,6 +8,7 @@ function usage_exit(){
 	echo "${NAME} convert <YML_CONFIG_FILE> <EXPERIMENT_DIRECTORY> <CHECKPOINT_NO(optional)>"
 	echo "${NAME} predict <YML_CONFIG_FILE> <INPUT_DIRECTORY> <OUTPUT_DIRECTORY> <EXPERIMENT_DIRECTORY> <CHECKPOINT_NO(optional)>"
 	echo "${NAME} tensorboard <EXPERIMENT_DIRECTORY> <PORT(optional)>"
+	echo "${NAME} dist-train <YML_CONFIG_FILE> <NUM_WORKERS> <OUTPUT_DIRECTORY(optional)> <EXPERIMENT_ID(optional)>"
 	echo ""
 	echo "EXAMPLE: Run training"
 	echo "${NAME} train config/test.yml"
@@ -20,6 +21,9 @@ function usage_exit(){
 	echo ""
 	echo "EXAMPLE: Serve tensorboard"
 	echo "${NAME} tensorboard ./saved/test_20180101000000 6006"
+	echo ""
+	echo "EXAMPLE: Run distributed training with 4 GPUs"
+	echo "${NAME} dist-train config/test.yml 4"
 	exit 1
 }
 
@@ -142,6 +146,7 @@ function blueoil_train(){
 	create_directory ${OUTPUT_DIR}
 	OUTPUT_DIR=$(get_abs_path ${OUTPUT_DIR})
 	EXPERIMENT_ID=$3
+	NUM_WORKERS=$4
 	set_lmnet_docker_options
 
 	if [ -z "${EXPERIMENT_ID}" ]; then
@@ -149,10 +154,15 @@ function blueoil_train(){
 		EXPERIMENT_ID=${CONFIG_NAME}_${TIME_STAMP}
 	fi
 
+	if [-n "${NUM_WORKERS}" ]; then
+		DOCKER_IMAGE=${DOCKER_IMAGE}_dist
+		DISTRIBUTED_COMMANDS="mpirun -np ${NUM_WORKERS} "
+	fi
+
 	echo "#### Run training (${EXPERIMENT_ID}) ####"
 
 	docker run ${LMNET_DOCKER_OPTIONS} ${DOCKER_IMAGE} \
-		python blueoil/blueoil_train.py -c ${GUEST_CONFIG_DIR}/${YML_CONFIG_FILE_NAME} -i ${EXPERIMENT_ID}
+		${DISTRIBUTED_COMMANDS} python blueoil/blueoil_train.py -c ${GUEST_CONFIG_DIR}/${YML_CONFIG_FILE_NAME} -i ${EXPERIMENT_ID}
 	error_exit $? "Training exited with a non-zero status"
 
 	if [ ! -f ${OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/checkpoint ]; then
@@ -266,6 +276,12 @@ case "$1" in
 		check_num_args $# -gt 3
 		check_files_and_directories $2
 		blueoil_tensorboard $2 $3
+		exit 0;;
+	"dist-train" )
+		check_num_args $# -lt 3
+		check_num_args $# -gt 5
+		check_files_and_directories $2
+		blueoil_train $2 $4 $5 $3
 		exit 0;;
 	* )
 		echo "ERROR: Unsupported Operation."

@@ -47,7 +47,8 @@ class BaseNetwork(object):
             classes=(),
             image_size=(),  # [height, width]
             batch_size=64,
-            data_format='NHWC'
+            data_format='NHWC',
+            distribution_num_worker=1
     ):
 
         if data_format not in ["NCHW", "NHWC"]:
@@ -63,6 +64,7 @@ class BaseNetwork(object):
         self.image_size = image_size
         self.batch_size = batch_size
         self.data_format = data_format
+        self.distribution_num_worker=distribution_num_worker
 
     def base(self, images, is_training, *args, **kwargs):
         """Base function contains inference.
@@ -142,6 +144,9 @@ class BaseNetwork(object):
                     global_step=global_step,
                     **self.learning_rate_kwargs
                 )
+
+        # learning rate linear scaling in proportion to the number of workers
+        learning_rate = learning_rate * self.distribution_num_worker
 
         tf.summary.scalar("learning_rate", learning_rate)
         self.optimizer_kwargs["learning_rate"] = learning_rate

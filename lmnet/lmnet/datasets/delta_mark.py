@@ -21,7 +21,7 @@ import numpy as np
 import PIL.Image
 import pandas as pd
 
-from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
+from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable, DistributionInterface
 from lmnet import data_processor
 from lmnet.utils.random import shuffle, train_test_split
 
@@ -66,7 +66,7 @@ def _images_from_json(json_file):
     return images
 
 
-class DeltaMarkMixin():
+class DeltaMarkMixin(DistributionInterface):
 
     def __init__(
             self,
@@ -89,6 +89,7 @@ class DeltaMarkMixin():
             "json": os.path.join(self.data_dir, json_file),
             "dir": os.path.join(self.data_dir, image_dir)
         }
+        self.files, self.annotations = self.files_and_annotations
 
     @property
     def indices(self):
@@ -120,7 +121,7 @@ class DeltaMarkMixin():
 
     @property
     def num_per_epoch(self):
-        files, _ = self.files_and_annotations
+        files = self.files
         return len(files)
 
     @property
@@ -150,6 +151,25 @@ class DeltaMarkMixin():
 
     def _files_and_annotations(self):
         raise NotImplementedError
+
+    # For distributed training
+    def update_dataset(self, indices):
+        """Update own dataset by indices."""
+        # Re Initialize dataset
+        self._init_files_and_annotations()
+        # Update dataset by given indices
+        self.files = self.files[indices]
+        self.annotations = self.annotations[indices]
+
+        self.element_counter = 0
+
+    def get_shuffle_index(self):
+        """Return list of shuffled index."""
+        random_indices = shuffle(range(self.num_per_epoch), seed=self.seed)
+        print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
+        self.seed += 1
+
+        return random_indices
 
 
 class ClassificationBase(DeltaMarkMixin, StoragePathCustomizable, Base):
@@ -197,9 +217,8 @@ class ClassificationBase(DeltaMarkMixin, StoragePathCustomizable, Base):
             self.element_counter = 0
             self._shuffle()
 
-        files, labels_list = self.files_and_annotations
-        target_file = files[index]
-        labels = labels_list[index]
+        target_file = self.files[index]
+        labels = self.annotations[index]
         labels = np.array(labels)
 
         image = PIL.Image.open(target_file)
@@ -273,7 +292,7 @@ class ObjectDetectionBase(DeltaMarkMixin, StoragePathCustomizable, ObjectDetecti
 
         for subset in cls.available_subsets:
             obj = cls(subset=subset, is_shuffle=False)
-            _, gt_boxes_list = obj.files_and_annotations
+            gt_boxes_list = obj.annotations
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])
             if subset_max >= num_max_boxes:
@@ -316,7 +335,8 @@ class ObjectDetectionBase(DeltaMarkMixin, StoragePathCustomizable, ObjectDetecti
             self.element_counter = 0
             self._shuffle()
 
-        files, annotations = self.files_and_annotations
+        files = self.files
+        annotations = self.annotations
         target_file = files[index]
         gt_boxes = annotations[index]
         gt_boxes = np.array(gt_boxes)

@@ -26,7 +26,7 @@ import numpy as np
 import PIL
 
 from lmnet import data_processor
-from lmnet.datasets.base import Base, StoragePathCustomizable
+from lmnet.datasets.base import Base, StoragePathCustomizable, DistributionInterface
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.utils.random import shuffle, train_test_split
 
@@ -46,6 +46,7 @@ class OpenImagesV4(Base):
         super().__init__(*args, **kwargs)
 
         self.is_shuffle = is_shuffle
+        self.files, self.annotations = self.files_and_annotations
 
     @property
     def class_descriptions_csv(self):
@@ -77,7 +78,7 @@ class OpenImagesV4(Base):
 
     @property
     def num_per_epoch(self):
-        files, _ = self.files_and_annotations
+        files = self.files
         return len(files)
 
     @property
@@ -205,7 +206,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
 
         for subset in cls.available_subsets:
             obj = cls(subset=subset, is_shuffle=False)
-            _, gt_boxes_list = obj.files_and_annotations
+            gt_boxes_list = obj.annotations
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])
             if subset_max >= num_max_boxes:
@@ -244,7 +245,8 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
             self.element_counter = 0
             self._shuffle()
 
-        files, gt_boxes_list = self.files_and_annotations
+        files = self.files
+        gt_boxes_list = self.annotations
         target_file = files[index]
         gt_boxes = gt_boxes_list[index]
 
@@ -325,9 +327,8 @@ class OpenImagesV4Classification(OpenImagesV4):
             self.element_counter = 0
             self._shuffle()
 
-        files, labels = self.files_and_annotations
-        label = labels[index]
-        target_file = files[index]
+        label = self.annotations[index]
+        target_file = self.files[index]
 
         image = PIL.Image.open(target_file)
         image = np.array(image.convert(mode="RGB"))
@@ -363,7 +364,7 @@ class OpenImagesV4Classification(OpenImagesV4):
         return files, annotations
 
 
-class OpenImagesV4BoundingBoxBase(StoragePathCustomizable, OpenImagesV4BoundingBox):
+class OpenImagesV4BoundingBoxBase(StoragePathCustomizable, OpenImagesV4BoundingBox, DistributionInterface):
     """Abstract class of dataset Open Images v4 format dataset.
 
     structure like
@@ -448,3 +449,21 @@ class OpenImagesV4BoundingBoxBase(StoragePathCustomizable, OpenImagesV4BoundingB
             annotations.append(v)
 
         return files, annotations
+
+    def update_dataset(self, indices):
+        """Update own dataset by indices."""
+        # Re Initialize dataset
+        self.files, self.annotations = self.files_and_annotations
+        # Update dataset by given indices
+        self.files = self.files[indices]
+        self.annotations = self.annotations[indices]
+
+        self.element_counter = 0
+
+    def get_shuffle_index(self):
+        """Return list of shuffled index."""
+        random_indices = shuffle(range(self.num_per_epoch), seed=self.seed)
+        print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
+        self.seed += 1
+
+        return random_indices

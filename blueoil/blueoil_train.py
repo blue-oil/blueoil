@@ -19,14 +19,21 @@ from blueoil.generate_lmnet_config import generate
 from executor.train import run as run_train
 
 
-def run(blueoil_config_file, experiment_id):
+def run(blueoil_config_file, experiment_id, distribute):
     """Train from blueoil config."""
 
     # Generete lmnet config from blueoil config.
     lmnet_config_file = generate(blueoil_config_file)
 
     # Start training
-    run_train(network=None, dataset=None, config_file=lmnet_config_file, experiment_id=experiment_id, recreate=False)
+    run_train(
+        network=None,
+        dataset=None,
+        config_file=lmnet_config_file,
+        experiment_id=experiment_id,
+        recreate=False,
+        distribute=distribute
+    )
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
@@ -43,8 +50,14 @@ def run(blueoil_config_file, experiment_id):
     default="experiment",
     required=True,
 )
-def main(config_file, experiment_id):
-    run(config_file, experiment_id)
+@click.option(
+    "--distribute",
+    is_flag=True,
+    help="run as distributed training. override config.IS_DISTRIBUTION",
+    default=False,
+)
+def main(config_file, experiment_id, distribute):
+    run(config_file, experiment_id, distribute)
 
 
 if __name__ == '__main__':

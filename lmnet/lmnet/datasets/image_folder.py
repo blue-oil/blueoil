@@ -22,7 +22,7 @@ import os.path
 import numpy as np
 import PIL.Image
 
-from lmnet.datasets.base import Base, StoragePathCustomizable
+from lmnet.datasets.base import Base, StoragePathCustomizable, DistributionInterface
 from lmnet import data_processor
 from lmnet.utils.random import shuffle, train_test_split
 
@@ -53,6 +53,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
         self.is_shuffle = is_shuffle
         self.element_counter = 0
+        self.files = self.data_files
 
     @property
     @functools.lru_cache(maxsize=None)
@@ -70,7 +71,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
     @property
     def num_per_epoch(self):
-        return len(self.data_files)
+        return len(self.files)
 
     def _all_files(self):
         all_image_files = []
@@ -82,7 +83,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
         return all_image_files
 
-    @property
+    property
     @functools.lru_cache(maxsize=None)
     def data_files(self):
         all_image_files = self._all_files()
@@ -146,7 +147,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
             self.element_counter = 0
             self._shuffle()
 
-        target_file = self.data_files[index]
+        target_file = self.files[index]
 
         image = self.get_image(target_file)
         label = self.get_label(target_file)
@@ -173,3 +174,20 @@ class ImageFolderBase(StoragePathCustomizable, Base):
         if self.data_format == 'NCHW':
             images = np.transpose(images, [0, 3, 1, 2])
         return images, labels
+
+    def update_dataset(self, indices):
+        """Update own dataset by indices."""
+        # Re Initialize dataset
+        self.files = self.data_files
+        # Update dataset by given indices
+        sself.files = self.files[indices]
+
+        self.element_counter = 0
+
+    def get_shuffle_index(self):
+        """Return list of shuffled index."""
+        random_indices = shuffle(range(self.num_per_epoch), seed=self.seed)
+        print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
+        self.seed += 1
+
+        return random_indices
