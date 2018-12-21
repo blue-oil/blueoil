@@ -10,3 +10,11 @@ Using Chisel to prototype some aspects of TCA in RTL
 
 ## TwoBlockRam
 ![TwoBlockRam](/docs/diagrams/TwoBlockRam.png)
+
+## Accumulation Pipeline
+
+**one stage block**
+![TwoBlockRam](/docs/diagrams/accumulationPipelineElement.png)
+
+**assembled pipeline (B=3)**
+![TwoBlockRam](/docs/diagrams/accumulationPipeline.png)
