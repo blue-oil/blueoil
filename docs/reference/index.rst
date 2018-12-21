@@ -2,5 +2,7 @@
 Reference
 *********
 
-Reference is in preparation.
+.. toctree::
+   :maxdepth: 2
 
+   data_augmentor
