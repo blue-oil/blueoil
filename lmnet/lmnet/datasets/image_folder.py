@@ -53,7 +53,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
         self.is_shuffle = is_shuffle
         self.element_counter = 0
-        self.files = self.data_files
+        self.files = self.data_files()
 
     @property
     @functools.lru_cache(maxsize=None)
@@ -178,15 +178,15 @@ class ImageFolderBase(StoragePathCustomizable, Base):
     def update_dataset(self, indices):
         """Update own dataset by indices."""
         # Re Initialize dataset
-        self.files = self.data_files
+        self.files = self.data_files()
         # Update dataset by given indices
-        sself.files = self.files[indices]
+        self.files = [self.files[i] for i in indices]
 
         self.element_counter = 0
 
     def get_shuffle_index(self):
         """Return list of shuffled index."""
-        random_indices = shuffle(range(self.num_per_epoch), seed=self.seed)
+        random_indices = shuffle(range(len(self.data_files())), seed=self.seed)
         print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
         self.seed += 1
 

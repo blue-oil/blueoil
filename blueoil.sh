@@ -142,11 +142,11 @@ function set_lmnet_docker_options(){
 
 function blueoil_train(){
 	set_variables_from_config $1
-	OUTPUT_DIR=${2:-./saved}
+	NUM_WORKERS=$2
+	OUTPUT_DIR=${3:-./saved}
 	create_directory ${OUTPUT_DIR}
 	OUTPUT_DIR=$(get_abs_path ${OUTPUT_DIR})
-	EXPERIMENT_ID=$3
-	NUM_WORKERS=$4
+	EXPERIMENT_ID=$4
 	set_lmnet_docker_options
 
 	if [ -z "${EXPERIMENT_ID}" ]; then
@@ -154,15 +154,15 @@ function blueoil_train(){
 		EXPERIMENT_ID=${CONFIG_NAME}_${TIME_STAMP}
 	fi
 
-	if [-n "${NUM_WORKERS}" ]; then
-		DOCKER_IMAGE=${DOCKER_IMAGE}_dist
-		DISTRIBUTED_COMMANDS="mpirun -np ${NUM_WORKERS} "
-	fi
-
 	echo "#### Run training (${EXPERIMENT_ID}) ####"
 
-	docker run ${LMNET_DOCKER_OPTIONS} ${DOCKER_IMAGE} \
-		${DISTRIBUTED_COMMANDS} python blueoil/blueoil_train.py -c ${GUEST_CONFIG_DIR}/${YML_CONFIG_FILE_NAME} -i ${EXPERIMENT_ID}
+	TRAINING_COMMAND="python blueoil/blueoil_train.py -c ${GUEST_CONFIG_DIR}/${YML_CONFIG_FILE_NAME} -i ${EXPERIMENT_ID}"
+	if [ "${NUM_WORKERS}" -gt 1 ]; then
+		echo "#### Run as distiruted training"
+		DOCKER_IMAGE=${DOCKER_IMAGE}_dist
+		TRAINING_COMMAND="mpirun -np ${NUM_WORKERS} ${TRAINING_COMMAND} --distribute"
+	fi
+	docker run ${LMNET_DOCKER_OPTIONS} ${DOCKER_IMAGE} ${TRAINING_COMMAND}
 	error_exit $? "Training exited with a non-zero status"
 
 	if [ ! -f ${OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/checkpoint ]; then
@@ -257,7 +257,7 @@ case "$1" in
 		check_num_args $# -lt 2
 		check_num_args $# -gt 4
 		check_files_and_directories $2
-		blueoil_train $2 $3 $4
+		blueoil_train $2 "1" $3 $4
 		exit 0;;
 	"convert" )
 		check_num_args $# -lt 3
@@ -281,7 +281,7 @@ case "$1" in
 		check_num_args $# -lt 3
 		check_num_args $# -gt 5
 		check_files_and_directories $2
-		blueoil_train $2 $4 $5 $3
+		blueoil_train $2 $3 $4 $5
 		exit 0;;
 	* )
 		echo "ERROR: Unsupported Operation."
