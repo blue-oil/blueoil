@@ -26,7 +26,7 @@ Check out the [Installation](https://docs.blue-oil.org/install/install.html) and
 - GNU/Linux x86_64 with kernel version > 3.10
 - NVIDIA GPU with Architecture > Fermi (2.1)
 - NVIDIA drivers >= 367.48
-- Docker >=1.12 (or >=17.03.0)
+- Docker >=17.05.0
 - nvidia-docker >= 2.0
 
 The blueoil is run on docker container with original docker image based on NVIDIA's [CUDA images](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA#requirements) (cuda:8.0-cudnn6-devel).

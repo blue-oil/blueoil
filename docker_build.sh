@@ -6,6 +6,11 @@ if [ -z "$(ls -A lmnet/third_party/coco)" ]; then
     exit 1
 fi
 
-docker build -t $(id -un)_blueoil:local_build --build-arg python_version="3.6.3" -f docker/Dockerfile .
+DOCKER_IMAGE_NAME="$(id -un)_blueoil:local_build"
+# build docker image
+docker build -t ${DOCKER_IMAGE_NAME} --build-arg python_version="3.6.3" -f docker/Dockerfile .
 
-docker build -t $(id -un)_blueoil:local_build_dist -f docker/dist.Dockerfile .
+if [ "$1" == "--dist" ]; then
+    # build docker image for distributed training
+    docker build -t ${DOCKER_IMAGE_NAME}_dist --build-arg base_docker_image="${DOCKER_IMAGE_NAME}" -f docker/dist.Dockerfile .
+fi
