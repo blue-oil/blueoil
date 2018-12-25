@@ -24,7 +24,12 @@ class TestAccumulationModule(b: Int, fmemSize: Int, accWidth: Int) extends Modul
   accPipeline.io.accumulate := io.accumulate
   accPipeline.io.writeEnable := io.writeEnable
   accPipeline.io.address := io.address
-  accPipeline.io.accIn := io.accIn
+  // logic of the test assumes that accIn is delayed one cycle so results of the read transaction
+  // and accIn avaliable at the same cycle
+  // after integration with AddressPipeline the condition will be naturally satisfied as due to one cycle read latency of
+  // amem
+  // for now let's just put delay registers here
+  accPipeline.io.accIn := RegNext(io.accIn)
   fmem.io.readA := accPipeline.io.memRead
   fmem.io.writeA := accPipeline.io.memWrite
   accPipeline.io.memQ := fmem.io.qA
