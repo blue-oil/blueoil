@@ -29,7 +29,9 @@ class MacArrayTests(c: MacArray, b: Int) extends PeekPokeTester(c) {
 
     // Fill M with test inputs
     fillM(pane, weights)
-    poke(c.io.evenOdd, pane)
+    for (col <- 0 until b) {
+      poke(c.io.evenOddIn(col), pane)
+    }
 
     // Run & Compare
     val colDelay = 0 until b
