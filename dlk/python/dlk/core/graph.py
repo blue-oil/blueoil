@@ -16,14 +16,8 @@
 """Graph module."""
 from collections import OrderedDict, defaultdict
 from typing import cast, Any, Dict, List, Optional, Set, TYPE_CHECKING
-import functools
-
-from core.operators import Add, AveragePool, BatchNormalization, Constant, Conv, Identity, Input, \
-    MaxPool, Operator, Output, Transpose, QTZ_binary_mean_scaling, QTZ_linear_mid_tread_half, Reshape, Softmax, \
-    Relu, Flatten, Dropout, Gemm, SpaceToDepth, Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, \
-    DepthToSpace, Split
-
-from core.graph_pattern_matching import sort_graph, find_pattern, Pattern
+from core.operators import Conv,  Operator
+from core.graph_pattern_matching import sort_graph
 
 
 class Graph(object):

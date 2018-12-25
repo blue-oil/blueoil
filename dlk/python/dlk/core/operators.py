@@ -17,7 +17,6 @@
 import functools
 import copy
 from itertools import dropwhile
-from collections import OrderedDict
 from typing import cast, Any, Dict, Optional, TYPE_CHECKING
 from core.view import View
 from utils import classproperty
@@ -55,8 +54,6 @@ class Operator(object):
         self._check_consistency()
         self._rank = len(shape)
         self._available_buffer = ''
-        self._visited = False
-        self._prop_details = Dict
 
     def __update_shape(self, shape: List[int], dimension_format: str) -> None:
         self._shape: List[int] = shape

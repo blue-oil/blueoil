@@ -17,23 +17,58 @@
 
 
 class Pattern:
+    """Pattern is a sub-graph based on the operator types.
+       It is a recursive pattern where a Pattern holds a operator type and a list of inputs.
+       Each input in this list is also a Pattern.
+    """
     def __init__(self, op=str(), inputs=list()):
         self.op = op
         self.inputs = inputs
 
 
 class NodeMatch:
+    """NodeMatch defines a sub-graph that match a given Pattern.
+       It is a recursive pattern where a NodeMatch holds a reference to the matched node and a list of inputs.
+       Each input in this list is also a NodeMatch.
+    """
     def __init__(self):
         self.node = None
         self.inputs = list()
 
 
 def find_pattern(graph, pattern):
+    """Helper function that find a pattern in a graph.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph where we will try to find the given pattern.
+
+    pattern : Pattern
+        The pattern we want to look for.
+
+    Returns
+    -------
+    result : [NodeMatch]
+        A list of matches. Each element of the list is a NodeMatch.
+    """
     gm = GraphMatcher(graph)
     return gm.get_op_type_matches(pattern)
 
 
 def sort_graph(graph):
+    """Helper function to topologically sort a given graph.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph to be sorted. It is not modified.
+
+    Returns
+    -------
+    result : [Operator]
+        A list of Operator. Each element of the list is a reference to a Operator object.
+    """
     exec_list = list()
     input_nodes = list()
     for node in graph.operators:
@@ -55,6 +90,19 @@ def sort_graph(graph):
 
 
 def top_order(output_node, exec_list, visited):
+    """It topologically sorts a given graph.
+
+    Parameters
+    ----------
+    output_node : Operator
+        The starting node. First one in the ordered list.
+
+    exec_list : [Operator]
+        The ordered list. Note that this is an output parameter.
+
+    visited : [str]
+        List of already visited nodes.
+    """
     if visited[output_node.name]:
         return
     for input_node in output_node.input_nodes:
@@ -65,6 +113,23 @@ def top_order(output_node, exec_list, visited):
 
 
 def get_nodes_in_branch(starting_node, stop_node, node_list):
+    """Helper function that gives us all nodes in a branch defined by a given node.
+       The starting node will be the output node of the branch.
+
+       Note that there is an optional stop node. stop_node is allowed to be None.
+
+    Parameters
+    ----------
+    starting_node : Operator
+        The starting node. This node is the output node of the defined branch.
+
+    stop_node : Operator
+        The last node in the path. If stop_node is None then this function will give us every node above
+        starting_node.
+
+    node_list : [Operator]
+        The list of nodes contained in the branch. Note that this is an output parameter.
+    """
     if starting_node == stop_node:
         return
     node_list.append(starting_node)
@@ -73,13 +138,9 @@ def get_nodes_in_branch(starting_node, stop_node, node_list):
         get_nodes_in_branch(node, stop_node, node_list)
 
 
-def match_to_execution_list(match, execution_list):
-    for input_node in match.inputs:
-        match_to_execution_list(input_node, execution_list)
-    execution_list.append(match.node)
-
-
 class GraphMatcher:
+    """GraphMatcher is used to find sub-graphs in the computational graph.
+    """
     def __init__(self, input_graph):
         self.graph_node_list = list()
         self.graph_node_list = sort_graph(input_graph)

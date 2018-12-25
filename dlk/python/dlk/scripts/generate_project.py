@@ -39,7 +39,7 @@ ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '../../..'))
 
 
 def optimize_graph_step(model: Model, config: Config) -> None:
-    """Optimze graph in the model.
+    """Optimize graph in the model.
 
     Parameters
     ----------
