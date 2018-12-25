@@ -27,7 +27,17 @@ from modules.packer import Packer
 
 
 def pass_dot_graph(graph: Graph, filename) -> None:
+    """Generate a GraphViz dot file from a given Graph.
 
+    Parameters
+    ----------
+    graph : Graph
+        The input graph to be converted into a dot script
+
+    filename : str
+        The file where we want to save the dot script
+
+    """
     dot_script = 'digraph {'
 
     code = {}
@@ -55,6 +65,14 @@ def pass_dot_graph(graph: Graph, filename) -> None:
 
 
 def pass_remove_identities(graph: Graph) -> None:
+    """Removes those nodes of a Graph that satisfies the condition node.op_type() == Identity.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+
+    """
     p = Pattern("Identity")
     matches = find_pattern(graph, p)
     to_be_removed = list()
@@ -83,6 +101,18 @@ def pass_remove_identities(graph: Graph) -> None:
 
 
 def pass_transpose(graph: Graph) -> None:
+    """Changes the data order of every node to be NHWC.
+       The fastest changing dimension is C
+       N stands for batch size (on inference we assume is 1.
+       H and W are the height and width respectively.
+       C stands for depth (aka channels)
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+
+    """
     p = Pattern("*")
     matches = find_pattern(graph, p)
 
@@ -100,6 +130,21 @@ def pass_transpose(graph: Graph) -> None:
 
 
 def pass_precompute(graph: Graph, processed_nodes) -> bool:
+    """Given a node N, if the value of each input of N is known at compilation time then N will be executed.
+       The node N and its inputs will be replaced with a Constant node which holds the computed output of N.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    processed_nodes : list
+        The list of the processed nodes so far.
+
+    Returns
+    -------
+    result : bool
+        True if some nodes were precomputed, False otherwise.
+    """
     p = Pattern('*')
     matches = find_pattern(graph, p)
     processed_before_precompute = len(processed_nodes)
@@ -152,6 +197,25 @@ def pass_precompute(graph: Graph, processed_nodes) -> bool:
 
 
 def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
+    """Given a node N, it will propagate information about quantization into the convolution nodes.
+
+       There are two types of nodes. Those which preserve quantization (for example, Space2Depth because
+       does not affect the actual values of the input data, only changes it positions) and those which
+       destroy quantization (for example, BatchNormalization, because it involves float operations).
+
+       If there is path in the Graph which connect a Quantizer node Q to a Conv node C and every node between
+       Q and C preserve quantization (for example, Q -> Space2Depth -> Concat > Conv) then the details about the
+       quantizer Q should be propagated into the convolution node C.
+
+       This pass allows us to further process the convolution nodes later and maybe quantize these convolutions
+       based on these quantization details. Note that a convolution node has two inputs, input data and weights.
+       We propagate quantization details through both the input node branch and the weight node branch.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
     p = Pattern('*')
     matches = find_pattern(graph, p)
     qtypes = [
@@ -188,11 +252,25 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
 
 
 def pass_compute_thresholds(graph: Graph) -> None:
+    """Given a Quantizer node Q:
+         - if there is a backward path between Q and a convolution node and,
+         - every node N of that path satisfies the condition N.is_monotonic and,
+         - the convolution node C (the end of this path) is a quantized convolution
+       then this pass construct an LUT per channel which maps a possible output value of the quantized convolution node
+       C to the corresponding output of the quantization node Q. This effectively compress the path C -> ... -> Q
+       into a list of LUTs that can be used during inference.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
     p = Pattern('QTZ_linear_mid_tread_half')
     matches = find_pattern(graph, p)
 
     to_be_removed = []
     for m in matches:
+        # find a a backward path between the quantizer and the convolution ie. a path represented by a list [Q, ..., C]
         p = [m.node]
         while p[-1].op_type != 'Conv':
             non_variable_input = [inode for inode in p[-1].input_nodes
@@ -240,7 +318,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
         for th_id, th_v in enumerate(th_val):
             init_threshold = np.full(ch, th_v, dtype=np.float64)
 
-            # run calculation in reverse order: q -> bn -> scaling
+            # run calculation in reverse order, for example, q -> bn -> scaling
             trans_th = {'data': init_threshold}
             for op in p[:-1]:
                 trans_th = op.de_run(**trans_th)
@@ -288,6 +366,15 @@ def pass_compute_thresholds(graph: Graph) -> None:
 
 
 def pass_pack_weights(graph: Graph) -> None:
+    """Given a Quantized convolution node C, it will pack the weights of C into 32 bit words.
+       If the node Q that apply quantization to the weights of C quantizes, for example, into 1 bit values
+       then one 32 bit word will contain 32 weights.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
     p = Pattern('Conv')
     matches = find_pattern(graph, p)
     quantization_types = [
@@ -345,6 +432,15 @@ def pass_pack_weights(graph: Graph) -> None:
 
 
 def pass_quantize_convolutions(graph: Graph) -> None:
+    """Given a convolution node C, if C has proper quantization details, it will mark C as quantized and it will
+       assign the correct output data types to the node C and its quantizers. Note that the expected output data type
+       on the runtime is defined as QUANTIZED_NOT_PACKED.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
     p = Pattern('Conv')
     matches = find_pattern(graph, p)
 
@@ -369,6 +465,13 @@ def pass_quantize_convolutions(graph: Graph) -> None:
 
 
 def pass_propagate_datatypes(graph) -> None:
+    """Further propagate output data types.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
     p = Pattern('*')
     matches = find_pattern(graph, p)
 
@@ -378,6 +481,19 @@ def pass_propagate_datatypes(graph) -> None:
 
 
 def pass_propagate_output_type_backward(graph: Graph) -> None:
+    """It is assumed that the output data type of a Graph is float.
+       We should propagate this assumption backwards from the output node of the graph to the
+       latest quantized convolution available.
+
+       There could be cases where the latest convolution node Q is a quantized convolution and we also apply
+       thresholds to its outputs. In this cases, the quantized convolution output data type should be float
+       even if thresholds are applied.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
     p = Pattern('*')
     matches = find_pattern(graph, p)
 
