@@ -47,7 +47,7 @@ class MacTestAccumulation(c: Mac) extends PeekPokeTester(c) {
 
   // setup m[0] to +1
   setupM(0, 0)
-  poke(c.io.evenOdd, 0)
+  poke(c.io.evenOddIn, 0)
 
   check(123, 1, 124)
   check(123, 2, 125)
@@ -56,7 +56,7 @@ class MacTestAccumulation(c: Mac) extends PeekPokeTester(c) {
 
   // setup m[1] to -1
   setupM(1, 1)
-  poke(c.io.evenOdd, 1)
+  poke(c.io.evenOddIn, 1)
   check(123, 1, 122)
   check(123, 2, 121)
   check(123, 0, 123)
