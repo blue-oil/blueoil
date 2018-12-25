@@ -31,12 +31,11 @@ class AccBlock(addrWidth: Int, accWidth: Int) extends Module {
     val ramReadQ = Input(UInt(accWidth.W))
   })
   val pipelineRegs = RegNext(io.control, 0.U.asTypeOf(io.control))
-  val accInDelayed = RegNext(io.accIn, 0.U.asTypeOf(io.accIn))
   io.next := pipelineRegs
   io.ramRead.addr := io.control.readAddr
   io.ramRead.enable := io.control.readEnable
   io.ramWrite.addr := io.control.writeAddr
-  io.ramWrite.data := Mux(io.control.accumulate, io.ramReadQ + accInDelayed, accInDelayed)
+  io.ramWrite.data := Mux(io.control.accumulate, io.ramReadQ + io.accIn, io.accIn)
   io.ramWrite.enable := io.control.writeEnable
 }
 
