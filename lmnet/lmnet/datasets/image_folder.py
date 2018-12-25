@@ -178,9 +178,9 @@ class ImageFolderBase(StoragePathCustomizable, Base):
     def update_dataset(self, indices):
         """Update own dataset by indices."""
         # Re Initialize dataset
-        self.files = self.data_files()
+        files = self.data_files()
         # Update dataset by given indices
-        self.files = [self.files[i] for i in indices]
+        self.files = [files[i] for i in indices]
 
         self.element_counter = 0
 

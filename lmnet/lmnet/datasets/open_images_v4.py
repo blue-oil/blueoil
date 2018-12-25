@@ -453,16 +453,17 @@ class OpenImagesV4BoundingBoxBase(StoragePathCustomizable, OpenImagesV4BoundingB
     def update_dataset(self, indices):
         """Update own dataset by indices."""
         # Re Initialize dataset
-        self.files, self.annotations = self.files_and_annotations
+        files, annotations = self.files_and_annotations
         # Update dataset by given indices
-        self.files = self.files[indices]
-        self.annotations = self.annotations[indices]
+        self.files = [files[i] for i in indices]
+        self.annotations = [annotations[i] for i in indices]
 
         self.element_counter = 0
 
     def get_shuffle_index(self):
         """Return list of shuffled index."""
-        random_indices = shuffle(range(self.num_per_epoch), seed=self.seed)
+        files, _ = self.files_and_annotations
+        random_indices = shuffle(range(len(files)), seed=self.seed)
         print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
         self.seed += 1
 
