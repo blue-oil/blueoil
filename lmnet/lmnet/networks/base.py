@@ -130,6 +130,9 @@ class BaseNetwork(object):
         assert ("learning_rate" in self.optimizer_kwargs.keys()) or \
                (self.learning_rate_func is not None)
 
+        # grobal step linear scaling in proportion to the number of workers
+        global_step = global_step * self.distribution_num_worker
+
         if "learning_rate" in self.optimizer_kwargs.keys():
             learning_rate = self.optimizer_kwargs["learning_rate"]
 
