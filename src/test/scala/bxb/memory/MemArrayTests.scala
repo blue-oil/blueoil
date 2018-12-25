@@ -6,25 +6,25 @@ import chisel3.iotesters.{PeekPokeTester, Driver}
 class MemArraySimpleReadWriteTest(c: MemArray, rowCount: Int, colCount: Int) extends PeekPokeTester(c) {
   val expected = Seq.fill(rowCount, colCount)(scala.util.Random.nextInt(2))
   for (row <- 0 until rowCount) {
-    poke(c.io.writeEnable(row), true)
+    poke(c.io.write(row).enable, true)
   }
   for (col <- 0 until colCount) {
     for (row <- 0 until rowCount) {
-      poke(c.io.writeAddr(row), col)
-      poke(c.io.writeData(row), expected(row)(col))
+      poke(c.io.write(row).addr, col)
+      poke(c.io.write(row).data, expected(row)(col))
     }
     step(1)
   }
   for (row <- 0 until rowCount) {
-    poke(c.io.writeEnable(row), false)
+    poke(c.io.write(row).enable, false)
   }
   for (col <- 0 until colCount) {
     for (row <- 0 until rowCount) {
-      poke(c.io.readAddr(row), col)
+      poke(c.io.read(row).addr, col)
     }
     step(1)
     for (row <- 0 until rowCount) {
-      expect(c.io.readQ(row), expected(row)(col))
+      expect(c.io.q(row), expected(row)(col))
     }
   }
 }

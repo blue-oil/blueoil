@@ -5,19 +5,15 @@ import chisel3._
 class MemArray(rows: Int, columns: Int, elemWidth: Int) extends Module {
   val addrWidth = Chisel.log2Up(columns)
   val io = IO(new Bundle {
-    val readAddr = Input(Vec(rows, UInt(addrWidth.W)))
-    val writeAddr = Input(Vec(rows, UInt(addrWidth.W)))
-    val writeData = Input(Vec(rows, UInt(elemWidth.W)))
-    val writeEnable = Input(Vec(rows, Bool()))
-    val readQ = Output(Vec(rows, UInt(elemWidth.W)))
+    val read = Input(Vec(rows, ReadPort(addrWidth)))
+    val write = Input(Vec(rows, WritePort(addrWidth, elemWidth)))
+    val q = Output(Vec(rows, UInt(elemWidth.W)))
   })
   val banks = Seq.fill(rows)(Module(new BlockRam(columns, elemWidth)))
   for (row <- 0 until rows) {
-    banks(row).io.readAddr := io.readAddr(row)
-    banks(row).io.writeAddr := io.writeAddr(row)
-    banks(row).io.writeData := io.writeData(row)
-    banks(row).io.writeEnable := io.writeEnable(row)
-    io.readQ(row) := banks(row).io.readQ
+    banks(row).io.read := io.read(row)
+    banks(row).io.write := io.write(row)
+    io.q(row) := banks(row).io.readQ
   }
 }
 
