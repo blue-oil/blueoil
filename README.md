@@ -70,3 +70,6 @@ Usage: ./blueoil_test.sh <YML_CONFIG_FILE(optional)>
 Arguments:
   YML_CONFIG_FILE       config file path for this test (optional)
 ```
+
+### Tests for CI
+* [Jenkins settings for CI](./.jenkins/README.md)
