@@ -16,7 +16,7 @@
 """Graph module."""
 from collections import OrderedDict, defaultdict
 from typing import cast, Any, Dict, List, Optional, Set, TYPE_CHECKING
-from core.operators import Conv,  Operator
+from core.operators import Conv, Operator
 from core.graph_pattern_matching import sort_graph
 
 
