@@ -236,6 +236,7 @@ def _blueoil_to_lmnet(blueoil_config):
 
         "batch_size": batch_size,
         "max_epochs": max_epochs,
+
         "optimizer_kwargs": optimizer_kwargs,
         "learning_rate_func": learning_rate_func,
         "learning_rate_kwargs": learning_rate_kwargs,
