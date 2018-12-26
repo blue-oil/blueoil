@@ -102,12 +102,12 @@ object_detection_dataset_formats = [
 # ]
 
 
-learning_rate_schedule_map = OrderedDict({
-    "constant": "'constant' -> constant learning rate.",
-    "2-step-decay": "'2-step-decay' -> learning rate reduce to 1/10 on epochs/2 and epochs-1.",
-    "3-step-decay": "'3-step-decay' -> learning rate reduce to 1/10 on epochs/3 and epochs*2/3 and epochs-1",
-    "3-step-decay-with-warmup": "'3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train same as '3-step-decay'",
-})
+learning_rate_schedule_map = OrderedDict([
+    ("constant", "'constant' -> constant learning rate."),
+    ("2-step-decay", "'2-step-decay' -> learning rate decrease by 1/10 on {epochs}/2 and {epochs}-1."),
+    ("3-step-decay", "'3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1"),
+    ("3-step-decay-with-warmup", "'3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train same as '3-step-decay'"),
+])
 
 
 def network_name_choices(task_type):
@@ -304,7 +304,8 @@ def ask_questions():
     learning_rate_schedule_question = {
         'type': 'rawlist',
         'name': 'value',
-        'message': 'choose learning rate schedule:',
+        'message': 'choose learning rate schedule \
+({epochs} is the number of training epochs you entered before):',
         'choices': list(learning_rate_schedule_map.values()),
         'default': learning_rate_schedule_map["constant"],
     }
