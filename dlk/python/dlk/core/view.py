@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+::# -*- coding: utf-8 -*-
 # Copyright 2018 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -160,8 +160,6 @@ class View(object):
                     kn_out = int(k_n_aligned_with_num_pe / NUM_PE)
                 else:
                     kn_out = int(od / NUM_PE)
-                if kn_out == 0:
-                    kn_out = 1
                 idx_src = 0
 
                 if op._dimension_format == "NHWC":
@@ -194,6 +192,7 @@ class View(object):
                     NotImplementedError("only NCHW and NHWC formats are suppported")
                 transpose_string = "{" + ",".join([str(temp) for temp in transpose_values]) + "}"
 
+                print (transpose_string)
                 # temporary: formula which derive number of qinput is not complete
                 render_string = self.format_string(
                     f"""
