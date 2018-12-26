@@ -24,7 +24,6 @@ DATASET:
   AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
     processors:
     - !!python/object:lmnet.data_augmentor.FlipLeftRight
-      is_bounding_box: true
       probability: 0.5
     - !!python/object:lmnet.data_augmentor.Brightness
       max_value: 1.25

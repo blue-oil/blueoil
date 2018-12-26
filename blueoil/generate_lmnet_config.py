@@ -15,18 +15,16 @@
 # =============================================================================
 import argparse
 import os
+import re
 
 import yaml
-import whaaaaat
 from jinja2 import Environment, FileSystemLoader
-
 
 # TODO(wakisaka): objecte detection, segmentation
 _TASK_TYPE_TEMPLATE_FILE = {
     "classification": "classification.tpl.py",
     "object_detection": "object_detection.tpl.py",
 }
-
 
 _NETWORK_NAME_NETWORK_MODULE_CLASS = {
     "LmnetV0Quantize": {
@@ -129,7 +127,8 @@ def _blueoil_to_lmnet(blueoil_config):
     dataset_class_extend_dir = blueoil_config["dataset"]["train_path"]
     dataset_class_validation_extend_dir = blueoil_config["dataset"]["test_path"]
     if dataset_class_validation_extend_dir is not None:
-        dataset_class_property = {"extend_dir": dataset_class_extend_dir, "validation_extend_dir": dataset_class_validation_extend_dir}
+        dataset_class_property = {"extend_dir": dataset_class_extend_dir,
+                                  "validation_extend_dir": dataset_class_validation_extend_dir}
     else:
         dataset_class_property = {"extend_dir": dataset_class_extend_dir}
 
@@ -137,9 +136,21 @@ def _blueoil_to_lmnet(blueoil_config):
     batch_size = blueoil_config["trainer"]["batch_size"]
     initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"]
     learning_rate_setting = blueoil_config["trainer"]["learning_rate_setting"]
+    max_epochs = blueoil_config["trainer"]["epochs"]
 
     # common
     image_size = blueoil_config["common"]["image_size"]
+
+    data_augmentation = []
+    for augmentor in blueoil_config["common"].get("data_augmentation", []):
+        key = list(augmentor.keys())[0]
+        values = []
+        for v in list(list(augmentor.values())[0]):
+            v_key, v_value = list(v.keys())[0], list(v.values())[0]
+            only_str = isinstance(v_value, str) and re.match('^[\w-]+$', v_value) is not None
+            value = (v_key, "'{}'".format(v_value) if only_str else v_value)
+            values.append(value)
+        data_augmentation.append((key, values))
 
     # quantize first layer
     quantize_first_convolution = blueoil_config["network"]["quantize_first_convolution"]
@@ -155,24 +166,17 @@ def _blueoil_to_lmnet(blueoil_config):
         "dataset_class_property": dataset_class_property,
 
         "batch_size": batch_size,
-        "max_epochs": "",
-        "max_steps": "",
+        "max_epochs": max_epochs,
         "initial_learning_rate": initial_learning_rate,
         "learning_rate_setting": learning_rate_setting,
-        
+
         "image_size": image_size,
 
         "quantize_first_convolution": quantize_first_convolution,
 
         "dataset": dataset,
+        "data_augmentation": data_augmentation
     }
-    
-    # max_epochs or max_steps
-    if "steps" in blueoil_config["trainer"].keys():
-        config["max_steps"] = blueoil_config["trainer"]["steps"]
-    elif "epochs" in blueoil_config["trainer"].keys():
-        config["max_epochs"] = blueoil_config["trainer"]["epochs"]
-
 
     # merge dict
     lmnet_config = default_lmnet_config.copy()
