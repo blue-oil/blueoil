@@ -160,7 +160,6 @@ def _blueoil_to_lmnet(blueoil_config):
         optimizer_kwargs = {"momentum": 0.9}
         learning_rate_func = "tf.train.piecewise_constant"
 
-    # import ipdb; ipdb.set_trace()
     if learning_rate_schedule == "2-step-decay":
         learning_rate_kwargs = {
             "values": [
@@ -201,6 +200,7 @@ def _blueoil_to_lmnet(blueoil_config):
                 initial_learning_rate / 1000
             ],
             "boundaries": [
+                int(step_per_epoch * 1),
                 int((step_per_epoch * (max_epochs - 1)) * 1 / 3),
                 int((step_per_epoch * (max_epochs - 1)) * 2 / 3),
                 int(step_per_epoch * (max_epochs - 1))
