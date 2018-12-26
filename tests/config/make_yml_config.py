@@ -200,6 +200,13 @@ common_enable_prefetch = [
     '  dataset_prefetch: true',
 ]
 
+common_data_augmentation = """
+  data_augmentation:
+    - Blur:
+        - value: (0, 1)
+"""
+
+
 def learning_settings_to_yaml(index):
     name = output_files[index]
     config_file = name + ".yml"
@@ -267,10 +274,15 @@ def learning_settings_to_yaml(index):
     fp.write(str(common_enable_prefetch_comment))
     # common enable prefetch
     fp.write(str(common_enable_prefetch[index]))
+    fp.write('\n')
+    # common data augmentation
+    fp.write(str(common_data_augmentation))
+
 
 def main():
     for index in range(0, len(output_files)):
         learning_settings_to_yaml(index)
-    
+
+
 if __name__ == '__main__':
     main()
