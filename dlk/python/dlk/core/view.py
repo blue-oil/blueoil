@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+::# -*- coding: utf-8 -*-
 # Copyright 2018 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -192,6 +192,7 @@ class View(object):
                     NotImplementedError("only NCHW and NHWC formats are suppported")
                 transpose_string = "{" + ",".join([str(temp) for temp in transpose_values]) + "}"
 
+                print (transpose_string)
                 # temporary: formula which derive number of qinput is not complete
                 render_string = self.format_string(
                     f"""
