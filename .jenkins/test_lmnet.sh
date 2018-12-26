@@ -1,5 +1,10 @@
 #!/bin/bash -xe
 
+# select GPU:1
+export CUDA_VISIBLE_DEVICES=1
+
+cd lmnet
+
 echo "# build docker container"
 docker-compose build --pull --no-cache tensorflow > /dev/null
 
