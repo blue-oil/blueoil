@@ -141,9 +141,9 @@ DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    Pad(4),
+#    Pad(4),
     Crop(size=IMAGE_SIZE),
-    FlipLeftRight(),
+#    FlipLeftRight(),
 #    Brightness((0.75, 1.25)),
 #    Color((0.75, 1.25)),
 #    Contrast((0.75, 1.25)),

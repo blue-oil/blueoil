@@ -91,8 +91,7 @@ class Vgg7Network(Base):
 
         self.fc1 = self.fc_layer("fc1", self.flatten, filters=1024, activation=None, biases_initializer=None)
         self.batch_normed1 = tf.contrib.layers.batch_norm(self.fc1,
-                                                          #epsilon=0.00001,
-                                                          #decay=0.999,
+                                                          epsilon=0.00001,
                                                           scale=True,
                                                           center=True,
                                                           updates_collections=None,

@@ -1,4 +1,4 @@
- # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # Copyright 2018 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +72,7 @@ class Resnet18(Base):
             bn1 = batch_norm("bn1", conv1, is_training=is_training)
 
             with tf.variable_scope('relu1'):
-                relu1 = tf.nn.relu(bn1)
+                relu1 = tf.nn.relu(bn1, name="relu1")
             
 
         with tf.variable_scope('sub2'):
@@ -103,7 +103,7 @@ class Resnet18(Base):
 
             output = bn2 + inputs
             with tf.variable_scope('relu2'):
-                relu2 = tf.nn.relu(output)
+                relu2 = tf.nn.relu(output, name='relu2')
 
         return relu2
 
@@ -158,7 +158,7 @@ class Resnet18(Base):
                     out = self._residual(out, in_filters=512, out_filters=512, strides=1, is_training=is_training)
 
         #with tf.variable_scope("unit4_0"):
-            #self.bn4 = batch_norm("bn4", out, is_training=is_training, activation=tf.nn.relu)
+        #self.bn4 = batch_norm("bn4", out, is_training=is_training, activation=tf.nn.relu)
         self.bn4=out
         # global average pooling
         h = self.bn4.get_shape()[1].value
@@ -188,7 +188,6 @@ class Resnet18(Base):
             labels * tf.log(tf.clip_by_value(softmax, 1e-10, 1.0)),
             axis=[1]
         )
-
         cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
 
         loss = cross_entropy_mean + self._decay()
@@ -200,9 +199,8 @@ class Resnet18(Base):
         costs = []
         for var in tf.trainable_variables():
             # exclude batch norm variable
-            if not ("bn" in var.name and "beta" in var.name):
-                if not ("relu" in var.name):
-                    costs.append(tf.nn.l2_loss(var))
+            if not ("bn" in var.name):# and "beta" in var.name):
+                costs.append(tf.nn.l2_loss(var))
 
         return tf.add_n(costs) * self.weight_decay_rate
 
