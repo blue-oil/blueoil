@@ -36,7 +36,7 @@ class View(object):
         return ','.join(map(lambda x: str(x), self.op.shape))
 
     def run(self):
-        global qconv_idx;
+        global qconv_idx
         op = self.op
         input_ops = op.input_ops
         output_ops = op.output_ops
@@ -227,6 +227,8 @@ class View(object):
                     """
                 )
                 qconv_idx += 1
+                if len(op.output_ops.keys()) < 1:
+                    qconv_idx = 0
 
             else:
                 # temporary
