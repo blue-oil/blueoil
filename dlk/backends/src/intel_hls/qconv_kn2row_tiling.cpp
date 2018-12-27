@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include <cstdio>
+#include "HLS/extendedmath.h"
 #include "intel_hls/config.h"
 
 namespace p = conv_kn2row_params;
@@ -27,21 +28,21 @@ void input_load_module(ihc::mm_master<T_in_hls, ihc::aspace<1>, ihc::awidth<32>,
                        const unsigned in_h, const unsigned in_w, const unsigned in_c, const unsigned ih_high,
                        const unsigned iw_high, const unsigned pad)
 {
-#pragma loop_coalesce 2
+#pragma loop_coalesce 4
 #pragma unroll 1
   for (unsigned ih_low = 0; ih_low < p::in_tile_h; ++ih_low) {
 #pragma unroll 1
     for (unsigned iw_low = 0; iw_low < p::in_tile_w; ++iw_low) {
-      /// index must care the padding, so we skip the padding part that
-      /// doesn't exist in actual memory.
-      const int ih = int(ih_low + ih_high - pad);
-      const int iw = int(iw_low + iw_high - pad);
-      const bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
-
 #pragma unroll 2
       for (unsigned ic = 0; ic < in_c; ic++) {
 #pragma unroll
         for (unsigned ib = 0; ib < p::max_in_b; ib++) {
+          /// index must care the padding, so we skip the padding part that
+          /// doesn't exist in actual memory.
+          const int ih = int(ih_low + ih_high - pad);
+          const int iw = int(iw_low + iw_high - pad);
+          const bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
+
           // loading inputs from bus.
           // if the coordinates on the padding, this stores 0 instead of loading the data.
           in_buf[ih_low][iw_low][ic][ib] =
@@ -58,14 +59,14 @@ void kernel_load_module(ihc::mm_master<T_k_hls, ihc::aspace<3>, ihc::awidth<32>,
                         T_k_hls k_buf[p::max_k_h][p::max_k_w][p::max_in_c_by_word][out_c_low], const unsigned k_h,
                         const unsigned k_w, const unsigned k_c, const unsigned kn_high)
 {
+#pragma loop_coalesce 4
 #pragma unroll 1
-#pragma loop_coalesce 2
   for (unsigned kh = 0; kh < k_h; ++kh) {
 #pragma unroll 1
     for (unsigned kw = 0; kw < k_w; ++kw) {
-#pragma unroll 2
+#pragma unroll 1
       for (unsigned kc = 0; kc < k_c; kc++) {
-#pragma unroll
+#pragma unroll 4
         for (unsigned kn = 0; kn < out_c_low; kn++) {
           /// currently kernel order is NoHWCNi, which means the
           /// outermost dimension "N" is split 2 high and low
@@ -83,25 +84,13 @@ void threshold_load_module(ihc::mm_master<T_out_hls, ihc::aspace<4>, ihc::awidth
                                           ihc::maxburst<32>, ihc::align<16>, ihc::waitrequest<true> > &th_data,
                            T_out_hls th_buf[out_c_low][p::num_thresholds], const unsigned oc_high)
 {
-#pragma unroll
+#pragma loop_coalesce 2
+#pragma unroll 2
   for (unsigned oc = 0; oc < out_c_low; oc++) {
 #pragma unroll
     for (unsigned i = 0; i < p::num_thresholds; i++) {
       unsigned idx_th = (oc_high + oc) * p::num_thresholds + i;
       th_buf[oc][i] = th_data[idx_th];
-    }
-  }
-}
-
-void output_init_module(T_out_hls out_buf[p::tile_w][p::tile_w][out_c_low], const unsigned out_h, const unsigned out_w)
-{
-#pragma loop_coalesce 2
-#pragma unroll 1
-  for (unsigned oh = 0; oh < p::tile_h; ++oh) {
-#pragma unroll 1
-    for (unsigned ow = 0; ow < p::tile_w; ++ow) {
-#pragma unroll
-      for (unsigned oc = 0; oc < out_c_low; oc++) { out_buf[oh][ow][oc] = 0; }
     }
   }
 }
@@ -120,34 +109,38 @@ void mac_compute_module(T_in_hls in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c_
 
 #pragma loop_coalesce 2
 #pragma unroll 1
-      for (unsigned ih = 0; ih < p::in_tile_h; ++ih) {
+      for (unsigned oh = 0; oh < p::tile_h; ++oh) {
 #pragma unroll 1
-        for (unsigned iw = 0; iw < p::in_tile_w; ++iw) {
-          const int oh = int(ih - kh);
-          const int ow = int(iw - kw);
-          const bool output_on = (oh >= 0) && (ow >= 0) && (oh < p::tile_h) && (ow < p::tile_w);
-          hls_register T_out_hls out_regs[out_c_low] = {0, 0, 0, 0, 0, 0, 0, 0};
+        for (unsigned ow = 0; ow < p::tile_w; ++ow) {
+          hls_register T_out_hls out_regs[out_c_low];
 
-#pragma unroll 2
+#pragma unroll
+          for (unsigned oc = 0; oc < out_c_low; oc++) {
+            const bool out_init = ((kh == 0) && (kw == 0));
+            const T_out_hls out = out_buf[oh][ow][oc];
+            out_regs[oc] = (out_init) ? T_out_hls(0) : out;
+          }
+
+#pragma loop_coalesce 2
+#pragma unroll 4
           for (unsigned ic = 0; ic < in_c; ic++) {
-            // hls_register T_in_hls in_regs[p::max_in_b];
+            const unsigned ih = oh + kh;
+            const unsigned iw = ow + kw;
             const T_in_hls in_reg0 = in_buf[ih][iw][ic][0];
             const T_in_hls in_reg1 = in_buf[ih][iw][ic][1];
 
 #pragma unroll
             for (unsigned oc = 0; oc < out_c_low; oc++) {
               const T_k_hls k_reg = k_buf[kh][kw][ic][oc];
-              T_out_hls not_k = __builtin_popcount(~k_reg);
-              T_out_hls xnor0 = __builtin_popcount(~(in_reg0 ^ k_reg)) - not_k;
-              T_out_hls xnor1 = (__builtin_popcount(~(in_reg1 ^ k_reg)) - not_k) << 1;
+              T_out_hls not_k = popcountll(~k_reg);
+              T_out_hls xnor0 = popcountll(~(in_reg0 ^ k_reg)) - not_k;
+              T_out_hls xnor1 = (popcountll(~(in_reg1 ^ k_reg)) - not_k) << 1;
               out_regs[oc] += (xnor0 + xnor1);
             }
           }
 
-          if (output_on) {
 #pragma unroll
-            for (unsigned oc = 0; oc < out_c_low; oc++) { out_buf[oh][ow][oc] += out_regs[oc]; }
-          }
+          for (unsigned oc = 0; oc < out_c_low; oc++) { out_buf[oh][ow][oc] = out_regs[oc]; }
         }
       }
     }
@@ -162,12 +155,12 @@ void output_store_module(hls_avalon_slave_register_argument
                          const unsigned out_c, const unsigned ih_high, const unsigned iw_high, const unsigned oc_high,
                          const bool use_threshold)
 {
-#pragma loop_coalesce 2
+#pragma loop_coalesce 3
 #pragma unroll 1
   for (unsigned oh = 0; oh < p::tile_h; ++oh) {
 #pragma unroll 1
     for (unsigned ow = 0; ow < p::tile_w; ++ow) {
-#pragma unroll
+#pragma unroll 8
       for (unsigned oc = 0; oc < out_c_low; oc++) {
         const T_out_hls out = out_buf[oh][ow][oc];
         T_out_hls tmp;
@@ -215,7 +208,7 @@ void output_store_module(hls_avalon_slave_register_argument
 
         const bool output_on = ((oh_ < out_h) && (ow_ < out_w) && (oc_ < out_c));
         if (output_on) {
-          int idx_out = oh_ * out_w * out_c + ow_ * out_c + oc_;
+          const int idx_out = oh_ * out_w * out_c + ow_ * out_c + oc_;
           out_data[idx_out] = T_out_hls(tmp);
         }
       }
@@ -245,20 +238,20 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
   // in_buf shoule be banked by 8 elems, because this has 2 bits per an element, and
   // 4 inputs are computed along with input channel dimension at a cycle.
   // This also should be doublepump because this loads next data from bus while computing the others.
-  hls_memory hls_singlepump hls_bankbits(0, 1)
+  hls_memory hls_singlepump hls_bankbits(0, 1, 2)
     T_in_hls in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c_by_word][p::max_in_b];
 
   // k_buf shoule be banked by 64 elems, because
   // 16 kernels are needed to produce 16 outputs which is fully banked by 16 on out_c_low
   // Also per 1 output, 4 kernels are additionally needed to product with the 8 inputs coming from bus.
   // Only singlepump is OK for kernel.
-  hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3)
+  hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4, 5)
     hls_memory T_k_hls k_buf[p::max_k_h][p::max_k_w][p::max_in_c_by_word][out_c_low];
 
   // out_buf shoule be banked by 16 elems, because out_c_low is 16, which log2 is 4.
   // This also should should be doublepump, because accumulation happens at every cycle,
   // requiring reading a data and computing it, then rewriting it to the same address.
-  hls_memory hls_doublepump hls_bankbits(0, 1, 2) T_out_hls out_buf[p::tile_w][p::tile_w][out_c_low];
+  hls_memory hls_doublepump hls_bankbits(0, 1, 2, 3) T_out_hls out_buf[p::tile_w][p::tile_w][out_c_low];
 
 #pragma loop_coalesce 2
 #pragma unroll 1
@@ -271,9 +264,8 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
       for (unsigned oc_high = 0; oc_high < out_c; oc_high += out_c_low) {
         // threshold loading module.
         // just relay on automatic unroll.
-        hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4) T_out_hls threshold_buf[out_c_low][p::num_thresholds];
+        hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4, 5) T_out_hls threshold_buf[out_c_low][p::num_thresholds];
 
-        output_init_module(out_buf, out_h, out_w);
         kernel_load_module(k_data, k_buf, k_h, k_w, in_c_by_word, oc_high);
 
         if (use_threshold > 0) {
