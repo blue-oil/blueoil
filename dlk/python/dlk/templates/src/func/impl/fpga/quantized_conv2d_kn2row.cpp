@@ -108,6 +108,11 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
     p.dma_input_buffer->sync_for_device();
     p.dma_output_buffer->sync_for_device();
 
+#if 1 // DEBUG
+    std::cout << "debug" << std::endl;
+    std::cout << sizeof(vecCoefficient.size()) << std::endl;
+    std::cout << p.layer_index << std::endl;    
+#endif    
     Measurement::Start("QConv2D with kn2row");
     de10_nano::qconv_with_kn2row(
 	p.device_input_phys_addr, p.device_output_phys_addr, vecCoefficient.at(p.layer_index),
@@ -145,6 +150,11 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
     p.dma_input_buffer->sync_for_device();
     p.dma_output_buffer->sync_for_device();
 
+#if 1 // DEBUG
+    std::cout << "debug" << std::endl;
+    std::cout << sizeof(vecCoefficient.size()) << std::endl;
+    std::cout << p.layer_index << std::endl;    
+#endif
     Measurement::Start("QConv2D with kn2row");
     de10_nano::qconv_with_kn2row(
         p.device_input_phys_addr, p.device_output_phys_addr, vecCoefficient.at(p.layer_index),
