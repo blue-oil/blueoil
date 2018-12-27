@@ -163,10 +163,6 @@ class View(object):
                 idx_src = 0
 
                 if op._dimension_format == "NHWC":
-                    print ("NHWC")
-                    print (kn_out)
-                    print (kh)
-                    print (kw)
                     for no in range(kn_out):
                         for ni in range(NUM_PE):
                             for h in range(kh):
@@ -179,12 +175,7 @@ class View(object):
                                         idx_dst += ni
                                         transpose_values[idx_dst] = copy_value[idx_src]
                                         idx_src += 1
-
                 elif op._dimension_format == "NCHW":
-                    print ("NCHW")
-                    print (kn_out)
-                    print (kh)
-                    print (kw)                                    
                     for no in range(kn_out):
                         for ni in range(NUM_PE):
                             for c in range(k_c_by_word):
@@ -201,7 +192,6 @@ class View(object):
                     NotImplementedError("only NCHW and NHWC formats are suppported")
                 transpose_string = "{" + ",".join([str(temp) for temp in transpose_values]) + "}"
 
-                print (transpose_string) // for debug
                 # temporary: formula which derive number of qinput is not complete
                 render_string = self.format_string(
                     f"""
