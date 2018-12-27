@@ -6,7 +6,8 @@
 __pycache__/
 
 # project
-./saved/
+saved/
+*/saved/
 dataset/
 config/
 tmp/
