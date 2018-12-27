@@ -201,7 +201,7 @@ class View(object):
                     NotImplementedError("only NCHW and NHWC formats are suppported")
                 transpose_string = "{" + ",".join([str(temp) for temp in transpose_values]) + "}"
 
-                print (transpose_string) // for debug
+                print (transpose_string)
                 # temporary: formula which derive number of qinput is not complete
                 render_string = self.format_string(
                     f"""
