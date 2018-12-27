@@ -1,12 +1,7 @@
 DEVICE := 5CSEBA6U23I7
-CLOCK  := 100MHz
+CLOCK  := 110MHz
 
 CXX :=
-# COMPONENTS := --component intel_hls_a8w1_qconv_with_kn2row_impl,intel_hls_qconv_with_kn2row_impl
-# COMPONENTS := --component intel_hls_qconv_with_kn2row_impl
-# COMPONENTS := --component intel_hls_apply_thresholds_impl
-# COMPONENTS := --component intel_hls_qconv_kn2row_tiling_impl,intel_hls_apply_thresholds_impl
-# COMPONENTS := --component intel_hls_a8w1_qconv_with_kn2row_impl
 COMPONENTS := --component intel_hls_qconv_kn2row_tiling_impl
 
 SRC_DIR := ./src

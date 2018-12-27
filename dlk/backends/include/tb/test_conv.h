@@ -149,14 +149,14 @@ bool test_conv(input_type &in_type, Conv_params_t &p)
 
 #elif defined _DE10_NANO_
 
-  de10_nano::qconv_with_kn2row(p.k_w, p.k_h, in_data_packed, out_data_fpga, k_data_packed_hwnocni, p.in_w, p.in_h,
-                               p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
-  comp_fpga = compare_output(out_data_fpga, out_data, "qconv_with_kn2row_fpga", p.out_h, p.out_w, p.out_c);
+  // de10_nano::qconv_with_kn2row(p.k_w, p.k_h, in_data_packed, out_data_fpga, k_data_packed_hwnocni, p.in_w, p.in_h,
+  //                              p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
+  // comp_fpga = compare_output(out_data_fpga, out_data, "qconv_with_kn2row_fpga", p.out_h, p.out_w, p.out_c);
 
-  // de10_nano::qconv_kn2row_tiling(p.k_w, p.k_h, in_data_packed, out_data_fpga_qkt, k_data_packed_t, threshold_data,
-  //                                p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.pad_w,
-  //                                p.stride_w);
-  // comp_fpga = compare_output(out_data_fpga_qkt, out_data, "qconv_kn2row_tiling_fpga", p.out_h, p.out_w, p.out_c);
+  de10_nano::qconv_kn2row_tiling(p.k_w, p.k_h, in_data_packed, out_data_fpga_qkt, k_data_packed_t, threshold_data,
+                                 p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.pad_w,
+                                 p.stride_w);
+  comp_fpga = compare_output(out_data_fpga_qkt, out_data, "qconv_kn2row_tiling_fpga", p.out_h, p.out_w, p.out_c);
 
 #endif
 

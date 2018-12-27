@@ -135,7 +135,7 @@ typedef struct Conv_params_type
    NAME::has_thresholds};
 
 namespace conv_common_params {
-static const unsigned num_pe = 8;
+static const unsigned num_pe = 16;
 static const unsigned nbits_per_word = 32;
 static const unsigned nbits_in_data = 2;
 static const unsigned nbits_k_data = 1;
@@ -176,11 +176,11 @@ static const unsigned num_in_by_unit = min_in_c_by_word; // 4
 static const unsigned log_num_in_by_unit = 2;            // log2(num_in_by_unit) = log2(4) = 2
 static const unsigned max_num_in_unit = (max_in_c_by_word + (num_in_by_unit - 1)) >> log_num_in_by_unit; // / 4
 
-static const unsigned in_w = 32;
-static const unsigned in_h = 32;
+static const unsigned in_w = 128;
+static const unsigned in_h = 128;
 static const unsigned in_w_with_pad = in_w + (2 * pad_w);
 static const unsigned in_h_with_pad = in_h + (2 * pad_h);
-static const unsigned in_c = 128;
+static const unsigned in_c = 256;
 static const unsigned in_c_by_word = in_c / nbits_per_word;
 static const unsigned in_size = in_h * in_w * in_c;
 static const unsigned in_size_packed = in_h * in_w * in_c_by_word * nbits_in_data;
@@ -188,7 +188,7 @@ static const unsigned in_size_packed = in_h * in_w * in_c_by_word * nbits_in_dat
 static const unsigned k_h = 3;
 static const unsigned k_w = 3;
 static const unsigned k_c = in_c;
-static const unsigned k_n = 16;
+static const unsigned k_n = num_pe * 2;
 static const unsigned k_c_by_word = k_c / nbits_per_word;
 static const unsigned k_size = k_h * k_w * k_c;
 
@@ -333,11 +333,8 @@ static const unsigned min_k_h = 1;
 static const unsigned min_k_w = 1;
 
 static const unsigned tile_h = 16;
-static const unsigned tile_w = 16;
+static const unsigned tile_w = 32;
 
 static const unsigned in_tile_h = tile_h + (max_k_h - 1) * 2;
 static const unsigned in_tile_w = tile_w + (max_k_w - 1) * 2;
-
-static const unsigned out_c = num_pe;
-
 } // namespace conv_kn2row_params
