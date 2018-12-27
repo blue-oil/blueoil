@@ -17,8 +17,8 @@ import copy
 from core.data_types import *
 from textwrap import dedent
 
+qconv_idx = 0
 class View(object):
-    qconv_idx = 0
     def __init__(self, op):
         self.op = op
         self.reuse_buffer_str = ''
@@ -36,6 +36,7 @@ class View(object):
         return ','.join(map(lambda x: str(x), self.op.shape))
 
     def run(self):
+        global qconv_idx;
         op = self.op
         input_ops = op.input_ops
         output_ops = op.output_ops
@@ -213,20 +214,20 @@ class View(object):
                     binConv2D_struct.bin_kernel_ndata = {qk_elems};
                     binConv2D_struct.bin_input_nwords = {qk_elems};
                     binConv2D_struct.bin_input_ndata = {qk_elems}*{nbit_qinput};
-                    binConv2D_struct.layer_index = {View.qconv_idx};
+                    binConv2D_struct.layer_index = {qconv_idx};
                     binConv2D_struct.device_input_buf = device_input_buf;
                     binConv2D_struct.device_output_buf = device_output_buf;
                     binConv2D_struct.thresholds = {threshold};
                     binConv2D_struct.n_bit = {nbit_aqtz};
                     binConv2D_struct.max_value = {max_value};
 
-                    static T_UINT kernel_hwnocni{View.qconv_idx}[{k_size}] = {transpose_string};
-                    vecCoefficient.emplace_back(kernel_hwnocni{View.qconv_idx});
+                    static T_UINT kernel_hwnocni{qconv_idx}[{k_size}] = {transpose_string};
+                    vecCoefficient.emplace_back(kernel_hwnocni{qconv_idx});
                     {conv_func}({inputs_string}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
                     """
                 )
-                print(View.qconv_idx)
-                View.qconv_idx += 1
+                print(qconv_idx)
+                qconv_idx += 1
 
             else:
                 # temporary
