@@ -226,7 +226,6 @@ class View(object):
                     {conv_func}({inputs_string}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
                     """
                 )
-                print(qconv_idx)
                 qconv_idx += 1
 
             else:
