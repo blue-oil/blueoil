@@ -22,7 +22,7 @@ This is an example of configuration.
   image size (integer x integer):  32x32
   how many epochs do you run training (integer):  100
   initial learning rate: 0.001
-  message': 'choose learning rate setting(tune1 / tune2 / tune3 / fixed): tune1 -> "2 times decay"
+  choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '2-step-decay' -> learning rate decrease by 1/10 on {epochs}/2 and {epochs}-1.
   enable data augmentation?  No
   apply quantization at the first layer: yes
 ```
