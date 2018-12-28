@@ -18,9 +18,9 @@ import os
 import os.path
 
 import pandas as pd
-from bs4 import BeautifulSoup
 import PIL
 import numpy as np
+import xml.etree.ElementTree as ET
 
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.utils.random import shuffle
@@ -79,6 +79,7 @@ class PascalvocBase(ObjectDetectionBase):
             *args,
             **kwargs
     ):
+        self.skip_difficult = kwargs.pop("skip_difficult", False)
 
         super().__init__(
             subset=subset,
@@ -132,67 +133,52 @@ class PascalvocBase(ObjectDetectionBase):
 
         return image, gt_boxes
 
-    def _get_boxes_from_annotation(self, annotation):
+    def _get_boxes_from_annotation(self, xml_file):
         """Get gt boxes list from annotation object.
 
         Args:
-            annotation: BeautifulSoup object of traget image id.
+            xml_file: file name for bounding box annotation xml
 
         Return:
            gt boxes list [[x, y, w, h, class_id]].
         """
-        objs = annotation.findAll('object')
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
 
-        boxes = []
-        for obj in objs:
+        bboxes = []
 
-            obj_names = obj.findChildren('name')
-            for name_tag in obj_names:
-                difficult = obj.findChildren('difficult')[0].contents[0]
-                # Exclude the samples labeled as difficult
-                # It is the same py-faster-rcnn setting
-                # https://github.com/rbgirshick/py-faster-rcnn/blob/96dc9f1dea3087474d6da5a98879072901ee9bf9/lib/datasets/pascal_voc.py#L47
-                if difficult == 1:
-                    continue
+        folder = root.find('folder').text
+        filename = root.find('filename').text
 
-                class_name = str(name_tag.contents[0])
+        for obj in root.iter('object'):
+            if self.skip_difficult and int(obj.find('difficult').text) >= 1:
+                continue
 
-                # ignore category of foot, head, hand
-                if class_name not in self.classes:
-                    continue
+            class_name = obj.find('name').text
+            if class_name not in self.classes:
+                continue
 
-                class_index = self.classes.index(class_name)
+            class_index = self.classes.index(class_name)
 
-                bbox = obj.findChildren('bndbox')[0]
-                # subtract 1 to make boxes 0-based coordinate.
-                xmin = int(bbox.findChildren('xmin')[0].contents[0]) - 1
-                ymin = int(bbox.findChildren('ymin')[0].contents[0]) - 1
-                xmax = int(bbox.findChildren('xmax')[0].contents[0]) - 1
-                ymax = int(bbox.findChildren('ymax')[0].contents[0]) - 1
+            for e in list(obj):
+                if e.tag == "bndbox":
+                    # subtract 1 to make boxes 0-based coordinate.
+                    ymin = int(e.find("ymin").text) - 1
+                    xmin = int(e.find("xmin").text) - 1
+                    ymax = int(e.find("ymax").text) - 1
+                    xmax = int(e.find("xmax").text) - 1
 
-                x = xmin
-                y = ymin
-                w = xmax - xmin
-                h = ymax - ymin
+                    w = xmax - xmin
+                    h = ymax - ymin
+                    bbox = [xmin, ymin, w, h, class_index]
+                    bboxes.append(bbox)
 
-                boxes.append([x, y, w, h, class_index])
-
-        return boxes
+        return bboxes
 
     def _annotation_file_from_image_id(self, image_id):
         """Return annotation xml file path."""
 
         return os.path.join(self.annotations_dir, "{}.xml".format(image_id))
-
-    @functools.lru_cache(maxsize=None)
-    def _load_annotation(self, image_id):
-        """load annotation xml and create BeautifulSoup object of a image."""
-        xml = ""
-        annotation_file = self._annotation_file_from_image_id(image_id)
-        with open(annotation_file) as f:
-            xml = f.readlines()
-        xml = ''.join([line.strip('\t') for line in xml])
-        return BeautifulSoup(xml, "html.parser")
 
     def _image_file_from_image_id(self, image_id):
         """Return image file name of a image."""
@@ -202,10 +188,9 @@ class PascalvocBase(ObjectDetectionBase):
     @functools.lru_cache(maxsize=None)
     def _gt_boxes_from_image_id(self, image_id):
         """Return gt boxes list ([[x, y, w, h, class_id]]) of a image."""
-        annotation = self._load_annotation(image_id)
-        boxes = self._get_boxes_from_annotation(annotation)
 
-        return boxes
+        annotation_file = self._annotation_file_from_image_id(image_id)
+        return self._get_boxes_from_annotation(annotation_file)
 
     @functools.lru_cache(maxsize=None)
     def _image_ids(self, data_type=None):
