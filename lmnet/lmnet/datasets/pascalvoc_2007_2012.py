@@ -166,34 +166,15 @@ class Pascalvoc20072012(ObjectDetectionBase):
         elif self.subset == "validation" or self.subset == "test":
             subset = "test"
 
-        os.makedirs(lmenv.TMP_DIR, exist_ok=True)
-        files_path = join(lmenv.TMP_DIR,
-                          subset + "_pascal20072012_files.pickle")
-        annos_path = join(lmenv.TMP_DIR,
-                          subset + "_pascal20072012_annos.pickle")
-
-        if(not (isfile(files_path) and isfile(annos_path))):
-            if subset == "train_validation":
-                pascalvoc_2007 = Pascalvoc2007(subset=subset, *args, **kwargs)
-                pascalvoc_2012 = Pascalvoc2012(subset=subset, *args, **kwargs)
-                self.files = pascalvoc_2007.files + pascalvoc_2012.files
-                self.annotations = pascalvoc_2007.annotations + pascalvoc_2012.annotations
-            elif subset == "test":
-                pascalvoc_2007 = Pascalvoc2007(subset=subset, *args, **kwargs)
-                self.files = pascalvoc_2007.files
-                self.annotations = pascalvoc_2007.annotations
-
-            with open(files_path, "wb") as fp:
-                pickle.dump(self.files, fp)
-            with open(annos_path, "wb") as fp:
-                pickle.dump(self.annotations, fp)
-            print("done saved pickle")
-        else:
-            print("loading from pickle file: {}".format(files_path))
-            with open(files_path, "rb") as fp:
-                self.files = pickle.load(fp)
-            with open(annos_path, "rb") as fp:
-                self.annotations = pickle.load(fp)
+        if subset == "train_validation":
+            pascalvoc_2007 = Pascalvoc2007(subset=subset, *args, **kwargs)
+            pascalvoc_2012 = Pascalvoc2012(subset=subset, *args, **kwargs)
+            self.files = pascalvoc_2007.files + pascalvoc_2012.files
+            self.annotations = pascalvoc_2007.annotations + pascalvoc_2012.annotations
+        elif subset == "test":
+            pascalvoc_2007 = Pascalvoc2007(subset=subset, *args, **kwargs)
+            self.files = pascalvoc_2007.files
+            self.annotations = pascalvoc_2007.annotations
 
     def _shuffle(self):
         """Shuffle data if train."""
@@ -279,3 +260,14 @@ class Pascalvoc20072012(ObjectDetectionBase):
             images = np.transpose(images, [0, 3, 1, 2])
 
         return images, gt_boxes_list
+
+def main():
+    import time
+
+    s = time.time()
+    train_dataset = Pascalvoc20072012(subset="train", enable_prefetch=False)
+    e = time.time()
+    print("elapsed:", e-s)
+
+if __name__ == '__main__':
+    main()
