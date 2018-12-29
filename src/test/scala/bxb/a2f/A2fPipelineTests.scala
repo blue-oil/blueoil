@@ -13,7 +13,7 @@ class TestA2fModule(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Modu
   val addrWidth = Chisel.log2Up(memSize)
   val io = IO(new Bundle {
     // Pipeline signals
-    val control = Input(AddrControl(addrWidth, addrWidth))
+    val control = Input(A2fControl(addrWidth, addrWidth))
     // Systolic array weight loading interface
     val mIn = Input(Vec(b, Vec(2, UInt(1.W))))
     val mWe = Input(Vec(2, Bool()))
