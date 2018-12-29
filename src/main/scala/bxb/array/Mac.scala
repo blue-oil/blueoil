@@ -2,6 +2,8 @@ package bxb.array
 
 import chisel3._
 
+import bxb.util.{Util}
+
 class Mac(accWidth: Int, aWidth: Int) extends Module {
   val io = IO(new Bundle {
     val aIn = Input(UInt(aWidth.W))
@@ -35,16 +37,7 @@ class Mac(accWidth: Int, aWidth: Int) extends Module {
 }
 
 object Mac {
-  def getVerilog(dut: => chisel3.core.UserModule): String = {
-    import firrtl._
-    return chisel3.Driver.execute(Array[String](), {() => dut}) match {
-      case s:chisel3.ChiselExecutionSuccess => s.firrtlResultOption match {
-        case Some(f:FirrtlExecutionSuccess) => f.emitted
-      }
-    }
-  }
-
   def main(args: Array[String]): Unit = {
-    println(getVerilog(new Mac(16, 2)))
+    println(Util.getVerilog(new Mac(16, 2)))
   }
 }

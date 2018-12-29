@@ -1,6 +1,7 @@
 package bxb.memory
 
 import chisel3._
+import bxb.util.{Util}
 
 // XXX: this one supposed to be replaced with black box
 // verilog (direct mega function instantiation or something later)
@@ -20,16 +21,7 @@ class BlockRam(size: Int, width: Int) extends Module {
 }
 
 object BlockRam {
-  def getVerilog(dut: => chisel3.core.UserModule): String = {
-    import firrtl._
-    return chisel3.Driver.execute(Array[String](), {() => dut}) match {
-      case s:chisel3.ChiselExecutionSuccess => s.firrtlResultOption match {
-        case Some(f:FirrtlExecutionSuccess) => f.emitted
-      }
-    }
-  }
-
   def main(args: Array[String]): Unit = {
-    println(getVerilog(new BlockRam(4096, 2)))
+    println(Util.getVerilog(new BlockRam(4096, 2)))
   }
 }

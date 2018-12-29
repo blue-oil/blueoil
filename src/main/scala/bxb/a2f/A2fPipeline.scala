@@ -3,6 +3,7 @@ package bxb.a2f
 import chisel3._
 
 import bxb.memory.{ReadPort, WritePort}
+import bxb.util.{Util}
 
 class A2fPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int, fWidth: Int) extends Module {
   val io = IO(new Bundle {
@@ -35,16 +36,7 @@ class A2fPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int, fWidth:
 }
 
 object A2fPipeline {
-  def getVerilog(dut: => chisel3.core.UserModule): String = {
-    import firrtl._
-    return chisel3.Driver.execute(Array[String](), {() => dut}) match {
-      case s:chisel3.ChiselExecutionSuccess => s.firrtlResultOption match {
-        case Some(f:FirrtlExecutionSuccess) => f.emitted
-      }
-    }
-  }
-
   def main(args: Array[String]): Unit = {
-    println(getVerilog(new A2fPipeline(3, 10, 2, 10, 16)))
+    println(Util.getVerilog(new A2fPipeline(3, 10, 2, 10, 16)))
   }
 }
