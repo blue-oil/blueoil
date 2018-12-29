@@ -8,7 +8,7 @@ import bxb.util.{Util}
 class A2fPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int, fWidth: Int) extends Module {
   val io = IO(new Bundle {
     // Pipeline signals
-    val control = Input(AddrControl(aAddrWidth, fAddrWidth))
+    val control = Input(A2fControl(aAddrWidth, fAddrWidth))
     // Systolic array interface
     val aOut = Output(Vec(b, UInt(aWidth.W)))
     val accIn = Input(Vec(b, UInt(fWidth.W)))

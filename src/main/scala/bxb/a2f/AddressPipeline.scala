@@ -5,25 +5,11 @@ import chisel3._
 import bxb.memory.{ReadPort, WritePort}
 import bxb.util.{Util}
 
-class AddrControl(private val aAddrWidth: Int, private val fAddrWidth: Int) extends Bundle {
-  val accumulate = Bool()
-  val writeEnable = Bool()
-  val fAddr = UInt(fAddrWidth.W)
-  val aAddr = UInt(aAddrWidth.W)
-  // TODO: sync
-}
-
-object AddrControl {
-  def apply(aAddrWidth: Int, fAddrWidth: Int) = {
-    new AddrControl(aAddrWidth, fAddrWidth)
-  }
-}
-
 class AddrBlock(aAddrWidth: Int, aWidth: Int, fAddrWidth: Int) extends Module {
   val io = IO(new Bundle {
     // Pipeline signals
-    val control = Input(AddrControl(aAddrWidth, fAddrWidth))
-    val next = Output(AddrControl(aAddrWidth, fAddrWidth))
+    val control = Input(A2fControl(aAddrWidth, fAddrWidth))
+    val next = Output(A2fControl(aAddrWidth, fAddrWidth))
     // Systolic array interface
     val aOut = Output(UInt(aWidth.W))
     // AMem interface
@@ -39,14 +25,14 @@ class AddrBlock(aAddrWidth: Int, aWidth: Int, fAddrWidth: Int) extends Module {
 class AddressPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int) extends Module {
   val io = IO(new Bundle {
     // Pipeline signals (from sequencer)
-    val control = Input(AddrControl(aAddrWidth, fAddrWidth))
+    val control = Input(A2fControl(aAddrWidth, fAddrWidth))
     // Systolic array interface
     val aOut = Output(Vec(b, UInt(aWidth.W)))
     // AMem interface
     val amemRead = Output(Vec(b, ReadPort(aAddrWidth)))
     val amemQ = Input(Vec(b, UInt(aWidth.W)))
     // Accumulation pipeline interface
-    val next = Output(AddrControl(aAddrWidth, fAddrWidth))
+    val next = Output(A2fControl(aAddrWidth, fAddrWidth))
   })
   val pipeline = Seq.fill(b){Module(new AddrBlock(aAddrWidth, aWidth, fAddrWidth))}
   for (row <- 0 until b) {
