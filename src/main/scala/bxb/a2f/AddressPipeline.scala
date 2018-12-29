@@ -3,6 +3,7 @@ package bxb.a2f
 import chisel3._
 
 import bxb.memory.{ReadPort, WritePort}
+import bxb.util.{Util}
 
 class AddrControl(private val aAddrWidth: Int, private val fAddrWidth: Int) extends Bundle {
   val accumulate = Bool()
@@ -63,16 +64,7 @@ class AddressPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int) ext
 }
 
 object AddressPipeline {
-  def getVerilog(dut: => chisel3.core.UserModule): String = {
-    import firrtl._
-    return chisel3.Driver.execute(Array[String](), {() => dut}) match {
-      case s:chisel3.ChiselExecutionSuccess => s.firrtlResultOption match {
-        case Some(f:FirrtlExecutionSuccess) => f.emitted
-      }
-    }
-  }
-
   def main(args: Array[String]): Unit = {
-    println(getVerilog(new AddressPipeline(3, 10, 2, 10)))
+    println(Util.getVerilog(new AddressPipeline(3, 10, 2, 10)))
   }
 }

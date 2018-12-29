@@ -3,6 +3,7 @@ package bxb.a2f
 import chisel3._
 
 import bxb.memory.{ReadPort, WritePort}
+import bxb.util.{Util}
 
 class AccControl(private val addrWidth: Int) extends Bundle {
   val accumulate = Bool()
@@ -76,16 +77,7 @@ class AccumulationPipeline(b: Int, addrWidth: Int, accWidth: Int) extends Module
 }
 
 object AccumulationPipeline {
-  def getVerilog(dut: => chisel3.core.UserModule): String = {
-    import firrtl._
-    return chisel3.Driver.execute(Array[String](), {() => dut}) match {
-      case s:chisel3.ChiselExecutionSuccess => s.firrtlResultOption match {
-        case Some(f:FirrtlExecutionSuccess) => f.emitted
-      }
-    }
-  }
-
   def main(args: Array[String]): Unit = {
-    println(getVerilog(new AccumulationPipeline(3, 10, 16)))
+    println(Util.getVerilog(new AccumulationPipeline(3, 10, 16)))
   }
 }
