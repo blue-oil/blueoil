@@ -110,7 +110,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 
     Measurement::Start("QConv2D with kn2row");
     de10_nano::qconv_with_kn2row(
-	p.device_input_phys_addr, p.device_output_phys_addr, vecCoefficient.at(p.layer_index),
+	p.device_input_phys_addr, p.device_output_phys_addr, kernel,
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
         out_c_aligend_with_num_pe, k_w, k_h, cp.padding,
         cp.stride_along_height);
@@ -147,7 +147,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 
     Measurement::Start("QConv2D with kn2row");
     de10_nano::qconv_with_kn2row(
-        p.device_input_phys_addr, p.device_output_phys_addr, vecCoefficient.at(p.layer_index),
+        p.device_input_phys_addr, p.device_output_phys_addr, kernel,
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
         out_c, k_w, k_h, cp.padding, cp.stride_along_height);
     Measurement::Stop();

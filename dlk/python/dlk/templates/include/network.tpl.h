@@ -23,8 +23,6 @@ limitations under the License.
 #define SYM_PUBLIC __attribute__ ((visibility ("default")))
 #define SYM_LOCAL  __attribute__ ((visibility ("hidden")))
 
-extern std::vector<T_UINT*> vecCoefficient;
-
 class SYM_PUBLIC Network
 {
 public:

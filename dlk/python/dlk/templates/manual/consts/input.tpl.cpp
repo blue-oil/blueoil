@@ -28,4 +28,12 @@ limitations under the License.
   {%- endfor %}
 };
 
+{% if node.transposed_data %}
+{{ node.dtype.cpptype() }} {{ node.name }}_transposed[] = {
+  {% for d in node.transposed_data -%}
+  {{- d -}},
+  {%- endfor %}
+};
+{% endif %}
+
 {%- endif %}
