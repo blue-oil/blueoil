@@ -1,4 +1,4 @@
-/* Copyright 2018 Leapmind Inc. */
+/* Copyright 2019 Leapmind Inc. */
 #ifndef RUNTIME_INCLUDE_DCORE_HPP_
 #define RUNTIME_INCLUDE_DCORE_HPP_
 

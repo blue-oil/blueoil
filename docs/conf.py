@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 The Blueoil Authors. All Rights Reserved.
+# Copyright 2019 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ sys.path.insert(0, os.path.abspath('../lmnet'))
 # -- Project information -----------------------------------------------------
 
 project = 'blueoil'
-copyright = '2018, LeapMind Inc'
+copyright = '2019, LeapMind Inc'
 author = 'LeapMind Inc.'
 
 # The short X.Y version

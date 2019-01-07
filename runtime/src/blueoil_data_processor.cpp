@@ -1,4 +1,4 @@
-/* Copyright 2018 Leapmind Inc. */
+/* Copyright 2019 Leapmind Inc. */
 
 #include <dlfcn.h>
 #include <string>
