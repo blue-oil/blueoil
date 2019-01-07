@@ -17,6 +17,7 @@ import copy
 from core.data_types import *
 from textwrap import dedent
 
+qconv_idx = 0
 class View(object):
     def __init__(self, op):
         self.op = op
@@ -35,6 +36,7 @@ class View(object):
         return ','.join(map(lambda x: str(x), self.op.shape))
 
     def run(self):
+        global qconv_idx
         op = self.op
         input_ops = op.input_ops
         output_ops = op.output_ops
@@ -157,6 +159,7 @@ class View(object):
                     binConv2D_struct.bin_kernel_ndata = {qk_elems};
                     binConv2D_struct.bin_input_nwords = {qk_elems};
                     binConv2D_struct.bin_input_ndata = {qk_elems}*{nbit_qinput};
+                    binConv2D_struct.layer_index = {qconv_idx};
                     binConv2D_struct.device_input_buf = device_input_buf;
                     binConv2D_struct.device_output_buf = device_output_buf;
                     binConv2D_struct.thresholds = {threshold};
@@ -170,6 +173,9 @@ class View(object):
                     #endif
                     """
                 )
+                qconv_idx += 1
+                if len(op.output_ops.keys()) < 1:
+                    qconv_idx = 0
 
             else:
                 # temporary
