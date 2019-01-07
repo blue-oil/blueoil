@@ -95,7 +95,7 @@ class QuantizeParamInit:
                         return var
 
                 if quantize_last_convolution is not None and not quantize_last_convolution:
-                    if var.op.name.startswith(self.last_layer_name):
+                    if var.op.name.startswith(last_layer_name):
                         return var
 
                 quantized_kernel = weight_quantization(var)
