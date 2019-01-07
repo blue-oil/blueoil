@@ -41,10 +41,15 @@ class QuantizeParamInit:
         weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
         self.activation = activation_quantizer(**activation_quantizer_kwargs)
 
+        assert self.first_layer_name is not None
+        assert self.last_layer_name is not None
+        
         self.custom_getter = functools.partial(self._quantized_variable_getter,
                                                weight_quantization=weight_quantization,
                                                quantize_first_convolution=quantize_first_convolution,
-                                               quantize_last_convolution=quantize_last_convolution,)
+                                               quantize_last_convolution=quantize_last_convolution,
+                                               first_layer_name=self.first_layer_name,
+                                               last_layer_name=self.last_layer_name,)
         if quantize_last_convolution:
             self.before_last_activation = self.activation
         else:
@@ -57,6 +62,8 @@ class QuantizeParamInit:
                                    quantize_first_convolution=None,
                                    quantize_last_convolution=None,
                                    use_histogram=True,
+                                   first_layer_name=None,
+                                   last_layer_name=None,
                                    *args,
                                    **kwargs):
         """Get the quantized weight variables of convolutional layers (variables end with "kernel"). 
@@ -69,6 +76,8 @@ class QuantizeParamInit:
             quantize_first_convolution (boolean): True if using quantization at the first layer, False otherwise
             quantize_last_convolution (boolean): True if using quantization at the last layer, False otherwise
             use_histogram (boolean): True to summarize tf.summary.histogram of quantized var before return
+            first_layer_name (string): name of the first layer's variable_scope
+            last_layer_name (string): name of the last layer's variable_scope
             args: Args.
             kwargs: Kwargs.
 
@@ -82,12 +91,10 @@ class QuantizeParamInit:
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
                 if quantize_first_convolution is not None and not quantize_first_convolution:
-                    assert self.first_layer_name is not None
-                    if var.op.name.startswith(self.first_layer_name):
+                    if var.op.name.startswith(first_layer_name):
                         return var
 
                 if quantize_last_convolution is not None and not quantize_last_convolution:
-                    assert self.last_layer_name is not None
                     if var.op.name.startswith(self.last_layer_name):
                         return var
 
