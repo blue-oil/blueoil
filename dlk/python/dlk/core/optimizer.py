@@ -65,6 +65,65 @@ def node_is_activation_quantizer(node: Operator) -> bool:
     return node.op_type == 'QTZ_linear_mid_tread_half'
 
 
+def transpose_kernels(kernel_data, dimension_format, oh, ow, od, kh, kw, kd):
+    NUM_PE          = 16
+    NBIT_QDYPE      = 32
+    MAX_NBIT_QINPUT = 2
+    MAX_NBIT_KERNEL = 1
+    num_qinput_per_qword    = int(NBIT_QDYPE / MAX_NBIT_QINPUT)
+    num_qkernel_per_qword   = int(NBIT_QDYPE / MAX_NBIT_KERNEL)
+    k_c_by_word             = int((kd + (num_qkernel_per_qword - 1)) / num_qkernel_per_qword);
+    k_n_aligned_with_num_pe = int(((od + (NUM_PE - 1)) / NUM_PE) * NUM_PE);
+    if od < NUM_PE:
+        k_size = k_n_aligned_with_num_pe * kh * kw * k_c_by_word;
+    else:
+        k_size = od * kh * kw * k_c_by_word;
+
+    flatten_value = []
+    for elem in kernel_data:
+        flatten_value.extend(elem)
+    copy_value = [0] * k_size
+    for i in range(od * kh * kw * k_c_by_word):
+        copy_value[i] = flatten_value[i]
+
+    transpose_values = [0] * k_size
+    if (od < NUM_PE):
+        kn_out = int(k_n_aligned_with_num_pe / NUM_PE)
+    else:
+        kn_out = int(od / NUM_PE)
+    idx_src = 0
+
+    if dimension_format == "NHWC":
+        for no in range(kn_out):
+            for ni in range(NUM_PE):
+                for h in range(kh):
+                    for w in range(kw):
+                        for c in range(k_c_by_word):
+                            idx_dst = h * (kw * kn_out * k_c_by_word * NUM_PE)
+                            idx_dst += w * (kn_out * k_c_by_word * NUM_PE)
+                            idx_dst += no * (k_c_by_word * NUM_PE)
+                            idx_dst += c * (NUM_PE)
+                            idx_dst += ni
+                            transpose_values[idx_dst] = copy_value[idx_src]
+                            idx_src += 1
+    elif dimension_format == "NCHW":
+        for no in range(kn_out):
+            for ni in range(NUM_PE):
+                for c in range(k_c_by_word):
+                    for h in range(kh):
+                        for w in range(kw):
+                            idx_dst = h * (kw * kn_out * k_c_by_word * NUM_PE)
+                            idx_dst += w * (kn_out * k_c_by_word * NUM_PE)
+                            idx_dst += no * (k_c_by_word * NUM_PE)
+                            idx_dst += c * (NUM_PE)
+                            idx_dst += ni
+                            transpose_values[idx_dst] = copy_value[idx_src]
+                            idx_src += 1
+    else:
+        NotImplementedError("only NCHW and NHWC formats are suppported")
+
+    return transpose_values
+
 class NHWC_Transposer(GraphRunner):
     """Transposer of all nodes to NHWC."""
 
@@ -312,6 +371,12 @@ class PreComputeRunner(GraphRunner):
                 for key, op in zip(node.input_names, ops):
 
                     if self._is_prunable(op):
+                        oh = node.height
+                        ow = node.width
+                        od = node.channel
+                        kh = node.kernel_height
+                        kw = node.kernel_width
+                        kd = op.channel
                         shape = op.shape
                         op_data = node.quantizer.binarizer(op.data)
                         data = packer.run(op_data.astype(np.float32), op.dimension)
@@ -321,7 +386,8 @@ class PreComputeRunner(GraphRunner):
                             dtype,
                             data,
                             packed=True,
-                            actual_shape=shape
+                            actual_shape=shape,
+                            transposed_data=transpose_kernels(data, node.dimension, oh, ow, od, kh, kw, kd)
                         )
                         node.add_input(key, new_op)
                         self._graph.add_op(new_op)

@@ -120,8 +120,10 @@ class View(object):
                     for k, v in input_ops['X'].output_ops.items():
                         if v[0] == op:
                             inputs_string = str(input_ops['X'].name) + '_' + str(k)
+                    inputs_string_transposed = inputs_string + ', ' + input_ops['W'].name + '_transposed'
                     inputs_string = inputs_string + ', ' + input_ops['W'].name
                 else:
+                    inputs_string_transposed = ', '.join(str(x.name) if k != 'W' else str(x.name) + '_transposed' for k, x in input_ops.items())
                     inputs_string = self.inputs_to_string(input_ops)
 
                 if op.has_thresholds:
@@ -134,63 +136,6 @@ class View(object):
                     conv_func = 'func_QuantizedConv2D'
                     nbit_aqtz = 2
                     max_value = 2.0
-
-                NUM_PE          = 16
-                NBIT_QDYPE      = 32
-                MAX_NBIT_QINPUT = 2
-                MAX_NBIT_KERNEL = 1
-                num_qinput_per_qword    = int(NBIT_QDYPE / MAX_NBIT_QINPUT)
-                num_qkernel_per_qword   = int(NBIT_QDYPE / MAX_NBIT_KERNEL)
-                k_c_by_word             = int((kd + (num_qkernel_per_qword - 1)) / num_qkernel_per_qword);
-                k_n_aligned_with_num_pe = int(((od + (NUM_PE - 1)) / NUM_PE) * NUM_PE);
-                if od < NUM_PE:
-                    k_size = k_n_aligned_with_num_pe * kh * kw * k_c_by_word;
-                else:
-                    k_size = od * kh * kw * k_c_by_word;
-
-                flatten_value = []
-                for elem in input_ops['W'].data:
-                    flatten_value.extend(elem)
-                copy_value = [0] * k_size
-                for i in range(od * kh * kw * k_c_by_word):
-                    copy_value[i] = flatten_value[i]
-
-                transpose_values = [0] * k_size
-                if (od < NUM_PE):
-                    kn_out = int(k_n_aligned_with_num_pe / NUM_PE)
-                else:
-                    kn_out = int(od / NUM_PE)
-                idx_src = 0
-
-                if op._dimension_format == "NHWC":
-                    for no in range(kn_out):
-                        for ni in range(NUM_PE):
-                            for h in range(kh):
-                                for w in range(kw):
-                                    for c in range(k_c_by_word):
-                                        idx_dst = h * (kw * kn_out * k_c_by_word * NUM_PE)
-                                        idx_dst += w * (kn_out * k_c_by_word * NUM_PE)
-                                        idx_dst += no * (k_c_by_word * NUM_PE)
-                                        idx_dst += c * (NUM_PE)
-                                        idx_dst += ni
-                                        transpose_values[idx_dst] = copy_value[idx_src]
-                                        idx_src += 1
-                elif op._dimension_format == "NCHW":
-                    for no in range(kn_out):
-                        for ni in range(NUM_PE):
-                            for c in range(k_c_by_word):
-                                for h in range(kh):
-                                    for w in range(kw):
-                                        idx_dst = h * (kw * kn_out * k_c_by_word * NUM_PE)
-                                        idx_dst += w * (kn_out * k_c_by_word * NUM_PE)
-                                        idx_dst += no * (k_c_by_word * NUM_PE)
-                                        idx_dst += c * (NUM_PE)
-                                        idx_dst += ni
-                                        transpose_values[idx_dst] = copy_value[idx_src]
-                                        idx_src += 1
-                else:
-                    NotImplementedError("only NCHW and NHWC formats are suppported")
-                transpose_string = "{" + ",".join([str(temp) for temp in transpose_values]) + "}"
 
                 # temporary: formula which derive number of qinput is not complete
                 render_string = self.format_string(
@@ -221,9 +166,11 @@ class View(object):
                     binConv2D_struct.n_bit = {nbit_aqtz};
                     binConv2D_struct.max_value = {max_value};
 
-                    static T_UINT kernel_hwnocni{qconv_idx}[{k_size}] = {transpose_string};
-                    vecCoefficient.emplace_back(kernel_hwnocni{qconv_idx});
+                    #if defined RUN_ON_FPGA
+                    {conv_func}({inputs_string_transposed}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
+                    #else
                     {conv_func}({inputs_string}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
+                    #endif
                     """
                 )
                 qconv_idx += 1
