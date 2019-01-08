@@ -43,7 +43,7 @@ class QuantizeParamInit:
 
         assert self.first_layer_name is not None
         assert self.last_layer_name is not None
-        
+
         self.custom_getter = functools.partial(self._quantized_variable_getter,
                                                weight_quantization=weight_quantization,
                                                quantize_first_convolution=quantize_first_convolution,
@@ -66,8 +66,8 @@ class QuantizeParamInit:
                                    last_layer_name=None,
                                    *args,
                                    **kwargs):
-        """Get the quantized weight variables of convolutional layers (variables end with "kernel"). 
-        The quantization of the first and last convolutional layers can be skipped by two variables, 
+        """Get the quantized weight variables of convolutional layers (variables end with "kernel").
+        The quantization of the first and last convolutional layers can be skipped by two variables,
         quantize_first_convolution and quantize_last_convolution, respectively.
         Args:
             getter: Default from tensorflow.
@@ -81,8 +81,8 @@ class QuantizeParamInit:
             args: Args.
             kwargs: Kwargs.
 
-        If quantize_first_convolution is defined, first_layer_name class variable must be defined in sub task's init function.
-        If quantize_last_convolution is defined, last_layer_name class variable must be defined in sub task's init function.
+        If quantize_first_convolution is defined, first_layer_name class variable must be defined in sub task's init.
+        If quantize_last_convolution is defined, last_layer_name class variable must be defined in sub task's init.
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
