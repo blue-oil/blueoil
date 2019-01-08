@@ -16,9 +16,13 @@
 import argparse
 import os
 import re
+import importlib
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
+
+from lmnet.utils.module_loader import load_class
+
 
 # TODO(wakisaka): objecte detection, segmentation
 _TASK_TYPE_TEMPLATE_FILE = {
@@ -132,11 +136,76 @@ def _blueoil_to_lmnet(blueoil_config):
     else:
         dataset_class_property = {"extend_dir": dataset_class_extend_dir}
 
+    # load dataset python module from string.
+    _loaded_dataset_module = importlib.import_module("lmnet.datasets.{}".format(dataset_module))
+    # load dataset python module from string.
+    _loaded_dataset_class = load_class(_loaded_dataset_module, dataset_class)
+    _dataset_class = type('DATASET_CLASS', (_loaded_dataset_class,), dataset_class_property)
+    _dataset_obj = _dataset_class(subset="train", batch_size=1)
+    classes = _dataset_obj.classes
+
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
     initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"]
-    learning_rate_setting = blueoil_config["trainer"]["learning_rate_setting"]
+    learning_rate_schedule = blueoil_config["trainer"]["learning_rate_schedule"]
     max_epochs = blueoil_config["trainer"]["epochs"]
+
+    step_per_epoch = float(_dataset_obj.num_per_epoch)/batch_size
+
+    learning_rate_func = None
+    learning_rate_kwargs = None
+    if learning_rate_schedule == "constant":
+        optimizer_kwargs = {"momentum": 0.9, "learning_rate": initial_learning_rate}
+    else:
+        optimizer_kwargs = {"momentum": 0.9}
+        learning_rate_func = "tf.train.piecewise_constant"
+
+    if learning_rate_schedule == "2-step-decay":
+        learning_rate_kwargs = {
+            "values": [
+                initial_learning_rate,
+                initial_learning_rate / 10,
+                initial_learning_rate / 100
+            ],
+            "boundaries": [
+                int((step_per_epoch * (max_epochs - 1)) / 2),
+                int(step_per_epoch * (max_epochs - 1))
+            ],
+        }
+
+    elif learning_rate_schedule == "3-step-decay":
+        learning_rate_kwargs = {
+            "values": [
+                initial_learning_rate,
+                initial_learning_rate / 10,
+                initial_learning_rate / 100,
+                initial_learning_rate / 1000
+            ],
+            "boundaries": [
+                int((step_per_epoch * (max_epochs - 1)) * 1 / 3),
+                int((step_per_epoch * (max_epochs - 1)) * 2 / 3),
+                int(step_per_epoch * (max_epochs - 1))
+            ],
+        }
+
+    elif learning_rate_schedule == "3-step-decay-with-warmup":
+        if max_epochs < 4:
+            raise ValueError("epoch number must be >= 4, when 3-step-decay-with-warmup is selected.")
+        learning_rate_kwargs = {
+            "values": [
+                initial_learning_rate / 1000,
+                initial_learning_rate,
+                initial_learning_rate / 10,
+                initial_learning_rate / 100,
+                initial_learning_rate / 1000
+            ],
+            "boundaries": [
+                int(step_per_epoch * 1),
+                int((step_per_epoch * (max_epochs - 1)) * 1 / 3),
+                int((step_per_epoch * (max_epochs - 1)) * 2 / 3),
+                int(step_per_epoch * (max_epochs - 1))
+            ],
+        }
 
     # common
     image_size = blueoil_config["common"]["image_size"]
@@ -167,10 +236,13 @@ def _blueoil_to_lmnet(blueoil_config):
 
         "batch_size": batch_size,
         "max_epochs": max_epochs,
-        "initial_learning_rate": initial_learning_rate,
-        "learning_rate_setting": learning_rate_setting,
+
+        "optimizer_kwargs": optimizer_kwargs,
+        "learning_rate_func": learning_rate_func,
+        "learning_rate_kwargs": learning_rate_kwargs,
 
         "image_size": image_size,
+        "classes": classes,
 
         "quantize_first_convolution": quantize_first_convolution,
 
