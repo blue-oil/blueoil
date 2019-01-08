@@ -134,7 +134,7 @@ clean:
 	-$(RM) $(OBJ)
 
 lm_x86:           CXX = /usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
-lm_x86:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_PNG -pthread -g -fopenmp=libiomp5 -march=core-avx2 -I/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/include/c++/v1/ -I/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything -DFUNC_TIME_MEASUREMENT
+lm_x86:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_PNG -pthread -g -fopenmp=libiomp5 -march=native -I/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/include/c++/v1/ -I/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything
 
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
 lm_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_NEON -DUSE_PNG -pthread -g
