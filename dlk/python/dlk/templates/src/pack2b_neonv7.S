@@ -20,6 +20,7 @@ limitations under the License.
 
 	.thumb
 	.thumb_func
+	.syntax unified
 	.global pack2bits
 pack2bits:
 	pld		[r0]
@@ -96,7 +97,7 @@ pack2bits:
 	vorr		d21, d21, d19
 
 	vst2.32		{d20-d21}, [r1]!
-	sub		r2, r2, #64
+	subs		r2, #64
 	bgt		1b
 
 	bx		lr
