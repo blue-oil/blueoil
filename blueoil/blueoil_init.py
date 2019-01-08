@@ -26,8 +26,7 @@ import lmnet.data_augmentor as augmentor
 task_type_choices = [
     'classification',
     'object_detection',
-    # TODO(wakisaka): Remove the commnet-out when support semantic segmentation.
-    # 'semantic_segmentation'
+    'semantic_segmentation'
 ]
 
 classification_network_definitions = [
@@ -44,17 +43,16 @@ object_detection_network_definitions = [
     },
 ]
 
-# TODO(wakisaka): Remove the commnet-out when support semantic segmentation.
-# semantic_segmentation_network_definitions = [
-#     {
-#         'name': 'LmSegnetV1Quantize',
-#         'desc': 'Quantized LeapMind original semantic segmentation network, version 1.',
-#     },
-#     {
-#         'name': 'LmSegnetV0Quantize',
-#         'desc': 'Quantized LeapMind original semantic segmentation network, version 0.',
-#     },
-# ]
+semantic_segmentation_network_definitions = [
+    {
+        'name': 'LmSegnetV1Quantize',
+        'desc': 'Quantized LeapMind original semantic segmentation network, version 1.',
+    },
+    {
+        'name': 'LmSegnetV0Quantize',
+        'desc': 'Quantized LeapMind original semantic segmentation network, version 0.',
+    },
+]
 
 IMAGE_SIZE_VALIDATION = {
     "LmnetV1Quantize": {
@@ -64,6 +62,14 @@ IMAGE_SIZE_VALIDATION = {
     "LMFYoloQuantize": {
         "max_size": 480,
         "divider": 32,
+    },
+    "LmSegnetV0Quantize": {
+        "max_size": 512,
+        "divider": 12,
+    },
+    "LmSegnetV1Quantize": {
+        "max_size": 512,
+        "divider": 12,
     },
 }
 
@@ -89,17 +95,12 @@ object_detection_dataset_formats = [
     },
 ]
 
-# TODO(wakisaka): Remove the commnet-out when support semantic segmentation.
-# semantic_segmentation_dataset_formats = [
-#     {
-#         'name': "CamVid",
-#         'desc': "CamVid compatible",
-#     },
-#     {
-#         'name': "CityScapes",
-#         'desc': "CityScapes compatible",
-#     },
-# ]
+semantic_segmentation_dataset_formats = [
+    {
+        'name': "CamVid",
+        'desc': "CamVid compatible",
+    },
+]
 
 
 learning_rate_schedule_map = OrderedDict([
@@ -115,9 +116,8 @@ def network_name_choices(task_type):
         return [definition['name'] for definition in classification_network_definitions]
     elif task_type == 'object_detection':
         return [definition['name'] for definition in object_detection_network_definitions]
-    # TODO(wakisaka): Remove the commnet-out when support semantic segmentation.
-    # elif task_type == 'semantic_segmentation':
-    #     return [definition['name'] for definition in semantic_segmentation_network_definitions]
+    elif task_type == 'semantic_segmentation':
+        return [definition['name'] for definition in semantic_segmentation_network_definitions]
 
 
 def dataset_format_choices(task_type):
@@ -125,9 +125,8 @@ def dataset_format_choices(task_type):
         return [definition['name'] for definition in classification_dataset_formats]
     elif task_type == 'object_detection':
         return [definition['name'] for definition in object_detection_dataset_formats]
-    # TODO(wakisaka): Remove the commnet-out when support semantic segmentation.
-    # elif task_type == 'semantic_segmentation':
-    #     return [definition['name'] for definition in semantic_segmentation_dataset_formats]
+    elif task_type == 'semantic_segmentation':
+        return [definition['name'] for definition in semantic_segmentation_dataset_formats]
 
 
 def default_batch_size(task_type):
@@ -135,9 +134,8 @@ def default_batch_size(task_type):
         return '10'
     elif task_type == 'object_detection':
         return '16'
-    # TODO(wakisaka): Remove the commnet-out when support semantic segmentation.
-    # elif task_type == 'semantic_segmentation':
-    #     return '8'
+    elif task_type == 'semantic_segmentation':
+        return '8'
 
 
 def prompt(question):
