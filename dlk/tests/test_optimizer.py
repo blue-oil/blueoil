@@ -16,7 +16,7 @@
 """Test file for Optimizer."""
 import unittest
 from core.data_types import Float32, Uint32, Int32, QUANTIZED_NOT_PACKED
-from core.optimizer import pass_remove_identities, pass_transpose, pass_precompute, \
+from core.optimizer import pass_remove_identities, pass_transpose, pass_constant_folding, \
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
     pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
 from core.graph import Graph
@@ -41,7 +41,7 @@ class TestOptimizer(unittest.TestCase):
         pass_remove_identities(graph1)
         pass_transpose(graph1)
 
-        pass_precompute(graph1)
+        pass_constant_folding(graph1)
 
         self.assertEqual(graph1, graph2, 'precompute failed.')
 
@@ -64,7 +64,7 @@ class TestOptimizer(unittest.TestCase):
 
         pass_propagate_datatypes(graph1)
 
-        pass_precompute(graph1)
+        pass_constant_folding(graph1)
 
         self.assertEqual(graph1, graph2, 'precompute failed.')
         self.assertAlmostEqual(graph1.get_op('conv2').quantizer.scaling_factor, scaling2)  # type: ignore
@@ -88,7 +88,7 @@ class TestOptimizer(unittest.TestCase):
 
         pass_propagate_datatypes(graph1)
 
-        pass_precompute(graph1)
+        pass_constant_folding(graph1)
 
         self.assertEqual(graph1, graph2, 'precompute failed.')
         self.assertAlmostEqual(graph1.get_op('conv2').quantizer.scaling_factor, scaling2)  # type: ignore

@@ -91,7 +91,7 @@ def pass_transpose(graph: Graph) -> None:
         m.node.transpose(permutation)
 
 
-def pass_precompute(graph: Graph) -> None:
+def pass_constant_folding(graph: Graph) -> None:
     """Given a node N, if the value of each input of N is known at compilation time then N will be executed.
        The node N and its inputs will be replaced with a Constant node which holds the computed output of N.
 
