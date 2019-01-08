@@ -29,7 +29,7 @@ from core.model import Model
 from core.params import Params
 from code_generater import CodeGenerater
 from frontend import TensorFlowIO
-from core.optimizer import pass_remove_identities, pass_transpose, pass_precompute, \
+from core.optimizer import pass_remove_identities, pass_transpose, pass_constant_folding, \
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
     pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
 
@@ -65,7 +65,7 @@ def optimize_graph_step(model: Model, config: Config) -> None:
         pass_propagate_output_type_backward(graph)
     pass_propagate_datatypes(graph)
 
-    pass_precompute(graph)
+    pass_constant_folding(graph)
 
 
 def generate_code_step(model: Model, config: Config) -> None:
