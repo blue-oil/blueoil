@@ -41,9 +41,7 @@ class TestOptimizer(unittest.TestCase):
         pass_remove_identities(graph1)
         pass_transpose(graph1)
 
-        processed_nodes = []
-        while pass_precompute(graph1, processed_nodes=processed_nodes):
-            pass
+        pass_precompute(graph1)
 
         self.assertEqual(graph1, graph2, 'precompute failed.')
 
@@ -66,9 +64,7 @@ class TestOptimizer(unittest.TestCase):
 
         pass_propagate_datatypes(graph1)
 
-        processed_nodes = []
-        while pass_precompute(graph1, processed_nodes=processed_nodes):
-            pass
+        pass_precompute(graph1)
 
         self.assertEqual(graph1, graph2, 'precompute failed.')
         self.assertAlmostEqual(graph1.get_op('conv2').quantizer.scaling_factor, scaling2)  # type: ignore
@@ -92,9 +88,7 @@ class TestOptimizer(unittest.TestCase):
 
         pass_propagate_datatypes(graph1)
 
-        processed_nodes = []
-        while pass_precompute(graph1, processed_nodes=processed_nodes):
-            pass
+        pass_precompute(graph1)
 
         self.assertEqual(graph1, graph2, 'precompute failed.')
         self.assertAlmostEqual(graph1.get_op('conv2').quantizer.scaling_factor, scaling2)  # type: ignore

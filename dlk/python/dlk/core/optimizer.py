@@ -91,7 +91,7 @@ def pass_transpose(graph: Graph) -> None:
         m.node.transpose(permutation)
 
 
-def pass_precompute(graph: Graph, processed_nodes) -> bool:
+def pass_precompute(graph: Graph) -> None:
     """Given a node N, if the value of each input of N is known at compilation time then N will be executed.
        The node N and its inputs will be replaced with a Constant node which holds the computed output of N.
 
@@ -101,61 +101,60 @@ def pass_precompute(graph: Graph, processed_nodes) -> bool:
         The input graph. It will be modified in-place.
     processed_nodes : list
         The list of the processed nodes so far.
-
-    Returns
-    -------
-    result : bool
-        True if some nodes were precomputed, False otherwise.
     """
-    p = Pattern('*')
-    matches = find_pattern(graph, p)
-    processed_before_precompute = len(processed_nodes)
-    to_be_removed = []
 
-    for m in matches:
-        if m.node in processed_nodes:
-            continue
+    done = False
+    processed_nodes = []
+    while not done:
+        p = Pattern('*')
+        matches = find_pattern(graph, p)
+        processed_before_precompute = len(processed_nodes)
+        to_be_removed = []
 
-        # We want operators with inputs
-        if not m.node.input_nodes:
-            continue
+        for m in matches:
+            if m.node in processed_nodes:
+                continue
 
-        precomputable = True
-        for input_node in m.node.input_nodes:
-            if input_node.op_type != 'Constant':
-                precomputable = False
+            # We want operators with inputs
+            if not m.node.input_nodes:
+                continue
 
-        if not precomputable:
-            continue
+            precomputable = True
+            for input_node in m.node.input_nodes:
+                if input_node.op_type != 'Constant':
+                    precomputable = False
 
-        processed_nodes += m.node.input_nodes
-        processed_nodes.append(m.node)
+            if not precomputable:
+                continue
 
-        data = m.node.run_forward()
+            processed_nodes += m.node.input_nodes
+            processed_nodes.append(m.node)
 
-        new_constant = Constant(
-            m.node.name + '_new',
-            m.node.dtype,
-            data,
-            dimension_format=m.node.dimension
-        )
-        graph.add_op(new_constant)
+            data = m.node.run_forward()
 
-        # get nodes to be removed after being disconnected
-        get_nodes_in_branch(m.node, None, to_be_removed)
+            new_constant = Constant(
+                m.node.name + '_new',
+                m.node.dtype,
+                data,
+                dimension_format=m.node.dimension
+            )
+            graph.add_op(new_constant)
 
-        new_constant.add_outputs({'output': m.node.output_ops.values()})
-        for output_name, consumer_list in m.node.output_ops.items():
-            for consumer_node in consumer_list:
-                for input_name, input_node in consumer_node.input_ops.items():
-                    if input_node == m.node:
-                        consumer_node.add_input(input_name, new_constant)
-                        break
+            # get nodes to be removed after being disconnected
+            get_nodes_in_branch(m.node, None, to_be_removed)
 
-    for op in to_be_removed:
-        graph.remove_op(op)
+            new_constant.add_outputs({'output': m.node.output_ops.values()})
+            for output_name, consumer_list in m.node.output_ops.items():
+                for consumer_node in consumer_list:
+                    for input_name, input_node in consumer_node.input_ops.items():
+                        if input_node == m.node:
+                            consumer_node.add_input(input_name, new_constant)
+                            break
 
-    return len(processed_nodes) > processed_before_precompute
+        for op in to_be_removed:
+            graph.remove_op(op)
+
+        done = len(processed_nodes) == processed_before_precompute
 
 
 def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:

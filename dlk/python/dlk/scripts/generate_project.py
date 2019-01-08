@@ -65,9 +65,7 @@ def optimize_graph_step(model: Model, config: Config) -> None:
         pass_propagate_output_type_backward(graph)
     pass_propagate_datatypes(graph)
 
-    processed_nodes = []
-    while pass_precompute(graph, processed_nodes=processed_nodes):
-        pass
+    pass_precompute(graph)
 
 
 def generate_code_step(model: Model, config: Config) -> None:
