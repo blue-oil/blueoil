@@ -26,44 +26,6 @@ from collections import defaultdict
 from modules.packer import Packer
 
 
-def pass_dot_graph(graph: Graph, filename) -> None:
-    """Generate a GraphViz dot file from a given Graph.
-
-    Parameters
-    ----------
-    graph : Graph
-        The input graph to be converted into a dot script
-
-    filename : str
-        The file where we want to save the dot script
-
-    """
-    dot_script = 'digraph {'
-
-    code = {}
-    counter = 0
-    for node in graph.operators:
-        code[node.name] = counter
-        counter += 1
-
-    for node in graph.operators:
-
-        shape = '-'
-        if node.shape:
-            shape = 'x'.join(str(x) for x in node.shape)
-        shape += '(' + node.dimension + ')'
-
-        dot_script += node.name + '[label="<f0> ' + format(code[node.name], '04X') + '| <f1> ' + \
-            node.op_type + '| <f2> ' + shape + '| <f3> ' + node.dtype.cpptype() + '" shape = "record"];'
-        for i in node.input_nodes:
-            dot_script += i.name + ' -> ' + node.name + ';'
-
-    dot_script += '}'
-
-    with open(filename, 'w') as f:
-        f.write(dot_script)
-
-
 def pass_remove_identities(graph: Graph) -> None:
     """Removes those nodes of a Graph that satisfies the condition node.op_type() == Identity.
 
