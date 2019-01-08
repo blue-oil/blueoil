@@ -72,12 +72,12 @@ def transpose_kernels(kernel_data, dimension_format, oh, ow, od, kh, kw, kd):
     MAX_NBIT_KERNEL = 1
     num_qinput_per_qword = int(NBIT_QDYPE / MAX_NBIT_QINPUT)
     num_qkernel_per_qword = int(NBIT_QDYPE / MAX_NBIT_KERNEL)
-    k_c_by_word = int((kd + (num_qkernel_per_qword - 1)) / num_qkernel_per_qword);
-    k_n_aligned_with_num_pe = int(((od + (NUM_PE - 1)) / NUM_PE) * NUM_PE);
+    k_c_by_word = int((kd + (num_qkernel_per_qword - 1)) / num_qkernel_per_qword)
+    k_n_aligned_with_num_pe = int(((od + (NUM_PE - 1)) / NUM_PE) * NUM_PE)
     if od < NUM_PE:
-        k_size = k_n_aligned_with_num_pe * kh * kw * k_c_by_word;
+        k_size = k_n_aligned_with_num_pe * kh * kw * k_c_by_word
     else:
-        k_size = od * kh * kw * k_c_by_word;
+        k_size = od * kh * kw * k_c_by_word
 
     flatten_value = []
     for elem in kernel_data:
@@ -127,9 +127,9 @@ def transpose_kernels(kernel_data, dimension_format, oh, ow, od, kh, kw, kd):
 
     return transpose_values
 
+
 class NHWC_Transposer(GraphRunner):
     """Transposer of all nodes to NHWC."""
-
 
     def _get_permutation(self, dim: str) -> List[int]:
         """Create a permutation from the source dimension."""
