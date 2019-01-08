@@ -485,7 +485,9 @@ class Operator(object):
 
     @property
     def preserve_quantization(self) -> bool:
-        return False
+        """whether to preserve the operator for quantization"""
+        raise NotImplementedError(
+            f'Preservation for quantization of operator {self.op_type} is not defined.')
 
 
 class Variable(Operator):
@@ -524,6 +526,10 @@ class Variable(Operator):
     @data.setter
     def data(self, val: np.ndarray) -> None:
         self._data = val
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
 
 class Input(Variable):
@@ -675,6 +681,10 @@ class Quantizer(Operator):
     @property
     def scaling_factor(self) -> np.float32:
         return self._scaling_factor
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
     @scaling_factor.setter
     def scaling_factor(self, val: np.float32) -> None:
@@ -1324,6 +1334,10 @@ class BatchNormalization(Operator):
     def _dispatch_name(self) -> str:
         return "batch_normalization"
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class QTZ_linear_mid_tread_half(Quantizer):
     """Quantization operator with 'linear mid tread half'.
@@ -1506,6 +1520,10 @@ class Add(Operator):
 
         return output_shape
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Pool(Operator):
     """Pooling operator.
@@ -1633,6 +1651,10 @@ class Pool(Operator):
         NCHW = [N, C, H, W]
         perm = [format.index(s) for s in 'NCHW']
         return [NCHW[i] for i in perm]
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
 
 class MaxPool(Pool):
@@ -1852,6 +1874,10 @@ class Softmax(Operator):
         self._data = exp / np.expand_dims(exp.sum(axis=-1), -1)
         return self._data
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Relu(Operator):
     """Relu class.
@@ -1886,6 +1912,10 @@ class Relu(Operator):
     def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
                     attrs: Dict[str, Any]) -> List[int]:
         return lists['X']
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
 
 class Flatten(Operator):
@@ -2010,6 +2040,10 @@ class Dropout(Operator):
                     attrs: Dict[str, Any]) -> List[int]:
         return lists['data']
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Gemm(Operator):
     """Gemm operator.
@@ -2096,6 +2130,10 @@ class Gemm(Operator):
 
         return [M, N]
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Mul(Operator):
     """Mul operator.
@@ -2169,6 +2207,10 @@ class Mul(Operator):
 
     @property
     def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
         return False
 
     @classmethod
@@ -2367,6 +2409,10 @@ class Maximum(Operator):
 
     @property
     def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
         return False
 
 
