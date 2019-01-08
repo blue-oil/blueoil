@@ -462,14 +462,14 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
     p = Pattern('*')
     matches = find_pattern(graph, p)
 
-    def find_input(node, otype):
+    def output_dtype_changer(node, otype):
         for n in node.input_nodes:
             if n.op_type == 'Conv' and n.is_quantized:
                 n.dtype = otype
                 return
-            find_input(n, otype)
+            output_dtype_changer(n, otype)
 
     # propagate output data type to the last quantized convolution
     output_node = matches[-1].node
     output_type = output_node.dtype
-    find_input(output_node, output_type)
+    output_dtype_changer(output_node, output_type)
