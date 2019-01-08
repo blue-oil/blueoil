@@ -82,6 +82,9 @@ def transpose_kernels(kernel_data, dimension_format, oh, ow, od, kh, kw, kd):
     flatten_value = []
     for elem in kernel_data:
         flatten_value.extend(elem)
+    while len(flatten_value) != k_size:
+        flatten_value.extend("0")
+    
     copy_value = [0] * k_size
     for i in range(od * kh * kw * k_c_by_word):
         copy_value[i] = flatten_value[i]
@@ -377,7 +380,7 @@ class PreComputeRunner(GraphRunner):
                         od = node.channel
                         kh = node.kernel_height
                         kw = node.kernel_width
-                        kd = op.channel
+                        kd = node.input_ops['X'].channel
                         shape = op.shape
                         op_data = node.quantizer.binarizer(op.data)
                         data = packer.run(op_data.astype(np.float32), op.dimension)
