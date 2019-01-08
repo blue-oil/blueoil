@@ -79,9 +79,12 @@ def transpose_kernels(kernel_data, dimension_format, oh, ow, od, kh, kw, kd):
     else:
         k_size = od * kh * kw * k_c_by_word;
 
-    flatten_value = [] * k_size
+    flatten_value = []
     for elem in kernel_data:
         flatten_value.extend(elem)
+    while len(flatten_value) != k_size:
+        flatten_value.extend(0)
+    
     copy_value = [0] * k_size
     for i in range(od * kh * kw * k_c_by_word):
         copy_value[i] = flatten_value[i]
