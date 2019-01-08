@@ -15,6 +15,7 @@
 # =============================================================================
 import inspect
 import re
+from collections import OrderedDict
 
 import whaaaaat
 from jinja2 import Environment, FileSystemLoader
@@ -99,6 +100,14 @@ object_detection_dataset_formats = [
 #         'desc': "CityScapes compatible",
 #     },
 # ]
+
+
+learning_rate_schedule_map = OrderedDict([
+    ("constant", "'constant' -> constant learning rate."),
+    ("2-step-decay", "'2-step-decay' -> learning rate decrease by 1/10 on {epochs}/2 and {epochs}-1."),
+    ("3-step-decay", "'3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1"),
+    ("3-step-decay-with-warmup", "'3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'"),
+])
 
 
 def network_name_choices(task_type):
@@ -291,21 +300,19 @@ def ask_questions():
     }
     initial_learning_rate_value = prompt(initial_learning_rate_value_question)
 
-    training_learning_rate_question = {
+    # learning rate schedule
+    learning_rate_schedule_question = {
         'type': 'rawlist',
         'name': 'value',
-        'message': 'choose learning rate setting(tune1 / tune2 / tune3 / fixed):',
-        'choices': ['tune1 -> "2 times decay"', 'tune2 -> "3 times decay"', 'tune3 -> "warm-up and 3 times decay"', 'fixed'],
-        'default': 'tune1 -> "2 times decay"',
+        'message': 'choose learning rate schedule \
+({epochs} is the number of training epochs you entered before):',
+        'choices': list(learning_rate_schedule_map.values()),
+        'default': learning_rate_schedule_map["constant"],
     }
-    choices_key_map = {
-        'tune1 -> "2 times decay"': 'tune1',
-        'tune2 -> "3 times decay"': 'tune2',
-        'tune3 -> "warm-up and 3 times decay"': 'tune3',
-        'fixed': 'fixed',
-    }
-    tmp_learning_rate_setting = prompt(training_learning_rate_question)
-    training_learning_rate_setting = choices_key_map[tmp_learning_rate_setting]
+    _tmp_learning_rate_schedule = prompt(learning_rate_schedule_question)
+    for key, value in learning_rate_schedule_map.items():
+        if value == _tmp_learning_rate_schedule:
+            learning_rate_schedule = key
 
     if prompt(enable_data_augmentation):
         all_augmentor = {}
