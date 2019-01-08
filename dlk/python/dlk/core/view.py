@@ -17,6 +17,7 @@ import copy
 from core.data_types import *
 from textwrap import dedent
 
+
 class View(object):
     def __init__(self, op):
         self.op = op
@@ -121,7 +122,8 @@ class View(object):
                     inputs_string_transposed = inputs_string + ', ' + input_ops['W'].name + '_transposed'
                     inputs_string = inputs_string + ', ' + input_ops['W'].name
                 else:
-                    inputs_string_transposed = ', '.join(str(x.name) if k != 'W' else str(x.name) + '_transposed' for k, x in input_ops.items())
+                    inputs_string_transposed = ', '.join(str(x.name) \
+                                                         if k != 'W' else str(x.name) + '_transposed' for k,x in input_ops.items())
                     inputs_string = self.inputs_to_string(input_ops)
 
                 if op.has_thresholds:
