@@ -379,7 +379,7 @@ class PreComputeRunner(GraphRunner):
                         od = node.channel
                         kh = node.kernel_height
                         kw = node.kernel_width
-                        kd = op.channel
+                        kd = node.input_ops['X'].channel
                         shape = op.shape
                         op_data = node.quantizer.binarizer(op.data)
                         data = packer.run(op_data.astype(np.float32), op.dimension)
