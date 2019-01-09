@@ -24,7 +24,6 @@ DATASET:
       is_resize: false
       width: 32
     - !!python/object:lmnet.data_augmentor.FlipLeftRight
-      is_bounding_box: false
       probability: 0.5
   BATCH_SIZE: 1
   DATA_FORMAT: NHWC

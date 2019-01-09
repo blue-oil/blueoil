@@ -191,7 +191,7 @@ class Crop(data_processor.Processor):
         resize (int | list | tuple): If there are resize param, resize and crop.
     """
 
-    def __init__(self, size=(128, 128), resize=None):
+    def __init__(self, size, resize=None):
 
         if type(size) in [int, float]:
             height = size
@@ -272,12 +272,10 @@ class FlipLeftRight(data_processor.Processor):
 
     Args:
         probability (number): Probability for flipping.
-        is_bounding_box (bool): If is bounding box.
     """
 
-    def __init__(self, probability=0.5, is_bounding_box=False):
+    def __init__(self, probability=0.5):
         self.probability = probability
-        self.is_bounding_box = is_bounding_box
 
     def __call__(self, image, mask=None, gt_boxes=None, **kwargs):
         flg = random.random() > self.probability
@@ -290,7 +288,7 @@ class FlipLeftRight(data_processor.Processor):
                     mask = mask[:, ::-1, :]
                 else:
                     raise RuntimeError('Number of dims in mask should be 2 or 3 but get {}.'.format(np.ndim(mask)))
-            if self.is_bounding_box and gt_boxes is not None:
+            if gt_boxes is not None:
                 gt_boxes = _flip_left_right_boundingbox(image, gt_boxes)
 
         return dict({'image': image, 'mask': mask, 'gt_boxes': gt_boxes}, **kwargs)
@@ -315,12 +313,10 @@ class FlipTopBottom(data_processor.Processor):
 
     Args:
         probability (number): Probability for flipping.
-        is_bounding_box (bool): If is bounding box.
     """
 
-    def __init__(self, probability=0.5, is_bounding_box=False):
+    def __init__(self, probability=0.5):
         self.probability = probability
-        self.is_bounding_box = is_bounding_box
 
     def __call__(self, image, mask=None, gt_boxes=None, **kwargs):
         """
@@ -342,7 +338,7 @@ class FlipTopBottom(data_processor.Processor):
                     mask = mask[::-1, :, :]
                 else:
                     raise RuntimeError('Number of dims in mask should be 2 or 3 but get {}.'.format(np.ndim(mask)))
-            if self.is_bounding_box and gt_boxes is not None:
+            if gt_boxes is not None:
                 gt_boxes = _flip_top_bottom_boundingbox(image, gt_boxes)
 
         return dict({'image': image, 'mask': mask, 'gt_boxes': gt_boxes}, **kwargs)
@@ -485,9 +481,7 @@ def _crop_boxes(boxes, crop_rect):
 
 
 class Pad(data_processor.Processor):
-    """Pad
-
-    Add padding to images.
+    """Add padding to images.
 
     Args:
         value (int or tuple): Padding on each border. If a single int is provided this
