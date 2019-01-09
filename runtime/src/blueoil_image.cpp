@@ -30,17 +30,23 @@ Tensor ResizeHorizontal_NearestNeighbor(const Tensor &tensor, const int width) {
   const int channels  = shape[2];
   const int height = srcHeight;
   Tensor dstTensor({height, width, channels});
+  //
+  int srcRGBlinesize = srcWidth * channels;
   float xScale = static_cast<float>(width) / static_cast<float>(srcWidth);
+  float srcRGBscaled = 1.0f / xScale;
+  const float *srcImageData = tensor.dataAsArray();
+  float *srcRGBline = const_cast<float *>(srcImageData);
+  float *dstRGB = dstTensor.dataAsArray();
   for (int dstY = 0 ; dstY < height ; dstY++) {
+    float srcRGBindexF = 0;
     for (int dstX = 0 ; dstX < width ; dstX++) {
-      int srcX = (int) std::floor(dstX/xScale);
-      int srcY = dstY;
+      float *srcRGB = srcRGBline + (static_cast<int>(srcRGBindexF) * channels);
       for (int c = 0 ; c < channels ; c++) {
-        const float *srcRGB = tensor.dataAsArray({srcY, srcX, 0});
-        float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
-        dstRGB[c] = srcRGB[c];
+        *dstRGB++ = *srcRGB++;
       }
+      srcRGBindexF += srcRGBscaled;
     }
+    srcRGBline += srcRGBlinesize;
   }
   return dstTensor;
 }
