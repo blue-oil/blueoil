@@ -147,12 +147,12 @@ RUN wget https://releases.linaro.org/components/toolchain/binaries/latest-5/aarc
 # openmp lib (.so also)
 RUN wget http://releases.llvm.org/7.0.0/openmp-7.0.0.src.tar.xz && \
     tar -xf openmp-7.0.0.src.tar.xz && cd openmp-7.0.0.src/cmake && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/arm \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/ \
           -DCMAKE_C_COMPILER=/usr/bin/arm-linux-gnueabihf-gcc-5 \
           -DCMAKE_CXX_COMPILER=/usr/bin/arm-linux-gnueabihf-g++-5 \
           -DLIBOMP_ENABLE_SHARED=ON .. && \
     make -j6 && make -j6 install && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/arm \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/ \
           -DCMAKE_C_COMPILER=/usr/bin/arm-linux-gnueabihf-gcc-5 \
           -DCMAKE_CXX_COMPILER=/usr/bin/arm-linux-gnueabihf-g++-5 \
           -DLIBOMP_ENABLE_SHARED=OFF .. && \
