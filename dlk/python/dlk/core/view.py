@@ -17,6 +17,7 @@ import copy
 from core.data_types import *
 from textwrap import dedent
 
+
 class View(object):
     def __init__(self, op):
         self.op = op
@@ -118,10 +119,11 @@ class View(object):
                     for k, v in input_ops['X'].output_ops.items():
                         if v[0] == op:
                             inputs_string = str(input_ops['X'].name) + '_' + str(k)
-                    inputs_string_transposed = inputs_string + ', ' + input_ops['W'].name + '_transposed'
+                    istrt = inputs_string + ', ' + input_ops['W'].name + '_transposed'
                     inputs_string = inputs_string + ', ' + input_ops['W'].name
                 else:
-                    inputs_string_transposed = ', '.join(str(x.name) if k != 'W' else str(x.name) + '_transposed' for k, x in input_ops.items())
+                    iops = input_ops
+                    istrt = ', '.join(str(x.name) if k != 'W' else str(x.name) + '_transposed' for k, x in iops.items())
                     inputs_string = self.inputs_to_string(input_ops)
 
                 if op.has_thresholds:
@@ -164,7 +166,7 @@ class View(object):
                     binConv2D_struct.max_value = {max_value};
 
                     #if defined RUN_ON_FPGA
-                    {conv_func}({inputs_string_transposed}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
+                    {conv_func}({istrt}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
                     #else
                     {conv_func}({inputs_string}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
                     #endif
