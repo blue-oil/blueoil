@@ -109,11 +109,7 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy dlk sources to docker image
-COPY dlk /home/blueoil/dlk
-# Install dlk
 WORKDIR /home/blueoil/dlk
-RUN PYTHONPATH=python/dlk python setup.py install
 
 # Copy blueoil sources to docker image
 COPY blueoil /home/blueoil/blueoil
@@ -131,3 +127,55 @@ COPY output_template /home/blueoil/output_template
 
 # Set __init__.py for python modules
 RUN touch lmnet/lmnet/__init__.py
+
+RUN wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && \
+    wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-armv7a-linux-gnueabihf.tar.xz && \
+    wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz && \
+    mv clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz /usr/local/ && \
+    mv clang+llvm-7.0.0-armv7a-linux-gnueabihf.tar.xz /usr/local/ && \
+    mv clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz /usr/local/ && \
+    cd /usr/local/ && \
+    tar -xf clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && \
+    tar -xf clang+llvm-7.0.0-armv7a-linux-gnueabihf.tar.xz && \
+    tar -xf clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz
+
+RUN wget https://releases.linaro.org/components/toolchain/binaries/latest-5/aarch64-linux-gnu/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu.tar.xz && \
+    mv gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu.tar.xz /usr/local/ && \
+    cd /usr/local/ && \
+    tar -xf gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu.tar.xz
+
+# openmp lib (.so also)
+RUN wget http://releases.llvm.org/7.0.0/openmp-7.0.0.src.tar.xz && \
+    tar -xf openmp-7.0.0.src.tar.xz && cd openmp-7.0.0.src/cmake && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/ \
+          -DCMAKE_C_COMPILER=/usr/bin/arm-linux-gnueabihf-gcc-5 \
+          -DCMAKE_CXX_COMPILER=/usr/bin/arm-linux-gnueabihf-g++-5 \
+          -DLIBOMP_ENABLE_SHARED=ON .. && \
+    make -j6 && make -j6 install && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/ \
+          -DCMAKE_C_COMPILER=/usr/bin/arm-linux-gnueabihf-gcc-5 \
+          -DCMAKE_CXX_COMPILER=/usr/bin/arm-linux-gnueabihf-g++-5 \
+          -DLIBOMP_ENABLE_SHARED=OFF .. && \
+    make -j6 && make -j6 install && \
+    cd ../../ && rm -fr openmp-7.0.0.src/ && \
+    tar -xf openmp-7.0.0.src.tar.xz && cd openmp-7.0.0.src/cmake && \
+    export C_INCLUDE_PATH=/usr/local/cuda/include:$C_INCLUDE_PATH && \
+    export CPLUS_INCLUDE_PATH=/usr/local/cuda/include:$CPLUS_INCLUDE_PATH && \
+    export LD_LIBRARY_PATH=/usr/local/cuda-8.0/targets/x86_64-linux/lib/:$LD_LIBRARY_PATH && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/arm64/ \
+          -DCMAKE_C_COMPILER=/usr/local/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc \
+          -DCMAKE_CXX_COMPILER=/usr/local/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-g++ \
+          -DLIBOMP_ENABLE_SHARED=ON .. && \
+    make -j6 && make -j6 install && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/arm64/ \
+          -DCMAKE_C_COMPILER=/usr/local/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-gcc \
+          -DCMAKE_CXX_COMPILER=/usr/local/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-g++ \
+          -DLIBOMP_ENABLE_SHARED=OFF .. && \
+    make -j6 && make -j6 install
+
+# Copy dlk sources to docker image
+COPY dlk /home/blueoil/dlk
+# Install dlk
+WORKDIR /home/blueoil/dlk
+RUN PYTHONPATH=python/dlk python setup.py install
+WORKDIR /home/blueoil
