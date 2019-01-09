@@ -145,7 +145,7 @@ lm_arm:           CXXFLAGS +=
 
 lm_fpga:          CXX = /usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
 lm_fpga:          FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -D_OPENMP -mfpu=neon -mcpu=cortex-a9 -mthumb -pthread -g -fopenmp=libgomp --target=arm-linux-gnueabihf -mfloat-abi=hard
--I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/include/c++/v1/ -I/usr/arm-linux-gnueabihf/include/ -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything -DFUNC_TIME_MEASUREMENT
+-I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/include/c++/v1/ -I/usr/arm-linux-gnueabihf/include/ -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything
 lm_fpga:          CXXFLAGS +=
 
 lib_x86:           CXX = g++
