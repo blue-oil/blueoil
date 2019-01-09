@@ -634,7 +634,6 @@ class Constant(Variable):
         return self._transposed_data
 
 
-
 class Output(Variable):
     """Output class."""
 
