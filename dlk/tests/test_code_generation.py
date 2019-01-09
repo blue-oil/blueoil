@@ -145,7 +145,7 @@ def dict_codegen_object_detection_x86() -> dict:
 
 def dict_codegen_segmentation_x86() -> dict:
     """Test parameters for testing code generation for segmentation on CPU"""
-    return {'model_path': os.path.join('examples', 'segmentation', 'segnet_quantize_camvid_wide2'),
+    return {'model_path': os.path.join('examples', 'segmentation', 'lm_segnet_v1_quantize_camvid'),
             'expected_output_set_name': 'network_input_output',
             'prefix': 'seg',
             'input_name': '000_images_placeholder:0.npy',

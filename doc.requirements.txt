@@ -1,3 +1,7 @@
 sphinx
 recommonmark
 sphinx_rtd_theme
+
+# for autodoc of lmnet.
+numpy
+Pillow
