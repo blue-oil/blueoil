@@ -15,10 +15,13 @@
 # =============================================================================
 import argparse
 import os
+import re
+import importlib
 
 import yaml
-import whaaaaat
 from jinja2 import Environment, FileSystemLoader
+
+from lmnet.utils.module_loader import load_class
 
 
 # TODO(wakisaka): objecte detection, segmentation
@@ -26,7 +29,6 @@ _TASK_TYPE_TEMPLATE_FILE = {
     "classification": "classification.tpl.py",
     "object_detection": "object_detection.tpl.py",
 }
-
 
 _NETWORK_NAME_NETWORK_MODULE_CLASS = {
     "LmnetV0Quantize": {
@@ -129,18 +131,96 @@ def _blueoil_to_lmnet(blueoil_config):
     dataset_class_extend_dir = blueoil_config["dataset"]["train_path"]
     dataset_class_validation_extend_dir = blueoil_config["dataset"]["test_path"]
     if dataset_class_validation_extend_dir is not None:
-        dataset_class_property = {"extend_dir": dataset_class_extend_dir, "validation_extend_dir": dataset_class_validation_extend_dir}
+        dataset_class_property = {"extend_dir": dataset_class_extend_dir,
+                                  "validation_extend_dir": dataset_class_validation_extend_dir}
     else:
         dataset_class_property = {"extend_dir": dataset_class_extend_dir}
+
+    # load dataset python module from string.
+    _loaded_dataset_module = importlib.import_module("lmnet.datasets.{}".format(dataset_module))
+    # load dataset python module from string.
+    _loaded_dataset_class = load_class(_loaded_dataset_module, dataset_class)
+    _dataset_class = type('DATASET_CLASS', (_loaded_dataset_class,), dataset_class_property)
+    _dataset_obj = _dataset_class(subset="train", batch_size=1)
+    classes = _dataset_obj.classes
 
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
     optimizer  = blueoil_config["trainer"]["optimizer"]
     initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"]
-    learning_rate_setting = blueoil_config["trainer"]["learning_rate_setting"]
+    learning_rate_schedule = blueoil_config["trainer"]["learning_rate_schedule"]
+    max_epochs = blueoil_config["trainer"]["epochs"]
+
+    step_per_epoch = float(_dataset_obj.num_per_epoch)/batch_size
+
+    learning_rate_func = None
+    learning_rate_kwargs = None
+    if learning_rate_schedule == "constant":
+        optimizer_kwargs = {"momentum": 0.9, "learning_rate": initial_learning_rate}
+    else:
+        optimizer_kwargs = {"momentum": 0.9}
+        learning_rate_func = "tf.train.piecewise_constant"
+
+    if learning_rate_schedule == "2-step-decay":
+        learning_rate_kwargs = {
+            "values": [
+                initial_learning_rate,
+                initial_learning_rate / 10,
+                initial_learning_rate / 100
+            ],
+            "boundaries": [
+                int((step_per_epoch * (max_epochs - 1)) / 2),
+                int(step_per_epoch * (max_epochs - 1))
+            ],
+        }
+
+    elif learning_rate_schedule == "3-step-decay":
+        learning_rate_kwargs = {
+            "values": [
+                initial_learning_rate,
+                initial_learning_rate / 10,
+                initial_learning_rate / 100,
+                initial_learning_rate / 1000
+            ],
+            "boundaries": [
+                int((step_per_epoch * (max_epochs - 1)) * 1 / 3),
+                int((step_per_epoch * (max_epochs - 1)) * 2 / 3),
+                int(step_per_epoch * (max_epochs - 1))
+            ],
+        }
+
+    elif learning_rate_schedule == "3-step-decay-with-warmup":
+        if max_epochs < 4:
+            raise ValueError("epoch number must be >= 4, when 3-step-decay-with-warmup is selected.")
+        learning_rate_kwargs = {
+            "values": [
+                initial_learning_rate / 1000,
+                initial_learning_rate,
+                initial_learning_rate / 10,
+                initial_learning_rate / 100,
+                initial_learning_rate / 1000
+            ],
+            "boundaries": [
+                int(step_per_epoch * 1),
+                int((step_per_epoch * (max_epochs - 1)) * 1 / 3),
+                int((step_per_epoch * (max_epochs - 1)) * 2 / 3),
+                int(step_per_epoch * (max_epochs - 1))
+            ],
+        }
 
     # common
     image_size = blueoil_config["common"]["image_size"]
+
+    data_augmentation = []
+    for augmentor in blueoil_config["common"].get("data_augmentation", []):
+        key = list(augmentor.keys())[0]
+        values = []
+        for v in list(list(augmentor.values())[0]):
+            v_key, v_value = list(v.keys())[0], list(v.values())[0]
+            only_str = isinstance(v_value, str) and re.match('^[\w-]+$', v_value) is not None
+            value = (v_key, "'{}'".format(v_value) if only_str else v_value)
+            values.append(value)
+        data_augmentation.append((key, values))
 
     # quantize first layer
     quantize_first_convolution = blueoil_config["network"]["quantize_first_convolution"]
@@ -156,25 +236,21 @@ def _blueoil_to_lmnet(blueoil_config):
         "dataset_class_property": dataset_class_property,
 
         "batch_size": batch_size,
-        "max_epochs": "",
-        "max_steps": "",
         "optimizer" : optimizer,
-        "initial_learning_rate": initial_learning_rate,
-        "learning_rate_setting": learning_rate_setting,
-        
+        "max_epochs": max_epochs,
+
+        "optimizer_kwargs": optimizer_kwargs,
+        "learning_rate_func": learning_rate_func,
+        "learning_rate_kwargs": learning_rate_kwargs,
+
         "image_size": image_size,
+        "classes": classes,
 
         "quantize_first_convolution": quantize_first_convolution,
 
         "dataset": dataset,
+        "data_augmentation": data_augmentation
     }
-    
-    # max_epochs or max_steps
-    if "steps" in blueoil_config["trainer"].keys():
-        config["max_steps"] = blueoil_config["trainer"]["steps"]
-    elif "epochs" in blueoil_config["trainer"].keys():
-        config["max_epochs"] = blueoil_config["trainer"]["epochs"]
-
 
     # merge dict
     lmnet_config = default_lmnet_config.copy()
