@@ -11,14 +11,14 @@ dataset:
 trainer:
   batch_size: {{ batch_size }}
   epochs: {{ training_epochs }}
-# supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
+  # supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
   optimizer: {{ training_optimizer }}
-# supported 'learning_rate_setting' is 'tune1', 'tune2', 'tune3', 'fixed'.
-#   'tune1' is 2 times decay, learning rate reduce to 1/10 on epoch/2 and epoch-1.
-#   'tune2' is 3 times decay, learning rate reduce to 1/10 on epoch/3 and epoch*2/3 and epoch-1.
-#   'tune3' is warmup and 3 times decay, warmup learning rate 1/1000 in 1 epoch, then train same as 'tune2'.
-#   'fixed' is constant learning rate.
-  learning_rate_setting: {{ training_learning_rate_setting }}
+  # supported 'learning_rate_schedule' is 'constant', '2-step-decay', '3-step-decay', '3-step-decay-with-warmup' ({epochs} is the number of training epochs you entered before).
+  #   'constant' -> constant learning rate.
+  #   '2-step-decay' -> learning rate decrease by 1/10 on {epochs}/2 and {epochs}-1.
+  #   '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1.
+  #   '3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'.
+  learning_rate_schedule: {{ learning_rate_schedule }}
   initial_learning_rate: {{ initial_learning_rate_value }}
 
 network:
@@ -34,3 +34,12 @@ common:
 
   # enable dataset prefetch, set false if weired problem happens
   dataset_prefetch: true
+{% if data_augmentation %}
+  data_augmentation:
+{%- for name, defaults in data_augmentation.items() %}
+    - {{ name }}:
+      {%- for d_name, d_value in defaults %}
+        - {{ d_name }}: {{ d_value|replace("None", "null") }}
+      {%- endfor -%}
+{% endfor %}
+{% endif %}
