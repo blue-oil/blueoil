@@ -96,34 +96,18 @@ def transpose_kernels(kernel_data, dimension_format, oh, ow, od, kh, kw, kd):
         kn_out = int(od / NUM_PE)
     idx_src = 0
 
-    if dimension_format == "NHWC":
-        for no in range(kn_out):
-            for ni in range(NUM_PE):
-                for h in range(kh):
-                    for w in range(kw):
-                        for c in range(k_c_by_word):
-                            idx_dst = h * (kw * kn_out * k_c_by_word * NUM_PE)
-                            idx_dst += w * (kn_out * k_c_by_word * NUM_PE)
-                            idx_dst += no * (k_c_by_word * NUM_PE)
-                            idx_dst += c * (NUM_PE)
-                            idx_dst += ni
-                            transpose_values[idx_dst] = copy_value[idx_src]
-                            idx_src += 1
-    elif dimension_format == "NCHW":
-        for no in range(kn_out):
-            for ni in range(NUM_PE):
-                for c in range(k_c_by_word):
-                    for h in range(kh):
-                        for w in range(kw):
-                            idx_dst = h * (kw * kn_out * k_c_by_word * NUM_PE)
-                            idx_dst += w * (kn_out * k_c_by_word * NUM_PE)
-                            idx_dst += no * (k_c_by_word * NUM_PE)
-                            idx_dst += c * (NUM_PE)
-                            idx_dst += ni
-                            transpose_values[idx_dst] = copy_value[idx_src]
-                            idx_src += 1
-    else:
-        NotImplementedError("only NCHW and NHWC formats are suppported")
+    for no in range(kn_out):
+        for ni in range(NUM_PE):
+            for h in range(kh):
+                for w in range(kw):
+                    for c in range(k_c_by_word):
+                        idx_dst = h * (kw * kn_out * k_c_by_word * NUM_PE)
+                        idx_dst += w * (kn_out * k_c_by_word * NUM_PE)
+                        idx_dst += no * (k_c_by_word * NUM_PE)
+                        idx_dst += c * (NUM_PE)
+                        idx_dst += ni
+                        transpose_values[idx_dst] = copy_value[idx_src]
+                        idx_src += 1
 
     return transpose_values
 
