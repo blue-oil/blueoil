@@ -24,7 +24,6 @@ from jinja2 import Environment, FileSystemLoader
 from lmnet.utils.module_loader import load_class
 
 
-# TODO(wakisaka): objecte detection, segmentation
 _TASK_TYPE_TEMPLATE_FILE = {
     "classification": "classification.tpl.py",
     "object_detection": "object_detection.tpl.py",
@@ -71,9 +70,9 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
         "dataset_module": "delta_mark",
         "dataset_class": "ObjectDetectionBase",
     },
-    "CamVid": {
-        "dataset_module": "camvid",
-        "dataset_class": "Camvid",
+    "CamvidCustom": {
+        "dataset_module": "camvid_custom",
+        "dataset_class": "CamvidCustom",
     },
 }
 

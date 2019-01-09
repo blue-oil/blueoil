@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
-from lmnet.datasets.camvid import Camvid
+from lmnet.datasets.camvid_custom import CamvidCustom
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
@@ -64,7 +64,7 @@ IMAGE_SIZE = {{image_size}}
 BATCH_SIZE = {{batch_size}}
 DATA_FORMAT = "NHWC"
 TASK = Tasks.SEMANTIC_SEGMENTATION
-CLASSES = DATASET_CLASS.classes
+CLASSES = {{classes}}
 
 MAX_EPOCHS = {{max_epochs}}
 SAVE_STEPS = {{save_steps}}

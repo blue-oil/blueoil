@@ -97,8 +97,8 @@ object_detection_dataset_formats = [
 
 semantic_segmentation_dataset_formats = [
     {
-        'name': "CamVid",
-        'desc': "CamVid compatible",
+        'name': "CamvidCustom",
+        'desc': "CamVid base cumstom format",
     },
 ]
 
