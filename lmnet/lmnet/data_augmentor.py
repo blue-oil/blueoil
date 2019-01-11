@@ -514,7 +514,7 @@ class Pad(data_processor.Processor):
         self.left, self.top, self.right, self.bottom = left, top, right, bottom
         self.fill = 0
 
-    def __call__(self, image, mask=None, **kwargs):
+    def __call__(self, image, mask=None, gt_boxes=None, **kwargs):
         """
         Args:
             image (np.ndarray): a image. shape is [height, width, channel]
@@ -542,7 +542,10 @@ class Pad(data_processor.Processor):
                 raise RuntimeError('Number of dims in mask should be 2 or 3 but get {}.'.format(np.ndim(mask)))
             mask = result_mask
 
-        return dict({'image': result_image, 'mask': mask}, **kwargs)
+        gt_boxes[:,0] = gt_boxes[:,0]+self.left
+        gt_boxes[:,1] = gt_boxes[:,1]+self.top
+
+        return dict({'image': result_image, 'mask': mask, 'gt_boxes':gt_boxes}, **kwargs)
 
 
 class RandomPatchCut(data_processor.Processor):
