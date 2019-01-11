@@ -87,9 +87,9 @@ def strip_binary(output):
         subprocess.run(("arm-linux-gnueabihf-strip", output))
     elif output in {"lib_arm.so", "lib_fpga.so"}:
         subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
-    elif output in {"lm_aarch64.elf", "lm_aarch64.elf"}:
+    elif output == "lm_aarch64.elf":
         subprocess.run(("aarch64-linux-gnu-strip", output))
-    elif output in {"lib_aarch64.so", "lib_aarch64.so"}:
+    elif output == "lib_aarch64.so":
         subprocess.run(("aarch64-linux-gnu-strip", "-x", "--strip-unneeded", output))
 
 
