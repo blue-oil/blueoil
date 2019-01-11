@@ -18,7 +18,7 @@ import math
 import numpy as np
 
 from core.graph import Graph
-from core.graph_pattern_matching import find_pattern, Pattern, get_nodes_in_branch
+from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
 from core.operators import Constant, Operator
 from core.data_types import Uint32, QUANTIZED_NOT_PACKED
 from typing import cast
@@ -35,28 +35,26 @@ def pass_remove_identities(graph: Graph) -> None:
         The input graph. It will be modified in-place.
 
     """
-    p = Pattern("Identity")
-    matches = find_pattern(graph, p)
+    exec_list = [n for n in sort_graph(graph) if n.op_type == 'Identity']
     to_be_removed = list()
-
-    for m in matches:
+    for m in exec_list:
         """skip all identity."""
-        in_op = m.node.input_ops['input']
-        out_ops = m.node.output_ops['output']
+        in_op = m.input_ops['input']
+        out_ops = m.output_ops['output']
         for out_op in out_ops:
             for k, v in out_op.input_ops.items():
-                if v == m.node:
+                if v == m:
                     # change the output's input to this identity's input
                     out_op.add_input(k, in_op)
                     # change the input's output to this identity's output
                     for k2, v2 in in_op.output_ops.items():
-                        if m.node in v2:
-                            v2.remove(m.node)
+                        if m in v2:
+                            v2.remove(m)
                             v2.append(out_op)
                             break
                     break
 
-        to_be_removed.append(m.node)
+        to_be_removed.append(m)
 
     for op in to_be_removed:
         graph.remove_op(op)
@@ -75,12 +73,11 @@ def pass_transpose(graph: Graph) -> None:
         The input graph. It will be modified in-place.
 
     """
-    p = Pattern("*")
-    matches = find_pattern(graph, p)
+    exec_list = sort_graph(graph)
 
-    for m in matches:
-        dim = m.node.dimension
-        shape = m.node.shape
+    for m in exec_list:
+        dim = m.dimension
+        shape = m.shape
         if len(shape) != 4 or len(dim) != 4 or not set(dim).issubset({'N', 'H', 'W', 'C', 'I', 'O'}):
             continue
 
@@ -88,7 +85,7 @@ def pass_transpose(graph: Graph) -> None:
         dim = dim.replace('O', 'N')
 
         permutation = list(map(lambda s: dim.index(s), 'NHWC'))
-        m.node.transpose(permutation)
+        m.transpose(permutation)
 
 
 def pass_constant_folding(graph: Graph) -> None:
@@ -106,48 +103,47 @@ def pass_constant_folding(graph: Graph) -> None:
     done = False
     processed_nodes = []
     while not done:
-        p = Pattern('*')
-        matches = find_pattern(graph, p)
+        exec_list = sort_graph(graph)
         processed_before_precompute = len(processed_nodes)
         to_be_removed = []
 
-        for m in matches:
-            if m.node in processed_nodes:
+        for m in exec_list:
+            if m in processed_nodes:
                 continue
 
             # We want operators with inputs
-            if not m.node.input_nodes:
+            if not m.input_nodes:
                 continue
 
             precomputable = True
-            for input_node in m.node.input_nodes:
+            for input_node in m.input_nodes:
                 if input_node.op_type != 'Constant':
                     precomputable = False
 
             if not precomputable:
                 continue
 
-            processed_nodes += m.node.input_nodes
-            processed_nodes.append(m.node)
+            processed_nodes += m.input_nodes
+            processed_nodes.append(m)
 
-            data = m.node.run_forward()
+            data = m.run_forward()
 
             new_constant = Constant(
-                m.node.name + '_new',
-                m.node.dtype,
+                m.name + '_new',
+                m.dtype,
                 data,
-                dimension_format=m.node.dimension
+                dimension_format=m.dimension
             )
             graph.add_op(new_constant)
 
             # get nodes to be removed after being disconnected
-            get_nodes_in_branch(m.node, None, to_be_removed)
+            get_nodes_in_branch(m, None, to_be_removed)
 
-            new_constant.add_outputs({'output': m.node.output_ops.values()})
-            for output_name, consumer_list in m.node.output_ops.items():
+            new_constant.add_outputs({'output': m.output_ops.values()})
+            for output_name, consumer_list in m.output_ops.items():
                 for consumer_node in consumer_list:
                     for input_name, input_node in consumer_node.input_ops.items():
-                        if input_node == m.node:
+                        if input_node == m:
                             consumer_node.add_input(input_name, new_constant)
                             break
 
@@ -177,8 +173,7 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
     graph : Graph
         The input graph. It will be modified in-place.
     """
-    p = Pattern('*')
-    matches = find_pattern(graph, p)
+    exec_list = sort_graph(graph)
     qtypes = [
         'QTZ_binary_mean_scaling',
         'QTZ_linear_mid_tread_half',
@@ -186,29 +181,29 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
     ]
 
     quant_details = defaultdict(list)
-    for m in matches:
-        if not m.node.preserve_quantization:
-            quant_details[m.node.name] = []
+    for m in exec_list:
+        if not m.preserve_quantization:
+            quant_details[m.name] = []
             continue
 
-        if m.node.op_type == 'Conv':
-            input_node = m.node.input_nodes[0]
-            weight_node = m.node.input_nodes[1]
+        if m.op_type == 'Conv':
+            input_node = m.input_nodes[0]
+            weight_node = m.input_nodes[1]
 
-            m.node.a_quantizer = [input_node] if input_node.op_type in qtypes else quant_details[input_node.name]
-            m.node.quantizer = weight_node if weight_node.op_type in qtypes else quant_details[weight_node.name]
+            m.a_quantizer = [input_node] if input_node.op_type in qtypes else quant_details[input_node.name]
+            m.quantizer = weight_node if weight_node.op_type in qtypes else quant_details[weight_node.name]
 
-            quant_details[m.node.name] = []
+            quant_details[m.name] = []
         else:
             qtzs = []
-            for n in m.node.input_nodes:
+            for n in m.input_nodes:
                 if n.op_type in qtypes:
                     qtzs.append(n)
                 else:
                     for q in quant_details[n.name]:
                         qtzs.append(q)
 
-            quant_details[m.node.name] = qtzs if len(qtzs) == len(m.node.input_nodes) else []
+            quant_details[m.name] = qtzs if len(qtzs) == len(m.input_nodes) else []
             # TODO: check if the quantizers use same n_bits
 
 
@@ -226,13 +221,11 @@ def pass_compute_thresholds(graph: Graph) -> None:
     graph : Graph
         The input graph. It will be modified in-place.
     """
-    p = Pattern('QTZ_linear_mid_tread_half')
-    matches = find_pattern(graph, p)
-
+    exec_list = [n for n in sort_graph(graph) if n.op_type == 'QTZ_linear_mid_tread_half']
     to_be_removed = []
-    for m in matches:
+    for m in exec_list:
         # find a a backward path between the quantizer and the convolution ie. a path represented by a list [Q, ..., C]
-        p = [m.node]
+        p = [m]
         while p[-1].op_type != 'Conv':
             non_variable_input = [inode for inode in p[-1].input_nodes
                                   if (not cast(Operator, inode).is_variable and inode.is_monotonic)
@@ -340,8 +333,7 @@ def pass_pack_weights(graph: Graph) -> None:
     graph : Graph
         The input graph. It will be modified in-place.
     """
-    p = Pattern('Conv')
-    matches = find_pattern(graph, p)
+    exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
     quantization_types = [
         'QTZ_binary_mean_scaling',
         'QTZ_linear_mid_tread_half',
@@ -353,8 +345,8 @@ def pass_pack_weights(graph: Graph) -> None:
     packer = Packer(weight_bitwidth, word_size)
     to_be_removed = []
 
-    for m in matches:
-        conv_node = m.node
+    for m in exec_list:
+        conv_node = m
 
         # check if this is a quantized convolution
         if not conv_node.quantizer or not conv_node.a_quantizer:
@@ -406,11 +398,9 @@ def pass_quantize_convolutions(graph: Graph) -> None:
     graph : Graph
         The input graph. It will be modified in-place.
     """
-    p = Pattern('Conv')
-    matches = find_pattern(graph, p)
-
-    for m in matches:
-        conv_node = m.node
+    exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
+    for m in exec_list:
+        conv_node = m
 
         # check if this is a quantized convolution
         if not conv_node.quantizer or not conv_node.a_quantizer:
@@ -437,12 +427,10 @@ def pass_propagate_datatypes(graph) -> None:
     graph : Graph
         The input graph. It will be modified in-place.
     """
-    p = Pattern('*')
-    matches = find_pattern(graph, p)
-
-    for m in matches:
-        if m.node.op_type != 'Conv' and m.node.preserve_quantization:
-            m.node.dtype = m.node.input_nodes[0].dtype
+    exec_list = sort_graph(graph)
+    for m in exec_list:
+        if m.op_type != 'Conv' and m.preserve_quantization:
+            m.dtype = m.input_nodes[0].dtype
 
 
 def pass_propagate_output_type_backward(graph: Graph) -> None:
@@ -459,8 +447,7 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
     graph : Graph
         The input graph. It will be modified in-place.
     """
-    p = Pattern('*')
-    matches = find_pattern(graph, p)
+    exec_list = sort_graph(graph)
 
     def output_dtype_changer(node, otype):
         for n in node.input_nodes:
@@ -470,6 +457,6 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
             output_dtype_changer(n, otype)
 
     # propagate output data type to the last quantized convolution
-    output_node = matches[-1].node
+    output_node = exec_list[-1]
     output_type = output_node.dtype
     output_dtype_changer(output_node, output_type)
