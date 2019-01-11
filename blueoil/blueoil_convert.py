@@ -87,6 +87,10 @@ def strip_binary(output):
         subprocess.run(("arm-linux-gnueabihf-strip", output))
     elif output in {"lib_arm.so", "lib_fpga.so"}:
         subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
+    elif output in {"lm_aarch64.elf", "lm_aarch64.elf"}:
+        subprocess.run(("aarch64-linux-gnu-strip", output))
+    elif output in {"lib_aarch64.so", "lib_aarch64.so"}:
+        subprocess.run(("aarch64-linux-gnu-strip", "-x", "--strip-unneeded", output))
 
 
 def make_all(project_dir, output_dir):
@@ -95,12 +99,15 @@ def make_all(project_dir, output_dir):
     make_list = [
         ["lm_x86", "lm_x86.elf"],
         ["lm_arm", "lm_arm.elf"],
+        ["lm_aarch64", "lm_aarch64.elf"],
         ["lm_fpga", "lm_fpga.elf"],
         ["lib_x86", "lib_x86.so"],
         ["lib_arm", "lib_arm.so"],
+        ["lib_aarch64", "lib_aarch64.so"],
         ["lib_fpga", "lib_fpga.so"],
         ["ar_x86", "libdlk_x86.a"],
         ["ar_arm", "libdlk_arm.a"],
+        ["ar_aarch64", "libdlk_aarch64.a"],
         ["ar_fpga", "libdlk_fpga.a"],
     ]
     running_dir = os.getcwd()
