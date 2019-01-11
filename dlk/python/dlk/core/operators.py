@@ -613,7 +613,7 @@ class Constant(Variable):
                  dimension_format: str = 'NHWC',
                  packed: bool = False,
                  actual_shape: List[int] = [],
-                 transposed_data=None) -> None:
+                 transposed_data: List[int] = None) -> None:
         """Init the variable.
 
         If the constant is hard quantized, data is packed and the actual shape
@@ -629,7 +629,7 @@ class Constant(Variable):
         return self._packed
 
     @property
-    def transposed_data(self):
+    def transposed_data(self) -> List[int]:
         """Return transposed data."""
         return self._transposed_data
 
