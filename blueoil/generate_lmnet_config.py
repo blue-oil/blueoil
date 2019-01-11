@@ -43,10 +43,6 @@ _NETWORK_NAME_NETWORK_MODULE_CLASS = {
         "network_module": "lm_fyolo",
         "network_class": "LMFYoloQuantize",
     },
-    "LmSegnetV0Quantize": {
-        "network_module": "lm_segnet_v0",
-        "network_class": "LmSegnetV0Quantize",
-    },
     "LmSegnetV1Quantize": {
         "network_module": "lm_segnet_v1",
         "network_class": "LmSegnetV1Quantize",
@@ -71,7 +67,7 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
         "dataset_class": "ObjectDetectionBase",
     },
     "CamvidCustom": {
-        "dataset_module": "camvid_custom",
+        "dataset_module": "camvid",
         "dataset_class": "CamvidCustom",
     },
 }

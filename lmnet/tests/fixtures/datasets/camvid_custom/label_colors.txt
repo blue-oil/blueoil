@@ -1,0 +1,5 @@
+64 0 128	Car
+192 128 64	Child
+64 64 0		Pedestrian
+128 64 128	Road
+0 0 0		Void
