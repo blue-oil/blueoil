@@ -65,7 +65,7 @@ def node_is_activation_quantizer(node: Operator) -> bool:
     return node.op_type == 'QTZ_linear_mid_tread_half'
 
 
-def transpose_kernels(kernel_data, dimension_format, oh, ow, od, kh, kw, kd):
+def transpose_kernels(kernel_data: np.ndarray, dimension_format: str, oh: int, ow: int, od: int, kh: int, kw: int, kd: int) -> List[int]:
     NUM_PE = 16
     NBIT_QDYPE = 32
     MAX_NBIT_QINPUT = 2
