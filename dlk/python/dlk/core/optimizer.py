@@ -243,7 +243,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
 
         if p[-1].op_type != 'Conv':
             continue
-        quantizer_conv_output_node = p[0]
+        activation_quantizer_node = p[0]
         conv_node = p[-1]
 
         # check if this is a quantized convolution
@@ -313,13 +313,13 @@ def pass_compute_thresholds(graph: Graph) -> None:
         conv_node.thresholds = threshold_table.flatten().tolist()
 
         # get nodes to be removed after being disconnected
-        get_nodes_in_branch(quantizer_conv_output_node, conv_node, to_be_removed)
+        get_nodes_in_branch(activation_quantizer_node, conv_node, to_be_removed)
 
         # Disconnect the outputs of the quantizer
-        out_ops = quantizer_conv_output_node.output_ops['output']
+        out_ops = activation_quantizer_node.output_ops['output']
         for output_node in out_ops:
             for input_name, input_node in output_node.input_ops.items():
-                if input_node == quantizer_conv_output_node:
+                if input_node == activation_quantizer_node:
                     output_node.add_input(input_name, conv_node)
 
         # Disconnect the outputs of the conv
