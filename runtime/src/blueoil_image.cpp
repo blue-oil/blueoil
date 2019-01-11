@@ -58,16 +58,14 @@ Tensor ResizeVertical_NearestNeighbor(const Tensor &tensor, const int height) {
   const int channels  = shape[2];
   const int width = srcWidth;
   Tensor dstTensor({height, width, channels});
+  const int srcScanLineSize = width * channels;
   float yScale = static_cast<float> (height) / static_cast<float>(srcHeight);
   for (int dstY = 0 ; dstY < height ; dstY++) {
-    for (int dstX = 0 ; dstX < width ; dstX++) {
-      int srcX = dstX;
-      int srcY = (int) std::floor(dstY/yScale);
-      for (int c = 0 ; c < channels ; c++) {
-        const float *srcRGB = tensor.dataAsArray({srcY, srcX, 0});
-        float *dstRGB = dstTensor.dataAsArray({dstY, dstX, 0});
-        dstRGB[c] = srcRGB[c];
-      }
+    int srcY = (int) std::floor(dstY/yScale);
+    const float *srcRGB = tensor.dataAsArray({srcY, 0, 0});
+    float *dstRGB = dstTensor.dataAsArray({dstY, 0, 0});
+    for (int i = 0 ; i < srcScanLineSize ; i++) {
+      *dstRGB++ = *srcRGB++;
     }
   }
   return dstTensor;
