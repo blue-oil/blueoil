@@ -11,6 +11,7 @@ class A2fPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int, fWidth:
     val control = Input(A2fControl(aAddrWidth, fAddrWidth))
     // Systolic array interface
     val aOut = Output(Vec(b, UInt(aWidth.W)))
+    val evenOddOut = Output(Vec(b, UInt(1.W)))
     val accIn = Input(Vec(b, UInt(fWidth.W)))
     // AMem interface
     val amemRead = Output(Vec(b, ReadPort(aAddrWidth)))
@@ -25,6 +26,7 @@ class A2fPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int, fWidth:
   io.amemRead := addressPipeline.io.amemRead
   addressPipeline.io.amemQ := io.amemQ
   io.aOut := addressPipeline.io.aOut
+  io.evenOddOut := addressPipeline.io.evenOddOut
   val accumulationPipeline = Module(new AccumulationPipeline(b, fAddrWidth, fWidth))
   accumulationPipeline.io.accIn := io.accIn
   accumulationPipeline.io.accumulate := addressPipeline.io.next.accumulate

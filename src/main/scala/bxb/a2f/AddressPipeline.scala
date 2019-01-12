@@ -12,12 +12,15 @@ class AddrBlock(aAddrWidth: Int, aWidth: Int, fAddrWidth: Int) extends Module {
     val next = Output(A2fControl(aAddrWidth, fAddrWidth))
     // Systolic array interface
     val aOut = Output(UInt(aWidth.W))
+    val evenOddOut = Output(UInt(1.W))
     // AMem interface
     val amemRead = Output(ReadPort(aAddrWidth))
     val amemQ = Input(UInt(aWidth.W))
   })
   io.next := RegNext(io.control, 0.U.asTypeOf(io.control))
   io.aOut := io.amemQ
+  // should be delayed by one cycle and passed with corresponding aOut
+  io.evenOddOut := RegNext(io.control.evenOdd)
   io.amemRead.addr := io.control.aAddr
   io.amemRead.enable := true.B
 }
@@ -28,6 +31,7 @@ class AddressPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int) ext
     val control = Input(A2fControl(aAddrWidth, fAddrWidth))
     // Systolic array interface
     val aOut = Output(Vec(b, UInt(aWidth.W)))
+    val evenOddOut = Output(Vec(b, UInt(1.W)))
     // AMem interface
     val amemRead = Output(Vec(b, ReadPort(aAddrWidth)))
     val amemQ = Input(Vec(b, UInt(aWidth.W)))
@@ -43,6 +47,7 @@ class AddressPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int) ext
       pipeline(row).io.control := pipeline(row - 1).io.next
     }
     io.aOut(row) := pipeline(row).io.aOut
+    io.evenOddOut(row) := pipeline(row).io.evenOddOut
     io.amemRead(row) := pipeline(row).io.amemRead
     pipeline(row).io.amemQ := io.amemQ(row)
   }
