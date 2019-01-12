@@ -7,6 +7,7 @@ class A2fControl(private val aAddrWidth: Int, private val fAddrWidth: Int) exten
   val writeEnable = Bool()
   val fAddr = UInt(fAddrWidth.W)
   val aAddr = UInt(aAddrWidth.W)
+  val evenOdd = UInt(1.W)
   // TODO: sync
 }
 
