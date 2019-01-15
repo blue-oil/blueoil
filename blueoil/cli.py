@@ -18,6 +18,7 @@ from datetime import datetime
 import os
 
 import click
+import yaml
 
 from blueoil.blueoil_init import ask_questions, save_config
 from blueoil.blueoil_train import run as run_train
@@ -78,14 +79,21 @@ def train(config, experiment_id=None):
     run_train(config, experiment_id)
 
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
-    experiment_dir = '{}/{}'.format(output_dir, experiment_id)
-    checkpoint_dir = '{}/checkpoints/checkpoint'.format(experiment_dir)
-    if not os.path.isfile(checkpoint_dir):
+    experiment_dir = os.path.join(output_dir, experiment_id)
+    checkpoint_dir = os.path.join(experiment_dir, 'checkpoints')
+    checkpoint = os.path.join(checkpoint_dir, 'checkpoint')
+    if not os.path.isfile(checkpoint):
         click.echo('Checkpoints are not created in {}'.format(experiment_dir), err=True)
         exit(1)
 
+    with open(checkpoint) as stream:
+        data = yaml.load(stream)
+
+    model_checkpoint_path = data['model_checkpoint_path']
+    restore_path = os.path.join(checkpoint_dir, model_checkpoint_path)
+
     click.echo('Checkpoints are created in {}'.format(experiment_dir))
-    click.echo('Next step: blueoil convert -i {} -r {}'.format(experiment_id, experiment_dir))
+    click.echo('Next step: blueoil convert -e {} -r {}'.format(experiment_id, restore_path))
 
 
 @main.command(help='Convert trained model to binary files.')
