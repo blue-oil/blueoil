@@ -23,6 +23,9 @@ from jinja2 import Environment, FileSystemLoader
 from lmnet.data_processor import Processor
 import lmnet.data_augmentor as augmentor
 
+from blueoil.vars import TEMPLATE_DIR
+
+
 task_type_choices = [
     'classification',
     'object_detection',
@@ -187,15 +190,18 @@ def image_size_filter(raw):
     return image_size
 
 
-def save_config(blueoil_config):
-    env = Environment(loader=FileSystemLoader('./blueoil/templates', encoding='utf8'))
+def save_config(blueoil_config, output=None):
+    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR, encoding='utf8'))
     tpl = env.get_template('blueoil-config.tpl.yml')
 
     applied = tpl.render(blueoil_config)
-    config_file = blueoil_config['model_name'] + ".yml"
-    with open(config_file, 'w') as fp:
+
+    if not output:
+        output = blueoil_config['model_name'] + ".yml"
+    
+    with open(output, 'w') as fp:
         fp.write(applied)
-    return config_file
+    return output
 
 
 def ask_questions():

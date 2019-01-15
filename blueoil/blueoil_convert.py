@@ -46,10 +46,11 @@ def get_export_directory(experiment_id, restore_path):
     return export_dir
 
 
-def create_output_directory(output_root_dir):
+def create_output_directory(output_root_dir, output_template_dir=None):
     """Create output directory from template."""
 
-    template_dir = "/home/blueoil/output_template"
+    # TODO: Remove the hard-coded path.
+    template_dir = "/home/blueoil/output_template" if not output_template_dir else output_template_dir
     # Recreate output_root_dir from template
     if os.path.exists(output_root_dir):
         shutil.rmtree(output_root_dir)
@@ -118,7 +119,7 @@ def make_all(project_dir, output_dir):
     os.chdir(running_dir)
 
 
-def run(experiment_id, restore_path):
+def run(experiment_id, restore_path, output_template_dir=None):
     """Convert from trained model."""
 
     # Export model
@@ -145,7 +146,7 @@ def run(experiment_id, restore_path):
 
     # Create output dir from template
     output_root_dir = os.path.join(export_dir, "output")
-    output_directories = create_output_directory(output_root_dir)
+    output_directories = create_output_directory(output_root_dir, output_template_dir)
 
     # Save meta.yaml to model output dir
     shutil.copy(os.path.join(export_dir, "meta.yaml"), output_directories.get("model_dir"))
