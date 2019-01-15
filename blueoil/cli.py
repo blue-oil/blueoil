@@ -80,7 +80,7 @@ def train(config, experiment_id=None):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
     experiment_dir = '{}/{}'.format(output_dir, experiment_id)
     checkpoint_dir = '{}/checkpoints/checkpoint'.format(experiment_dir)
-    if not os.path.isdir(checkpoint_dir):
+    if not os.path.isfile(checkpoint_dir):
         click.echo('Checkpoints are not created in {}'.format(experiment_dir), err=True)
         exit(1)
 
