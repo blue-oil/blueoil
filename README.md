@@ -4,6 +4,10 @@
 
 ---
 
+[![Build Status](https://jenkins.blue-oil.org/job/blueoil_main/badge/icon)](https://jenkins.blue-oil.org/job/blueoil_main/)
+[![Build Status](https://jenkins.blue-oil.org/job/blueoil_lmnet/badge/icon)](https://jenkins.blue-oil.org/job/blueoil_lmnet/)
+[![CircleCI](https://circleci.com/gh/blue-oil/blueoil.svg?style=svg)](https://circleci.com/gh/blue-oil/blueoil)
+
 Blueoil provides two features.
 * Training a neural network model
 * Converting a trained model to an executable binary (or library), which utilize FPGAs for acceleration.
@@ -66,3 +70,6 @@ Usage: ./blueoil_test.sh <YML_CONFIG_FILE(optional)>
 Arguments:
   YML_CONFIG_FILE       config file path for this test (optional)
 ```
+
+### Tests for CI
+* [Jenkins settings for CI](./.jenkins/README.md)

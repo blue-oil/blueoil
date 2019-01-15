@@ -13,10 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import inspect
 import re
+from collections import OrderedDict
 
 import whaaaaat
 from jinja2 import Environment, FileSystemLoader
+
+from lmnet.data_processor import Processor
+import lmnet.data_augmentor as augmentor
 
 task_type_choices = [
     'classification',
@@ -95,6 +100,14 @@ object_detection_dataset_formats = [
 #         'desc': "CityScapes compatible",
 #     },
 # ]
+
+
+learning_rate_schedule_map = OrderedDict([
+    ("constant", "'constant' -> constant learning rate."),
+    ("2-step-decay", "'2-step-decay' -> learning rate decrease by 1/10 on {epochs}/2 and {epochs}-1."),
+    ("3-step-decay", "'3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1"),
+    ("3-step-decay-with-warmup", "'3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'"),
+])
 
 
 def network_name_choices(task_type):
@@ -218,6 +231,13 @@ def ask_questions():
     }
     dataset_format = prompt(dataset_format_question)
 
+    enable_data_augmentation = {
+        'type': 'confirm',
+        'name': 'value',
+        'message': 'enable data augmentation?',
+        'default': True
+    }
+
     train_dataset_path_question = {
         'type': 'input',
         'name': 'value',
@@ -271,6 +291,68 @@ def ask_questions():
         'default': '100'
     }
     training_epochs = prompt(training_epochs_question)
+
+    initial_learning_rate_value_question = {
+        'type': 'input',
+        'name': 'value',
+        'message': 'initial learning rate:',
+        'default': '0.001'
+    }
+    initial_learning_rate_value = prompt(initial_learning_rate_value_question)
+
+    # learning rate schedule
+    learning_rate_schedule_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'choose learning rate schedule \
+({epochs} is the number of training epochs you entered before):',
+        'choices': list(learning_rate_schedule_map.values()),
+        'default': learning_rate_schedule_map["constant"],
+    }
+    _tmp_learning_rate_schedule = prompt(learning_rate_schedule_question)
+    for key, value in learning_rate_schedule_map.items():
+        if value == _tmp_learning_rate_schedule:
+            learning_rate_schedule = key
+
+    if prompt(enable_data_augmentation):
+        all_augmentor = {}
+        checkboxes = []
+        for name, obj in inspect.getmembers(augmentor):
+            if inspect.isclass(obj) and issubclass(obj, Processor):
+                argspec = inspect.getfullargspec(obj)
+                # ignore self
+                args = argspec.args[1:]
+                defaults = argspec.defaults
+                if len(args) == len(defaults):
+                    default_val = [(arg, default) for arg, default in zip(args, defaults)]
+                    default_str = " (default: {})".format(", ".join(["{}={}".format(a, d) for a, d in default_val]))
+                else:
+                    defaults = ("# Please fill a value.",) * (len(args) - len(defaults)) + defaults
+                    default_val = [(arg, default) for arg, default in zip(args, defaults)]
+                    default_str = " (**caution**: No default value is provided, \
+please modify manually after config exported.)"
+
+                all_augmentor[name + default_str] = {"name": name, "defaults": default_val}
+                checkboxes.append({"name": name + default_str, "value": name})
+        data_augmentation_question = {
+            'type': 'checkbox',
+            'name': 'value',
+            'message': 'Please choose augmentors:',
+            'choices': checkboxes
+        }
+        data_augmentation_res = prompt(data_augmentation_question)
+        data_augmentation = {}
+        if data_augmentation_res:
+            for v in data_augmentation_res:
+                data_augmentation[all_augmentor[v]["name"]] = all_augmentor[v]["defaults"]
+
+    quantize_first_convolution_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'apply quantization at the first layer?',
+        'choices': ['yes', 'no']
+    }
+    quantize_first_convolution = prompt(quantize_first_convolution_question)
 
     r = {}
     for k, v in locals().items():

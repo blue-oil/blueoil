@@ -19,19 +19,14 @@ import tensorflow as tf
 from lmnet.common import Tasks
 from lmnet.networks.classification.{{network_module}} import {{network_class}}
 from lmnet.datasets.{{dataset_module}} import {{dataset_class}}
+{% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
+    {{ augmentor[0] }},{% endfor %}
+){% endif %}
 from lmnet.data_processor import Sequence
-from lmnet.data_augmentor import (
-    Crop,
-    FlipLeftRight,
-    Pad,
-    Brightness,
-    Color,
-    Contrast,
-    Hue,
-)
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
+    PerImageStandardization
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -49,8 +44,7 @@ IMAGE_SIZE = {{image_size}}
 BATCH_SIZE = {{batch_size}}
 DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
-# In order to get instance property `classes`, instantiate DATASET_CLASS.
-CLASSES = DATASET_CLASS(subset="train", batch_size=1).classes
+CLASSES = {{classes}}
 
 MAX_EPOCHS = {{max_epochs}}
 SAVE_STEPS = {{save_steps}}
@@ -68,13 +62,16 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    DivideBy255()
+    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{learning_rate}}}
+NETWORK.OPTIMIZER_KWARGS = {{optimizer_kwargs}}
+NETWORK.LEARNING_RATE_FUNC = {{learning_rate_func}}
+NETWORK.LEARNING_RATE_KWARGS = {{learning_rate_kwargs}}
+
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
@@ -94,14 +91,7 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([
-    Resize(size=IMAGE_SIZE),
-    Pad(4),
-    Crop(size=IMAGE_SIZE),
-    FlipLeftRight(),
-    Brightness((0.75, 1.25)),
-    Color((0.75, 1.25)),
-    Contrast((0.75, 1.25)),
-    Hue((-10, 10)),
-])
+DATASET.AUGMENTOR = Sequence([{% if data_augmentation %}{% for augmentor in data_augmentation %}
+    {{ augmentor[0] }}({% for d_name, d_value in augmentor[1] %}{{ d_name }}={{ d_value }}, {% endfor %}),{% endfor %}
+{% endif %}])
 

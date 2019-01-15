@@ -19,26 +19,19 @@ import tensorflow as tf
 from lmnet.common import Tasks
 from lmnet.networks.object_detection.{{network_module}} import {{network_class}}
 from lmnet.datasets.{{dataset_module}} import {{dataset_class}}
+{% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
+    {{ augmentor[0] }},{% endfor %}
+){% endif %}
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     ResizeWithGtBoxes,
     DivideBy255,
+    PerImageStandardization,
 )
 from lmnet.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,
-)
-from lmnet.data_augmentor import (
-    Crop,
-    Pad,
-    Brightness,
-    Color,
-    Contrast,
-    FlipLeftRight,
-    FlipTopBottom,
-    Hue,
-    SSDRandomCrop,
 )
 from lmnet.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
@@ -56,8 +49,7 @@ IMAGE_SIZE = {{image_size}}
 BATCH_SIZE = {{batch_size}}
 DATA_FORMAT = "NHWC"
 TASK = Tasks.OBJECT_DETECTION
-# In order to get instance property `classes`, instantiate DATASET_CLASS.
-CLASSES = DATASET_CLASS(subset="train", batch_size=1).classes
+CLASSES = {{classes}}
 
 MAX_EPOCHS = {{max_epochs}}
 SAVE_STEPS = {{save_steps}}
@@ -75,7 +67,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     ResizeWithGtBoxes(size=IMAGE_SIZE),
-    DivideBy255()
+    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 anchors = [
     (1.3221, 1.73145), (3.19275, 4.00944), (5.05587, 8.09892), (9.47112, 4.84053), (11.2364, 10.0071)
@@ -96,15 +88,10 @@ POST_PROCESSOR = Sequence([
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-# In the origianl yolov2 Paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
-# Train data num per epoch is 16551
-step_per_epoch = int(16551 / BATCH_SIZE)
-NETWORK.LEARNING_RATE_KWARGS = {
-        "values": [5e-4, 2e-2, 5e-3, 5e-4],
-        "boundaries": [step_per_epoch, step_per_epoch * 80, step_per_epoch * 120],
-}
+NETWORK.OPTIMIZER_KWARGS = {{optimizer_kwargs}}
+NETWORK.LEARNING_RATE_FUNC = {{learning_rate_func}}
+NETWORK.LEARNING_RATE_KWARGS = {{learning_rate_kwargs}}
+
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
@@ -136,14 +123,7 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([
-    Crop(200),
-    Pad(100),
-    FlipLeftRight(is_bounding_box=True),
-    FlipTopBottom(is_bounding_box=True),
-    Brightness((0.75, 1.25)),
-    Color((0.75, 1.25)),
-    Contrast((0.75, 1.25)),
-    Hue((-10, 10)),
-    SSDRandomCrop(min_crop_ratio=0.7),
-])
+DATASET.AUGMENTOR = Sequence([{% if data_augmentation %}{% for augmentor in data_augmentation %}
+    {{ augmentor[0] }}({% for d_name, d_value in augmentor[1] %}{{ d_name }}={{ d_value }}, {% endfor %}),{% endfor %}
+{% endif %}])
+
