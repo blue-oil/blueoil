@@ -244,31 +244,31 @@ class Crop(data_processor.Processor):
         top = randint(0, origin_height - self.height)
         left = randint(0, origin_width - self.width)
 
-        #delete gt_boxes that is out of the cropped area
-        check_top = gt_boxes[:,0] > (top+self.height)
+        # delete gt_boxes that is out of the cropped area
+        check_top = gt_boxes[:, 0] > (top+self.height)
         gt_boxes = np.delete(gt_boxes, np.where(check_top), 0)
-        check_bottom = (gt_boxes[:,0] + gt_boxes[:,2]) < top
+        check_bottom = (gt_boxes[:, 0] + gt_boxes[:, 2]) < top
         gt_boxes = np.delete(gt_boxes, np.where(check_bottom), 0)
 
-        check_left = gt_boxes[:,1] > (left+self.width)
+        check_left = gt_boxes[:, 1] > (left+self.width)
         gt_boxes = np.delete(gt_boxes, np.where(check_left), 0)
-        check_right = (gt_boxes[:,1] + gt_boxes[:,3]) < left
+        check_right = (gt_boxes[:, 1] + gt_boxes[:, 3]) < left
         gt_boxes = np.delete(gt_boxes, np.where(check_right), 0)
 
-        #update coordinate of gt_boxes
-        gt_boxes[:,0] -= top
-        gt_boxes[:,1] -= left
+        # update coordinate of gt_boxes
+        gt_boxes[:, 0] -= top
+        gt_boxes[:, 1] -= left
 
-        #move corner of gt_boxes that is out of area to the margin
-        check_top = gt_boxes[:,0] < 0
-        gt_boxes[ np.where(check_top), 0] = 0
-        check_bottom = (gt_boxes[:,0] + gt_boxes[:,2]) > self.height
-        gt_boxes[ np.where(check_bottom), 2] = self.height - gt_boxes[ np.where(check_bottom), 0 ] - 1
+        # move corner of gt_boxes that is out of area to the margin
+        check_top = gt_boxes[:, 0] < 0
+        gt_boxes[np.where(check_top), 0] = 0
+        check_bottom = (gt_boxes[:, 0] + gt_boxes[:, 2]) > self.height
+        gt_boxes[np.where(check_bottom), 2] = self.height - gt_boxes[np.where(check_bottom), 0] - 1
 
-        check_left = gt_boxes[:,1] < 0
-        gt_boxes[ np.where(check_left), 1] = 0
-        check_right = (gt_boxes[:,1] + gt_boxes[:,3]) > self.width
-        gt_boxes[ np.where(check_right), 3] = self.width - gt_boxes[ np.where(check_right), 1 ] - 1
+        check_left = gt_boxes[:, 1] < 0
+        gt_boxes[np.where(check_left), 1] = 0
+        check_right = (gt_boxes[:, 1] + gt_boxes[:, 3]) > self.width
+        gt_boxes[np.where(check_right), 3] = self.width - gt_boxes[ np.where(check_right), 1] - 1
 
         # crop
         image = image[top:top + self.height, left:left + self.width, :]
@@ -565,10 +565,10 @@ class Pad(data_processor.Processor):
                 raise RuntimeError('Number of dims in mask should be 2 or 3 but get {}.'.format(np.ndim(mask)))
             mask = result_mask
 
-        gt_boxes[:,0] = gt_boxes[:,0]+self.left
-        gt_boxes[:,1] = gt_boxes[:,1]+self.top
+        gt_boxes[:, 0] = gt_boxes[:, 0]+self.left
+        gt_boxes[:, 1] = gt_boxes[:, 1]+self.top
 
-        return dict({'image': result_image, 'mask': mask, 'gt_boxes':gt_boxes}, **kwargs)
+        return dict({'image': result_image, 'mask': mask, 'gt_boxes': gt_boxes}, **kwargs)
 
 
 class RandomPatchCut(data_processor.Processor):
