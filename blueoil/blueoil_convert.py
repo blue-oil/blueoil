@@ -87,11 +87,6 @@ def strip_binary(output):
         subprocess.run(("arm-linux-gnueabihf-strip", output))
     elif output in {"lib_arm.so", "lib_fpga.so"}:
         subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
-    elif output == "lm_aarch64.elf":
-        subprocess.run(("aarch64-linux-gnu-strip", output))
-    elif output == "lib_aarch64.so":
-        subprocess.run(("aarch64-linux-gnu-strip", "-x", "--strip-unneeded", output))
-
 
 def make_all(project_dir, output_dir):
     """Make each target."""
