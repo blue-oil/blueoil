@@ -30,6 +30,7 @@ from lmnet.post_processor import (
     NMS,
 )
 from lmnet.data_augmentor import (
+    Crop,
     Pad,
     Brightness,
     Color,
@@ -136,7 +137,8 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
-    Pad(300),
+    Crop(200),
+    Pad(100),
     FlipLeftRight(is_bounding_box=True),
     FlipTopBottom(is_bounding_box=True),
     Brightness((0.75, 1.25)),
