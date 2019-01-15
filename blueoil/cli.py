@@ -22,7 +22,7 @@ import click
 from blueoil.blueoil_init import ask_questions, save_config
 from blueoil.blueoil_train import run as run_train
 from blueoil.blueoil_convert import run as run_convert, get_export_directory
-from lmnet.executor.predict import run as run_predict
+from executor.predict import run as run_predict
 
 
 @click.group(invoke_without_command=True)
@@ -119,12 +119,6 @@ def convert(experiment_id, restore_path, template):
 
 @main.command(help='Predict by using trained model.')
 @click.option(
-    '-c',
-    '--config',
-    help='Path of config file.',
-    required=True,
-)
-@click.option(
     '-i',
     '--input',
     help='Directory containing predicted images.',
@@ -148,8 +142,13 @@ def convert(experiment_id, restore_path, template):
     help='Restore ckpt file base path. e.g. saved/experiment/checkpoints/save.ckpt-10001',
     required=True,
 )
-def predict(config, input, output, experiment_id, restore_path):
-    run_predict(input, output, experiment_id, config, restore_path)
+@click.option(
+    "--save_images/--no_save_images",
+    help="Flag of saving images. Default is True.",
+    default=True,
+)
+def predict(input, output, experiment_id, restore_path, save_images):
+    run_predict(input, output, experiment_id, None, restore_path, save_images)
     click.echo('Result files are created: {}'.format(output))
 
 
