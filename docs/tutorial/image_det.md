@@ -23,7 +23,7 @@ You can download subset of Open Images V4 from
 	$ tar xf openimages.tgz
 
 
-This dataset consists of 5,000 color images in 2 classes, with 2,500 images per class.
+This dataset consists of 5,000 color images in 2 classes, `Human face` and `Human hand`, with 2,500 images per class.
 
 ## Generate a configuration file
 
