@@ -316,6 +316,8 @@ class CamvidCustom(StoragePathCustomizable, CamvidBase):
 
             # Split "R G B" -> ["R", "G", "B"]
             colors = [line[0].split(' ') for line in lines]
+            # Add unlabeled color
+            colors.append(['0', '0', '0'])
             classes = [line[-1] for line in lines]
 
             return colors, classes
