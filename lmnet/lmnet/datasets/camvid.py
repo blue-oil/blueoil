@@ -123,7 +123,7 @@ class CamvidBase(SegmentationBase):
 
     @property
     def num_per_epoch(self):
-        return len(self.files_and_annotationfeeds[0])
+        return len(self.files_and_annotations[0])
 
     def _shuffle(self):
         image_files, label_files = self.files_and_annotations

@@ -15,13 +15,14 @@
 # =============================================================================
 import pytest
 from lmnet.datasets.camvid import Camvid, CamvidCustom
+import numpy as np
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")
 
 
 class DummyCamvid(Camvid):
-    extend_dir = "camvid_custom"
+    extend_dir = "camvid"
 
 
 class DummyCamvidCustom(CamvidCustom):
@@ -35,6 +36,7 @@ class DummyCamvidCustomWithoutTestDataset(CamvidCustom):
 
 def test_camvid():
     batch_size = 1
+    image_size = [256, 256]
     train_dataset = DummyCamvid(subset="train", batch_size=batch_size)
     test_dataset = DummyCamvid(subset="validation", batch_size=batch_size)
 
@@ -45,6 +47,11 @@ def test_camvid():
     image_files, label_files = test_dataset.files_and_annotations
     assert len(image_files) == 5
     assert len(label_files) == 5
+
+    images, labels = train_dataset.feed()
+    assert isinstance(images, np.ndarray)
+    assert images.shape == (1, 360, 480, 3)
+    assert labels.shape == (1, 360, 480)
 
 
 def test_camvid_custom():
@@ -59,6 +66,11 @@ def test_camvid_custom():
     image_files, label_files = test_dataset.files_and_annotations
     assert len(image_files) == 5
     assert len(label_files) == 5
+
+    images, labels = train_dataset.feed()
+    assert isinstance(images, np.ndarray)
+    assert images.shape == (1, 360, 480, 3)
+    assert labels.shape == (1, 360, 480)
 
 
 def test_camvid_custom_without_test_dataset():
@@ -76,3 +88,8 @@ def test_camvid_custom_without_test_dataset():
     image_files, label_files = test_dataset.files_and_annotations
     assert len(image_files) == 1
     assert len(label_files) == 1
+
+    images, labels = train_dataset.feed()
+    assert isinstance(images, np.ndarray)
+    assert images.shape == (1, 360, 480, 3)
+    assert labels.shape == (1, 360, 480)
