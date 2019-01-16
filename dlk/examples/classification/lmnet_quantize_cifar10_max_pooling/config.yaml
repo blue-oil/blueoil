@@ -13,7 +13,6 @@ DATASET:
       is_resize: false
       width: 32
     - !!python/object:lmnet.data_augmentor.FlipLeftRight
-      is_bounding_box: false
       probability: 0.5
   BATCH_SIZE: 100
   PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
