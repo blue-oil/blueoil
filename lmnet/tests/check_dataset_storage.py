@@ -212,7 +212,6 @@ def test_pascalvoc_2007():
         assert labels.shape[2] == 5
 
 
-
 def test_pascalvoc_2007_not_skip_difficult():
     batch_size = 3
     image_size = [256, 512]
