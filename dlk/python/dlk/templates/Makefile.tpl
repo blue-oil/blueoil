@@ -60,11 +60,12 @@ LIB_FPGA_SRC := $(wildcard $(SRC_DIR)/*.S) \
 LIB_FPGA_OBJ := $(patsubst %.S, %.o, $(LIB_FPGA_SRC))
 LIB_FPGA_OBJ := $(patsubst %.cpp, %.o, $(LIB_FPGA_OBJ))
 
-# FIX ME (generic code temporary)
+# FIX ME (use advanced simd)
 LIB_AARCH64_SRC := \
     $(SRC_DIR)/func/generic/batch_normalization.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
-    $(SRC_DIR)/matrix/generic/quantized_multiplication.cpp
+    $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
 LIB_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_SRC))
 LIB_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_OBJ))
 
@@ -138,14 +139,14 @@ lm_x86:           CXX = /usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.0
 lm_x86:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_PNG -pthread -g -fopenmp=libgomp -march=native -I/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/include/c++/v1/ -I/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything 
 
 lm_aarch64:           CXX = /usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
-lm_aarch64:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_PNG -D_OPENMP -pthread -g -fopenmp=libgomp --target=aarch64-linux-gnu -I/usr/local/clang+llvm-7.0.0-aarch64-linux-gnu/include/c++/v1/ -I/usr/aarch64-linux-gnu/include/ -I/usr/local/clang+llvm-7.0.0-aarch64-linux-gnu/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-aarch64-linux-gnu/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything -Wl,-s -mfpu=neon-fp-armv8
+lm_aarch64:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_ASIMD -DUSE_PNG -pthread -g -fopenmp=libgomp --target=aarch64-linux-gnu -I/usr/local/clang+llvm-7.0.0-aarch64-linux-gnu/include/c++/v1/ -I/usr/aarch64-linux-gnu/include/ -I/usr/local/clang+llvm-7.0.0-aarch64-linux-gnu/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-aarch64-linux-gnu/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything -Wl,-s -mfpu=neon-fp-armv8
 
 lm_arm:           CXX = /usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
-lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -D_OPENMP -mfpu=neon -mcpu=cortex-a9 -mthumb -pthread -g -fopenmp=libgomp --target=arm-linux-gnueabihf -mfloat-abi=hard -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/include/c++/v1/ -I/usr/arm-linux-gnueabihf/include/ -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything
+lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mfpu=neon -mcpu=cortex-a9 -mthumb -pthread -g -fopenmp=libgomp --target=arm-linux-gnueabihf -mfloat-abi=hard -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/include/c++/v1/ -I/usr/arm-linux-gnueabihf/include/ -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything
 lm_arm:           CXXFLAGS +=
 
 lm_fpga:          CXX = /usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
-lm_fpga:          FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -D_OPENMP -mfpu=neon -mcpu=cortex-a9 -mthumb -pthread -g -fopenmp=libgomp --target=arm-linux-gnueabihf -mfloat-abi=hard -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/include/c++/v1/ -I/usr/arm-linux-gnueabihf/include/ -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything
+lm_fpga:          FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mfpu=neon -mcpu=cortex-a9 -mthumb -pthread -g -fopenmp=libgomp --target=arm-linux-gnueabihf -mfloat-abi=hard -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/include/c++/v1/ -I/usr/arm-linux-gnueabihf/include/ -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything
 lm_fpga:          CXXFLAGS +=
 
 lib_x86:           CXX = g++
