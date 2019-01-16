@@ -3,13 +3,15 @@ package bxb.a2f
 import chisel3._
 
 import bxb.memory.{ReadPort, WritePort}
+import bxb.util.{Util}
 
 class A2fPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int, fWidth: Int) extends Module {
   val io = IO(new Bundle {
     // Pipeline signals
-    val control = Input(AddrControl(aAddrWidth, fAddrWidth))
+    val control = Input(A2fControl(aAddrWidth, fAddrWidth))
     // Systolic array interface
     val aOut = Output(Vec(b, UInt(aWidth.W)))
+    val evenOddOut = Output(Vec(b, UInt(1.W)))
     val accIn = Input(Vec(b, UInt(fWidth.W)))
     // AMem interface
     val amemRead = Output(Vec(b, ReadPort(aAddrWidth)))
@@ -24,6 +26,7 @@ class A2fPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int, fWidth:
   io.amemRead := addressPipeline.io.amemRead
   addressPipeline.io.amemQ := io.amemQ
   io.aOut := addressPipeline.io.aOut
+  io.evenOddOut := addressPipeline.io.evenOddOut
   val accumulationPipeline = Module(new AccumulationPipeline(b, fAddrWidth, fWidth))
   accumulationPipeline.io.accIn := io.accIn
   accumulationPipeline.io.accumulate := addressPipeline.io.next.accumulate
@@ -35,16 +38,7 @@ class A2fPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int, fWidth:
 }
 
 object A2fPipeline {
-  def getVerilog(dut: => chisel3.core.UserModule): String = {
-    import firrtl._
-    return chisel3.Driver.execute(Array[String](), {() => dut}) match {
-      case s:chisel3.ChiselExecutionSuccess => s.firrtlResultOption match {
-        case Some(f:FirrtlExecutionSuccess) => f.emitted
-      }
-    }
-  }
-
   def main(args: Array[String]): Unit = {
-    println(getVerilog(new A2fPipeline(3, 10, 2, 10, 16)))
+    println(Util.getVerilog(new A2fPipeline(3, 10, 2, 10, 16)))
   }
 }

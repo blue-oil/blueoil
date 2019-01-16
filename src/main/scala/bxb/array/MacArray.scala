@@ -1,6 +1,7 @@
 package bxb.array
 
 import chisel3._
+import bxb.util.{Util}
 
 class MacArray(b: Int, accWidth: Int, aWidth: Int) extends Module {
   val io = IO(new Bundle {
@@ -15,7 +16,7 @@ class MacArray(b: Int, accWidth: Int, aWidth: Int) extends Module {
     for (col <- 0 until b) {
       macs(row)(col).io.aIn := (if (col == 0) io.aIn(row) else macs(row)(col - 1).io.aOut)
       macs(row)(col).io.accIn := (if (row == 0) 0.U else macs(row - 1)(col).io.accOut)
-      macs(row)(col).io.evenOddIn := (if (row == 0) io.evenOddIn(row) else macs(row - 1)(col).io.evenOddIn)
+      macs(row)(col).io.evenOddIn := (if (col == 0) io.evenOddIn(row) else macs(row)(col - 1).io.evenOddOut)
       for (pane <- 0 until 2) {
         macs(row)(col).io.mIn(pane) := (if (col == b - 1) io.mIn(row)(pane) else macs(row)(col + 1).io.mOut(pane))
         macs(row)(col).io.mWeIn(pane) := io.mWe(pane)
@@ -28,16 +29,7 @@ class MacArray(b: Int, accWidth: Int, aWidth: Int) extends Module {
 }
 
 object MacArray {
-  def getVerilog(dut: => chisel3.core.UserModule): String = {
-    import firrtl._
-    return chisel3.Driver.execute(Array[String](), {() => dut}) match {
-      case s:chisel3.ChiselExecutionSuccess => s.firrtlResultOption match {
-        case Some(f:FirrtlExecutionSuccess) => f.emitted
-      }
-    }
-  }
-
   def main(args: Array[String]): Unit = {
-    println(getVerilog(new MacArray(3, 16, 2)))
+    println(Util.getVerilog(new MacArray(3, 16, 2)))
   }
 }

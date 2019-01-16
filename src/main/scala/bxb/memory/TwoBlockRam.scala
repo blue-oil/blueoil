@@ -2,6 +2,8 @@ package bxb.memory
 
 import chisel3._
 
+import bxb.util.{Util}
+
 class TwoBlockRam(size: Int, dataWidth: Int) extends Module {
   val addrWidth = Chisel.log2Up(size)
   val addrMsb = addrWidth - 1
@@ -38,16 +40,7 @@ class TwoBlockRam(size: Int, dataWidth: Int) extends Module {
 }
 
 object TwoBlockRam {
-  def getVerilog(dut: => chisel3.core.UserModule): String = {
-    import firrtl._
-    return chisel3.Driver.execute(Array[String](), {() => dut}) match {
-      case s:chisel3.ChiselExecutionSuccess => s.firrtlResultOption match {
-        case Some(f:FirrtlExecutionSuccess) => f.emitted
-      }
-    }
-  }
-
   def main(args: Array[String]): Unit = {
-    println(getVerilog(new TwoBlockRam(4096 * 2, 2)))
+    println(Util.getVerilog(new TwoBlockRam(4096 * 2, 2)))
   }
 }
