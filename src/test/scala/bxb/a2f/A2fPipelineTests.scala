@@ -13,11 +13,10 @@ class TestA2fModule(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Modu
   val addrWidth = Chisel.log2Up(memSize)
   val io = IO(new Bundle {
     // Pipeline signals
-    val control = Input(AddrControl(addrWidth, addrWidth))
+    val control = Input(A2fControl(addrWidth, addrWidth))
     // Systolic array weight loading interface
     val mIn = Input(Vec(b, Vec(2, UInt(1.W))))
     val mWe = Input(Vec(2, Bool()))
-    val evenOddIn = Input(Vec(b, UInt(1.W)))
     // AMem test interface
     val amemWrite = Input(Vec(b, WritePort(addrWidth, aWidth)))
     // FMem test interface
@@ -28,7 +27,6 @@ class TestA2fModule(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Modu
   val macArray = Module(new MacArray(b, fWidth, aWidth))
   macArray.io.mIn := io.mIn
   macArray.io.mWe := io.mWe
-  macArray.io.evenOddIn := io.evenOddIn
   val amem = Module(new MemArray(b, memSize, aWidth))
   amem.io.write := io.amemWrite
   val fmem = Module(new TwoBlockMemArray(b, memSize, fWidth))
@@ -37,6 +35,7 @@ class TestA2fModule(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Modu
   val a2fPipeline = Module(new A2fPipeline(b, addrWidth, aWidth, addrWidth, fWidth))
   a2fPipeline.io.control := io.control
   macArray.io.aIn := a2fPipeline.io.aOut
+  macArray.io.evenOddIn := a2fPipeline.io.evenOddOut
   a2fPipeline.io.accIn := macArray.io.accOut
   amem.io.read := a2fPipeline.io.amemRead
   a2fPipeline.io.amemQ := amem.io.q
@@ -83,9 +82,7 @@ class A2fPipelineTests(dut: TestA2fModule, b: Int, memSize: Int) extends PeekPok
   //  weights - is BxB matrix of 1 bit weights
   //  outputs - is NxB matrix of 16 bit features
   val pane = 0
-  for (col <- 0 until b) {
-    poke(dut.io.evenOddIn(col), pane)
-  }
+  poke(dut.io.control.evenOdd, pane)
   poke(dut.io.control.writeEnable, false)
   for (col <- 0 until b) {
     poke(dut.io.fmemRead(col).enable, false)
