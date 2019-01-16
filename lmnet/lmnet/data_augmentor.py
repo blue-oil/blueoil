@@ -244,31 +244,32 @@ class Crop(data_processor.Processor):
         top = randint(0, origin_height - self.height)
         left = randint(0, origin_width - self.width)
 
-        # delete gt_boxes that is out of the cropped area
-        check_top = gt_boxes[:, 0] > (top+self.height)
-        gt_boxes = np.delete(gt_boxes, np.where(check_top), 0)
-        check_bottom = (gt_boxes[:, 0] + gt_boxes[:, 2]) < top
-        gt_boxes = np.delete(gt_boxes, np.where(check_bottom), 0)
+        if gt_boxes is not None:
+            # delete gt_boxes that is out of the cropped area
+            check_top = gt_boxes[:, 0] > (top+self.height)
+            gt_boxes = np.delete(gt_boxes, np.where(check_top), 0)
+            check_bottom = (gt_boxes[:, 0] + gt_boxes[:, 2]) < top
+            gt_boxes = np.delete(gt_boxes, np.where(check_bottom), 0)
 
-        check_left = gt_boxes[:, 1] > (left+self.width)
-        gt_boxes = np.delete(gt_boxes, np.where(check_left), 0)
-        check_right = (gt_boxes[:, 1] + gt_boxes[:, 3]) < left
-        gt_boxes = np.delete(gt_boxes, np.where(check_right), 0)
+            check_left = gt_boxes[:, 1] > (left+self.width)
+            gt_boxes = np.delete(gt_boxes, np.where(check_left), 0)
+            check_right = (gt_boxes[:, 1] + gt_boxes[:, 3]) < left
+            gt_boxes = np.delete(gt_boxes, np.where(check_right), 0)
 
-        # update coordinate of gt_boxes
-        gt_boxes[:, 0] -= top
-        gt_boxes[:, 1] -= left
+            # update coordinate of gt_boxes
+            gt_boxes[:, 0] -= top
+            gt_boxes[:, 1] -= left
 
-        # move corner of gt_boxes that is out of area to the margin
-        check_top = gt_boxes[:, 0] < 0
-        gt_boxes[np.where(check_top), 0] = 0
-        check_bottom = (gt_boxes[:, 0] + gt_boxes[:, 2]) > self.height
-        gt_boxes[np.where(check_bottom), 2] = self.height - gt_boxes[np.where(check_bottom), 0] - 1
+            # move corner of gt_boxes that is out of area to the margin
+            check_top = gt_boxes[:, 0] < 0
+            gt_boxes[np.where(check_top), 0] = 0
+            check_bottom = (gt_boxes[:, 0] + gt_boxes[:, 2]) > self.height
+            gt_boxes[np.where(check_bottom), 2] = self.height - gt_boxes[np.where(check_bottom), 0] - 1
 
-        check_left = gt_boxes[:, 1] < 0
-        gt_boxes[np.where(check_left), 1] = 0
-        check_right = (gt_boxes[:, 1] + gt_boxes[:, 3]) > self.width
-        gt_boxes[np.where(check_right), 3] = self.width - gt_boxes[np.where(check_right), 1] - 1
+            check_left = gt_boxes[:, 1] < 0
+            gt_boxes[np.where(check_left), 1] = 0
+            check_right = (gt_boxes[:, 1] + gt_boxes[:, 3]) > self.width
+            gt_boxes[np.where(check_right), 3] = self.width - gt_boxes[np.where(check_right), 1] - 1
 
         # crop
         image = image[top:top + self.height, left:left + self.width, :]
@@ -565,8 +566,9 @@ class Pad(data_processor.Processor):
                 raise RuntimeError('Number of dims in mask should be 2 or 3 but get {}.'.format(np.ndim(mask)))
             mask = result_mask
 
-        gt_boxes[:, 0] = gt_boxes[:, 0]+self.left
-        gt_boxes[:, 1] = gt_boxes[:, 1]+self.top
+        if gt_boxes is not None:
+            gt_boxes[:, 0] = gt_boxes[:, 0]+self.left
+            gt_boxes[:, 1] = gt_boxes[:, 1]+self.top
 
         return dict({'image': result_image, 'mask': mask, 'gt_boxes': gt_boxes}, **kwargs)
 
@@ -868,7 +870,7 @@ class Rotate(data_processor.Processor):
         self.min_angle = min_angle
         self.max_angle = max_angle
 
-    def __call__(self, image, mask=None, **kwargs):
+    def __call__(self, image, mask=None, gt_boxes=None, **kwargs):
         """
         Args:
             image (np.ndarray): a image. shape is [height, width, channel]
@@ -889,7 +891,34 @@ class Rotate(data_processor.Processor):
             mask_rot = np.array(mask_rot)
             mask = mask_rot
 
-        return dict({'image': img_rot, 'mask': mask}, **kwargs)
+        if gt_boxes is not None:
+            angle = angle * math.pi /180 # convert angle to radians
+            image_size = np.array(image).shape
+            center_x = image_size[0] / 2.0
+            center_y = image_size[1] / 2.0
+            gt_boxes = self._get_rotated_boxes(gt_boxes, center_x, center_y, angle)
+
+        return dict({'image': img_rot, 'mask': mask, 'gt_boxes': gt_boxes}, **kwargs)
+
+    def _get_rotated_boxes(self, gt_boxes, center_x, center_y, angle):
+        top_left = list(zip(gt_boxes[:, 0], gt_boxes[:, 1]))
+        bottom_left = list(zip(gt_boxes[:, 0] + gt_boxes[:, 2], gt_boxes[:, 1]))
+        top_right = list(zip(gt_boxes[:, 0], gt_boxes[:, 1] + gt_boxes[:,3]))
+        bottom_right = list(zip(gt_boxes[:, 0] + gt_boxes[:, 2], gt_boxes[:, 1] + gt_boxes[:,3]))
+
+        corners = np.array([[tl, bl, tr, br] for tl, bl, tr, br in zip(top_left, bottom_left, top_right, bottom_right)])
+        rotated_corners = corners.copy()
+        rotated_corners[:, :, 0] = (corners[:, :, 1] - center_x) * math.sin(angle) + (corners[:, :, 0] - center_y) * math.cos(angle) + center_y
+        rotated_corners[:, :, 1] = (corners[:, :, 1] - center_x) * math.cos(angle) - (corners[:, :, 0] - center_y) * math.sin(angle) + center_x
+
+        topmost = np.min(rotated_corners[:, :, 0], axis=-1)
+        leftmost = np.min(rotated_corners[:, :, 1], axis=-1)
+        height = np.max(rotated_corners[:, :, 0], axis=-1) - topmost
+        width = np.max(rotated_corners[:, :, 1], axis=-1) - leftmost
+        labels = gt_boxes[:, -1]
+        gt_boxes = np.array([[tm, lm, h, w, label] for tm, lm, h, w, label in zip(topmost, leftmost, height, width, labels)])
+
+        return gt_boxes
 
 
 # TODO(wakisaka): implement class
