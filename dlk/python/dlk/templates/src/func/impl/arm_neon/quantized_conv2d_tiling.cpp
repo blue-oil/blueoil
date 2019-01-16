@@ -22,9 +22,7 @@ limitations under the License.
 
 #include <arm_neon.h>
 
-#ifdef _OPENMP
 #include <omp.h>
-#endif
 
 namespace dlk {
 
