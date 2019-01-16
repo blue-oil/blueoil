@@ -60,13 +60,17 @@ Tensor ResizeVertical_NearestNeighbor(const Tensor &tensor, const int height) {
   Tensor dstTensor({height, width, channels});
   const int srcScanLineSize = width * channels;
   float yScale = static_cast<float> (height) / static_cast<float>(srcHeight);
+  float srcRGBscaled = 1.0f / yScale;
+  const float *srcImageData = tensor.dataAsArray();
+  float *srcRGBbase = const_cast<float *>(srcImageData);
+  float *dstRGB = dstTensor.dataAsArray();
+  float srcRGBindexF = 0;
   for (int dstY = 0 ; dstY < height ; dstY++) {
-    int srcY = (int) std::floor(dstY/yScale);
-    const float *srcRGB = tensor.dataAsArray({srcY, 0, 0});
-    float *dstRGB = dstTensor.dataAsArray({dstY, 0, 0});
+    float *srcRGB = srcRGBbase + (static_cast<int>(srcRGBindexF) * srcScanLineSize);
     for (int i = 0 ; i < srcScanLineSize ; i++) {
       *dstRGB++ = *srcRGB++;
     }
+    srcRGBindexF += srcRGBscaled;
   }
   return dstTensor;
 }
