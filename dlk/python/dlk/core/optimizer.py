@@ -96,7 +96,7 @@ def transpose_kernels(kernel_data: np.ndarray,
     for i in range(od * kh * kw * k_c_by_word):
         copy_value[i] = flatten_value[i]
 
-    transpose_values = [0] * k_size
+    transposed_values = [0] * k_size
     if (od < NUM_PE):
         kn_out = int(k_n_aligned_with_num_pe / NUM_PE)
     else:
@@ -113,10 +113,10 @@ def transpose_kernels(kernel_data: np.ndarray,
                         idx_dst += no * (k_c_by_word * NUM_PE)
                         idx_dst += c * (NUM_PE)
                         idx_dst += ni
-                        transpose_values[idx_dst] = copy_value[idx_src]
+                        transposed_values[idx_dst] = copy_value[idx_src]
                         idx_src += 1
 
-    return transpose_values
+    return transposed_values
 
 
 class NHWC_Transposer(GraphRunner):
