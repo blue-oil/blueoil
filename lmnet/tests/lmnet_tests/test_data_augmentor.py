@@ -185,10 +185,10 @@ def test_crop():
 
     new_gt_boxes = result['gt_boxes']
 
-    assert np.sum((gt_boxes[:, 0]<0).astype(int)) == 0
-    assert np.sum((gt_boxes[:, 1]<0).astype(int)) == 0
-    assert np.sum((gt_boxes[:, 0]+gt_boxes[:,2]>100).astype(int)) == 0
-    assert np.sum((gt_boxes[:, 1]+gt_boxes[:,3]>200).astype(int)) == 0
+    assert np.sum((gt_boxes[:, 0] < 0).astype(int)) == 0
+    assert np.sum((gt_boxes[:, 1] < 0).astype(int)) == 0
+    assert np.sum((gt_boxes[:, 0] + gt_boxes[:, 2] > 100).astype(int)) == 0
+    assert np.sum((gt_boxes[:, 1] + gt_boxes[:, 3] > 200).astype(int)) == 0
 
 
 def test_filp_left_right():
@@ -251,9 +251,9 @@ def test_pad():
 
     new_gt_boxes = result['gt_boxes']
 
-    assert new_gt_boxes[:, 0] = gt_boxes[:, 0] + 100
-    assert new_gt_boxes[:, 1] = gt_boxes[:, 1] + 100
-    assert new_gt_boxes[:, 2:5] = gt_boxes[:, 2:5]
+    assert new_gt_boxes[:, 0] == gt_boxes[:, 0] + 100
+    assert new_gt_boxes[:, 1] == gt_boxes[:, 1] + 100
+    assert new_gt_boxes[:, 2:5] == gt_boxes[:, 2:5]
 
     augmentor = Pad((40, 30))
 
@@ -268,9 +268,9 @@ def test_pad():
 
     new_gt_boxes = result['gt_boxes']
 
-    assert new_gt_boxes[:, 0] = gt_boxes[:, 0] + 40
-    assert new_gt_boxes[:, 1] = gt_boxes[:, 1] + 30
-    assert new_gt_boxes[:, 2:5] = gt_boxes[:, 2:5]
+    assert new_gt_boxes[:, 0] == gt_boxes[:, 0] + 40
+    assert new_gt_boxes[:, 1] == gt_boxes[:, 1] + 30
+    assert new_gt_boxes[:, 2:5] == gt_boxes[:, 2:5]
 
 
 def test_random_patch_cut():

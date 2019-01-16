@@ -268,7 +268,7 @@ class Crop(data_processor.Processor):
         check_left = gt_boxes[:, 1] < 0
         gt_boxes[np.where(check_left), 1] = 0
         check_right = (gt_boxes[:, 1] + gt_boxes[:, 3]) > self.width
-        gt_boxes[np.where(check_right), 3] = self.width - gt_boxes[ np.where(check_right), 1] - 1
+        gt_boxes[np.where(check_right), 3] = self.width - gt_boxes[np.where(check_right), 1] - 1
 
         # crop
         image = image[top:top + self.height, left:left + self.width, :]
