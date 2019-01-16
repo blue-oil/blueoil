@@ -185,10 +185,10 @@ def test_crop():
 
     new_gt_boxes = result['gt_boxes']
 
-    assert np.sum((gt_boxes[:, 0] < 0).astype(int)) == 0
-    assert np.sum((gt_boxes[:, 1] < 0).astype(int)) == 0
-    assert np.sum((gt_boxes[:, 0] + gt_boxes[:, 2] > 100).astype(int)) == 0
-    assert np.sum((gt_boxes[:, 1] + gt_boxes[:, 3] > 200).astype(int)) == 0
+    assert np.sum((new_gt_boxes[:, 0] < 0).astype(int)) == 0
+    assert np.sum((new_gt_boxes[:, 1] < 0).astype(int)) == 0
+    assert np.sum((new_gt_boxes[:, 0] + new_gt_boxes[:, 2] > 100).astype(int)) == 0
+    assert np.sum((new_gt_boxes[:, 1] + new_gt_boxes[:, 3] > 200).astype(int)) == 0
 
 
 def test_filp_left_right():
