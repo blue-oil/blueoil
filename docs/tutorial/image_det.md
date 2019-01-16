@@ -42,11 +42,12 @@ choose dataset format  OpenImagesV4
 training dataset path:  {dataset_dir}
 set validataion dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  no
 batch size (integer):  16
-image size (integer x integer):  128x128
+image size (integer x integer):  160x160
 how many epochs do you run training (integer):  100
-initial learning rate:  0.001
-choose learning rate setting(tune1 / tune2 / tune3 / fixed):  tune1 -> "2 times decay": tune1
-apply quantization at the first layer?  yes
+initial learning rate:  0.1
+choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
+enable data augmentation?  No
+apply quantization at the first layer?  no
 ```
 
 ## Train a network model
