@@ -6,5 +6,8 @@ set(TOOLCHAIN_NAME "")
 # Use ARM NEON optimizations
 set(USE_NEON OFF)
 
+# Use AArch64 NEON(Advanced SIMD) optimizations
+set(USE_ASIMD OFF)
+
 # Use FPGA for computing quantized convolutions
 set(RUN_ON_FPGA OFF)
