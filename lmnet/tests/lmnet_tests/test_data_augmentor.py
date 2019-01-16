@@ -251,9 +251,9 @@ def test_pad():
 
     new_gt_boxes = result['gt_boxes']
 
-    assert new_gt_boxes[:, 0] == gt_boxes[:, 0] + 100
-    assert new_gt_boxes[:, 1] == gt_boxes[:, 1] + 100
-    assert new_gt_boxes[:, 2:5] == gt_boxes[:, 2:5]
+    assert np.all(new_gt_boxes[:, 0] == gt_boxes[:, 0] + 100)
+    assert np.all(new_gt_boxes[:, 1] == gt_boxes[:, 1] + 100)
+    assert np.all(new_gt_boxes[:, 2:5] == gt_boxes[:, 2:5])
 
     augmentor = Pad((40, 30))
 
@@ -268,9 +268,9 @@ def test_pad():
 
     new_gt_boxes = result['gt_boxes']
 
-    assert new_gt_boxes[:, 0] == gt_boxes[:, 0] + 40
-    assert new_gt_boxes[:, 1] == gt_boxes[:, 1] + 30
-    assert new_gt_boxes[:, 2:5] == gt_boxes[:, 2:5]
+    assert np.all(new_gt_boxes[:, 0] == gt_boxes[:, 0] + 40)
+    assert np.all(new_gt_boxes[:, 1] == gt_boxes[:, 1] + 30)
+    assert np.all(new_gt_boxes[:, 2:5] == gt_boxes[:, 2:5])
 
 
 def test_random_patch_cut():

@@ -238,8 +238,8 @@ class Crop(data_processor.Processor):
         origin_height = image.shape[0]
         origin_width = image.shape[1]
 
-        assert origin_height > self.height
-        assert origin_width > self.width
+        assert origin_height >= self.height
+        assert origin_width >= self.width
 
         top = randint(0, origin_height - self.height)
         left = randint(0, origin_width - self.width)
