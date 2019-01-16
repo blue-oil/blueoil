@@ -1,5 +1,5 @@
 DEVICE := 5CSEBA6U23I7
-CLOCK  := 110MHz
+CLOCK  := 100MHz
 
 CXX :=
 COMPONENTS := --component intel_hls_qconv_kn2row_tiling_impl

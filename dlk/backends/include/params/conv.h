@@ -176,11 +176,11 @@ static const unsigned num_in_by_unit = min_in_c_by_word; // 4
 static const unsigned log_num_in_by_unit = 2;            // log2(num_in_by_unit) = log2(4) = 2
 static const unsigned max_num_in_unit = (max_in_c_by_word + (num_in_by_unit - 1)) >> log_num_in_by_unit; // / 4
 
-static const unsigned in_w = 128;
-static const unsigned in_h = 128;
+static const unsigned in_w = 32;
+static const unsigned in_h = 32;
 static const unsigned in_w_with_pad = in_w + (2 * pad_w);
 static const unsigned in_h_with_pad = in_h + (2 * pad_h);
-static const unsigned in_c = 256;
+static const unsigned in_c = 128;
 static const unsigned in_c_by_word = in_c / nbits_per_word;
 static const unsigned in_size = in_h * in_w * in_c;
 static const unsigned in_size_packed = in_h * in_w * in_c_by_word * nbits_in_data;
