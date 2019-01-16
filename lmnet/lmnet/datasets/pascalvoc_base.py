@@ -76,10 +76,11 @@ class PascalvocBase(ObjectDetectionBase):
             self,
             subset="train",
             batch_size=10,
+            skip_difficult=True,
             *args,
             **kwargs
     ):
-        self.skip_difficult = kwargs.pop("skip_difficult", False)
+        self.skip_difficult = skip_difficult
 
         super().__init__(
             subset=subset,
