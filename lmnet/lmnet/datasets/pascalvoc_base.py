@@ -31,12 +31,12 @@ class PascalvocBase(ObjectDetectionBase):
 
     @classmethod
     @functools.lru_cache(maxsize=None)
-    def count_max_boxes(cls):
+    def count_max_boxes(cls, skip_difficult=True):
         """Count max boxes size over all subsets."""
         num_max_boxes = 0
 
         for subset in cls.available_subsets:
-            obj = cls(subset=subset)
+            obj = cls(subset=subset, skip_difficult=skip_difficult)
             gt_boxes_list = obj.annotations
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])
@@ -98,7 +98,7 @@ class PascalvocBase(ObjectDetectionBase):
     @functools.lru_cache(maxsize=None)
     def num_max_boxes(self):
         cls = self.__class__
-        return cls.count_max_boxes()
+        return cls.count_max_boxes(self.skip_difficult)
 
     @property
     def num_per_epoch(self):
@@ -147,9 +147,6 @@ class PascalvocBase(ObjectDetectionBase):
         root = tree.getroot()
 
         bboxes = []
-
-        folder = root.find('folder').text
-        filename = root.find('filename').text
 
         for obj in root.iter('object'):
             if self.skip_difficult and int(obj.find('difficult').text) >= 1:
@@ -243,7 +240,7 @@ class PascalvocBase(ObjectDetectionBase):
     def _init_files_and_annotations(self):
         """Init files and gt_boxes list, Cache these."""
 
-        cache_key = self.subset + self.data_dir + str(self.classes)
+        cache_key = self.subset + self.data_dir + str(self.classes) + str(self.skip_difficult)
         cls = self.__class__
 
         if cache_key in cls._cache:
