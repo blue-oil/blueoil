@@ -36,7 +36,6 @@ class DummyCamvidCustomWithoutTestDataset(CamvidCustom):
 
 def test_camvid():
     batch_size = 1
-    image_size = [256, 256]
     train_dataset = DummyCamvid(subset="train", batch_size=batch_size)
     test_dataset = DummyCamvid(subset="validation", batch_size=batch_size)
 
