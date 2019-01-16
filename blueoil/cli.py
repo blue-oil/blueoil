@@ -48,14 +48,14 @@ def init(output):
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
-    save_config(blueoil_config, output)
+    config_filepath = save_config(blueoil_config, output)
 
     click.echo('')
-    click.echo('A new configuration file generated: %s' % (output))
+    click.echo('A new configuration file generated: %s' % (config_filepath))
     click.echo('  - Your next step is training.')
     click.echo('  - You can customize some miscellaneous settings according to the comment.')
-    click.echo('Config file is generated in {}'.format(output))
-    click.echo('Next step: blueoil train -c {}'.format(output))
+    click.echo('Config file is generated in {}'.format(config_filepath))
+    click.echo('Next step: blueoil train -c {}'.format(config_filepath))
 
 
 @main.command(help='Run training.')
