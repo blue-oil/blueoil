@@ -80,20 +80,17 @@ def train(config, experiment_id=None):
 
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
     experiment_dir = os.path.join(output_dir, experiment_id)
-    checkpoint_dir = os.path.join(experiment_dir, 'checkpoints')
-    checkpoint = os.path.join(checkpoint_dir, 'checkpoint')
+    checkpoint = os.path.join(experiment_dir, 'checkpoints', 'checkpoint')
     if not os.path.isfile(checkpoint):
         click.echo('Checkpoints are not created in {}'.format(experiment_dir), err=True)
         exit(1)
 
     with open(checkpoint) as stream:
         data = yaml.load(stream)
-
-    model_checkpoint_path = data['model_checkpoint_path']
-    restore_path = os.path.join(checkpoint_dir, model_checkpoint_path)
+    checkpoint_name = os.path.basename(data['model_checkpoint_path'])
 
     click.echo('Checkpoints are created in {}'.format(experiment_dir))
-    click.echo('Next step: blueoil convert -e {} -r {}'.format(experiment_id, restore_path))
+    click.echo('Next step: blueoil convert -e {} -p {}'.format(experiment_id, checkpoint_name))
 
 
 @main.command(help='Convert trained model to binary files.')
@@ -104,9 +101,9 @@ def train(config, experiment_id=None):
     required=True,
 )
 @click.option(
-    '-r',
-    '--restore_path',
-    help='Restore ckpt file base path. e.g. saved/experiment/checkpoints/save.ckpt-10001',
+    '-p',
+    '--checkpoint',
+    help='Checkpoint name. e.g. save.ckpt-10001',
     required=True,
 )
 @click.option(
@@ -116,7 +113,10 @@ def train(config, experiment_id=None):
     envvar='OUTPUT_TEMPLATE_DIR',
     default=None,
 )
-def convert(experiment_id, restore_path, template):
+def convert(experiment_id, checkpoint, template):
+    output_dir = os.environ.get('OUTPUT_DIR', 'saved')
+    restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
+
     run_convert(experiment_id, restore_path, template)
 
     export_dir = get_export_directory(experiment_id, restore_path)
@@ -145,9 +145,9 @@ def convert(experiment_id, restore_path, template):
     required=True,
 )
 @click.option(
-    '-r',
-    '--restore_path',
-    help='Restore ckpt file base path. e.g. saved/experiment/checkpoints/save.ckpt-10001',
+    '-p',
+    '--checkpoint',
+    help='Checkpoint name. e.g. save.ckpt-10001',
     required=True,
 )
 @click.option(
@@ -155,8 +155,12 @@ def convert(experiment_id, restore_path, template):
     help="Flag of saving images. Default is True.",
     default=True,
 )
-def predict(input, output, experiment_id, restore_path, save_images):
+def predict(input, output, experiment_id, checkpoint, save_images):
+    output_dir = os.environ.get('OUTPUT_DIR', 'saved')
+    restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
+
     run_predict(input, output, experiment_id, None, restore_path, save_images)
+
     click.echo('Result files are created: {}'.format(output))
 
 
