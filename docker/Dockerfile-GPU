@@ -1,0 +1,83 @@
+FROM nvidia/cuda:8.0-cudnn6-devel
+
+MAINTAINER onogawa@leapmind.io
+
+ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH}
+
+RUN echo "deb http://ftp.jaist.ac.jp/ubuntu/ xenial main restricted universe multiverse \n\
+deb-src http://ftp.jaist.ac.jp/ubuntu/ xenial main restricted universe multiverse \n\
+deb http://ftp.jaist.ac.jp/ubuntu/ xenial-updates main restricted universe multiverse \n\
+deb-src http://ftp.jaist.ac.jp/ubuntu/ xenial-updates main restricted universe multiverse \n\
+deb http://ftp.jaist.ac.jp/ubuntu/ xenial-backports main restricted universe multiverse \n\
+deb-src http://ftp.jaist.ac.jp/ubuntu/ xenial-backports main restricted universe multiverse \n\
+deb http://security.ubuntu.com/ubuntu xenial-security main restricted universe multiverse \n\
+deb-src http://security.ubuntu.com/ubuntu xenial-security main restricted universe multiverse \n\
+deb http://ppa.launchpad.net/jonathonf/python-3.6/ubuntu xenial main \n\
+deb-src http://ppa.launchpad.net/jonathonf/python-3.6/ubuntu xenial main" > /etc/apt/sources.list
+
+RUN apt-get update && apt-get install -y --allow-unauthenticated \
+    build-essential \
+    cmake \
+    python3.6 \
+    python3.6-dev \
+    libjpeg8-dev \
+    zlib1g-dev \
+    liblapack-dev \
+    libssl-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libncurses5-dev \
+    libncursesw5-dev \
+    locales\
+    git \
+    wget \
+    curl \
+    llvm \
+    xz-utils \
+    tk-dev \
+    g++-5-arm-linux-gnueabihf \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# x-compiler
+RUN ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
+
+# Python
+RUN ln -s /usr/bin/python3.6 /usr/bin/python 
+
+# Install python pip
+RUN curl -kL https://bootstrap.pypa.io/get-pip.py | python
+
+# Setup lmnet
+COPY lmnet /blueoil/lmnet
+RUN touch /blueoil/lmnet/lmnet/__init__.py
+RUN pip install -r /blueoil/lmnet/gpu.requirements.txt \
+    && pip install -e 'git+https://github.com/cocodataset/coco.git#egg=pycocotools&subdirectory=PythonAPI'
+# In order to install blueoil requirements `prompt_toolkit==1.0.15`, uninstall prompt-toolkit v2.0 that depends on `pdb==0.10.2`.
+RUN pip uninstall -y prompt-toolkit
+
+# Install dlk
+COPY dlk /blueoil/dlk
+RUN PYTHONPATH=/blueoil/dlk/python/dlk python /blueoil/dlk/setup.py install
+
+# Install blueoil
+COPY blueoil /blueoil/blueoil
+COPY output_template /blueoil/output_template
+COPY setup.py setup.cfg MANIFEST.in /blueoil/
+WORKDIR /blueoil
+RUN python setup.py install
+
+# Locale setting
+RUN locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
+
+ENV PYTHONPATH=/blueoil:/blueoil/lmnet:/blueoil/dlk/python/dlk \
+    MPLBACKEND=Agg \
+    DATA_DIR=/blueoil/dataset \
+    OUTPUT_DIR=/blueoil/saved \
+    OUTPUT_TEMPLATE_DIR=/blueoil/output_template
+
+ENTRYPOINT [ "blueoil" ]
