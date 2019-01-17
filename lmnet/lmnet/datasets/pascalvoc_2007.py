@@ -47,7 +47,7 @@ class Pascalvoc2007(PascalvocBase):
 
     @property
     def num_max_boxes(self):
-        # alculate by cls.count_max_boxes(self.skip_difficult)
+        # calculate by cls.count_max_boxes(self.skip_difficult)
         if self.skip_difficult:
             return 37
         else:
