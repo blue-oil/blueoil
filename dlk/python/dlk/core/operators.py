@@ -1289,6 +1289,11 @@ class BatchNormalization(Operator):
         self._assert(x_shape == self.shape, message)
 
     def run(self, **kwargs) -> Dict:
+        """Return the forward calculation results of batch normalization.
+
+        Currently this function is only used by threshold skipping optimization pass
+        for recursively calculating thresholds of the skipping patterns.
+        """
         scale = np.float64(self._input_ops['scale'].data)
         beta = np.float64(self._input_ops['B'].data)
         mean = np.float64(self._input_ops['mean'].data)
@@ -1299,6 +1304,11 @@ class BatchNormalization(Operator):
         return kwargs
 
     def de_run(self, **kwargs) -> Dict:
+        """Return the reversed calculation results of batch normalization.
+
+        Currently this function is only used by threshold skipping optimization pass
+        for recursively calculating thresholds of the skipping patterns.
+        """
         scale = np.float64(self._input_ops['scale'].data)
         beta = np.float64(self._input_ops['B'].data)
         mean = np.float64(self._input_ops['mean'].data)
@@ -1370,6 +1380,11 @@ class QTZ_linear_mid_tread_half(Quantizer):
         self._assert(x_shape == self.shape, message)
 
     def run(self, **kwargs) -> Dict:
+        """Return the result of forward calculation of an activation quantizer.
+
+        Currently this function is only used by threshold skipping optimization pass
+        for recursively calculating thresholds of the skipping patterns.
+        """
         bit = self._input_ops['Y'].data
         max_value = np.float64(self._input_ops['Z'].data)
         in_data = np.float64(kwargs['data'])
@@ -1380,6 +1395,11 @@ class QTZ_linear_mid_tread_half(Quantizer):
         return kwargs
 
     def de_run(self, **kwargs) -> Dict:
+        """Return the result of reversed calculation of an activation quantizer.
+
+        Currently this function is only used by threshold skipping optimization pass
+        for recursively calculating thresholds of the skipping patterns.
+        """
         bit = self._input_ops['Y'].data
         max_value = np.float64(self._input_ops['Z'].data)
         in_data = np.float64(kwargs['data'])
@@ -1389,6 +1409,10 @@ class QTZ_linear_mid_tread_half(Quantizer):
         return kwargs
 
     def run_forward(self) -> np.ndarray:
+        """General function for this quantization operator.
+
+        This function returns numpy array.
+        """
         data_dict = self.run(data=self._input_ops['X'].data)
         self._data = data_dict['data']
         return self._data
