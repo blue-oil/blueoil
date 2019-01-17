@@ -122,31 +122,6 @@ class LmResnet(Base):
 
         return output
 
-    def loss(self, softmax, labels):
-        """loss.
-        Params:
-           output: softmaxed tensor from base. shape is (batch_num, num_classes)
-           labels: onehot labels tensor. shape is (batch_num, num_classes)
-        """
-        labels = tf.to_float(labels)
-        cross_entropy = -tf.reduce_sum(labels * tf.log(tf.clip_by_value(softmax, 1e-10, 1.0)), axis=[1])
-        cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
-
-        loss = cross_entropy_mean + self._decay()
-        tf.summary.scalar("loss", loss)
-
-        return loss
-
-    def _decay(self):
-        """L2 weight decay loss."""
-        costs = []
-        for var in tf.trainable_variables():
-            # exclude batch norm variable
-            if not ("bn" in var.name and "beta" in var.name):
-                costs.append(tf.nn.l2_loss(var))
-
-        return tf.add_n(costs) * self.weight_decay_rate
-
 
 class LmResnetQuantize(LmResnet):
     version = 1.0
