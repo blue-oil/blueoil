@@ -483,5 +483,38 @@ class TestPassComputeThresholds(unittest.TestCase):
         return graph
 
 
+class TestPassConstantFolding(unittest.TestCase):
+    """Test class for packing weight."""
+    def test_pass_constant_folding(self) -> None:
+        """Test pass."""
+        graph1 = self.create_sample_graph()
+
+        pass_constant_folding(graph1)
+
+        self.assertEqual(set(graph1.get_op('potatoes_new').data), set(np.array([2, 5])),
+                         '[Failed] Found folded constant not correct')
+
+        print("Test constant folding #9 pass passed!")
+
+    @staticmethod
+    def create_sample_graph() -> Graph:
+        graph = Graph()
+
+        x = Input('placeholder', [2], Float32())
+
+        s1 = Constant('potato_1', Float32(), np.array([1, 2]))
+        s2 = Constant('potato_2', Float32(), np.array([1, 3]))
+        add1 = Add('potatoes', [2], Float32(), {'A': s1, 'B': s2})
+        add2 = Add('more_potatoes', [2], Float32(), {'A': x, 'B': add1})
+
+        # One output
+        y = Output('output', [2], Float32(), {'input': add2})
+
+        # add ops to the graph
+        graph.add_op_and_inputs(y)
+
+        return graph
+
+
 if __name__ == '__main__':
     unittest.main()
