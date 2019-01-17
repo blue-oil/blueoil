@@ -60,7 +60,7 @@ class TestA2fConvModule(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends 
     val tileOffsetValid = Input(Bool())
     // Sequencer Sync interface
     // XXX: This will be connected to semaphores eventually
-    val waitReq = Input(Bool())
+    val mRawZero = Input(Bool())
     val controlValid = Output(Bool())
   })
   val macArray = Module(new MacArray(b, fWidth, aWidth))
@@ -81,7 +81,8 @@ class TestA2fConvModule(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends 
   a2fSequencer.io.tileOffset := io.tileOffset 
   a2fSequencer.io.tileOffsetValid := io.tileOffsetValid 
   io.controlValid := a2fSequencer.io.controlValid
-  a2fSequencer.io.waitReq := io.waitReq
+  a2fSequencer.io.aRawZero := false.B
+  a2fSequencer.io.mRawZero := io.mRawZero
   val a2fPipeline = Module(new A2fPipeline(b, addrWidth, aWidth, addrWidth, fWidth))
   a2fPipeline.io.control := a2fSequencer.io.control
   macArray.io.aIn := a2fPipeline.io.aOut
@@ -156,7 +157,7 @@ class A2fPipelineConvTests(dut: TestA2fConvModule, b: Int, tileHeight: Int, tile
   for (col <- 0 until b) {
     poke(dut.io.fmemRead(col).enable, false)
   }
-  poke(dut.io.waitReq, true)
+  poke(dut.io.mRawZero, true)
   poke(dut.io.tileOffsetValid, false)
 
   loadTileToAMem()
@@ -173,7 +174,7 @@ class A2fPipelineConvTests(dut: TestA2fConvModule, b: Int, tileHeight: Int, tile
       poke(dut.io.tileStep, 1)
       poke(dut.io.tileGap, 3)
       poke(dut.io.tileOffset, 0)
-      poke(dut.io.waitReq, false)
+      poke(dut.io.mRawZero, false)
       poke(dut.io.tileOffsetValid, true)
       while (peek(dut.io.controlValid) == 0) {
         step(1)
@@ -181,7 +182,7 @@ class A2fPipelineConvTests(dut: TestA2fConvModule, b: Int, tileHeight: Int, tile
       for (i <- 0 until (ref.outputHeight * ref.outputWidth)) {
         step(1)
       }
-      poke(dut.io.waitReq, true)
+      poke(dut.io.mRawZero, true)
       poke(dut.io.tileOffsetValid, false)
       evenOdd = evenOdd ^ 0x1
     }

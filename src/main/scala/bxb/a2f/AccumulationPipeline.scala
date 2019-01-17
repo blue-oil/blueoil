@@ -11,6 +11,7 @@ class AccControl(private val addrWidth: Int) extends Bundle {
   val readEnable = Bool()
   val writeEnable = Bool()
   val writeAddr = UInt(addrWidth.W)
+  val syncInc = A2fSyncInc()
 }
 
 object AccControl {
@@ -52,7 +53,9 @@ class AccumulationPipeline(b: Int, addrWidth: Int, accWidth: Int) extends Module
     val memRead = Output(Vec(b, ReadPort(addrWidth)))
     val memWrite = Output(Vec(b, WritePort(addrWidth, accWidth)))
     val memQ = Input(Vec(b, UInt(accWidth.W)))
-    // TODO: sync iface
+    // Sync interface
+    val syncIncIn = Input(A2fSyncInc())
+    val syncIncOut = Output(A2fSyncInc())
   })
   val accumulateDelayed = RegNext(io.accumulate, false.B)
   val writeEnableDelayed = RegNext(io.writeEnable, false.B)
@@ -65,6 +68,7 @@ class AccumulationPipeline(b: Int, addrWidth: Int, accWidth: Int) extends Module
       pipeline(col).io.control.writeAddr := addressDelayed
       pipeline(col).io.control.readAddr := io.address
       pipeline(col).io.control.readEnable := io.writeEnable
+      pipeline(col).io.control.syncInc := io.syncIncIn
     }
     else {
       pipeline(col).io.control := pipeline(col - 1).io.next
@@ -74,6 +78,7 @@ class AccumulationPipeline(b: Int, addrWidth: Int, accWidth: Int) extends Module
     pipeline(col).io.ramReadQ := io.memQ(col)
     io.memWrite(col) := pipeline(col).io.ramWrite
   }
+  io.syncIncOut := pipeline(b - 1).io.next.syncInc
 }
 
 object AccumulationPipeline {
