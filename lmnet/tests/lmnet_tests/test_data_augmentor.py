@@ -183,7 +183,6 @@ def test_crop():
     assert image.shape[1] == 200
     assert image.shape[2] == 3
 
-    gt_boxes = _gt_boxes()
     new_gt_boxes = result['gt_boxes']
 
     assert np.sum((new_gt_boxes[:, 0] < 0).astype(int)) == 0
@@ -268,6 +267,7 @@ def test_pad():
     assert image.shape[1] == 480 + 40 * 2
     assert image.shape[2] == 3
 
+    gt_boxes = _gt_boxes()
     new_gt_boxes = result['gt_boxes']
 
     assert np.all(new_gt_boxes[:, 0] == gt_boxes[:, 0] + 40)
