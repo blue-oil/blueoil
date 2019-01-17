@@ -165,6 +165,25 @@ class Base(BaseNetwork):
                     overlap = alpha * images + colored_class_heatmap
                     tf.summary.image(class_name, overlap, max_outputs=1)
 
+    def _calc_top_k(self, softmax, labels, k):
+        """Calculate the mean top k accuracy.
+        In the case that multiple classes are on the top k boundary, the order of the class indices is used
+        to break the tie - lower indices given preference - so that only k predictions are included in the top k.
+
+        Args:
+            softmax (Tensor): class predictions from the softmax. Shape is [batch_size, num_classes].
+            labels (Tensor): onehot ground truth labels. Shape is [batch_size, num_classes].
+            k (Int): number of top predictions to use.
+        """
+
+        argmax_labels = tf.cast(tf.argmax(labels, 1), tf.int32)
+        argmax_labels = tf.expand_dims(argmax_labels, 1)
+        _, top_predicted_indices = tf.nn.top_k(softmax, k)
+        accuracy_topk, accuracy_topk_update = tf.metrics.mean(
+            tf.cast(tf.reduce_any(tf.equal(top_predicted_indices, argmax_labels), axis=1), tf.float32)
+        )
+        return accuracy_topk, accuracy_topk_update
+
     def metrics(self, softmax, labels):
         """metrics.
 
@@ -180,18 +199,17 @@ class Base(BaseNetwork):
                 softmax = tf.Print(softmax,
                                    [tf.shape(softmax), tf.argmax(softmax, 1)], message="softmax:", summarize=200)
 
-            argmax_labels = tf.argmax(labels, 1)
-            accuracy, accuracy_update = tf.metrics.mean(
-                tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k=1), tf.float32)
-            )
+            accuracy, accuracy_update = self._calc_top_k(softmax, labels, k=1)
 
-            accuracy_top3, accuracy_top3_update = tf.metrics.mean(
-                tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k=3), tf.float32)
-            )
+            if(self.num_classes > 3):
+                accuracy_top3, accuracy_top3_update = self._calc_top_k(softmax, labels, k=3)
+            else:
+                accuracy_top3, accuracy_top3_update = tf.metrics.mean(tf.ones(self.batch_size))
 
-            accuracy_top5, accuracy_top5_update = tf.metrics.mean(
-                tf.cast(tf.nn.in_top_k(softmax, argmax_labels, k=5), tf.float32)
-            )
+            if(self.num_classes > 5):
+                accuracy_top5, accuracy_top5_update = self._calc_top_k(softmax, labels, k=5)
+            else:
+                accuracy_top5, accuracy_top5_update = tf.metrics.mean(tf.ones(self.batch_size))
 
             updates = tf.group(accuracy_update, accuracy_top3_update, accuracy_top5_update)
 
