@@ -21,12 +21,15 @@ The path of training data is required, validation is optional. When you only sel
   - [OpenImagev4](#openimagev4)
   - [DeLTA-Mark object detection](#delta-mark-object-detection )
 
+- Task type: `Semantic Segmentation`
+  - [CamvidCustom](#camvidcustom)
 
 ### Caltech 101
 As following [Caltech 101](http://www.vision.caltech.edu/Image_Datasets/Caltech101/), a dataset format where category names are the names of the subdirectories.
 The subdirectory under `training_dataset_path` or` validation_dataset_path` becomes the class name and images are located under the subdirectory.
 
 Example
+
 ```
 training_dataset_path
 ├── class_0
@@ -126,3 +129,81 @@ Example of `class-descriptions.csv`
 
 ### DeLTA-Mark object detection
 You can download data of this format by using [Delta-Mark](https://delta.leapmind.io/mark/) service.
+
+
+### CamvidCustom
+
+It is data format based on [CamVid](http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/). We can see sample dataset from [SegNet-Turorial](https://github.com/alexgkendall/SegNet-Tutorial) repository. In CamvidCustom dataset format, training and annotation data are both binary image file.
+
+Place the following files and directory.
+
+- `label_colors.txt`: Class information file like under the example.
+- `train.txt`: The space separated pairs of data file path and annotation file path like under the example.
+- `train`: All training images are located under the directory.
+- `trainannot`: All training annotation images are located under the directory.
+- `val.txt`: The space separated pairs of data file path and annotation file path like under the example.
+- `val`: All test images are located under the directory.
+- `valannot`: All test annotation images are located under the directory.
+
+Example of dataset structure
+
+```
+training_dataset_path
+├── label_colors.txt
+├── train.txt
+├── train
+│   ├── 0001TP_006690.png
+│   ├── 0001TP_006720.png
+│   ├── 0001TP_006750.png
+└── trainannot
+    ├── 0001TP_006690.png
+    ├── 0001TP_006720.png
+    ├── 0001TP_006750.png
+
+# If you set `validation_dataset_path`, you can locate files as the same manner.
+validation_dataset_path
+├── val.txt
+├── val
+│   ├── 0016E5_07959.png
+│   ├── 0016E5_07961.png
+│   ├── 0016E5_07963.png
+└── valannot
+    ├── 0001TP_006690.png
+    ├── 0001TP_006720.png
+    ├── 0001TP_006750.png
+```
+
+Example of `train.txt`
+
+```
+train/0001TP_006690.png trainannot/0001TP_006690.png
+train/0001TP_006720.png trainannot/0001TP_006720.png
+train/0001TP_006750.png trainannot/0001TP_006750.png
+train/0001TP_006780.png trainannot/0001TP_006780.png
+train/0001TP_006810.png trainannot/0001TP_006810.png
+```
+
+Example of training image is [here](https://github.com/alexgkendall/SegNet-Tutorial/blob/master/CamVid/train/0001TP_006690.png), and annotation image is [here](https://github.com/alexgkendall/SegNet-Tutorial/blob/master/CamVid/testannot/0001TP_008550.png). Annotations are gray scale image.
+
+Example of `val.txt`
+
+```
+val/0016E5_07959.png valannot/0016E5_07959.png
+val/0016E5_07961.png valannot/0016E5_07961.png
+val/0016E5_07963.png valannot/0016E5_07963.png
+val/0016E5_07965.png valannot/0016E5_07965.png
+val/0016E5_07967.png valannot/0016E5_07967.png
+```
+
+Example of `label_colors.txt`
+
+```
+128 128 128	Sky
+128 0 0		Building
+192 192 128	Column_Pole
+128 64 128	Road
+...
+0 0 0		Void
+```
+
+You should write `Void` (empty) label for not labeled area of the image.
