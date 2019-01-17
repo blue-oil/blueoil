@@ -113,21 +113,25 @@ trainer_optimizers = [
     '  optimizer: MomentumOptimizer\n',
 ]
 
-trainer_lr_setting_comment = "# supported 'learning_rate_setting' is 'tune1', 'tune2', 'tune3', 'fixed'.\n\
-#   'tune1' is 2 times decay, learning rate reduce to 1/10 on epoch/2 and epoch-1.\n\
-#   'tune2' is 3 times decay, learning rate reduce to 1/10 on epoch/3 and epoch*2/3 and epoch-1.\n\
-#   'tune3' is warmup and 3 times decay, warmup learning rate 1/1000 in 1 epoch, then train same as 'tune2'.\n\
-#   'fixed' is constant learning rate.\n"
+trainer_lr_schedule_comment = """\
+  # supported 'learning_rate_schedule' is 'constant', '2-step-decay', '3-step-decay', '3-step-decay-with-warmup' \
+({epochs} is the number of training epochs you entered before).
+  #   'constant' -> constant learning rate.
+  #   '2-step-decay' -> learning rate decrease by 1/10 on {epochs}/2 and {epochs}-1.
+  #   '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1.
+  #   '3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, \
+then train the same way as '3-step-decay'.
+"""
 
-trainer_lr_settings = [
-    '  learning_rate_setting: tune1\n',
-    '  learning_rate_setting: tune1\n',
-    '  learning_rate_setting: tune1\n',
-    '  learning_rate_setting: tune1\n',
-    '  learning_rate_setting: tune1\n',
-    '  learning_rate_setting: tune1\n',
-    '  learning_rate_setting: tune1\n',
-    '  learning_rate_setting: tune1\n',
+trainer_lr_schedules = [
+    '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
 ]
 
 trainer_initial_lrs = [
@@ -200,6 +204,13 @@ common_enable_prefetch = [
     '  dataset_prefetch: true',
 ]
 
+common_data_augmentation = """
+  data_augmentation:
+    - Blur:
+        - value: (0, 1)
+"""
+
+
 def learning_settings_to_yaml(index):
     name = output_files[index]
     config_file = name + ".yml"
@@ -235,10 +246,10 @@ def learning_settings_to_yaml(index):
     #fp.write(str(trainer_optimizer_comment))
     # trainer optimizer 
     #fp.write(str(trainer_optimizers[index]))
-    # trainer lr setting comment
-    fp.write(str(trainer_lr_setting_comment))
-    # trainer lr setting
-    fp.write(str(trainer_lr_settings[index]))
+    # trainer lr schedule comment
+    fp.write(str(trainer_lr_schedule_comment))
+    # trainer lr schedule
+    fp.write(str(trainer_lr_schedules[index]))
     # trainer initial lr
     fp.write(str(trainer_initial_lrs[index]))
     fp.write('\n')
@@ -267,10 +278,15 @@ def learning_settings_to_yaml(index):
     fp.write(str(common_enable_prefetch_comment))
     # common enable prefetch
     fp.write(str(common_enable_prefetch[index]))
+    fp.write('\n')
+    # common data augmentation
+    fp.write(str(common_data_augmentation))
+
 
 def main():
     for index in range(0, len(output_files)):
         learning_settings_to_yaml(index)
-    
+
+
 if __name__ == '__main__':
     main()
