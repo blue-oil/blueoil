@@ -2510,7 +2510,7 @@ class Pad(Operator):
                  dtype: DataType,
                  input_ops: Ops,
                  dimension_format: str = 'NHWC') -> None:
-        """Init the split operator."""
+        """Init the Pad operator."""
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:

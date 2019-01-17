@@ -1,3 +1,18 @@
+# -*- coding: utf-8 -*-
+# Copyright 2018 The Blueoil Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
 import functools
 import tensorflow as tf
 
@@ -10,7 +25,7 @@ class LmResnet(Base):
     This ResNet-18 is modified from the ImageNet version of ResNet-18 of the original paper
             Deep Residual Learning for Image Recognition (https://arxiv.org/abs/1512.03385)
 
-    - first layer is 3x3 convolution layer with stride 1 instead of 7x7 conv with stride 2,
+    - The first layer is 3x3 convolution layer with stride 1 instead of 7x7 conv with stride 2,
       like the CIFAR-10 version of ResNet-18 in the paper.
     - The 3x3 max pooling with stride 2 is not used in this architecture.
     - In each residual block, batch normalization (BN) is after the add, to be specific, a
@@ -107,10 +122,9 @@ class LmResnet(Base):
         w = x.get_shape()[2].value
         x = tf.layers.average_pooling2d(name="gap", inputs=x, pool_size=[h, w], padding="VALID", strides=1)
 
-        if tf.rank(x) != 2:
-            shape = x.get_shape().as_list()
-            flattened_shape = functools.reduce(lambda x, y: x * y, shape[1:])
-            x = tf.reshape(x, [-1, flattened_shape], name='reshape')
+        shape = x.get_shape().as_list()
+        flattened_shape = functools.reduce(lambda x, y: x * y, shape[1:])
+        x = tf.reshape(x, [-1, flattened_shape], name='reshape')
         output = tf.contrib.layers.fully_connected(x, self.num_classes, activation_fn=None, scope='linear')
 
         return output
