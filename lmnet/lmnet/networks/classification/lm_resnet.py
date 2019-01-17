@@ -5,6 +5,19 @@ from lmnet.networks.classification.base import Base
 
 
 class LmResnet(Base):
+    """Residual network (ResNet) of 18-layers for classification
+
+    This ResNet-18 is modified from the ImageNet version of ResNet-18 of the original paper
+            Deep Residual Learning for Image Recognition (https://arxiv.org/abs/1512.03385)
+
+    - first layer is 3x3 convolution layer with stride 1 instead of 7x7 conv with stride 2,
+      like the CIFAR-10 version of ResNet-18 in the paper.
+    - The 3x3 max pooling with stride 2 is not used in this architecture.
+    - In each residual block, batch normalization (BN) is after the add, to be specific, a
+      pre-activation variant of residual block is used.
+    - Utilizing Space-to-Depth operator for each the transition layer, convolution op with
+      strides of 2 is replaced with space-to-depth.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.custom_getter = None
@@ -78,7 +91,14 @@ class LmResnet(Base):
         return x
 
     def base(self, images, is_training):
+        """Base network.
 
+        Args:
+            images: Input images.
+            is_training: A flag for if it is training or not.
+        Returns:
+            tf.Tensor: Inference result.
+        """
         self.images = images
 
         x = self._conv2d_fix_padding(images, self.init_ch, 3, 1)
