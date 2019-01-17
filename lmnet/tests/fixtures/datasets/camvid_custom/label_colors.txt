@@ -9,3 +9,4 @@
 64 0 128	Car
 64 64 0		Pedestrian
 0 128 192	Bicyclist
+0 0 0		Void

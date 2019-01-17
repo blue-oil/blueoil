@@ -24,13 +24,6 @@ from lmnet.pre_processor import (
     Resize,
     DivideBy255,
 )
-from lmnet.data_augmentor import (
-    Brightness,
-    Color,
-    Contrast,
-    FlipLeftRight,
-    Hue,
-)
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
@@ -39,21 +32,6 @@ from lmnet.quantizations import (
 {% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
     {{ augmentor[0] }},{% endfor %}
 ){% endif %}
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
-    ResizeWithGtBoxes,
-    DivideBy255,
-    PerImageStandardization,
-)
-from lmnet.post_processor import (
-    FormatYoloV2,
-    ExcludeLowScoreBox,
-    NMS,
-)
-from lmnet.quantizations import (
-    binary_channel_wise_mean_scaling_quantizer,
-    linear_mid_tread_half_quantizer,
-)
 
 IS_DEBUG = False
 
@@ -112,7 +90,6 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-
-DATASET.AUGMENTOR = Sequence([{% if data_augmentation %}{% for augmentor in data_augmentation %}
-    {{ augmentor[0] }}({% for d_name, d_value in augmentor[1] %}{{ d_name }}={{ d_value }}{% endfor %}),{% endfor %}
+DATASET.AUGMENTOR = Sequence([{ % if data_augmentation %}{ % for augmentor in data_augmentation %}
+    {{augmentor[0]}}({% for d_name, d_value in augmentor[1] %}{{d_name}}={{d_value}}, {% endfor %}), {% endfor %}
 {% endif %}])
