@@ -65,6 +65,33 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
       output[index] = input[index] * scale[d] + shift[d];
       index++;
     }
+
+#if 0 // Advanced SIMD implementation (But slow down on raspberry pi)
+#pragma omp parallel for
+  for (T_UINT f = 0; f < size; f++) {
+
+    T_FLOAT *in_temp = &input[f * out_depth];
+    T_FLOAT *out_temp = &output[f * out_depth];
+
+    T_UINT d = 0;
+    for (; d < out_depth; d += 4) {
+      asm volatile("ldr q6, [%0]    \t\n" // q6(d12,d13) scale
+		   "ldr q7, [%1]    \t\n" // q7(d14,d15) shift
+		   "ldr q8, [%2]    \t\n" // q8(d16,d17) input
+		                      "fmla v7.4s, v8.4s, v6.4s    \t\n"
+		                      "str q7, [%3]     \t\n"
+		   :
+		   : "r"(&scale[d]), "r"(&shift[d]), "r"(in_temp), "r"(out_temp)
+		   : "memory", "v6", "v7", "v8");
+      in_temp += 4;
+      out_temp += 4;
+    }
+
+    for (; d < out_depth; d++) {
+      *out_temp++ = *in_temp++ * scale[d] + shift[d];
+    }
+  }
+#endif
   
   delete[] scale;
   delete[] shift;
