@@ -20,6 +20,8 @@ class LmResnet(Base):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        assert self.data_format == 'NHWC', \
+            f'format {self.data_format} other than NHWC not supported.'
         self.custom_getter = None
         self.activation = tf.nn.relu
         self.weight_decay_rate = 0.0001
@@ -41,25 +43,16 @@ class LmResnet(Base):
             center=True,
             scale=True)
 
-    def _conv2d_fix_padding(self, inputs, filters, kernel_size, strides):
+    @staticmethod
+    def _conv2d_fix_padding(inputs, filters, kernel_size, strides):
         if strides == 2:
-            inputs = self._space_to_depth(inputs, name="pool")
+            inputs = tf.space_to_depth(inputs, block_size=2, name="pool")
 
         return tf.layers.conv2d(
             inputs, filters, kernel_size,
             padding="SAME",
             kernel_initializer=tf.contrib.layers.xavier_initializer(),
             use_bias=False)
-
-    def _space_to_depth(self, inputs=None, block_size=2, name=''):
-        if self.data_format != 'NHWC':
-            inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
-
-        output = tf.space_to_depth(inputs, block_size=block_size, name=name)
-
-        if self.data_format != 'NHWC':
-            output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
-        return output
 
     def basicblock(self, x, out_ch, strides, training):
         in_ch = x.get_shape().as_list()[1 if self.data_format in ['NCHW', 'channels_first'] else 3]
