@@ -68,7 +68,7 @@ def _test_camvid_basics(train_dataset, test_dataset):
     assert train_images.shape == (1, 360, 480, 3)
     assert train_labels.shape == (1, 360, 480)
 
-    _show_image_with_annotation(train_images[0], train_labels[0], colors)
+    # _show_image_with_annotation(train_images[0], train_labels[0], colors)
 
     # test test dataset
     test_image_files, test_label_files = test_dataset.files_and_annotations
@@ -79,6 +79,8 @@ def _test_camvid_basics(train_dataset, test_dataset):
     assert isinstance(test_images, np.ndarray)
     assert test_images.shape == (1, 360, 480, 3)
     assert test_labels.shape == (1, 360, 480)
+
+    # _show_image_with_annotation(test_images[0], test_labels[0], colors)
 
 
 def test_camvid():
