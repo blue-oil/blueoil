@@ -892,7 +892,9 @@ class Rotate(data_processor.Processor):
             mask = mask_rot
 
         if gt_boxes is not None:
-            angle = angle * math.pi /180 # convert angle to radians
+            # convert angle to radians
+            angle = angle * math.pi / 180
+
             image_size = np.array(image).shape
             center_x = image_size[0] / 2.0
             center_y = image_size[1] / 2.0
@@ -903,20 +905,22 @@ class Rotate(data_processor.Processor):
     def _get_rotated_boxes(self, gt_boxes, center_x, center_y, angle):
         top_left = list(zip(gt_boxes[:, 0], gt_boxes[:, 1]))
         bottom_left = list(zip(gt_boxes[:, 0] + gt_boxes[:, 2], gt_boxes[:, 1]))
-        top_right = list(zip(gt_boxes[:, 0], gt_boxes[:, 1] + gt_boxes[:,3]))
-        bottom_right = list(zip(gt_boxes[:, 0] + gt_boxes[:, 2], gt_boxes[:, 1] + gt_boxes[:,3]))
+        top_right = list(zip(gt_boxes[:, 0], gt_boxes[:, 1] + gt_boxes[:, 3]))
+        bottom_right = list(zip(gt_boxes[:, 0] + gt_boxes[:, 2], gt_boxes[:, 1] + gt_boxes[:, 3]))
 
         corners = np.array([[tl, bl, tr, br] for tl, bl, tr, br in zip(top_left, bottom_left, top_right, bottom_right)])
         rotated_corners = corners.copy()
-        rotated_corners[:, :, 0] = (corners[:, :, 1] - center_x) * math.sin(angle) + (corners[:, :, 0] - center_y) * math.cos(angle) + center_y
-        rotated_corners[:, :, 1] = (corners[:, :, 1] - center_x) * math.cos(angle) - (corners[:, :, 0] - center_y) * math.sin(angle) + center_x
+        sin = math.sin(angle)
+        cos = math.cos(angle)
+        rotated_corners[:, :, 0] = (corners[:, :, 1] - center_x) * sin + (corners[:, :, 0] - center_y) * cos + center_y
+        rotated_corners[:, :, 1] = (corners[:, :, 1] - center_x) * cos - (corners[:, :, 0] - center_y) * sin + center_x
 
         topmost = np.min(rotated_corners[:, :, 0], axis=-1)
         leftmost = np.min(rotated_corners[:, :, 1], axis=-1)
         height = np.max(rotated_corners[:, :, 0], axis=-1) - topmost
         width = np.max(rotated_corners[:, :, 1], axis=-1) - leftmost
         labels = gt_boxes[:, -1]
-        gt_boxes = np.array([[tm, lm, h, w, label] for tm, lm, h, w, label in zip(topmost, leftmost, height, width, labels)])
+        gt_boxes = np.array([[tm, lm, h, w, l] for tm, lm, h, w, l in zip(topmost, leftmost, height, width, labels)])
 
         return gt_boxes
 
