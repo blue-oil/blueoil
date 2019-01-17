@@ -25,23 +25,21 @@ from core.operators import Add, AveragePool, BatchNormalization, Constant, Conv,
     SpaceToDepth
 
 import numpy as np
-from typing import Tuple
 
 
 class TestPassTranspose(unittest.TestCase):
     """Test class for transposing pass."""
-
     def test_pass_transpose(self) -> None:
         """Test code for transposing optimizer pass."""
-        data1 = np.random.rand(3, 2, 2, 1)
-        graph1 = self.create_sample_graph(data1)
-        graph2 = self.create_expected_graph(data1)
+        data = np.random.rand(3, 2, 2, 1)
+        graph1 = self.create_sample_graph(data)
+        graph2 = self.create_expected_graph(data)
 
         pass_transpose(graph1)
 
         self.assertEqual(graph1, graph2, 'transpose to NHWC failed.')
 
-        print("Test transpose #1 pass passed!")
+        print("Test pass #1 transpose passed!")
 
     @staticmethod
     def create_sample_graph(data: np.ndarray) -> Graph:
@@ -58,9 +56,8 @@ class TestPassTranspose(unittest.TestCase):
         # Conv
         conv = Conv('conv', [3, 4, 4, 1], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2], dimension_format='CWHN')
 
-        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
-
         # One output
+        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
         y = Output('output', [1, 48], Float32(), {'input': rs},)
 
         # add ops to the graph
@@ -98,7 +95,6 @@ class TestPassTranspose(unittest.TestCase):
 
 class TestPassRemoveIdentities(unittest.TestCase):
     """Test class for removing identity pass."""
-
     def test_pass_remove_identities(self) -> None:
         """Test code for removing identities optimizer pass."""
         data = np.random.rand(1, 2, 2, 3)
@@ -109,7 +105,7 @@ class TestPassRemoveIdentities(unittest.TestCase):
 
         self.assertEqual(graph1, graph2, 'remove identities failed.')
 
-        print("Test remove identities #2 pass passed!")
+        print("Test pass #2 remove identities passed!")
 
     @staticmethod
     def create_sample_graph(data: np.ndarray) -> Graph:
@@ -126,12 +122,10 @@ class TestPassRemoveIdentities(unittest.TestCase):
         # Conv
         conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2])
 
-        i2 = Identity('identity2', [1, 4, 4, 3], Float32(), {'input': conv})
-
-        rs = Reshape('reshape', [1, 48], Float32(), {'data': i2})
-
         # One output
-        y = Output('output', [1, 48], Float32(), {'input': rs}, )
+        i2 = Identity('identity2', [1, 4, 4, 3], Float32(), {'input': conv})
+        rs = Reshape('reshape', [1, 48], Float32(), {'data': i2})
+        y = Output('output', [1, 48], Float32(), {'input': rs},)
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -152,9 +146,8 @@ class TestPassRemoveIdentities(unittest.TestCase):
         # Conv
         conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2])
 
-        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
-
         # One output
+        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
         y = Output('output', [1, 48], Float32(), {'input': rs},)
 
         # add ops to the graph
@@ -185,7 +178,7 @@ class TestPassPropagateQuantizationDetailsIntoConv(unittest.TestCase):
         self.assertEqual(kq_g1.op_type, kq_g2.op_type, '[Failed] Found type of kernel quantizer not matched')
         self.assertEqual(graph1, graph2, '[Failed] Expected graph not matched')
 
-        print("Test propagate_quantization_details_into_conv #3 pass passed!")
+        print("Test pass #3 propagate_quantization_details_into_conv passed!")
 
     @staticmethod
     def create_sample_graph(data1: np.ndarray, data2: np.ndarray) -> Graph:
@@ -261,7 +254,7 @@ class TestPassPackWeights(unittest.TestCase):
         self.assertEqual(graph1.get_op('conv2').input_ops['W'].op_type, 'Constant',
                          '[Failed] Found input kernel weights not a constant')
 
-        print("Test pack_weights #4 pass passed!")
+        print("Test pass #4 pack_weights passed!")
 
     @staticmethod
     def create_sample_graph(data1: np.ndarray, data2: np.ndarray) -> Graph:
@@ -310,7 +303,7 @@ class TestPassQuantizeConvolutions(unittest.TestCase):
         self.assertEqual(graph1.get_op('conv2').dtype, Float32(),
                          '[Failed] Found output dtype of conv not proper')
 
-        print("Test quantize_convolutions #5 pass passed!")
+        print("Test pass #5 quantize_convolutions passed!")
 
     @staticmethod
     def create_sample_graph(data1: np.ndarray, data2: np.ndarray) -> Graph:
@@ -357,7 +350,7 @@ class TestPassPropagateDatatypes(unittest.TestCase):
         self.assertEqual(graph1.get_op('s2d').dtype, QUANTIZED_NOT_PACKED(),
                          '[Failed] Found dtype of SpaceToDepth not propagate correctly')
 
-        print("Test propagate datatypes #6 pass passed!")
+        print("Test pass #6 propagate data types passed!")
 
     @staticmethod
     def create_sample_graph(data1: np.ndarray) -> Graph:
@@ -387,14 +380,13 @@ class TestPassPropagateOutputTypeBackward(unittest.TestCase):
         """Test pass."""
         data1 = np.float32(np.random.rand(1, 2, 2, 3))
         graph1 = self.create_sample_graph(data1)
-        # graph2 = self.create_expected_graph(data1, data2)
 
         pass_propagate_output_type_backward(graph1)
 
         self.assertEqual(graph1.get_op('conv1').dtype, Float32(),
                          '[Failed] Found dtype of SpaceToDepth not propagate correctly')
 
-        print("Test propagate output type backward #7 pass passed!")
+        print("Test pass #7 propagate output type backward passed!")
 
     @staticmethod
     def create_sample_graph(data1: np.ndarray) -> Graph:
@@ -426,14 +418,13 @@ class TestPassComputeThresholds(unittest.TestCase):
         data1 = np.float32(np.random.rand(1, 2, 2, 3))
         data2 = np.float32(np.random.rand(1, 2, 2, 3))
         graph1 = self.create_sample_graph(data1, data2)
-        # graph2 = self.create_expected_graph(data1, data2)
 
         pass_compute_thresholds(graph1)
 
         self.assertEqual(graph1.get_op('conv2').has_thresholds, True,
                          '[Failed] Found threshold of Conv not calculated')
 
-        print("Test compute_thresholds #8 pass passed!")
+        print("Test pass #8 compute_thresholds passed!")
 
     @staticmethod
     def create_sample_graph(data1: np.ndarray, data2: np.ndarray) -> Graph:
@@ -494,7 +485,7 @@ class TestPassConstantFolding(unittest.TestCase):
         self.assertEqual(set(graph1.get_op('potatoes_new').data), set(np.array([2, 5])),
                          '[Failed] Found folded constant not correct')
 
-        print("Test constant folding #9 pass passed!")
+        print("Test pass #9 constant folding passed!")
 
     @staticmethod
     def create_sample_graph() -> Graph:
