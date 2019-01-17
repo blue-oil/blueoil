@@ -21,7 +21,7 @@ limitations under the License.
 #include "global.h"
 #include "func/add.h"
 #include "func/average_pool.h"
-#include "func/batch_normalization.h"
+#include "func/impl/batch_normalization.h"
 #include "func/concat_on_depth.h"
 #include "func/concat_v2.h"
 #include "func/conv2d.h"
