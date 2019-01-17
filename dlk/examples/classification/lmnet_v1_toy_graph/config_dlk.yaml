@@ -17,7 +17,6 @@ DATASET:
           width: 32
       - 
         lmnet.data_augmentor.FlipLeftRight:
-          is_bounding_box: false
           probability: 0.5
   BATCH_SIZE: 200
   PRE_PROCESSOR: 
