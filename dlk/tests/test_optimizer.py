@@ -419,5 +419,69 @@ class TestPassPropagateOutputTypeBackward(unittest.TestCase):
         return graph
 
 
+class TestPassComputeThresholds(unittest.TestCase):
+    """Test class for packing weight."""
+    def test_pass_compute_thresholds(self) -> None:
+        """Test pass."""
+        data1 = np.float32(np.random.rand(1, 2, 2, 3))
+        data2 = np.float32(np.random.rand(1, 2, 2, 3))
+        graph1 = self.create_sample_graph(data1, data2)
+        # graph2 = self.create_expected_graph(data1, data2)
+
+        pass_compute_thresholds(graph1)
+
+        self.assertEqual(graph1.get_op('conv2').has_thresholds, True,
+                         '[Failed] Found threshold of Conv not calculated')
+
+        print("Test compute_thresholds #8 pass passed!")
+
+    @staticmethod
+    def create_sample_graph(data1: np.ndarray, data2: np.ndarray) -> Graph:
+        graph = Graph()
+
+        # input
+        x = Input('placeholder', [1, 5, 5, 3], Float32())
+
+        # Conv1
+        w1 = Constant('weight1', Float32(), data1)
+        conv1 = Conv('conv1', [1, 4, 4, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+
+        # activation quantizer
+        s1 = Constant('aq_const1', Int32(), np.array([2], dtype=np.int32))
+        s2 = Constant('aq_const2', Float32(), np.array([2.0], dtype=np.float32))
+        aq1 = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+
+        # Conv2
+        w2 = Constant('weight2', Float32(), data2)
+        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
+        conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq1, 'W': kq}, kernel_shape=[2, 2])
+        conv2.a_quantizer = [aq1]
+        conv2.quantizer = kq
+        conv2.is_quantized = True
+
+        sc = Constant('bn_scale', Float32(), np.random.rand(3))
+        be = Constant('bn_b', Float32(), np.random.rand(3))
+        mu = Constant('bn_mu', Float32(), np.random.rand(3))
+        va = Constant('bn_var', Float32(), np.random.rand(3))
+        bn = BatchNormalization('bn', [1, 3, 3, 3], Float32(), {'X': conv2,
+                                                                'scale': sc,
+                                                                'B': be,
+                                                                'mean': mu,
+                                                                'var': va})
+
+        # activation quantizer
+        s3 = Constant('aq_const3', Int32(), np.array([2], dtype=np.int32))
+        s4 = Constant('aq_const4', Float32(), np.array([2.0], dtype=np.float32))
+        aq2 = QTZ_linear_mid_tread_half('aqtz2', [1, 3, 3, 3], Float32(), {'X': bn, 'Y': s3, 'Z': s4})
+
+        # One output
+        y = Output('output', [1, 3, 3, 3], Float32(), {'input': aq2})
+
+        # add ops to the graph
+        graph.add_op_and_inputs(y)
+
+        return graph
+
+
 if __name__ == '__main__':
     unittest.main()
