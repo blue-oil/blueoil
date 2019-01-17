@@ -231,7 +231,7 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
-    FlipLeftRight(is_bounding_box=True),
+    FlipLeftRight(),
     Brightness((0.75, 1.25)),
     Color((0.75, 1.25)),
     Contrast((0.75, 1.25)),
