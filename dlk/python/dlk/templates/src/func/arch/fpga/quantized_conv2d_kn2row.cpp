@@ -74,8 +74,8 @@ void QuantizedConv2DKn2Row_3x3(QUANTIZED_NOT_PACKED input[],
   const T_UINT num_qinput_per_qword = (NBIT_QDYPE / MAX_NBIT_QINPUT);
   const T_UINT num_qkernel_per_qword = (NBIT_QDYPE / MAX_NBIT_KERNEL);
 
-  const T_UINT k_h = 3;
-  const T_UINT k_w = 3;
+  const T_UINT k_h = dlk::impl::KN2ROW_FACTOR_3x3;
+  const T_UINT k_w = dlk::impl::KN2ROW_FACTOR_3x3;
   const T_UINT k_c = cp.kernel_depth;
   const T_UINT k_c_by_word =
       (k_c + (num_qkernel_per_qword - 1)) / num_qkernel_per_qword;
@@ -228,8 +228,8 @@ void QuantizedConv2DKn2Row_1x1(QUANTIZED_NOT_PACKED input[],
   const T_UINT num_qinput_per_qword = (NBIT_QDYPE / MAX_NBIT_QINPUT);
   const T_UINT num_qkernel_per_qword = (NBIT_QDYPE / MAX_NBIT_KERNEL);
 
-  const T_UINT k_h = 1;
-  const T_UINT k_w = 1;
+  const T_UINT k_h = dlk::impl::KN2ROW_FACTOR_1x1;
+  const T_UINT k_w = dlk::impl::KN2ROW_FACTOR_1x1;
   const T_UINT k_c = cp.kernel_depth;
   const T_UINT k_c_by_word =
       (k_c + (num_qkernel_per_qword - 1)) / num_qkernel_per_qword;

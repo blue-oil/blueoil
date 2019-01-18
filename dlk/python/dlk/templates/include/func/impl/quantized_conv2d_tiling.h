@@ -31,6 +31,9 @@ void QuantizedConv2DTiling_1x1(QUANTIZED_NOT_PACKED input[],
 			       const T_UINT kernel[],
 			       const binary_convolution_parameters &p); 
 
+const int TILING_FACTOR_3x3 = 3;
+const int TILING_FACTOR_1x1 = 1;
+ 
 } // namespace impl
 
 } // namespace dlk

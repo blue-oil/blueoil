@@ -78,8 +78,8 @@ void QuantizedConv2DTiling_3x3(QUANTIZED_NOT_PACKED input[],
   constexpr T_UINT InTypeBitWidth = CHAR_BIT * sizeof(QUANTIZED_PACKED);
   convolution_parameters cp = p.normal_conv_params;
   const T_UINT out_channels = cp.output_channels;
-  const T_UINT kh = 3;
-  const T_UINT kw = 3;
+  const T_UINT kh = dlk::impl::TILING_FACTOR_3x3;
+  const T_UINT kw = dlk::impl::TILING_FACTOR_3x3;
   const T_UINT in_bitwidth = 2;
   const T_UINT in_channels = cp.kernel_depth;
   const T_UINT in_height = cp.input_height;
@@ -352,8 +352,8 @@ void QuantizedConv2DTiling_1x1(QUANTIZED_NOT_PACKED input[],
   constexpr T_UINT InTypeBitWidth = CHAR_BIT * sizeof(QUANTIZED_PACKED);
   convolution_parameters cp = p.normal_conv_params;
   const T_UINT out_channels = cp.output_channels;
-  const T_UINT kh = 1;
-  const T_UINT kw = 1;
+  const T_UINT kh = dlk::impl::TILING_FACTOR_1x1;
+  const T_UINT kw = dlk::impl::TILING_FACTOR_1x1;
   const T_UINT in_bitwidth = 2;
   const T_UINT in_channels = cp.kernel_depth;
   const T_UINT in_height = cp.input_height;

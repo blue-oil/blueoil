@@ -110,8 +110,8 @@ void QuantizedConv2DKn2Row_3x3(QUANTIZED_NOT_PACKED input[],
   int oc = p.normal_conv_params.output_channels;
   int oh = p.normal_conv_params.output_height;
   int ow = p.normal_conv_params.output_width;
-  const int kh = 3;
-  const int kw = 3;
+  const int kh = dlk::impl::KN2ROW_FACTOR_3x3;
+  const int kw = dlk::impl::KN2ROW_FACTOR_3x3;
 
   assert(ih * iw == oh * ow);
   assert(MAX_SIZE_IM2COL_INPUTS_PER_LAYER >= ic * kh * kw * ih * iw);
@@ -170,8 +170,8 @@ void QuantizedConv2DKn2Row_1x1(QUANTIZED_NOT_PACKED input[],
   int oc = p.normal_conv_params.output_channels;
   int oh = p.normal_conv_params.output_height;
   int ow = p.normal_conv_params.output_width;
-  const int kh = 1;
-  const int kw = 1;
+  const int kh = dlk::impl::KN2ROW_FACTOR_1x1;
+  const int kw = dlk::impl::KN2ROW_FACTOR_1x1;
 
   assert(ih * iw == oh * ow);
   assert(MAX_SIZE_IM2COL_INPUTS_PER_LAYER >= ic * kh * kw * ih * iw);
