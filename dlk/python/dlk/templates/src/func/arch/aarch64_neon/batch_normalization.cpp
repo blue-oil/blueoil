@@ -16,7 +16,7 @@ limitations under the License.
 #include <cmath>
 
 #include "global.h"
-#include "func/batch_normalization.h"
+#include "func/impl/batch_normalization.h"
 #include "time_measurement.h"
 
 #include <arm_neon.h>
