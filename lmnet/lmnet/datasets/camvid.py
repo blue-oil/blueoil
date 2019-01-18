@@ -62,7 +62,7 @@ def fetch_one_data(args):
 
 class CamvidBase(SegmentationBase):
     """
-    Base class for CaVid and the variant dataset formats.
+    Base class for CamVid and the variant dataset formats.
     """
     def __init__(
             self,
