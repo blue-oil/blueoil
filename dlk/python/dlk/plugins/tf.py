@@ -192,7 +192,6 @@ class Node(object):
         """Return the attributes data corresponding to the node."""
         attrs = [x for x in self.attributes if x == attr_name]
         if len(attrs) != 1:
-            print(attrs)
             raise ValueError(f'{self.op_type} {self.name} doesn\'t have the valid attribute.')
 
         # TODO: hard coded for now, looking for better extraction methods
@@ -688,7 +687,7 @@ class Importer(object):
             )
         elif op_type == 'BatchNormalization':
             epsilon = node.attribute('epsilon')[0]
-            is_test = node.attribute('is_training')
+            is_test = not node.attribute('is_training')
 
             if not shape:
                 attributes = {'epsilon': epsilon, 'is_test': is_test}
@@ -807,7 +806,7 @@ class Importer(object):
                 pads = [0, 0, 0, 0]
 
             else:
-                raise ValueError('f{op_type} {node.name} doesn\'t have the supported padding.')
+                raise ValueError(f'{op_type} {node.name} doesn\'t have the supported padding.')
 
             if not shape:
                 attributes = {'kernel_shape': kernel_shape, 'pads': pads, 'strides': strides}
@@ -858,7 +857,7 @@ class Importer(object):
                 pads = [0, 0, 0, 0]
 
             else:
-                raise ValueError('f{op_type} {node.name} doesn\'t have the supported padding.')
+                raise ValueError(f'{op_type} {node.name} doesn\'t have the supported padding.')
 
             if not shape:
                 attributes = {'kernel_shape': kernel_shape, 'pads': pads, 'strides': strides}
@@ -903,7 +902,7 @@ class Importer(object):
         elif op_type == 'SpaceToDepth':
             bs = node.attribute('block_size')
             if not bs:
-                raise ValueError('f{op_type} {node.name} block size not specified')
+                raise ValueError(f'{op_type} {node.name} block size not specified')
 
             if not shape:
                 attributes = {'block_size': bs[0]}
@@ -946,7 +945,7 @@ class Importer(object):
         elif op_type == 'ConcatOnDepth':
             axis = node.attribute('axis')
             if current_format.index('C') != axis:
-                raise ValueError('f{op_type} {node.name} concatenation is only supported on the depth axis')
+                raise ValueError(f'{op_type} {node.name} concatenation is only supported on the depth axis')
 
             if not shape:
                 attributes = {}
@@ -974,7 +973,7 @@ class Importer(object):
         elif op_type == 'DepthToSpace':
             bs = node.attribute('block_size')
             if not bs:
-                raise ValueError('f{op_type} {node.name} block size not specified')
+                raise ValueError(f'{op_type} {node.name} block size not specified')
 
             if not shape:
                 attributes = {'block_size': bs[0]}
@@ -992,7 +991,7 @@ class Importer(object):
             num_split = node.attribute('num_split')[0]
 
             if not isinstance(num_split, int):
-                raise ValueError('f{op_type} {node.name} only supports integer value')
+                raise ValueError(f'{op_type} {node.name} only supports integer value')
 
             if not shape:
                 attributes = {'split': num_split}
