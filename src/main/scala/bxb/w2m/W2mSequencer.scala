@@ -7,14 +7,12 @@ import bxb.util.{Util}
 class W2mSequencer(b: Int, wAddrWidth: Int) extends Module {
   val io = IO(new Bundle {
     val control = Output(W2mControl(wAddrWidth))
-    // M Semaphore interface
+    // M Semaphore Dec interface
     val mWarDec = Output(Bool())
     val mWarZero = Input(Bool())
-    val mRawInc = Output(Bool())
-    // W Semaphore interface
+    // W Semaphore Dec interface
     val wRawDec = Output(Bool())
     val wRawZero = Input(Bool())
-    val wWarInc = Output(Bool())
   })
 
   val syncDecMWar = RegInit(true.B)
@@ -63,7 +61,7 @@ class W2mSequencer(b: Int, wAddrWidth: Int) extends Module {
   syncIncWWar := bCountLast
 
   io.mWarDec := ~waitRequired & syncDecMWar
-  io.mRawInc := ~waitRequired & syncIncMRaw
+  io.control.mRawInc := ~waitRequired & syncIncMRaw
   io.wRawDec := ~waitRequired & syncDecWRaw
-  io.wWarInc := ~waitRequired & syncIncWWar
+  io.control.wWarInc := ~waitRequired & syncIncWWar
 }
