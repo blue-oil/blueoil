@@ -96,14 +96,12 @@ namespace dlk {
 
 namespace impl {
 
-void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
-                                  const T_UINT kernel[],
-                                  const binary_convolution_parameters &p) {
+void QuantizedConv2DKn2Row_3x3(QUANTIZED_NOT_PACKED input[],
+			       const T_UINT kernel[],
+			       const binary_convolution_parameters &p) {
   using namespace dlk;
 
   convolution_parameters cp = p.normal_conv_params;
-  static QUANTIZED_NOT_PACKED
-      im2col_input_buf[MAX_SIZE_IM2COL_INPUTS_PER_LAYER] = {};
   const T_UINT out_c = cp.output_channels;
 
   int ic = p.normal_conv_params.kernel_depth;
@@ -112,8 +110,8 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
   int oc = p.normal_conv_params.output_channels;
   int oh = p.normal_conv_params.output_height;
   int ow = p.normal_conv_params.output_width;
-  int kh = p.normal_conv_params.kernel_height;
-  int kw = p.normal_conv_params.kernel_width;
+  const int kh = 3;
+  const int kw = 3;
 
   assert(ih * iw == oh * ow);
   assert(MAX_SIZE_IM2COL_INPUTS_PER_LAYER >= ic * kh * kw * ih * iw);
@@ -157,6 +155,66 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 
   Measurement::Stop();
 }
+
+void QuantizedConv2DKn2Row_1x1(QUANTIZED_NOT_PACKED input[],
+			       const T_UINT kernel[],
+			       const binary_convolution_parameters &p) {
+  using namespace dlk;
+
+  convolution_parameters cp = p.normal_conv_params;
+  const T_UINT out_c = cp.output_channels;
+
+  int ic = p.normal_conv_params.kernel_depth;
+  int ih = p.normal_conv_params.input_height;
+  int iw = p.normal_conv_params.input_width;
+  int oc = p.normal_conv_params.output_channels;
+  int oh = p.normal_conv_params.output_height;
+  int ow = p.normal_conv_params.output_width;
+  const int kh = 1;
+  const int kw = 1;
+
+  assert(ih * iw == oh * ow);
+  assert(MAX_SIZE_IM2COL_INPUTS_PER_LAYER >= ic * kh * kw * ih * iw);
+
+  Measurement::Start("quantized-kn2row");
+
+  int kernel_buf_size = kh * kw * ic * oc / 32;
+  auto kernel_hwoi = new T_UINT[kernel_buf_size]();
+  quantized_ohwi_to_hwoi(kernel, kernel_hwoi, p);
+
+  pack_input_to_qwords(input, p.device_input_buf, ih * iw * ic, 2);
+  auto kernel_ = MatrixView<T_UINT, MatrixOrder::RowMajor>(
+      kernel_hwoi, oc * kh * kw, ic / 32);
+  auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
+      p.device_input_buf, ic / 16, ih * iw);
+  auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
+      p.device_output_buf, oc, ih * iw);
+
+  if (kh == kw && kw == 3) {
+    unsigned bufsize = oc * kh * kw * ih * iw;
+    BIN_CONV_OUTPUT *kn2row_buf = new BIN_CONV_OUTPUT[bufsize]();
+    std::memset((void*)kn2row_buf, 0, bufsize);
+    auto buf_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
+        kn2row_buf, oc * kh * kw, ih * iw);
+
+    quantized_matrix_multiplication(kernel_, input_, buf_);
+    matrix_shift_add(buf_, output_, p.normal_conv_params);
+    delete[] kn2row_buf;
+  } else if (kh == kw && kw == 1) {
+    quantized_matrix_multiplication(kernel_, input_, output_);
+  } else {
+    std::cerr << "Only 1x1 or 3x3 convolutions are supported." << std::endl;
+    assert(false);
+  }
+
+  delete[] kernel_hwoi;
+
+  if (p.thresholds != NULL) {
+    ApplyThresholds(output_, p);
+  }
+
+  Measurement::Stop();
+}  
 
 } // namespace impl
 
