@@ -19,16 +19,10 @@ import tensorflow as tf
 from lmnet.common import Tasks
 from lmnet.networks.classification.{{network_module}} import {{network_class}}
 from lmnet.datasets.{{dataset_module}} import {{dataset_class}}
+{% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
+    {{ augmentor[0] }},{% endfor %}
+){% endif %}
 from lmnet.data_processor import Sequence
-from lmnet.data_augmentor import (
-    Crop,
-    FlipLeftRight,
-    Pad,
-    Brightness,
-    Color,
-    Contrast,
-    Hue,
-)
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
@@ -50,16 +44,9 @@ IMAGE_SIZE = {{image_size}}
 BATCH_SIZE = {{batch_size}}
 DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
-# In order to get instance property `classes`, instantiate DATASET_CLASS.
-dataset_obj = DATASET_CLASS(subset="train", batch_size=1)
-CLASSES = dataset_obj.classes
-step_per_epoch = float(dataset_obj.num_per_epoch)/BATCH_SIZE
+CLASSES = {{classes}}
 
-{% if max_epochs -%}
 MAX_EPOCHS = {{max_epochs}}
-{%- elif max_steps -%}
-MAX_STEPS = {{max_steps}}
-{%- endif %}
 SAVE_STEPS = {{save_steps}}
 TEST_STEPS = {{test_steps}}
 SUMMARISE_STEPS = {{summarise_steps}}
@@ -81,30 +68,9 @@ POST_PROCESSOR = None
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-
-if '{{learning_rate_setting}}' != 'fixed':
-    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-    NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-
-if '{{learning_rate_setting}}' == 'tune1':
-    NETWORK.LEARNING_RATE_KWARGS = {
-        "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100],
-        "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) / 2), int(step_per_epoch * (MAX_EPOCHS - 1))],
-    }
-elif '{{learning_rate_setting}}' == 'tune2':
-    NETWORK.LEARNING_RATE_KWARGS = {
-        "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
-        "boundaries": [int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
-    }
-elif '{{learning_rate_setting}}' == 'tune3':
-    NETWORK.LEARNING_RATE_KWARGS = {
-        "values": [{{initial_learning_rate}} / 1000, {{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}} / 100, {{initial_learning_rate}} / 1000],
-        "boundaries": [int(step_per_epoch * 1), int((step_per_epoch * (MAX_EPOCHS - 1)) * 1 / 3), int((step_per_epoch * (MAX_EPOCHS - 1)) * 2 / 3), int(step_per_epoch * (MAX_EPOCHS - 1))],
-    }
-elif '{{learning_rate_setting}}' == 'fixed':
-    NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "learning_rate": {{initial_learning_rate}}}
-else:
-    raise ValueError
+NETWORK.OPTIMIZER_KWARGS = {{optimizer_kwargs}}
+NETWORK.LEARNING_RATE_FUNC = {{learning_rate_func}}
+NETWORK.LEARNING_RATE_KWARGS = {{learning_rate_kwargs}}
 
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
@@ -126,14 +92,7 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([
-    Resize(size=IMAGE_SIZE),
-    Pad(4),
-    Crop(size=IMAGE_SIZE),
-    FlipLeftRight(),
-    Brightness((0.75, 1.25)),
-    Color((0.75, 1.25)),
-    Contrast((0.75, 1.25)),
-    Hue((-10, 10)),
-])
+DATASET.AUGMENTOR = Sequence([{% if data_augmentation %}{% for augmentor in data_augmentation %}
+    {{ augmentor[0] }}({% for d_name, d_value in augmentor[1] %}{{ d_name }}={{ d_value }}, {% endfor %}),{% endfor %}
+{% endif %}])
 

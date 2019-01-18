@@ -94,8 +94,8 @@ def test_sequence():
     batch_size = 3
     image_size = [256, 512]
     augmentor = Sequence([
-        FlipLeftRight(is_bounding_box=True),
-        FlipTopBottom(is_bounding_box=True),
+        FlipLeftRight(),
+        FlipTopBottom(),
         SSDRandomCrop(),
     ])
 
@@ -180,7 +180,7 @@ def test_filp_left_right():
     image_size = [256, 512]
     dataset = LmThingsOnATable(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
-        augmentor=FlipLeftRight(is_bounding_box=True),
+        augmentor=FlipLeftRight(),
     )
 
     for _ in range(5):
@@ -193,7 +193,7 @@ def test_filp_top_bottom():
     image_size = [256, 512]
     dataset = LmThingsOnATable(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
-        augmentor=FlipTopBottom(is_bounding_box=True),
+        augmentor=FlipTopBottom(),
     )
 
     for _ in range(5):
