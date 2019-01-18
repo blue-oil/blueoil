@@ -258,7 +258,7 @@ def test_pad():
 
     augmentor = Pad((40, 30))
 
-    result = augmentor(**{'image': img, 'gt_boxes': gt_boxes})
+    result = augmentor(**{'image': img})
     image = result['image']
 
     _show_image(image)
