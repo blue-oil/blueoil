@@ -35,8 +35,7 @@ class LmResnet(Base):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        assert self.data_format == 'NHWC', \
-            f'format {self.data_format} other than NHWC not supported.'
+        assert self.data_format == 'NHWC'
         self.custom_getter = None
         self.activation = tf.nn.relu
         self.weight_decay_rate = 0.0001
