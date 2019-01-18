@@ -76,15 +76,14 @@ class TestPassTranspose(unittest.TestCase):
 
         # constant and internal nodes
         w = Constant('weight', Float32(), data, dimension_format='NHWC')
-        i = Identity('identity1', [1, 2, 2, 3], Float32(), {'input': w}, dimension_format='NHWC')
-        q = QTZ_binary_mean_scaling('qtz1', [1, 2, 2, 3], Float32(), {'input': i}, dimension_format='NHWC')
+        i1 = Identity('identity1', [1, 2, 2, 3], Float32(), {'input': w}, dimension_format='NHWC')
+        q = QTZ_binary_mean_scaling('qtz1', [1, 2, 2, 3], Float32(), {'input': i1}, dimension_format='NHWC')
 
         # Conv
         conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2], dimension_format='NHWC')
 
-        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
-
         # One output
+        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
         y = Output('output', [1, 48], Float32(), {'input': rs},)
 
         # add ops to the graph
