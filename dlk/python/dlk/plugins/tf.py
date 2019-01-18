@@ -1000,7 +1000,7 @@ class Importer(object):
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-                split=num_split
+                num_split=num_split
             )
         elif op_type == 'Pad':
             if not shape:
