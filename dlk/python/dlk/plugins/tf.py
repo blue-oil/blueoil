@@ -943,9 +943,6 @@ class Importer(object):
                 dimension_format=current_format,
             )
         elif op_type == 'ConcatOnDepth':
-            axis = node.attribute('axis')
-            if current_format.index('C') != axis:
-                raise ValueError(f'{op_type} {node.name} concatenation is only supported on the depth axis')
 
             if not shape:
                 attributes = {}
