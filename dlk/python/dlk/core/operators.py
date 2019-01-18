@@ -2494,11 +2494,11 @@ class Pad(Operator):
     A
         The input to be padded
     B
-        The padding size, this (B) is an numpy array that supports "CONSTANT" mode in
+        The padding size, this (B) is a numpy array that supports "CONSTANT" mode in
         tensorflow during importing, it has shape of [n, 2], where n is the rank of
-        input A, assume input tensor A has dimension of D
-        the padded size of each dimension D of the output is:
-                paddings[D, 0] + tensor.dim_size(D) + paddings[D, 1]
+        input A, assume input A has dimension of D the padded size of each dimension D
+        of the output C is given by the formula below:
+                B[D, 0] + A.dim_size(D) + B[D, 1]
 
     Output
     ------

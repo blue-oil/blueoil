@@ -32,6 +32,7 @@ class LmResnet(Base):
       pre-activation variant of residual block is used.
     - Utilizing Space-to-Depth operator for each the transition layer, convolution op with
       strides of 2 is replaced with space-to-depth.
+    - Note currently this ResNet-18 only supports NHWC data format.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,6 +60,7 @@ class LmResnet(Base):
 
     @staticmethod
     def _conv2d_fix_padding(inputs, filters, kernel_size, strides):
+        """Convolution layer deals with stride of 2"""
         if strides == 2:
             inputs = tf.space_to_depth(inputs, block_size=2, name="pool")
 
@@ -69,6 +71,7 @@ class LmResnet(Base):
             use_bias=False)
 
     def basicblock(self, x, out_ch, strides, training):
+        """Basic building block of single residual function"""
         in_ch = x.get_shape().as_list()[1 if self.data_format in ['NCHW', 'channels_first'] else 3]
         shortcut = x
 
