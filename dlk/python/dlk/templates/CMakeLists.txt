@@ -41,6 +41,7 @@ list(APPEND SRC_LIB_ALL
     src/func/minimum.cpp
     src/func/pad.cpp
     src/func/mul.cpp
+    src/func/matmul.cpp
     src/func/quantize.cpp
     src/func/quantized_conv2d.cpp
     src/func/real_div.cpp
