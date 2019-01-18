@@ -33,6 +33,7 @@ limitations under the License.
 #include "func/minimum.h"
 #include "func/pad.h"
 #include "func/mul.h"
+#include "func/matmul.h"
 #include "func/quantize.h"
 #include "func/quantized_conv2d.h"
 #include "func/real_div.h"

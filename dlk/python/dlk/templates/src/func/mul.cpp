@@ -102,22 +102,3 @@ void func_Mul(T_FLOAT input[], T_FLOAT factor[], T_FLOAT output[],
               T_UINT out_depth) {
   func_Mul(input, factor, output, 1, 1, out_depth);
 }
-
-void func_Matmul(T_FLOAT input[], T_FLOAT factor[], T_FLOAT output[],
-                 T_UINT in_size, T_UINT out_depth) {
-#ifndef RUN_AS_HLS
-  Measurement::Start("MatMul");
-#endif
-
-  T_UINT index = 0;
-  for (T_UINT d = 0; d < in_size; d++){
-    for (T_UINT kz = 0; kz < out_depth; kz++){
-      output[kz] += input[d] * factor[index];
-      index++;
-    }
-  }
-
-#ifndef RUN_AS_HLS
-  Measurement::Stop();
-#endif
-}
