@@ -3,12 +3,29 @@ import functools
 
 
 class QuantizeParamInit:
-    """QuantizeParamInit aims to make creating a quantized network class more convenient by providing two functions.
+    """QuantizeParamInit is a mixin creating a quantized network class more convenient by providing two functions.
     1) __init___ : for initializing variables necessary for quantization, such as quantization function
     2) _quantized_variable_getter : for quantizing weight variables in convolutional layers
 
     This QuantizeParamInit class can be used for all kinds of task (classification, object detection, and segmentation).
-    Every sub task's network class with quantized layer should extend this class.
+
+    How to use
+    1) Extend this mixin
+    2) Set the custom_getter variable to `self.custom_getter` if its base class does not set it yet
+       The setting is done by adding the base function defining custom_getter for tensorflow inside the class as follows
+             def base(self, images, is_training):
+                 with tf.variable_scope("", custom_getter=self.custom_getter):
+                     return super().base(images, is_training)
+
+    In the object construction step, users must pass
+       * arguments for the quantization (e.g. activation_quantizer) followed by 
+       * arguments of the subtask class (e.g. weight_decay_rate)
+       to the init function, this mixin will call init function of subtask's base class automatically.
+
+    Requirement
+    1) The base class must define `self.first_layer_name` and `self.last_layer_name` in the init function, where
+       `self.first_layer_name` = prefix of the first convolutional layer and
+       `self.last_layer_name` = prefix of the last convolutional layer
 
     Args:
         activation_quantizer (callable): An activation quantization function
@@ -17,6 +34,8 @@ class QuantizeParamInit:
         weight_quantizer_kwargs (dict): A dictionary of arguments for the weight quantization function
         quantize_first_convolution (boolean): True if using quantization at the first layer, False otherwise
         quantize_last_convolution (boolean): True if using quantization at the last layer, False otherwise
+        *args: argument for the initialization of subtask's network class
+        **kwargs: keyword arguments for the initialization of subtask's network class
     """
 
     def __init__(
@@ -80,9 +99,6 @@ class QuantizeParamInit:
             last_layer_name (string): name of the last layer's variable_scope
             args: Args.
             kwargs: Kwargs.
-
-        If quantize_first_convolution is defined, first_layer_name class variable must be defined in sub task's init.
-        If quantize_last_convolution is defined, last_layer_name class variable must be defined in sub task's init.
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)

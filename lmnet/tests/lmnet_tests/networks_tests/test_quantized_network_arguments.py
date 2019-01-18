@@ -1,5 +1,6 @@
 from lmnet.networks.classification.lmnet_quantize import LmnetQuantize
 
+
 def test_required_arguments():
     quantizer = LmnetQuantize()
 
