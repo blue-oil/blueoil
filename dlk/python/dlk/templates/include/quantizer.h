@@ -30,7 +30,7 @@ limitations under the License.
 
 #include "global.h"
 
-#ifdef USE_NEON
+#if defined(USE_NEON) || defined(USE_ASIMD)
   #include <arm_neon.h>
 #endif
 
@@ -48,30 +48,18 @@ void func_QTZ_binary_channel_wise_mean_scaling(
   T_UINT in_channel)
 {
   unsigned num_elems_in_channel = in_height * in_width * in_depth;
-  T_FLOAT sum[in_channel];
-  T_FLOAT mean[in_channel];
+  T_FLOAT sum, mean;
 
-  for (unsigned i = 0; i < in_channel; i++) {
-    sum[i] = 0;
-    mean[i] = 0;
-  }
-
-  for(unsigned i = 0; i < in_channel; i++)
-  for(unsigned j = 0; j < num_elems_in_channel; j++)
-  {
-    sum[i] += std::abs(input[i * num_elems_in_channel + j]);
-  }
-
-  for(unsigned i = 0; i < in_channel; i++)
-  {
-    mean[i] = sum[i] / num_elems_in_channel;
-  }
-
-  for(unsigned i = 0; i < in_channel; i++)
-  for(unsigned j = 0; j < num_elems_in_channel; j++)
-  {
-    unsigned in_index = i * num_elems_in_channel + j;
-    output[in_index] = (input[in_index] >= 0) ? mean[i] : -1 * mean[i];
+  for(unsigned i = 0; i < in_channel; i++) {
+    sum = 0;
+    for(unsigned j = 0; j < num_elems_in_channel; j++) {
+      sum += std::abs(input[i * num_elems_in_channel + j]);
+    }
+    mean = sum / num_elems_in_channel;
+    for(unsigned j = 0; j < num_elems_in_channel; j++) {
+      unsigned in_index = i * num_elems_in_channel + j;
+      output[in_index] = (input[in_index] >= 0) ? mean : -1 * mean;
+    }
   }
 }
 
@@ -121,7 +109,7 @@ void func_QTZ_linear_mid_tread_half_body(
   T_FLOAT n = (1 << nbit) - 1;
   int i = begin;
 
-#ifdef USE_NEON
+#if defined(USE_NEON) || defined(USE_ASIMD)
   float32x4_t max_value_x4 = vdupq_n_f32(max_value);
   float32x4_t min_value_x4 = vdupq_n_f32(min_value);
   float32x4_t round_offset = vdupq_n_f32(0.5);
