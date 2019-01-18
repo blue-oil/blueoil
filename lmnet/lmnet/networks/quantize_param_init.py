@@ -18,7 +18,7 @@ class QuantizeParamInit:
                      return super().base(images, is_training)
 
     In the object construction step, users must pass
-       * arguments for the quantization (e.g. activation_quantizer) followed by 
+       * arguments for the quantization (e.g. activation_quantizer) followed by
        * arguments of the subtask class (e.g. weight_decay_rate)
        to the init function, this mixin will call init function of subtask's base class automatically.
 
