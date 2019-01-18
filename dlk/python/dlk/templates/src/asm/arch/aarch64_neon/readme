@@ -1,0 +1,9 @@
+pack2bits_neonv8.S vs. pack2bits_neonv8.S.v2
+
+word counts
+ 156  758 4353 pack2b_neonv8.S
+ 163  724 4490 pack2b_neonv8.S.v2
+
+On raspberry pi, v2 is faster than v1.
+
+But for generic support, I select v1 asm.
