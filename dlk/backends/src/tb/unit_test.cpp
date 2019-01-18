@@ -25,7 +25,7 @@ bool parse_input_type(int argc, char const *argv[], input_type &in_type) {
 
   if (argc != 2) {
     cout << "Error: 1st arg " << argv[0] << " is not supported..." << endl;
-    cout << "Available input type: <sequential|random|add_1>" << endl;
+    cout << "Available input type: <sequential|random|all_1>" << endl;
     flag = false;
   }
 
@@ -36,7 +36,7 @@ bool parse_input_type(int argc, char const *argv[], input_type &in_type) {
   } else if (std::strcmp(argv[1], "all_1") == 0) {
     in_type = ALL_1;
   } else {
-    cout << "Error: input type is not supported." << endl << "Available input type: <sequential|random|add_1>" << endl;
+    cout << "Error: input type is not supported." << endl << "Available input type: <sequential|random|all_1>" << endl;
     flag = false;
   }
 
