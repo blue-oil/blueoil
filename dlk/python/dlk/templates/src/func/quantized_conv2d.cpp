@@ -63,10 +63,17 @@ void QuantizedConv2D(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
   else
     std::memset((void *)p.device_output_buf, 0, size * sizeof(BIN_CONV_OUTPUT));
 
-  if (kh == 3 && kw == 3 && padding == 1) {
-    dlk::impl::QuantizedConv2DKn2Row_3x3(input, kernel, p);
-  } else if (kh == 1 && kw == 1 && padding == 0) {
-    dlk::impl::QuantizedConv2DKn2Row_1x1(input, kernel, p);
+  if ((kh == 3 && kw == 3 && padding == 1) ||
+      (kh == 1 && kw == 1 && padding == 0)) {
+    if ((ic % TilingInTypeBitWidth) == 0) {
+#if (defined(USE_NEON) || defined(USE_ASIMD)) && !defined(RUN_ON_FPGA)
+      dlk::impl::QuantizedConv2DTiling(input, kernel, p);
+#else
+      dlk::impl::QuantizedConv2DKn2Row(input, kernel, p);
+#endif
+    } else {
+      dlk::impl::QuantizedConv2DKn2Row(input, kernel, p);
+    }
   } else {
     dlk::impl::QuantizedConv2DIm2Col(input, kernel, p);
   }
