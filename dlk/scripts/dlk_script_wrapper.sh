@@ -42,7 +42,7 @@ function make_each_target(){
 	    strip "${2}"
 	elif [[ "${1}" = "lm_aarch64" ]]
 	then
-	    strip "${2}"  
+	    aarch64-linux-gnu-strip "${2}"  
 	elif [[ "${1}" = "lm_arm" ]] || [[ "${1}" = "lm_fpga" ]]
 	then
 	    arm-linux-gnueabihf-strip "${2}"
@@ -51,7 +51,7 @@ function make_each_target(){
 	    strip -x --strip-unneeded "${2}"
 	elif [[ "${1}" = "lib_aarch64" ]]
 	then
-	    strip -x --strip-unneeded "${2}"	    
+	    aarch64-linux-gnu-strip -x --strip-unneeded "${2}"	    
 	elif [[ "${1}" = "lib_arm" ]] || [[ "${1}" = "lib_fpga" ]]
 	then
 	    arm-linux-gnueabihf-strip -x --strip-unneeded "${2}"

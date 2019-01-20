@@ -26,13 +26,19 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
 {
   Measurement::Start("pack_input_to_qwords");
 
-  #ifdef USE_NEON
-    if (len % 16 == 0) {
-      pack2bits(input, output, (int)len);
-      Measurement::Stop();
-      return;
-    }
-  #endif
+#ifdef USE_NEON
+  if (len % 16 == 0) {
+    pack2bits(input, output, (int)len);
+    Measurement::Stop();
+    return;
+  }
+#elif USE_ASIMD
+  if (len % 32 == 0) {
+    pack2bits_v8(input, output, (int)len);
+    Measurement::Stop();
+    return;
+  }
+#endif
 
   const unsigned nbit_qinput_word = sizeof(QUANTIZED_PACKED) * 8;
 
