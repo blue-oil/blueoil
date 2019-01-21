@@ -17,6 +17,7 @@ import functools
 import tensorflow as tf
 
 from lmnet.networks.classification.base import Base
+from lmnet.layers import fully_connected
 
 
 class LmResnet(Base):
@@ -124,10 +125,7 @@ class LmResnet(Base):
         w = x.get_shape()[2].value
         x = tf.layers.average_pooling2d(name="gap", inputs=x, pool_size=[h, w], padding="VALID", strides=1)
 
-        shape = x.get_shape().as_list()
-        flattened_shape = functools.reduce(lambda x, y: x * y, shape[1:])
-        x = tf.reshape(x, [-1, flattened_shape], name='reshape')
-        output = tf.contrib.layers.fully_connected(x, self.num_classes, activation_fn=None, scope='linear')
+        output = fully_connected("linear", x, filters=self.num_classes, activation=None)
 
         return output
 
