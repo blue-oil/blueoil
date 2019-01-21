@@ -1,18 +1,12 @@
 import tensorflow as tf
 
-from lmnet.networks.classification import (
-    LmnetV1Quantize,
-    LmnetV0Quantize,
-    DarknetQuantize,
-)
-from lmnet.networks.object_detection import (
-    LMFYoloQuantize,
-    YoloV2Quantize,
-)
-from lmnet.networks.segmentation import (
-    LmSegnetV0Quantize,
-    LmSegnetV1Quantize,
-)
+from lmnet.networks.classification.lmnet_v0 import LmnetV0Quantize
+from lmnet.networks.classification.lmnet_v1 import LmnetV1Quantize
+from lmnet.networks.classification.darknet import DarknetQuantize
+from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
+from lmnet.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
+from lmnet.networks.segmentation.lm_segnet_v0 import LmSegnetV0Quantize
+from lmnet.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
@@ -21,8 +15,8 @@ from lmnet.quantizations import (
 
 def test_required_arguments():
     model_classes = [
-        LmnetV1Quantize,
         LmnetV0Quantize,
+        LmnetV1Quantize,
         DarknetQuantize,
         LMFYoloQuantize,
         YoloV2Quantize,
