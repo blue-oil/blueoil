@@ -25,17 +25,17 @@ def test_required_arguments():
     ]
 
     network_kwargs = {
-        'ACTIVATION_QUANTIZER': linear_mid_tread_half_quantizer,
-        'ACTIVATION_QUANTIZER_KWARGS': {'bit': 2, 'max_value': 2},
-        'BATCH_SIZE': 10,
-        'DATA_FORMAT': 'NHWC',
-        'IMAGE_SIZE': [128, 128],
-        'OPTIMIZER_CLASS': tf.train.AdamOptimizer,
-        'OPTIMIZER_KWARGS': {'momentum': 0.9},
-        'QUANTIZE_FIRST_CONVOLUTION': False,
-        'WEIGHT_DECAY_RATE': 0.0005,
-        'WEIGHT_QUANTIZER': binary_mean_scaling_quantizer,
-        'WEIGHT_QUANTIZER_KWARGS': {},
+        'activation_quantizer': linear_mid_tread_half_quantizer,
+        'activation_quantizer_kwargs': {'bit': 2, 'max_value': 2},
+        'batch_size': 10,
+        'data_format': 'NHWC',
+        'image_size': [128, 128],
+        'optimizer_class': tf.train.AdamOptimizer,
+        'optimizer_kwargs': {'momentum': 0.9},
+        'quantize_first_convolution': True,
+        'weight_decay_rate': 0.0005,
+        'weight_quantizer': binary_mean_scaling_quantizer,
+        'weight_quantizer_kwargs': {},
     }
 
     for model in model_classes:
