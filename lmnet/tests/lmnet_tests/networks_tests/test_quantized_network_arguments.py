@@ -42,7 +42,7 @@ def test_required_arguments():
         quantizer = model(
             ['accordion', 'airplanes', 'anchor'],
             True,
-            network_kwargs
+            **network_kwargs
         )
 
         assert quantizer.first_layer_name is not None
