@@ -30,7 +30,7 @@ limitations under the License.
 
 #include "global.h"
 
-#if defined(USE_NEON) || defined(USE_ASIMD)
+#ifdef USE_NEON
   #include <arm_neon.h>
 #endif
 
@@ -109,7 +109,7 @@ void func_QTZ_linear_mid_tread_half_body(
   T_FLOAT n = (1 << nbit) - 1;
   int i = begin;
 
-#if defined(USE_NEON) || defined(USE_ASIMD)
+#ifdef USE_NEON
   float32x4_t max_value_x4 = vdupq_n_f32(max_value);
   float32x4_t min_value_x4 = vdupq_n_f32(min_value);
   float32x4_t round_offset = vdupq_n_f32(0.5);

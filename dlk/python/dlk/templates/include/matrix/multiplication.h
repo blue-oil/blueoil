@@ -20,7 +20,7 @@ limitations under the License.
 #include "matrix/row_major_to_col_major.h"
 #include "time_measurement.h"
 
-#if defined(USE_NEON) || defined(USE_ASIMD)
+#ifdef USE_NEON
   #include <arm_neon.h>
 #endif
 
@@ -32,7 +32,7 @@ inline void matrix_multiplication_col3(
   MatrixView<float, MatrixOrder::RowMajor>& A,
   MatrixView<float, MatrixOrder::ColMajor>& B,
   MatrixView<float, MatrixOrder::ColMajor>& C) {
-#if defined(USE_NEON) || defined(USE_ASIMD)
+#ifdef USE_NEON
   auto A_colm = row_major_to_col_major(A);
   for (std::size_t i = 0; i < B.cols(); ++i) {
     float32x4_t rhs0 = vdupq_n_f32((float)(*B.data(0, i)));
@@ -67,7 +67,7 @@ void matrix_multiplication(
   assert(A.cols() == B.rows());
   Measurement::Start("matrix_multiplication");
 
-#if defined(USE_NEON) || defined(USE_ASIMD)
+#ifdef USE_NEON
   if (A.cols() == 3 && A.rows() % 4 == 0) {
       details::matrix_multiplication_col3(A, B, C);
     Measurement::Stop();

@@ -135,7 +135,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
   if (kh == kw && kw == 3) {
     unsigned bufsize = oc * kh * kw * ih * iw;
     BIN_CONV_OUTPUT *kn2row_buf = new BIN_CONV_OUTPUT[bufsize]();
-    std::memset((void*)kn2row_buf, 0, bufsize);
+    std::memset(kn2row_buf, 0, bufsize);
     auto buf_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
         kn2row_buf, oc * kh * kw, ih * iw);
 

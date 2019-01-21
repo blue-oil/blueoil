@@ -17,12 +17,14 @@ limitations under the License.
 #include <climits>
 
 #include "global.h"
-#include "func/apply_thresholds.h"
+#include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_tiling.h"
 
 #include <arm_neon.h>
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 namespace dlk {
 
