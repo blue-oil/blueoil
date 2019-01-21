@@ -16,7 +16,7 @@ limitations under the License.
 #include <cmath>
 
 #include "global.h"
-#include "func/batch_normalization.h"
+#include "func/impl/batch_normalization.h"
 #include "time_measurement.h"
 
 #include <arm_neon.h>
@@ -59,7 +59,14 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
     shift[i] = beta[i] - (scale[i] * mean[i]);
   }
 
-// TODO(nlpng): remove use of OpenMP library
+  T_UINT index = 0;
+  for (T_UINT f = 0; f < out_height * out_width; f++)
+    for (T_UINT d = 0; d < out_depth; d++) {
+      output[index] = input[index] * scale[d] + shift[d];
+      index++;
+    }
+
+#if 0 // Advanced SIMD implementation (But slow down on raspberry pi)
 #pragma omp parallel for
   for (T_UINT f = 0; f < size; f++) {
 
@@ -68,14 +75,14 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
 
     T_UINT d = 0;
     for (; d < out_depth; d += 4) {
-      asm volatile("vldmia %0, {d16,d17}    \t\n" // q8(d16,d17) scale
-                   "vldmia %1, {d18,d19}    \t\n" // q9(d18,d19) shift
-                   "vldmia %2, {d20,d21}    \t\n" // q10(d20,d21) input
-                   "vmla.f32 q9, q10, q8    \t\n"
-                   "vstmia %3, {d18,d19}    \t\n"
-                   :
-                   : "r"(&scale[d]), "r"(&shift[d]), "r"(in_temp), "r"(out_temp)
-                   : "memory", "q8", "q9", "q10");
+      asm volatile("ldr q6, [%0]    \t\n" // q6(d12,d13) scale
+		   "ldr q7, [%1]    \t\n" // q7(d14,d15) shift
+		   "ldr q8, [%2]    \t\n" // q8(d16,d17) input
+		                      "fmla v7.4s, v8.4s, v6.4s    \t\n"
+		                      "str q7, [%3]     \t\n"
+		   :
+		   : "r"(&scale[d]), "r"(&shift[d]), "r"(in_temp), "r"(out_temp)
+		   : "memory", "v6", "v7", "v8");
       in_temp += 4;
       out_temp += 4;
     }
@@ -84,7 +91,8 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
       *out_temp++ = *in_temp++ * scale[d] + shift[d];
     }
   }
-
+#endif
+  
   delete[] scale;
   delete[] shift;
 

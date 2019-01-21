@@ -21,7 +21,7 @@ limitations under the License.
 #include <iterator>
 
 #include "global.h"
-#include "func/impl/apply_thresholds.h"
+#include "func/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_dim2col.h"
 #include "func/impl/quantized_conv2d_tiling.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
@@ -66,7 +66,7 @@ void QuantizedConv2D(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
   if ((kh == 3 && kw == 3 && padding == 1) ||
       (kh == 1 && kw == 1 && padding == 0)) {
     if ((ic % TilingInTypeBitWidth) == 0) {
-#if defined(USE_NEON) && !defined(RUN_ON_FPGA)
+#if (defined(USE_NEON) || defined(USE_ASIMD)) && !defined(RUN_ON_FPGA)
       dlk::impl::QuantizedConv2DTiling(input, kernel, p);
 #else
       dlk::impl::QuantizedConv2DKn2Row(input, kernel, p);

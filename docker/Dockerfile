@@ -14,6 +14,7 @@ deb-src http://ftp.jaist.ac.jp/ubuntu/ xenial-updates main restricted universe m
 deb http://ftp.jaist.ac.jp/ubuntu/ xenial-backports main restricted universe multiverse \n\
 deb-src http://ftp.jaist.ac.jp/ubuntu/ xenial-backports main restricted universe multiverse \n\
 deb http://security.ubuntu.com/ubuntu xenial-security main restricted universe multiverse \n\
+deb http://emdebian.org/tools/debian/ jessie main \n\
 deb-src http://security.ubuntu.com/ubuntu xenial-security main restricted universe multiverse" > /etc/apt/sources.list
 
 RUN apt-get update && apt-get install -y \
@@ -51,6 +52,9 @@ RUN apt-get update && apt-get install -y \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# install aarch64 cross compile environment
+RUN apt-get update && apt-get install -y crossbuild-essential-arm64
 
 # Locale setting
 RUN locale-gen en_US.UTF-8
@@ -109,11 +113,7 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy dlk sources to docker image
-COPY dlk /home/blueoil/dlk
-# Install dlk
 WORKDIR /home/blueoil/dlk
-RUN PYTHONPATH=python/dlk python setup.py install
 
 # Copy blueoil sources to docker image
 COPY blueoil /home/blueoil/blueoil
@@ -131,3 +131,24 @@ COPY output_template /home/blueoil/output_template
 
 # Set __init__.py for python modules
 RUN touch lmnet/lmnet/__init__.py
+
+RUN wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && \
+    wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-armv7a-linux-gnueabihf.tar.xz && \
+    wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz && \
+    mv clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz /usr/local/ && \
+    mv clang+llvm-7.0.0-armv7a-linux-gnueabihf.tar.xz /usr/local/ && \
+    mv clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz /usr/local/ && \
+    cd /usr/local/ && \
+    tar -xf clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && \
+    tar -xf clang+llvm-7.0.0-armv7a-linux-gnueabihf.tar.xz && \
+    tar -xf clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz && \
+    rm clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && \
+    rm clang+llvm-7.0.0-armv7a-linux-gnueabihf.tar.xz && \
+    rm clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz
+
+# Copy dlk sources to docker image
+COPY dlk /home/blueoil/dlk
+# Install dlk
+WORKDIR /home/blueoil/dlk
+RUN PYTHONPATH=python/dlk python setup.py install
+WORKDIR /home/blueoil

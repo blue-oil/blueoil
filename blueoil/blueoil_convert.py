@@ -75,32 +75,21 @@ def get_output_directories(output_roor_dir):
     )
     return output_directories
 
-
-def strip_binary(output):
-    """Strip binary file."""
-
-    if output == "lm_x86.elf":
-        subprocess.run(("strip", output))
-    elif output == "lib_x86.so":
-        subprocess.run(("strip", "-x", "--strip-unneeded", output))
-    elif output in {"lm_arm.elf", "lm_fpga.elf"}:
-        subprocess.run(("arm-linux-gnueabihf-strip", output))
-    elif output in {"lib_arm.so", "lib_fpga.so"}:
-        subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
-
-
 def make_all(project_dir, output_dir):
     """Make each target."""
 
     make_list = [
         ["lm_x86", "lm_x86.elf"],
         ["lm_arm", "lm_arm.elf"],
+        ["lm_aarch64", "lm_aarch64.elf"],
         ["lm_fpga", "lm_fpga.elf"],
         ["lib_x86", "lib_x86.so"],
         ["lib_arm", "lib_arm.so"],
+        ["lib_aarch64", "lib_aarch64.so"],
         ["lib_fpga", "lib_fpga.so"],
         ["ar_x86", "libdlk_x86.a"],
         ["ar_arm", "libdlk_arm.a"],
+        ["ar_aarch64", "libdlk_aarch64.a"],
         ["ar_fpga", "libdlk_fpga.a"],
     ]
     running_dir = os.getcwd()
@@ -111,7 +100,6 @@ def make_all(project_dir, output_dir):
     for target, output in make_list:
         subprocess.run(("make", "clean", "--quiet"))
         subprocess.run(("make",  target, "-j4", "--quiet"))
-        strip_binary(output)
         output_file_path = os.path.join(output_dir, output)
         os.rename(output, output_file_path)
     # Return running directory

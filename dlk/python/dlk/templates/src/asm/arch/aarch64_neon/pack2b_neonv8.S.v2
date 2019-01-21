@@ -1,0 +1,163 @@
+        .text
+	.globl  pack2bits_v8
+	.p2align        2
+	.type   pack2bits_v8,@function
+pack2bits_v8:
+	// %bb.0:                               // %entry
+	cmp     w2, #1                  // =1
+	b.lt    .LBB0_3
+	// %bb.1:                               // %for.body.preheader
+	mov     x8, xzr
+	sxtw    x9, w2
+	add     x10, x1, #4             // =4
+	add     x11, x0, #16            // =16
+.LBB0_2:                                // %for.body
+	add     x12, x11, x8
+	ldp     w16, w15, [x12]
+	ldp     w14, w13, [x12, #-16]
+	add     x8, x8, #32             // =32
+	cmp     x8, x9
+	and     w1, w16, #0x100
+	lsr     w1, w1, #7
+	and     w18, w14, #0x100
+	and     w2, w16, #0x10000
+	bfxil   w1, w16, #0, #1
+	orr     w1, w1, w2, lsr #14
+	and     w2, w16, #0x200
+	lsr     w18, w18, #7
+	and     w0, w14, #0x10000
+	and     w17, w14, #0x200
+	bfxil   w18, w14, #0, #1
+	lsr     w2, w2, #8
+	orr     w18, w18, w0, lsr #14
+	and     w0, w16, #0x20000
+	bfxil   w2, w16, #1, #1
+	lsr     w17, w17, #8
+	orr     w0, w2, w0, lsr #15
+	and     w2, w14, #0x20000
+	bfxil   w17, w14, #1, #1
+	orr     w17, w17, w2, lsr #15
+	and     w2, w16, #0x1000000
+	orr     w1, w1, w2, lsr #21
+	and     w2, w14, #0x1000000
+	and     w16, w16, #0x2000000
+	orr     w18, w18, w2, lsr #21
+	orr     w16, w0, w16, lsr #22
+	and     w0, w13, #0x1
+	bfi     w18, w0, #4, #1
+	and     w0, w15, #0x2
+	lsr     w0, w0, #1
+	and     w14, w14, #0x2000000
+	bfi     w16, w0, #4, #1
+	and     w0, w13, #0x2
+	orr     w14, w17, w14, lsr #22
+	and     w17, w15, #0x1
+	lsr     w0, w0, #1
+	bfi     w1, w17, #4, #1
+	and     w17, w13, #0x100
+	bfi     w14, w0, #4, #1
+	and     w0, w15, #0x100
+	orr     w0, w1, w0, lsr #3
+	and     w1, w13, #0x10000
+	orr     w17, w18, w17, lsr #3
+	and     w18, w15, #0x200
+	orr     w16, w16, w18, lsr #4
+	and     w18, w13, #0x200
+	orr     w17, w17, w1, lsr #10
+	and     w1, w15, #0x20000
+	orr     w14, w14, w18, lsr #4
+	and     w18, w15, #0x10000
+	orr     w16, w16, w1, lsr #11
+	and     w1, w13, #0x20000
+	orr     w18, w0, w18, lsr #10
+	and     w0, w13, #0x1000000
+	orr     w14, w14, w1, lsr #11
+	and     w1, w15, #0x1000000
+	and     w15, w15, #0x2000000
+	orr     w18, w18, w1, lsr #17
+	orr     w17, w17, w0, lsr #17
+	ldp     w0, w1, [x12, #-8]
+	orr     w15, w16, w15, lsr #18
+	ldp     w16, w12, [x12, #8]
+	and     w13, w13, #0x2000000
+	orr     w13, w14, w13, lsr #18
+	and     w14, w16, #0x1
+	orr     w14, w18, w14, lsl #8
+	and     w18, w0, #0x1
+	orr     w17, w17, w18, lsl #8
+	and     w18, w16, #0x2
+	orr     w15, w15, w18, lsl #7
+	and     w18, w0, #0x2
+	orr     w13, w13, w18, lsl #7
+	and     w18, w16, #0x100
+	orr     w14, w14, w18, lsl #1
+	and     w18, w0, #0x100
+	orr     w17, w17, w18, lsl #1
+	and     w18, w16, #0x200
+	orr     w15, w15, w18
+	and     w18, w0, #0x200
+	orr     w13, w13, w18
+	and     w18, w16, #0x10000
+	orr     w14, w14, w18, lsr #6
+	and     w18, w0, #0x10000
+	orr     w17, w17, w18, lsr #6
+	and     w18, w16, #0x20000
+	orr     w15, w15, w18, lsr #7
+	and     w18, w0, #0x20000
+	orr     w13, w13, w18, lsr #7
+	and     w18, w16, #0x1000000
+	and     w16, w16, #0x2000000
+	orr     w15, w15, w16, lsr #14
+	and     w16, w0, #0x2000000
+	orr     w14, w14, w18, lsr #13
+	and     w18, w0, #0x1000000
+	orr     w13, w13, w16, lsr #14
+	and     w16, w12, #0x1
+	orr     w17, w17, w18, lsr #13
+	orr     w14, w14, w16, lsl #12
+	and     w16, w1, #0x1
+	orr     w16, w17, w16, lsl #12
+	and     w17, w12, #0x2
+	orr     w15, w15, w17, lsl #11
+	and     w17, w1, #0x2
+	orr     w13, w13, w17, lsl #11
+	and     w17, w12, #0x100
+	orr     w14, w14, w17, lsl #5
+	and     w17, w1, #0x100
+	orr     w16, w16, w17, lsl #5
+	and     w17, w12, #0x200
+	orr     w15, w15, w17, lsl #4
+	and     w17, w1, #0x200
+	orr     w13, w13, w17, lsl #4
+	and     w17, w12, #0x10000
+	orr     w14, w14, w17, lsr #2
+	and     w17, w1, #0x10000
+	orr     w16, w16, w17, lsr #2
+	and     w17, w12, #0x20000
+	orr     w15, w15, w17, lsr #3
+	and     w17, w1, #0x20000
+	orr     w13, w13, w17, lsr #3
+	lsr     w17, w12, #9
+	lsr     w12, w12, #10
+	and     w17, w17, #0x8000
+	and     w12, w12, #0x8000
+	orr     w14, w14, w17
+	lsr     w17, w1, #9
+	orr     w12, w15, w12
+	lsr     w15, w1, #10
+	and     w17, w17, #0x8000
+	and     w15, w15, #0x8000
+	orr     w16, w16, w17
+	orr     w13, w13, w15
+	sturh   w14, [x10, #-2]
+	sturh   w16, [x10, #-4]
+	strh    w12, [x10, #2]
+	strh    w13, [x10], #8
+	b.lt    .LBB0_2
+.LBB0_3:                                // %for.cond.cleanup
+	ret
+.Lfunc_end0:
+	.size   pack2bits_v8, .Lfunc_end0-pack2bits_v8
+
+	.section        ".note.GNU-stack","",@progbits
+	

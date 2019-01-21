@@ -17,5 +17,6 @@ limitations under the License.
 #define DLK_PACK2BITS_H_INCLUDED
 
 extern "C" void pack2bits(const unsigned char *indata, QUANTIZED_PACKED *outdata, int num_data);
+extern "C" void pack2bits_v8(const unsigned char *indata, QUANTIZED_PACKED *outdata, int num_data);
 
 #endif // DLK_PACK2BITS_H_INCLUDED
