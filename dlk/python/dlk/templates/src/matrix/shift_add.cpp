@@ -45,9 +45,7 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 
   for (unsigned int j = 0; j < buf.cols(); ++j) {
     for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first_column(j, w) && is_cfi(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      } else if (is_last_column(j, w) && is_adg(i, p.output_channels)) {
+      if ((is_last_column(j, w) && is_adg(i, p.output_channels)) || ((is_first_column(j, w) && is_cfi(i, p.output_channels)))) {
         buf.set(i, j, 0);
       }
     }
@@ -69,6 +67,7 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
           const int kw = p.kernel_width;
           const int oc = p.output_channels;
           for (int k = begin; k < std::min(begin + chunk_size, static_cast<unsigned int>(h * w)); ++k) {
+
             for (unsigned int i = 0; i < (kh * kw); ++i) {
               int offset = calc_offset(i, w);
               if ((k - offset < 0) || (k - offset >= (h * w))) {
@@ -81,16 +80,70 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 
               unsigned int j = 0;
 #ifdef USE_NEON
-              for (; j + 3 < oc; j += 4) {
-                float32x4_t b_ = vld1q_f32(b+j);
-                float32x4_t r_ = vld1q_f32(r+j);
-                float32x4_t r__ = vaddq_f32(b_, r_);
-                vst1q_f32(r+j, r__);
-              }
+              if (oc <= 8) {
+                for (; j + 3 < oc; j += 4) {
+                  float32x4_t b_ = vld1q_f32(b+j);
+                  float32x4_t r_ = vld1q_f32(r+j);
+                  float32x4_t r__ = vaddq_f32(b_, r_);
+                  vst1q_f32(r+j, r__);
+                }
+                for (; j < oc; ++j) {
+                  r[j] += b[j];
+                }
+              } else {
+                if (oc % 8 == 4) {
+                  float32x4_t b_ = vld1q_f32(b);
+                  float32x4_t r_ = vld1q_f32(r);
+                  float32x4_t r__;
+                  for (; j + 7 < oc; j += 8) {
+                    float32x4_t b2_ = vld1q_f32(b+j+4);
+                    float32x4_t r2_ = vld1q_f32(r+j+4);
+                    r__ = vaddq_f32(b_, r_);
+                    vst1q_f32(r+j, r__);
+                    b_ = vld1q_f32(b+j+8);
+                    r_ = vld1q_f32(r+j+8);
+                    r__ = vaddq_f32(b2_, r2_);
+                    vst1q_f32(r+j+4, r__);
+		  }
+		  r__ = vaddq_f32(b_, r_);
+		  vst1q_f32(r+oc-4, r__);
+		} else if (oc % 8 == 0) {
+		  float32x4_t b_ = vld1q_f32(b);
+		  float32x4_t r_ = vld1q_f32(r);
+		  float32x4_t r__;
+		  for (; j + 7 < oc - 8; j += 8) {
+		    float32x4_t b2_ = vld1q_f32(b+j+4);
+		    float32x4_t r2_ = vld1q_f32(r+j+4);
+		    r__ = vaddq_f32(b_, r_);
+		    vst1q_f32(r+j, r__);
+		    b_ = vld1q_f32(b+j+8);
+		    r_ = vld1q_f32(r+j+8);
+		    r__ = vaddq_f32(b2_, r2_);
+		    vst1q_f32(r+j+4, r__);
+		  }
+		  float32x4_t b2_ = vld1q_f32(b+j+4);
+		  float32x4_t r2_ = vld1q_f32(r+j+4);
+		  r__ = vaddq_f32(b_, r_);
+		  vst1q_f32(r+oc-8, r__);
+		  r__ = vaddq_f32(b2_, r2_);
+		  vst1q_f32(r+oc-4, r__);
+		} else {
+		  for (; j + 3 < oc; j += 4) {
+		    float32x4_t b_ = vld1q_f32(b+j);
+		    float32x4_t r_ = vld1q_f32(r+j);
+		    float32x4_t r__ = vaddq_f32(b_, r_);
+		    vst1q_f32(r+j, r__);
+		  }
+		  for (; j < oc; ++j) {
+		    r[j] += b[j];
+		  }
+		}
+	      }
+#else
+	      for (; j < oc; ++j) {
+		r[j] += b[j];
+	      }
 #endif
-              for (; j < oc; ++j) {
-                r[j] += b[j];
-              }
             }
           }
         }));
@@ -121,9 +174,7 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 
   for (unsigned int j = 0; j < buf.cols(); ++j) {
     for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first_column(j, w) && is_cfi(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      } else if (is_last_column(j, w) && is_adg(i, p.output_channels)) {
+      if ((is_first_column(j, w) && is_cfi(i, p.output_channels)) || (is_last_column(j, w) && is_adg(i, p.output_channels))) {
         buf.set(i, j, 0);
       }
     }
@@ -157,16 +208,70 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 
               unsigned int j = 0;
 #ifdef USE_NEON
-              for (; j + 3 < oc; j += 4) {
-                int32x4_t b_ = vld1q_s32(b+j);
-                int32x4_t r_ = vld1q_s32(r+j);
-                int32x4_t r__ = vaddq_s32(b_, r_);
-                vst1q_s32(r+j, r__);
-              }
+              if (oc <= 8) {
+                for (; j + 3 < oc; j += 4) {
+                  int32x4_t b_ = vld1q_s32(b+j);
+                  int32x4_t r_ = vld1q_s32(r+j);
+                  int32x4_t r__ = vaddq_s32(b_, r_);
+                  vst1q_s32(r+j, r__);
+                }
+                for (; j < oc; ++j) {
+                  r[j] += b[j];
+                }
+              } else {
+                if (oc % 8 == 4) {
+                  int32x4_t b_ = vld1q_s32(b);
+                  int32x4_t r_ = vld1q_s32(r);
+                  int32x4_t r__;
+                  for (; j + 7 < oc; j += 8) {
+                    int32x4_t b2_ = vld1q_s32(b+j+4);
+                    int32x4_t r2_ = vld1q_s32(r+j+4);
+                    r__ = vaddq_s32(b_, r_);
+                    vst1q_s32(r+j, r__);
+                    b_ = vld1q_s32(b+j+8);
+                    r_ = vld1q_s32(r+j+8);
+                    r__ = vaddq_s32(b2_, r2_);
+                    vst1q_s32(r+j+4, r__);
+                  }
+                  r__ = vaddq_s32(b_, r_);
+                  vst1q_s32(r+oc-4, r__);
+                } else if (oc % 8 == 0) {
+                  int32x4_t b_ = vld1q_s32(b);
+                  int32x4_t r_ = vld1q_s32(r);
+                  int32x4_t r__;
+                  for (; j + 7 < oc - 8; j += 8) {
+                    int32x4_t b2_ = vld1q_s32(b+j+4);
+                    int32x4_t r2_ = vld1q_s32(r+j+4);
+                    r__ = vaddq_s32(b_, r_);
+                    vst1q_s32(r+j, r__);
+                    b_ = vld1q_s32(b+j+8);
+                    r_ = vld1q_s32(r+j+8);
+                    r__ = vaddq_s32(b2_, r2_);
+                    vst1q_s32(r+j+4, r__);
+                  }
+                  int32x4_t b2_ = vld1q_s32(b+j+4);
+                  int32x4_t r2_ = vld1q_s32(r+j+4);
+                  r__ = vaddq_s32(b_, r_);
+                  vst1q_s32(r+oc-8, r__);
+                  r__ = vaddq_s32(b2_, r2_);
+                  vst1q_s32(r+oc-4, r__);
+                } else {
+		  for (; j + 3 < oc; j += 4) {
+		    int32x4_t b_ = vld1q_s32(b+j);
+		    int32x4_t r_ = vld1q_s32(r+j);
+		    int32x4_t r__ = vaddq_s32(b_, r_);
+		    vst1q_s32(r+j, r__);
+		  }
+		  for (; j < oc; ++j) {
+		    r[j] += b[j];
+		  }
+		}
+	      }
+#else
+	      for (; j < oc; ++j) {
+		r[j] += b[j];
+	      }
 #endif
-              for (; j < oc; ++j) {
-                r[j] += b[j];
-              }
             }
           }
     }));
