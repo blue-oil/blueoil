@@ -37,9 +37,9 @@ def test_required_arguments():
 
     for model in model_classes:
         quantizer = model(
-            ['accordion', 'airplanes', 'anchor'],
-            True,
-            **network_kwargs
+            classes = ['accordion', 'airplanes', 'anchor'],
+            is_debug = True,
+            network_kwargs = **network_kwargs
         )
 
         assert quantizer.first_layer_name is not None
