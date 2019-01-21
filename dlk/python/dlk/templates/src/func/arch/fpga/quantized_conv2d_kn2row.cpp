@@ -76,6 +76,8 @@ void QuantizedConv2DKn2Row_3x3(QUANTIZED_NOT_PACKED input[],
 
   const T_UINT k_h = dlk::impl::KN2ROW_FACTOR_3x3;
   const T_UINT k_w = dlk::impl::KN2ROW_FACTOR_3x3;
+  const T_UINT padding_3x3 = 1;
+
   const T_UINT k_c = cp.kernel_depth;
   const T_UINT k_c_by_word =
       (k_c + (num_qkernel_per_qword - 1)) / num_qkernel_per_qword;
@@ -157,7 +159,7 @@ void QuantizedConv2DKn2Row_3x3(QUANTIZED_NOT_PACKED input[],
     de10_nano::qconv_with_kn2row(
         p.device_input_phys_addr, p.device_output_phys_addr, kernel_hwnocni,
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
-        out_c_aligend_with_num_pe, k_w, k_h, 1,
+        out_c_aligend_with_num_pe, k_w, k_h, padding_3x3,
         cp.stride_along_height);
     Measurement::Stop();
 
@@ -203,7 +205,7 @@ void QuantizedConv2DKn2Row_3x3(QUANTIZED_NOT_PACKED input[],
     de10_nano::qconv_with_kn2row(
         p.device_input_phys_addr, p.device_output_phys_addr, kernel_hwnocni,
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
-        out_c, k_w, k_h, 1, cp.stride_along_height);
+        out_c, k_w, k_h, padding_3x3, cp.stride_along_height);
     Measurement::Stop();
 
     p.dma_output_buffer->sync_size(output_byte_size);
@@ -230,6 +232,8 @@ void QuantizedConv2DKn2Row_1x1(QUANTIZED_NOT_PACKED input[],
 
   const T_UINT k_h = dlk::impl::KN2ROW_FACTOR_1x1;
   const T_UINT k_w = dlk::impl::KN2ROW_FACTOR_1x1;
+  const T_UINT padding_1x1 = 0;
+
   const T_UINT k_c = cp.kernel_depth;
   const T_UINT k_c_by_word =
       (k_c + (num_qkernel_per_qword - 1)) / num_qkernel_per_qword;
@@ -311,7 +315,7 @@ void QuantizedConv2DKn2Row_1x1(QUANTIZED_NOT_PACKED input[],
     de10_nano::qconv_with_kn2row(
         p.device_input_phys_addr, p.device_output_phys_addr, kernel_hwnocni,
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
-        out_c_aligend_with_num_pe, k_w, k_h, 0,
+        out_c_aligend_with_num_pe, k_w, k_h, padding_1x1,
         cp.stride_along_height);
     Measurement::Stop();
 
@@ -357,7 +361,7 @@ void QuantizedConv2DKn2Row_1x1(QUANTIZED_NOT_PACKED input[],
     de10_nano::qconv_with_kn2row(
         p.device_input_phys_addr, p.device_output_phys_addr, kernel_hwnocni,
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
-        out_c, k_w, k_h, 0, cp.stride_along_height);
+        out_c, k_w, k_h, padding_1x1, cp.stride_along_height);
     Measurement::Stop();
 
     p.dma_output_buffer->sync_size(output_byte_size);
