@@ -39,14 +39,14 @@ def test_required_arguments():
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
             is_debug=True,
-            'activation_quantizer'=linear_mid_tread_half_quantizer,
-            'batch_size'=10,
-            'data_format'='NHWC',
-            'image_size'=[128, 128],
-            'optimizer_class'=tf.train.GradientDescentOptimizer,
-            'quantize_first_convolution'=True,
-            'weight_decay_rate'=0.0005,
-            'weight_quantizer'=binary_mean_scaling_quantizer,
+            activation_quantizer=linear_mid_tread_half_quantizer,
+            batch_size=10,
+            data_format='NHWC',
+            image_size=[128, 128],
+            optimizer_class=tf.train.GradientDescentOptimizer,
+            quantize_first_convolution=True,
+            weight_decay_rate=0.0005,
+            weight_quantizer=binary_mean_scaling_quantizer,
         )
 
         assert quantizer.first_layer_name is not None
