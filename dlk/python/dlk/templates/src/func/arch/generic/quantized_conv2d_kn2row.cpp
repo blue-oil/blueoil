@@ -130,23 +130,15 @@ void QuantizedConv2DKn2Row_3x3(QUANTIZED_NOT_PACKED input[],
   auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
       p.device_output_buf, oc, ih * iw);
 
-  if (kh == kw && kw == 3) {
-    unsigned bufsize = oc * kh * kw * ih * iw;
-    BIN_CONV_OUTPUT *kn2row_buf = new BIN_CONV_OUTPUT[bufsize]();
-    std::memset((void*)kn2row_buf, 0, bufsize);
-    auto buf_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
-        kn2row_buf, oc * kh * kw, ih * iw);
-
-    quantized_matrix_multiplication(kernel_, input_, buf_);
-    matrix_shift_add(buf_, output_, p.normal_conv_params);
-    delete[] kn2row_buf;
-  } else if (kh == kw && kw == 1) {
-    quantized_matrix_multiplication(kernel_, input_, output_);
-  } else {
-    std::cerr << "Only 1x1 or 3x3 convolutions are supported." << std::endl;
-    assert(false);
-  }
-
+  unsigned bufsize = oc * kh * kw * ih * iw;
+  BIN_CONV_OUTPUT *kn2row_buf = new BIN_CONV_OUTPUT[bufsize]();
+  std::memset((void*)kn2row_buf, 0, bufsize);
+  auto buf_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
+	  kn2row_buf, oc * kh * kw, ih * iw);
+  
+  quantized_matrix_multiplication(kernel_, input_, buf_);
+  matrix_shift_add(buf_, output_, p.normal_conv_params);
+  delete[] kn2row_buf;
   delete[] kernel_hwoi;
 
   if (p.thresholds != NULL) {
@@ -190,23 +182,7 @@ void QuantizedConv2DKn2Row_1x1(QUANTIZED_NOT_PACKED input[],
   auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
       p.device_output_buf, oc, ih * iw);
 
-  if (kh == kw && kw == 3) {
-    unsigned bufsize = oc * kh * kw * ih * iw;
-    BIN_CONV_OUTPUT *kn2row_buf = new BIN_CONV_OUTPUT[bufsize]();
-    std::memset((void*)kn2row_buf, 0, bufsize);
-    auto buf_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
-        kn2row_buf, oc * kh * kw, ih * iw);
-
-    quantized_matrix_multiplication(kernel_, input_, buf_);
-    matrix_shift_add(buf_, output_, p.normal_conv_params);
-    delete[] kn2row_buf;
-  } else if (kh == kw && kw == 1) {
-    quantized_matrix_multiplication(kernel_, input_, output_);
-  } else {
-    std::cerr << "Only 1x1 or 3x3 convolutions are supported." << std::endl;
-    assert(false);
-  }
-
+  quantized_matrix_multiplication(kernel_, input_, output_);
   delete[] kernel_hwoi;
 
   if (p.thresholds != NULL) {
