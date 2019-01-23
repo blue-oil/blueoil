@@ -12,6 +12,12 @@ trainer:
   batch_size: {{ batch_size }}
   epochs: {{ training_epochs }}
   # supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
+  # Momentum
+  #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
+  # SGD
+  #    https://www.tensorflow.org/api_docs/python/tf/train/GradientDescentOptimizer
+  # Adam
+  #    https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
   optimizer: {{ training_optimizer }}
   # supported 'learning_rate_schedule' is 'constant', '2-step-decay', '3-step-decay', '3-step-decay-with-warmup' ({epochs} is the number of training epochs you entered before).
   #   'constant' -> constant learning rate.
