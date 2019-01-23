@@ -56,7 +56,6 @@ LIB_FPGA_SRC := $(wildcard $(SRC_DIR)/asm/arch/arm_neon/*.S) \
     $(SRC_DIR)/func/arch/generic/quantized_conv2d_dim2col.cpp \
     $(SRC_DIR)/func/arch/fpga/quantized_conv2d.cpp \
     $(SRC_DIR)/func/arch/arm_neon/batch_normalization.cpp \
-    $(SRC_DIR)/func/arch/arm_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/func/arch/fpga/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp \
     $(SRC_DIR)/matrix/arm_neon/shift_add.cpp    
