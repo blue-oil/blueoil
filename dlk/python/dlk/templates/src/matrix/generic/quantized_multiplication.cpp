@@ -26,9 +26,7 @@ limitations under the License.
 namespace {
 
 static int pop_count(T_UINT i) {
-  i = i - ((i >> 1) & 0x55555555);
-  i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-  return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+  return __builtin_popcount(i);
 }
 
 #define CONV(i, k) r##i##k += pop_count(~(a ^ b##k##0)) + 2 * pop_count(~(a ^ b##k##1)) - 3 * (pop_count(~a));
