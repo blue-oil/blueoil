@@ -85,6 +85,8 @@ class CamvidBase(SegmentationBase):
         else:
             print("DISABLE prefetch")
 
+    extend_dir = "CamVid"
+
     def prefetch_args(self, i):
         return (self.image_files[i], self.label_files[i], self.augmentor, self.pre_processor, self.subset == "train")
 
@@ -206,7 +208,6 @@ class Camvid(CamvidBase):
         # "unlabelled",  # it is not use.
     ]
     num_classes = len(classes)
-    extend_dir = "CamVid"
 
     def __init__(
             self,
@@ -308,6 +309,7 @@ class CamvidCustom(StoragePathCustomizable, CamvidBase):
     def num_classes(self):
         _, classes = self.parse_label_colors()
         return len(classes)
+
 
     def parse_label_colors(self):
         with open(os.path.join(self.data_dir, "label_colors.txt")) as f:
