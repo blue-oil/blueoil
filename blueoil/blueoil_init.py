@@ -298,13 +298,7 @@ def ask_questions():
         'message': 'select optimizer:',
         'choices': ['MomentumOptimizer',
                     'GradientDescentOptimizer',
-                    'AdamOptimizer',
-                    'AdadeltaOptimizer',
-                    'AdagradOptimizer',
-                    'ProximalAdagradOptimizer',
-                    'ProximalGradientDescentOptimizer',
-                    'RMSPropOptimizer',
-                    'FtrlOptimizer'],
+                    'AdamOptimizer'],
         'default': 'MomentumOptimizer'
     }
     training_optimizer = prompt(training_optimizer_question)
