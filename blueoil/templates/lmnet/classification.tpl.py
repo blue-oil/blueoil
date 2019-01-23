@@ -68,27 +68,7 @@ POST_PROCESSOR = None
 
 NETWORK = EasyDict()
 
-if '{{optimizer}}' == 'GradientDescentOptimizer':
-    NETWORK.OPTIMIZER_CLASS = tf.train.GradientDescentOptimizer
-elif '{{optimizer}}' == 'MomentumOptimizer':
-    NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-elif '{{optimizer}}' == 'AdamOptimizer':
-    NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
-elif '{{optimizer}}' == 'AdadeltaOptimizer':
-    NETWORK.OPTIMIZER_CLASS = tf.train.AdadeltaOptimizer
-elif '{{optimizer}}' == 'AdagradOptimizer':
-    NETWORK.OPTIMIZER_CLASS = tf.train.AdagradOptimizer
-elif '{{optimizer}}' == 'FtrlOptimizer':
-    NETWORK.OPTIMIZER_CLASS = tf.train.FtrlOptimizer
-elif '{{optimizer}}' == 'ProximalAdagradOptimizer':
-    NETWORK.OPTIMIZER_CLASS = tf.train.ProximalAdagradOptimizer
-elif '{{optimizer}}' == 'ProximalGradientDescentOptimizer':
-    NETWORK.OPTIMIZER_CLASS = tf.train.ProximalGradientDescentOptimizer
-elif '{{optimizer}}' == 'RMSPropOptimizer':
-    NETWORK.OPTIMIZER_CLASS = tf.train.RMSPropOptimizer
-else:
-    NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-
+NETWORK.OPTIMIZER_CLASS = {{optimizer_class}}
 NETWORK.OPTIMIZER_KWARGS = {{optimizer_kwargs}}
 NETWORK.LEARNING_RATE_FUNC = {{learning_rate_func}}
 NETWORK.LEARNING_RATE_KWARGS = {{learning_rate_kwargs}}

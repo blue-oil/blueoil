@@ -147,6 +147,15 @@ def _blueoil_to_lmnet(blueoil_config):
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
     optimizer  = blueoil_config["trainer"]["optimizer"]
+    if optimizer == 'GradientDescentOptimizer':
+        optimizer_class = "tf.train.GradientDescentOptimizer"
+    elif optimizer == 'AdamOptimizer':
+        optimizer_class = "tf.train.AdamOptimizer"
+    elif optimizer == 'MomentumOptimizer':
+        optimizer_class = "tf.train.MomentumOptimizer"
+    else:
+        raise ValueError("not supported optimizer.")
+
     initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"]
     learning_rate_schedule = blueoil_config["trainer"]["learning_rate_schedule"]
     max_epochs = blueoil_config["trainer"]["epochs"]
@@ -236,7 +245,7 @@ def _blueoil_to_lmnet(blueoil_config):
         "dataset_class_property": dataset_class_property,
 
         "batch_size": batch_size,
-        "optimizer" : optimizer,
+        "optimizer_class" : optimizer_class,
         "max_epochs": max_epochs,
 
         "optimizer_kwargs": optimizer_kwargs,
