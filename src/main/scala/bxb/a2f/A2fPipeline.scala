@@ -20,6 +20,8 @@ class A2fPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int, fWidth:
     val fmemRead = Output(Vec(b, ReadPort(fAddrWidth)))
     val fmemWrite = Output(Vec(b, WritePort(fAddrWidth, fWidth)))
     val fmemQ = Input(Vec(b, UInt(fWidth.W)))
+    // Sync interface
+    val syncInc = Output(A2fSyncInc())
   })
   val addressPipeline = Module(new AddressPipeline(b, aAddrWidth, aWidth, fAddrWidth))
   addressPipeline.io.control := io.control
@@ -35,6 +37,8 @@ class A2fPipeline(b: Int, aAddrWidth: Int, aWidth: Int, fAddrWidth: Int, fWidth:
   io.fmemRead := accumulationPipeline.io.memRead
   accumulationPipeline.io.memQ := io.fmemQ
   io.fmemWrite := accumulationPipeline.io.memWrite
+  accumulationPipeline.io.syncIncIn := addressPipeline.io.next.syncInc
+  io.syncInc := accumulationPipeline.io.syncIncOut
 }
 
 object A2fPipeline {
