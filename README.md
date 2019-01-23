@@ -117,3 +117,9 @@ will give you a systolic array of size `B=32` instead of `3`
 
 **assembled a2f pipeline (B=3)**
 ![a2fPipeline](/docs/diagrams/a2fPipeline.png)
+
+**assembled w2m pipeline (B=3)**
+![w2mPipeline](/docs/diagrams/w2mPipeline.png)
+
+**A2F <-> W2M sync**
+![w2m_a2f_sync.png](/docs/diagrams/w2m_a2f_sync.png)
