@@ -17,6 +17,7 @@ limitations under the License.
 #include <cstring>
 
 #include "global.h"
+#include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
 #include "matrix_view.h"
 #include "matrix/quantized_multiplication.h"
@@ -46,49 +47,6 @@ void quantized_ohwi_to_hwoi(const T_UINT ohwi[], T_UINT hwoi[], const struct bin
 
    Measurement::Stop();
  }
-
-void ApplyThresholds(
-    dlk::MatrixView<BIN_CONV_OUTPUT, dlk::MatrixOrder::ColMajor> &result,
-    const binary_convolution_parameters &p) {
-  Measurement::Start("ApplyThresholds");
-
-  for (unsigned int i = 0; i < result.rows(); ++i) {
-    for (unsigned int j = 0; j < result.cols(); ++j) {
-      BIN_CONV_OUTPUT d = *result.data(i, j);
-      T_INT ts0 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i];
-      T_INT ts1 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 1];
-      T_INT ts2 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 2];
-      T_INT flag = p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 3];
-      BIN_CONV_OUTPUT new_d;
-
-      if (flag == 1) { // increasing function
-        if (d < ts0)
-          new_d = 0;
-        else if (d < ts1)
-          new_d = 1;
-        else if (d < ts2)
-          new_d = 2;
-        else
-          new_d = 3;
-      } else if (flag == -1) { // decreasing function
-        if (d > ts2)
-          new_d = 0;
-        else if (d > ts1)
-          new_d = 1;
-        else if (d > ts0)
-          new_d = 2;
-        else
-          new_d = 3;
-      } else {                            // constant function
-        new_d = flag - 2;                 // note: 2 is a magic number!
-        assert(0 <= new_d && new_d <= 3); // unsinged 2bits
-      }
-      *result.data(i, j) = new_d;
-    }
-  }
-
-  Measurement::Stop();
-}
 
 } // namespace
 
