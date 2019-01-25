@@ -139,8 +139,8 @@ lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_PNG -pthread -g
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
 lm_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_NEON -DUSE_PNG -pthread -g
 
-lm_arm:           CXX = arm-linux-gnueabihf-g++
-lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_arm:           CXX = /usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
+lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mfpu=neon -mcpu=cortex-a9 -mthumb -pthread -g -fopenmp=libgomp --target=arm-linux-gnueabihf -mfloat-abi=hard -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/include/c++/v1/ -I/usr/arm-linux-gnueabihf/include/ -I/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-armv7a-linux-gnueabihf/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything
 lm_arm:           CXXFLAGS +=
 
 lm_fpga:          CXX = arm-linux-gnueabihf-g++
