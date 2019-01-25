@@ -1,6 +1,6 @@
 # Training for Object Detection
 
-This guide trains a neural network model to object detection of Human Face and Human Hand in the [Open Images Dataset V4](https://storage.googleapis.com/openimages/web/index.html) on GPU server.
+This guide trains a neural network model to object detection of Human Face in the [Open Images Dataset V4](https://storage.googleapis.com/openimages/web/index.html) on GPU server.
 
 <img src="../_static/openimages_v4.png" width="600">
 
@@ -16,18 +16,18 @@ Blueoil supports 2 formats for object detection.
 Note: *Please see the detail in <a href="../usage/dataset.html">Prepare training dataset</a>*
 
 You can download subset of Open Images V4 from
-[our server](https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/openimages.tgz).
+[our server](https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/openimages_face.tgz).
 
 
-	$ wget https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/openimages.tgz
-	$ tar xf openimages.tgz
+	$ wget https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/openimages_face.tgz
+	$ tar xf openimages_face.tgz
 
 
-This dataset consists of 5,000 color images in 2 classes, with 2,500 images per class.
+This dataset consists of 2869 Human Face images and 5171 annotation boxes.
 
 ## Generate a configuration file
 
-Generate your model configuration file interactively by running `blueoil init` command.
+Generate your model configuration file interactively by running `blueoil.sh init` command.
 
     $ ./blueoil.sh init
 
@@ -42,16 +42,19 @@ choose dataset format  OpenImagesV4
 training dataset path:  {dataset_dir}
 set validataion dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  no
 batch size (integer):  16
-image size (integer x integer):  128x128
-how many epochs do you run training (integer):  100
+image size (integer x integer):  224x224
+how many epochs do you run training (integer):  1000
 initial learning rate:  0.001
-choose learning rate setting(tune1 / tune2 / tune3 / fixed):  tune1 -> "2 times decay": tune1
-apply quantization at the first layer?  yes
+choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
+enable data augmentation?  Yes
+Please choose augmentors:  done (5 selections)
+-> select Brightness, Color, FlipLeftRight, Hue, SSDRandomCrop
+apply quantization at the first layer?  no
 ```
 
 ## Train a network model
 
-Train your model by running `blueoil train` command with model configuration. 
+Train your model by running `blueoil.sh train` command with model configuration.
 
     $ ./blueoil.sh train config/{Model name}.yml
 
@@ -61,6 +64,16 @@ Training is running on TensorFlow backend. So you can use TensorBoard to visuali
 
     $ ./blueoil.sh tensorboard saved/{Model name}_{TIMESTAMP} {Port}
 
+- Metrics / Accuracy
+<img src="../_static/object_detection_train_metrics.png">
+
+- Loss, Weight Decay
+<img src="../_static/object_detection_train_loss.png">
+
+- Images / Final Detect Boxes
+<img src="../_static/object_detection_boxes.png">
+
+
 ## Convert training result to FPGA ready format.
 
 Convert trained model to executable binary files for x86, ARM, and FPGA.
@@ -68,7 +81,7 @@ Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
     $ ./blueoil.sh convert config/{Model name}.yml saved/{Mode name}_{TIMESTAMP}
 
-`Blueoil convert` automatically executes some conversion processes.
+`blueoil.sh convert` automatically executes some conversion processes.
 - Convert Tensorflow checkpoint to protocol buffer graph.
 - Optimize graph
 - Generate source code for executable binary
