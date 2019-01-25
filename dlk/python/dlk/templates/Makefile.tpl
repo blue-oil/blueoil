@@ -60,7 +60,7 @@ LIB_FPGA_SRC := $(wildcard $(SRC_DIR)/*.S) \
 LIB_FPGA_OBJ := $(patsubst %.S, %.o, $(LIB_FPGA_SRC))
 LIB_FPGA_OBJ := $(patsubst %.cpp, %.o, $(LIB_FPGA_OBJ))
 
-LIB_AARCH64_SRC := $(wildcard $(SRC_DIR)/*.S) \
+LIB_AARCH64_SRC := \
     $(SRC_DIR)/func/generic/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
