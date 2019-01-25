@@ -57,6 +57,14 @@ _NETWORK_NAME_NETWORK_MODULE_CLASS = {
         "network_module": "resnet18",
         "network_class": "Resnet18Quantize",
     },
+    "Resnet20Network": {
+        "network_module": "trained_ternary_quantization.resnet20",
+        "network_class": "Resnet20",
+    },
+    "Resnet20Quantize": {
+        "network_module": "trained_ternary_quantization.resnet20",
+        "network_class": "Resnet20Quantize",
+    },
 }
 
 _DATASET_FORMAT_DATASET_MODULE_CLASS = {

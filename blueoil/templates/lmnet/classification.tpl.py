@@ -114,6 +114,11 @@ elif '{{learning_rate_setting}}' == 'resnet':
         "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}}/100, {{initial_learning_rate}}/1000],
         "boundaries": [ int(20000*30), int(20000*40), int(20000*50) ], 
     }
+elif '{{learning_rate_setting}}' == 'resnet_cifar10':
+    NETWORK.LEARNING_RATE_KWARGS = {
+        "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}}/100, {{initial_learning_rate}}/1000],
+        "boundaries": [ int(500*80), int(500*120), int(500*300) ],
+    }
 else:
     raise ValueError
 
