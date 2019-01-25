@@ -22,7 +22,7 @@ limitations under the License.
 #include "operators.h" // FIXME(nikolay): for convolution_parameters definition, rid of it later
 #include "time_measurement.h"
 
-#ifdef USE_NEON
+#if defined(USE_NEON) || defined(USE_ASIMD)
   #include <arm_neon.h>
 #endif
 
@@ -80,7 +80,7 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 
 
               unsigned int j = 0;
-#ifdef USE_NEON
+#if defined(USE_NEON) || defined(USE_ASIMD)
               for (; j + 3 < oc; j += 4) {
                 float32x4_t b_ = vld1q_f32(b+j);
                 float32x4_t r_ = vld1q_f32(r+j);
@@ -156,7 +156,7 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 
 
               unsigned int j = 0;
-#ifdef USE_NEON
+#if defined(USE_NEON) || defined(USE_ASIMD)
               for (; j + 3 < oc; j += 4) {
                 int32x4_t b_ = vld1q_s32(b+j);
                 int32x4_t r_ = vld1q_s32(r+j);
