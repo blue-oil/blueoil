@@ -23,7 +23,7 @@ You can download subset of Open Images V4 from
 	$ tar xf openimages_face.tgz
 
 
-This dataset consists of 2869 Human Face images and 5171 annotation boxes.
+This dataset consists of 2866 Human Face images and 5170 annotation boxes.
 
 ## Generate a configuration file
 
