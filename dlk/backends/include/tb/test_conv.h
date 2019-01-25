@@ -122,24 +122,7 @@ bool test_conv(input_type &in_type, Conv_params_t &p)
 
   kernel_transform_NHWC_to_HWNoCNi(k_data_packed, k_data_packed_hwnocni, p.k_n, p.k_h, p.k_w, p.k_c_by_word, p.num_pe);
 
-  // cpp::qconv_with_kn2row<KH, KW>(in_data_packed, out_data_with_kn2row, k_data_packed_hwnocni, threshold_data, p.in_w,
-  //                                p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.pad_w,
-  //                                p.stride_w);
-  // comp_packed = compare_output(out_data_with_kn2row, out_data, "qconv_with_kn2row", p.out_h, p.out_w, p.out_c);
-
-  // cpp::qconv_kn2row_tiling<KH, KW>(in_data_packed, out_data_qconv_kn2row_tiling, k_data_packed_t, threshold_data,
-  //                                  p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c,
-  //                                  p.pad_w, p.stride_w);
-  // comp_packed =
-  //   compare_output(out_data_qconv_kn2row_tiling, out_data, "qconv_kn2row_tiling", p.out_h, p.out_w, p.out_c);
-
 #if defined _INTEL_HLS_
-
-  // intel_hls_qconv_with_kn2row(in_data_packed, out_data_hls_qgemm, k_data_packed_hwnocni, threshold_data, p.in_w,
-  // p.in_h,
-  //                             p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.k_w, p.k_h, p.pad_w,
-  //                             p.stride_w);
-  // comp_packed = compare_output(out_data_hls_qgemm, out_data, "hls_qgemm", p.out_h, p.out_w, p.out_c);
 
   intel_hls_qconv_kn2row_tiling(in_data_packed, out_data_hls_qconv_kn2row_tiling, k_data_packed_t, threshold_data,
                                 p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.k_w,
@@ -148,10 +131,6 @@ bool test_conv(input_type &in_type, Conv_params_t &p)
     compare_output(out_data_hls_qconv_kn2row_tiling, out_data, "hls_qconv_kn2row_tiling", p.out_h, p.out_w, p.out_c);
 
 #elif defined _DE10_NANO_
-
-  // de10_nano::qconv_with_kn2row(p.k_w, p.k_h, in_data_packed, out_data_fpga, k_data_packed_hwnocni, p.in_w, p.in_h,
-  //                              p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.pad_w, p.stride_w);
-  // comp_fpga = compare_output(out_data_fpga, out_data, "qconv_with_kn2row_fpga", p.out_h, p.out_w, p.out_c);
 
   de10_nano::qconv_kn2row_tiling(p.k_w, p.k_h, in_data_packed, out_data_fpga_qkt, k_data_packed_t, threshold_data,
                                  p.in_w, p.in_h, p.in_c_by_word, p.nbits_in_data, p.out_w, p.out_h, p.out_c, p.pad_w,
