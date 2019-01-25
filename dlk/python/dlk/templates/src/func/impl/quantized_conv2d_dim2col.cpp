@@ -126,30 +126,27 @@ void binary_convolution_cpu(QUANTIZED_PACKED input_channels[],
       T_INT output_buf;
 
       if (thresholds != nullptr) {
-        T_INT ts0 = thresholds[thresholds_offset];
-        T_INT ts1 = thresholds[thresholds_offset + 1];
-        T_INT ts2 = thresholds[thresholds_offset + 2];
         auto flag = thresholds[thresholds_offset + 3]; // 1 for increasing, -1
                                                        // for decreasing, and
                                                        // constant otherwise
 
         if (flag == 1) // increasing function
         {
-          if (conv_result < ts0)
+          if (conv_result < thresholds[thresholds_offset]) // ts0
             output_buf = 0;
-          else if (conv_result < ts1)
+          else if (conv_result < thresholds[thresholds_offset + 1]) // ts1
             output_buf = 1;
-          else if (conv_result < ts2)
+          else if (conv_result < thresholds[thresholds_offset + 2]) // ts2
             output_buf = 2;
           else
             output_buf = 3;
         } else if (flag == -1) // decreasing function
         {
-          if (conv_result > ts2)
+          if (conv_result > thresholds[thresholds_offset + 2]) // ts2
             output_buf = 0;
-          else if (conv_result > ts1)
+          else if (conv_result > thresholds[thresholds_offset + 1]) // ts1
             output_buf = 1;
-          else if (conv_result > ts0)
+          else if (conv_result > thresholds[thresholds_offset]) // ts0
             output_buf = 2;
           else
             output_buf = 3;

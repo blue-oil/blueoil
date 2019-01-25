@@ -55,27 +55,24 @@ void ApplyThresholds(
   for (unsigned int i = 0; i < result.rows(); ++i) {
     for (unsigned int j = 0; j < result.cols(); ++j) {
       BIN_CONV_OUTPUT d = *result.data(i, j);
-      T_INT ts0 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i];
-      T_INT ts1 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 1];
-      T_INT ts2 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 2];
       T_INT flag = p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 3];
       BIN_CONV_OUTPUT new_d;
 
       if (flag == 1) { // increasing function
-        if (d < ts0)
+        if (d < p.thresholds[NUM_OF_A2W1_THRESHOLD * i]) // ts0
           new_d = 0;
-        else if (d < ts1)
+        else if (d < p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 1]) // ts1
           new_d = 1;
-        else if (d < ts2)
+        else if (d < p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 2]) // ts2
           new_d = 2;
         else
           new_d = 3;
       } else if (flag == -1) { // decreasing function
-        if (d > ts2)
+        if (d > p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 2]) // ts2
           new_d = 0;
-        else if (d > ts1)
+        else if (d > p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 1]) // ts1
           new_d = 1;
-        else if (d > ts0)
+        else if (d > p.thresholds[NUM_OF_A2W1_THRESHOLD * i]) // ts0
           new_d = 2;
         else
           new_d = 3;
