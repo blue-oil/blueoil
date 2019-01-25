@@ -42,7 +42,6 @@ void input_load_module(ihc::mm_master<T_in_hls, ihc::aspace<1>, ihc::awidth<32>,
           const int ih = int(ih_low + ih_high - pad);
           const int iw = int(iw_low + iw_high - pad);
           const bool input_on = (ih >= 0) && (iw >= 0) && (ih < in_h) && (iw < in_w);
-
           // loading inputs from bus.
           // if the coordinates on the padding, this stores 0 instead of loading the data.
           in_buf[ih_low][iw_low][ic][ib] =
@@ -69,7 +68,7 @@ void kernel_load_module(ihc::mm_master<T_k_hls, ihc::aspace<3>, ihc::awidth<32>,
 #pragma unroll 4
         for (unsigned kn = 0; kn < out_c_low; kn++) {
           /// currently kernel order is NoHWCNi, which means the
-          /// outermost dimension "N" is split 2 high and low
+          /// outermost dimension "N" is split 2 into the high and low
           /// parts. we should be carefull when compute the index.
           const unsigned idx_k =
             (kh * k_w * k_c * out_c_low) + (kw * k_c * out_c_low) + (kc * out_c_low) + kn + (kn_high * k_h * k_w * k_c);
@@ -172,7 +171,7 @@ void output_store_module(hls_avalon_slave_register_argument
           const T_out_hls ts2 = th_buf[oc][2];
           const T_out_hls flag = th_buf[oc][3];
 
-          if (flag == 1) /// increasing function
+          if (flag == 1) /// for increasing function
           {
             if (out < ts0)
               tmp = 0;
@@ -182,7 +181,7 @@ void output_store_module(hls_avalon_slave_register_argument
               tmp = 2;
             else
               tmp = 3;
-          } else if (flag == -1) /// decreasing function
+          } else if (flag == -1) /// for decreasing function
           {
             if (out > ts2)
               tmp = 0;
@@ -192,10 +191,9 @@ void output_store_module(hls_avalon_slave_register_argument
               tmp = 2;
             else
               tmp = 3;
-          } else {
-            /// max value of 2 bits
-            const T_out_hls k = 3 * 3 * out_c * 3;
-            tmp = flag - k;
+          } else { /// for constant function
+            // 2 comes from the maximum of liner quantization for subsequent activation
+            tmp = flag - 2;
           }
         } else {
           tmp = out;
@@ -236,7 +234,7 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
   hls_avalon_slave_register_argument int32 pad, hls_avalon_slave_register_argument int32 use_threshold)
 {
   // in_buf shoule be banked by 8 elems, because this has 2 bits per an element, and
-  // 4 inputs are computed along with input channel dimension at a cycle.
+  // 4 inputs (128bits) are computed along with input channel dimension at a cycle.
   // This also should be doublepump because this loads next data from bus while computing the others.
   hls_memory hls_singlepump hls_bankbits(0, 1, 2)
     T_in_hls in_buf[p::in_tile_h][p::in_tile_w][p::max_in_c_by_word][p::max_in_b];
@@ -248,9 +246,11 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
   hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4, 5)
     hls_memory T_k_hls k_buf[p::max_k_h][p::max_k_w][p::max_in_c_by_word][out_c_low];
 
-  // out_buf shoule be banked by 16 elems, because out_c_low is 16, which log2 is 4.
-  // This also should should be doublepump, because accumulation happens at every cycle,
-  // requiring reading a data and computing it, then rewriting it to the same address.
+  // out_buf shoule be banked by 16 elems, because compute module produces 16 outputs at a cycle,
+  // which log2 is 4. This should be also doublepump because accumulation on compute module and
+  // export on store module happen at every cycle.
+  // In fact, compute module and store module don't simultaneously work but it needs to be banked by 16,
+  // which is required HLS to achieve better performacne.
   hls_memory hls_doublepump hls_bankbits(0, 1, 2, 3) T_out_hls out_buf[p::tile_w][p::tile_w][out_c_low];
 
 #pragma loop_coalesce 2
@@ -263,7 +263,7 @@ hls_avalon_slave_component void intel_hls_qconv_kn2row_tiling_impl(
 #pragma unroll 1
       for (unsigned oc_high = 0; oc_high < out_c; oc_high += out_c_low) {
         // threshold loading module.
-        // just relay on automatic unroll.
+        // just relay on automatic unroll whose factor depends on out_buf memory.
         hls_memory hls_singlepump hls_bankbits(0, 1, 2, 3, 4, 5) T_out_hls threshold_buf[out_c_low][p::num_thresholds];
 
         kernel_load_module(k_data, k_buf, k_h, k_w, in_c_by_word, oc_high);
