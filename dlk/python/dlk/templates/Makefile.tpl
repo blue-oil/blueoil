@@ -63,6 +63,7 @@ LIB_FPGA_OBJ := $(patsubst %.cpp, %.o, $(LIB_FPGA_OBJ))
 LIB_AARCH64_SRC := \
     $(SRC_DIR)/func/generic/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
 LIB_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_SRC))
 LIB_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_OBJ))
