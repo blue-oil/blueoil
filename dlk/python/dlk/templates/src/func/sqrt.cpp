@@ -20,10 +20,10 @@ limitations under the License.
 #include "time_measurement.h"
 
 void func_Sqrt(T_FLOAT input[], T_FLOAT output[], T_UINT out_depth) {
-  Measurement::Start("Rsqrt");
+  Measurement::Start("sqrt");
 
   for (T_UINT i = 0; i < out_depth; i++)
-    output[i] = 1.0f / std::sqrt(input[i]);
+    output[i] = std::sqrt(input[i]);
 
   Measurement::Stop();
 }
