@@ -86,10 +86,10 @@ void binary_convolution_cpu(QUANTIZED_PACKED input_channels[],
 
   BIN_CONV_OUTPUT *thresholds;
 
-  if (bcp.thresholds != NULL) {
+  if (bcp.thresholds != nullptr) {
     thresholds = &bcp.thresholds[output_channel_index * NUM_OF_A2W1_THRESHOLD];
   } else {
-    thresholds = NULL;
+    thresholds = nullptr;
   }
 
   unsigned idx_in = 0;
