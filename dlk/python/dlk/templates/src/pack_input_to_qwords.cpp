@@ -39,7 +39,6 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
   unsigned idx_in = 0;
   unsigned idx_out = 0;
   unsigned bit_count = 0;
-  unsigned total_bit_count = 0;
 
   static T_INT qinput_words_buf[MAX_NBIT_QINPUT] = {}; // must be initialized
 
@@ -57,7 +56,6 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
     qinput_words_buf[0] |= (b0 << bit_count);
     qinput_words_buf[1] |= (b1 << bit_count);
     bit_count += 4;
-    total_bit_count += 4;
 
     if (bit_count == nbit_qinput_word)
       {
@@ -78,7 +76,6 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
     qinput_words_buf[0] |= (b0 << bit_count);
     qinput_words_buf[1] |= (b1 << bit_count);
     ++bit_count;
-    ++total_bit_count;
 
     if (bit_count == nbit_qinput_word)
       {
