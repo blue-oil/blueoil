@@ -134,31 +134,31 @@ clean:
 	-$(RM) $(OBJ)
 
 lm_x86:           CXX = g++
-lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_PNG -pthread -g
+lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_PNG -pthread -g -Wl,-s
 
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
-lm_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_NEON -DUSE_PNG -pthread -g
+lm_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_NEON -DUSE_PNG -pthread -g -Wl,-s
 
 lm_arm:           CXX = arm-linux-gnueabihf-g++
-lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp -Wl,-s
 lm_arm:           CXXFLAGS +=
 
 lm_fpga:          CXX = arm-linux-gnueabihf-g++
-lm_fpga:          FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_fpga:          FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp -Wl,-s
 lm_fpga:          CXXFLAGS +=
 
 lib_x86:           CXX = g++
-lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
+lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g -Wl,-s
 
 lib_aarch64:       CXX = aarch64-linux-gnu-g++
-lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -fvisibility=hidden -pthread -g
+lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -fvisibility=hidden -pthread -g -Wl,-s
 
 lib_arm:           CXX = arm-linux-gnueabihf-g++
-lib_arm:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
+lib_arm:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp -Wl,-s
 lib_arm:           CXXFLAGS +=
 
 lib_fpga:          CXX = arm-linux-gnueabihf-g++
-lib_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -DRUN_ON_FPGA -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
+lib_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -DRUN_ON_FPGA -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp -Wl,-s
 lib_fpga:          CXXFLAGS +=
 
 ar_x86:           AR = ar
