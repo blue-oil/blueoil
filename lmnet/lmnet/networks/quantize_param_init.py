@@ -19,8 +19,8 @@ class QuantizeParamInit:
 
     In the object construction step, users must pass
        * arguments for the quantization (e.g. activation_quantizer) followed by
-       * arguments of the subtask class (e.g. weight_decay_rate)
-       to the init function, this mixin will call init function of subtask's base class automatically.
+       * arguments of the network class (e.g. weight_decay_rate)
+       to the init function, this mixin will call init function of the parent class of the network class automatically.
 
     Requirement
     1) The base class must define `self.first_layer_name` and `self.last_layer_name` in the init function, where
@@ -44,8 +44,8 @@ class QuantizeParamInit:
             activation_quantizer_kwargs=None,
             weight_quantizer=None,
             weight_quantizer_kwargs=None,
-            quantize_first_convolution=None,
-            quantize_last_convolution=None,
+            quantize_first_convolution=True,
+            quantize_last_convolution=True,
             *args,
             **kwargs
     ):
@@ -78,8 +78,8 @@ class QuantizeParamInit:
     def _quantized_variable_getter(getter,
                                    name,
                                    weight_quantization=None,
-                                   quantize_first_convolution=None,
-                                   quantize_last_convolution=None,
+                                   quantize_first_convolution=True,
+                                   quantize_last_convolution=True,
                                    use_histogram=True,
                                    first_layer_name=None,
                                    last_layer_name=None,
@@ -106,13 +106,11 @@ class QuantizeParamInit:
         with tf.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
-                if quantize_first_convolution is not None and not quantize_first_convolution:
-                    if var.op.name.startswith(first_layer_name):
-                        return var
+                if not quantize_first_convolution and var.op.name.startswith(first_layer_name):
+                    return var
 
-                if quantize_last_convolution is not None and not quantize_last_convolution:
-                    if var.op.name.startswith(last_layer_name):
-                        return var
+                if not quantize_last_convolution and var.op.name.startswith(last_layer_name):
+                    return var
 
                 quantized_kernel = weight_quantization(var)
                 if use_histogram:
