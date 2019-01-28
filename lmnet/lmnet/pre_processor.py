@@ -179,6 +179,23 @@ def per_image_standardization(image):
     return image
 
 
+def per_pixel_mean_subtraction(image):
+    """ Subtract each pixel with the mean value of that pizel among all channels.
+    e.g. pixel[0,0,:] -= mean(pixel[0,0,:])
+
+    Args:
+       image: An image numpy array
+    """
+
+    image = image.astype(np.float32)
+    per_pixel_mean = image.mean(axis=-1)
+    image = image.transpose([2,0,1])
+    image -= per_pixel_mean
+    image = image.transpose([1,2,0])
+
+    return image
+
+
 def per_image_linear_quantize(image, bit):
     r"""Linear quantize per image.
 
@@ -231,6 +248,16 @@ class PerImageStandardization(Processor):
 
     def __call__(self, image, **kwargs):
         image = per_image_standardization(image)
+        return dict({'image': image}, **kwargs)
+
+
+class PerPixelMeanSubtraction(Processor):
+    """Subtract each pixel with mean of that pixel among all channels
+
+    Use :func:`~per_pixel_mean_subtraction` inside.
+    """
+    def __call__(self, image, **kwargs):
+        image = per_pixel_mean_subtraction(image)
         return dict({'image': image}, **kwargs)
 
 
