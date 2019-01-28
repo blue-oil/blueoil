@@ -108,7 +108,7 @@ public:
 
     mapped_size_in_bytes = elements * element_size;
     mm_buffer = mmap(
-      NULL,
+      nullptr,
       mapped_size_in_bytes,
       PROT_READ | PROT_WRITE,
       MAP_SHARED,
