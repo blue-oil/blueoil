@@ -136,11 +136,11 @@ const char *c2numpy_descr(c2numpy_type type) {
               return c2numpy_str[type - C2NUMPY_STRING];
     }
 
-    return NULL;
+    return nullptr;
 }
 
 int c2numpy_init(c2numpy_writer *writer, const std::string outputFilePrefix, int32_t numRowsPerFile) {
-    writer->file = NULL;
+    writer->file = nullptr;
     writer->outputFilePrefix = outputFilePrefix;
     writer->sizeSeekPosition = 0;
     writer->sizeSeekSize = 0;
@@ -219,7 +219,7 @@ int c2numpy_open(c2numpy_writer *writer) {
 }
 
 #define C2NUMPY_CHECK_ITEM {                                                    \
-    if (writer->file == NULL) {                                                 \
+    if (writer->file == nullptr) {                                                 \
         int status = c2numpy_open(writer);                                      \
         if (status != 0)                                                        \
             return status;                                                      \
@@ -231,7 +231,7 @@ int c2numpy_open(c2numpy_writer *writer) {
         writer->currentRowInFile += 1;                                          \
         if (writer->currentRowInFile == writer->numRowsPerFile) {               \
             fclose(writer->file);                                               \
-            writer->file = NULL;                                                \
+            writer->file = nullptr;                                                \
             writer->currentRowInFile = 0;                                       \
             writer->currentFileNumber += 1;                                     \
         }                                                                       \
@@ -405,7 +405,7 @@ int c2numpy_string(c2numpy_writer *writer, const char *data) {
 }
 
 int c2numpy_close(c2numpy_writer *writer) {
-    if (writer->file != NULL) {
+    if (writer->file != nullptr) {
         // we wrote fewer rows than we promised
         if (writer->currentRowInFile < writer->numRowsPerFile) {
             // so go back to the part of the header where that was written
