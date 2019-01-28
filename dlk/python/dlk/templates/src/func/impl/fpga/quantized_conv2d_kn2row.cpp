@@ -38,8 +38,6 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
   using namespace dlk;
 
   convolution_parameters cp = p.normal_conv_params;
-  static QUANTIZED_NOT_PACKED
-      im2col_input_buf[MAX_SIZE_IM2COL_INPUTS_PER_LAYER] = {};
   const T_UINT out_c = cp.output_channels;
 
 
@@ -68,7 +66,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 #ifdef DLK_DEBUG
   const bool in_c_less_than_word_size = (in_c < WORD_SIZE);
   const bool in_c_excess_the_max = (in_c > MAX_IN_C);
-  const bool ts_activated = (p.thresholds != NULL);
+  const bool ts_activated = (p.thresholds != nullptr);
 
   if (in_c_less_than_word_size) {
     std::printf("[WORNING] in_c(%u) less than word_size(%u)\n", in_c, WORD_SIZE);
