@@ -30,6 +30,10 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../lmnet'))
+
 
 # -- Project information -----------------------------------------------------
 
@@ -54,6 +58,9 @@ release = '0.1'
 # ones.
 extensions = [
     'sphinx.ext.imgmath',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.napoleon',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -71,7 +78,7 @@ source_parsers = {
 
 from recommonmark.transform import AutoStructify
 
-github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
+github_doc_root = 'https://github.com/blue-oil/blueoil/tree/master/docs/'
 
 # The master toctree document.
 master_doc = 'index'
@@ -120,6 +127,11 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+# The name of an image file (relative to this directory) to use as a favicon of
+# the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+# pixels large.
+html_favicon = './_static/favicon.ico'
 
 
 # -- Options for HTMLHelp output ---------------------------------------------

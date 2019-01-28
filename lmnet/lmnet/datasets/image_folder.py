@@ -60,6 +60,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
         """Returns the classes list in the data set."""
 
         classes = os.listdir(self.data_dir)
+        classes = [class_name for class_name in classes if class_name != ".DS_Store"]
         classes.sort(key=lambda item: item.lower())
 
         return classes
