@@ -31,6 +31,7 @@ from lmnet.data_augmentor import (
 )
 from lmnet.pre_processor import (
     Resize,
+    PerPixelMeanSubtraction
 #    DivideBy255,
 #    PerImageStandardization
 )
@@ -76,6 +77,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
+    PerPixelMeanSubtraction(),
 #    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 POST_PROCESSOR = None
