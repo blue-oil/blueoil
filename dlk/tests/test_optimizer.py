@@ -247,11 +247,15 @@ class TestPassPackWeights(unittest.TestCase):
         data1 = np.float32(np.random.rand(1, 2, 2, 3))
         data2 = np.float32(np.random.rand(1, 2, 2, 3))
         graph1 = self.create_sample_graph(data1, data2)
-
         pass_pack_weights(graph1)
-
         self.assertEqual(graph1.get_op('conv2').input_ops['W'].op_type, 'Constant',
                          '[Failed] Found input kernel weights not a constant')
+
+        graph_2_1 = self.create_sample_graph_2(data1)
+        graph_2_2 = self.create_sample_graph_2(data1)
+        pass_pack_weights(graph_2_2)
+        self.assertEqual(graph_2_1, graph_2_2,
+                         '[Failed] Found optimized graph not the same')
 
         print("Test pass #4 pack_weights passed!")
 
@@ -280,6 +284,24 @@ class TestPassPackWeights(unittest.TestCase):
 
         # One output
         y = Output('output', [1, 3, 3, 3], Float32(), {'input': conv2})
+
+        # add ops to the graph
+        graph.add_op_and_inputs(y)
+
+        return graph
+
+    @staticmethod
+    def create_sample_graph_2(data1: np.ndarray) -> Graph:
+        graph = Graph()
+
+        # input
+        x = Input('placeholder', [1, 5, 5, 3], Float32())
+
+        # Conv1
+        w1 = Constant('weight1', Float32(), data1)
+        conv1 = Conv('conv1', [1, 4, 4, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+
+        y = Output('output', [1, 4, 4, 3], Float32(), {'input': conv1})
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
