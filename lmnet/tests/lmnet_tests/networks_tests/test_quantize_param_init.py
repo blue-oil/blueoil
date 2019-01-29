@@ -68,7 +68,7 @@ def test_quantized_layers():
         first_weight_quantizer = 'init/'+quantizer.first_layer_name+'kernel_1/binary_mean_scaling_quantizer'
         last_weight_quantizer = 'init/'+quantizer.last_layer_name+'kernel_1/binary_mean_scaling_quantizer'
 
-        base, graph = quantizer.base(tf.zeros([1, 32, 32, 1], True))
+        base, graph = quantizer.base(tf.zeros([1, 32, 32, 1]), True)
         assert graph.get_operation_by_name(first_weight_quantizer) is not None
         assert graph.get_operation_by_name(last_weight_quantizer) is not None
 
@@ -85,7 +85,7 @@ def test_quantized_layers():
             weight_quantizer=binary_mean_scaling_quantizer,
         )
 
-        base, graph = quantizer.base(tf.zeros([1, 32, 32, 1], True))
+        base, graph = quantizer.base(tf.zeros([1, 32, 32, 1]), True)
         assert graph.get_operation_by_name(first_weight_quantizer) is not None
 
         quantizer = model(
@@ -101,7 +101,7 @@ def test_quantized_layers():
             weight_quantizer=binary_mean_scaling_quantizer,
         )
 
-        base, graph = quantizer.base(tf.zeros([1, 32, 32, 1], True))
+        base, graph = quantizer.base(tf.zeros([1, 32, 32, 1]), True)
         assert graph.get_operation_by_name(last_weight_quantizer) is not None
 
 
