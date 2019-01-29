@@ -65,8 +65,12 @@ def test_quantized_layers():
             quantize_last_convolution=True,
             weight_quantizer=binary_mean_scaling_quantizer,
         )
+        first_weight_quantizer = 'init/'+self.quantizer.first_layer_name+'kernel_1/binary_mean_scaling_quantizer'
+        last_weight_quantizer = 'init/'+self.quantizer.last_layer_name+'kernel_1/binary_mean_scaling_quantizer'
 
-        assert tf.get_variable("block1/bn") is not None
+        base, graph=quantizer.base(tf.zeros([1,32,32,1], True))
+        assert graph.get_operation_by_name(first_weight_quantizer) is not None
+        assert graph.get_operation_by_name(last_weight_quantizer) is not None
 
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
@@ -81,6 +85,9 @@ def test_quantized_layers():
             weight_quantizer=binary_mean_scaling_quantizer,
         )
 
+        base, graph=quantizer.base(tf.zeros([1,32,32,1], True))
+        assert graph.get_operation_by_name(first_weight_quantizer) is not None
+
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
             is_debug=True,
@@ -93,6 +100,9 @@ def test_quantized_layers():
             quantize_last_convolution=True,
             weight_quantizer=binary_mean_scaling_quantizer,
         )
+
+        base, graph=quantizer.base(tf.zeros([1,32,32,1], True))
+        assert graph.get_operation_by_name(last_weight_quantizer) is not None
 
 
 if __name__ == '__main__':
