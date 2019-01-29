@@ -36,8 +36,8 @@ void func_Scale(T_INT input[], T_FLOAT factor, T_FLOAT output[],
       output[i] = (input[i] / power_of_two_minus_one) * factor;
     }
   } else if (input_bitwidth == 2) {
-    power_of_two_minus_one = 3.0;
-    T_FLOAT s = factor / power_of_two_minus_one * 2.0;
+    power_of_two_minus_one = 3.0f;
+    T_FLOAT s = factor / power_of_two_minus_one * 2.0f;
 
     for (T_UINT i = 0; i < elements; i++) {
       output[i] = input[i] * s;
