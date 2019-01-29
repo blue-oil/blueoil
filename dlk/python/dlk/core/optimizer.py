@@ -293,7 +293,8 @@ def pass_compute_thresholds(graph: Graph) -> None:
                         else int(math.ceil(th_per_ch))
 
         # take care of threshold values that are larger than 13-bit signed integer
-        threshold_table[abs(threshold_table) > max_th_value] = max_th_value
+        threshold_table[threshold_table > max_th_value] = max_th_value
+        threshold_table[threshold_table < -max_th_value] = -max_th_value
 
         for c in range(ch):
             threshold_table[c, -1] = 1 \
