@@ -414,7 +414,7 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             conv_node.dtype = QUANTIZED_NOT_PACKED()
 
         # change the output data type of the quantizers
-        conv_node.quantizer.dtype = Uint32
+        conv_node.quantizer.dtype = Uint32()
         for qtz in conv_node.a_quantizer:
             qtz.dtype = QUANTIZED_NOT_PACKED()
 
