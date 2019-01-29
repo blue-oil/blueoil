@@ -246,7 +246,7 @@ inline bool parse_bool(const std::string& in) {
   if (in == "False")
     return false;
 
-  throw std::runtime_error("Invalid python boolan.");
+  throw std::runtime_error("Invalid python boolean.");
 }
 
 /**
