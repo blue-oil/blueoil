@@ -2499,6 +2499,7 @@ class Pad(Operator):
         input A, assume input A has dimension of D the padded size of each dimension D
         of the output C is given by the formula below:
                 B[D, 0] + A.dim_size(D) + B[D, 1]
+        Note. currently only the channel-wise paddings are supported.
 
     Output
     ------
@@ -2520,6 +2521,8 @@ class Pad(Operator):
 
     def _check_consistency(self) -> None:
         super()._check_consistency()
+        self._assert(np.any(self.input_ops['B'].data[:-1]) == 0,
+                     f'{self.op_type}" {self.name}" only supports channel-wise paddings')
 
     @property
     def _dispatch_name(self) -> str:
