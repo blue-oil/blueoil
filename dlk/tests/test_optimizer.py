@@ -246,6 +246,7 @@ class TestPassPackWeights(unittest.TestCase):
         """Test pass."""
         data1 = np.float32(np.random.rand(1, 2, 2, 3))
         data2 = np.float32(np.random.rand(1, 2, 2, 3))
+
         graph1 = self.create_sample_graph(data1, data2)
         pass_pack_weights(graph1)
         self.assertEqual(graph1.get_op('conv2').input_ops['W'].op_type, 'Constant',
@@ -301,7 +302,10 @@ class TestPassPackWeights(unittest.TestCase):
         w1 = Constant('weight1', Float32(), data1)
         conv1 = Conv('conv1', [1, 4, 4, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
 
-        y = Output('output', [1, 4, 4, 3], Float32(), {'input': conv1})
+        s1 = Constant('const1', Float32(), np.zeros([1, 4, 4, 3]))
+        add1 = Add('add', [1, 4, 4, 3], Float32(), {'A': conv1, 'B': s1})
+
+        y = Output('output', [1, 4, 4, 3], Float32(), {'input': add1})
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
