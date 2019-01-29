@@ -22,7 +22,7 @@ void func_RealDiv(T_FLOAT input[], T_FLOAT factor, T_FLOAT output[],
                   T_UINT out_height, T_UINT out_width, T_UINT out_depth) {
   Measurement::Start("RealDiv");
 
-  T_FLOAT inv = 1.0 / factor;
+  T_FLOAT inv = 1.0f / factor;
   func_Mul(input, inv, output, out_height, out_width, out_depth);
 
   Measurement::Stop();
