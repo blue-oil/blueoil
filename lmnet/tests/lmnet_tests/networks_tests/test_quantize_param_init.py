@@ -43,15 +43,17 @@ def test_required_arguments():
 
 def test_quantized_layers():
     model_classes = [
-        # LmnetV0Quantize,
-        # LmnetV1Quantize,
+        LmnetV0Quantize,
+        LmnetV1Quantize,
         DarknetQuantize,
-        # LMFYoloQuantize,
-        # YoloV2Quantize,
-        # LmSegnetV0Quantize,
-        # LmSegnetV1Quantize,
+        LMFYoloQuantize,
+        YoloV2Quantize,
+        LmSegnetV0Quantize,
+        LmSegnetV1Quantize,
     ]
 
+    quantizer_name = "QTZ_binary_channel_wise_mean_scaling"
+    
     for model in model_classes:
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
@@ -65,12 +67,11 @@ def test_quantized_layers():
             quantize_last_convolution=True,
             weight_quantizer=binary_mean_scaling_quantizer,
         )
-        first_weight_quantizer = 'init/'+quantizer.first_layer_name+'kernel_1/binary_mean_scaling_quantizer'
-        last_weight_quantizer = 'init/'+quantizer.last_layer_name+'kernel_1/binary_mean_scaling_quantizer'
 
         base, graph = quantizer.base(tf.zeros([1, 32, 32, 1]), True)
-        assert graph.get_operation_by_name(first_weight_quantizer) is not None
-        assert graph.get_operation_by_name(last_weight_quantizer) is not None
+        op_name_list = [op.name for op in graph.get_operations()]
+        assert any(quantizer.first_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
+        assert any(quantizer.last_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
 
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
@@ -86,7 +87,9 @@ def test_quantized_layers():
         )
 
         base, graph = quantizer.base(tf.zeros([1, 32, 32, 1]), True)
-        assert graph.get_operation_by_name(first_weight_quantizer) is not None
+        op_name_list = [op.name for op in graph.get_operations()]
+        assert any(quantizer.first_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
+        assert not any(quantizer.last_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
 
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
@@ -102,7 +105,9 @@ def test_quantized_layers():
         )
 
         base, graph = quantizer.base(tf.zeros([1, 32, 32, 1]), True)
-        assert graph.get_operation_by_name(last_weight_quantizer) is not None
+        op_name_list = [op.name for op in graph.get_operations()]
+        assert not any(quantizer.first_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
+        assert any(quantizer.last_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
 
 
 if __name__ == '__main__':
