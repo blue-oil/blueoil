@@ -53,7 +53,7 @@ def test_quantized_layers():
     ]
 
     quantizer_name = "QTZ_binary_channel_wise_mean_scaling"
-    
+
     for model in model_classes:
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
