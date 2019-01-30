@@ -2521,7 +2521,7 @@ class Pad(Operator):
 
     def _check_consistency(self) -> None:
         super()._check_consistency()
-        self._assert(np.any(self.input_ops['B'].data[:-1]) == 0,
+        self._assert(np.all(self.input_ops['B'].data[:-1] == 0),
                      f'{self.op_type}" {self.name}" only supports channel-wise paddings')
 
     @property
@@ -2572,7 +2572,7 @@ class MatMul(Operator):
                  dtype: DataType,
                  input_ops: Ops,
                  dimension_format: str = 'NHWC') -> None:
-        """Init the split operator."""
+        """Init the MatMul operator."""
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
