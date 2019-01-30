@@ -224,8 +224,6 @@ def _blueoil_to_lmnet(blueoil_config):
     # quantize first layer
     quantize_first_convolution = blueoil_config["network"]["quantize_first_convolution"]
 
-    quantize_last_convolution = blueoil_config["network"]["quantize_last_convolution"]
-
     config = {
         "model_name": model_name,
         "template_file": template_file,
@@ -247,7 +245,6 @@ def _blueoil_to_lmnet(blueoil_config):
         "classes": classes,
 
         "quantize_first_convolution": quantize_first_convolution,
-        "quantize_last_convolution": quantize_last_convolution,
 
         "dataset": dataset,
         "data_augmentation": data_augmentation

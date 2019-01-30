@@ -33,7 +33,6 @@ def test_required_arguments():
             data_format='NHWC',
             image_size=[128, 128],
             optimizer_class=tf.train.GradientDescentOptimizer,
-            quantize_first_convolution=True,
             weight_quantizer=binary_mean_scaling_quantizer,
         )
 
@@ -69,9 +68,9 @@ def test_quantized_layers():
         )
 
         base, graph = quantizer.base(tf.zeros([1, 32, 32, 1]), True)
-        op_name_list = [op.name for op in graph.get_operations()]
-        assert any(quantizer.first_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
-        assert any(quantizer.last_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
+        # get name of all operations using kernel and check that those operations are quantized
+        op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
+        assert all(quantizer_name in op_name for op_name in op_name_list)
 
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
@@ -87,9 +86,10 @@ def test_quantized_layers():
         )
 
         base, graph = quantizer.base(tf.zeros([1, 32, 32, 1]), True)
-        op_name_list = [op.name for op in graph.get_operations()]
-        assert any(quantizer.first_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
+        op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         assert not any(quantizer.last_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
+        op_name_list = [op_name for op_name in op_name_list if quantizer.last_layer_name not in op_name]
+        assert all(quantizer_name in op_name for op_name in op_name_list)
 
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
@@ -105,9 +105,10 @@ def test_quantized_layers():
         )
 
         base, graph = quantizer.base(tf.zeros([1, 32, 32, 1]), True)
-        op_name_list = [op.name for op in graph.get_operations()]
+        op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         assert not any(quantizer.first_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
-        assert any(quantizer.last_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
+        op_name_list = [op_name for op_name in op_name_list if quantizer.first_layer_name not in op_name]
+        assert all(quantizer_name in op_name for op_name in op_name_list)
 
 
 if __name__ == '__main__':

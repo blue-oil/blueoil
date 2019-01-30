@@ -21,7 +21,6 @@ trainer:
 
 network:
   quantize_first_convolution: yes
-  quantize_last_convolution: yes
 
 common:
   image_size:
