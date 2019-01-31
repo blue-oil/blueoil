@@ -11,7 +11,7 @@ dataset:
 trainer:
   batch_size: {{ batch_size }}
   epochs: {{ training_epochs }}
-  # supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
+  # supported 'optimizer' is 'Momentum', 'Adam' currently.
   # Momentum
   #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
   # Adam

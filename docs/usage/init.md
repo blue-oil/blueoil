@@ -60,12 +60,14 @@ You can choose optimizer from Adam or Momentum. Each optimizer uses TensorFlow i
 generated yaml:
 
 ```
-  # supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
+trainer:
+  ...
+  # supported 'optimizer' is 'Momentum', 'Adam' currently.
   # Momentum
   #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
   # Adam
   #    https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
-  optimizer: AdamOptimizer
+  optimizer: Adam
 ```
 
 Blueoil use this optimizers with your input learning rate. Other values are TensorFlow default described in TensorFlow documentation.
