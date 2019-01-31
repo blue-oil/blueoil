@@ -51,3 +51,21 @@ common:
 ```
 
 Please see <a href="../reference/data_augmentor.html">the data augmentor reference page</a>, when you want to know about augmentation methods. the all of augmentation methods and parameter are explained, methods name in generated yaml correspond to class name under `lmnet.data_augmentor` in the reference.
+
+
+#### optimizer
+
+You can choose optimizer from Adam or Momentum. Each optimizer uses TensorFlow implementation. Please see TensorFlow documentation, [AdamOptimizer](https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer) and [MomentumOptimizer](https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer).
+
+generated yaml:
+
+```
+  # supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
+  # Momentum
+  #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
+  # Adam
+  #    https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
+  optimizer: AdamOptimizer
+```
+
+Blueoil use this optimizers with your input learning rate. Other values are TensorFlow default described in TensorFlow documentation.

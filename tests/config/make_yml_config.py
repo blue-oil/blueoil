@@ -104,17 +104,15 @@ trainer_optimizer_comment = """\
   # supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
   # Momentum
   #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
-  # SGD
-  #    https://www.tensorflow.org/api_docs/python/tf/train/GradientDescentOptimizer
   # Adam
   #    https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
 """
 
 trainer_optimizers = [
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
+    '  optimizer: AdamOptimizer\n',
+    '  optimizer: AdamOptimizer\n',
+    '  optimizer: AdamOptimizer\n',
+    '  optimizer: AdamOptimizer\n',
     '  optimizer: MomentumOptimizer\n',
     '  optimizer: MomentumOptimizer\n',
     '  optimizer: MomentumOptimizer\n',
