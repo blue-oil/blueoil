@@ -26,7 +26,7 @@ class Resnet20(Base):
 
     def __init__(
             self,
-            optimizer_class=tf.train.GradientDescentOptimizer,
+            optimizer_class=tf.train.MomentumOptimizer,
             optimizer_kwargs={},
             learning_rate_func=None,
             learning_rate_kwargs={},

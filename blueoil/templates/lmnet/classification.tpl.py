@@ -31,9 +31,9 @@ from lmnet.data_augmentor import (
 )
 from lmnet.pre_processor import (
     Resize,
-    PerPixelMeanSubtraction
-#    DivideBy255,
-#    PerImageStandardization
+    #PerPixelMeanSubtraction
+    DivideBy255,
+    PerImageStandardization
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -77,8 +77,8 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    PerPixelMeanSubtraction(),
-#    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
+    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
+    #PerPixelMeanSubtraction(),
 ])
 POST_PROCESSOR = None
 
@@ -127,7 +127,7 @@ else:
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
-NETWORK.WEIGHT_DECAY_RATE = 0.0001
+NETWORK.WEIGHT_DECAY_RATE = 0.0002
 #0.0005
 
 # quantize
@@ -148,9 +148,9 @@ DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
     Resize(size=IMAGE_SIZE),
-#    Pad(4),
+    Pad(4),
     Crop(size=IMAGE_SIZE),
-#    FlipLeftRight(),
+    FlipLeftRight(),
 #    Brightness((0.75, 1.25)),
 #    Color((0.75, 1.25)),
 #    Contrast((0.75, 1.25)),
