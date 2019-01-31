@@ -1294,13 +1294,27 @@ class BatchNormalization(Operator):
                  input_ops: Ops,
                  dimension_format: str = 'NHWC',
                  epsilon: float = float(10 ** -5),
-                 is_test: bool = False) -> None:
+                 is_test: bool = False,
+                 scale_data: np.ndarray = None,
+                 shift_data: np.ndarray = None) -> None: #konda
         """Init the batch normalization operator."""
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
         self._epsilon = epsilon
         self.is_test = is_test
+        self._scale_data = scale_data
+        self._shift_data = shift_data
         # self.momentum = momentum
         # self.spatial = spatial
+
+    @property
+    def shift_data(self) -> np.ndarray:
+        """Return shift data."""
+        return self._shift_data
+
+    @property
+    def scale_data(self) -> np.ndarray:
+        """Return scale data."""
+        return self._scale_data
 
     def _check_consistency(self) -> None:
         super()._check_consistency()

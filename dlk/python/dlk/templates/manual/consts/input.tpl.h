@@ -26,6 +26,14 @@ extern {{ node.dtype.cpptype() }} {{ node.name }};
 
 extern {{ node.dtype.cpptype() }} {{ node.name }}[];
 
+{% if node.scale_data %}
+extern {{ node.dtype.cpptype() }} {{ node.name }}_scale[];
+{%- endif %}
+
+{% if node.shift_data %}
+extern {{ node.dtype.cpptype() }} {{ node.name }}_shift[];
+{%- endif %}
+
 {%- endif %}
 
 

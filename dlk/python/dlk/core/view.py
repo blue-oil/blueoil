@@ -603,12 +603,18 @@ class View(object):
             if len(input_ops) != 5:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            for k, x in input_ops.items():
+                if 'X' in k:
+                    inputs_string = inputs_string + str(x.name) + ', '
+                elif 'scale' in k:
+                    inputs_string = inputs_string + str(x.name) + '_scale, '
+                elif 'B' in k: 
+                    inputs_string = inputs_string + str(x.name) + '_shift'
             shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
                 f"""
-                func_BatchNormalization({inputs_string}, {op.epsilon}, {op.name}, {shape_string});
+                func_BatchNormalization({inputs_string}, {op.name}, {shape_string});
                 """
             )
 

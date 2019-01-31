@@ -64,7 +64,15 @@ def node_is_weight_quantizer(node: Operator) -> bool:
 def node_is_activation_quantizer(node: Operator) -> bool:
     return node.op_type == 'QTZ_linear_mid_tread_half'
 
-
+def shift_calc(scales: np.ndarray,
+               betas: np.ndarray,
+               means: np.ndarray) -> np.ndarray:
+    size = len(scales)
+    shift_value = np.array([0] * size)
+    for i in range(size):
+        shift_value[i] = betas[i] - (scales[i] * means[i])
+    return shift_value
+    
 class NHWC_Transposer(GraphRunner):
     """Transposer of all nodes to NHWC."""
 
@@ -223,7 +231,7 @@ class PreComputeRunner(GraphRunner):
         else:
             self._precomp_dic[node.name] = False
 
-            # prune input opetarots
+            # prune input operators
             for key, op in zip(node.input_names, ops):
                 if self._is_prunable(op):
                     # get scaling factor if it is to be quantized but not in hard quantization mode
@@ -282,6 +290,50 @@ class PreComputeRunner(GraphRunner):
             self._quantizers[node.name] = node  # add itself as the quantizer
         else:
             self._precomp_dic[node.name] = False
+
+    def run_forward_batch_normalization(self, node: BatchNormalization, **kwargs: Any) -> None:
+        ops: List[Operator] = [node.input_ops[i] for i in node.input_names if node.input_ops.get(i)]
+        betas = node._input_ops['B'].data
+        means = node._input_ops['mean'].data
+        scale = node._input_ops['scale'].data
+        ops_have_precomp_values = list(map(lambda x: self._has_precompute_value(x), ops))
+
+        # check which input node can be pruned
+        if reduce(lambda x, y: x and y, ops_have_precomp_values):  # all input has concrete values
+            node.run_forward()
+            self._precomp_dic[node.name] = True  # this node can be pruned
+        else:
+            self._precomp_dic[node.name] = False  # this node cannot be pruned        
+            # prune input operators
+            for key, op in zip(node.input_names, ops):                
+                if self._is_prunable(op):
+                if "B" in op.name:
+                    dtype = op.dtype
+                    shape = op.shape
+                    new_op = Constant(
+                    op.name + '_shift',
+                        dtype,
+                        shift_calc(scale, betas, means)
+                    )
+                    node.add_input(key, new_op)
+                    self._graph.add_op(new_op)
+
+                        self._prune(op)
+                elif "scale" in op.name:
+                    dtype = op.dtype
+                    shape = op.shape
+                    new_op = Constant(
+                        op.name + '_scale',
+                        dtype,
+                        scale
+                    )
+                    node.add_input(key, new_op)
+                    self._graph.add_op(new_op)
+                    if self._is_prunable(op):                    
+                        self._prune(op)
+                else:
+                    if self._is_prunable(op):                    
+                        self._prune(op)
 
     def run_forward_conv(self, node: Conv, **kwargs: Any) -> None:
         ops: List[Operator] = [node.input_ops[i] for i in node.input_names if node.input_ops.get(i)]
