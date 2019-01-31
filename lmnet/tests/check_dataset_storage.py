@@ -146,7 +146,7 @@ def test_pascalvoc_2007():
     batch_size = 3
     image_size = [256, 512]
 
-    num_max_boxes = 42
+    num_max_boxes = 37
     num_train = 2501
     num_validation = 2510
     num_test = 4952
@@ -212,6 +212,79 @@ def test_pascalvoc_2007():
         assert labels.shape[2] == 5
 
 
+def test_pascalvoc_2007_not_skip_difficult():
+    batch_size = 3
+    image_size = [256, 512]
+
+    num_max_boxes = 42
+    num_train = 2501
+    num_validation = 2510
+    num_test = 4952
+
+    assert Pascalvoc2007.count_max_boxes(skip_difficult=False) == num_max_boxes
+
+    dataset = Pascalvoc2007(batch_size=batch_size,
+                            pre_processor=ResizeWithGtBoxes(image_size),
+                            skip_difficult=False)
+    assert dataset.num_per_epoch == num_train
+
+    val_dataset = Pascalvoc2007(
+        subset="validation",
+        batch_size=batch_size,
+        pre_processor=ResizeWithGtBoxes(image_size),
+        skip_difficult=False)
+    assert val_dataset.num_per_epoch == num_validation
+
+    test_dataset = Pascalvoc2007(
+        subset="test",
+        batch_size=batch_size,
+        pre_processor=ResizeWithGtBoxes(image_size),
+        skip_difficult=False)
+    assert test_dataset.num_per_epoch == num_test
+
+    for _ in range(STEP_SIZE):
+        images, labels = dataset.feed()
+
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == batch_size
+        assert images.shape[1] == image_size[0]
+        assert images.shape[2] == image_size[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == batch_size
+        assert labels.shape[1] == num_max_boxes
+        assert labels.shape[2] == 5
+
+    for _ in range(STEP_SIZE):
+        images, labels = val_dataset.feed()
+
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == batch_size
+        assert images.shape[1] == image_size[0]
+        assert images.shape[2] == image_size[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == batch_size
+        assert labels.shape[1] == num_max_boxes
+        assert labels.shape[2] == 5
+
+    for _ in range(STEP_SIZE):
+        images, labels = test_dataset.feed()
+
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == batch_size
+        assert images.shape[1] == image_size[0]
+        assert images.shape[2] == image_size[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == batch_size
+        assert labels.shape[1] == num_max_boxes
+        assert labels.shape[2] == 5
+
+
 class TargetClassesPascalvoc2007(Pascalvoc2007):
     """Target classes are 'aeroplane', 'tvmonitor'"""
     classes = ['aeroplane', 'tvmonitor']
@@ -219,17 +292,17 @@ class TargetClassesPascalvoc2007(Pascalvoc2007):
     @property
     def num_max_boxes(self):
         cls = self.__class__
-        return cls.count_max_boxes()
+        return cls.count_max_boxes(self.skip_difficult)
 
 
 def test_pascalvoc_2007_with_target_classes():
     batch_size = 3
     image_size = [256, 512]
 
-    num_max_boxes = 14
-    num_train = 256
-    num_validation = 262
-    num_test = 460
+    num_max_boxes = 12
+    num_train = 240
+    num_validation = 254
+    num_test = 433
 
     assert TargetClassesPascalvoc2007.count_max_boxes() == num_max_boxes
 
@@ -293,7 +366,7 @@ def test_pascalvoc_2012():
     image_size = [256, 512]
     dataset = Pascalvoc2012(batch_size=batch_size,
                             pre_processor=ResizeWithGtBoxes(image_size))
-    num_max_boxes = 56
+    num_max_boxes = 39
 
     assert dataset.num_max_boxes == num_max_boxes
     assert Pascalvoc2012.count_max_boxes() == num_max_boxes
@@ -340,7 +413,7 @@ def test_pascalvoc_2007_2012():
     dataset = Pascalvoc20072012(
         batch_size=batch_size,
         pre_processor=ResizeWithGtBoxes(image_size))
-    num_max_boxes = 56
+    num_max_boxes = 39
 
     num_train_val_2007 = 2501 + 2510
     num_train_val_2012 = 5717 + 5823
@@ -352,6 +425,58 @@ def test_pascalvoc_2007_2012():
 
     val_dataset = Pascalvoc20072012(subset="validation", batch_size=batch_size,
                                     pre_processor=ResizeWithGtBoxes(image_size))
+    assert val_dataset.num_per_epoch == num_test_2007
+
+    for _ in range(STEP_SIZE):
+        images, labels = dataset.feed()
+        # _show_images_with_boxes(images, labels)
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == batch_size
+        assert images.shape[1] == image_size[0]
+        assert images.shape[2] == image_size[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == batch_size
+        assert labels.shape[1] == num_max_boxes
+        assert labels.shape[2] == 5
+
+    for _ in range(STEP_SIZE):
+        images, labels = val_dataset.feed()
+        # _show_images_with_boxes(images, labels)
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == batch_size
+        assert images.shape[1] == image_size[0]
+        assert images.shape[2] == image_size[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == batch_size
+        assert labels.shape[1] == num_max_boxes
+        assert labels.shape[2] == 5
+
+
+def test_pascalvoc_2007_2012_no_skip_difficult():
+    batch_size = 3
+    image_size = [256, 512]
+    dataset = Pascalvoc20072012(
+        batch_size=batch_size,
+        pre_processor=ResizeWithGtBoxes(image_size),
+        skip_difficult=False,
+    )
+    num_max_boxes = 56
+
+    num_train_val_2007 = 2501 + 2510
+    num_train_val_2012 = 5717 + 5823
+    num_test_2007 = 4952
+
+    assert dataset.num_max_boxes == num_max_boxes
+    assert Pascalvoc20072012.count_max_boxes(skip_difficult=False) == num_max_boxes
+    assert dataset.num_per_epoch == num_train_val_2007 + num_train_val_2012
+
+    val_dataset = Pascalvoc20072012(subset="validation", batch_size=batch_size,
+                                    pre_processor=ResizeWithGtBoxes(image_size),
+                                    skip_difficult=False)
     assert val_dataset.num_per_epoch == num_test_2007
 
     for _ in range(STEP_SIZE):
@@ -706,9 +831,11 @@ if __name__ == '__main__':
     test_cifar10()
     test_camvid()
     test_pascalvoc_2007()
+    test_pascalvoc_2007_not_skip_difficult()
     test_pascalvoc_2007_with_target_classes()
     test_pascalvoc_2012()
     test_pascalvoc_2007_2012()
+    test_pascalvoc_2007_2012_no_skip_difficult()
     test_lm_things_of_a_table()
     test_mscoco()
     test_mscoco_object_detection()
