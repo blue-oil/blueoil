@@ -296,9 +296,9 @@ def ask_questions():
         'type': 'rawlist',
         'name': 'value',
         'message': 'select optimizer:',
-        'choices': ['MomentumOptimizer',
-                    'AdamOptimizer'],
-        'default': 'MomentumOptimizer'
+        'choices': ['Momentum',
+                    'Adam'],
+        'default': 'Momentum'
     }
     training_optimizer = prompt(training_optimizer_question)
 
