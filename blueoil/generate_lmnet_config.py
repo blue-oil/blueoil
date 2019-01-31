@@ -147,9 +147,7 @@ def _blueoil_to_lmnet(blueoil_config):
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
     optimizer  = blueoil_config["trainer"]["optimizer"]
-    if optimizer == 'GradientDescentOptimizer':
-        optimizer_class = "tf.train.GradientDescentOptimizer"
-    elif optimizer == 'AdamOptimizer':
+    if optimizer == 'AdamOptimizer':
         optimizer_class = "tf.train.AdamOptimizer"
     elif optimizer == 'MomentumOptimizer':
         optimizer_class = "tf.train.MomentumOptimizer"
