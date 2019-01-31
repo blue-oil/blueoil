@@ -52,6 +52,7 @@ def test_quantized_layers():
     ]
 
     quantizer_name = "QTZ_binary_channel_wise_mean_scaling"
+    dummy_img = tf.ones([10, 32, 32, 3])
 
     for model in model_classes:
         quantizer = model(
@@ -67,7 +68,7 @@ def test_quantized_layers():
             weight_quantizer=binary_mean_scaling_quantizer,
         )
 
-        base, graph = quantizer.base(tf.ones([1, 32, 32, 1]), True)
+        base, graph = quantizer.base(dummy_img, True)
         # get name of all operations using kernel and check that those operations are quantized
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         assert all(quantizer_name in op_name for op_name in op_name_list)
@@ -85,7 +86,7 @@ def test_quantized_layers():
             weight_quantizer=binary_mean_scaling_quantizer,
         )
 
-        base, graph = quantizer.base(tf.ones([1, 32, 32, 1]), True)
+        base, graph = quantizer.base(dummy_img, True)
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         assert not any(quantizer.last_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
         op_name_list = [op_name for op_name in op_name_list if quantizer.last_layer_name not in op_name]
@@ -104,7 +105,7 @@ def test_quantized_layers():
             weight_quantizer=binary_mean_scaling_quantizer,
         )
 
-        base, graph = quantizer.base(tf.ones([1, 32, 32, 1]), True)
+        base, graph = quantizer.base(dummy_img, True)
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         assert not any(quantizer.first_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
         op_name_list = [op_name for op_name in op_name_list if quantizer.first_layer_name not in op_name]
