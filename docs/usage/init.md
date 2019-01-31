@@ -70,4 +70,4 @@ trainer:
   optimizer: Adam
 ```
 
-Blueoil use this optimizers with your input learning rate. Other values are TensorFlow default described in TensorFlow documentation.
+Blueoil use this optimizers with your input learning rate for both Adam and Momentum, `momentum=0.9` for Momentum. Other values are TensorFlow default described in TensorFlow documentation.
