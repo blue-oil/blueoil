@@ -297,7 +297,6 @@ def ask_questions():
         'name': 'value',
         'message': 'select optimizer:',
         'choices': ['MomentumOptimizer',
-                    'GradientDescentOptimizer',
                     'AdamOptimizer'],
         'default': 'MomentumOptimizer'
     }

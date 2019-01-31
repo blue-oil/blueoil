@@ -14,8 +14,6 @@ trainer:
   # supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
   # Momentum
   #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
-  # SGD
-  #    https://www.tensorflow.org/api_docs/python/tf/train/GradientDescentOptimizer
   # Adam
   #    https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
   optimizer: MomentumOptimizer
