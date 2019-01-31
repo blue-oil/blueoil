@@ -671,7 +671,7 @@ class YoloV2(BaseNetwork):
 
     def inference(self, images, is_training):
         tf.summary.histogram("images", images)
-        base = self.base(images, is_training)
+        base, _ = self.base(images, is_training)
         self.output = tf.identity(base, name="output")
         return self.output
 
