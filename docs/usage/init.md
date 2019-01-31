@@ -34,7 +34,7 @@ You don't need to re-run `bluoil init` again.
 #### data augmentation
 You can use various augmentation methods in generated YAML, also you can change augmentation methods's parameter.
 Under `commmon.data_augmentation` in generated yaml, augmentation methods are listed and the parameters are nested in each methods.
-
+```
 
 generated yaml:
 ```
