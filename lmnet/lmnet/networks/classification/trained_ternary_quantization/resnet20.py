@@ -59,9 +59,14 @@ class Resnet20(Base):
         use_bias = False
 
         with tf.variable_scope('sub1'):
+            bn1 = batch_norm("bn1", inputs, is_training=is_training)
+
+            with tf.variable_scope('relu1'):
+                relu1 = tf.nn.relu(bn1, name="relu1")
+
             conv1 = conv2d(
                 "conv1",
-                inputs,
+                relu1,
                 filters=out_filters,
                 kernel_size=3,
                 activation=None,
@@ -69,16 +74,17 @@ class Resnet20(Base):
                 strides=strides,
                 is_debug=self.is_debug,
             )
-            bn1 = batch_norm("bn1", conv1, is_training=is_training)
-
-            with tf.variable_scope('relu1'):
-                relu1 = tf.nn.relu(bn1, name="relu1")
             
 
         with tf.variable_scope('sub2'):
+            bn2 = batch_norm("bn2", conv1, is_training=is_training)
+
+            with tf.variable_scope('relu2'):
+                relu2 = tf.nn.relu(bn2, name='relu2')
+
             conv2 = conv2d(
                 "conv2",
-                relu1,
+                relu2,
                 filters=out_filters,
                 kernel_size=3,
                 activation=None,
@@ -86,26 +92,22 @@ class Resnet20(Base):
                 strides=1,
                 is_debug=self.is_debug,
             )
-            bn2 = batch_norm("bn2", conv2, is_training=is_training)
 
-            with tf.variable_scope('sub_add'):
-                if in_filters != out_filters:
-                    inputs = tf.nn.avg_pool(
-                        inputs,
-                        ksize=[1, strides, strides, 1],
-                        strides=[1, strides, strides, 1],
-                        padding='SAME'
-                    )
-                    inputs = tf.pad(
-                        inputs,
-                        [[0, 0], [0, 0], [0, 0], [(out_filters - in_filters)//2, (out_filters - in_filters)//2]]
-                    )
+        with tf.variable_scope('sub_add'):
+            if in_filters != out_filters:
+                inputs = tf.nn.avg_pool(
+                    inputs,
+                    ksize=[1, strides, strides, 1],
+                    strides=[1, strides, strides, 1],
+                    padding='SAME'
+                )
+                inputs = tf.pad(
+                    inputs,
+                    [[0, 0], [0, 0], [0, 0], [(out_filters - in_filters)//2, (out_filters - in_filters)//2]]
+                )
+            output = conv2 + inputs
 
-            output = bn2 + inputs
-            with tf.variable_scope('relu2'):
-                relu2 = tf.nn.relu(output, name='relu2')
-
-        return relu2
+        return output
 
     def base(self, images, is_training):
         use_bias = False
@@ -123,15 +125,15 @@ class Resnet20(Base):
                 is_debug=self.is_debug,
             )
 
-            self.bn1 = batch_norm("bn1", self.conv1, is_training=is_training)
-            with tf.variable_scope("relu1"):
-                self.relu1 = tf.nn.relu(self.bn1)
+            #self.bn1 = batch_norm("bn1", self.conv1, is_training=is_training)
+            #with tf.variable_scope("relu1"):
+            #    self.relu1 = tf.nn.relu(self.bn1)
             #self.pool1 = max_pooling2d("init_max_pool", self.relu1, 2, strides=2, padding="SAME")
 
         for i in range(0, self.num_residual):
             with tf.variable_scope("unit1_{}".format(i)):
                 if i == 0:
-                    out = self._residual(self.relu1, in_filters=16, out_filters=16, strides=1, is_training=is_training)
+                    out = self._residual(self.conv1, in_filters=16, out_filters=16, strides=1, is_training=is_training)
                 else:
                     out = self._residual(out, in_filters=16, out_filters=16, strides=1, is_training=is_training)
 
@@ -149,12 +151,10 @@ class Resnet20(Base):
                 else:
                     out = self._residual(out, in_filters=64, out_filters=64, strides=1, is_training=is_training)
 
-        #for i in range(0, self.num_residual):
-        #    with tf.variable_scope("unit4_{}".format(i)):
-        #        if i == 0:
-        #            out = self._residual(out, in_filters=256, out_filters=512, strides=2, is_training=is_training)
-        #        else:
-        #            out = self._residual(out, in_filters=512, out_filters=512, strides=1, is_training=is_training)
+        out = batch_norm("bn_out", out, is_training=is_training)
+
+        with tf.variable_scope('relu_out'):
+            out = tf.nn.relu(out, name='relu_out')
 
         # global average pooling
         h = out.get_shape()[1].value

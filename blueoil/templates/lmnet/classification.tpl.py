@@ -28,12 +28,13 @@ from lmnet.data_augmentor import (
     Color,
     Contrast,
     Hue,
+    PerPixelMeanSubtraction,
 )
 from lmnet.pre_processor import (
     Resize,
-    #PerPixelMeanSubtraction
-    DivideBy255,
-    PerImageStandardization
+    #DivideBy255,
+    #PerImageStandardization,
+    DivideBy128,
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -76,9 +77,9 @@ PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
-    Resize(size=IMAGE_SIZE),
-    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
-    #PerPixelMeanSubtraction(),
+    DivideBy128(),
+    #Resize(size=IMAGE_SIZE),
+    #{% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 POST_PROCESSOR = None
 
@@ -119,7 +120,7 @@ elif '{{learning_rate_setting}}' == 'resnet':
 elif '{{learning_rate_setting}}' == 'resnet_cifar10':
     NETWORK.LEARNING_RATE_KWARGS = {
         "values": [{{initial_learning_rate}}, {{initial_learning_rate}} / 10, {{initial_learning_rate}}/100, {{initial_learning_rate}}/1000],
-        "boundaries": [ int(500*80), int(500*120), int(500*300) ],
+        "boundaries": [ int(391*80), int(391*120), int(391*300) ],
     }
 else:
     raise ValueError
@@ -147,10 +148,11 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
-    Resize(size=IMAGE_SIZE),
     Pad(4),
+    #Resize(size=IMAGE_SIZE),
     Crop(size=IMAGE_SIZE),
     FlipLeftRight(),
+    PerPixelMeanSubtraction(),
 #    Brightness((0.75, 1.25)),
 #    Color((0.75, 1.25)),
 #    Contrast((0.75, 1.25)),

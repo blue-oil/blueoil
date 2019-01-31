@@ -866,6 +866,25 @@ class Rotate(data_processor.Processor):
         return dict({'image': img_rot, 'mask': mask}, **kwargs)
 
 
+class PerPixelMeanSubtraction(data_processor.Processor):
+    """Subtract each pixel with mean of that pixel among all channels
+        e.g. pixel[0,0,:] -= mean(pixel[0,0,:])
+    Use :func:`~per_pixel_mean_subtraction` inside.
+    """
+    def __call__(self, image, **kwargs):
+        """
+        Args:
+             image: An image numpy array
+        """
+        image = image.astype(np.float32)
+        per_pixel_mean = image.mean(axis=-1)
+        image = image.transpose([2,0,1])
+        image -= per_pixel_mean
+        image = image.transpose([1,2,0])
+
+        return dict({'image': image}, **kwargs)
+
+
 # TODO(wakisaka): implement class
 def color_filter(img):
     red = randint(0, 255) / 255
