@@ -1013,7 +1013,7 @@ class YoloV2(BaseNetwork):
             # with tf.control_dependencies([assert_num_cell_x, assert_num_cell_y]):
             output = self.conv_23
 
-        return output
+        return output, tf.get_default_graph()
 
 
 class YoloV2Loss:
