@@ -16,7 +16,7 @@ TEST_LOG_NO=0
 FAILED_TEST_NO=""
 
 # list of avairable optimizers listed in blueoil_init.py
-OPTIMIZSERS=("MomentumOptimizer" "AdamOptimizer")
+OPTIMIZSERS=("Momentum" "Adam")
 
 function usage_exit(){
 	echo ""
