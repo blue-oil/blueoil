@@ -15,6 +15,7 @@
 # =============================================================================
 import tensorflow as tf
 import functools
+import numpy as np
 
 from lmnet.networks.classification.base import Base
 from lmnet.networks.base_quantize import BaseQuantize
@@ -70,9 +71,10 @@ class Resnet20(Base):
                 filters=out_filters,
                 kernel_size=3,
                 activation=None,
-                use_bias=use_bias,
+                use_bias=False,
                 strides=strides,
                 is_debug=self.is_debug,
+                kernel_initializer=tf.random_normal_initializer(stddev=np.sqrt(2.0/9/out_filters)),
             )
             
 
@@ -88,9 +90,10 @@ class Resnet20(Base):
                 filters=out_filters,
                 kernel_size=3,
                 activation=None,
-                use_bias=use_bias,
+                use_bias=False,
                 strides=1,
                 is_debug=self.is_debug,
+                kernel_initializer=tf.random_normal_initializer(stddev=np.sqrt(2.0/9/out_filters)),
             )
 
         with tf.variable_scope('sub_add'):
@@ -121,8 +124,9 @@ class Resnet20(Base):
                 filters=16,
                 kernel_size=3,
                 activation=None,
-                use_bias=use_bias,
+                use_bias=False,
                 is_debug=self.is_debug,
+                kernel_initializer=tf.random_normal_initializer(stddev=np.sqrt(2.0/9/16)),
             )
 
             #self.bn1 = batch_norm("bn1", self.conv1, is_training=is_training)
@@ -186,8 +190,8 @@ class Resnet20(Base):
         )
         cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
 
-        fc_regularized_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-        loss = cross_entropy_mean + self._decay() + sum(fc_regularized_loss)
+        #fc_regularized_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        loss = cross_entropy_mean + self._decay() #+ sum(fc_regularized_loss)
         tf.summary.scalar("loss", loss)
         return loss
 

@@ -32,9 +32,9 @@ from lmnet.data_augmentor import (
 )
 from lmnet.pre_processor import (
     Resize,
-    #DivideBy255,
+    DivideBy255,
     #PerImageStandardization,
-    DivideBy128,
+    #DivideBy128,
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -78,7 +78,7 @@ PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
-    DivideBy128(),
+    DivideBy255(),
     #Resize(size=IMAGE_SIZE),
     #{% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
