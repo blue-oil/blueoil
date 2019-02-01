@@ -18,15 +18,11 @@ from multiprocessing import Pool
 
 import PIL
 import numpy as np
-from os.path import isfile, join
-import os
-import pickle
 
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.datasets.pascalvoc_2012 import Pascalvoc2012
 from lmnet.utils.random import shuffle
-import lmnet.environment as lmenv
 
 
 def fetch_one_data(args):
@@ -77,12 +73,12 @@ class Pascalvoc20072012(ObjectDetectionBase):
 
     @classmethod
     @functools.lru_cache(maxsize=None)
-    def count_max_boxes(cls):
+    def count_max_boxes(cls, skip_difficult=True):
         """Count max boxes size over all subsets."""
         num_max_boxes = 0
 
         for subset in cls.available_subsets:
-            obj = cls(subset=subset, is_shuffle=False)
+            obj = cls(subset=subset, is_shuffle=False, skip_difficult=skip_difficult)
             gt_boxes_list = obj.annotations
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])
@@ -96,6 +92,7 @@ class Pascalvoc20072012(ObjectDetectionBase):
             subset="train",
             is_standardize=True,
             is_shuffle=True,
+            skip_difficult=True,
             *args,
             **kwargs
     ):
@@ -116,6 +113,7 @@ class Pascalvoc20072012(ObjectDetectionBase):
 
         self.is_standardize = is_standardize
         self.is_shuffle = is_shuffle
+        self.skip_difficult = skip_difficult
 
         self._init_files_and_annotations(*args, **kwargs)
         self._shuffle()
@@ -166,34 +164,15 @@ class Pascalvoc20072012(ObjectDetectionBase):
         elif self.subset == "validation" or self.subset == "test":
             subset = "test"
 
-        os.makedirs(lmenv.TMP_DIR, exist_ok=True)
-        files_path = join(lmenv.TMP_DIR,
-                          subset + "_pascal20072012_files.pickle")
-        annos_path = join(lmenv.TMP_DIR,
-                          subset + "_pascal20072012_annos.pickle")
-
-        if(not (isfile(files_path) and isfile(annos_path))):
-            if subset == "train_validation":
-                pascalvoc_2007 = Pascalvoc2007(subset=subset, *args, **kwargs)
-                pascalvoc_2012 = Pascalvoc2012(subset=subset, *args, **kwargs)
-                self.files = pascalvoc_2007.files + pascalvoc_2012.files
-                self.annotations = pascalvoc_2007.annotations + pascalvoc_2012.annotations
-            elif subset == "test":
-                pascalvoc_2007 = Pascalvoc2007(subset=subset, *args, **kwargs)
-                self.files = pascalvoc_2007.files
-                self.annotations = pascalvoc_2007.annotations
-
-            with open(files_path, "wb") as fp:
-                pickle.dump(self.files, fp)
-            with open(annos_path, "wb") as fp:
-                pickle.dump(self.annotations, fp)
-            print("done saved pickle")
-        else:
-            print("loading from pickle file: {}".format(files_path))
-            with open(files_path, "rb") as fp:
-                self.files = pickle.load(fp)
-            with open(annos_path, "rb") as fp:
-                self.annotations = pickle.load(fp)
+        if subset == "train_validation":
+            pascalvoc_2007 = Pascalvoc2007(subset=subset, skip_difficult=self.skip_difficult, *args, **kwargs)
+            pascalvoc_2012 = Pascalvoc2012(subset=subset, skip_difficult=self.skip_difficult, *args, **kwargs)
+            self.files = pascalvoc_2007.files + pascalvoc_2012.files
+            self.annotations = pascalvoc_2007.annotations + pascalvoc_2012.annotations
+        elif subset == "test":
+            pascalvoc_2007 = Pascalvoc2007(subset=subset, skip_difficult=self.skip_difficult, *args, **kwargs)
+            self.files = pascalvoc_2007.files
+            self.annotations = pascalvoc_2007.annotations
 
     def _shuffle(self):
         """Shuffle data if train."""
@@ -211,8 +190,11 @@ class Pascalvoc20072012(ObjectDetectionBase):
 
     @property
     def num_max_boxes(self):
-        # calculated by cls.count_max_boxes()
-        return 56
+        # calculate by cls.count_max_boxes(self.skip_difficult)
+        if self.skip_difficult:
+            return 39
+        else:
+            return 56
 
     @property
     def num_per_epoch(self):
@@ -279,3 +261,16 @@ class Pascalvoc20072012(ObjectDetectionBase):
             images = np.transpose(images, [0, 3, 1, 2])
 
         return images, gt_boxes_list
+
+
+def main():
+    import time
+
+    s = time.time()
+    Pascalvoc20072012(subset="train", enable_prefetch=False)
+    e = time.time()
+    print("elapsed:", e-s)
+
+
+if __name__ == '__main__':
+    main()
