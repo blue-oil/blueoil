@@ -1014,6 +1014,9 @@ class Importer(object):
                 dimension_format=current_format,
                 num_split=num_split
             )
+            input_axis_name = input_ops_order[0]
+            nodes_to_remove.append(new_op.input_ops[input_axis_name])
+            new_op.remove_input(input_axis_name)
         elif op_type == 'Pad':
             if not shape:
                 attributes = {}
