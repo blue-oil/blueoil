@@ -20,18 +20,18 @@ Script that automatically runs all of the folllowing steps.
 - Generate all cpp source headers and other control files like Makefile.
 """
 import click
+import utils
 from os import path
-import shutil
 
 from core.config import Config
 from core.graph import Graph
 from core.model import Model
 from core.params import Params
-from core.optimizer import Optimizer
 from code_generater import CodeGenerater
 from frontend import TensorFlowIO
-
-import utils
+from core.optimizer import pass_remove_identities, pass_transpose, pass_constant_folding, \
+    pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
+    pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
 
 SCRITPS_DIR = path.abspath(path.dirname(__file__))
 DLK_ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '..'))
@@ -39,7 +39,7 @@ ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '../../..'))
 
 
 def optimize_graph_step(model: Model, config: Config) -> None:
-    """Optimze graph in the model.
+    """Optimize graph in the model.
 
     Parameters
     ----------
@@ -51,11 +51,21 @@ def optimize_graph_step(model: Model, config: Config) -> None:
 
     """
     graph: Graph = model.graph
-    optim = Optimizer()
-    optim.transpose_NHWC(graph)
-    optim.precompute(graph, config.activate_hard_quantization)
+    pass_remove_identities(graph)
+    pass_transpose(graph)
+
+    if config.activate_hard_quantization:
+        pass_propagate_quantization_details_into_conv(graph)
+        if config.threshold_skipping:
+            pass_compute_thresholds(graph)
+        pass_pack_weights(graph)
+        pass_quantize_convolutions(graph)
+
     if config.threshold_skipping:
-        optim.threshold_skipping(graph)
+        pass_propagate_output_type_backward(graph)
+    pass_propagate_datatypes(graph)
+
+    pass_constant_folding(graph)
 
 
 def generate_code_step(model: Model, config: Config) -> None:
