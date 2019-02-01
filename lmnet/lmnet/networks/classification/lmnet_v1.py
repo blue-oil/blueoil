@@ -119,7 +119,7 @@ class LmnetV1(Base):
 class LmnetV1Quantize(QuantizeParamInit, LmnetV1):
     """Lmnet quantize network for classification, version 1.0
     QuantizeParamInit is a mixin class used to initialize variables for quantization and custom_getter.
-
-    Scope of custom_getter is defined in lmnet_block so there is no need to define base function.
     """
-    pass
+    def base(self, images, is_training):
+        with tf.variable_scope("", custom_getter=self.custom_getter):
+            return super().base(images, is_training)

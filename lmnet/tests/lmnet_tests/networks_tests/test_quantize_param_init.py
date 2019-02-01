@@ -77,9 +77,9 @@ def test_quantized_layers():
         )
 
         base, graph = quantizer.base(dummy_img, True)
-        # get name of all operations using kernel and check that those operations are quantized
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
-        assert all(quantizer_name in op_name for op_name in op_name_list)
+        scope_name_list = list(set([ op.split("/")[0] for op in op_name_list  ]))
+        assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
 
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
@@ -101,8 +101,10 @@ def test_quantized_layers():
         base, graph = quantizer.base(dummy_img, True)
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         assert not any(quantizer.last_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
+
         op_name_list = [op_name for op_name in op_name_list if quantizer.last_layer_name not in op_name]
-        assert all(quantizer_name in op_name for op_name in op_name_list)
+        scope_name_list = list(set([ op.split("/")[0] for op in op_name_list  ]))
+        assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
 
         quantizer = model(
             classes=['accordion', 'airplanes', 'anchor'],
@@ -124,8 +126,10 @@ def test_quantized_layers():
         base, graph = quantizer.base(dummy_img, True)
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         assert not any(quantizer.first_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
+
         op_name_list = [op_name for op_name in op_name_list if quantizer.first_layer_name not in op_name]
-        assert all(quantizer_name in op_name for op_name in op_name_list)
+        scope_name_list = list(set([ op.split("/")[0] for op in op_name_list  ]))
+        assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
 
 
 if __name__ == '__main__':
