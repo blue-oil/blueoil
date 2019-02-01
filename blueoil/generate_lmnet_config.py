@@ -147,9 +147,9 @@ def _blueoil_to_lmnet(blueoil_config):
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
     optimizer  = blueoil_config["trainer"]["optimizer"]
-    if optimizer == 'AdamOptimizer':
+    if optimizer == 'Adam':
         optimizer_class = "tf.train.AdamOptimizer"
-    elif optimizer == 'MomentumOptimizer':
+    elif optimizer == 'Momentum':
         optimizer_class = "tf.train.MomentumOptimizer"
     else:
         raise ValueError("not supported optimizer.")
@@ -162,7 +162,7 @@ def _blueoil_to_lmnet(blueoil_config):
 
     learning_rate_func = None
     learning_rate_kwargs = None
-    if optimizer == "MomentumOptimizer":
+    if optimizer == "Momentum":
         optimizer_kwargs = {"momentum": 0.9, "learning_rate": initial_learning_rate}
     else:
         optimizer_kwargs = {"learning_rate": initial_learning_rate}

@@ -101,7 +101,7 @@ trainer_epochs = [
 ]
 
 trainer_optimizer_comment = """\
-  # supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
+  # supported 'optimizer' is 'Momentum', 'Adam' currently.
   # Momentum
   #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
   # Adam
@@ -109,14 +109,14 @@ trainer_optimizer_comment = """\
 """
 
 trainer_optimizers = [
-    '  optimizer: AdamOptimizer\n',
-    '  optimizer: AdamOptimizer\n',
-    '  optimizer: AdamOptimizer\n',
-    '  optimizer: AdamOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
+    '  optimizer: Adam\n',
+    '  optimizer: Adam\n',
+    '  optimizer: Adam\n',
+    '  optimizer: Adam\n',
+    '  optimizer: Momentum\n',
+    '  optimizer: Momentum\n',
+    '  optimizer: Momentum\n',
+    '  optimizer: Momentum\n',
 ]
 
 trainer_lr_schedule_comment = """\

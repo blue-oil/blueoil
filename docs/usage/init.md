@@ -34,7 +34,7 @@ You don't need to re-run `bluoil init` again.
 #### data augmentation
 You can use various augmentation methods in generated YAML, also you can change augmentation methods's parameter.
 Under `commmon.data_augmentation` in generated yaml, augmentation methods are listed and the parameters are nested in each methods.
-
+```
 
 generated yaml:
 ```
@@ -60,12 +60,14 @@ You can choose optimizer from Adam or Momentum. Each optimizer uses TensorFlow i
 generated yaml:
 
 ```
-  # supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.
+trainer:
+  ...
+  # supported 'optimizer' is 'Momentum', 'Adam' currently.
   # Momentum
   #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
   # Adam
   #    https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
-  optimizer: AdamOptimizer
+  optimizer: Adam
 ```
 
-Blueoil use this optimizers with your input learning rate. Other values are TensorFlow default described in TensorFlow documentation.
+Blueoil use optimizers with your input learning rate for both Adam and Momentum, and `momentum=0.9` for Momentum. Other values are TensorFlow default described in TensorFlow documentation.
