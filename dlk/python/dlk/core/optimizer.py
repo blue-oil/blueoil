@@ -19,9 +19,9 @@ import numpy as np
 
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from core.operators import Constant, Operator
+from core.operators import Constant, Operator, Conv
 from core.data_types import Uint32, QUANTIZED_NOT_PACKED
-from typing import cast
+from typing import cast, List, Any
 from collections import defaultdict
 from modules.packer import Packer
 
@@ -53,38 +53,11 @@ def pass_remove_identities(graph: Graph) -> None:
                             v2.append(out_op)
                             break
                     break
+
         to_be_removed.append(m)
+
     for op in to_be_removed:
         graph.remove_op(op)
-
-
-def node_is_conv(node: Operator) -> bool:
-    return node.op_type == 'Conv'
-
-
-def node_is_concat(node: Operator) -> bool:
-    return node.op_type == 'ConcatV2'
-
-
-def node_is_const(node: Operator) -> bool:
-    return node.op_type == 'Constant'
-
-
-def node_is_qconv(node: Operator) -> bool:
-    return node.op_type == 'Conv' and cast(Conv, node).is_quantized
-
-
-def node_is_input(node: Operator) -> bool:
-    return node.op_type == 'Input'
-
-
-def node_is_weight_quantizer(node: Operator) -> bool:
-    return (node.op_type == 'QTZ_binary_mean_scaling'
-            or node.op_type == 'QTZ_binary_channel_wise_mean_scaling')
-
-
-def node_is_activation_quantizer(node: Operator) -> bool:
-    return node.op_type == 'QTZ_linear_mid_tread_half'
 
 
 def transpose_kernels(kernel_data: np.ndarray,
@@ -140,50 +113,6 @@ def transpose_kernels(kernel_data: np.ndarray,
 
     return transposed_values
 
-
-class NHWC_Transposer(GraphRunner):
-    """Transposer of all nodes to NHWC."""
-
-    def _get_permutation(self, dim: str) -> List[int]:
-        """Create a permutation from the source dimension."""
-        assert len(dim) == 4 and set(dim).issubset({'N', 'H', 'W', 'C', 'I', 'O'}), \
-            f'illegal dimension found: {dim}'
-
-        if set(dim) == set('HWIO'):
-            dim = dim.replace('I', 'C')
-            dim = dim.replace('O', 'N')
-
-        return list(map(lambda s: dim.index(s), 'NHWC'))
-
-    def _check_and_transpose(self, node: Operator) -> None:
-        perm = self._get_permutation(node.dimension)
-        node.transpose(perm)
-
-    def run_backward_input(self, node: Input, **kwargs: Any) -> None:
-        self._check_and_transpose(node)
-
-    def run_backward_constant(self, node: Constant, **kwargs: Any) -> None:
-        if node.ndims == 4 and set(node.dimension).issubset({'N', 'H', 'W', 'C', 'I', 'O'}):
-            self._check_and_transpose(node)
-
-    def run_backward_identity(self, node: Identity, **kwargs: Any) -> None:
-        if node.ndims == 4 and set(node.dimension).issubset({'N', 'H', 'W', 'C', 'I', 'O'}):
-            self._check_and_transpose(node)
-
-    def run_backward_QTZ_binary_mean_scaling(self, node: QTZ_binary_mean_scaling, **kwargs: Any) -> None:
-        self._check_and_transpose(node)
-
-    def run_backward_transpose(self, node: Transpose, **kwargs: Any) -> None:
-        raise NotImplementedError('Transposing Transpose operator is not supported yet.')
-
-    def run_backward_conv(self, node: Conv, **kwargs: Any) -> None:
-        self._check_and_transpose(node)
-
-    def run_backward_batch_normalization(self, node: BatchNormalization, **kwargs: Any) -> None:
-        self._check_and_transpose(node)
-
-    def run_backward_QTZ_linear_mid_tread_half(self, node: QTZ_linear_mid_tread_half, **kwargs: Any) -> None:
-        self._check_and_transpose(node)
 
 def pass_transpose(graph: Graph) -> None:
     """Changes the data order of every node to be NHWC.
@@ -332,14 +261,6 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
             quant_details[m.name] = qtzs if len(qtzs) == len(m.input_nodes) else []
             # TODO: check if the quantizers use same n_bits
 
-        # if it can be precomputed
-        if self._has_precompute_value(in_op):
-            node.run_forward()
-            self._precomp_dic[node.name] = True  # this node can be pruned
-            self._quantizers[node.name] = node  # add itself as the quantizer
-        else:
-            self._precomp_dic[node.name] = False
-
     def run_forward_conv(self, node: Conv, **kwargs: Any) -> None:
         ops: List[Operator] = [node.input_ops[i] for i in node.input_names if node.input_ops.get(i)]
 
@@ -367,7 +288,7 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
                 node.quantizer = list(quantizers.values())[0]
 
                 for key, op in zip(node.input_names, ops):
-
+                    
                     if self._is_prunable(op):
                         oh = node.height
                         ow = node.width
