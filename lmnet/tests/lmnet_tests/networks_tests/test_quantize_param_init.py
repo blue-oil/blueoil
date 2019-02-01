@@ -34,6 +34,10 @@ def test_required_arguments():
             image_size=[128, 128],
             optimizer_class=tf.train.GradientDescentOptimizer,
             weight_quantizer=binary_mean_scaling_quantizer,
+            activation_quantizer_kwargs={
+                'bit': 2,
+                'max_value': 2
+            }
         )
 
         assert quantizer.first_layer_name is not None
@@ -66,6 +70,10 @@ def test_quantized_layers():
             quantize_first_convolution=True,
             quantize_last_convolution=True,
             weight_quantizer=binary_mean_scaling_quantizer,
+            activation_quantizer_kwargs={
+                'bit': 2,
+                'max_value': 2
+            }
         )
 
         base, graph = quantizer.base(dummy_img, True)
@@ -84,6 +92,10 @@ def test_quantized_layers():
             quantize_first_convolution=True,
             quantize_last_convolution=False,
             weight_quantizer=binary_mean_scaling_quantizer,
+            activation_quantizer_kwargs={
+                'bit': 2,
+                'max_value': 2
+            }
         )
 
         base, graph = quantizer.base(dummy_img, True)
@@ -103,6 +115,10 @@ def test_quantized_layers():
             quantize_first_convolution=False,
             quantize_last_convolution=True,
             weight_quantizer=binary_mean_scaling_quantizer,
+            activation_quantizer_kwargs={
+                'bit': 2,
+                'max_value': 2
+            }
         )
 
         base, graph = quantizer.base(dummy_img, True)
