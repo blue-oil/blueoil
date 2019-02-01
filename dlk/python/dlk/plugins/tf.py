@@ -1038,9 +1038,6 @@ class Importer(object):
                 input_ops,
                 dimension_format=current_format,
             )
-            input_axis_name = input_ops_order[0]
-            nodes_to_remove.append(new_op.input_ops[input_axis_name])
-            new_op.remove_input(input_axis_name)
         else:
             raise UnsupportedNode(
                 f'TensorFlow importer cannot convert {op_type} operator node!')
