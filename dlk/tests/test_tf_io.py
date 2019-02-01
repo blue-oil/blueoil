@@ -210,46 +210,6 @@ class TestTensorFlowIO(unittest.TestCase):
                 return False
         return True
 
-    def test_tf_export(self) -> None:
-        """Test code for exporting Tensorflow file with TensorflowIO."""
-        tmpdir = 'tmp'
-        tf_path = path.join(tmpdir,
-                            'test.pb')
-        if not path.exists(tmpdir):
-            makedirs(tmpdir)
-        elif not path.isdir(tmpdir):
-            raise ValueError('tmp directory is not a directory.')
-
-        model: Model = self.make_simple_model()
-
-        tf_io = TensorFlowIO()
-        tf_io.write(model, tf_path)
-        new_model = tf_io.read(tf_path)
-
-        self.assertTrue(self._comparator(model.graph, new_model.graph))
-
-        print("TF file export test #1 passed!")
-
-    def test_tf_export2(self) -> None:
-        """Test code for exporting Tensorflow file with TensorflowIO #2."""
-        tmpdir = 'tmp'
-        tf_path = path.join(tmpdir,
-                            'test2.pb')
-        if not path.exists(tmpdir):
-            makedirs(tmpdir)
-        elif not path.isdir(tmpdir):
-            raise ValueError('tmp directory is not a directory.')
-
-        model: Model = make_model()
-
-        tf_io = TensorFlowIO()
-        tf_io.write(model, tf_path)
-        new_model = tf_io.read(tf_path)
-
-        self.assertEqual(model.graph, new_model.graph)
-
-        print("TF file export test #2 passed!")
-
 
 if __name__ == '__main__':
     unittest.main()
