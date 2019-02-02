@@ -1,12 +1,9 @@
-import optuna
-import tensorflow as tf
-
 import os
 import math
-import sys
-
-import numpy as np
 import click
+
+import optuna
+import tensorflow as tf
 
 from lmnet.utils import executor, module_loader, config as config_util
 
@@ -87,7 +84,6 @@ class OptCIFAR10(object):
     def __call__(self, trial):
         """It is being called in every trial."""
         print('----------- OptCIFAR10 call -----------')
-        last_step = self.sess.run(self.global_step)
         batch_size = trial.suggest_categorical('batch_size', [16, 32, 64])
         step_per_epoch = int(self.train_dataset.num_per_epoch / batch_size)
         print('num per epoch:{}, batch size: {}'.format(self.train_dataset.num_per_epoch, batch_size))
@@ -128,36 +124,11 @@ class OptCIFAR10(object):
     default=os.path.join("configs", "example", "classification.py"),
     required=True,
 )
-@click.option(
-    "-i",
-    "--experiment_id",
-    help="id of this training",
-    default="experiment",
-    required=True,
-)
-@click.option(
-    '--recreate',
-    is_flag=True,
-    help="delete and recreate experiment id dir",
-    default=False,
-)
-@click.option(
-    "-n",
-    "--network",
-    help="network name which you want to use for this training. override config.DATASET_CLASS",
-)
-@click.option(
-    "-d",
-    "--dataset",
-    help="dataset name which is the source of this training. override config.NETWORK_CLASS",
-)
-def run_opt(network, dataset, config_file, experiment_id, recreate):
+def run_opt(config_file):
     study = optuna.create_study()
-    study.optimize(OptCIFAR10(config_file),
-                   n_trials=4,
-                   n_jobs=-1)  # n_jobs is number of parallel jobs. If this argument is set to -1, the number is set to CPU counts.
-
-    duration = time.time() - start_time
+    # n_jobs is number of parallel jobs.
+    # If this argument is set to -1, the number is set to CPU counts.
+    study.optimize(OptCIFAR10(config_file), n_trials=4, n_jobs=-1)
     print(study.best_params)
 
 
