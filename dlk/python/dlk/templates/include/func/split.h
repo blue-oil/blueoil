@@ -20,7 +20,7 @@ limitations under the License.
 #include "time_measurement.h"
 
 template<class T>
-void func_Split(int32_t axis, T input[], T *outputs[], T_UINT num_split, T_UINT out_height, T_UINT out_width, T_UINT out_depth)
+void func_Split(T input[], T *outputs[], T_UINT num_split, T_UINT out_height, T_UINT out_width, T_UINT out_depth)
 {
   Measurement::Start("func_SpliT");
 

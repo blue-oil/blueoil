@@ -41,15 +41,16 @@ void func_AveragePool(T_FLOAT input[], T_FLOAT output[],
         T_FLOAT out = 0;
         for(T_UINT ki = 0; ki < app.kernel_height; ki++) {
           for(T_UINT kj = 0; kj < app.kernel_width; kj++) {
-            for(T_UINT kz = 0; kz < app.kernel_depth; kz++) {
-              T_INT row = (wi * app.stride) - app.padding + ki;
-              T_INT col = (wj * app.stride) - app.padding + kj;
+	    T_INT row = (wi * app.stride) - app.padding + ki;
+	    T_INT col = (wj * app.stride) - app.padding + kj;
 
-              T_INT inside = (row >= 0 && col >= 0 && row < (T_INT) app.input_height && col < (T_INT)app.input_width);
+	    T_INT inside = (row >= 0 && col >= 0 && row < (T_INT) app.input_height && col < (T_INT)app.input_width);
+	    if (!inside) continue;
+            for(T_UINT kz = 0; kz < app.kernel_depth; kz++) {
               int idx_in = oc * app.kernel_depth
                          + row * (app.input_width * app.input_depth)
                          + col * (app.input_depth) + kz;
-              out += inside ? input[idx_in] : T_FLOAT(0);
+              out += input[idx_in];
             }
           }
         }
