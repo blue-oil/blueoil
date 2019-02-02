@@ -35,9 +35,10 @@ def get_best_trial(trial_list, metric):
     return max(trial_list, key=lambda trial: trial.last_result.get(metric, 0))
 
 
-def get_best_result(trial_list, metric):
+def get_best_result(trial_list, metric, param):
     """Retrieve the last result from the best trial."""
-    return {metric: get_best_trial(trial_list, metric).last_result[metric]}
+    return {metric: get_best_trial(trial_list, metric).last_result[metric],
+            param: get_best_trial(trial_list, metric).last_result[param]}
 
 
 def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
@@ -196,7 +197,7 @@ def run(config_file, metric_target):
     algo = HyperOptSearch(tune_space, max_concurrent=4, reward_attr="mean_accuracy")
     scheduler = AsyncHyperBandScheduler(time_attr="training_iteration", reward_attr="mean_accuracy", max_t=200)
     trials = run_experiments(experiments={'exp_tune': tune_spec}, search_alg=algo, scheduler=scheduler)
-    print("The best result is", get_best_result(trials, metric="mean_accuracy"))
+    print("The best result is", get_best_result(trials, metric="mean_accuracy", param='config'))
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
