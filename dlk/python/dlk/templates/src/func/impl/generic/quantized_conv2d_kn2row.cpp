@@ -75,7 +75,7 @@ void ApplyThresholds(
           new_d = 0;
         else if (d > ts1)
           new_d = 1;
-        else if (d > ts2)
+        else if (d > ts0)
           new_d = 2;
         else
           new_d = 3;
@@ -151,7 +151,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 
   delete[] kernel_hwoi;
 
-  if (p.thresholds != NULL) {
+  if (p.thresholds != nullptr) {
     ApplyThresholds(output_, p);
   }
 
