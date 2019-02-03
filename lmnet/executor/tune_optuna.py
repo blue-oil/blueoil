@@ -15,12 +15,15 @@ def train_fn(lm_config, tune_space):
     dataset_fn = lm_config.DATASET_CLASS
     dataset_kwargs = dict((key.lower(), val) for key, val in lm_config.DATASET.items())
 
+    network_kwargs['optimizer_class'] = tune_space['optimizer_class']['optimizer']
+    for key in list(tune_space['optimizer_class'].keys()):
+        if key != 'optimizer':
+            network_kwargs['optimizer_kwargs'][key] = tune_space['optimizer_class'][key]
     base_lr = tune_space['learning_rate']
     network_kwargs['learning_rate_kwargs']['values'] = [base_lr,
                                                         base_lr * 0.1,
                                                         base_lr * 0.1 * 0.1,
                                                         base_lr * 0.1 * 0.1 * 0.1]
-    network_kwargs['weight_decay_rate'] = tune_space['weight_decay_rate']
     print(network_kwargs)
 
     train_dataset = dataset_fn(
@@ -137,7 +140,19 @@ class OptObjective(object):
             drop_path_rate = trial.suggest_discrete_uniform('drop_path_rate', 0.0, 1.0, 0.1)
         """
         tune_space = {
-            'learning_rate': trial.suggest_loguniform('learning_rate', 0.05, 0.005),
+            'optimizer_class': trial.suggest_categorical('optimizer_class', [
+                {
+                    'optimizer': tf.train.AdamOptimizer
+                },
+                {
+                    'optimizer': tf.train.MomentumOptimizer,
+                    'momentum': 0.9
+                },
+                {
+                    'optimizer': tf.train.AdagradOptimizer
+                }
+            ]),
+            'learning_rate': trial.suggest_loguniform('learning_rate', 0.07, 0.007),
             'weight_decay_rate': 0.0005
         }
         val_err = train_fn(self.lm_config, tune_space)
