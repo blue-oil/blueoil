@@ -20,6 +20,7 @@ def train_fn(lm_config, tune_space):
                                                         base_lr * 0.1,
                                                         base_lr * 0.1 * 0.1,
                                                         base_lr * 0.1 * 0.1 * 0.1]
+    network_kwargs['weight_decay_rate'] = tune_space['weight_decay_rate']
     print(network_kwargs)
 
     train_dataset = dataset_fn(
@@ -123,8 +124,21 @@ class OptObjective(object):
         self.lm_config = config_util.load(os.path.join(os.getcwd(), config_file))
 
     def __call__(self, trial):
+        """ Examples of searching space
+        Categorical parameter
+            optimizer = trial.suggest_categorical('optimizer', ['MomentumSGD', 'Adam'])
+        Int parameter
+            num_layers = trial.suggest_int('num_layers', 1, 3)
+        Uniform parameter
+            dropout_rate = trial.suggest_uniform('dropout_rate', 0.0, 1.0)
+        Loguniform parameter
+            learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
+        Discrete-uniform parameter
+            drop_path_rate = trial.suggest_discrete_uniform('drop_path_rate', 0.0, 1.0, 0.1)
+        """
         tune_space = {
-            'learning_rate': trial.suggest_loguniform('learning_rate', 0.05, 0.005)
+            'learning_rate': trial.suggest_loguniform('learning_rate', 0.05, 0.005),
+            'weight_decay_rate': 0.0005
         }
         val_err = train_fn(self.lm_config, tune_space)
         print('trial: {0}, metric value: {1}'.format(trial, val_err))
