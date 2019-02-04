@@ -78,7 +78,7 @@ PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
-    DivideBy255(),
+    DivideBy128(),
     #Resize(size=IMAGE_SIZE),
     #{% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])

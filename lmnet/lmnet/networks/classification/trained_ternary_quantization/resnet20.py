@@ -177,7 +177,7 @@ class Resnet20(Base):
             activation=None,
             weights_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0002),
             weights_initializer=weight_initializer,
-            bias_initializer=tf.constant_initializer(),
+            biases_initializer=tf.constant_initializer(),
         )
 
         return self.fc
