@@ -17,6 +17,7 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
 {%- endif %}
     $(SRC_DIR)/func/add.cpp \
     $(SRC_DIR)/func/average_pool.cpp \
+    $(SRC_DIR)/func/batch_normalization.cpp \
     $(SRC_DIR)/func/bias_add.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
     $(SRC_DIR)/func/impl/apply_thresholds.cpp \
