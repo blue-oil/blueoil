@@ -124,7 +124,7 @@ def train_fn(lm_config, tune_space):
 
 class OptObjective(object):
     def __init__(self, config_file):
-        self.lm_config = config_util.load(os.path.join(os.getcwd(), config_file))
+        self.config_file = config_file
 
     def __call__(self, trial):
         """ Examples of searching space
@@ -152,10 +152,11 @@ class OptObjective(object):
                     'optimizer': tf.train.AdagradOptimizer
                 }
             ]),
-            'learning_rate': trial.suggest_loguniform('learning_rate', 0.07, 0.007),
+            'learning_rate': trial.suggest_uniform('learning_rate', 0.01, 0.001),
             'weight_decay_rate': 0.0005
         }
-        val_err = train_fn(self.lm_config, tune_space)
+        lm_config = config_util.load(os.path.join(os.getcwd(), self.config_file))
+        val_err = train_fn(lm_config, tune_space)
         print('trial: {0}, metric value: {1}'.format(trial, val_err))
         return val_err
 
