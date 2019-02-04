@@ -55,7 +55,7 @@ def test_quantized_layers():
         LmSegnetV1Quantize,
     ]
 
-    quantizer_name = "QTZ_binary_channel_wise_mean_scaling"
+    quantizer_name = "QTZ_binary_mean_scaling"
     dummy_img = tf.ones([10, 32, 32, 3])
 
     for model in model_classes:
