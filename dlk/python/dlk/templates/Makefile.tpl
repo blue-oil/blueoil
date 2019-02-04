@@ -45,7 +45,6 @@ SRC := $(LIB_SRC) $(wildcard $(DLK_TEST_SRC_DIR)/*.cpp) mains/main.cpp
 SRC := $(filter-out ./src/network_c_interface.cpp, $(SRC))
 
 LIB_ARM_SRC := $(wildcard $(SRC_DIR)/*.S) \
-    $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
@@ -53,7 +52,6 @@ LIB_ARM_OBJ := $(patsubst %.S, %.o, $(LIB_ARM_SRC))
 LIB_ARM_OBJ := $(patsubst %.cpp, %.o, $(LIB_ARM_OBJ))
 
 LIB_FPGA_SRC := $(wildcard $(SRC_DIR)/*.S) \
-    $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/func/impl/fpga/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
@@ -61,14 +59,12 @@ LIB_FPGA_OBJ := $(patsubst %.S, %.o, $(LIB_FPGA_SRC))
 LIB_FPGA_OBJ := $(patsubst %.cpp, %.o, $(LIB_FPGA_OBJ))
 
 LIB_AARCH64_SRC := $(wildcard $(SRC_DIR)/*.S) \
-    $(SRC_DIR)/func/generic/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
 LIB_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_SRC))
 LIB_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_OBJ))
 
 LIB_X86_SRC := \
-    $(SRC_DIR)/func/generic/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/matrix/generic/quantized_multiplication.cpp
 LIB_X86_OBJ := $(patsubst %.cpp, %.o, $(LIB_X86_SRC))
@@ -134,17 +130,17 @@ clean:
 	-$(RM) $(OBJ)
 
 lm_x86:           CXX = g++
-lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_PNG -pthread -g
+lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_PNG -pthread -g -DFUNC_TIME_MEASUREMENT
 
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
 lm_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_NEON -DUSE_PNG -pthread -g
 
 lm_arm:           CXX = arm-linux-gnueabihf-g++
-lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp -DFUNC_TIME_MEASUREMENT
 lm_arm:           CXXFLAGS +=
 
 lm_fpga:          CXX = arm-linux-gnueabihf-g++
-lm_fpga:          FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_fpga:          FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp -DFUNC_TIME_MEASUREMENT
 lm_fpga:          CXXFLAGS +=
 
 lib_x86:           CXX = g++
