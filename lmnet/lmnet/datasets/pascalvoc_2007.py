@@ -47,8 +47,11 @@ class Pascalvoc2007(PascalvocBase):
 
     @property
     def num_max_boxes(self):
-        # calculate by cls.count_max_boxes()
-        return 42
+        # calculate by cls.count_max_boxes(self.skip_difficult)
+        if self.skip_difficult:
+            return 37
+        else:
+            return 42
 
     def _annotation_file_from_image_id(self, image_id):
         annotation_file = os.path.join(self.annotations_dir, "{:06d}.xml".format(image_id))
