@@ -28,20 +28,4 @@ limitations under the License.
   {%- endfor %}
 };
 
-{% if node.scale_data %}
-{{ node.dtype.cpptype() }} {{ node.name }}_scale[] = {
-  {% for d in node.scale_data -%}
-  {{- d -}},
-  {%- endfor %}
-};
-{% endif %}
-
-{% if node.shift_data %}
-{{ node.dtype.cpptype() }} {{ node.name }}_shift[] = {
-  {% for d in node.shift_data -%}
-  {{- d -}},
-  {%- endfor %}
-};
-{% endif %}
-
 {%- endif %}
