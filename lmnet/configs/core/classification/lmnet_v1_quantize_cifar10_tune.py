@@ -23,6 +23,7 @@ from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
+    PerImageStandardization,
 )
 from lmnet.data_augmentor import (
     Crop,
@@ -49,7 +50,8 @@ CLASSES = DATASET_CLASS.classes
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    DivideBy255()
+    DivideBy255(),
+    # PerImageStandardization(),
 ])
 POST_PROCESSOR = None
 
