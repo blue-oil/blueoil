@@ -56,7 +56,6 @@ def test_quantized_layers():
     ]
 
     quantizer_name = "QTZ_binary_mean_scaling"
-    dummy_img = tf.ones([10, 32, 32, 3])
 
     for model in model_classes:
         with tf.variable_scope("", reuse=tf.AUTO_REUSE):
@@ -77,7 +76,7 @@ def test_quantized_layers():
                 }
             )
 
-        base, graph = quantizer.base(dummy_img, True)
+        base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
         assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
@@ -101,7 +100,7 @@ def test_quantized_layers():
                 }
             )
 
-        base, graph = quantizer.base(dummy_img, True)
+        base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         assert not any(quantizer.last_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
 
@@ -127,7 +126,7 @@ def test_quantized_layers():
                 }
             )
 
-        base, graph = quantizer.base(dummy_img, True)
+        base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         assert not any(quantizer.first_layer_name in op_name and quantizer_name in op_name for op_name in op_name_list)
 
