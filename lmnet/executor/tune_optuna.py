@@ -16,6 +16,7 @@ def train_fn(lm_config, tune_space):
     dataset_kwargs = dict((key.lower(), val) for key, val in lm_config.DATASET.items())
 
     network_kwargs['optimizer_class'] = tune_space['optimizer_class']['optimizer']
+    network_kwargs['optimizer_kwargs'].clear()
     for key in list(tune_space['optimizer_class'].keys()):
         if key != 'optimizer':
             network_kwargs['optimizer_kwargs'][key] = tune_space['optimizer_class'][key]
@@ -152,7 +153,7 @@ class OptObjective(object):
                     'optimizer': tf.train.AdagradOptimizer
                 }
             ]),
-            'learning_rate': trial.suggest_uniform('learning_rate', 0.01, 0.001),
+            'learning_rate': trial.suggest_uniform('learning_rate', 0.001, 0.01),
             'weight_decay_rate': 0.0005
         }
         lm_config = config_util.load(os.path.join(os.getcwd(), self.config_file))
