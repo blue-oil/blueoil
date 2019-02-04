@@ -25,6 +25,7 @@ from typing import cast, List, Any
 from collections import defaultdict
 from modules.packer import Packer
 
+
 def transpose_kernels(kernel_data: np.ndarray,
                       dimension_format: str,
                       oh: int,
