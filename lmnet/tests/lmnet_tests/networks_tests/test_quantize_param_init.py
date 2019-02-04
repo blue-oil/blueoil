@@ -59,44 +59,47 @@ def test_quantized_layers():
     dummy_img = tf.ones([10, 32, 32, 3])
 
     for model in model_classes:
-        quantizer = model(
-            classes=['accordion', 'airplanes', 'anchor'],
-            is_debug=True,
-            activation_quantizer=linear_mid_tread_half_quantizer,
-            batch_size=10,
-            data_format='NHWC',
-            image_size=[128, 128],
-            optimizer_class=tf.train.GradientDescentOptimizer,
-            quantize_first_convolution=True,
-            quantize_last_convolution=True,
-            weight_quantizer=binary_mean_scaling_quantizer,
-            activation_quantizer_kwargs={
-                'bit': 2,
-                'max_value': 2
-            }
-        )
+        with tf.variable_scope("", reuse=tf.AUTO_REUSE):
+            quantizer = model(
+                classes=['accordion', 'airplanes', 'anchor'],
+                is_debug=True,
+                activation_quantizer=linear_mid_tread_half_quantizer,
+                batch_size=10,
+                data_format='NHWC',
+                image_size=[128, 128],
+                optimizer_class=tf.train.GradientDescentOptimizer,
+                quantize_first_convolution=True,
+                quantize_last_convolution=True,
+                weight_quantizer=binary_mean_scaling_quantizer,
+                activation_quantizer_kwargs={
+                    'bit': 2,
+                    'max_value': 2
+                }
+            )
 
         base, graph = quantizer.base(dummy_img, True)
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
         scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
         assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
+        tf.reset_default_graph()
 
-        quantizer = model(
-            classes=['accordion', 'airplanes', 'anchor'],
-            is_debug=True,
-            activation_quantizer=linear_mid_tread_half_quantizer,
-            batch_size=10,
-            data_format='NHWC',
-            image_size=[128, 128],
-            optimizer_class=tf.train.GradientDescentOptimizer,
-            quantize_first_convolution=True,
-            quantize_last_convolution=False,
-            weight_quantizer=binary_mean_scaling_quantizer,
-            activation_quantizer_kwargs={
-                'bit': 2,
-                'max_value': 2
-            }
-        )
+        with tf.variable_scope("", reuse=tf.AUTO_REUSE):
+            quantizer = model(
+                classes=['accordion', 'airplanes', 'anchor'],
+                is_debug=True,
+                activation_quantizer=linear_mid_tread_half_quantizer,
+                batch_size=10,
+                data_format='NHWC',
+                image_size=[128, 128],
+                optimizer_class=tf.train.GradientDescentOptimizer,
+                quantize_first_convolution=True,
+                quantize_last_convolution=False,
+                weight_quantizer=binary_mean_scaling_quantizer,
+                activation_quantizer_kwargs={
+                    'bit': 2,
+                    'max_value': 2
+                }
+            )
 
         base, graph = quantizer.base(dummy_img, True)
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
@@ -106,22 +109,23 @@ def test_quantized_layers():
         scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
         assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
 
-        quantizer = model(
-            classes=['accordion', 'airplanes', 'anchor'],
-            is_debug=True,
-            activation_quantizer=linear_mid_tread_half_quantizer,
-            batch_size=10,
-            data_format='NHWC',
-            image_size=[128, 128],
-            optimizer_class=tf.train.GradientDescentOptimizer,
-            quantize_first_convolution=False,
-            quantize_last_convolution=True,
-            weight_quantizer=binary_mean_scaling_quantizer,
-            activation_quantizer_kwargs={
-                'bit': 2,
-                'max_value': 2
-            }
-        )
+        with tf.variable_scope("", reuse=tf.AUTO_REUSE):
+            quantizer = model(
+                classes=['accordion', 'airplanes', 'anchor'],
+                is_debug=True,
+                activation_quantizer=linear_mid_tread_half_quantizer,
+                batch_size=10,
+                data_format='NHWC',
+                image_size=[128, 128],
+                optimizer_class=tf.train.GradientDescentOptimizer,
+                quantize_first_convolution=False,
+                quantize_last_convolution=True,
+                weight_quantizer=binary_mean_scaling_quantizer,
+                activation_quantizer_kwargs={
+                    'bit': 2,
+                    'max_value': 2
+                }
+            )
 
         base, graph = quantizer.base(dummy_img, True)
         op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
