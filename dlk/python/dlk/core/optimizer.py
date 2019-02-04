@@ -20,29 +20,31 @@ import numpy as np
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
 from core.operators import Constant, Operator
-from core.data_types import Uint32, QUANTIZED_NOT_PACKED
+from core.data_types import Uint32, QUANTIZED_NOT_PACKED, Int32, Float32
 from typing import cast
 from collections import defaultdict
 from modules.packer import Packer
+
+
+def calc_scale(gammas: np.ndarray,
+               variances: np.ndarray,
+               epsilon: float) -> np.ndarray:
+    size = gammas.size
+    scale_value = np.array([0.0] * size)
+    for i in range(size):
+        scale_value[i] = gammas[i] * (1.0 / np.sqrt(variances[i] + epsilon))
+    return scale_value
 
 
 def calc_shift(scales: np.ndarray,
                betas: np.ndarray,
                means: np.ndarray) -> np.ndarray:
     size = scales.size
-    shift_value = np.array([0] * size)
+    shift_value = np.array([0.0] * size)
     for i in range(size):
         shift_value[i] = betas[i] - (scales[i] * means[i])
     return shift_value
 
-def calc_scale(gammas: np.ndarray,
-               variances: np.ndarray,
-               epsilon: float) -> np.ndarray:
-    size = gammas.size
-    scale_value = np.array([0] * size)
-    for i in range(size):
-        scale_value[i] = gammas[i] * (1.0 / np.sqrt(variances[i] + epsilon))
-    return scale_value
 
 def pass_remove_identities(graph: Graph) -> None:
     """Removes those nodes of a Graph that satisfies the condition node.op_type() == Identity.
@@ -225,6 +227,7 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
             quant_details[m.name] = qtzs if len(qtzs) == len(m.input_nodes) else []
             # TODO: check if the quantizers use same n_bits
 
+
 def pass_precompute_batchnormalization(graph: Graph) -> None:
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'BatchNormalization']
 
@@ -239,28 +242,24 @@ def pass_precompute_batchnormalization(graph: Graph) -> None:
         bn_shift = calc_shift(bn_scale, bn_beta, bn_mean)
 
         bn_shift_constant = Constant(
-            m.name + '_shift',
-            Uint32(),
-            bn_shift
+            m.name + '_new_shift',
+            Float32,
+            data=bn_shift
         )
         bn_scale_constant = Constant(
-            m.name + '_scale',
-            Uint32(),
-            bn_scale
+            m.name + '_new_scale',
+            Float32,
+            data=bn_scale
         )
-        
+
         graph.add_op(bn_shift_constant)
         graph.add_op(bn_scale_constant)
 
-        bn_shift_constant.add_outputs({'Y': m.output_ops.values()})
-        bn_scale_constant.add_outputs({'Y': m.output_ops.values()})
+        bn_shift_constant.add_output('output', m)
+        bn_scale_constant.add_output('output', m)
 
-        for output_name, consumer_list in m.output_ops.items():
-            for consumer_node in consumer_list:
-                for input_name, input_node in consumer_node.input_ops.items():
-                    consumer_node.add_input(input_name, bn_shift_constant)
-                    consumer_node.add_input(input_name, bn_scale_constant)
-                    break
+        m.add_input('prep_scale', bn_scale_constant)
+        m.add_input('shift', bn_shift_constant)
 
 
 def pass_compute_thresholds(graph: Graph) -> None:

@@ -600,16 +600,19 @@ class View(object):
                     """
 
         elif self.op.op_type == 'BatchNormalization':
-            if len(input_ops) != 5:
+            if len(input_ops) != 7:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
+            inputs_string = ""
             for k, x in input_ops.items():
-                if 'X' in k:
+                if 'X' in k:                
                     inputs_string = inputs_string + str(x.name) + ', '
-                elif 'scale' in k:
-                    inputs_string = inputs_string + str(x.name) + '_scale, '
-                elif 'B' in k: 
-                    inputs_string = inputs_string + str(x.name) + '_shift'
+            for k, x in input_ops.items():
+                if 'prep_scale' in k:
+                    inputs_string = inputs_string + str(x.name) + ', '
+            for k, x in input_ops.items():
+                if 'shift' in k:
+                    inputs_string = inputs_string + str(x.name)
             shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
