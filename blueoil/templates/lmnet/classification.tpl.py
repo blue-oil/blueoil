@@ -32,9 +32,9 @@ from lmnet.data_augmentor import (
 )
 from lmnet.pre_processor import (
     Resize,
-    DivideBy255,
+    #DivideBy255,
     #PerImageStandardization,
-    #DivideBy128,
+    DivideBy128,
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,

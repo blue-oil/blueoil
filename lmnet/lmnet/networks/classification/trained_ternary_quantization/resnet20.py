@@ -56,14 +56,17 @@ class Resnet20(Base):
         self.num_residual = 3#num_residual
         self.weight_decay_rate = weight_decay_rate
 
-    def _residual(self, inputs, in_filters, out_filters, strides, is_training):
+    def _residual(self, inputs, in_filters, out_filters, strides, is_training, first=False):
         use_bias = False
 
         with tf.variable_scope('sub1'):
-            bn1 = batch_norm("bn1", inputs, is_training=is_training)
+            if first:
+                relu1 = inputs
+            else:
+                bn1 = batch_norm("bn1", inputs, is_training=is_training)
 
-            with tf.variable_scope('relu1'):
-                relu1 = tf.nn.relu(bn1, name="relu1")
+                with tf.variable_scope('relu1'):
+                    relu1 = tf.nn.relu(bn1, name="relu1")
 
             conv1 = conv2d(
                 "conv1",
@@ -76,7 +79,6 @@ class Resnet20(Base):
                 is_debug=self.is_debug,
                 kernel_initializer=tf.random_normal_initializer(stddev=np.sqrt(2.0/9/out_filters)),
             )
-            
 
         with tf.variable_scope('sub2'):
             bn2 = batch_norm("bn2", conv1, is_training=is_training)
@@ -129,15 +131,15 @@ class Resnet20(Base):
                 kernel_initializer=tf.random_normal_initializer(stddev=np.sqrt(2.0/9/16)),
             )
 
-            #self.bn1 = batch_norm("bn1", self.conv1, is_training=is_training)
-            #with tf.variable_scope("relu1"):
-            #    self.relu1 = tf.nn.relu(self.bn1)
+            self.bn1 = batch_norm("bn1", self.conv1, is_training=is_training)
+            with tf.variable_scope("relu1"):
+                self.relu1 = tf.nn.relu(self.bn1)
             #self.pool1 = max_pooling2d("init_max_pool", self.relu1, 2, strides=2, padding="SAME")
 
         for i in range(0, self.num_residual):
             with tf.variable_scope("unit1_{}".format(i)):
                 if i == 0:
-                    out = self._residual(self.conv1, in_filters=16, out_filters=16, strides=1, is_training=is_training)
+                    out = self._residual(self.relu1, in_filters=16, out_filters=16, strides=1, is_training=is_training, first=True)
                 else:
                     out = self._residual(out, in_filters=16, out_filters=16, strides=1, is_training=is_training)
 
@@ -167,7 +169,16 @@ class Resnet20(Base):
             "global_average_pool", out, pool_size=[h, w], padding="VALID", is_debug=self.is_debug,)
 
         self._heatmap_layer = None
-        self.fc = fully_connected("fc", self.global_average_pool, filters=self.num_classes, activation=None, weights_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0002), weights_initializer=tf.contrib.layers.xavier_initializer())
+        weight_initializer = tf.uniform_unit_scaling_initializer(factor=1.43)
+        self.fc = fully_connected(
+            "fc",
+            self.global_average_pool,
+            filters=self.num_classes,
+            activation=None,
+            weights_regularizer=tf.contrib.layers.l2_regularizer(scale=0.0002),
+            weights_initializer=weight_initializer,
+            bias_initializer=tf.constant_initializer(),
+        )
 
         return self.fc
 
@@ -190,8 +201,8 @@ class Resnet20(Base):
         )
         cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
 
-        #fc_regularized_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-        loss = cross_entropy_mean + self._decay() #+ sum(fc_regularized_loss)
+        fc_regularized_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        loss = cross_entropy_mean + self._decay() + sum(fc_regularized_loss)
         tf.summary.scalar("loss", loss)
         return loss
 
