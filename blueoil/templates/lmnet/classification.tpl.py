@@ -153,7 +153,7 @@ DATASET.AUGMENTOR = Sequence([
     #Resize(size=IMAGE_SIZE),
     Crop(size=IMAGE_SIZE),
     FlipLeftRight(),
-    PerPixelMeanSubtraction(),
+#    PerPixelMeanSubtraction(),
 #    Brightness((0.75, 1.25)),
 #    Color((0.75, 1.25)),
 #    Contrast((0.75, 1.25)),
