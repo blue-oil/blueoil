@@ -25,41 +25,6 @@ from typing import cast, List, Any
 from collections import defaultdict
 from modules.packer import Packer
 
-
-def pass_remove_identities(graph: Graph) -> None:
-    """Removes those nodes of a Graph that satisfies the condition node.op_type() == Identity.
-
-    Parameters
-    ----------
-    graph : Graph
-        The input graph. It will be modified in-place.
-
-    """
-    exec_list = [n for n in sort_graph(graph) if n.op_type == 'Identity']
-    to_be_removed = list()
-    for m in exec_list:
-        """skip all identity."""
-        in_op = m.input_ops['input']
-        out_ops = m.output_ops['output']
-        for out_op in out_ops:
-            for k, v in out_op.input_ops.items():
-                if v == m:
-                    # change the output's input to this identity's input
-                    out_op.add_input(k, in_op)
-                    # change the input's output to this identity's output
-                    for k2, v2 in in_op.output_ops.items():
-                        if m in v2:
-                            v2.remove(m)
-                            v2.append(out_op)
-                            break
-                    break
-
-        to_be_removed.append(m)
-
-    for op in to_be_removed:
-        graph.remove_op(op)
-
-
 def transpose_kernels(kernel_data: np.ndarray,
                       dimension_format: str,
                       oh: int,
@@ -112,6 +77,40 @@ def transpose_kernels(kernel_data: np.ndarray,
                         idx_src += 1
 
     return transposed_values
+
+
+def pass_remove_identities(graph: Graph) -> None:
+    """Removes those nodes of a Graph that satisfies the condition node.op_type() == Identity.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+
+    """
+    exec_list = [n for n in sort_graph(graph) if n.op_type == 'Identity']
+    to_be_removed = list()
+    for m in exec_list:
+        """skip all identity."""
+        in_op = m.input_ops['input']
+        out_ops = m.output_ops['output']
+        for out_op in out_ops:
+            for k, v in out_op.input_ops.items():
+                if v == m:
+                    # change the output's input to this identity's input
+                    out_op.add_input(k, in_op)
+                    # change the input's output to this identity's output
+                    for k2, v2 in in_op.output_ops.items():
+                        if m in v2:
+                            v2.remove(m)
+                            v2.append(out_op)
+                            break
+                    break
+
+        to_be_removed.append(m)
+
+    for op in to_be_removed:
+        graph.remove_op(op)
 
 
 def pass_transpose(graph: Graph) -> None:
@@ -261,56 +260,6 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
             quant_details[m.name] = qtzs if len(qtzs) == len(m.input_nodes) else []
             # TODO: check if the quantizers use same n_bits
 
-    def run_forward_conv(self, node: Conv, **kwargs: Any) -> None:
-        ops: List[Operator] = [node.input_ops[i] for i in node.input_names if node.input_ops.get(i)]
-
-        if self._hard_quantized and node in kwargs['qconv']:
-            # data is to be packed
-            ops_have_precomp_values = list(map(lambda x: self._has_precompute_value(x), ops))
-            ops_are_prunable = list(map(lambda x: self._is_prunable(x), ops))
-
-            # check which input node can be pruned
-            if reduce(lambda x, y: x and y, ops_have_precomp_values):  # all input has concrete values
-                node.run_forward()
-                self._precomp_dic[node.name] = True  # this node can be pruned
-                quantizers = {op.name: self._quantizers[op.name] for op in ops if self._quantizers.get(op.name)}
-                if len(quantizers) > 1:
-                    ValueError(f'{node.name}: multiple quantized inputs with {node.op_type} are not supported.')
-                self._quantizers[node.name] = list(quantizers.values())[0]
-
-            else:   # an input (must be weight) is to be quantized and packed
-                self._precomp_dic[node.name] = False
-                node.is_quantized = True
-                packer = Packer(self._quantized_bitwidth, self._wordsize)
-                quantizers = {op.name: self._quantizers[op.name] for op in ops if self._quantizers.get(op.name)}
-                if len(quantizers) > 1:
-                    ValueError(f'{node.name}: multiple quantized inputs with {node.op_type} are not supported.')
-                node.quantizer = list(quantizers.values())[0]
-
-                for key, op in zip(node.input_names, ops):
-                    
-                    if self._is_prunable(op):
-                        oh = node.height
-                        ow = node.width
-                        od = node.channel
-                        kh = node.kernel_height
-                        kw = node.kernel_width
-                        kd = node.input_ops['X'].channel
-                        shape = op.shape
-                        op_data = node.quantizer.binarizer(op.data)
-                        data = packer.run(op_data.astype(np.float32), op.dimension)
-                        dtype = op.dtype
-                        new_op = Constant(
-                            op.name + '_new',
-                            dtype,
-                            data,
-                            packed=True,
-                            actual_shape=shape,
-                            transposed_data=transpose_kernels(data, node.dimension, oh, ow, od, kh, kw, kd)
-                        )
-                        node.add_input(key, new_op)
-                        self._graph.add_op(new_op)
-                        self._prune(op)
 
 def pass_compute_thresholds(graph: Graph) -> None:
     """Given a Quantizer node Q:
@@ -469,12 +418,19 @@ def pass_pack_weights(graph: Graph) -> None:
         data = packer.run(op_data.astype(np.float32), weight_quantizer.dimension)
 
         # Create the new constant with the quantized weights
+        oh = conv_node.height
+        ow = conv_node.width
+        od = conv_node.channel
+        kh = conv_node.kernel_height
+        kw = conv_node.kernel_width
+        kd = conv_node.input_ops['X'].channel
         quantized_constant = Constant(
             weight_quantizer.name + '_new',
             Uint32(),
             data,
             packed=True,
-            actual_shape=weight_quantizer.shape
+            actual_shape=weight_quantizer.shape,
+            transposed_data=transpose_kernels(data, conv_node.dimension, oh, ow, od, kh, kw, kd)
         )
 
         # get nodes to be removed after being disconnected
