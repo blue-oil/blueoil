@@ -1273,7 +1273,7 @@ class BatchNormalization(Operator):
                  input_ops: Ops,
                  dimension_format: str = 'NHWC',
                  epsilon: float = float(10 ** -5),
-                 is_test: bool = False) -> None: #konda
+                 is_test: bool = False) -> None:
         """Init the batch normalization operator."""
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
         self._epsilon = epsilon

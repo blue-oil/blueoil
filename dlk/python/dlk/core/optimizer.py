@@ -193,7 +193,6 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
     graph : Graph
         The input graph. It will be modified in-place.
     """
-
     exec_list = sort_graph(graph)
     qtypes = [
         'QTZ_binary_mean_scaling',
@@ -229,6 +228,13 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
 
 
 def pass_precompute_batchnormalization(graph: Graph) -> None:
+    """TODO: write datails.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'BatchNormalization']
 
     for m in exec_list:
