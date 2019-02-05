@@ -101,11 +101,6 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
                                   const binary_convolution_parameters &p) {
   using namespace dlk;
 
-  convolution_parameters cp = p.normal_conv_params;
-  static QUANTIZED_NOT_PACKED
-      im2col_input_buf[MAX_SIZE_IM2COL_INPUTS_PER_LAYER] = {};
-  const T_UINT out_c = cp.output_channels;
-
   int ic = p.normal_conv_params.kernel_depth;
   int ih = p.normal_conv_params.input_height;
   int iw = p.normal_conv_params.input_width;
@@ -151,7 +146,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 
   delete[] kernel_hwoi;
 
-  if (p.thresholds != NULL) {
+  if (p.thresholds != nullptr) {
     ApplyThresholds(output_, p);
   }
 

@@ -25,17 +25,14 @@ void func_AveragePool(T_FLOAT input[], T_FLOAT output[],
                       T_UINT out_width, T_UINT out_depth) {
   Measurement::Start("AveragePool");
 
-  T_UINT feature_map_size = app.output_height * app.output_width;
-  T_UINT input_size = (app.input_height * app.input_width);
-
   assert (app.kernel_depth == 1 && "kernel depth 1 is not supported.");
   assert (app.input_depth == app.kernel_depth * app.output_channels && \
           "input_depth must equal kernel_depth * output_channels.");
 
   int idx_out = 0;
-  T_FLOAT num_k_elems = app.kernel_height * app.kernel_width * app.kernel_depth;
+  const T_FLOAT num_k_elems = app.kernel_height * app.kernel_width * app.kernel_depth;
 
-  std::memset(output, 0.0, app.output_channels * app.output_height * app.output_width * sizeof(T_FLOAT));
+  std::memset(output, 0.0f, app.output_channels * app.output_height * app.output_width * sizeof(T_FLOAT));
 
   for(T_UINT oc = 0; oc < app.output_channels; oc++) {
     for(T_UINT wi = 0; wi < app.output_height; wi++) {
@@ -44,15 +41,16 @@ void func_AveragePool(T_FLOAT input[], T_FLOAT output[],
         T_FLOAT out = 0;
         for(T_UINT ki = 0; ki < app.kernel_height; ki++) {
           for(T_UINT kj = 0; kj < app.kernel_width; kj++) {
-            for(T_UINT kz = 0; kz < app.kernel_depth; kz++) {
-              T_INT row = (wi * app.stride) - app.padding + ki;
-              T_INT col = (wj * app.stride) - app.padding + kj;
+	    T_INT row = (wi * app.stride) - app.padding + ki;
+	    T_INT col = (wj * app.stride) - app.padding + kj;
 
-              T_INT inside = (row >= 0 && col >= 0 && row < (T_INT) app.input_height && col < (T_INT)app.input_width);
+	    T_INT inside = (row >= 0 && col >= 0 && row < (T_INT) app.input_height && col < (T_INT)app.input_width);
+	    if (!inside) continue;
+            for(T_UINT kz = 0; kz < app.kernel_depth; kz++) {
               int idx_in = oc * app.kernel_depth
                          + row * (app.input_width * app.input_depth)
                          + col * (app.input_depth) + kz;
-              out += inside ? input[idx_in] : T_FLOAT(0);
+              out += input[idx_in];
             }
           }
         }

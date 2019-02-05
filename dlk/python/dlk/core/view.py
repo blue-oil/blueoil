@@ -130,7 +130,7 @@ class View(object):
                     nbit_aqtz = self.op.a_quantizer[0].nbit
                     max_value = self.op.a_quantizer[0].max_v
                 else:
-                    threshold = 'NULL'
+                    threshold = 'nullptr'
                     conv_func = 'func_QuantizedConv2D'
                     nbit_aqtz = 2
                     max_value = 2.0
@@ -655,7 +655,7 @@ class View(object):
             input_list_name = op.name + '_inputs'
             depth_list_name = op.name + '_inputs_depth'
 
-            number_of_inputs = len(input_ops) - 1
+            number_of_inputs = len(input_ops)
             concat_input = {}
             for k, v in input_ops.items():
                 if not v.is_variable:
@@ -706,7 +706,7 @@ class View(object):
                 """
             )
         elif self.op.op_type == 'Split':
-            if len(input_ops) != 2:
+            if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(input_ops)
