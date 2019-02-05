@@ -228,7 +228,8 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
 
 
 def pass_precompute_batchnormalization(graph: Graph) -> None:
-    """TODO: write datails.
+    """Given a node N, if the N is 'BatchNormalization', all coefficients are already known.
+       So, caclulate shift and scale in advance.
 
     Parameters
     ----------
