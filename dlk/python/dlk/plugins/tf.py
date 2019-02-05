@@ -422,12 +422,12 @@ class Importer(object):
         return dlk_op_type if dlk_op_type else op_type
 
     def create_new_op(self, node: Any, op_dic: Dict[str, Operator], current_format: str,
-                      input_format_list: List[str]) -> Operator:
+                      input_format_list: List[str], nodes_to_remove) -> Operator:
         """Create new operators with Node, Input(Constant), Output."""
         new_op: Operator
 
         if isinstance(node, Node):  # operator nodes
-            new_op = self.create_new_node(node, op_dic, current_format, input_format_list)
+            new_op = self.create_new_node(node, op_dic, current_format, input_format_list, nodes_to_remove)
 
         else:  # Input, Output or Constant
             shape: List[int] = list(map(int, node.get_shape()))
@@ -471,7 +471,10 @@ class Importer(object):
     def add_all_nodes(self, graph: Graph) -> None:
         visited: Set[Any] = set()
         added: Dict[str, Operator] = {}
-        self.add_node_to_graph_recursive(self.out_lst[0], graph, visited, added, 'NHWC')
+        nodes_to_remove = []
+        self.add_node_to_graph_recursive(self.out_lst[0], graph, visited, added, 'NHWC', nodes_to_remove)
+        for node in nodes_to_remove:
+            graph.remove_op(node)
 
     def _get_format(self, node: Any, output_format: str) -> Tuple[str, List[str]]:
         """Get the dimension format, like 'NCHW', 'HWCN', 'NHWC', etc."""
@@ -533,7 +536,7 @@ class Importer(object):
             return output_format, [output_format]
 
     def add_node_to_graph_recursive(self, current: Any, graph: Graph, visited: Set[Any], added: Dict[str, Operator],
-                                    data_format: str) \
+                                    data_format: str, nodes_to_remove) \
             -> Operator:
         if current in visited:
             return added[current.name]
@@ -544,10 +547,10 @@ class Importer(object):
         current_format, input_formats = self._get_format(current, data_format)
         inputs = self.find_inputs(current)
         for in_put, in_format in zip(inputs, input_formats):
-            in_op = self.add_node_to_graph_recursive(in_put, graph, visited, added, in_format)
+            in_op = self.add_node_to_graph_recursive(in_put, graph, visited, added, in_format, nodes_to_remove)
             added_op_dic[in_op.name] = in_op
 
-        op = self.create_new_op(current, added_op_dic, current_format, input_formats)
+        op = self.create_new_op(current, added_op_dic, current_format, input_formats, nodes_to_remove)
 
         graph.add_op(op)
 
@@ -577,7 +580,7 @@ class Importer(object):
         return inputs
 
     def create_new_node(self, node: Node, op_dic: Dict[str, Operator], current_format: str,
-                        input_format_list: List[str]) -> Operator:
+                        input_format_list: List[str], nodes_to_remove) -> Operator:
         """Create a new operator node. This might be tooooo long code...
 
         Parameters
@@ -617,11 +620,13 @@ class Importer(object):
         def get_inputs(cdef: Type[Operator], current_node: Any) -> Dict[str, Operator]:
             input_names = cdef.input_names
             in_ops: Dict[str, Operator] = {}
+            in_ops_order: List[int] = []
             for n, op in zip(input_names, current_node.inputs):
                 in_ops[n] = op_dic[op]
-            return in_ops
+                in_ops_order.append(n)
+            return in_ops, in_ops_order
 
-        input_ops = get_inputs(class_def, node)
+        input_ops, input_ops_order = get_inputs(class_def, node)
 
         # Here find the shape and data type for the op
         def infer_shape(attrs: Dict[str, Any]) -> List[int]:
@@ -955,7 +960,7 @@ class Importer(object):
                 dimension_format=current_format,
             )
         elif op_type == 'ConcatOnDepth':
-            axis = node.attribute('axis')
+            axis = input_ops[input_ops_order[-1]]
             if current_format.index('C') != axis:
                 ValueError('f{op_type} {node.name} concatenation is only supported on the depth axis')
 
@@ -970,6 +975,10 @@ class Importer(object):
                 input_ops,
                 dimension_format=current_format,
             )
+
+            input_axis_name = input_ops_order[-1]
+            nodes_to_remove.append(new_op.input_ops[input_axis_name])
+            new_op.remove_input(input_axis_name)
         elif op_type == 'Maximum':
 
             if not shape:
@@ -1018,6 +1027,9 @@ class Importer(object):
                 dimension_format=current_format,
                 split=num_split
             )
+            input_axis_name = input_ops_order[0]
+            nodes_to_remove.append(new_op.input_ops[input_axis_name])
+            new_op.remove_input(input_axis_name)
         else:
             raise UnsupportedNode(
                 f'TensorFlow importer cannot convert {op_type} operator node!')
