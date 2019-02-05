@@ -99,10 +99,10 @@ def run_object_detection(config):
     input_width = config.IMAGE_SIZE[1]
     input_height = config.IMAGE_SIZE[0]
 
-    vc = cv2.VideoCapture(1)
-    vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
-    vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
-    vc.set(cv2.CAP_PROP_FPS, 10)
+    vc = cv2.VideoCapture(0)
+    vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
+    vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
+    vc.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 
     pool = Pool(processes=1)
     result = False
@@ -159,10 +159,10 @@ def run_classification(config):
     window_width = 320
     window_height = 240
 
-    vc = cv2.VideoCapture(1)
-    vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
-    vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
-    vc.set(cv2.CAP_PROP_FPS, 10)
+    vc = cv2.VideoCapture(0)
+    vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
+    vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
+    vc.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 
     pool = Pool(processes=1)
 
