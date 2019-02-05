@@ -19,7 +19,6 @@ import os
 
 from PIL import Image
 from lmnet.nnlib import NNLib as NNLib
-from lmnet.protobuf_loader import ProtobufLoader
 
 from lmnet.common import Tasks
 from lmnet.utils.output import JsonOutput, ImageFromJson
@@ -88,6 +87,8 @@ def _run(model, input_image, config):
         nn.init()
 
     elif file_extension == '.pb':  # Protocol Buffer file
+        # only load tensorflow if user wants to use GPU
+        from lmnet.protobuf_loader import ProtobufLoader
         nn = ProtobufLoader(model)
 
     # run the graph
