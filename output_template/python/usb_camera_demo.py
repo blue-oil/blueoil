@@ -19,14 +19,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import time
+import os
 from multiprocessing import Pool
 from time import sleep
-from Queue import Queue
+from multiprocessing import Queue
 
 import click
 import cv2
 import numpy as np
 
+from lmnet.protobuf_loader import ProtobufLoader
 from lmnet.nnlib import NNLib
 from lmnet.utils.config import (
     load_yaml,
@@ -73,7 +75,6 @@ def run_inference(img):
 
     result = nn.run(data)
 
-    # if post_process is not None:
     result = post_process(outputs=result)['outputs']
 
     fps = 1.0/(time.time() - start)
@@ -92,16 +93,16 @@ def swap_queue(q1, q2):
 
 def run_object_detection(config):
     # Set variables
-    camera_width = 320
+    camera_width = 120
     camera_height = 240
     window_name = "Object Detection Demo"
     input_width = config.IMAGE_SIZE[1]
     input_height = config.IMAGE_SIZE[0]
 
-    vc = cv2.VideoCapture(0)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-    vc.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+    vc = cv2.VideoCapture(1)
+    vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
+    vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
+    vc.set(cv2.CAP_PROP_FPS, 10)
 
     pool = Pool(processes=1)
     result = False
@@ -121,7 +122,7 @@ def run_object_detection(config):
         pool_result = pool.apply_async(run_inference, (input_img,))
         is_first = True
         while True:
-            sleep(0.01)
+            sleep(10)
             grabbed, camera_img = vc.read()
             if is_first:
                 input_img = camera_img.copy()
@@ -158,10 +159,10 @@ def run_classification(config):
     window_width = 320
     window_height = 240
 
-    vc = cv2.VideoCapture(0)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-    vc.set(cv2.cv.CV_CAP_PROP_FPS, 10)
+    vc = cv2.VideoCapture(1)
+    vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
+    vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
+    vc.set(cv2.CAP_PROP_FPS, 10)
 
     pool = Pool(processes=1)
 
@@ -210,11 +211,16 @@ def run_classification(config):
     cv2.destroyAllWindows()
 
 
-def run(library, config_file):
+def run(model, config_file):
     global nn, pre_process, post_process
-    nn = NNLib()
-    nn.load(library)
-    nn.init()
+    filename, file_extension = os.path.splitext(model)
+
+    if file_extension == '.so':  # Shared library
+        nn = NNLib()
+        nn.load(model)
+        nn.init()
+    elif file_extension == '.pb':  # Protocol Buffer file
+        nn = ProtobufLoader(model)
 
     config = load_yaml(config_file)
 
@@ -230,10 +236,10 @@ def run(library, config_file):
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option(
-    "-l",
-    "--library",
+    "-m",
+    "--model",
     type=click.Path(exists=True),
-    help=u"Shared library filename",
+    help=u"Inference Model filename",
     default="../models/lib/lib_fpga.so",
 )
 @click.option(
@@ -243,8 +249,8 @@ def run(library, config_file):
     help=u"Config file Path",
     default="../models/meta.yaml",
 )
-def main(library, config_file):
-    run(library, config_file)
+def main(model, config_file):
+    run(model, config_file)
 
 
 if __name__ == "__main__":
