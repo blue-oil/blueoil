@@ -81,7 +81,7 @@ def test_quantized_layers():
         assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
         tf.reset_default_graph()
 
-        with tf.variable_scope("", reuse=True):
+        with tf.variable_scope("notQuantizeLastLayer"):
             quantizer = model(
                 classes=['accordion', 'airplanes', 'anchor'],
                 is_debug=True,
@@ -107,7 +107,7 @@ def test_quantized_layers():
             scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
             assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
 
-        with tf.variable_scope("", reuse=True):
+        with tf.variable_scope("notQuantizeFirstLayer"):
             quantizer = model(
                 classes=['accordion', 'airplanes', 'anchor'],
                 is_debug=True,
