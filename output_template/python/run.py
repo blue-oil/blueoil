@@ -19,6 +19,7 @@ import os
 
 from PIL import Image
 from lmnet.nnlib import NNLib as NNLib
+from lmnet.protobuf_loader import ProtobufLoader
 
 from lmnet.common import Tasks
 from lmnet.utils.output import JsonOutput, ImageFromJson
@@ -64,17 +65,8 @@ def _save_images(output_dir, filename_images):
         print("save image: {}".format(output_file_name))
 
 
-def main_test(input_image, library, config_file, max_percent_incorrect_values=0.1):
-    if not input_image or not library or not config_file:
-        print('Please check usage with --help option')
-        exit(1)
-
-    config = load_yaml(config_file)
-
-    # load and initialize the generated shared library
-    nn = NNLib()
-    nn.load(library)
-    nn.init()
+def _run(model, input_image, config):
+    filename, file_extension = os.path.splitext(model)
 
     # load the image
     img = Image.open(input_image).convert("RGB")
@@ -89,8 +81,30 @@ def main_test(input_image, library, config_file, max_percent_incorrect_values=0.
     # add the batch dimension
     data = np.expand_dims(data, axis=0)
 
+    if file_extension == '.so':  # Shared library
+        # load and initialize the generated shared model
+        nn = NNLib()
+        nn.load(model)
+        nn.init()
+
+    elif file_extension == '.pb':  # Protocol Buffer file
+        nn = ProtobufLoader(model)
+
     # run the graph
     output = nn.run(data)
+
+    return output, raw_image
+
+
+def main_test(input_image, model, config_file, max_percent_incorrect_values=0.1):
+    if not input_image or not model or not config_file:
+        print('Please check usage with --help option')
+        exit(1)
+
+    config = load_yaml(config_file)
+
+    # run the model
+    output, raw_image = _run(model, input_image, config)
 
     print('Output: (before post process)')
     print(output)
@@ -133,10 +147,10 @@ def main_test(input_image, library, config_file, max_percent_incorrect_values=0.
     help="Input image filename",
 )
 @click.option(
-    "-l",
-    "--library",
+    "-m",
+    "--model",
     type=click.Path(exists=True),
-    help="Shared library filename",
+    help="Inference Model filename",
 )
 @click.option(
     "-c",
@@ -144,8 +158,8 @@ def main_test(input_image, library, config_file, max_percent_incorrect_values=0.
     type=click.Path(exists=True),
     help="Config file Path",
 )
-def run_test(input_image, library, config_file):
-    main_test(input_image, library, config_file)
+def run_test(input_image, model, config_file):
+    main_test(input_image, model, config_file)
 
 
 if __name__ == "__main__":
