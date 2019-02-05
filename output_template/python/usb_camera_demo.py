@@ -28,7 +28,6 @@ import click
 import cv2
 import numpy as np
 
-from lmnet.protobuf_loader import ProtobufLoader
 from lmnet.nnlib import NNLib
 from lmnet.utils.config import (
     load_yaml,
@@ -220,6 +219,8 @@ def run(model, config_file):
         nn.load(model)
         nn.init()
     elif file_extension == '.pb':  # Protocol Buffer file
+        # only load tensorflow if user wants to use GPU
+        from lmnet.protobuf_loader import ProtobufLoader
         nn = ProtobufLoader(model)
 
     config = load_yaml(config_file)
