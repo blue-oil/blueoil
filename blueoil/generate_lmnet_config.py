@@ -162,10 +162,12 @@ def _blueoil_to_lmnet(blueoil_config):
 
     learning_rate_func = None
     learning_rate_kwargs = None
-    if optimizer == "Momentum":
-        optimizer_kwargs = {"momentum": 0.9, "learning_rate": initial_learning_rate}
+    if learning_rate_schedule == "constant":
+        if optimizer == "Momentum":
+            optimizer_kwargs = {"momentum": 0.9, "learning_rate": initial_learning_rate}
+        else:
+            optimizer_kwargs = {"learning_rate": initial_learning_rate}
     else:
-        optimizer_kwargs = {"learning_rate": initial_learning_rate}
         learning_rate_func = "tf.train.piecewise_constant"
 
     if learning_rate_schedule == "2-step-decay":
