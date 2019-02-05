@@ -58,14 +58,14 @@ def test_quantized_layers():
     quantizer_name = "QTZ_binary_mean_scaling"
 
     for model in model_classes:
-        with tf.variable_scope("", reuse=tf.AUTO_REUSE):
+        with tf.variable_scope(""):
             quantizer = model(
                 classes=['accordion', 'airplanes', 'anchor'],
                 is_debug=True,
                 activation_quantizer=linear_mid_tread_half_quantizer,
                 batch_size=10,
                 data_format='NHWC',
-                image_size=[128, 128],
+                image_size=[32, 32],
                 optimizer_class=tf.train.GradientDescentOptimizer,
                 quantize_first_convolution=True,
                 quantize_last_convolution=True,
@@ -82,14 +82,14 @@ def test_quantized_layers():
         assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
         tf.reset_default_graph()
 
-        with tf.variable_scope("", reuse=tf.AUTO_REUSE):
+        with tf.variable_scope("", reuse=True):
             quantizer = model(
                 classes=['accordion', 'airplanes', 'anchor'],
                 is_debug=True,
                 activation_quantizer=linear_mid_tread_half_quantizer,
                 batch_size=10,
                 data_format='NHWC',
-                image_size=[128, 128],
+                image_size=[32, 32],
                 optimizer_class=tf.train.GradientDescentOptimizer,
                 quantize_first_convolution=True,
                 quantize_last_convolution=False,
@@ -108,14 +108,14 @@ def test_quantized_layers():
         scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
         assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
 
-        with tf.variable_scope("", reuse=tf.AUTO_REUSE):
+        with tf.variable_scope("", reuse=True):
             quantizer = model(
                 classes=['accordion', 'airplanes', 'anchor'],
                 is_debug=True,
                 activation_quantizer=linear_mid_tread_half_quantizer,
                 batch_size=10,
                 data_format='NHWC',
-                image_size=[128, 128],
+                image_size=[32, 32],
                 optimizer_class=tf.train.GradientDescentOptimizer,
                 quantize_first_convolution=False,
                 quantize_last_convolution=True,
