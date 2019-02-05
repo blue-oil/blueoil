@@ -138,10 +138,11 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,
     'max_value': 2
 }
-NETWORK.WEIGHT_QUANTIZER = twn_weight_quantizer
+NETWORK.WEIGHT_QUANTIZER = ttq_weight_quantizer
 #binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 NETWORK.QUANTIZE_FIRST_CONVOLUTION = {% if quantize_first_convolution %} True {% else %} False {% endif %}
+NETWORK.QUANTIZE_LAST_CONVOLUTION = False
 
 # dataset
 DATASET = EasyDict()
