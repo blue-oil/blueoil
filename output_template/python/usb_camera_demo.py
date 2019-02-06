@@ -20,7 +20,6 @@ from __future__ import unicode_literals
 
 import time
 import os
-from multiprocessing import Pool
 from time import sleep
 from multiprocessing import Queue
 
@@ -29,6 +28,7 @@ import cv2
 import numpy as np
 
 from lmnet.nnlib import NNLib
+from lmnet.pool_interface import PoolInterface
 from lmnet.utils.config import (
     load_yaml,
     build_pre_process,
@@ -53,6 +53,22 @@ class MyTime:
         print("TIME: ", self.function_name, time.time() - self.start_time)
 
 
+def init_camera(camera_width, camera_height):
+    if hasattr(cv2, 'cv'):
+        vc = cv2.VideoCapture(0)
+        vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
+        vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
+        vc.set(cv2.cv.CV_CAP_PROP_FPS, 10)
+
+    else:
+        vc = cv2.VideoCapture(1)
+        vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
+        vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
+        vc.set(cv2.CAP_PROP_FPS, 10)
+
+    return vc
+
+
 def add_class_label(canvas,
                     text="Hello",
                     font=cv2.FONT_HERSHEY_SIMPLEX,
@@ -72,9 +88,12 @@ def run_inference(img):
     data = np.asarray(data, dtype=np.float32)
     data = np.expand_dims(data, axis=0)
 
+    start_time = time.time()
     result = nn.run(data)
 
+    inference_time = time.time() - start_time
     result = post_process(outputs=result)['outputs']
+    print('inference time: {:.3f}s'.format(inference_time))
 
     fps = 1.0/(time.time() - start)
     return result, fps
@@ -92,18 +111,15 @@ def swap_queue(q1, q2):
 
 def run_object_detection(config):
     # Set variables
-    camera_width = 120
+    camera_width = 320
     camera_height = 240
     window_name = "Object Detection Demo"
     input_width = config.IMAGE_SIZE[1]
     input_height = config.IMAGE_SIZE[0]
 
-    vc = cv2.VideoCapture(0)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-    vc.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+    vc = init_camera(camera_width, camera_height)
 
-    pool = Pool(processes=1)
+    pool = PoolInterface()
     result = False
     fps = 1.0
 
@@ -118,10 +134,10 @@ def run_object_detection(config):
     #  ----------- Beginning of Main Loop ---------------
     while True:
         m1 = MyTime("1 loop of while(1) of main()")
-        pool_result = pool.apply_async(run_inference, (input_img,))
+        pool_result = pool.run(run_inference, input_img)
         is_first = True
         while True:
-            sleep(10)
+            sleep(0.01)
             grabbed, camera_img = vc.read()
             if is_first:
                 input_img = camera_img.copy()
@@ -130,7 +146,12 @@ def run_object_detection(config):
             if not q_show.empty():
                 window_img = q_show.get()
                 if result:
-                    window_img = add_rectangle(config.CLASSES, window_img, result, (input_height, input_width))
+                    window_img = add_rectangle(
+                        config.CLASSES,
+                        window_img,
+                        result,
+                        (input_height, input_width)
+                    )
                     window_img = add_fps(window_img, fps)
                 # ---------- END of if result != False -----------------
 
@@ -138,13 +159,13 @@ def run_object_detection(config):
                 key = cv2.waitKey(2)    # Wait for 2ms
                 if key == 27:           # ESC to quit
                     return
-
-            if pool_result.ready():
+            if pool.is_done(pool_result):
                 break
+
         # -------------- END of wait loop ----------------------
         q_show = clear_queue(q_show)
         q_save, q_show = swap_queue(q_save, q_show)
-        result, fps = pool_result.get()
+        result, fps = pool.get_results(pool_result)
         m1.show()
 
     # --------------------- End of main Loop -----------------------
@@ -158,16 +179,13 @@ def run_classification(config):
     window_width = 320
     window_height = 240
 
-    vc = cv2.VideoCapture(0)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-    vc.set(cv2.cv.CV_CAP_PROP_FPS, 15)
+    vc = init_camera(camera_width, camera_height)
 
-    pool = Pool(processes=1)
+    pool = PoolInterface()
 
     grabbed, camera_img = vc.read()
 
-    pool_result = pool.apply_async(run_inference, (camera_img, ))
+    pool_result = pool.run(run_inference, camera_img)
     result = None
     fps = 1.0
     loop_count = 0
@@ -183,9 +201,9 @@ def run_classification(config):
         grabbed, camera_img = vc.read()
         m2.show()
 
-        if pool_result.ready():
-            result, fps = pool_result.get()
-            pool_result = pool.apply_async(run_inference, (camera_img, ))
+        if pool.is_done(pool_result):
+            result, fps = pool.get_results(pool_result)
+            pool_result = pool.run(run_inference, camera_img)
 
         if (window_width == camera_width) and (window_height == camera_height):
             window_img = camera_img
@@ -214,19 +232,19 @@ def run(model, config_file):
     global nn, pre_process, post_process
     filename, file_extension = os.path.splitext(model)
 
+    config = load_yaml(config_file)
+    pre_process = build_pre_process(config.PRE_PROCESSOR)
+    post_process = build_post_process(config.POST_PROCESSOR)
+
     if file_extension == '.so':  # Shared library
         nn = NNLib()
         nn.load(model)
         nn.init()
+
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
         from lmnet.protobuf_loader import ProtobufLoader
         nn = ProtobufLoader(model)
-
-    config = load_yaml(config_file)
-
-    pre_process = build_pre_process(config.PRE_PROCESSOR)
-    post_process = build_post_process(config.POST_PROCESSOR)
 
     if config.TASK == "IMAGE.CLASSIFICATION":
         run_classification(config)
