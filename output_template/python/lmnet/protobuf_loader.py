@@ -39,6 +39,7 @@ class ProtobufLoader:
             output_op = graph.get_tensor_by_name('output:0')
 
         session_config = tf.ConfigProto()
+        session_config.gpu_options.allow_growth = True
         sess = tf.Session(graph=graph, config=session_config)
 
         sess.run(init_op)
