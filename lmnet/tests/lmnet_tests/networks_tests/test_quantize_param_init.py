@@ -81,32 +81,6 @@ def test_quantized_layers():
         assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
         tf.reset_default_graph()
 
-        with tf.variable_scope("notQuantizeLastLayer"):
-            quantizer = model(
-                classes=['accordion', 'airplanes', 'anchor'],
-                is_debug=True,
-                activation_quantizer=linear_mid_tread_half_quantizer,
-                batch_size=10,
-                data_format='NHWC',
-                image_size=[32, 32],
-                optimizer_class=tf.train.GradientDescentOptimizer,
-                quantize_first_convolution=True,
-                quantize_last_convolution=False,
-                weight_quantizer=binary_mean_scaling_quantizer,
-                activation_quantizer_kwargs={
-                    'bit': 2,
-                    'max_value': 2
-                }
-            )
-
-            base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
-            op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
-            assert not any(quantizer.last_layer_name in op and quantizer_name in op for op in op_name_list)
-
-            op_name_list = [op_name for op_name in op_name_list if quantizer.last_layer_name not in op_name]
-            scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
-            assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
-
         with tf.variable_scope("notQuantizeFirstLayer"):
             quantizer = model(
                 classes=['accordion', 'airplanes', 'anchor'],
@@ -130,6 +104,32 @@ def test_quantized_layers():
             assert not any(quantizer.first_layer_name in op and quantizer_name in op for op in op_name_list)
 
             op_name_list = [op_name for op_name in op_name_list if quantizer.first_layer_name not in op_name]
+            scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
+            assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
+
+        with tf.variable_scope("notQuantizeLastLayer"):
+            quantizer = model(
+                classes=['accordion', 'airplanes', 'anchor'],
+                is_debug=True,
+                activation_quantizer=linear_mid_tread_half_quantizer,
+                batch_size=10,
+                data_format='NHWC',
+                image_size=[32, 32],
+                optimizer_class=tf.train.GradientDescentOptimizer,
+                quantize_first_convolution=True,
+                quantize_last_convolution=False,
+                weight_quantizer=binary_mean_scaling_quantizer,
+                activation_quantizer_kwargs={
+                    'bit': 2,
+                    'max_value': 2
+                }
+            )
+
+            base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
+            op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
+            assert not any(quantizer.last_layer_name in op and quantizer_name in op for op in op_name_list)
+
+            op_name_list = [op_name for op_name in op_name_list if quantizer.last_layer_name not in op_name]
             scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
             assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
 
