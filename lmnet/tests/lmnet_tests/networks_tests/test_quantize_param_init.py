@@ -83,20 +83,21 @@ def test_quantized_layers():
 
         with tf.variable_scope("notQuantizeFirstLayer"):
             quantizer = model(
-                classes=['accordion', 'airplanes', 'anchor'],
-                is_debug=True,
                 activation_quantizer=linear_mid_tread_half_quantizer,
-                batch_size=10,
-                data_format='NHWC',
-                image_size=[32, 32],
-                optimizer_class=tf.train.GradientDescentOptimizer,
-                quantize_first_convolution=False,
-                quantize_last_convolution=True,
-                weight_quantizer=binary_mean_scaling_quantizer,
                 activation_quantizer_kwargs={
                     'bit': 2,
                     'max_value': 2
                 }
+                weight_quantizer=binary_mean_scaling_quantizer,
+                weight_quantizer_kwargs=None,
+                quantize_first_convolution=False,
+                quantize_last_convolution=True,
+                classes=['accordion', 'airplanes', 'anchor'],
+                is_debug=True,
+                batch_size=10,
+                data_format='NHWC',
+                image_size=[32, 32],
+                optimizer_class=tf.train.GradientDescentOptimizer,
             )
 
             base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
@@ -109,20 +110,21 @@ def test_quantized_layers():
 
         with tf.variable_scope("notQuantizeLastLayer"):
             quantizer = model(
-                classes=['accordion', 'airplanes', 'anchor'],
-                is_debug=True,
                 activation_quantizer=linear_mid_tread_half_quantizer,
-                batch_size=10,
-                data_format='NHWC',
-                image_size=[32, 32],
-                optimizer_class=tf.train.GradientDescentOptimizer,
-                quantize_first_convolution=True,
-                quantize_last_convolution=False,
-                weight_quantizer=binary_mean_scaling_quantizer,
                 activation_quantizer_kwargs={
                     'bit': 2,
                     'max_value': 2
                 }
+                weight_quantizer=binary_mean_scaling_quantizer,
+                weight_quantizer_kwargs=None,
+                quantize_first_convolution=False,
+                quantize_last_convolution=True,
+                classes=['accordion', 'airplanes', 'anchor'],
+                is_debug=True,
+                batch_size=10,
+                data_format='NHWC',
+                image_size=[32, 32],
+                optimizer_class=tf.train.GradientDescentOptimizer,
             )
 
             base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
