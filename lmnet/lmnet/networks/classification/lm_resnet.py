@@ -40,7 +40,6 @@ class LmResnet(Base):
         assert self.data_format == 'NHWC'
         self.custom_getter = None
         self.activation = tf.nn.relu
-        self.weight_decay_rate = 0.0001
         self.init_ch = 64
         self.num_blocks = {
             18: [2, 2, 2, 2],
