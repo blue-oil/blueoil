@@ -27,7 +27,6 @@ from modules.packer import Packer
 
 
 def transpose_kernels(kernel_data: np.ndarray,
-                      dimension_format: str,
                       oh: int,
                       ow: int,
                       od: int,
@@ -431,7 +430,7 @@ def pass_pack_weights(graph: Graph) -> None:
             data,
             packed=True,
             actual_shape=weight_quantizer.shape,
-            transposed_data=transpose_kernels(data, conv_node.dimension, oh, ow, od, kh, kw, kd)
+            transposed_data=transpose_kernels(data, oh, ow, od, kh, kw, kd)
         )
 
         # get nodes to be removed after being disconnected
