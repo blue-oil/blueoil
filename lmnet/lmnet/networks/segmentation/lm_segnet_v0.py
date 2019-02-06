@@ -113,4 +113,7 @@ class LmSegnetV0Quantize(QuantizeParamInit, LmSegnetV0):
 
     Scope of custom_getter is defined in lmnet_block so there is no need to define base function.
     """
-    pass
+
+    def base(self, images, is_training):
+        with tf.variable_scope("", custom_getter=self.custom_getter):
+            return super().base(images, is_training)
