@@ -33,6 +33,25 @@ def _transpose_kernels(kernel_data: np.ndarray,
                        kh: int,
                        kw: int,
                        kd: int) -> List[int]:
+    """Calculates and prepares the transposed kernel data in advance.
+
+    Parameters
+    ----------
+    kernel_data : np.ndarray
+        The input data. It will be modified(transposed) in-place.
+    oh : int
+        output height
+    ow : int
+        output width
+    od : int
+        output depth
+    kh : int
+        kernel height
+    kw : int
+        kernel width
+    kd : int
+        kernel depth
+    """
     NUM_PE = 16
     NBIT_QDYPE = 32
     MAX_NBIT_QINPUT = 2
