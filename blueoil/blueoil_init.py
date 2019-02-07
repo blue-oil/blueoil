@@ -300,6 +300,16 @@ def ask_questions():
     }
     training_epochs = prompt(training_epochs_question)
 
+    training_optimizer_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'select optimizer:',
+        'choices': ['Momentum',
+                    'Adam'],
+        'default': 'Momentum'
+    }
+    training_optimizer = prompt(training_optimizer_question)
+
     initial_learning_rate_value_question = {
         'type': 'input',
         'name': 'value',
