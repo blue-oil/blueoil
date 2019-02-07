@@ -57,17 +57,17 @@ def test_quantized_layers():
 
     quantizer_name = "QTZ_binary_mean_scaling"
     network_kwargs = {
-        "classes":['accordion', 'airplanes', 'anchor'],
-        "is_debug":True,
-        "activation_quantizer":linear_mid_tread_half_quantizer,
-        "batch_size":10,
-        "data_format":'NHWC',
-        "image_size":[32, 32],
-        "optimizer_class":tf.train.GradientDescentOptimizer,
-        "quantize_first_convolution":True,
-        "quantize_last_convolution":True,
-        "weight_quantizer":binary_mean_scaling_quantizer,
-        "activation_quantizer_kwargs":{
+        "classes": ['accordion', 'airplanes', 'anchor'],
+        "is_debug": True,
+        "activation_quantizer": linear_mid_tread_half_quantizer,
+        "batch_size": 10,
+        "data_format": 'NHWC',
+        "image_size": [32, 32],
+        "optimizer_class": tf.train.GradientDescentOptimizer,
+        "quantize_first_convolution": True,
+        "quantize_last_convolution": True,
+        "weight_quantizer": binary_mean_scaling_quantizer,
+        "activation_quantizer_kwargs": {
             'bit': 2,
             'max_value': 2
         }
