@@ -25,8 +25,10 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/max.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
     $(SRC_DIR)/func/minimum.cpp \
+    $(SRC_DIR)/func/pad.cpp \
     $(SRC_DIR)/func/mul.cpp \
     $(SRC_DIR)/func/multadd.cpp \
+    $(SRC_DIR)/func/matmul.cpp \
     $(SRC_DIR)/func/quantize.cpp \
     $(SRC_DIR)/func/quantized_conv2d.cpp \
     $(SRC_DIR)/func/real_div.cpp \
