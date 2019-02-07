@@ -25,7 +25,7 @@ def test_required_arguments():
     ]
 
     for model in model_classes:
-        quantizer = model(
+        network = model(
             classes=['accordion', 'airplanes', 'anchor'],
             is_debug=True,
             activation_quantizer=linear_mid_tread_half_quantizer,
@@ -40,8 +40,8 @@ def test_required_arguments():
             }
         )
 
-        assert quantizer.first_layer_name is not None
-        assert quantizer.last_layer_name is not None
+        assert network.first_layer_name is not None
+        assert network.last_layer_name is not None
 
 
 def test_quantized_both_layers():
@@ -74,95 +74,40 @@ def test_quantized_both_layers():
     }
 
     for model in model_classes:
-        quantizer = model(**network_kwargs)
+        network1 = model(**network_kwargs)
 
-        base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
-        op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
+        base1, graph1 = network1.base(tf.ones([10, 32, 32, 3]), True)
+        op_name_list = [op.name for op in graph1.get_operations() if "kernel" in op.name]
         scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
         assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
         tf.reset_default_graph()
 
+        network_kwargs["quantize_first_convolution"] = False
 
-def test_quantized_last_layer():
-    model_classes = [
-        LmnetV0Quantize,
-        LmnetV1Quantize,
-        DarknetQuantize,
-        LMFYoloQuantize,
-        YoloV2Quantize,
-        LmSegnetV0Quantize,
-        LmSegnetV1Quantize,
-    ]
+        with tf.variable_scope("scope1"):
+            network2 = model(**network_kwargs)
 
-    quantizer_name = "QTZ_binary_mean_scaling"
-    network_kwargs = {
-        "classes": ['accordion', 'airplanes', 'anchor'],
-        "is_debug": True,
-        "activation_quantizer": linear_mid_tread_half_quantizer,
-        "batch_size": 10,
-        "data_format": 'NHWC',
-        "image_size": [32, 32],
-        "optimizer_class": tf.train.GradientDescentOptimizer,
-        "quantize_first_convolution": False,
-        "quantize_last_convolution": True,
-        "weight_quantizer": binary_mean_scaling_quantizer,
-        "activation_quantizer_kwargs": {
-            'bit': 2,
-            'max_value': 2
-        }
-    }
+            base2, graph2 = network2.base(tf.ones([10, 32, 32, 3]), True)
+            op_name_list = [op.name for op in graph2.get_operations() if "kernel" in op.name and "scope1" in op.name]
+            assert not any(network2.first_layer_name in op and quantizer_name in op for op in op_name_list)
 
-    for model in model_classes:
-        quantizer = model(**network_kwargs)
+            op_name_list = [op_name for op_name in op_name_list if network2.first_layer_name not in op_name]
+            scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
+            assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
 
-        base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
-        op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
-        assert not any(quantizer.first_layer_name in op and quantizer_name in op for op in op_name_list)
+        network_kwargs["quantize_first_convolution"] = True
+        network_kwargs["quantize_last_convolution"] = False
 
-        op_name_list = [op_name for op_name in op_name_list if quantizer.first_layer_name not in op_name]
-        scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
-        assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
+        with tf.variable_scope("scope2"):
+            network3 = model(**network_kwargs)
 
+            base3, graph3 = network3.base(tf.ones([10, 32, 32, 3]), True)
+            op_name_list = [op.name for op in graph3.get_operations() if "kernel" in op.name and "scope2" in op.name]
+            assert not any(network3.last_layer_name in op and quantizer_name in op for op in op_name_list)
 
-def test_quantized_first_layer():
-    model_classes = [
-        LmnetV0Quantize,
-        LmnetV1Quantize,
-        DarknetQuantize,
-        LMFYoloQuantize,
-        YoloV2Quantize,
-        LmSegnetV0Quantize,
-        LmSegnetV1Quantize,
-    ]
-
-    quantizer_name = "QTZ_binary_mean_scaling"
-    network_kwargs = {
-        "classes": ['accordion', 'airplanes', 'anchor'],
-        "is_debug": True,
-        "activation_quantizer": linear_mid_tread_half_quantizer,
-        "batch_size": 10,
-        "data_format": 'NHWC',
-        "image_size": [32, 32],
-        "optimizer_class": tf.train.GradientDescentOptimizer,
-        "quantize_first_convolution": True,
-        "quantize_last_convolution": False,
-        "weight_quantizer": binary_mean_scaling_quantizer,
-        "activation_quantizer_kwargs": {
-            'bit': 2,
-            'max_value': 2
-        }
-    }
-
-    for model in model_classes:
-        quantizer = model(**network_kwargs)
-
-        base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
-        op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
-        assert not any(quantizer.last_layer_name in op and quantizer_name in op for op in op_name_list)
-
-        op_name_list = [op_name for op_name in op_name_list if quantizer.last_layer_name not in op_name]
-        scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
-        assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
+            op_name_list = [op_name for op_name in op_name_list if network3.last_layer_name not in op_name]
+            scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
+            assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
 
 
 if __name__ == '__main__':
