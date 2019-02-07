@@ -26,13 +26,13 @@ from collections import defaultdict
 from modules.packer import Packer
 
 
-def transpose_kernels(kernel_data: np.ndarray,
-                      oh: int,
-                      ow: int,
-                      od: int,
-                      kh: int,
-                      kw: int,
-                      kd: int) -> List[int]:
+def _transpose_kernels(kernel_data: np.ndarray,
+                       oh: int,
+                       ow: int,
+                       od: int,
+                       kh: int,
+                       kw: int,
+                       kd: int) -> List[int]:
     NUM_PE = 16
     NBIT_QDYPE = 32
     MAX_NBIT_QINPUT = 2
@@ -430,7 +430,7 @@ def pass_pack_weights(graph: Graph) -> None:
             data,
             packed=True,
             actual_shape=weight_quantizer.shape,
-            transposed_data=transpose_kernels(data, oh, ow, od, kh, kw, kd)
+            transposed_data=_transpose_kernels(data, oh, ow, od, kh, kw, kd)
         )
 
         # get nodes to be removed after being disconnected
