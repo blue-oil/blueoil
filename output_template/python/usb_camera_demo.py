@@ -245,6 +245,8 @@ def run(model, config_file):
         # only load tensorflow if user wants to use GPU
         from lmnet.protobuf_loader import ProtobufLoader
         nn = ProtobufLoader(model)
+    else:
+        raise Exception("Unknown file type. Got %s." % (filename))
 
     if config.TASK == "IMAGE.CLASSIFICATION":
         run_classification(config)
