@@ -25,9 +25,6 @@ extern {{ node.dtype.cpptype() }} {{ node.name }};
 {% else -%}
 
 extern {{ node.dtype.cpptype() }} {{ node.name }}[];
-{% if node.transposed_data %}
-extern {{ node.dtype.cpptype() }} {{ node.name }}_transposed[];
-{%- endif %}
 
 {%- endif %}
 
