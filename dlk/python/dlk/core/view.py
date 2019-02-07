@@ -599,28 +599,30 @@ class View(object):
                     {op.dtype.cpptype()}* {op.name} = {input_ops["data"].name};
                     """
 
-        elif self.op.op_type == 'BatchNormalization':
-            if len(input_ops) != 7:
+        elif self.op.op_type == 'MultAdd':
+            if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = ""
-            for k, x in input_ops.items():
-                if 'X' in k:                
-                    inputs_string = inputs_string + str(x.name) + ', '
-            for k, x in input_ops.items():
-                if 'prep_scale' in k:
-                    inputs_string = inputs_string + str(x.name) + ', '
-            for k, x in input_ops.items():
-                if 'shift' in k:
-                    inputs_string = inputs_string + str(x.name)
+            inputs_string = self.inputs_to_string(input_ops)
             shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
                 f"""
-                func_BatchNormalization({inputs_string}, {op.name}, {shape_string});
+                func_MultAdd_depthwise({inputs_string}, {op.name}, {shape_string});
                 """
             )
+        elif self.op.op_type == 'BatchNormalization':
+            if len(input_ops) != 5:
+                self.raise_invalid_args_exception(op, input_ops, output_ops)
 
+            inputs_string = self.inputs_to_string(input_ops)
+            shape_string = self.shape_to_string(op.shape)
+
+            return self.format_string(
+                f"""
+                func_BatchNormalization({inputs_string}, {op.epsilon}, {op.name}, {shape_string});
+                """
+            )
         elif self.op.op_type == 'SpaceToDepth':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
