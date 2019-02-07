@@ -1263,7 +1263,7 @@ class BatchNormalization(Operator):
 
     """
 
-    _input_names = ['X', 'scale', 'B', 'mean', 'var', 'shift', 'prep_scale']
+    _input_names = ['X', 'scale', 'B', 'mean', 'var']
     _output_names = ['Y']
 
     def __init__(self,
@@ -1539,6 +1539,70 @@ class Add(Operator):
         output_shape = [max(a, b) for a, b in zip(a_shape, b_shape)]
 
         return output_shape
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
+class MultAdd(Operator):
+    """MultAdd operator.
+
+    Inputs
+    ------
+    A
+        First operand.
+
+    B
+        Second operand.
+
+    C
+        Third operand.
+
+    Outputs
+    -------
+    D
+        Result, has same element type as three inputs
+
+    """
+    _input_names = ['A', 'B', 'C']
+    _output_names = ['D']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        """Init the multadd operator."""
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+        a_shape = self._input_ops['A'].shape
+        message = 'MultAdd operator has inconsistency in shapes: '
+        message += f'input "A" has {a_shape}, while it has {self.shape}'
+        self._assert(a_shape == self.shape, message)
+
+    def run_forward(self) -> np.ndarray:
+        a = self._input_ops['A'].data
+        b = self._input_ops['B'].data
+        c = self._input_ops['C'].data
+        self._data = a * b + c
+        return self._data
+
+    @property
+    def is_monotonic(self) -> bool:
+        return True
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        return lists['A']
+
+    @property
+    def _dispatch_name(self) -> str:
+        return "MultAdd"
 
     @property
     def preserve_quantization(self) -> bool:
