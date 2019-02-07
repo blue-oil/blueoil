@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cmath>
 #include "func/batch_normalization.h"
 #include "time_measurement.h"
 #include "global.h"
