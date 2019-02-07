@@ -24,17 +24,19 @@ limitations under the License.
 
 {% if node.transposed_data %}
 
+#if defined(RUN_ON_FPGA)
+{{ node.dtype.cpptype() }} {{ node.name }}[] = {
+  {% for d in node.transposed_data -%}
+  {{- d -}},
+  {%- endfor %}
+};
+#else
 {{ node.dtype.cpptype() }} {{ node.name }}[] = {
   {% for d in node.data.flatten() -%}
   {{- d -}},
   {%- endfor %}
 };
-
-{{ node.dtype.cpptype() }} {{ node.name }}_transposed[] = {
-  {% for d in node.transposed_data -%}
-  {{- d -}},
-  {%- endfor %}
-};
+#endif
 
 {% else -%}
 
