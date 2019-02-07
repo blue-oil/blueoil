@@ -18,10 +18,6 @@ limitations under the License.
 
 #include "global.h"
 
-void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
-			     T_FLOAT mean[], T_FLOAT variance[],
-			     T_FLOAT epsilon, T_FLOAT output[],
-			     T_UINT out_height, T_UINT out_width,
-			     T_UINT out_depth);
+void func_MultAdd_depthwise(T_FLOAT input[], T_FLOAT scale[], T_FLOAT shift[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
 
 #endif // DLK_FUNC_BATCH_NORMALIZATION_H_INCLUDED

@@ -17,70 +17,33 @@ limitations under the License.
 #include "time_measurement.h"
 #include "global.h"
 
-void func_BatchNormalization(T_FLOAT input[], T_FLOAT scale[], T_FLOAT shift[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth) {
+void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
+			     T_FLOAT mean[], T_FLOAT variance[],
+			     T_FLOAT epsilon, T_FLOAT output[],
+			     T_UINT out_height, T_UINT out_width,
+			     T_UINT out_depth) {
   Measurement::Start("BatchNorm");
 
-#if defined(USE_NEON)
-  const T_UINT size = out_height * out_width;  
-#pragma omp parallel for
-  for (T_UINT f = 0; f < size; f++) {
+  // temporary fix: will be replaced by pre-allocated one
+  T_UINT elements = out_height * out_width * out_depth;
+  T_FLOAT *scale = new float[out_depth];
+  T_FLOAT *shift = new float[out_depth];
 
-    T_FLOAT *in_temp = &input[f * out_depth];
-    T_FLOAT *out_temp = &output[f * out_depth];
+  for (T_UINT i = 0; i < out_depth; i++)
+    scale[i] = gamma[i] * (1.0 / std::sqrt(variance[i] + epsilon));
 
-    T_UINT d = 0;
-    for (; d < out_depth; d += 4) {
-      asm volatile("vldmia %0, {d16,d17}    \t\n" // q8(d16,d17) scale
-		   "vldmia %1, {d18,d19}    \t\n" // q9(d18,d19) shift
-		   "vldmia %2, {d20,d21}    \t\n" // q10(d20,d21) input
-		   "vmla.f32 q9, q10, q8    \t\n"
-		   "vstmia %3, {d18,d19}    \t\n"
-		   :
-		   : "r"(&scale[d]), "r"(&shift[d]), "r"(in_temp), "r"(out_temp)
-		   : "memory", "q8", "q9", "q10");
-      in_temp += 4;
-      out_temp += 4;
-    }
+  for (T_UINT i = 0; i < out_depth; i++)
+    shift[i] = beta[i] - (scale[i] * mean[i]);
 
-    for (; d < out_depth; d++) {
-      *out_temp++ = *in_temp++ * scale[d] + shift[d];
-    }
-  }
-#elif defined(USE_ASIMD)
-  const T_UINT size = out_height * out_width;
-#pragma omp parallel for
-  for (T_UINT f = 0; f < size; f++) {
-
-    T_FLOAT *in_temp = &input[f * out_depth];
-    T_FLOAT *out_temp = &output[f * out_depth];
-
-    T_UINT d = 0;
-    for (; d < out_depth; d += 4) {
-      asm volatile("ldr q6, [%0]    \t\n" // q6(d12,d13) scale
-		   "ldr q7, [%1]    \t\n" // q7(d14,d15) shift
-		   "ldr q8, [%2]    \t\n" // q8(d16,d17) input
-		                                         "fmla v7.4s, v8.4s, v6.4s    \t\n"
-		                                         "str q7, [%3]     \t\n"
-		   :
-		   : "r"(&scale[d]), "r"(&shift[d]), "r"(in_temp), "r"(out_temp)
-		   : "memory", "v6", "v7", "v8");
-      in_temp += 4;
-      out_temp += 4;
-    }
-
-    for (; d < out_depth; d++) {
-      *out_temp++ = *in_temp++ * scale[d] + shift[d];
-    }
-  }
-#else
   T_UINT index = 0;
   for (T_UINT f = 0; f < out_height * out_width; f++)
     for (T_UINT d = 0; d < out_depth; d++) {
       output[index] = input[index] * scale[d] + shift[d];
       index++;
     }
-#endif
+
+  delete[] scale;
+  delete[] shift;
 
   Measurement::Stop();
 }
-
