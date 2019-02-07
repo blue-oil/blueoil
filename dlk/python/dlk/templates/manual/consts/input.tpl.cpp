@@ -22,18 +22,28 @@ limitations under the License.
 
 {% else -%}
 
+{% if node.transposed_data %}
+
 {{ node.dtype.cpptype() }} {{ node.name }}[] = {
   {% for d in node.data.flatten() -%}
   {{- d -}},
   {%- endfor %}
 };
 
-{% if node.transposed_data %}
 {{ node.dtype.cpptype() }} {{ node.name }}_transposed[] = {
   {% for d in node.transposed_data -%}
   {{- d -}},
   {%- endfor %}
 };
+
+{% else -%}
+
+{{ node.dtype.cpptype() }} {{ node.name }}[] = {
+  {% for d in node.data.flatten() -%}
+  {{- d -}},
+  {%- endfor %}
+};
+
 {% endif %}
 
 {%- endif %}
