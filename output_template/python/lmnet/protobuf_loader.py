@@ -17,7 +17,17 @@ import tensorflow as tf
 
 
 class ProtobufLoader:
+    """Loads Protocol Buffer To Tensorflow Graph"""
+
     def __init__(self, model_path):
+        """
+        Args:
+            model_path(string): The protocol buffer file location.
+            sess(tf session): initialized tf Session.
+            output_op(dict): output dictionary.
+            images_placeholder(dict): The data that needs to be feed to the tf graph.
+        """
+
         self.model_path = model_path
 
         sess, output_op, images_placeholder = self._load_protobuf_graph(model_path)
@@ -47,4 +57,12 @@ class ProtobufLoader:
         return sess, output_op, images_placeholder
 
     def run(self, data):
+        """Run the data on the tf graph
+
+        Args:
+            outputs: returned result of the graph
+
+        Returns:
+            result(array): The result array of the graph
+        """
         return self.sess.run(self.output_op, feed_dict={self.images_placeholder: data})
