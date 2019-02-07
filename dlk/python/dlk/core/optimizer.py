@@ -19,16 +19,27 @@ import numpy as np
 
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from core.operators import Constant, Operator
+from core.operators import Constant, Operator, MultAdd
 from core.data_types import Uint32, QUANTIZED_NOT_PACKED, Int32, Float32
 from typing import cast
 from collections import defaultdict
 from modules.packer import Packer
 
 
-def calc_scale(gammas: np.ndarray,
-               variances: np.ndarray,
-               epsilon: float) -> np.ndarray:
+def _calc_scale(gammas: np.ndarray,
+                variances: np.ndarray,
+                epsilon: float) -> np.ndarray:
+    """Calculates scale value
+
+    Parameters
+    ----------
+    gammas : np.ndarray
+        gamma array.
+    variances : np.ndarray
+        variance array.
+    epsilon : float
+        epsilon value.
+    """
     size = gammas.size
     scale_value = np.array([0.0] * size)
     for i in range(size):
@@ -36,9 +47,20 @@ def calc_scale(gammas: np.ndarray,
     return scale_value
 
 
-def calc_shift(scales: np.ndarray,
-               betas: np.ndarray,
-               means: np.ndarray) -> np.ndarray:
+def _calc_shift(scales: np.ndarray,
+                betas: np.ndarray,
+                means: np.ndarray) -> np.ndarray:
+    """Calculates shift value
+
+    Parameters
+    ----------
+    scales : np.ndarray
+        scale array.
+    betas : np.ndarray
+        beta array.
+    means : float
+        mean array.
+    """
     size = scales.size
     shift_value = np.array([0.0] * size)
     for i in range(size):
@@ -245,28 +267,38 @@ def pass_precompute_batchnormalization(graph: Graph) -> None:
         bn_variance = m.input_ops['var'].data
         bn_epsilon = m.epsilon
 
-        bn_scale = calc_scale(bn_gamma, bn_variance, bn_epsilon)
-        bn_shift = calc_shift(bn_scale, bn_beta, bn_mean)
+        bn_scale = _calc_scale(bn_gamma, bn_variance, bn_epsilon)
+        bn_shift = _calc_shift(bn_scale, bn_beta, bn_mean)
 
-        bn_shift_constant = Constant(
-            m.name + '_new_shift',
-            Float32,
-            data=bn_shift
-        )
         bn_scale_constant = Constant(
             m.name + '_new_scale',
             Float32,
             data=bn_scale
         )
 
-        graph.add_op(bn_shift_constant)
+        bn_shift_constant = Constant(
+            m.name + '_new_shift',
+            Float32,
+            data=bn_shift
+        )
+
+        bn_multadd = MultAdd(
+            m.name + '_multadd',
+            shape=m.shape,
+            dtype=Float32,
+            input_ops={'A': m.input_ops['X'],
+                       'B': bn_scale_constant,
+                       'C': bn_shift_constant}
+        )
+
+        graph.add_op(bn_multadd)
         graph.add_op(bn_scale_constant)
+        graph.add_op(bn_shift_constant)
 
-        bn_shift_constant.add_output('output', m)
-        bn_scale_constant.add_output('output', m)
+        bn_multadd.add_output('D', m.output_ops['Y'])
+        m.output_ops['Y'][0].add_input('X', bn_multadd)
 
-        m.add_input('prep_scale', bn_scale_constant)
-        m.add_input('shift', bn_shift_constant)
+        graph.remove_op(m)
 
 
 def pass_compute_thresholds(graph: Graph) -> None:
