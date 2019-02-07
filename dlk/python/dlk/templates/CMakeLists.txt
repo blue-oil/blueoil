@@ -41,6 +41,7 @@ list(APPEND SRC_LIB_ALL
     src/func/max_pool.cpp
     src/func/minimum.cpp
     src/func/mul.cpp
+    src/func/multadd.cpp
     src/func/quantize.cpp
     src/func/quantized_conv2d.cpp
     src/func/real_div.cpp
