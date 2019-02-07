@@ -82,25 +82,25 @@ def test_quantized_layers():
         assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
         tf.reset_default_graph()
 
-        with tf.variable_scope("notQuantizeFirstLayer"):
+        with tf.variable_scope("scope1"):
             network_kwargs["quantize_first_convolution"] = False
             quantizer = model(**network_kwargs)
 
             base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
-            op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
+            op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name and "scope1" in op.name]
             assert not any(quantizer.first_layer_name in op and quantizer_name in op for op in op_name_list)
 
             op_name_list = [op_name for op_name in op_name_list if quantizer.first_layer_name not in op_name]
             scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
             assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
 
-        with tf.variable_scope("notQuantizeLastLayer"):
+        with tf.variable_scope("scope2"):
             network_kwargs["quantize_first_convolution"] = True
             network_kwargs["quantize_last_convolution"] = False
             quantizer = model(**network_kwargs)
 
             base, graph = quantizer.base(tf.ones([10, 32, 32, 3]), True)
-            op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name]
+            op_name_list = [op.name for op in graph.get_operations() if "kernel" in op.name and "scope2" in op.name]
             assert not any(quantizer.last_layer_name in op and quantizer_name in op for op in op_name_list)
 
             op_name_list = [op_name for op_name in op_name_list if quantizer.last_layer_name not in op_name]
