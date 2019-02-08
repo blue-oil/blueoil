@@ -18,3 +18,7 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+OUTPUT_TEMPLATE_DIR = os.environ.get(
+    'OUTPUT_TEMPLATE_DIR',
+    os.path.join(os.path.dirname(BASE_DIR), 'output_template')
+)
