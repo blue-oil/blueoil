@@ -100,17 +100,23 @@ trainer_epochs = [
     '  epochs: 1\n',
 ]
 
-trainer_optimizer_comment = "# supported 'optimizer' is 'Momentum', 'SGD', 'Adam' currently.\n"
+trainer_optimizer_comment = """\
+  # supported 'optimizer' is 'Momentum', 'Adam' currently.
+  # Momentum
+  #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
+  # Adam
+  #    https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
+"""
 
 trainer_optimizers = [
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
-    '  optimizer: MomentumOptimizer\n',
+    '  optimizer: Adam\n',
+    '  optimizer: Adam\n',
+    '  optimizer: Adam\n',
+    '  optimizer: Adam\n',
+    '  optimizer: Momentum\n',
+    '  optimizer: Momentum\n',
+    '  optimizer: Momentum\n',
+    '  optimizer: Momentum\n',
 ]
 
 trainer_lr_schedule_comment = """\
@@ -243,9 +249,9 @@ def learning_settings_to_yaml(index):
     # trainer epochs
     fp.write(str(trainer_epochs[index]))
     # trainer optimizer comment
-    #fp.write(str(trainer_optimizer_comment))
+    fp.write(str(trainer_optimizer_comment))
     # trainer optimizer 
-    #fp.write(str(trainer_optimizers[index]))
+    fp.write(str(trainer_optimizers[index]))
     # trainer lr schedule comment
     fp.write(str(trainer_lr_schedule_comment))
     # trainer lr schedule
