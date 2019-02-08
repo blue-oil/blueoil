@@ -35,6 +35,10 @@ classification_network_definitions = [
         'name': 'LmnetV1Quantize',
         'desc': 'Quantized Lmnet version 1. Accuracy is better than LmnetV0Quantize.',
     },
+    {
+        'name': 'ResNetQuantize',
+        'desc': 'Quantized ResNet 18. Accuracy is better than LmnetV1Quantize.',
+    },
 ]
 
 object_detection_network_definitions = [
@@ -58,6 +62,10 @@ object_detection_network_definitions = [
 
 IMAGE_SIZE_VALIDATION = {
     "LmnetV1Quantize": {
+        "max_size": 512,
+        "divider": 16,
+    },
+    "ResNetQuantize": {
         "max_size": 512,
         "divider": 16,
     },
@@ -291,6 +299,16 @@ def ask_questions():
         'default': '100'
     }
     training_epochs = prompt(training_epochs_question)
+
+    training_optimizer_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'select optimizer:',
+        'choices': ['Momentum',
+                    'Adam'],
+        'default': 'Momentum'
+    }
+    training_optimizer = prompt(training_optimizer_question)
 
     initial_learning_rate_value_question = {
         'type': 'input',

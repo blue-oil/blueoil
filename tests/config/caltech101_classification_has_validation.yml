@@ -11,6 +11,12 @@ dataset:
 trainer:
   batch_size: 1
   epochs: 1
+  # supported 'optimizer' is 'Momentum', 'Adam' currently.
+  # Momentum
+  #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
+  # Adam
+  #    https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
+  optimizer: Adam
   # supported 'learning_rate_schedule' is 'constant', '2-step-decay', '3-step-decay', '3-step-decay-with-warmup' ({epochs} is the number of training epochs you entered before).
   #   'constant' -> constant learning rate.
   #   '2-step-decay' -> learning rate decrease by 1/10 on {epochs}/2 and {epochs}-1.
