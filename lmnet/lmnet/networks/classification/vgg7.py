@@ -64,7 +64,7 @@ class Vgg7Network(Base):
             data_format,
         )
 
-    def base(self, images, is_training=None):
+    def base(self, images, is_training):
         keep_prob = tf.cond(is_training, lambda: tf.constant(0.5), lambda: tf.constant(1.0))
         self.images = images
 
@@ -109,7 +109,7 @@ class Vgg7Network(Base):
         inputs,
         filters,
         kernel_size,
-        is_training=True,
+        is_training,
         strides=1,
         padding="SAME",
         activation=tf.nn.relu,

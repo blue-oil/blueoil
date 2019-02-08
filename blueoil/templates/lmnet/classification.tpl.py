@@ -34,7 +34,7 @@ from lmnet.pre_processor import (
     Resize,
     #DivideBy255,
     #PerImageStandardization,
-    DivideBy128,
+    #DivideBy128,
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -78,8 +78,8 @@ PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
-    DivideBy128(),
-    #Resize(size=IMAGE_SIZE),
+    #DivideBy128(),
+    Resize(size=IMAGE_SIZE),
     #{% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 POST_PROCESSOR = None
@@ -129,7 +129,7 @@ else:
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
-NETWORK.WEIGHT_DECAY_RATE = 0.0002
+NETWORK.WEIGHT_DECAY_RATE = 0.0001
 #0.0005
 
 # quantize
@@ -142,7 +142,7 @@ NETWORK.WEIGHT_QUANTIZER = ttq_weight_quantizer
 #binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 NETWORK.QUANTIZE_FIRST_CONVOLUTION = {% if quantize_first_convolution %} True {% else %} False {% endif %}
-NETWORK.QUANTIZE_LAST_CONVOLUTION = False
+NETWORK.QUANTIZE_LAST_CONVOLUTION = True
 
 # dataset
 DATASET = EasyDict()
@@ -150,11 +150,11 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
+    Resize(size=IMAGE_SIZE),
     Pad(4),
-    #Resize(size=IMAGE_SIZE),
     Crop(size=IMAGE_SIZE),
     FlipLeftRight(),
-    PerPixelMeanSubtraction(),
+#    PerPixelMeanSubtraction(),
 #    Brightness((0.75, 1.25)),
 #    Color((0.75, 1.25)),
 #    Contrast((0.75, 1.25)),
