@@ -38,7 +38,7 @@ def _transpose_kernels(kernel_data: np.ndarray,
     Parameters
     ----------
     kernel_data : np.ndarray
-        The input data. It will be modified(transposed) in-place.
+        The input data.
     oh : int
         output height
     ow : int
