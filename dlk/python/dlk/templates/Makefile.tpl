@@ -20,7 +20,7 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/bias_add.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
     $(SRC_DIR)/func/arch/apply_thresholds.cpp \
-    $(SRC_DIR)/func/impl/quantized_conv2d_dim2col.cpp \
+    $(SRC_DIR)/func/arch/generic/quantized_conv2d_dim2col.cpp \
     $(SRC_DIR)/func/max.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
     $(SRC_DIR)/func/minimum.cpp \
