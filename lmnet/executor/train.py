@@ -394,7 +394,7 @@ def run(network, dataset, config_file, experiment_id, recreate):
     "-c",
     "--config_file",
     help="config file path for this training",
-    default=os.path.join("configs", "example.py"),
+    default=os.path.join("configs", "example", "classification.py"),
     required=True,
 )
 @click.option(
