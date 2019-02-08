@@ -138,8 +138,8 @@ clean:
 lm_x86:           CXX = g++
 lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_PNG -pthread -g
 
-lm_aarch64:           CXX = /usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
-lm_aarch64:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_ASIMD -DUSE_PNG -pthread -g -fopenmp=libgomp --target=aarch64-linux-gnu -I/usr/local/clang+llvm-7.0.0-aarch64-linux-gnu/include/c++/v1/ -I/usr/aarch64-linux-gnu/include/ -I/usr/local/clang+llvm-7.0.0-aarch64-linux-gnu/lib/clang/7.0.0/include/ -L/usr/local/clang+llvm-7.0.0-aarch64-linux-gnu/lib/ -fuse-ld=/usr/local/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/ld.lld -flto=thin -Wl,--lto-O3 -stdlib=libc++ -lc++abi -static -Wno-everything -Wl,-s
+lm_aarch64:           CXX = aarch64-linux-gnu-g++
+lm_aarch64:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_PNG -pthread -g -fopenmp
 
 lm_arm:           CXX = arm-linux-gnueabihf-g++
 lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
@@ -153,7 +153,7 @@ lib_x86:           CXX = g++
 lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
 
 lib_aarch64:       CXX = aarch64-linux-gnu-g++
-lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -fvisibility=hidden -pthread -g
+lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
 
 lib_arm:           CXX = arm-linux-gnueabihf-g++
 lib_arm:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
@@ -171,7 +171,7 @@ ar_x86:           NAME = x86
 
 ar_aarch64:           AR = aarch64-linux-gnu-ar
 ar_aarch64:           CXX = aarch64-linux-gnu-g++
-ar_aarch64:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -fvisibility=hidden -pthread -g
+ar_aarch64:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
 ar_aarch64:           LDFLAGS += -rcs
 ar_aarch64:           NAME = aarch64
 
