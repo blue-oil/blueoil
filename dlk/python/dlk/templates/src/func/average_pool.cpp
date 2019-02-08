@@ -54,7 +54,7 @@ void func_AveragePool(T_FLOAT input[], T_FLOAT output[],
             }
           }
         }
-        output[idx_out++] += T_FLOAT(out) / num_k_elems;
+        output[(app.output_channels * app.output_width) * wi + app.output_channels * wj + oc] += T_FLOAT(out) / num_k_elems;
       }
     }
   }
