@@ -43,7 +43,6 @@ list(APPEND SRC_LIB_ALL
     src/func/mul.cpp
     src/func/matmul.cpp
     src/func/quantize.cpp
-    src/func/quantized_conv2d.cpp
     src/func/real_div.cpp
     src/func/relu.cpp
     src/func/round.cpp
@@ -68,26 +67,30 @@ endif()
 
 if(RUN_ON_FPGA)
     list(APPEND SRC_LIB_ALL src/pack2b_neonv7.S)
-    list(APPEND SRC_LIB_ALL src/func/arch/arm_neon/batch_normalization.cpp)
+    list(APPEND SRC_LIB_ALL src/func/arch/fpga/quantized_conv2d.cpp)
     list(APPEND SRC_LIB_ALL src/func/arch/fpga/quantized_conv2d_kn2row.cpp)
+    list(APPEND SRC_LIB_ALL src/func/arch/arm_neon/batch_normalization.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arch/arm_neon/quantized_multiplication.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arch/arm_neon/shift_add.cpp)
 elseif(USE_NEON)
     list(APPEND SRC_LIB_ALL src/pack2b_neonv7.S)
-    list(APPEND SRC_LIB_ALL src/func/arch/arm_neon/batch_normalization.cpp)
+    list(APPEND SRC_LIB_ALL src/func/arch/arm_neon/quantized_conv2d.cpp)
     list(APPEND SRC_LIB_ALL src/func/arch/arm_neon/quantized_conv2d_tiling.cpp)
+    list(APPEND SRC_LIB_ALL src/func/arch/arm_neon/batch_normalization.cpp)
     list(APPEND SRC_LIB_ALL src/func/arch/generic/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arch/arm_neon/quantized_multiplication.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arch/arm_neon/shift_add.cpp)
 elseif(USE_ASIMD)
-    list(APPEND SRC_LIB_ALL src/func/arch/aarch64_neon/batch_normalization.cpp)
+    list(APPEND SRC_LIB_ALL src/func/arch/aarch64_neon/quantized_conv2d.cpp)
     list(APPEND SRC_LIB_ALL src/func/arch/aarch64_neon/quantized_conv2d_tiling.cpp)
+    list(APPEND SRC_LIB_ALL src/func/arch/aarch64_neon/batch_normalization.cpp)
     list(APPEND SRC_LIB_ALL src/func/arch/generic/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arch/aarch64_neon/quantized_multiplication.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arch/aarch64_neon/shift_add.cpp)
 else()
-    list(APPEND SRC_LIB_ALL src/func/arch/generic/batch_normalization.cpp)
+    list(APPEND SRC_LIB_ALL src/func/arch/generic/quantized_conv2d.cpp)
     list(APPEND SRC_LIB_ALL src/func/arch/generic/quantized_conv2d_kn2row.cpp)
+    list(APPEND SRC_LIB_ALL src/func/arch/generic/batch_normalization.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/archgeneric/quantized_multiplication.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arch/generic/shift_add.cpp)
 endif()
