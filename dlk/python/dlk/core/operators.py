@@ -1563,6 +1563,7 @@ class MultAdd(Operator):
     -------
     D
         Result, has same element type as three inputs
+        D = A * B + C
 
     """
     _input_names = ['A', 'B', 'C']
