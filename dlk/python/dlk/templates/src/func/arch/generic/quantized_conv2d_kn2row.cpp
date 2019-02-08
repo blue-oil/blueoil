@@ -17,7 +17,7 @@ limitations under the License.
 #include <cstring>
 
 #include "global.h"
-#include "func/impl/quantized_conv2d_kn2row.h"
+#include "func/arch/quantized_conv2d_kn2row.h"
 #include "matrix_view.h"
 #include "matrix/quantized_multiplication.h"
 #include "matrix/shift_add.h"

@@ -21,10 +21,10 @@ limitations under the License.
 #include <iterator>
 
 #include "global.h"
-#include "func/impl/apply_thresholds.h"
-#include "func/impl/quantized_conv2d_dim2col.h"
-#include "func/impl/quantized_conv2d_tiling.h"
-#include "func/impl/quantized_conv2d_kn2row.h"
+#include "func/arch/apply_thresholds.h"
+#include "func/arch/quantized_conv2d_dim2col.h"
+#include "func/arch/quantized_conv2d_tiling.h"
+#include "func/arch/quantized_conv2d_kn2row.h"
 #include "func/quantized_conv2d.h"
 #include "time_measurement.h"
 
@@ -62,14 +62,15 @@ void QuantizedConv2D(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
   else
     std::memset((void *)p.device_output_buf, 0, size * sizeof(BIN_CONV_OUTPUT));
 
-  if ((kh == 3 && kw == 3 && padding == 1) ||
-      (kh == 1 && kw == 1 && padding == 0)) {
+  if (kh == 3 && kw == 3 && padding == 1) {
     if ((ic % TilingInTypeBitWidth) == 0) {
-#if defined(USE_NEON) && !defined(RUN_ON_FPGA)
       dlk::impl::QuantizedConv2DTiling(input, kernel, p);
-#else
+    } else {
       dlk::impl::QuantizedConv2DKn2Row(input, kernel, p);
-#endif
+    }
+  } else if (kh == 1 && kw == 1 && padding == 0) {
+    if ((ic % TilingInTypeBitWidth) == 0) {
+      dlk::impl::QuantizedConv2DTiling(input, kernel, p);
     } else {
       dlk::impl::QuantizedConv2DKn2Row(input, kernel, p);
     }

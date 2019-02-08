@@ -18,7 +18,7 @@ limitations under the License.
 
 #include "global.h"
 #include "de10_nano.h"
-#include "func/impl/quantized_conv2d_kn2row.h"
+#include "func/arch/quantized_conv2d_kn2row.h"
 #include "pack_input_to_qwords.h"
 #include "time_measurement.h"
 
