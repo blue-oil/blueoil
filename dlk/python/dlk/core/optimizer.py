@@ -299,7 +299,6 @@ def pass_precompute_batchnormalization(graph: Graph) -> None:
                        'C': bn_shift_constant}
         )
 
-
         graph.add_op(bn_multadd)
         graph.add_op(bn_scale_constant)
         graph.add_op(bn_shift_constant)
