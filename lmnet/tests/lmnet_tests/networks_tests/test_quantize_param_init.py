@@ -87,6 +87,7 @@ def test_quantized_both_layers():
         with tf.variable_scope("scope1"):
             network2 = model(**network_kwargs)
 
+            assert not network2.quantize_first_convolution
             base2, graph2 = network2.base(tf.ones([10, 32, 32, 3]), True)
             op_name_list = [op.name for op in graph2.get_operations() if "kernel" in op.name and "scope1" in op.name]
             assert not any(network2.first_layer_name in op and quantizer_name in op for op in op_name_list)

@@ -62,7 +62,7 @@ class QuantizeParamInit:
 
         assert self.first_layer_name is not None
         assert self.last_layer_name is not None
-
+        self.quantize_first_convolution = quantize_first_convolution
         self.custom_getter = functools.partial(self._quantized_variable_getter,
                                                weight_quantization=weight_quantization,
                                                quantize_first_convolution=quantize_first_convolution,
