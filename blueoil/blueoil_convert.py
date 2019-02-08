@@ -24,6 +24,8 @@ from scripts.generate_project import run as run_generate_project
 from lmnet.utils import executor, config as config_util
 from lmnet import environment
 
+from blueoil.vars import OUTPUT_TEMPLATE_DIR
+
 
 def get_export_directory(experiment_id, restore_path):
     """Return output dir of export"""
@@ -49,8 +51,7 @@ def get_export_directory(experiment_id, restore_path):
 def create_output_directory(output_root_dir, output_template_dir=None):
     """Create output directory from template."""
 
-    # TODO: Remove the hard-coded path.
-    template_dir = "/home/blueoil/output_template" if not output_template_dir else output_template_dir
+    template_dir = OUTPUT_TEMPLATE_DIR if not output_template_dir else output_template_dir
     # Recreate output_root_dir from template
     if os.path.exists(output_root_dir):
         shutil.rmtree(output_root_dir)
