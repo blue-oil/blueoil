@@ -112,6 +112,7 @@ RUN apt-get update && apt-get install -y \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
 # Copy dlk sources to docker image
 COPY dlk /home/blueoil/dlk
 # Install dlk
@@ -134,6 +135,3 @@ COPY output_template /home/blueoil/output_template
 
 # Set __init__.py for python modules
 RUN touch lmnet/lmnet/__init__.py
-
-
-
