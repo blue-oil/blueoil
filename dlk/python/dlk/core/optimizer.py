@@ -261,6 +261,14 @@ def pass_precompute_batchnormalization(graph: Graph) -> None:
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'BatchNormalization']
 
     for m in exec_list:
+        """ check if output exist """
+        output = m.output_ops['Y']
+        if isinstance(output, list):
+            if not output:
+                continue
+            if output[0].op_type != "QTZ_linear_mid_tread_half":
+                continue
+
         bn_gamma = m.input_ops['scale'].data
         bn_beta = m.input_ops['B'].data
         bn_mean = m.input_ops['mean'].data
@@ -291,12 +299,13 @@ def pass_precompute_batchnormalization(graph: Graph) -> None:
                        'C': bn_shift_constant}
         )
 
+
         graph.add_op(bn_multadd)
         graph.add_op(bn_scale_constant)
         graph.add_op(bn_shift_constant)
 
         bn_multadd.add_output('D', m.output_ops['Y'])
-        m.output_ops['Y'][0].add_input('X', bn_multadd)
+        output[0].add_input('X', bn_multadd)
 
         graph.remove_op(m)
 
