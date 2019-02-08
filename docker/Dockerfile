@@ -132,16 +132,6 @@ COPY output_template /home/blueoil/output_template
 # Set __init__.py for python modules
 RUN touch lmnet/lmnet/__init__.py
 
-RUN wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && \
-    wget http://releases.llvm.org/7.0.0/clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz && \
-    mv clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz /usr/local/ && \
-    mv clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz /usr/local/ && \
-    cd /usr/local/ && \
-    tar -xf clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && \
-    tar -xf clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz && \
-    rm clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz && \
-    rm clang+llvm-7.0.0-aarch64-linux-gnu.tar.xz
-
 # Copy dlk sources to docker image
 COPY dlk /home/blueoil/dlk
 # Install dlk
