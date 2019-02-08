@@ -1,6 +1,6 @@
 # Run trained neural network on the FPGA board
 
-Blueoil prepared demonstration scripts to showcase the examples of classification and object detection 
+Blueoil prepared demonstration scripts to showcase the examples of classification and object detection
 using a DE10-Nano Kit board and USB camera.
 
 #### Setup
@@ -11,7 +11,7 @@ Make sure the camera is recognized by the device.
 
 #### Preparation
 
-- From the Setup step, you should be able to login to the DE10-Nano 
+- From the Setup step, you should be able to login to the DE10-Nano
 through ssh inside an xterm program.
 
       $ ssh -X root@{DE10-Nano's IP}
@@ -46,5 +46,5 @@ Explore into the `demo/python` directory, and execute the following command on t
     $ cd demo/python
     $ pip install -r requirements.txt
     $ python usb_camera_demo.py \
-          -l ../models/lib/lib_fpga.so \
+          -m ../models/lib/lib_fpga.so \
           -c ../models/meta.yaml
