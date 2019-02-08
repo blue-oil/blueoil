@@ -5,8 +5,6 @@ from lmnet.networks.classification.lmnet_v1 import LmnetV1Quantize
 from lmnet.networks.classification.darknet import DarknetQuantize
 from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from lmnet.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
-from lmnet.networks.segmentation.lm_segnet_v0 import LmSegnetV0Quantize
-from lmnet.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
@@ -20,8 +18,6 @@ def test_required_arguments():
         DarknetQuantize,
         LMFYoloQuantize,
         YoloV2Quantize,
-        LmSegnetV0Quantize,
-        LmSegnetV1Quantize,
     ]
 
     for model in model_classes:
@@ -51,8 +47,6 @@ def test_quantized_both_layers():
         DarknetQuantize,
         LMFYoloQuantize,
         YoloV2Quantize,
-        LmSegnetV0Quantize,
-        LmSegnetV1Quantize,
     ]
 
     quantizer_name = "QTZ_binary_mean_scaling"
@@ -87,7 +81,6 @@ def test_quantized_both_layers():
         with tf.variable_scope("scope1"):
             network2 = model(**network_kwargs)
 
-            assert not network2.quantize_first_convolution
             base2, graph2 = network2.base(tf.ones([10, 32, 32, 3]), True)
             op_name_list = [op.name for op in graph2.get_operations() if "kernel" in op.name and "scope1" in op.name]
             assert not any(network2.first_layer_name in op and quantizer_name in op for op in op_name_list)
