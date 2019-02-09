@@ -19,8 +19,7 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/average_pool.cpp \
     $(SRC_DIR)/func/bias_add.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
-    $(SRC_DIR)/func/arch/apply_thresholds.cpp \
-    $(SRC_DIR)/func/arch/generic/quantized_conv2d_dim2col.cpp \
+    $(SRC_DIR)/func/apply_thresholds.cpp \
     $(SRC_DIR)/func/max.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
     $(SRC_DIR)/func/minimum.cpp \
@@ -46,6 +45,7 @@ SRC := $(filter-out ./src/network_c_interface.cpp, $(SRC))
 
 
 LIB_ARM_SRC := $(wildcard $(SRC_DIR)/*.S) \
+    $(SRC_DIR)/func/arch/generic/quantized_conv2d_dim2col.cpp \
     $(SRC_DIR)/func/arch/arm_neon/quantized_conv2d.cpp \
     $(SRC_DIR)/func/arch/arm_neon/batch_normalization.cpp \
     $(SRC_DIR)/func/arch/arm_neon/quantized_conv2d_tiling.cpp \
@@ -56,6 +56,7 @@ LIB_ARM_OBJ := $(patsubst %.S, %.o, $(LIB_ARM_SRC))
 LIB_ARM_OBJ := $(patsubst %.cpp, %.o, $(LIB_ARM_OBJ))
 
 LIB_FPGA_SRC := $(wildcard $(SRC_DIR)/*.S) \
+    $(SRC_DIR)/func/arch/generic/quantized_conv2d_dim2col.cpp \
     $(SRC_DIR)/func/arch/fpga/quantized_conv2d.cpp \
     $(SRC_DIR)/func/arch/fpga/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/func/arch/arm_neon/batch_normalization.cpp \
@@ -65,6 +66,7 @@ LIB_FPGA_OBJ := $(patsubst %.S, %.o, $(LIB_FPGA_SRC))
 LIB_FPGA_OBJ := $(patsubst %.cpp, %.o, $(LIB_FPGA_OBJ))
 
 LIB_AARCH64_SRC := \
+    $(SRC_DIR)/func/arch/generic/quantized_conv2d_dim2col.cpp \
     $(SRC_DIR)/func/arch/aarch64_neon/quantized_conv2d.cpp \
     $(SRC_DIR)/func/arch/aarch64_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/func/arch/aarch64_neon/batch_normalization.cpp \
@@ -75,6 +77,7 @@ LIB_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_SRC))
 LIB_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_OBJ))
 
 LIB_X86_SRC := \
+    $(SRC_DIR)/func/arch/generic/quantized_conv2d_dim2col.cpp \
     $(SRC_DIR)/func/arch/generic/quantized_conv2d.cpp \
     $(SRC_DIR)/func/arch/generic/batch_normalization.cpp \
     $(SRC_DIR)/func/arch/generic/quantized_conv2d_kn2row.cpp \
