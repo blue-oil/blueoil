@@ -21,7 +21,7 @@ limitations under the License.
 #include <iterator>
 
 #include "global.h"
-#include "func/arch/apply_thresholds.h"
+#include "func/apply_thresholds.h"
 #include "func/arch/quantized_conv2d_dim2col.h"
 #include "func/arch/quantized_conv2d_tiling.h"
 #include "func/arch/quantized_conv2d_kn2row.h"

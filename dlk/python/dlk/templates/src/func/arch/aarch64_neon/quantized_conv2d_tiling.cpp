@@ -17,7 +17,7 @@ limitations under the License.
 #include <climits>
 
 #include "global.h"
-#include "func/arch/apply_thresholds.h"
+#include "func/apply_thresholds.h"
 #include "func/arch/quantized_conv2d_tiling.h"
 
 #include <arm_neon.h>
