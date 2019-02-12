@@ -20,6 +20,15 @@ else()
   set(DCORE_BUILD_SHARED_LIBS OFF)
 endif()
 
+option(USE_OPENCV_MODULE "build OpenCV module support" OFF)
+if (USE_OPENCV_MODULE)
+  find_package(OpenCV REQUIRED)
+  if (USE_OPENCV)
+  else()
+    message(SEND_ERROR "OpenCV library not found.")
+  endif()
+endif()
+
 
 # Add yaml cpp
 option(YAML_CPP_BUILD_TESTS "Enable testing" OFF)
@@ -39,17 +48,26 @@ set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/output) # dir for output
 file(GLOB SRCS "src/[a-zA-Z]*.cpp")
 file(GLOB PUBLIC_HEADERS "include/blueoil.hpp")
 file(GLOB PRIVATE_HEADERS "include/[a-zA-Z]*.hpp")
+if (USE_OPENCV_MODULE)
+else()
+  list(FILTER SRCS EXCLUDE REGEX ".*opencv.cpp$")
+  list(FILTER PRIVATE_HEADERS EXCLUDE REGEX ".*opencv.hpp$")
+endif()
 
 
 if(VERBOSE)
+  message(STATUS "use_opencv_module: ${USE_OPENCV_MODULE}")
   message(STATUS "sources: ${SRCS}")
   message(STATUS "public_headers: ${PUBLIC_HEADERS}")
   message(STATUS "private_headers: ${PRIVATE_HEADERS}")
 endif()
 
 
-find_package( OpenCV REQUIRED )
-include_directories(include yaml-cpp/include ${OpenCV_INCLUDE_DIRS})
+# add library headers
+include_directories(include yaml-cpp/include)
+if (USE_OPENCV_MODULE)
+  include_directories(${OpenCV_INCLUDE_DIRS})
+endif()
 
 
 # Add dlk static lib.
