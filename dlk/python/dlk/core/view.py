@@ -108,7 +108,6 @@ class View(object):
             nbit_qinput = 8 if x_op.op_type == 'Input' else 2
 
             if op.is_quantized and nbit_qinput == 2:
-                qconv_idx = 0  # temporary
                 qk_elems = w_op.data.shape[1]
 
                 kh = self.op.kernel_height
@@ -157,7 +156,6 @@ class View(object):
                     binConv2D_struct.bin_kernel_ndata = {qk_elems};
                     binConv2D_struct.bin_input_nwords = {qk_elems};
                     binConv2D_struct.bin_input_ndata = {qk_elems}*{nbit_qinput};
-                    binConv2D_struct.layer_index = {qconv_idx};
                     binConv2D_struct.device_input_buf = device_input_buf;
                     binConv2D_struct.device_output_buf = device_output_buf;
                     binConv2D_struct.thresholds = {threshold};
@@ -262,8 +260,6 @@ class View(object):
             )
 
         elif self.op.op_type == 'MaxPoolWithArgmax':
-            raise NotImplemented
-
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
@@ -305,8 +301,6 @@ class View(object):
             )
 
         elif self.op.op_type == 'Unpooling':
-            raise NotImplemented
-
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
@@ -416,31 +410,6 @@ class View(object):
             return self.format_string(
                 f"""
                 func_Sub({inputs_string}, {op.name}, {shape_string});
-                """
-            )
-
-            if len(input_ops) != 2:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            main_op = input_ops[0]
-            sub_op = input_ops[1]
-
-            if op.broadcast == 1:
-                # temporary:
-                # because current dlk cpp implementation doesn't support real broadcast
-                if main_op.shape == sub_op.shape:
-                    func_name = "func_Mul"
-                else:
-                    func_name = "func_Mul_broadcast"
-            else:
-                func_name = "func_Mul"
-
-            inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape)
-
-            return self.format_string(
-                f"""
-                {func_name}({inputs_string}, {op.name}, {shape_string});
                 """
             )
 
@@ -719,6 +688,35 @@ class View(object):
                 f"""
                 {op.dtype.cpptype()} *{op.name}[] = {{ {outputs_string} }};
                 func_Split({inputs_string}, {op.name}, {ns}, {shape_string});
+                """
+            )
+        elif self.op.op_type == 'Pad':
+            if len(input_ops) != 2:
+                self.raise_invalid_args_exception(op, input_ops, output_ops)
+
+            inputs_string = self.inputs_to_string(input_ops)
+            shape_string = self.shape_to_string(op.shape)
+
+            a_op = input_ops['A']
+            ic = a_op.channel
+
+            return self.format_string(
+                f"""
+                func_Pad({inputs_string}, {op.name}, {ic}, {shape_string});
+                """
+            )
+        elif self.op.op_type == 'MatMul':
+            if len(input_ops) != 2:
+                self.raise_invalid_args_exception(op, input_ops, output_ops)
+
+            inputs_string = self.inputs_to_string(input_ops)
+            shape_string = self.shape_to_string(op.shape)
+
+            ia_size = input_ops['A'].size
+
+            return self.format_string(
+                f"""
+                func_Matmul({inputs_string}, {op.name}, {ia_size}, {shape_string});
                 """
             )
 
