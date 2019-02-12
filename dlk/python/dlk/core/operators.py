@@ -17,7 +17,6 @@
 import functools
 import copy
 from itertools import dropwhile
-from collections import OrderedDict
 from typing import cast, Any, Dict, Optional, TYPE_CHECKING
 from core.view import View
 from utils import classproperty
@@ -25,7 +24,6 @@ from abc import abstractmethod
 from .data_types import *
 
 if TYPE_CHECKING:
-    from core.graph import GraphRunner
     import core.operators as ops
 
 Ops = Dict[str, 'Operator']
@@ -171,6 +169,19 @@ class Operator(object):
         return cls._input_names
 
     @property
+    def input_nodes(self) -> List['Operator']:
+        """Return a list of input operators in proper order (original protobuf argument order).
+
+        Returns
+        -------
+        ops : List of operators
+            This list is already ordered following the order of the arguments in the original
+             protobuf operators (positional order in the list of arguments).
+
+        """
+        return [self._input_ops[i] for i in self.input_names if self.input_ops.get(i)]
+
+    @property
     def output_ops(self) -> OutOps:
         """Return a dict of output operators.
 
@@ -267,8 +278,7 @@ class Operator(object):
             All the key names have to be in list `output_names`.
 
         """
-        assert set(outputs.keys()).issubset(
-            set(self._output_names)), "Illegal output names included"
+        assert set(outputs.keys()).issubset(set(self._output_names)), f"Illegal output names included"
         for n in outputs.keys():
             lst = self._output_ops.get(n)
             if lst is not None:
@@ -460,81 +470,9 @@ class Operator(object):
         raise NotImplementedError(
             f'operator {self.op_type} does not have runtime implemenatation yet.')
 
-    def accept(self, runner: 'GraphRunner', **kwargs: Any) -> None:
-        """Accept the graph runner and dispatch.
-
-        This should not be accessed directly, but be called inside.
-        A bit conplicated use of the visitor pattern.
-
-        runner : GraphRunner
-            Runner that runs through the graph from outputs to inputs (go backward),
-            then runs again from inputs to outputs (go forward).
-
-        **kwargs : Any
-            Any keyward arguments that can be referred and updated during the run.
-
-        """
-        if runner.is_visited(cast('ops.Operator', self)):
-            return
-
-        # run backward
-        self._dispatch_backward(runner, **kwargs)
-
-        # go inside the inputs
-        for i in self.input_ops.values():
-            i.accept(runner, **kwargs)
-
-        # run forward
-        self._dispatch_forward(runner, **kwargs)
-
-        # record visit
-        runner.visit(cast('ops.Operator', self))
-
-    def accept_backward(self, runner: 'GraphRunner', **kwargs: Any) -> List['Operator']:
-        """Accept the graph runner and dispatch for backward traversal, in a breadth-first ."""
-        if runner.is_visited(cast('ops.Operator', self)):
-            return []
-
-        # run backward
-        self._dispatch_backward(runner, **kwargs)
-
-        # record visit
-        runner.visit(cast('ops.Operator', self))
-
-        # return its inputs as next accepters
-        return list(self._input_ops.values())
-
-    def accept_forward(self, runner: 'GraphRunner', **kwargs: Any) -> List['Operator']:
-        """Accept the graph runner and dispatch for forward traversal, in a breadth-first ."""
-
-        # Note that all 'is_visited' flag is inverted, as this is already used in the backward run
-        if not runner.is_visited(cast('ops.Operator', self)):
-            return []
-
-        # run forward
-        self._dispatch_forward(runner, **kwargs)
-
-        # record (un)visit
-        runner.unvisit(cast('ops.Operator', self))
-
-        # return its outputs as next accepters
-        return self.output_op_list
-
     @property
     def _dispatch_name(self) -> str:
         return type(self).__name__.lower()
-
-    def _dispatch_backward(self, runner: 'GraphRunner', **kwargs: Any) -> None:
-        """Dispatch `runner.run_backward_xxx()` inside."""
-        method_name = 'run_backward_' + self._dispatch_name
-        method_body = getattr(runner, method_name)
-        method_body(self, **kwargs)
-
-    def _dispatch_forward(self, runner: 'GraphRunner', **kwargs: Any) -> None:
-        """Dispatch `runner.run_forward_xxx()` inside."""
-        method_name = 'run_forward_' + self._dispatch_name
-        method_body = getattr(runner, method_name)
-        method_body(self, **kwargs)
 
     @classmethod
     def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
@@ -544,6 +482,12 @@ class Operator(object):
         This is actually an abstract method and should be overrided.
         """
         raise NotImplementedError(f'operator {cls.__name__} cannot infer its shape.')
+
+    @property
+    def preserve_quantization(self) -> bool:
+        """whether to preserve the operator for quantization"""
+        raise NotImplementedError(
+            f'Preservation for quantization of operator {self.op_type} is not defined.')
 
 
 class Variable(Operator):
@@ -583,6 +527,10 @@ class Variable(Operator):
     def data(self, val: np.ndarray) -> None:
         self._data = val
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Input(Variable):
     """Input class. This is a placeholder."""
@@ -612,7 +560,8 @@ class Constant(Variable):
                  data: np.ndarray,
                  dimension_format: str = 'NHWC',
                  packed: bool = False,
-                 actual_shape: List[int] = []) -> None:
+                 actual_shape: List[int] = [],
+                 transposed_data: List[int] = None) -> None:
         """Init the variable.
 
         If the constant is hard quantized, data is packed and the actual shape
@@ -620,11 +569,20 @@ class Constant(Variable):
         """
         shape = list(data.shape) if not packed else actual_shape
         self._packed = packed
+        self._transposed_data = transposed_data
         super().__init__(name, shape, dtype, {}, data, dimension_format=dimension_format)
+
+    def run_forward(self) -> np.ndarray:
+        return self._data
 
     @property
     def is_packed(self) -> bool:
         return self._packed
+
+    @property
+    def transposed_data(self) -> List[int]:
+        """Return transposed data."""
+        return self._transposed_data
 
 
 class Output(Variable):
@@ -694,6 +652,10 @@ class Identity(Operator):
                     attrs: Dict[str, Any]) -> List[int]:
         return lists['input']
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Quantizer(Operator):
     """Base class for quantizers."""
@@ -726,6 +688,10 @@ class Quantizer(Operator):
     @property
     def scaling_factor(self) -> np.float32:
         return self._scaling_factor
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
     @scaling_factor.setter
     def scaling_factor(self, val: np.float32) -> None:
@@ -786,6 +752,14 @@ class QTZ_binary_mean_scaling(Quantizer):
         in_data = self.input_ops['input'].data
         self._scaling_factor = np.mean(np.abs(in_data))
         self._data = np.sign(in_data)
+
+        return self._data * self._scaling_factor
+
+    def run_forward_no_scaling_factor(self) -> np.ndarray:
+        in_data = self.input_ops['input'].data
+        self._scaling_factor = np.mean(np.abs(in_data))
+        self._data = np.sign(in_data)
+
         return self._data
 
     @classmethod
@@ -853,6 +827,10 @@ class SpaceToDepth(Operator):
                     attrs: Dict[str, Any]) -> List[int]:
         return lists['input']
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Transpose(Operator):
     """Transpose operator.
@@ -914,6 +892,10 @@ class Transpose(Operator):
                     attrs: Dict[str, Any]) -> List[int]:
         perm = attrs['perm']
         return [lists['data'][i] for i in perm]
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
 
 
 class Conv(Operator):
@@ -1241,6 +1223,10 @@ class Conv(Operator):
         NCHW = [N, C, H, W]
         return [NCHW[i] for i in [format.index(s) for s in 'NCHW']]
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class BatchNormalization(Operator):
     """Batch normalization operator.
@@ -1310,15 +1296,32 @@ class BatchNormalization(Operator):
         self._assert(x_shape == self.shape, message)
 
     def run(self, **kwargs) -> Dict:
+        """Return the forward calculation results of batch normalization.
+
+        Currently this function is only used by threshold skipping optimization pass
+        for recursively calculating thresholds of the skipping patterns.
+        """
         scale = np.float64(self._input_ops['scale'].data)
         beta = np.float64(self._input_ops['B'].data)
         mean = np.float64(self._input_ops['mean'].data)
         var = np.float64(self._input_ops['var'].data)
 
-        kwargs['nega_idx'] = [v for v in range(len(scale)) if scale[v] < 0]
-
         x_norm = (kwargs['data'] - mean) / np.sqrt(var + self.epsilon)
         kwargs['data'] = scale * x_norm + beta
+        return kwargs
+
+    def de_run(self, **kwargs) -> Dict:
+        """Return the reversed calculation results of batch normalization.
+
+        Currently this function is only used by threshold skipping optimization pass
+        for recursively calculating thresholds of the skipping patterns.
+        """
+        scale = np.float64(self._input_ops['scale'].data)
+        beta = np.float64(self._input_ops['B'].data)
+        mean = np.float64(self._input_ops['mean'].data)
+        var = np.float64(self._input_ops['var'].data)
+
+        kwargs['data'] = (((kwargs['data'] - beta) / scale) * np.sqrt(var + self.epsilon)) + mean
         return kwargs
 
     def run_forward(self) -> np.ndarray:
@@ -1343,6 +1346,10 @@ class BatchNormalization(Operator):
     @property
     def _dispatch_name(self) -> str:
         return "batch_normalization"
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
 
 class QTZ_linear_mid_tread_half(Quantizer):
@@ -1380,6 +1387,11 @@ class QTZ_linear_mid_tread_half(Quantizer):
         self._assert(x_shape == self.shape, message)
 
     def run(self, **kwargs) -> Dict:
+        """Return the result of forward calculation of an activation quantizer.
+
+        Currently this function is only used by threshold skipping optimization pass
+        for recursively calculating thresholds of the skipping patterns.
+        """
         bit = self._input_ops['Y'].data
         max_value = np.float64(self._input_ops['Z'].data)
         in_data = np.float64(kwargs['data'])
@@ -1389,7 +1401,25 @@ class QTZ_linear_mid_tread_half(Quantizer):
         kwargs['data'] = np.round(in_data * n / max_value).astype(np.int32)
         return kwargs
 
+    def de_run(self, **kwargs) -> Dict:
+        """Return the result of reversed calculation of an activation quantizer.
+
+        Currently this function is only used by threshold skipping optimization pass
+        for recursively calculating thresholds of the skipping patterns.
+        """
+        bit = self._input_ops['Y'].data
+        max_value = np.float64(self._input_ops['Z'].data)
+        in_data = np.float64(kwargs['data'])
+
+        n = 2 ** bit - 1
+        kwargs['data'] = (in_data * np.float64(max_value)) / np.float64(n)
+        return kwargs
+
     def run_forward(self) -> np.ndarray:
+        """General function for this quantization operator.
+
+        This function returns numpy array.
+        """
         data_dict = self.run(data=self._input_ops['X'].data)
         self._data = data_dict['data']
         return self._data
@@ -1516,6 +1546,10 @@ class Add(Operator):
         output_shape = [max(a, b) for a, b in zip(a_shape, b_shape)]
 
         return output_shape
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
 
 class Pool(Operator):
@@ -1644,6 +1678,10 @@ class Pool(Operator):
         NCHW = [N, C, H, W]
         perm = [format.index(s) for s in 'NCHW']
         return [NCHW[i] for i in perm]
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
 
 class MaxPool(Pool):
@@ -1812,6 +1850,10 @@ class Reshape(Operator):
     def is_monotonic(self) -> bool:
         return False
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Softmax(Operator):
     r"""Softmax operator.
@@ -1859,6 +1901,10 @@ class Softmax(Operator):
         self._data = exp / np.expand_dims(exp.sum(axis=-1), -1)
         return self._data
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Relu(Operator):
     """Relu class.
@@ -1893,6 +1939,10 @@ class Relu(Operator):
     def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
                     attrs: Dict[str, Any]) -> List[int]:
         return lists['X']
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
 
 class Flatten(Operator):
@@ -1957,6 +2007,10 @@ class Flatten(Operator):
     def is_monotonic(self) -> bool:
         return False
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Dropout(Operator):
     """Dropout operator.
@@ -2012,6 +2066,10 @@ class Dropout(Operator):
     def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
                     attrs: Dict[str, Any]) -> List[int]:
         return lists['data']
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
 
 class Gemm(Operator):
@@ -2099,6 +2157,10 @@ class Gemm(Operator):
 
         return [M, N]
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Mul(Operator):
     """Mul operator.
@@ -2172,6 +2234,10 @@ class Mul(Operator):
 
     @property
     def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
         return False
 
     @classmethod
@@ -2250,6 +2316,17 @@ class QTZ_binary_channel_wise_mean_scaling(Quantizer):
         in_data = self.input_ops['input'].data
         self._scaling_factor = np.mean(np.abs(in_data), axis=(1, 2, 3)).astype(np.float32)
         self._data = np.sign(in_data)
+
+        scaling = copy.deepcopy(self._scaling_factor)
+        extra_dims = tuple(np.ones((len(self._data.shape) - len(scaling.shape)), dtype=np.int32))
+        scaling = scaling.reshape(scaling.shape + extra_dims)
+
+        return scaling * self._data
+
+    def run_forward_no_scaling_factor(self) -> np.ndarray:
+        in_data = self.input_ops['input'].data
+        self._scaling_factor = np.mean(np.abs(in_data), axis=(1, 2, 3)).astype(np.float32)
+        self._data = np.sign(in_data)
         return self._data
 
     def binarizer(self, data: np.ndarray) -> np.ndarray:
@@ -2313,6 +2390,10 @@ class ConcatOnDepth(Operator):
     def is_monotonic(self) -> bool:
         return False
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Maximum(Operator):
     """Maximum operator.
@@ -2355,6 +2436,10 @@ class Maximum(Operator):
 
     @property
     def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
         return False
 
 
@@ -2411,6 +2496,10 @@ class DepthToSpace(Operator):
                     attrs: Dict[str, Any]) -> List[int]:
         return lists['input']
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
 
 class Split(Operator):
     """Split operator.
@@ -2446,9 +2535,9 @@ class Split(Operator):
                  dtype: DataType,
                  input_ops: Ops,
                  dimension_format: str = 'NHWC',
-                 split: int = 1) -> None:
+                 num_split: int = 1) -> None:
         """Init the split operator."""
-        self._split = split
+        self._split = num_split
         self._axis = input_ops['A'].data[0]
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
@@ -2484,3 +2573,138 @@ class Split(Operator):
             out_shape[ch_idx] = int(in_shape[ch_idx] / split)
 
         return out_shape
+                     
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+                     
+
+class Pad(Operator):
+    """Pad operator.
+    Pad a tensor. This operation pads a tensor according to the paddings specified
+    Input
+    -----
+    A
+        The input to be padded
+    B
+        The padding size, this (B) is a numpy array that supports "CONSTANT" mode in
+        tensorflow during importing, it has shape of [n, 2], where n is the rank of
+        input A, assume input A has dimension of D the padded size of each dimension D
+        of the output C is given by the formula below:
+                B[D, 0] + A.dim_size(D) + B[D, 1]
+        Note. currently only the channel-wise paddings are supported.
+
+    Output
+    ------
+    C
+        A result after being padded. Has the same type as input tensor
+    """
+
+    _input_names = ['A', 'B']
+    _output_names = ['C']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        """Init the Pad operator."""
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+        self._assert(np.all(self.input_ops['B'].data[:-1] == 0),
+                     f'{self.op_type}" {self.name}" only supports channel-wise paddings')
+
+    @property
+    def _dispatch_name(self) -> str:
+        return type(self).__name__
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        a_shape = lists['A']
+        padding_constant = attrs['padding_const']
+        new_shape = []
+        for padding, dim in zip(padding_constant, a_shape):
+            if padding is None or dim is None or any((x is None for x in padding)):
+                new_shape.append(None)
+            else:
+                new_shape.append(sum(padding) + dim)
+
+        return new_shape
+     
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
+class MatMul(Operator):
+    """Matrix Multiplication operator.
+    Matrix product. Multiplies matrix a by matrix b, producing a * b
+    Generalized universal function signature, e.g., ``(m,n),(n,p)->(m,p)`` for ``np.matmul``.
+    Input
+    -----
+    A
+        2-dimensional matrix A
+    B
+        2-dimensional matrix B
+    Output
+    ------
+    C
+        Matrix multiply results from A * B
+    """
+
+    _input_names = ['A', 'B']
+    _output_names = ['C']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        """Init the MatMul operator."""
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+        a_shape = self._input_ops["A"].shape
+        b_shape = self._input_ops["B"].shape
+        message = f'operands could not be scalar, use * instead'
+        # scalars are rejected
+        self._assert(len(a_shape) != 1 or len(b_shape) != 1, message)
+        # Shape alignment
+        message = f'operand shapes are not aligned'
+        self._assert(a_shape[1] == b_shape[0], message)
+
+    @property
+    def _dispatch_name(self) -> str:
+        return type(self).__name__
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        a_shape = lists['A']
+        b_shape = lists['B']
+        output_shape = [a_shape[0], b_shape[1]]
+        return output_shape
+
+    def run_forward(self) -> np.ndarray:
+        a_data = self.input_ops['A'].data
+        b_data = self.input_ops['B'].data
+        self._data = np.matmul(a_data, b_data)
+        return self._data
+                     
+    @property
+    def preserve_quantization(self) -> bool:
+        return False

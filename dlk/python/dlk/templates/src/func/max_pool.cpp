@@ -26,9 +26,6 @@ void max_pooling(
     struct max_pooling_parameters p)
 {
   const TYPE lowest = -10000000;
-
-  T_UINT feature_map_size = p.output_height * p.output_width;
-  T_UINT input_size = (p.input_height * p.input_width);
   T_UINT index = 0;
 
   // important to be zero (minimum value for T_UINT)
@@ -39,13 +36,14 @@ void max_pooling(
     {
         for(T_UINT ki = 0; ki < p.kernel_height; ki++)
          for(T_UINT kj = 0; kj < p.kernel_width; kj++)
-          for(T_UINT kz = 0; kz < p.kernel_depth; kz++)
-          {
-            T_INT row = (wi * p.stride) - p.padding + ki;
-            T_INT col = (wj * p.stride) - p.padding + kj;
-
+	   for(T_UINT kz = 0; kz < p.kernel_depth; kz++)
+	  {
+	    T_INT row = (wi * p.stride) - p.padding + ki;
+            T_INT col = (wj * p.stride) - p.padding + kj;	    
             T_INT inside = (row >= 0 && col >= 0 && row < (T_INT) p.input_height && col < (T_INT)p.input_width);
-            TYPE e = (inside ? input[row * (p.input_width * p.kernel_depth) + col * (p.kernel_depth) + kz] : lowest);
+	    if (!inside) continue;
+
+            TYPE e = input[row * (p.input_width * p.kernel_depth) + col * (p.kernel_depth) + kz];
 
             // update the current maximum value found so far
             T_UINT index_current_maximum_value = wi * (p.kernel_depth * p.output_width) + wj * (p.kernel_depth) + kz;
@@ -66,9 +64,6 @@ void max_pooling_with_argmax(
 {
   const TYPE lowest = -10000000;
 
-  T_UINT feature_map_size = p.output_height * p.output_width;
-  T_UINT input_size = (p.input_height * p.input_width);
-
   // important to be zero (minimum value for T_UINT)
   for(T_UINT i = 0; i < p.output_elements; i++) { output[i] = lowest; }
 
@@ -81,10 +76,11 @@ void max_pooling_with_argmax(
           {
             T_INT height_index = (wi * p.stride) - p.padding + ki;
             T_INT width_index = (wj * p.stride) - p.padding + kj;
-
             T_INT inside = (height_index >= 0 && width_index >= 0 && height_index < (T_INT) p.input_height && width_index < (T_INT)p.input_width);
+	    if (!inside) continue;
+
             T_UINT input_index = height_index * (p.input_width * p.kernel_depth) + width_index * (p.kernel_depth) + kz;
-            TYPE e = (inside ? input[input_index] : lowest);
+            TYPE e = input[input_index];
 
             // update the current maximum value found so far
             T_UINT index_current_maximum_value = wi * (p.kernel_depth * p.output_width) + wj * (p.kernel_depth) + kz;

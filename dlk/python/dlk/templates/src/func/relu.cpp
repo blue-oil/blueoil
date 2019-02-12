@@ -24,7 +24,7 @@ void func_Relu(T_FLOAT input[], T_FLOAT output[], T_UINT out_height,
   T_UINT elements = out_height * out_width * out_depth;
 
   for (T_UINT i = 0; i < elements; i++)
-    output[i] = (input[i] > 0 ? input[i] : 0);
+    output[i] = (input[i] > 0.f ? input[i] : 0.f);
 
   Measurement::Stop();
 }

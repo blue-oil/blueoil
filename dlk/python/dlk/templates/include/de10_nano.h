@@ -126,22 +126,20 @@ private:
 };
 
 void qconv_with_kn2row(unsigned long input_addr, unsigned long output_addr,
-                       T_UINT k_data_packed[], BIN_CONV_OUTPUT th_data[],
+                       const T_UINT k_data_packed[], BIN_CONV_OUTPUT th_data[],
                        unsigned in_w, unsigned in_h, unsigned in_c_by_word,
                        unsigned nbits_in_data, unsigned out_w, unsigned out_h,
                        unsigned out_c, unsigned k_w, unsigned k_h, unsigned pad,
                        unsigned stride) {
   assert((k_h == 1 && k_w == 1) || (k_h == 3 && k_w == 3));
 
-  const unsigned in_size = in_h * in_w * in_c_by_word * nbits_in_data;
-  const unsigned out_size = out_h * out_w * out_c;
   const unsigned k_size = k_h * k_w * in_c_by_word * out_c;
   static QconvWithKn2row qwq;
 
   MappedMem k_data_mem(KERNEL_ADDR, k_size, sizeof(T_UINT));
   k_data_mem.Write(k_data_packed, k_size);
 
-  if (th_data == NULL) {
+  if (th_data == nullptr) {
     qwq.run_qconv_with_kn2row(input_addr, output_addr, KERNEL_ADDR, in_w, in_h,
                               in_c_by_word, out_w, out_h, out_c, k_w, k_h, pad);
 
