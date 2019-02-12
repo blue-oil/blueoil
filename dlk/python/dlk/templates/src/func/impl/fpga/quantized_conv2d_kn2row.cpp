@@ -16,6 +16,7 @@ limitations under the License.
 #include <cassert>
 #include <cstdio>
 
+#include "network.h"
 #include "global.h"
 #include "de10_nano.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
@@ -23,38 +24,9 @@ limitations under the License.
 #include "time_measurement.h"
 
 namespace {
-
-const unsigned int in_nbits = 2;
-const unsigned int byte_nbits = 8;
-
-void kernel_transform_NHWC_to_HWNoCNi(
-    const T_UINT src[],
-    T_UINT dst[],
-    const unsigned kn,
-    const unsigned kh,
-    const unsigned kw,
-    const unsigned kc,
-    const unsigned kn_in)
-{
-  unsigned idx_src = 0;
-  const unsigned kn_out = kn / kn_in;
-
-  for (unsigned no = 0; no < kn_out; no++)
-    for (unsigned ni = 0; ni < kn_in; ni++)
-      for (unsigned h = 0; h < kh; h++)
-        for (unsigned w = 0; w < kw; w++)
-          for (unsigned c = 0; c < kc; c++)
-          {
-            unsigned idx_dst = h * (kw * kn_out * kc * kn_in);
-            idx_dst += w * (kn_out * kc * kn_in);
-            idx_dst += no * (kc * kn_in);
-            idx_dst += c * (kn_in);
-            idx_dst += ni;
-            dst[idx_dst] = src[idx_src++];
-          }
+  const unsigned int in_nbits = 2;
+  const unsigned int byte_nbits = 8;
 }
-
-} // namespace
 
 namespace dlk {
 
@@ -118,24 +90,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 
   if (out_c_less_than_num_pe) {
 
-    const T_UINT k_n_aligend_with_num_pe =
-        ((k_n + (NUM_PE - 1)) / NUM_PE) * NUM_PE;
-    const T_UINT out_c_aligend_with_num_pe = k_n_aligend_with_num_pe;
-    const T_UINT k_size = k_n_aligend_with_num_pe * k_h * k_w * k_c_by_word;
-
-    T_UINT kernel_hwnocni[k_size];
-    T_UINT kernel_filled_extra[k_size];
-
-    for (size_t k = 0; k < k_n * k_h * k_w * k_c_by_word; k++) {
-      kernel_filled_extra[k] = kernel[k];
-    }
-
-    Measurement::Start("Kernel transpose NHWC to HWNoCNi");
-    kernel_transform_NHWC_to_HWNoCNi(kernel_filled_extra, kernel_hwnocni,
-                                     k_n_aligend_with_num_pe, k_h, k_w,
-                                     k_c_by_word, NUM_PE);
-    Measurement::Stop();
-
+    const T_UINT out_c_aligend_with_num_pe = ((k_n + (NUM_PE - 1)) / NUM_PE) * NUM_PE;
     T_UINT input_byte_size =
         (cp.input_height * cp.input_width * cp.kernel_depth * in_nbits) /
         byte_nbits;
@@ -153,7 +108,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 
     Measurement::Start("QConv2D with kn2row");
     de10_nano::qconv_with_kn2row(
-        p.device_input_phys_addr, p.device_output_phys_addr, kernel_hwnocni,
+	p.device_input_phys_addr, p.device_output_phys_addr, kernel,
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
         out_c_aligend_with_num_pe, k_w, k_h, cp.padding,
         cp.stride_along_height);
@@ -176,15 +131,6 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
         }
 
   } else {
-
-    const T_UINT k_size = k_n * k_h * k_w * k_c_by_word;
-    T_UINT kernel_hwnocni[k_size];
-
-    Measurement::Start("Kernel transpose NHWC to HWNoCNi");
-    kernel_transform_NHWC_to_HWNoCNi(kernel, kernel_hwnocni, k_n, k_h, k_w,
-                                     k_c_by_word, NUM_PE);
-    Measurement::Stop();
-
     T_UINT input_byte_size =
         (cp.input_height * cp.input_width * cp.kernel_depth * in_nbits) /
         byte_nbits;
@@ -199,7 +145,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 
     Measurement::Start("QConv2D with kn2row");
     de10_nano::qconv_with_kn2row(
-        p.device_input_phys_addr, p.device_output_phys_addr, kernel_hwnocni,
+        p.device_input_phys_addr, p.device_output_phys_addr, kernel,
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
         out_c, k_w, k_h, cp.padding, cp.stride_along_height);
     Measurement::Stop();
