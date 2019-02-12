@@ -31,10 +31,10 @@ set(CMAKE_CXX_EXTENSIONS YES)
 file(GLOB SRC_LIB_ALL "src/inputs/*.cpp")
 list(APPEND SRC_LIB_ALL
     src/func/add.cpp
+    src/func/apply_thresholds.cpp
     src/func/average_pool.cpp
     src/func/bias_add.cpp
     src/func/conv2d.cpp
-    src/func/apply_thresholds.cpp
     src/func/max.cpp
     src/func/max_pool.cpp
     src/func/minimum.cpp
@@ -94,7 +94,7 @@ else()
     list(APPEND SRC_LIB_ALL src/func/arch/generic/quantized_conv2d.cpp)
     list(APPEND SRC_LIB_ALL src/func/arch/generic/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/func/arch/generic/batch_normalization.cpp)
-    list(APPEND SRC_LIB_ALL src/matrix/archgeneric/quantized_multiplication.cpp)
+    list(APPEND SRC_LIB_ALL src/matrix/arch/generic/quantized_multiplication.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arch/generic/shift_add.cpp)
 endif()
 
