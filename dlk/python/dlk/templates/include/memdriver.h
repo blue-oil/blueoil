@@ -30,7 +30,7 @@ public:
   MappedMem(unsigned long g_paddr,
             uint32_t g_count,
             uint32_t g_size)
-    : mem(NULL), aligned_size(0)
+    : mem(nullptr), aligned_size(0)
   {
     memtype* aligned_vaddr;
     unsigned long aligned_paddr;
@@ -46,13 +46,13 @@ public:
     if ((fd = open("/dev/mem", O_RDWR, 0)) < 0)
       return;
 
-    aligned_vaddr = mmap(NULL,
+    aligned_vaddr = mmap(nullptr,
                          aligned_size,
                          PROT_READ | PROT_WRITE,
                          MAP_SHARED,
                          fd, aligned_paddr);
 
-    if (aligned_vaddr == NULL) {
+    if (aligned_vaddr == nullptr) {
       printf("Error mapping address %lx\n", aligned_paddr);
       return;
     }
@@ -63,7 +63,7 @@ public:
 
   ~MappedMem()
   {
-    if(mem != NULL)
+    if(mem != nullptr)
       munmap((void*)mem, aligned_size);
   }
 
@@ -92,7 +92,7 @@ public:
 
 
   template<typename T>
-  memtype Write(T *data, unsigned int size)
+  memtype Write(const T *data, unsigned int size)
   {
     T *mem_ptr = (T *) mem;
     for(unsigned int i = 0; i < size; i++)
@@ -101,7 +101,7 @@ public:
 
 
   template<typename T>
-  bool Check(T *data, unsigned int size)
+  bool Check(const T *data, unsigned int size)
   {
     bool success = true;
     T *mem_ptr = (T *) mem;
