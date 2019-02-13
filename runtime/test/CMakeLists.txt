@@ -1,7 +1,7 @@
 find_package( OpenCV REQUIRED )
 
 macro(blueoil_unittest item)
-  add_executable(blueoil-test-${item} test_${item}.cpp)
+  add_executable(blueoil-test-${item} test_${item}.cpp test_util.cpp)
   target_link_libraries(blueoil-test-${item} blueoil ${OpenCV_LIBS})
   add_test(blueoil-test-${item} blueoil-test-${item})
 endmacro(blueoil_unittest)
