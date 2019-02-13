@@ -20,7 +20,7 @@ else()
   set(DCORE_BUILD_SHARED_LIBS OFF)
 endif()
 
-option(USE_OPENCV "use OpenCV library" OFF)
+option(USE_OPENCV "use OpenCV library" ON)
 if(USE_OPENCV)
   find_package(OpenCV REQUIRED)
   if(NOT OpenCV_FOUND)
