@@ -27,34 +27,37 @@ class ProtobufLoader:
             output_op(dict): output dictionary.
             images_placeholder(dict): The data that needs to be feed to the tf graph.
         """
-
+        self.sess = None
+        self.output_op = None
+        self.images_placeholder = None
         self.model_path = model_path
 
-        sess, output_op, images_placeholder = self._load_protobuf_graph(model_path)
+    def init(self):
+        """Load the tensor graph using protobuf file
 
-        self.sess = sess
-        self.output_op = output_op
-        self.images_placeholder = images_placeholder
-
-    def _load_protobuf_graph(self, protobuf):
+        Returns:
+            sess(tf session): initialized tf Session.
+            output_op(dict): output dictionary.
+            images_placeholder(dict): The data that needs to be feed to the tf graph.
+        """
         graph = tf.Graph()
 
         with graph.as_default():
-            with open(protobuf, 'rb') as f:
+            with open(self.model_path, 'rb') as f:
                 graph_def = tf.GraphDef()
                 graph_def.ParseFromString(f.read())
                 tf.import_graph_def(graph_def, name="")
             init_op = tf.global_variables_initializer()
-            images_placeholder = graph.get_tensor_by_name('images_placeholder:0')
-            output_op = graph.get_tensor_by_name('output:0')
+            self.images_placeholder = graph.get_tensor_by_name('images_placeholder:0')
+            self.output_op = graph.get_tensor_by_name('output:0')
 
         session_config = tf.ConfigProto()
         session_config.gpu_options.allow_growth = True
-        sess = tf.Session(graph=graph, config=session_config)
+        self.sess = tf.Session(graph=graph, config=session_config)
 
-        sess.run(init_op)
+        self.sess.run(init_op)
 
-        return sess, output_op, images_placeholder
+        return self.sess, self.output_op, self.images_placeholder
 
     def run(self, data):
         """Run the data on the tf graph
