@@ -46,6 +46,18 @@ def dict_codegen_classification_x86() -> dict:
             }
 
 
+def dict_codegen_resnet_classification_x86() -> dict:
+    """Test parameters for testing code generation for classification on CPU (float only)"""
+    return {'model_path': os.path.join('examples', 'classification', 'resnet_quantize_cifar10'),
+            'expected_output_set_name': '9984_horse.png',
+            'prefix': 'resnet_cls',
+            'input_name': '000_images_placeholder:0.npy',
+            'output_npy_name': '368_output:0.npy',
+            'hard_quantize': False,
+            'threshold_skipping': False
+            }
+
+
 def dict_codegen_group_conv_classification_x86() -> dict:
     """Test parameters for testing code generation for classification on CPU"""
     return {'model_path': os.path.join('examples', 'classification', 'lmnet_v1_group_conv'),
@@ -87,6 +99,23 @@ def dict_codegen_classification_fpga() -> dict:
             'cache_dma': False,
             }
 
+
+def dict_codegen_classification_resnet_fpga() -> dict:
+    """Test parameters for testing code generation for classification on FPGA
+    """
+    return {'model_path': os.path.join('examples', 'classification', 'resnet_quantize_cifar10'),
+            'expected_output_set_name': '9984_horse.png',
+            'prefix': 'fpga_cls_resnet',
+            'input_name': '000_images_placeholder:0.npy',
+            'output_npy_name': '368_output:0.npy',
+            'hard_quantize': True,
+            'threshold_skipping': False,
+            'cpu_name': 'arm_fpga',
+            'need_arm_compiler': True,
+            'cache_dma': False,
+            }
+
+
 def dict_codegen_object_detection_fpga() -> dict:
     """Test parameters for testing code generation for object detection on FPGA
     """
@@ -101,6 +130,7 @@ def dict_codegen_object_detection_fpga() -> dict:
             'need_arm_compiler': True,
             'cache_dma': False,
             }
+
 
 def dict_codegen_object_detection_widerface_fpga() -> dict:
     """Test parameters for testing code generation for object detection on FPGA
@@ -117,6 +147,7 @@ def dict_codegen_object_detection_widerface_fpga() -> dict:
             'cache_dma': False,
             }
 
+
 def dict_codegen_object_detection_widerface_1x1_fpga() -> dict:
     """Test parameters for testing code generation for object detection on FPGA
     """
@@ -131,6 +162,7 @@ def dict_codegen_object_detection_widerface_1x1_fpga() -> dict:
             'need_arm_compiler': True,
             'cache_dma': False,
             }
+
 
 def dict_codegen_object_detection_x86() -> dict:
     """Test parameters for testing code generation for object detection on CPU"""
@@ -171,6 +203,13 @@ def get_configurations():
         # Classification group convolution / x86
         dict_codegen_group_conv_classification_x86(),
         updated_dict(dict_codegen_group_conv_classification_x86(), {'hard_quantize': True}),
+
+        # Classification resnet / x86
+        dict_codegen_resnet_classification_x86(),
+        updated_dict(dict_codegen_resnet_classification_x86(), {'hard_quantize': True}),
+        updated_dict(dict_codegen_resnet_classification_x86(),
+                     {'hard_quantize': True, 'threshold_skipping': True}),
+
         dict_codegen_classification_cpu_hq_ts(),
 
         # Detection / x86
@@ -192,6 +231,15 @@ def get_configurations():
         updated_dict(dict_codegen_classification_fpga(),
                      {'cache_dma': False, 'threshold_skipping': True}),
         updated_dict(dict_codegen_classification_fpga(),
+                     {'cache_dma': True, 'threshold_skipping': True}),
+
+        # Classification ResNet-18 on FPGA
+        dict_codegen_classification_resnet_fpga(),
+        updated_dict(dict_codegen_classification_resnet_fpga(),
+                     {'cache_dma': True, 'threshold_skipping': False}),
+        updated_dict(dict_codegen_classification_resnet_fpga(),
+                     {'cache_dma': False, 'threshold_skipping': True}),
+        updated_dict(dict_codegen_classification_resnet_fpga(),
                      {'cache_dma': True, 'threshold_skipping': True}),
 
         # Detection on FPGA
@@ -223,13 +271,31 @@ def get_configurations():
 
         # Classification ARM
         updated_dict(dict_codegen_classification_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': False, 'threshold_skipping': False}),
+                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': False,
+                      'threshold_skipping': False}),
         updated_dict(dict_codegen_classification_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': True, 'threshold_skipping': False}),
+                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': True,
+                      'threshold_skipping': False}),
         updated_dict(dict_codegen_classification_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': False, 'threshold_skipping': True}),
+                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': False,
+                      'threshold_skipping': True}),
         updated_dict(dict_codegen_classification_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': True, 'threshold_skipping': True}),
+                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': True,
+                      'threshold_skipping': True}),
+
+        # Classification ResNet-18 ARM
+        updated_dict(dict_codegen_classification_resnet_fpga(),
+                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls_rn', 'hard_quantize': False,
+                      'threshold_skipping': False}),
+        updated_dict(dict_codegen_classification_resnet_fpga(),
+                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls_rn', 'hard_quantize': True,
+                      'threshold_skipping': False}),
+        updated_dict(dict_codegen_classification_resnet_fpga(),
+                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls_rn', 'hard_quantize': False,
+                      'threshold_skipping': True}),
+        updated_dict(dict_codegen_classification_resnet_fpga(),
+                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls_rn', 'hard_quantize': True,
+                      'threshold_skipping': True}),
 
         # Detection ARM
         updated_dict(dict_codegen_object_detection_fpga(),

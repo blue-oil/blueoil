@@ -560,7 +560,8 @@ class Constant(Variable):
                  data: np.ndarray,
                  dimension_format: str = 'NHWC',
                  packed: bool = False,
-                 actual_shape: List[int] = []) -> None:
+                 actual_shape: List[int] = [],
+                 transposed_data: List[int] = None) -> None:
         """Init the variable.
 
         If the constant is hard quantized, data is packed and the actual shape
@@ -568,6 +569,7 @@ class Constant(Variable):
         """
         shape = list(data.shape) if not packed else actual_shape
         self._packed = packed
+        self._transposed_data = transposed_data
         super().__init__(name, shape, dtype, {}, data, dimension_format=dimension_format)
 
     def run_forward(self) -> np.ndarray:
@@ -576,6 +578,11 @@ class Constant(Variable):
     @property
     def is_packed(self) -> bool:
         return self._packed
+
+    @property
+    def transposed_data(self) -> List[int]:
+        """Return transposed data."""
+        return self._transposed_data
 
 
 class Output(Variable):
@@ -2528,9 +2535,9 @@ class Split(Operator):
                  dtype: DataType,
                  input_ops: Ops,
                  dimension_format: str = 'NHWC',
-                 split: int = 1) -> None:
+                 num_split: int = 1) -> None:
         """Init the split operator."""
-        self._split = split
+        self._split = num_split
         self._axis = input_ops['A'].data[0]
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
@@ -2566,7 +2573,138 @@ class Split(Operator):
             out_shape[ch_idx] = int(in_shape[ch_idx] / split)
 
         return out_shape
-
+                     
     @property
     def preserve_quantization(self) -> bool:
-        return True
+        return False
+                     
+
+class Pad(Operator):
+    """Pad operator.
+    Pad a tensor. This operation pads a tensor according to the paddings specified
+    Input
+    -----
+    A
+        The input to be padded
+    B
+        The padding size, this (B) is a numpy array that supports "CONSTANT" mode in
+        tensorflow during importing, it has shape of [n, 2], where n is the rank of
+        input A, assume input A has dimension of D the padded size of each dimension D
+        of the output C is given by the formula below:
+                B[D, 0] + A.dim_size(D) + B[D, 1]
+        Note. currently only the channel-wise paddings are supported.
+
+    Output
+    ------
+    C
+        A result after being padded. Has the same type as input tensor
+    """
+
+    _input_names = ['A', 'B']
+    _output_names = ['C']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        """Init the Pad operator."""
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+        self._assert(np.all(self.input_ops['B'].data[:-1] == 0),
+                     f'{self.op_type}" {self.name}" only supports channel-wise paddings')
+
+    @property
+    def _dispatch_name(self) -> str:
+        return type(self).__name__
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        a_shape = lists['A']
+        padding_constant = attrs['padding_const']
+        new_shape = []
+        for padding, dim in zip(padding_constant, a_shape):
+            if padding is None or dim is None or any((x is None for x in padding)):
+                new_shape.append(None)
+            else:
+                new_shape.append(sum(padding) + dim)
+
+        return new_shape
+     
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
+class MatMul(Operator):
+    """Matrix Multiplication operator.
+    Matrix product. Multiplies matrix a by matrix b, producing a * b
+    Generalized universal function signature, e.g., ``(m,n),(n,p)->(m,p)`` for ``np.matmul``.
+    Input
+    -----
+    A
+        2-dimensional matrix A
+    B
+        2-dimensional matrix B
+    Output
+    ------
+    C
+        Matrix multiply results from A * B
+    """
+
+    _input_names = ['A', 'B']
+    _output_names = ['C']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        """Init the MatMul operator."""
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+        a_shape = self._input_ops["A"].shape
+        b_shape = self._input_ops["B"].shape
+        message = f'operands could not be scalar, use * instead'
+        # scalars are rejected
+        self._assert(len(a_shape) != 1 or len(b_shape) != 1, message)
+        # Shape alignment
+        message = f'operand shapes are not aligned'
+        self._assert(a_shape[1] == b_shape[0], message)
+
+    @property
+    def _dispatch_name(self) -> str:
+        return type(self).__name__
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        a_shape = lists['A']
+        b_shape = lists['B']
+        output_shape = [a_shape[0], b_shape[1]]
+        return output_shape
+
+    def run_forward(self) -> np.ndarray:
+        a_data = self.input_ops['A'].data
+        b_data = self.input_ops['B'].data
+        self._data = np.matmul(a_data, b_data)
+        return self._data
+                     
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
