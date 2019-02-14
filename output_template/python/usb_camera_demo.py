@@ -28,7 +28,7 @@ import cv2
 import numpy as np
 
 from lmnet.nnlib import NNLib
-from lmnet.pool_interface import PoolInterface
+from multiprocessing import Pool
 from lmnet.utils.config import (
     load_yaml,
     build_pre_process,
@@ -110,6 +110,7 @@ def swap_queue(q1, q2):
 
 
 def run_object_detection(config):
+    global nn
     # Set variables
     camera_width = 320
     camera_height = 240
@@ -119,7 +120,7 @@ def run_object_detection(config):
 
     vc = init_camera(camera_width, camera_height)
 
-    pool = PoolInterface()
+    pool = Pool(processes=1, initializer=nn.init)
     result = False
     fps = 1.0
 
@@ -134,10 +135,9 @@ def run_object_detection(config):
     #  ----------- Beginning of Main Loop ---------------
     while True:
         m1 = MyTime("1 loop of while(1) of main()")
-        pool_result = pool.run(run_inference, input_img)
+        pool_result = pool.apply_async(run_inference, (input_img, ))
         is_first = True
         while True:
-            sleep(0.01)
             grabbed, camera_img = vc.read()
             if is_first:
                 input_img = camera_img.copy()
@@ -159,19 +159,20 @@ def run_object_detection(config):
                 key = cv2.waitKey(2)    # Wait for 2ms
                 if key == 27:           # ESC to quit
                     return
-            if pool.is_done(pool_result):
+            if pool_result.ready():
                 break
 
         # -------------- END of wait loop ----------------------
         q_show = clear_queue(q_show)
         q_save, q_show = swap_queue(q_save, q_show)
-        result, fps = pool.get_results(pool_result)
+        result, fps = pool_result.get()
         m1.show()
 
     # --------------------- End of main Loop -----------------------
 
 
 def run_classification(config):
+    global nn
     camera_height = 240
     camera_width = 320
 
@@ -181,11 +182,11 @@ def run_classification(config):
 
     vc = init_camera(camera_width, camera_height)
 
-    pool = PoolInterface()
+    pool = Pool(processes=1, initializer=nn.init)
 
     grabbed, camera_img = vc.read()
 
-    pool_result = pool.run(run_inference, camera_img)
+    pool_result = pool.apply_async(run_inference, (camera_img, ))
     result = None
     fps = 1.0
     loop_count = 0
@@ -201,9 +202,9 @@ def run_classification(config):
         grabbed, camera_img = vc.read()
         m2.show()
 
-        if pool.is_done(pool_result):
-            result, fps = pool.get_results(pool_result)
-            pool_result = pool.run(run_inference, camera_img)
+        if pool_result.ready():
+            result, fps = pool_result.get()
+            pool_result = pool.apply_async(run_inference, (camera_img, ))
 
         if (window_width == camera_width) and (window_height == camera_height):
             window_img = camera_img
@@ -239,7 +240,6 @@ def run(model, config_file):
     if file_extension == '.so':  # Shared library
         nn = NNLib()
         nn.load(model)
-        nn.init()
 
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
