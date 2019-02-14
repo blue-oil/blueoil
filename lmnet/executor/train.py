@@ -22,6 +22,7 @@ from tensorflow.core.util.event_pb2 import SessionLog
 
 from lmnet.utils import executor, module_loader, config as config_util
 from lmnet import environment
+from lmnet.datasets.dataset_iterator import DatasetIterator
 
 
 def _save_checkpoint(saver, sess, global_step, step):
@@ -32,6 +33,14 @@ def _save_checkpoint(saver, sess, global_step, step):
         global_step=global_step,
     )
     print("Save ckpt. step: {}.".format(step + 1))
+
+
+def setup_dataset(config, subset, rank):
+    DatasetClass = config.DATASET_CLASS
+    dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+    dataset = DatasetClass(subset=subset, **dataset_kwargs)
+    enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
+    return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
 
 
 def start_training(config):
@@ -56,38 +65,24 @@ def start_training(config):
         num_worker = 1
         rank = 0
 
-    DatasetClass = config.DATASET_CLASS
     ModelClass = config.NETWORK_CLASS
     network_kwargs = dict((key.lower(), val) for key, val in config.NETWORK.items())
-    dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
-    if "train_validation_saving_size" in dataset_kwargs:
-        use_train_validation_saving = dataset_kwargs["train_validation_saving_size"] > 0
+    if "train_validation_saving_size".upper() in config.DATASET.keys():
+        use_train_validation_saving = config.DATASET.TRAIN_VALIDATION_SAVING_SIZE > 0
     else:
         use_train_validation_saving = False
 
     if use_train_validation_saving:
         top_train_validation_saving_set_accuracy = 0
 
-    train_dataset = DatasetClass(
-        subset="train",
-        **dataset_kwargs,
-    )
-
+    train_dataset = setup_dataset(config, "train", rank)
     print("train dataset num:", train_dataset.num_per_epoch)
 
     if use_train_validation_saving:
-        train_validation_saving_dataset = DatasetClass(
-            subset="train_validation_saving",
-            **dataset_kwargs,
-        )
-
+        train_validation_saving_dataset = setup_dataset(config, "train_validation_saving", rank)
         print("train_validation_saving dataset num:", train_validation_saving_dataset.num_per_epoch)
 
-    validation_dataset = DatasetClass(
-        subset="validation",
-        **dataset_kwargs,
-    )
-
+    validation_dataset = setup_dataset(config, "validation", rank)
     print("validation dataset num:", validation_dataset.num_per_epoch)
 
     graph = tf.Graph()

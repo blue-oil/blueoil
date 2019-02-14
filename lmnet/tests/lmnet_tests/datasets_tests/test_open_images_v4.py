@@ -20,6 +20,7 @@ from lmnet.pre_processor import Resize, ResizeWithGtBoxes
 from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBox
 from lmnet.datasets.open_images_v4 import OpenImagesV4Classification
 from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
+from lmnet.datasets.dataset_iterator import DatasetIterator
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")
@@ -30,6 +31,7 @@ def test_open_images_v4_classification():
     image_size = [256, 256]
     dataset = OpenImagesV4Classification(batch_size=batch_size,
                                          pre_processor=Resize(image_size))
+    dataset = DatasetIterator(dataset)
 
     for _ in range(5):
         images, labels = dataset.feed()
@@ -75,6 +77,7 @@ def test_open_images_v4_object_detection():
     image_size = [256, 256]
     dataset = OpenImagesV4BoundingBox(batch_size=batch_size,
                                       pre_processor=ResizeWithGtBoxes(image_size))
+    dataset = DatasetIterator(dataset)
 
     num_max_boxes = dataset.num_max_boxes
     assert dataset.num_max_boxes == OpenImagesV4BoundingBox.count_max_boxes()
@@ -107,11 +110,13 @@ def test_custom_open_images_v4_object_detection():
     train_dataset = Dummy(batch_size=batch_size,
                           validation_size=validation_size,
                           pre_processor=ResizeWithGtBoxes(image_size))
+    train_dataset = DatasetIterator(train_dataset)
 
     validation_dataset = Dummy(batch_size=batch_size,
                                subset="validation",
                                validation_size=validation_size,
                                pre_processor=ResizeWithGtBoxes(image_size))
+    validation_dataset = DatasetIterator(validation_dataset)
 
     num_max_boxes = train_dataset.num_max_boxes
     assert train_dataset.num_max_boxes == Dummy.count_max_boxes()
@@ -146,8 +151,10 @@ def test_custom_has_validation_open_images_v4_object_detection():
     image_size = [196, 128]
     train_dataset = DummyHasValidation(subset="train", batch_size=batch_size,
                                        pre_processor=ResizeWithGtBoxes(image_size))
+    train_dataset = DatasetIterator(train_dataset)
     validation_dataset = DummyHasValidation(subset="validation", batch_size=batch_size,
                                             pre_processor=ResizeWithGtBoxes(image_size))
+    validation_dataset = DatasetIterator(validation_dataset)
 
     num_max_boxes = validation_dataset.num_max_boxes
     assert validation_dataset.num_max_boxes == DummyHasValidation.count_max_boxes()
