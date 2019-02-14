@@ -205,11 +205,11 @@ def start_training(config):
         # broadcast variables from rank 0 to all other processes
         sess.run(bcast_global_variables_op)
         # calculate step per epoch for each nodes
-        train_num_per_epoch = train_dataset.num_per_epoch
-        num_per_nodes = (train_num_per_epoch + num_worker - 1) // num_worker
-        step_per_epoch = num_per_nodes // config.BATCH_SIZE
-        begin_index = (train_num_per_epoch * rank) // num_worker
-        end_index = begin_index + num_per_nodes
+        # train_num_per_epoch = train_dataset.num_per_epoch
+        # num_per_nodes = (train_num_per_epoch + num_worker - 1) // num_worker
+        # step_per_epoch = num_per_nodes // config.BATCH_SIZE
+        # begin_index = (train_num_per_epoch * rank) // num_worker
+        # end_index = begin_index + num_per_nodes
 
     last_step = sess.run(global_step)
 
@@ -223,15 +223,15 @@ def start_training(config):
     for step in range(last_step, max_steps):
         print("step", step)
 
-        if config.IS_DISTRIBUTION:
-            # scatter dataset
-            if step % step_per_epoch == 0:
-                indices = train_dataset.get_shuffle_index() if rank == 0 else None
-                # broadcast shuffled indices
-                indices = comm.bcast(indices, 0)
-                feed_indices = indices[begin_index:end_index]
-                # update each dataset by splited indices
-                train_dataset.update_dataset(feed_indices)
+        # if config.IS_DISTRIBUTION:
+        #     # scatter dataset
+        #     if step % step_per_epoch == 0:
+        #         indices = train_dataset.get_shuffle_index() if rank == 0 else None
+        #         # broadcast shuffled indices
+        #         indices = comm.bcast(indices, 0)
+        #         feed_indices = indices[begin_index:end_index]
+        #         # update each dataset by splited indices
+        #         train_dataset.update_dataset(feed_indices)
 
         images, labels = train_dataset.feed()
 
