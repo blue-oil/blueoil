@@ -14,34 +14,12 @@
 # limitations under the License.
 # =============================================================================
 import functools
-from multiprocessing import Pool
 
-import PIL
 import numpy as np
 
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.datasets.pascalvoc_2012 import Pascalvoc2012
-from lmnet.utils.random import shuffle
-
-
-def fetch_one_data(args):
-    image_file, gt_boxes, augmentor, pre_processor, is_train = args
-    image = PIL.Image.open(image_file)
-    image = np.array(image)
-    gt_boxes = np.array(gt_boxes)
-    samples = {'image': image, 'gt_boxes': gt_boxes}
-
-    if callable(augmentor) and is_train:
-        samples = augmentor(**samples)
-
-    if callable(pre_processor):
-        samples = pre_processor(**samples)
-
-    image = samples['image']
-    gt_boxes = samples['gt_boxes']
-
-    return (image, gt_boxes)
 
 
 class Pascalvoc20072012(ObjectDetectionBase):
@@ -96,15 +74,6 @@ class Pascalvoc20072012(ObjectDetectionBase):
             *args,
             **kwargs
     ):
-        if "enable_prefetch" in kwargs:
-            if kwargs["enable_prefetch"]:
-                self.use_prefetch = True
-            else:
-                self.use_prefetch = False
-            del kwargs["enable_prefetch"]
-        else:
-            self.use_prefetch = False
-
         super().__init__(
             subset=subset,
             *args,
@@ -116,46 +85,6 @@ class Pascalvoc20072012(ObjectDetectionBase):
         self.skip_difficult = skip_difficult
 
         self._init_files_and_annotations(*args, **kwargs)
-        self._shuffle()
-
-        if self.use_prefetch:
-            self.enable_prefetch()
-            print("ENABLE prefetch")
-        else:
-            print("DISABLE prefetch")
-
-    def prefetch_args(self, i):
-        return (self.files[i], self.annotations[i], self.augmentor,
-                self.pre_processor, self.subset == "train")
-
-    def enable_prefetch(self):
-        # TODO(tokunaga): the number of processes should be configurable
-        self.pool = Pool(processes=8)
-        self.start_prefetch()
-        self.use_prefetch = True
-
-    def start_prefetch(self):
-        index = self.current_element_index
-        batch_size = self.batch_size
-        start = index
-        end = min(index + batch_size, self.num_per_epoch)
-        pool = self.pool
-
-        args = []
-        for i in range(start, end):
-            args.append(self.prefetch_args(i))
-
-        self.current_element_index += batch_size
-        if self.current_element_index >= self.num_per_epoch:
-            self.current_element_index = 0
-            self._shuffle()
-
-            rest = batch_size - len(args)
-            for i in range(0, rest):
-                args.append(self.prefetch_args(i))
-            self.current_element_index += rest
-
-        self.prefetch_result = pool.map_async(fetch_one_data, args)
 
     def _init_files_and_annotations(self, *args, **kwargs):
         """Create files and annotations."""
@@ -174,20 +103,6 @@ class Pascalvoc20072012(ObjectDetectionBase):
             self.files = pascalvoc_2007.files
             self.annotations = pascalvoc_2007.annotations
 
-    def _shuffle(self):
-        """Shuffle data if train."""
-        if not self.is_shuffle:
-            return
-
-        if self.subset == "train":
-            self.files, self.annotations = shuffle(
-                self.files, self.annotations, seed=self.seed)
-            print(
-                "Shuffle {} train dataset with random state {}.".format(
-                    self.__class__.__name__,
-                    self.seed))
-            self.seed += 1
-
     @property
     def num_max_boxes(self):
         # calculate by cls.count_max_boxes(self.skip_difficult)
@@ -200,77 +115,16 @@ class Pascalvoc20072012(ObjectDetectionBase):
     def num_per_epoch(self):
         return len(self.files)
 
-    def _one_data(self):
-        """Return an image, gt_boxes."""
-        index = self.current_element_index
+    def __getitem__(self, i, type=None):
+        target_file = self.files[i]
+        image = self._get_image(target_file)
 
-        self.current_element_index += 1
-        if self.current_element_index == self.num_per_epoch:
-            self.current_element_index = 0
-            self._shuffle()
-
-        files, gt_boxes_list = self.files, self.annotations
-        target_file = files[index]
-        gt_boxes = gt_boxes_list[index]
-
+        gt_boxes = self.annotations[i]
         gt_boxes = np.array(gt_boxes)
-
-        image = PIL.Image.open(target_file)
-        image = np.array(image)
-
-        samples = {'image': image, 'gt_boxes': gt_boxes}
-
-        if callable(self.augmentor) and self.subset == "train":
-            samples = self.augmentor(**samples)
-
-        if callable(self.pre_processor):
-            samples = self.pre_processor(**samples)
-
-        image = samples['image']
-        gt_boxes = samples['gt_boxes']
+        gt_boxes = gt_boxes.copy()  # is it really needed?
+        gt_boxes = self._fill_dummy_boxes(gt_boxes)
 
         return (image, gt_boxes)
 
-    def get_data(self):
-        if self.use_prefetch:
-            data_list = self.prefetch_result.get(None)
-            images, gt_boxes_list = zip(*data_list)
-            return images, gt_boxes_list
-        else:
-            images, gt_boxes_list = zip(
-                *[self._one_data() for _ in range(self.batch_size)])
-            return images, gt_boxes_list
-
-    def feed(self):
-        """Batch size numpy array of images and ground truth boxes.
-
-        Returns:
-          images: images numpy array. shape is [batch_size, height, width]
-          gt_boxes_list: gt_boxes numpy array. shape is [batch_size, num_max_boxes, 5(x, y, w, h, class_id)]
-        """
-
-        images, gt_boxes_list = self.get_data()
-
-        if self.use_prefetch:
-            self.start_prefetch()
-
-        images = np.array(images)
-        gt_boxes_list = self._change_gt_boxes_shape(gt_boxes_list)
-
-        if self.data_format == "NCHW":
-            images = np.transpose(images, [0, 3, 1, 2])
-
-        return images, gt_boxes_list
-
-
-def main():
-    import time
-
-    s = time.time()
-    Pascalvoc20072012(subset="train", enable_prefetch=False)
-    e = time.time()
-    print("elapsed:", e-s)
-
-
-if __name__ == '__main__':
-    main()
+    def __len__(self):
+        return self.num_per_epoch

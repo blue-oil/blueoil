@@ -18,7 +18,7 @@ import json
 import os.path
 
 import numpy as np
-import PIL.Image
+import PIL
 import pandas as pd
 
 from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
@@ -83,7 +83,6 @@ class DeltaMarkMixin():
         )
 
         self.is_shuffle = is_shuffle
-        self.element_counter = 0
 
         self.path = {
             "json": os.path.join(self.data_dir, json_file),
@@ -172,52 +171,6 @@ class ClassificationBase(DeltaMarkMixin, StoragePathCustomizable, Base):
 
     available_subsets = ["train", "validation"]
 
-    def feed(self):
-        """Batch size numpy array of images and ground truth boxes.
-
-        Returns:
-          images: images numpy array. shape is [batch_size, height, width]
-          labels: labels numpy array. shape is [batch_size, num_classes]
-        """
-        images, labels_list = zip(*[self._element() for _ in range(self.batch_size)])
-        images = np.array(images)
-
-        labels_list = data_processor.binarize(labels_list, self.num_classes)
-
-        if self.data_format == "NCHW":
-            images = np.transpose(images, [0, 3, 1, 2])
-
-        return images, labels_list
-
-    def _element(self):
-        """Return an image, labels."""
-        index = self._get_index(self.element_counter)
-        self.element_counter += 1
-        if self.element_counter == self.num_per_epoch:
-            self.element_counter = 0
-            self._shuffle()
-
-        files, labels_list = self.files_and_annotations
-        target_file = files[index]
-        labels = labels_list[index]
-        labels = np.array(labels)
-
-        image = PIL.Image.open(target_file)
-        image = image.convert("RGB")
-        image = np.array(image)
-
-        samples = {'image': image}
-
-        if callable(self.augmentor) and self.subset == "train":
-            samples = self.augmentor(**samples)
-
-        if callable(self.pre_processor):
-            samples = self.pre_processor(**samples)
-
-        image = samples['image']
-
-        return image, labels
-
     def _files_and_annotations(self, json_file, image_dir):
         """Return files and gt_boxes list."""
         image_ids = _image_ids(json_file)
@@ -244,6 +197,25 @@ class ClassificationBase(DeltaMarkMixin, StoragePathCustomizable, Base):
         ]
 
         return [self.classes.index(category) for category in category_names]
+
+    def _get_image(self, target_file):
+        image = PIL.Image.open(target_file)
+        image = image.convert("RGB")
+        image = np.array(image)
+        return image
+
+    def __getitem__(self, i, type=None):
+        files, labels = self.files_and_annotations
+
+        image = self._get_image(files[i])
+
+        label = data_processor.binarize(labels[i], self.num_classes)
+        label = np.reshape(label, (self.num_classes))
+
+        return (image, label)
+
+    def __len__(self):
+        return self.num_per_epoch
 
 
 class ObjectDetectionBase(DeltaMarkMixin, StoragePathCustomizable, ObjectDetectionBase):
@@ -287,57 +259,6 @@ class ObjectDetectionBase(DeltaMarkMixin, StoragePathCustomizable, ObjectDetecti
         cls = self.__class__
         return cls.count_max_boxes()
 
-    def feed(self):
-        """Batch size numpy array of images and ground truth boxes.
-
-        Returns:
-          images: images numpy array.
-              shape is [batch_size, height, width] if data_format is NHWC.
-              shape is [height, width, batch_size] if data_format is NCHW.
-          gt_boxes_list: gt_boxes numpy array. shape is [batch_size, num_max_boxes, 5(x, y, w, h, class_id)]
-        """
-        images, gt_boxes_list = zip(*[self._element() for _ in range(self.batch_size)])
-
-        images = np.array(images)
-
-        gt_boxes_list = self._change_gt_boxes_shape(gt_boxes_list)
-
-        if self.data_format == "NCHW":
-            images = np.transpose(images, [0, 3, 1, 2])
-
-        return images, gt_boxes_list
-
-    def _element(self):
-        """Return an image, gt_boxes."""
-
-        index = self._get_index(self.element_counter)
-        self.element_counter += 1
-        if self.element_counter == self.num_per_epoch:
-            self.element_counter = 0
-            self._shuffle()
-
-        files, annotations = self.files_and_annotations
-        target_file = files[index]
-        gt_boxes = annotations[index]
-        gt_boxes = np.array(gt_boxes)
-
-        image = PIL.Image.open(target_file)
-        image = image.convert("RGB")
-        image = np.array(image)
-
-        samples = {'image': image, 'gt_boxes': gt_boxes}
-
-        if callable(self.augmentor) and self.subset == "train":
-            samples = self.augmentor(**samples)
-
-        if callable(self.pre_processor):
-            samples = self.pre_processor(**samples)
-
-        image = samples['image']
-        gt_boxes = samples['gt_boxes']
-
-        return image, gt_boxes
-
     def _files_and_annotations(self, json_file, image_dir):
         """Return files and gt_boxes list."""
         image_ids = _image_ids(json_file)
@@ -377,3 +298,17 @@ class ObjectDetectionBase(DeltaMarkMixin, StoragePathCustomizable, ObjectDetecti
             gt_boxes.append(bbox + [class_id])
 
         return gt_boxes
+
+    def __getitem__(self, i, type=None):
+        files, annotations = self.files_and_annotations
+
+        target_file = files[i]
+        image = self._get_image(target_file)
+
+        gt_boxes = annotations[i]
+        gt_boxes = np.array(gt_boxes)
+        gt_boxes = self._fill_dummy_boxes(gt_boxes)
+        return (image, gt_boxes)
+
+    def __len__(self):
+        return self.num_per_epoch
