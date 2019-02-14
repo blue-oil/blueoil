@@ -86,6 +86,10 @@ class Base(BaseNetwork):
                 print(var.name)
                 losses.append(tf.nn.l2_loss(var))
 
+            if "weights" in var.name:
+                print(var.name)
+                losses.append(tf.nn.l2_loss(var))
+
         return tf.add_n(losses) * self.weight_decay_rate
 
     def loss(self, softmax, labels):
@@ -111,6 +115,12 @@ class Base(BaseNetwork):
                 weight_decay_loss = self._weight_decay_loss()
                 tf.summary.scalar("weight_decay", weight_decay_loss)
                 loss = loss + weight_decay_loss
+
+            pact_regularizers = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES, ".+/pact_regularizer")
+            alpha_loss = tf.reduce_sum(pact_regularizers)
+            tf.summary.scalar("pact_alpha_loss", alpha_loss)
+
+            loss = loss + tf.reduce_sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
 
             tf.summary.scalar("loss", loss)
 
