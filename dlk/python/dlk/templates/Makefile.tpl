@@ -136,7 +136,7 @@ clean:
 	-$(RM) $(OBJ)
 
 lm_x86:           CXX = g++
-lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_PNG -pthread -g
+lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -march=native -g -DUSE_PNG -pthread -g
 
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
 lm_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_NEON -DUSE_PNG -pthread -g
