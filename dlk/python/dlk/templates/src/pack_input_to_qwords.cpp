@@ -82,7 +82,6 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
 
     for (unsigned i_bit = 0; i_bit < input_bitwidth; i_bit++) {
       output[idx_out++] = qinput_words_buf[i_bit];
-      qinput_words_buf[i_bit] = 0;
     }
   }
 
