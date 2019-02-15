@@ -17,7 +17,7 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.blocks import lmnet_block2
+from lmnet.blocks import lmnet_block
 from lmnet.networks.segmentation.base import Base
 
 
@@ -39,7 +39,7 @@ class LmSegnetV1(Base):
         self.custom_getter = None
 
     def _get_lmnet_block(self, is_training, channels_data_format):
-        return functools.partial(lmnet_block2,
+        return functools.partial(lmnet_block,
                                  activation=self.activation,
                                  custom_getter=self.custom_getter,
                                  is_training=is_training,
@@ -90,12 +90,13 @@ class LmSegnetV1(Base):
         x = self._depth_to_space(name='depth2space1', inputs=x)
         x = lmnet_block('conv9', x, 64, 3)
         x = self.concat('conv10', x, 64, 3)
+        x = self.concat('conv11', x, 64, 3)
         x = self._depth_to_space(name='depth2space2', inputs=x)
-        x = lmnet_block('conv11', x, 32, 3)
-        x = self.concat('conv12', x, 32, 3)
+        x = lmnet_block('conv12', x, 32, 3)
+        x = self.concat('conv13', x, 32, 3)
         x = self._depth_to_space(name='depth2space3', inputs=x)
-        x = lmnet_block('conv13', x, 16, 3)
-        x = lmnet_block('conv14', x, self.num_classes, 1, activation=None)
+        x = lmnet_block('conv14', x, 16, 3)
+        x = lmnet_block('conv15', x, self.num_classes, 1, activation=None)
 
         return x
 
