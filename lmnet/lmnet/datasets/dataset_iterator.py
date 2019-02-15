@@ -172,24 +172,22 @@ class _SimpleLoader:
         self.seed = seed
         self._stock_ids = []
 
-    @property
-    def ids(self):
-        length = len(self.dataset)
-        return list(range(0, length))
-
-    def gen_ids(self, batch_size):
-        for i in range(0, batch_size):
+    def _gen_ids(self, size):
+        """Generate ids which length is `size`"""
+        for _ in range(0, size):
+            # when _stock_ids is empty, fill and shuffle.
             if len(self._stock_ids) == 0:
-                self._stock_ids = self.ids
+                self._stock_ids = list(range(0, len(self.dataset)))
                 self.seed = _xorshift32(self.seed)
                 random_state = np.random.RandomState(self.seed)
                 random_state.shuffle(self._stock_ids)
+
             id = self._stock_ids.pop()
             yield id
 
-    def run(self):
+    def get(self):
         result = []
-        for i in self.gen_ids(self.dataset.batch_size):
+        for i in self._gen_ids(self.dataset.batch_size):
             image, label = self.dataset[i]
             image, label = _apply_augmentations(self.dataset, image, label)
             result.append((image, label))
