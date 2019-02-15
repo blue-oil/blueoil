@@ -199,7 +199,7 @@ class DatasetIterator:
     available_subsets = ["train", "train_validation_saving", "validation"]
 
     """docstring for DatasetIterator."""
-    def __init__(self, dataset, enable_prefetch=True, seed=0):
+    def __init__(self, dataset, enable_prefetch=False, seed=0):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
         self.seed = seed
@@ -210,7 +210,7 @@ class DatasetIterator:
             if hasattr(dataset, "__getitem__"):
                 self.loader = _MultiProcessPrefetchThreadLoader(self.dataset, self.prefetch_result_queue, seed)
 
-            self.prefetcher.start()
+            self.loader.start()
             print("ENABLE prefetch")
         else:
             self.loader = _SimpleLoader(self.dataset, seed)
@@ -272,6 +272,9 @@ class DatasetIterator:
         print(random_indices[0:10])
         self.seed += 1
         return random_indices
+
+    def finish(self):
+        return
 
 
 if __name__ == '__main__':
