@@ -40,8 +40,6 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
   convolution_parameters cp = p.normal_conv_params;
   const T_UINT out_c = cp.output_channels;
 
-
-  const T_UINT num_qinput_per_qword = (NBIT_QDYPE / MAX_NBIT_QINPUT);
   const T_UINT num_qkernel_per_qword = (NBIT_QDYPE / MAX_NBIT_KERNEL);
 
   const T_UINT k_h = cp.kernel_height;
@@ -54,12 +52,11 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
   const T_UINT in_h = cp.input_height;
   const T_UINT in_w = cp.input_width;
   const T_UINT in_c = k_c;
+  const T_UINT in_size = in_h * in_w * in_c;
   const T_UINT in_c_by_word = k_c_by_word;
-  const T_UINT in_size = in_h * in_w * in_c_by_word * MAX_NBIT_QINPUT;
 
   const T_UINT out_h = cp.output_height;
   const T_UINT out_w = cp.output_width;
-  const T_UINT out_size = out_h * out_w * out_c;
 
   const bool out_c_less_than_num_pe = (out_c < NUM_PE);
 
@@ -84,8 +81,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 #endif
 
   Measurement::Start("Packing input for kn2row");
-  const T_UINT in_size_orig = in_h * in_w * in_c;
-  pack_input_to_qwords(input, p.device_input_buf, in_size_orig, 2);
+  pack_input_to_qwords(input, p.device_input_buf, in_size, 2);
   Measurement::Stop();
 
   if (out_c_less_than_num_pe) {
