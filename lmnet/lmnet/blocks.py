@@ -126,3 +126,78 @@ def lmnet_block(
             tf.summary.histogram('output', output)
 
         return output
+
+
+def lmnet_block2(
+        name,
+        inputs,
+        filters,
+        kernel_size,
+        custom_getter=None,
+        is_training=tf.constant(True),
+        activation=None,
+        use_bias=True,
+        use_batch_norm=True,
+        is_debug=False,
+        data_format='channels_last',
+):
+    """Block used in lmnet
+
+    Combine convolution, bias, weights quantization and activation quantization as one layer block.
+
+    Args:
+        name(str): Block name, as scope name.
+        inputs(tf.Tensor): Inputs.
+        filters(int): Number of filters for convolution.
+        kernel_size(int): Kernel size.
+        custom_getter(callable): Custom getter for `tf.variable_scope`.
+        is_training(tf.constant): Flag if training or not.
+        activation(callable): Activation function.
+        use_bias(bool): If use bias.
+        use_batch_norm(bool): If use batch norm.
+        is_debug(bool): If is debug.
+        data_format(string): channels_last for NHWC. channels_first for NCHW. Default is channels_last.
+    Returns:
+        tf.Tensor: Output of current layer block.
+    """
+    with tf.variable_scope(name, custom_getter=custom_getter):
+        conv = tf.layers.conv2d(inputs, filters=filters, kernel_size=kernel_size, padding='SAME', use_bias=False,
+                                data_format=data_format)
+
+        if use_batch_norm:
+            # TODO(wenhao) hw supports `tf.contrib.layers.batch_norm` currently. change it when supported.
+            # batch_normed = tf.layers.batch_normalization(conv,
+            #                                              momentum=0.99,
+            #                                              scale=True,
+            #                                              center=True,
+            #                                              training=is_training)
+            four_letter_data_format = 'NHWC' if data_format == 'channels_last' else 'NCHW'
+            batch_normed = tf.contrib.layers.batch_norm(conv,
+                                                        decay=0.01,
+                                                        scale=True,
+                                                        center=True,
+                                                        updates_collections=None,
+                                                        is_training=is_training,
+                                                        data_format=four_letter_data_format)
+
+        else:
+            batch_normed = conv
+
+        if use_bias:
+            bias = tf.get_variable('bias', shape=filters, initializer=tf.zeros_initializer)
+            biased = batch_normed + bias
+        else:
+            biased = batch_normed
+
+        if activation:
+            output = activation(biased)
+        else:
+            output = biased
+
+        if is_debug:
+            tf.summary.histogram('conv', conv)
+            tf.summary.histogram('batch_normed', batch_normed)
+            tf.summary.histogram('biased', biased)
+            tf.summary.histogram('output', output)
+
+        return output
