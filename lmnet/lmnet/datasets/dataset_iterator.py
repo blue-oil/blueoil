@@ -78,7 +78,7 @@ def _xorshift32(r):
     return r & 0xFFFFFFFF
 
 
-class _MultiProcessPrefetchLoader(threading.Thread):
+class _MultiProcessPrefetchThreadLoader(threading.Thread):
     def __init__(self, dataset, result_queue, seed):
         super().__init__()
         # TODO(tokunaga): the number of processes should be configurable
@@ -210,7 +210,7 @@ class DatasetIterator:
             self.prefetch_result_queue = queue.Queue(maxsize=100)
 
             if hasattr(dataset, "__getitem__"):
-                self.loader = _MultiProcessPrefetchLoader(self.dataset, self.prefetch_result_queue, seed)
+                self.loader = _MultiProcessPrefetchThreadLoader(self.dataset, self.prefetch_result_queue, seed)
 
             self.prefetcher.start()
             print("ENABLE prefetch")
@@ -245,7 +245,7 @@ class DatasetIterator:
         if self.enable_prefetch:
             (images, labels) = self.prefetch_result_queue.get()
         else:
-            images, labels = self.loader.run()
+            images, labels = self.loader.get()
         return images, labels
 
     def feed(self):
