@@ -14,9 +14,9 @@ limitations under the License.
 ==============================================================================*/
 
 #pragma once
-#include "common/global.h"
-#include "HLS/hls.h"
 #include "HLS/ac_int.h"
+#include "HLS/hls.h"
+#include "common/global.h"
 
 using namespace ihc;
 using namespace std;
@@ -40,3 +40,5 @@ typedef T_k_hls T_B_hls;
 #define NBITS_BW_IN_HALF 128
 #define NBITS_BW_OUT_HALF 128
 #define NBITS_BW_K_HALF 128
+
+#define BW_ 128

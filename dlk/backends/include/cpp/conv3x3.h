@@ -16,20 +16,7 @@ limitations under the License.
 #pragma once
 #include "common/global.h"
 
-namespace cpp
-{
-  void conv3x3_impl(
-          T_in in_data[],
-          T_out out_data[],
-          T_k k_data[],
-          unsigned in_w,
-          unsigned in_h,
-          unsigned in_c,
-          unsigned out_w,
-          unsigned out_h,
-          unsigned out_c,
-          unsigned out_c_offset,
-          unsigned pad,
-          unsigned stride
-  );
+namespace cpp {
+void conv3x3_impl(T_in in_data[], T_out out_data[], T_k k_data[], unsigned in_w, unsigned in_h, unsigned in_c,
+                  unsigned out_w, unsigned out_h, unsigned out_c, unsigned out_c_offset, unsigned pad, unsigned stride);
 }
