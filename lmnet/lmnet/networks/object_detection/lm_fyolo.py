@@ -148,7 +148,7 @@ class LMFYolo(YoloV2):
             # with tf.control_dependencies([assert_num_cell_x, assert_num_cell_y]):
             output = self.block_last
 
-        return output, tf.get_default_graph()
+        return output
 
 
 class LMFYoloQuantize(QuantizeParamInit, LMFYolo):

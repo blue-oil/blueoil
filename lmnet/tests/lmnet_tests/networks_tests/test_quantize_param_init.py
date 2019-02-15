@@ -40,7 +40,7 @@ def test_required_arguments():
         assert network.last_layer_name is not None
 
 
-def test_quantized_both_layers():
+def test_quantized_both_layers(reset_default_graph):
     model_classes = [
         LmnetV0Quantize,
         LmnetV1Quantize,
@@ -74,7 +74,8 @@ def test_quantized_both_layers():
         with tf.variable_scope("", reuse=tf.AUTO_REUSE):
             network1 = model(**network_kwargs)
 
-            base1, graph1 = network1.base(tf.ones([10, 32, 32, 3]), True)
+            network1.base(tf.ones([10, 32, 32, 3]), True)
+            graph1 = tf.get_default_graph()
             op_name_list = [op.name for op in graph1.get_operations() if "kernel" in op.name]
             scope_name_list = list(set([op.split("/")[0] for op in op_name_list]))
             assert all(any(scope in op and quantizer_name in op for op in op_name_list) for scope in scope_name_list)
@@ -85,7 +86,8 @@ def test_quantized_both_layers():
         with tf.variable_scope("", reuse=tf.AUTO_REUSE):
             network2 = model(**network_kwargs)
 
-            base2, graph2 = network2.base(tf.ones([10, 32, 32, 3]), True)
+            network2.base(tf.ones([10, 32, 32, 3]), True)
+            graph2 = tf.get_default_graph()
             op_name_list = [op.name for op in graph2.get_operations() if "kernel" in op.name]
             assert not any(network2.first_layer_name in op and quantizer_name in op for op in op_name_list)
 
@@ -100,7 +102,8 @@ def test_quantized_both_layers():
         with tf.variable_scope("", reuse=tf.AUTO_REUSE):
             network3 = model(**network_kwargs)
 
-            base3, graph3 = network3.base(tf.ones([10, 32, 32, 3]), True)
+            network3.base(tf.ones([10, 32, 32, 3]), True)
+            graph3 = tf.get_default_graph()
             op_name_list = [op.name for op in graph3.get_operations() if "kernel" in op.name]
             assert not any(network3.last_layer_name in op and quantizer_name in op for op in op_name_list)
 

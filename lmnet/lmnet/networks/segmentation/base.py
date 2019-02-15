@@ -53,7 +53,7 @@ class Base(BaseNetwork):
         return images_placeholder, labels_placeholder
 
     def inference(self, images, is_training):
-        base, _ = self.base(images, is_training)
+        base = self.base(images, is_training)
         return tf.identity(base, name="output")
 
     def loss(self, output, labels):

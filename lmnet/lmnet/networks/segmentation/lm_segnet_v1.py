@@ -92,7 +92,7 @@ class LmSegnetV1(Base):
         x = lmnet_block('conv10', x, 32, 3)
         x = lmnet_block('conv11', x, self.num_classes, 3)
 
-        return x, tf.get_default_graph()
+        return x
 
 
 class LmSegnetV1Quantize(QuantizeParamInit, LmSegnetV1):

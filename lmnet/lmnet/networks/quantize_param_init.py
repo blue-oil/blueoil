@@ -3,9 +3,8 @@ import functools
 
 
 class QuantizeParamInit:
-    """QuantizeParamInit is a mixin creating a quantized network class more convenient by providing two functions.
-    1) __init___ : for initializing variables necessary for quantization, such as quantization function
-    2) _quantized_variable_getter : for quantizing weight variables in convolutional layers
+    """QuantizeParamInit is a mixin creating a quantized network class more convenient by providing init and below function
+    _quantized_variable_getter : for quantizing weight variables in convolutional layers
 
     This QuantizeParamInit class can be used for all kinds of task (classification, object detection, and segmentation).
 

@@ -107,7 +107,7 @@ class LmnetV0(Base):
 
         self.base_output = tf.reshape(x, [-1, self.num_classes], name='pool7_reshape')
 
-        return self.base_output, tf.get_default_graph()
+        return self.base_output
 
 
 class LmnetV0Quantize(QuantizeParamInit, LmnetV0):

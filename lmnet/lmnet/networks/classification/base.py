@@ -69,7 +69,7 @@ class Base(BaseNetwork):
         Params:
            images: images tensor. shape is (batch_num, height, width, channel)
         """
-        base, _ = self.base(images, is_training)
+        base = self.base(images, is_training)
         softmax = tf.nn.softmax(base)
 
         self.output = tf.identity(softmax, name="output")

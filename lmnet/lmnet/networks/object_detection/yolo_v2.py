@@ -671,7 +671,7 @@ class YoloV2(BaseNetwork):
 
     def inference(self, images, is_training):
         tf.summary.histogram("images", images)
-        base, _ = self.base(images, is_training)
+        base = self.base(images, is_training)
         self.output = tf.identity(base, name="output")
         return self.output
 
@@ -1013,7 +1013,7 @@ class YoloV2(BaseNetwork):
             # with tf.control_dependencies([assert_num_cell_x, assert_num_cell_y]):
             output = self.conv_23
 
-        return output, tf.get_default_graph()
+        return output
 
 
 class YoloV2Loss:
