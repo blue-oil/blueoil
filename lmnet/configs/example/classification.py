@@ -36,7 +36,7 @@ from lmnet.quantizations import (
     linear_mid_tread_half_quantizer,
 )
 
-IS_DEBUG = True
+IS_DEBUG = False
 
 NETWORK_CLASS = LmnetV0Quantize
 DATASET_CLASS = Cifar10

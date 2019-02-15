@@ -44,7 +44,7 @@ def evaluate(config, restore_path):
     else:
         subset = "validation"
 
-    validation_dataset = DatasetIterator(DatasetClass(subset=subset, **dataset_kwargs), seed=0, enable_prefetch=True)
+    validation_dataset = DatasetIterator(DatasetClass(subset=subset, **dataset_kwargs), seed=0, enable_prefetch=False)
 
     graph = tf.Graph()
     with graph.as_default():
