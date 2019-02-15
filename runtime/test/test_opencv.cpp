@@ -3,7 +3,7 @@
 
 #include "blueoil.hpp"
 #include "blueoil_opencv.hpp"
-#include "tensor_util.hpp"
+#include "test_util.hpp"
 
 float test_expect[3][3][3] =
   { { // Red

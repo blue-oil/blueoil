@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "blueoil.hpp"
-#include "tensor_util.hpp"
+#include "test_util.hpp"
 
 float test_chw_data[3][2][2] =  // planar RGB format
   { {  // Red

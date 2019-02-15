@@ -4,7 +4,7 @@
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
 #include "blueoil_opencv.hpp"
-#include "tensor_util.hpp"
+#include "test_util.hpp"
 
 float test_input[3][8][8] =
   { { // Red
