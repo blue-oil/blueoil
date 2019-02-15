@@ -26,7 +26,8 @@ limitations under the License.
 #endif
 
 template <int KH, int KW>
-bool test_a8w1_conv(input_type &in_type) {
+bool test_a8w1_conv(input_type &in_type)
+{
   namespace p = a8w1_conv3x3_params;
 
   assert(p::k_h == KH);
@@ -64,26 +65,14 @@ bool test_a8w1_conv(input_type &in_type) {
   std::cout << "-------------------------------------------" << std::endl;
 
   if (in_type == SEQUENTIAL) {
-    for (int i = 0; i < p::in_size; i++) {
-      in_data[i] = (i % 4);
-    }
-    for (int i = 0; i < p::k_size * p::k_n; i++) {
-      k_data[i] = (i % 2 == 0) ? 1 : -1;
-    }
+    for (int i = 0; i < p::in_size; i++) { in_data[i] = (i % 4); }
+    for (int i = 0; i < p::k_size * p::k_n; i++) { k_data[i] = (i % 2 == 0) ? 1 : -1; }
   } else if (in_type == RANDOM) {
-    for (int i = 0; i < p::in_size; i++) {
-      in_data[i] = gen_random_value<T_in>(256, 1, 0);
-    }
-    for (int i = 0; i < p::k_size * p::k_n; i++) {
-      k_data[i] = gen_random_value<T_k>(2, 2, 1);
-    }
+    for (int i = 0; i < p::in_size; i++) { in_data[i] = gen_random_value<T_in>(256, 1, 0); }
+    for (int i = 0; i < p::k_size * p::k_n; i++) { k_data[i] = gen_random_value<T_k>(2, 2, 1); }
   } else if (in_type == ALL_1) {
-    for (int i = 0; i < p::in_size; i++) {
-      in_data[i] = 1;
-    }
-    for (int i = 0; i < p::k_size * p::k_n; i++) {
-      k_data[i] = 1;
-    }
+    for (int i = 0; i < p::in_size; i++) { in_data[i] = 1; }
+    for (int i = 0; i < p::k_size * p::k_n; i++) { k_data[i] = 1; }
   }
 
   cpp::a8w1_conv<KH, KW>(in_data, out_data, k_data, p::in_w, p::in_h, p::in_c, p::out_w, p::out_h, p::out_c, p::pad_w,
