@@ -226,8 +226,9 @@ private:
 };
 
 void qconv_kn2row_tiling(unsigned long input_addr, unsigned long output_addr,
-                         T_UINT k_data_packed[], BIN_CONV_OUTPUT th_data[],
-                         unsigned in_w, unsigned in_h, unsigned in_c_by_word,
+                         const T_UINT k_data_packed[],
+                         BIN_CONV_OUTPUT th_data[], unsigned in_w,
+                         unsigned in_h, unsigned in_c_by_word,
                          unsigned nbits_in_data, unsigned out_w, unsigned out_h,
                          unsigned out_c, unsigned k_w, unsigned k_h,
                          unsigned pad, unsigned stride) {
