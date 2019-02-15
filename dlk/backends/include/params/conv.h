@@ -269,52 +269,6 @@ static const unsigned num_in_line = (max_in_w_with_pad * (k_h - 1)) + k_w;
 static const bool has_thresholds = true;
 } // namespace conv1x1_params
 
-namespace a8w1_conv3x3_params {
-static const unsigned num_pe = 8;
-static const unsigned pad_w = 1;
-static const unsigned pad_h = 1;
-static const unsigned stride_w = 1;
-static const unsigned stride_h = 1;
-
-static const unsigned max_in_w = 512;
-static const unsigned max_in_h = 512;
-static const unsigned max_in_w_with_pad = max_in_w + (2 * pad_w);
-static const unsigned max_in_h_with_pad = max_in_h + (2 * pad_h);
-static const unsigned max_in_c = conv_common_params::max_in_c;
-static const unsigned min_in_c = 32;
-static const unsigned max_k_c = max_in_c;
-
-static const unsigned log_num_in_by_unit = 2; // log2(num_in_by_unit) = log2(4) = 2
-
-static const unsigned in_w = 320;
-static const unsigned in_h = 320;
-static const unsigned in_w_with_pad = in_w + (2 * pad_w);
-static const unsigned in_h_with_pad = in_h + (2 * pad_h);
-static const unsigned in_c = 3;
-static const unsigned in_size = in_h * in_w * in_c;
-
-static const unsigned k_h = 3;
-static const unsigned k_w = 3;
-static const unsigned k_c = in_c;
-static const unsigned k_n = 8;
-static const unsigned k_size = k_h * k_w * k_c;
-
-static const unsigned out_h = (in_h_with_pad - k_h) + 1;
-static const unsigned out_w = (in_w_with_pad - k_w) + 1;
-static const unsigned out_c = k_n;
-static const unsigned out_size = out_h * out_w * out_c;
-
-static const unsigned in_size_hp = (in_h + 2 * pad_h) * (in_w + 2 * pad_w) * in_c;
-
-static const unsigned tile_h = 32;
-static const unsigned tile_w = 32;
-static const unsigned tile_offset = tile_w - (k_w - 1);       // 30
-static const unsigned num_in_line = tile_w * (k_h - 1) + k_w; // 77
-
-static const unsigned num_thresholds = conv_common_params::num_thresholds;
-static const bool has_thresholds = false;
-} // namespace a8w1_conv3x3_params
-
 namespace conv_kn2row_params {
 
 static const unsigned num_pe = conv_common_params::num_pe;

@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 #include "common/global.h"
-#include "tb/test_a8w1_conv.h"
 #include "tb/test_conv.h"
 
 using std::cout;
@@ -47,7 +46,6 @@ bool parse_input_type(int argc, char const *argv[], input_type &in_type)
 bool test_conv(input_type &in_type)
 {
   srand((unsigned int)time(NULL));
-
   bool res = true;
 
   // test conv1x1
@@ -56,14 +54,6 @@ bool test_conv(input_type &in_type)
   // test conv3x3
   Conv_params_t conv3x3_p = new_Conv_params(conv3x3_params) res &= test_conv<3, 3>(in_type, conv3x3_p);
 
-  return res;
-}
-
-bool test_a8w1_conv(input_type &in_type)
-{
-  srand((unsigned int)time(NULL));
-
-  bool res = test_a8w1_conv<3, 3>(in_type);
   return res;
 }
 
@@ -78,7 +68,6 @@ int main(int argc, char const *argv[])
 
   bool res_conv = true;
   res_conv &= test_conv(in_type);
-  // res_conv &= test_a8w1_conv(in_type);
 
   return (res_conv) ? 0 : 1;
 }

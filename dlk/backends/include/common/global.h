@@ -21,7 +21,6 @@ limitations under the License.
 #include "common/type_info.h"
 
 #include "params/conv.h"
-#include "params/gemm.h"
 
 #define IP_CSR_ADDR 0xFF200000
 #define A8W1_IP_CSR_ADDR 0xFF200100
