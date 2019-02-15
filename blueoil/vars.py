@@ -13,22 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from lmnet.datasets.image_folder import ImageFolderBase
+import os
 
 
-class FruitsClassification(ImageFolderBase):
-
-    extend_dir = "fruits_classification"
-
-    def __init__(
-            self,
-            subset="train",
-            batch_size=32,
-            *args,
-            **kwargs
-    ):
-        super().__init__(subset=subset,
-                         batch_size=batch_size,
-                         *args,
-                         **kwargs,
-                         )
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+OUTPUT_TEMPLATE_DIR = os.environ.get(
+    'OUTPUT_TEMPLATE_DIR',
+    os.path.join(os.path.dirname(BASE_DIR), 'output_template')
+)
