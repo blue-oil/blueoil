@@ -85,14 +85,14 @@ public:
   }
 
   template <typename T>
-  memtype Write(T *data, unsigned int size)
+  memtype Write(const T *data, unsigned int size)
   {
     T *mem_ptr = (T *)mem;
     for (unsigned int i = 0; i < size; i++) { *mem_ptr++ = data[i]; }
   }
 
   template <typename T>
-  bool Check(T *data, unsigned int size)
+  bool Check(const T *data, unsigned int size)
   {
     bool success = true;
     T *mem_ptr = (T *)mem;

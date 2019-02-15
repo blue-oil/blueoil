@@ -21,6 +21,7 @@ import tensorflow as tf
 
 from lmnet.utils import executor, module_loader, config as config_util
 from lmnet import environment
+from lmnet.datasets.dataset_iterator import DatasetIterator
 
 
 def evaluate(config, restore_path):
@@ -43,10 +44,7 @@ def evaluate(config, restore_path):
     else:
         subset = "validation"
 
-    validation_dataset = DatasetClass(
-        subset=subset,
-        **dataset_kwargs,
-    )
+    validation_dataset = DatasetIterator(DatasetClass(subset=subset, **dataset_kwargs), seed=0)
 
     graph = tf.Graph()
     with graph.as_default():
