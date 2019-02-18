@@ -15,6 +15,9 @@ fi
 TEST_LOG_NO=0
 FAILED_TEST_NO=""
 
+# list of avairable optimizers listed in blueoil_init.py
+OPTIMIZSERS=("Momentum" "Adam")
+
 function usage_exit(){
 	echo ""
 	echo "Usage"
@@ -89,8 +92,9 @@ function init_test(){
     NETWORK_NUMBER=$4
     DATASET_FORMAT_NUMBER=$5
     ENABLE_DATA_AUGMENTATION=$6
-    TRAINING_DATASET_PATH=$7
-    VALIDATION_DATASET_PATH=$8
+    OPTIMIZER_NUMBER=$7
+    TRAINING_DATASET_PATH=$8
+    VALIDATION_DATASET_PATH=$9
     CONFIG_NAME=${TEST_CONFIG_PREFIX}_${TEST_CASE}
     TEST_YML_CONFIG_FILE=./tests/config/${TEST_CASE}.yml
     echo "## Test of ${TEST_CASE}"
@@ -140,6 +144,8 @@ function init_test(){
         send \"\n\"
         expect \"how many epochs do you run training (integer):\"
         send \"\b\b\b1\n\"
+        expect \"select optimizer:\"
+        send \"${OPTIMIZER_NUMBER}\n\"
         expect \"initial learning rate:\"
         send \"\n\"
         expect \"choose learning rate setting(tune1 / tune2 / tune3 / fixed):\"
@@ -233,7 +239,8 @@ if [ "${YML_CONFIG_FILE}" == "" ]; then
             do
                 TRAINING_DATASET_PATH=$(get_yaml_param train_path tests/config/${TEST_CASE}.yml)
                 VALIDATION_DATASET_PATH=$(get_yaml_param test_path tests/config/${TEST_CASE}.yml)
-                init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${ENABLE_DATA_AUGMENTATION} ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH}
+                OPTIMIZER_NUMBER=$(($((${TASK_TYPE_NUMBER} % ${#OPTIMIZSERS[@]}))+1))
+                init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${ENABLE_DATA_AUGMENTATION} ${OPTIMIZER_NUMBER} ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH}
                 basic_test
                 if [ ${ADDITIONAL_TEST_FLAG} -eq 0 ]; then
                     # Run additional test only once
