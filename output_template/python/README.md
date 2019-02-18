@@ -1,6 +1,15 @@
+# Summary
+
+- [Getting Started with FPGA](#getting-started-(FPGA-Board))
+    - [Prerequisites](#prerequisites)
+    - [Camera Demo](#camera-demo-(fpga))
+- [Getting Started with GPU](#getting-started-(gpu))
+    - [Prerequisites](#prerequisites)
+    - [Camera Demo](#camera-demo-(gpu))
+
+
 # Getting Started (FGPA Board)
 
-### Target Device: [DE10-Nano](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&No=1046)
 Please check the whole documentation detail on how to setup this demo on FPGA board [here](https://docs.blue-oil.org/install/install.html#setup-an-fpga-board)
 
 ```
@@ -13,7 +22,7 @@ Python = 2.7, 3.5 and 3.6
 pip >= 9.0.1
 ```
 
-# Demo
+# Camera Demo (FPGA)
 
 ## Prerequisites
 
@@ -44,19 +53,21 @@ If you want to check more in detail about how to run the demonstration on FPGA b
 
 # Getting Started (GPU)
 
-### Target Device: Jetson TX2
-
 ## Prerequisites
 ```
-Python = 2.7, 3.5 and 3.6
+Python = 3.5
 pip >= 9.0.1
 ```
 
 ### Tensorflow
 The project is developed and tested in TensorFlow v1.4.1.
-Please ensure specific tensorflow `CPU/GPU` version is installed.
+Please ensure specific tensorflow `GPU` version is installed.
 
 > _tensorflow-gpu==1.4.1_ has been used
+
+```
+$ pip install tensorflow-gpu=1.4.1
+```
 
 ### CUDA
 Cuda requirement highly depends on TensorFlow version.
@@ -69,12 +80,12 @@ $ pip install -r requirements.txt
 $ python run.py -i [your image file] -c ../models/meta.yaml -m minimal_graph_with_shape.pb
 ```
 
-# Demo
+# Camera Demo (GPU)
 ## Run
 
 ```
 $ pip install -r requirements.txt
-$ python usb_camera_demo.py -c ../models/meta.yaml -m ../models/lib/lib_x86.so
+$ python usb_camera_demo.py -c ../models/meta.yaml -m minimal_graph_with_shape.pb
 ```
 
 ## Prerequisites
