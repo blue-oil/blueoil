@@ -85,8 +85,9 @@ class LipChip(SegmentationBase):
             header=None,
             names=['file_ids'])
 
-        # if self.subset == "validation":
-        #     df = df[:10]
+        df = df[:10]
+        if self.subset == "validation":
+            df = df[:10]
 
         ids = df.file_ids.tolist()
 
