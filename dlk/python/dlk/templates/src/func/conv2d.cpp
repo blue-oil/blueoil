@@ -176,11 +176,13 @@ void convolution(
     conv1x1_kn2row(input, kernels, output, p);
     return;
   } else if (p.kernel_height == 3 && p.kernel_width == 3 && p.padding == 1) {
-    const int KERNELS_SIZE = 3 * 3 * MAX_IN_C * MAX_IN_C;
+    const int kw = 3;
+    const int kh = 3;
+    const int MAX_OUT_C = MAX_IN_C;
+    const int KERNELS_SIZE = kw * kh * MAX_IN_C * MAX_OUT_C;
     static T kernels_hwoi[KERNELS_SIZE];
     ohwi_to_hwoi(kernels, kernels_hwoi, p);
     conv3x3_kn2row(input, kernels_hwoi, output, p);
-    delete[] kernels_hwoi;
     return;
   }
 
