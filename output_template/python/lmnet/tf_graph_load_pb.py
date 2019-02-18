@@ -16,16 +16,14 @@
 import tensorflow as tf
 
 
-class ProtobufLoader:
-    """Loads Protocol Buffer To Tensorflow Graph"""
+class TFGraphLoadPb:
+    """This class Loads Tensorflow Graph with Protocol Buffer File"""
 
     def __init__(self, model_path):
-        """
+        """Initialize by setting the model path first.
+
         Args:
             model_path(string): The protocol buffer file location.
-            sess(tf session): initialized tf Session.
-            output_op(dict): output dictionary.
-            images_placeholder(dict): The data that needs to be feed to the tf graph.
         """
         self.sess = None
         self.output_op = None
@@ -33,13 +31,8 @@ class ProtobufLoader:
         self.model_path = model_path
 
     def init(self):
-        """Load the tensor graph using protobuf file
+        """Load the tensor graph using protobuf file as model_path"""
 
-        Returns:
-            sess(tf session): initialized tf Session.
-            output_op(dict): output dictionary.
-            images_placeholder(dict): The data that needs to be feed to the tf graph.
-        """
         graph = tf.Graph()
 
         with graph.as_default():
@@ -57,13 +50,11 @@ class ProtobufLoader:
 
         self.sess.run(init_op)
 
-        return self.sess, self.output_op, self.images_placeholder
-
     def run(self, data):
         """Run the data on the tf graph
 
         Args:
-            outputs: returned result of the graph
+            data: returned result of the graph
 
         Returns:
             result(array): The result array of the graph

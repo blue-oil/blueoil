@@ -67,6 +67,12 @@ def _save_images(output_dir, filename_images):
 def _run(model, input_image, config):
     filename, file_extension = os.path.splitext(model)
 
+    if not file_extension == '.so' or not file_extension == '.pb':
+        raise Exception("""
+            Unknown file type. Got %s%s.
+            Please check the model file (-m). We only support .pb and .so files.
+            """ % (filename, file_extension))
+
     # load the image
     img = Image.open(input_image).convert("RGB")
 
@@ -88,10 +94,8 @@ def _run(model, input_image, config):
 
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
-        from lmnet.protobuf_loader import ProtobufLoader
-        nn = ProtobufLoader(model)
-    else:
-        raise Exception("Unknown file type. Got %s." % (filename))
+        from lmnet.tf_graph_load_pb import TFGraphLoadPb
+        nn = TFGraphLoadPb(model)
 
     # run the graph
     output = nn.run(data)

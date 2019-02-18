@@ -233,6 +233,12 @@ def run(model, config_file):
     global nn, pre_process, post_process
     filename, file_extension = os.path.splitext(model)
 
+    if not file_extension == '.so' or not file_extension == '.pb':
+        raise Exception("""
+            Unknown file type. Got %s%s.
+            Please check the model file (-m). We only support .pb and .so files.
+            """ % (filename, file_extension))
+
     config = load_yaml(config_file)
     pre_process = build_pre_process(config.PRE_PROCESSOR)
     post_process = build_post_process(config.POST_PROCESSOR)
@@ -243,8 +249,9 @@ def run(model, config_file):
 
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
-        from lmnet.protobuf_loader import ProtobufLoader
-        nn = ProtobufLoader(model)
+        from lmnet.tf_graph_load_pb import TFGraphLoadPb
+        nn = TFGraphLoadPb(model)
+
     else:
         raise Exception("Unknown file type. Got %s." % (filename))
 
