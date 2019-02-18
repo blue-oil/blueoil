@@ -96,19 +96,20 @@ def make_all(project_dir, output_dir):
 
     make_list = [
         ["lm_x86", "lm_x86.elf"],
-        ["lm_arm", "lm_arm.elf"],
+        # ["lm_arm", "lm_arm.elf"],
         ["lm_fpga", "lm_fpga.elf"],
         ["lib_x86", "lib_x86.so"],
-        ["lib_arm", "lib_arm.so"],
+        # ["lib_arm", "lib_arm.so"],
         ["lib_fpga", "lib_fpga.so"],
-        ["ar_x86", "libdlk_x86.a"],
-        ["ar_arm", "libdlk_arm.a"],
-        ["ar_fpga", "libdlk_fpga.a"],
+        # ["ar_x86", "libdlk_x86.a"],
+        # ["ar_arm", "libdlk_arm.a"],
+        # ["ar_fpga", "libdlk_fpga.a"],
     ]
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)
     os.environ["FLAGS"] = "-D__WITHOUT_TEST__"
+    os.environ["CXXFLAGS"] = "-DFUNC_TIME_MEASUREMENT"
     # Make each target and move output files
     for target, output in make_list:
         subprocess.run(("make", "clean", "--quiet"))
@@ -120,11 +121,28 @@ def make_all(project_dir, output_dir):
     os.chdir(running_dir)
 
 
-def run(experiment_id, restore_path, output_template_dir=None):
+def run(experiment_id, restore_path=None, output_template_dir=None):
     """Convert from trained model."""
+    """
+docker run \
+	--rm \
+	-it \
+	--runtime=nvidia \
+	-e PYTHONPATH=/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk \
+	-e OUTPUT_DIR=/home/blueoil/saved \
+	-v $(pwd)/config:/home/blueoil/config \
+	-v $(pwd)/dataset:/home/blueoil/dataset \
+	-v $(pwd)/lmnet/saved:/home/blueoil/saved \
+	-v $(pwd)/result:/home/blueoil/result \
+	-v $(pwd)/blueoil:/home/blueoil/blueoil \
+	$(id -un)_blueoil:local_build \
+       ./blueoil/cli.py convert -e experiment
+    """
 
     # Export model
-    run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
+    # run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
+
+    run_export(experiment_id, None, image_size=(None, None), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
     export_dir = get_export_directory(experiment_id, restore_path)
 
     # Set arguments

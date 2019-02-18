@@ -104,7 +104,7 @@ def train(config, experiment_id=None):
     '-p',
     '--checkpoint',
     help='Checkpoint name. e.g. save.ckpt-10001',
-    required=True,
+    default=None
 )
 @click.option(
     '-t',
@@ -115,14 +115,12 @@ def train(config, experiment_id=None):
 )
 def convert(experiment_id, checkpoint, template):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
-    restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
 
-    run_convert(experiment_id, restore_path, template)
+    run_convert(experiment_id, checkpoint, template)
 
-    export_dir = get_export_directory(experiment_id, restore_path)
-    output_root_dir = os.path.join(export_dir, 'output')
-    click.echo('Output files are generated in {}'.format(output_root_dir))
-    click.echo('Please see {}/README.md to run prediction'.format(output_root_dir))
+    # output_root_dir = os.path.join(export_dir, 'output')
+    # click.echo('Output files are generated in {}'.format(output_root_dir))
+    # click.echo('Please see {}/README.md to run prediction'.format(output_root_dir))
 
 
 @main.command(help='Predict by using trained model.')
