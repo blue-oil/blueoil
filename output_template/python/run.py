@@ -70,7 +70,8 @@ def _run(model, input_image, config):
     if not file_extension == '.so' or not file_extension == '.pb':
         raise Exception("""
             Unknown file type. Got %s%s.
-            Please check the model file (-m). We only support .pb and .so files.
+            Please check the model file (-m).
+            Only .pb (protocol buffer) or .so (shared object) file is supported.
             """ % (filename, file_extension))
 
     # load the image
