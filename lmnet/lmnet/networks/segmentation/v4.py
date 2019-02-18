@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from lmnet.blocks import lmnet_block2
 from lmnet.networks.segmentation.base import Base
-
+from lmnet.layers import fully_connected
 
 class LmSegnetV1(Base):
     """LM original semantic segmentation network.
@@ -63,54 +63,50 @@ class LmSegnetV1(Base):
             output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
-    def concat(self, name, x, out_channel, kernel_size):
-        tmp, _ = tf.split(x, 2, axis=3)
-        x = self.lmnet_block(name, x, int(out_channel/2), kernel_size)
-        x = tf.concat([x, tmp], axis=3)
-        return x
-
     def spatial(self, x):
         with tf.variable_scope("spatial"):
-            x = self.lmnet_block('conv_1', x, 64, 3)
+            x = self.lmnet_block('conv_1', x, 32, 3)
             x = self._space_to_depth(name='s2d_1', inputs=x)
-            x = self.lmnet_block('conv_2', x, 128, 3)
+            x = self.lmnet_block('conv_2', x, 64, 3)
             x = self._space_to_depth(name='s2d_2', inputs=x)
-            x = self.lmnet_block('conv_3', x, 256, 3)
+            x = self.lmnet_block('conv_3', x, 128, 3)
             x = self._space_to_depth(name='s2d_3', inputs=x)
-            x = self.lmnet_block('conv_4', x, 256, 3)
+            x = self.lmnet_block('conv_4', x, 256, 3, activation=tf.nn.relu)
 
             return x
+
 
     def batch_norm(self, inputs, training):
         return tf.contrib.layers.batch_norm(
             inputs,
-            decay=0.997,
+            decay=0.01,
             updates_collections=None,
             is_training=training,
             activation_fn=None,
             center=True,
             scale=True)
 
-    def res_block(self, name, x, channel, kernel):
+    def res_block(self, name, x, channel, kernel, quantize=True):
         with tf.variable_scope(name):
             shortcut = x
             x = self.lmnet_block('conv_1', x, channel, kernel)
-            x = self.lmnet_block('conv_2', x, channel, kernel)
+            x = self.lmnet_block('conv_2', x, channel, kernel, activation=None)
 
-            # x = tf.concat([x, shortcut], axis=3)
-            # return x
             x = shortcut + x
 
-            x = self.batch_norm(x, self.is_training)
-            x = self.activation(x)
-
+            if quantize:
+                x = self.batch_norm(x, self.is_training)
+                x = self.activation(x)
+            else:
+                x = self.batch_norm(x, self.is_training)
+                x = tf.nn.relu(x)
             return x
 
     def context(self, x):
         with tf.variable_scope("context"):
             x = self._space_to_depth(name='s2d_1', inputs=x, block_size=8)
 
-            x = self.lmnet_block('conv_1', x, 64, 3)
+            x = self.lmnet_block('conv_1', x, 64, 1)
             x = self.lmnet_block('res_1', x, 64, 3)
             x = self.lmnet_block('res_2', x, 64, 3)
             x = self.lmnet_block('res_3', x, 64, 3)
@@ -119,14 +115,15 @@ class LmSegnetV1(Base):
             x = self.lmnet_block('conv_2', x, 128, 1)
             x = self.lmnet_block('res_4', x, 128, 3)
             x = self.lmnet_block('res_5', x, 128, 3)
-            x = self.lmnet_block('res_6', x, 128, 3)
+            x = self.lmnet_block('res_6', x, 128, 3, activation=tf.nn.relu)
             x_down_16 = x
 
+            x = self.activation(x)
             x = self._space_to_depth(name='s2d_3', inputs=x)
             x = self.lmnet_block('conv_3', x, 256, 1)
             x = self.lmnet_block('res_7', x, 256, 3)
-            x = self.lmnet_block('res_8', x, 256, 3)
-            x = self.lmnet_block('res_9', x, 256, 3)
+            x = self.lmnet_block('res_8', x, 512, 3)
+            x = self.lmnet_block('res_9', x, 512, 3, activation=tf.nn.relu)
 
             # x = self.res_block('res_1', x, 64, 3)
             # x = self.res_block('res_2', x, 64, 3)
@@ -148,7 +145,9 @@ class LmSegnetV1(Base):
             x_down_32 = x
             return x_down_32, x_down_16
 
-    def attention(self, name, x, activation):
+    def attention(self, name, x):
+        # I want sigmoid.
+        attention_act = tf.nn.relu
 
         with tf.variable_scope(name):
             stock = x
@@ -160,11 +159,25 @@ class LmSegnetV1(Base):
 
             x = self.batch_norm(x, self.is_training)
             x = self.activation(x)
-
-            x = self.lmnet_block("conv", x, in_ch, 1, activation=None)
+            x = self.lmnet_block("conv", x, in_ch, 1, activation=attention_act)
 
             x = stock * x
 
+            return x
+
+    def conv(self,
+             name,
+             inputs,
+             filters,
+             kernel_size,
+             activation=None,):
+
+        with tf.variable_scope(name):
+            conv = tf.layers.conv2d(
+                inputs, filters=filters, kernel_size=kernel_size, padding='SAME', use_bias=False,
+                kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+            )
+            x = self.batch_norm(conv, self.is_training)
             return x
 
     def base(self, images, is_training, *args, **kwargs):
@@ -175,13 +188,17 @@ class LmSegnetV1(Base):
         self.images = images
         self.lmnet_block = lmnet_block
 
-        x = lmnet_block('block_1', images, 16, 1)
+        x = lmnet_block('block_1', images, 32, 1)
         sp = self.spatial(x)
 
         cx_32, cx_16 = self.context(x)
         tail = cx_32
-        cx_16 = self.attention("attention_16", cx_16, activation=self.activation)
-        cx_32 = self.attention("attention_32", cx_32, activation=self.activation)
+        h = tail.get_shape()[1].value
+        w = tail.get_shape()[2].value
+        tail = tf.layers.average_pooling2d(name="gap", inputs=tail, pool_size=[h, w], padding="VALID", strides=1)
+        cx_16 = self.attention("attention_16", cx_16)
+        cx_32 = self.attention("attention_32", cx_32)
+        cx_32 = cx_32 * tail
 
         cx_1 = self._depth_to_space(name="d2s_1", inputs=cx_16, block_size=2)
         cx_2 = self._depth_to_space(name="d2s_2", inputs=cx_32, block_size=4)
@@ -190,19 +207,59 @@ class LmSegnetV1(Base):
 
         x = tf.concat([cx, sp], axis=3)
 
-        x = self.lmnet_block('block_2', x, self.num_classes, 1)
+        x = self.batch_norm(x, self.is_training)
+        x = self.activation(x)
 
-        x = self.attention("last", x, activation=None)
+        x = self.lmnet_block('last', x, self.num_classes, 1, activation=None)
+
+        # x = self.attention("last", x, activation=None)
 
         # only for train
-        self.cx_1 = self.lmnet_block("block_cx1", cx_1, self.num_classes, 1, activation=None)
-        self.cx_2 = self.lmnet_block("block_cx2", cx_2, self.num_classes, 1, activation=None)
+        self.cx_1 = self.conv("block_cx1", cx_1, self.num_classes, 1, activation=None)
+        self.cx_2 = self.conv("block_cx2", cx_2, self.num_classes, 1, activation=None)
 
         return x
 
+    def _cross_entropy(self, x, loss_weight, labels):
+        reshape_output = tf.reshape(x, (-1, self.num_classes))
+        softmax = tf.nn.softmax(reshape_output)
+        cross_entropy = -tf.reduce_sum(
+            (labels * tf.log(tf.clip_by_value(softmax, 1e-10, 1.0))) * loss_weight,
+            axis=[1]
+        )
+        cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
+
+        return cross_entropy_mean
+
+
     def loss(self, output, labels):
         x = self.post_process(output)
-        return super().loss(x, labels)
+        cx_1 = self.post_process(self.cx_1)
+        cx_2 = self.post_process(self.cx_2)
+
+        with tf.name_scope("loss"):
+            # calculate loss weights for each batch.
+            loss_weight = []
+            all_size = tf.to_float(tf.reduce_prod(tf.shape(labels)))
+            for class_index in range(self.num_classes):
+                num_label = tf.reduce_sum(tf.to_float(tf.equal(labels, class_index)))
+                weight = (all_size - num_label) / all_size
+                # TODO(wakisaka): 3 is masic number. ratio setting
+                # weight = weight ** 3
+                loss_weight.append(weight)
+
+            loss_weight = tf.Print(loss_weight, loss_weight, message="loss_weight:")
+            label_flat = tf.reshape(labels, (-1, 1))
+            labels = tf.reshape(tf.one_hot(label_flat, depth=self.num_classes), (-1, self.num_classes))
+
+            loss_main = self._cross_entropy(x, loss_weight, labels)
+            loss_cx_1 = self._cross_entropy(cx_1, loss_weight, labels)
+            loss_cx_2 = self._cross_entropy(cx_2, loss_weight, labels)
+
+            loss = loss_main + loss_cx_1 + loss_cx_2
+
+            tf.summary.scalar("loss", loss)
+            return loss
 
     def summary(self, output, labels=None):
         x = self.post_process(output)
@@ -277,8 +334,14 @@ class LmSegnetV1Quantize(LmSegnetV1):
         with tf.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
+
+                if "float" in var.op.name:
+                    print("not quantized", var.op.name)
+                    return var
+
                 if not quantize_first_convolution:
                     if var.op.name.startswith("block_1/"):
+                        print("not quantized", var.op.name)
                         return var
                 return weight_quantization(var)
         return var

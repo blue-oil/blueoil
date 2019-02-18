@@ -105,6 +105,17 @@ def make_all(project_dir, output_dir):
         # ["ar_arm", "libdlk_arm.a"],
         # ["ar_fpga", "libdlk_fpga.a"],
     ]
+    make_list = [
+        ["lm_x86", "lm_x86.elf"],
+        # ["lm_arm", "lm_arm.elf"],
+        ["lm_fpga", "lm_fpga.elf"],
+        # ["lib_x86", "lib_x86.so"],
+        # ["lib_arm", "lib_arm.so"],
+        # ["lib_fpga", "lib_fpga.so"],
+        # ["ar_x86", "libdlk_x86.a"],
+        # ["ar_arm", "libdlk_arm.a"],
+        # ["ar_fpga", "libdlk_fpga.a"],
+    ]
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)
@@ -113,7 +124,7 @@ def make_all(project_dir, output_dir):
     # Make each target and move output files
     for target, output in make_list:
         subprocess.run(("make", "clean", "--quiet"))
-        subprocess.run(("make",  target, "-j4", "--quiet"))
+        subprocess.run(("make",  target, "-j4",))
         strip_binary(output)
         output_file_path = os.path.join(output_dir, output)
         os.rename(output, output_file_path)
@@ -144,9 +155,9 @@ docker run \
     """
 
     # Export model
-    run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
+    # run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
 
-    # run_export(experiment_id, None, image_size=(None, None), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
+    run_export(experiment_id, None, image_size=(None, None), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
     export_dir = get_export_directory(experiment_id, restore_path)
 
     # Set arguments

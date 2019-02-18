@@ -162,7 +162,8 @@ def lmnet_block2(
     """
     with tf.variable_scope(name, custom_getter=custom_getter):
         conv = tf.layers.conv2d(inputs, filters=filters, kernel_size=kernel_size, padding='SAME', use_bias=False,
-                                data_format=data_format)
+                                data_format=data_format,
+                                kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),)
 
         if use_batch_norm:
             # TODO(wenhao) hw supports `tf.contrib.layers.batch_norm` currently. change it when supported.
