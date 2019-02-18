@@ -176,8 +176,8 @@ void convolution(
     conv1x1_kn2row(input, kernels, output, p);
     return;
   } else if (p.kernel_height == 3 && p.kernel_width == 3 && p.padding == 1) {
-    int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
-    T* kernels_hwoi = new T[kernels_size]();
+    const int KERNELS_SIZE = 3 * 3 * MAX_IN_C * MAX_IN_C;
+    static T kernels_hwoi[KERNELS_SIZE];
     ohwi_to_hwoi(kernels, kernels_hwoi, p);
     conv3x3_kn2row(input, kernels_hwoi, output, p);
     delete[] kernels_hwoi;
