@@ -144,9 +144,20 @@ def start_training(config):
 
         if config.IS_PRETRAIN:
             all_vars = tf.global_variables()
-            pretrain_var_list = [
-                var for var in all_vars if var.name.startswith(tuple(config.PRETRAIN_VARS))
-            ]
+            from tensorflow.python import pywrap_tensorflow
+            file_name = os.path.join(config.PRETRAIN_DIR, config.PRETRAIN_FILE)
+
+            if len(config.PRETRAIN_VARS) == 0:
+                reader = pywrap_tensorflow.NewCheckpointReader(file_name)
+                saved_var_to_shape_map = reader.get_variable_to_shape_map()
+                saved_var_names = [var for var in saved_var_to_shape_map]
+                pretrain_var_list = [
+                    var for var in all_vars if var.op.name in saved_var_names
+                ]
+            else:
+                pretrain_var_list = [
+                    var for var in all_vars if var.name.startswith(tuple(config.PRETRAIN_VARS))
+                ]
             print("pretrain_vars", [
                 var.name for var in pretrain_var_list
             ])
