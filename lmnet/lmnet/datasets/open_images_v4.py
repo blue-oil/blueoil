@@ -28,7 +28,7 @@ import PIL
 from lmnet import data_processor
 from lmnet.datasets.base import Base, StoragePathCustomizable
 from lmnet.datasets.base import ObjectDetectionBase
-from lmnet.utils.random import shuffle, train_test_split
+from lmnet.utils.random import train_test_split
 
 
 class OpenImagesV4(Base):
@@ -88,28 +88,6 @@ class OpenImagesV4(Base):
     def files_and_annotations(self):
         raise NotImplementedError
 
-    def feed(self):
-        raise NotImplementedError
-
-    @property
-    def feed_indices(self):
-        if not hasattr(self, "_feed_indices"):
-            if self.subset == "train" and self.is_shuffle:
-                self._feed_indices = shuffle(range(self.num_per_epoch), seed=self.seed)
-            else:
-                self._feed_indices = list(range(self.num_per_epoch))
-
-        return self._feed_indices
-
-    def _get_index(self, counter):
-        return self.feed_indices[counter]
-
-    def _shuffle(self):
-        if self.subset == "train" and self.is_shuffle:
-            self._feed_indices = shuffle(range(self.num_per_epoch), seed=self.seed)
-            print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
-            self.seed = self.seed + 1
-
 
 class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
     task_extend = "bounding_boxes"
@@ -122,7 +100,6 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
                  **kwargs):
         super(OpenImagesV4BoundingBox, self).__init__(*args, **kwargs)
 
-        self.element_counter = 0
         self._class_level = class_level
 
     @property
@@ -217,44 +194,16 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
     def num_max_boxes(self):
         return self.count_max_boxes()
 
-    def feed(self):
-        """Batch size numpy array of images and ground truth boxes.
-
-        Returns:
-          images: images numpy array. shape is [batch_size, height, width]
-          gt_boxes_list: gt_boxes numpy array. shape is [batch_size, num_max_boxes, 5(x, y, w, h, class_id)]
-        """
-        images, gt_boxes_list = zip(*[self._element() for _ in range(self.batch_size)])
-
-        images = np.array(images)
-
-        gt_boxes_list = self._change_gt_boxes_shape(gt_boxes_list)
-
-        if self.data_format == "NCHW":
-            images = np.transpose(images, [0, 3, 1, 2])
-
-        return images, gt_boxes_list
-
-    def _element(self):
-        """Return an image, gt_boxes."""
-        index = self._get_index(self.element_counter)
-
-        self.element_counter += 1
-        if self.element_counter == self.num_per_epoch:
-            self.element_counter = 0
-            self._shuffle()
-
+    def __getitem__(self, i, type=None):
         files, gt_boxes_list = self.files_and_annotations
-        target_file = files[index]
-        gt_boxes = gt_boxes_list[index]
+        target_file = files[i]
+        gt_boxes = gt_boxes_list[i]
 
-        gt_boxes = np.array(gt_boxes)
-
-        image = PIL.Image.open(target_file)
-        image = np.array(image.convert(mode="RGB"))
-
+        image = self._get_image(target_file)
         height = image.shape[0]
         width = image.shape[1]
+
+        gt_boxes = np.array(gt_boxes)
 
         # Change box coordinate from [0, 1] to [0, image size].
         gt_boxes = np.stack([
@@ -265,18 +214,12 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
             gt_boxes[:, 4],
         ], axis=1)
 
-        samples = {'image': image, 'gt_boxes': gt_boxes}
+        gt_boxes = self._fill_dummy_boxes(gt_boxes)
 
-        if callable(self.augmentor) and self.subset == "train":
-            samples = self.augmentor(**samples)
+        return (image, gt_boxes)
 
-        if callable(self.pre_processor):
-            samples = self.pre_processor(**samples)
-
-        image = samples['image']
-        gt_boxes = samples['gt_boxes']
-
-        return image, gt_boxes
+    def __len__(self):
+        return self.num_per_epoch
 
 
 class OpenImagesV4Classification(OpenImagesV4):
@@ -296,53 +239,10 @@ class OpenImagesV4Classification(OpenImagesV4):
             **kwargs,
         )
 
-        self.element_counter = 0
-
     @property
     def annotations_csv(self):
         return os.path.join(
             self.data_dir, self.task_extend, '{}-annotations-human-imagelabels.csv'.format(self.subset))
-
-    def feed(self):
-        """Returns numpy array of batch size data."""
-
-        images, labels = zip(*[self._element() for _ in range(self.batch_size)])
-
-        labels = data_processor.binarize(labels, self.num_classes)
-
-        images = np.array(images)
-
-        if self.data_format == 'NCHW':
-            images = np.transpose(images, [0, 3, 1, 2])
-        return images, labels
-
-    def _element(self):
-        """Return an image and label."""
-        index = self._get_index(self.element_counter)
-
-        self.element_counter += 1
-        if self.element_counter == self.num_per_epoch:
-            self.element_counter = 0
-            self._shuffle()
-
-        files, labels = self.files_and_annotations
-        label = labels[index]
-        target_file = files[index]
-
-        image = PIL.Image.open(target_file)
-        image = np.array(image.convert(mode="RGB"))
-
-        samples = {'image': image}
-
-        if callable(self.augmentor) and self.subset == "train":
-            samples = self.augmentor(**samples)
-
-        if callable(self.pre_processor):
-            samples = self.pre_processor(**samples)
-
-        image = samples['image']
-
-        return image, label
 
     @property
     @functools.lru_cache(maxsize=None)
@@ -361,6 +261,22 @@ class OpenImagesV4Classification(OpenImagesV4):
                     annotations.append(self.classes.index(label_id))
 
         return files, annotations
+
+    def __getitem__(self, i, type=None):
+        files, labels = self.files_and_annotations
+
+        filename = files[i]
+        image = PIL.Image.open(filename)
+        # sometime image data be gray.
+        image = image.convert("RGB")
+        image = np.array(image)
+
+        label = data_processor.binarize(labels[i], self.num_classes)
+        label = np.reshape(label, (self.num_classes))
+        return (image, label)
+
+    def __len__(self):
+        return self.num_per_epoch
 
 
 class OpenImagesV4BoundingBoxBase(StoragePathCustomizable, OpenImagesV4BoundingBox):

@@ -108,7 +108,6 @@ class View(object):
             nbit_qinput = 8 if x_op.op_type == 'Input' else 2
 
             if op.is_quantized and nbit_qinput == 2:
-                qconv_idx = 0  # temporary
                 qk_elems = w_op.data.shape[1]
 
                 kh = self.op.kernel_height
@@ -157,7 +156,6 @@ class View(object):
                     binConv2D_struct.bin_kernel_ndata = {qk_elems};
                     binConv2D_struct.bin_input_nwords = {qk_elems};
                     binConv2D_struct.bin_input_ndata = {qk_elems}*{nbit_qinput};
-                    binConv2D_struct.layer_index = {qconv_idx};
                     binConv2D_struct.device_input_buf = device_input_buf;
                     binConv2D_struct.device_output_buf = device_output_buf;
                     binConv2D_struct.thresholds = {threshold};
