@@ -106,7 +106,7 @@ def make_all(project_dir, output_dir):
         # ["ar_fpga", "libdlk_fpga.a"],
     ]
     make_list = [
-        ["lm_x86", "lm_x86.elf"],
+        # ["lm_x86", "lm_x86.elf"],
         # ["lm_arm", "lm_arm.elf"],
         ["lm_fpga", "lm_fpga.elf"],
         # ["lib_x86", "lib_x86.so"],
@@ -157,8 +157,8 @@ docker run \
     # Export model
     # run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
 
-    run_export(experiment_id, None, image_size=(None, None), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
-    export_dir = get_export_directory(experiment_id, restore_path)
+    export_dir = run_export(experiment_id, None, image_size=(128, 192), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
+    # export_dir = get_export_directory(experiment_id, restore_path)
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")

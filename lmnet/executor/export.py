@@ -162,6 +162,8 @@ yaml: {}, {}
     print(message)
     print("finish")
 
+    return main_output_dir
+
 
 def run(experiment_id, restore_path, image_size, images, config_file):
     environment.init(experiment_id)

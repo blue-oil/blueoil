@@ -101,8 +101,26 @@ def label_to_color_image(results):
     label = np.argmax(results, axis=3)
     if np.max(label) >= len(colormap):
         raise ValueError('label value too large.')
-
+    
     return np.squeeze(colormap[label])
+
+
+import matplotlib.pyplot as plt
+
+_color_map = plt.cm.jet
+_color_map._init()
+
+
+def label_color_map(results):
+
+    person_label = np.round(results[:, :, :, 1] * 255)
+    person_label = person_label.astype(np.uint8)
+    lut = _color_map._lut[:, :3]
+    lut = np.flip(lut, axis=1)
+    tmp = np.take(lut, person_label, axis=0)
+    tmp = np.round(tmp * 255).astype(np.uint8)
+    tmp[results[:, :, :, 0] > 0.5] = 0
+    return np.squeeze(tmp)
 
 
 def run_inference(inputs):
@@ -184,7 +202,6 @@ def run_sementic_segmentation(config):
                     results = np.split(result, 2, axis=2)
                     output = []
                     for result in results:
-                        # print("result", result.shape)
                         result = np.squeeze(result)
                         result = PIL.Image.fromarray(result, mode="F")
                         result = result.resize([input_width, input_height], PIL.Image.BILINEAR)
@@ -194,13 +211,15 @@ def run_sementic_segmentation(config):
                     result = np.concatenate(output, axis=2)
                     result = np.expand_dims(result, axis=0)
                     result = softmax(result)
-                    threshold = 0.6
+                    threshold = 0.7
 
-                    print("sum", np.sum(result < threshold))
+                    # print("sum", np.sum(result < threshold))
                     result[result < threshold] = 0.
 
-                    seg_img = label_to_color_image(result)
+                    # seg_img = label_to_color_image(result)
+                    seg_img = label_color_map(result)
                     seg_img = cv2.resize(seg_img, (camera_width, camera_height))
+
                     window_img = cv2.addWeighted(window_img, 1, seg_img, 0.8, 0)
                     window_img = add_fps(window_img, fps)
                 # ---------- END of if result != False -----------------
@@ -216,6 +235,7 @@ def run_sementic_segmentation(config):
         q_show = clear_queue(q_show)
         q_save, q_show = swap_queue(q_save, q_show)
         result, fps = pool_result.get()
+        print("fps: ", fps)
         m1.show()
 
     # --------------------- End of main Loop -----------------------
