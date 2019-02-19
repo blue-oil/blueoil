@@ -22,10 +22,30 @@ limitations under the License.
 
 {% else -%}
 
+{% if node.transposed_data %}
+
+#if defined(RUN_ON_FPGA)
+{{ node.dtype.cpptype() }} {{ node.name }}[] = {
+  {% for d in node.transposed_data -%}
+  {{- d -}},
+  {%- endfor %}
+};
+#else
 {{ node.dtype.cpptype() }} {{ node.name }}[] = {
   {% for d in node.data.flatten() -%}
   {{- d -}},
   {%- endfor %}
 };
+#endif
+
+{% else -%}
+
+{{ node.dtype.cpptype() }} {{ node.name }}[] = {
+  {% for d in node.data.flatten() -%}
+  {{- d -}},
+  {%- endfor %}
+};
+
+{% endif %}
 
 {%- endif %}

@@ -17,26 +17,25 @@ limitations under the License.
 #include <inttypes.h>
 
 namespace type {
-    typedef uint32_t u32;
-    typedef uint16_t u16;
-    typedef uint8_t u8;
-    typedef int32_t i32;
-    typedef int16_t i16;
-    typedef int8_t i8;
-}
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t u8;
+typedef int32_t i32;
+typedef int16_t i16;
+typedef int8_t i8;
+} // namespace type
 
 typedef uint32_t T_q;
 typedef T_q T_in;
 typedef int16_t T_out;
 typedef int32_t T_k;
 
-
 #if defined __arm__
-    typedef uint8_t T_in_k2c;
-    typedef int16_t T_out_k2c;
-    typedef int8_t T_k_k2c;
+typedef uint8_t T_in_k2c;
+typedef int16_t T_out_k2c;
+typedef int8_t T_k_k2c;
 #else
-    typedef unsigned char T_in_k2c;
-    typedef short T_out_k2c;
-    typedef char T_k_k2c;
+typedef unsigned char T_in_k2c;
+typedef short T_out_k2c;
+typedef char T_k_k2c;
 #endif
