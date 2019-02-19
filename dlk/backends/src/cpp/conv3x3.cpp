@@ -20,18 +20,9 @@ limitations under the License.
 namespace cpp {
 namespace p = conv3x3_params;
 
-void conv3x3_impl(T_in in_data[],
-                  T_out out_data[],
-                  T_k k_data[],
-                  T_out threshold_data[],
-                  unsigned in_w,
-                  unsigned in_h,
-                  unsigned in_c,
-                  unsigned out_w,
-                  unsigned out_h,
-                  unsigned out_c,
-                  unsigned pad,
-                  unsigned stride) {
+void conv3x3_impl(T_in in_data[], T_out out_data[], T_k k_data[], T_out threshold_data[], unsigned in_w, unsigned in_h,
+                  unsigned in_c, unsigned out_w, unsigned out_h, unsigned out_c, unsigned pad, unsigned stride)
+{
   T_k* k_local = new T_k[p::k_size * p::k_n];
   T_out threshold_local[p::out_c][p::num_thresholds];
 
@@ -39,16 +30,12 @@ void conv3x3_impl(T_in in_data[],
   unsigned idx_t = 0;
 
   for (unsigned kn = 0; kn < p::k_n; kn++) {
-    for (unsigned k = 0; k < p::k_size; k++) {
-      k_local[k * p::k_n + kn] = k_data[idx_k++];
-    }
+    for (unsigned k = 0; k < p::k_size; k++) { k_local[k * p::k_n + kn] = k_data[idx_k++]; }
   }
 
   if (threshold_data != NULL) {
     for (unsigned oc = 0; oc < p::out_c; oc++) {
-      for (unsigned i = 0; i < p::num_thresholds; i++) {
-        threshold_local[oc][i] = threshold_data[idx_t++];
-      }
+      for (unsigned i = 0; i < p::num_thresholds; i++) { threshold_local[oc][i] = threshold_data[idx_t++]; }
     }
   }
 
@@ -90,7 +77,7 @@ void conv3x3_impl(T_in in_data[],
           T_out ts2 = threshold_local[oc][2];
           T_out flag = threshold_local[oc][3];
 
-          if (flag == 1)  // increasing function
+          if (flag == 1) // increasing function
           {
             if (conv_result < ts0)
               out_buf = 0;
@@ -100,7 +87,7 @@ void conv3x3_impl(T_in in_data[],
               out_buf = 2;
             else
               out_buf = 3;
-          } else if (flag == -1)  // decreasing function
+          } else if (flag == -1) // decreasing function
           {
             if (conv_result > ts2)
               out_buf = 0;
@@ -112,7 +99,7 @@ void conv3x3_impl(T_in in_data[],
               out_buf = 3;
           } else {
             // max value of 2 bits
-            out_buf = flag - 2;                 // note: 2 is a magic number!
+            out_buf = flag - 2; // note: 2 is a magic number!
           }
         } else {
           out_buf = conv_result;
@@ -121,32 +108,21 @@ void conv3x3_impl(T_in in_data[],
         out_data[idx_out++] = out_buf;
       }
 
-    }  // for LOOP_CONV_INPUT
+    } // for LOOP_CONV_INPUT
 
   delete[] k_local;
 }
 
-void qconv3x3_impl(T_q in_data[],
-                   T_out out_data[],
-                   T_q k_data[],
-                   T_out threshold_data,
-                   unsigned in_w,
-                   unsigned in_h,
-                   unsigned in_c_by_word,
-                   unsigned out_w,
-                   unsigned out_h,
-                   unsigned out_c,
-                   unsigned pad,
-                   unsigned stride) {
+void qconv3x3_impl(T_q in_data[], T_out out_data[], T_q k_data[], T_out threshold_data, unsigned in_w, unsigned in_h,
+                   unsigned in_c_by_word, unsigned out_w, unsigned out_h, unsigned out_c, unsigned pad, unsigned stride)
+{
   unsigned idx_k = 0;
 
   for (int oc_out = 0; oc_out < out_c; oc_out += p::num_pe) {
     T_q* k_local = new T_q[p::k_size_packed * p::num_pe];
 
     for (unsigned kn = 0; kn < p::num_pe; ++kn) {
-      for (unsigned k = 0; k < p::k_size_packed; ++k) {
-        k_local[k * p::num_pe + kn] = k_data[idx_k++];
-      }
+      for (unsigned k = 0; k < p::k_size_packed; ++k) { k_local[k * p::num_pe + kn] = k_data[idx_k++]; }
     }
 
     unsigned idx_out = oc_out;
@@ -173,17 +149,15 @@ void qconv3x3_impl(T_q in_data[],
                   out[kn] += PE(k_buf, in_buf0, in_buf1);
                 }
               }
-              idx_k_local++;  // should be executed, even while no corresponding input
+              idx_k_local++; // should be executed, even while no corresponding input
             }
 
-        for (int kn = 0; kn < p::num_pe; kn++) {
-          out_data[idx_out + kn] = out[kn];
-        }
+        for (int kn = 0; kn < p::num_pe; kn++) { out_data[idx_out + kn] = out[kn]; }
         idx_out += out_c;
-      }  // for LOOP_CONV_INPUT
+      } // for LOOP_CONV_INPUT
 
     delete[] k_local;
   }
 }
 
-}  // namespace cpp
+} // namespace cpp
