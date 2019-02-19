@@ -186,8 +186,9 @@ class LmSegnetV1(Base):
             w = x.get_shape()[2].value
             x = tf.layers.average_pooling2d(name="gap", inputs=x, pool_size=[h, w], padding="VALID", strides=1)
             x = self.activation(x)
-            x = self.lmnet_block('conv_1', x, self.num_classes, 1)
-            x = self.lmnet_block('conv_2', x, self.num_classes, 1, activation=self.attention_act)
+            # conv_1, conv_2 need to float convolution because support only 32x channle on our FPGA IP.
+            x = self.lmnet_block('float_conv_1', x, self.num_classes, 1, activation=tf.nn.relu)
+            x = self.lmnet_block('float_conv_2', x, self.num_classes, 1, activation=self.attention_act)
             x = stock * x
             x = stock + x
             return x
