@@ -40,13 +40,13 @@ from lmnet.datasets.camvid import Camvid
 from lmnet.datasets.ilsvrc_2012 import Ilsvrc2012
 from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
 from lmnet.datasets.mscoco import (
-    Mscoco,
-    ObjectDetection as MscocoObjectDetection,
-    ObjectDetectionPerson as MscocoObjectDetectionPerson,
+    MscocoSegmentation,
+    MscocoObjectDetection as MscocoObjectDetection,
+    MscocoObjectDetectionPerson as MscocoObjectDetectionPerson,
 )
 from lmnet.datasets.widerface import WiderFace
 from lmnet.datasets.bdd100k import BDD100K
-
+from lmnet.datasets.dataset_iterator import DatasetIterator
 
 IS_DEBUG = False
 
@@ -100,6 +100,7 @@ def test_caltech101():
     dataset = Caltech101(
         batch_size=batch_size,
         pre_processor=Resize(image_size))
+    dataset = DatasetIterator(dataset)
 
     assert dataset.num_classes == 101
 
@@ -120,10 +121,12 @@ def test_cifar10():
     batch_size = 3
     image_size = [256, 512]
     dataset = Cifar10(batch_size=batch_size, pre_processor=Resize(image_size))
+    dataset = DatasetIterator(dataset)
     val_dataset = Cifar10(
         subset="validation",
         batch_size=batch_size,
         pre_processor=Resize(image_size))
+    val_dataset = DatasetIterator(val_dataset)
 
     assert dataset.num_classes == 10
     assert dataset.num_per_epoch == 50000
@@ -155,18 +158,21 @@ def test_pascalvoc_2007():
 
     dataset = Pascalvoc2007(batch_size=batch_size,
                             pre_processor=ResizeWithGtBoxes(image_size))
+    dataset = DatasetIterator(dataset)
     assert dataset.num_per_epoch == num_train
 
     val_dataset = Pascalvoc2007(
         subset="validation",
         batch_size=batch_size,
         pre_processor=ResizeWithGtBoxes(image_size))
+    val_dataset = DatasetIterator(val_dataset)
     assert val_dataset.num_per_epoch == num_validation
 
     test_dataset = Pascalvoc2007(
         subset="test",
         batch_size=batch_size,
         pre_processor=ResizeWithGtBoxes(image_size))
+    test_dataset = DatasetIterator(test_dataset)
     assert test_dataset.num_per_epoch == num_test
 
     for _ in range(STEP_SIZE):
@@ -226,6 +232,7 @@ def test_pascalvoc_2007_not_skip_difficult():
     dataset = Pascalvoc2007(batch_size=batch_size,
                             pre_processor=ResizeWithGtBoxes(image_size),
                             skip_difficult=False)
+    dataset = DatasetIterator(dataset)
     assert dataset.num_per_epoch == num_train
 
     val_dataset = Pascalvoc2007(
@@ -233,6 +240,7 @@ def test_pascalvoc_2007_not_skip_difficult():
         batch_size=batch_size,
         pre_processor=ResizeWithGtBoxes(image_size),
         skip_difficult=False)
+    val_dataset = DatasetIterator(val_dataset)
     assert val_dataset.num_per_epoch == num_validation
 
     test_dataset = Pascalvoc2007(
@@ -240,6 +248,7 @@ def test_pascalvoc_2007_not_skip_difficult():
         batch_size=batch_size,
         pre_processor=ResizeWithGtBoxes(image_size),
         skip_difficult=False)
+    test_dataset = DatasetIterator(test_dataset)
     assert test_dataset.num_per_epoch == num_test
 
     for _ in range(STEP_SIZE):
@@ -308,14 +317,17 @@ def test_pascalvoc_2007_with_target_classes():
 
     dataset = TargetClassesPascalvoc2007(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size), )
+    dataset = DatasetIterator(dataset)
     assert dataset.num_per_epoch == num_train
 
     val_dataset = TargetClassesPascalvoc2007(subset="validation",
                                              batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size))
+    val_dataset = DatasetIterator(val_dataset)
     assert val_dataset.num_per_epoch == num_validation
 
     test_dataset = TargetClassesPascalvoc2007(subset="test",
                                               batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size))
+    test_dataset = DatasetIterator(test_dataset)
     assert test_dataset.num_per_epoch == num_test
 
     for _ in range(STEP_SIZE):
@@ -367,6 +379,7 @@ def test_pascalvoc_2012():
     dataset = Pascalvoc2012(batch_size=batch_size,
                             pre_processor=ResizeWithGtBoxes(image_size))
     num_max_boxes = 39
+    dataset = DatasetIterator(dataset)
 
     assert dataset.num_max_boxes == num_max_boxes
     assert Pascalvoc2012.count_max_boxes() == num_max_boxes
@@ -376,6 +389,7 @@ def test_pascalvoc_2012():
         subset="validation",
         batch_size=batch_size,
         pre_processor=ResizeWithGtBoxes(image_size))
+    val_dataset = DatasetIterator(val_dataset)
     assert val_dataset.num_per_epoch == 5823
 
     for _ in range(STEP_SIZE):
@@ -414,6 +428,7 @@ def test_pascalvoc_2007_2012():
         batch_size=batch_size,
         pre_processor=ResizeWithGtBoxes(image_size))
     num_max_boxes = 39
+    dataset = DatasetIterator(dataset)
 
     num_train_val_2007 = 2501 + 2510
     num_train_val_2012 = 5717 + 5823
@@ -425,6 +440,7 @@ def test_pascalvoc_2007_2012():
 
     val_dataset = Pascalvoc20072012(subset="validation", batch_size=batch_size,
                                     pre_processor=ResizeWithGtBoxes(image_size))
+    val_dataset = DatasetIterator(val_dataset)
     assert val_dataset.num_per_epoch == num_test_2007
 
     for _ in range(STEP_SIZE):
@@ -464,6 +480,7 @@ def test_pascalvoc_2007_2012_no_skip_difficult():
         pre_processor=ResizeWithGtBoxes(image_size),
         skip_difficult=False,
     )
+    dataset = DatasetIterator(dataset)
     num_max_boxes = 56
 
     num_train_val_2007 = 2501 + 2510
@@ -477,6 +494,7 @@ def test_pascalvoc_2007_2012_no_skip_difficult():
     val_dataset = Pascalvoc20072012(subset="validation", batch_size=batch_size,
                                     pre_processor=ResizeWithGtBoxes(image_size),
                                     skip_difficult=False)
+    val_dataset = DatasetIterator(val_dataset)
     assert val_dataset.num_per_epoch == num_test_2007
 
     for _ in range(STEP_SIZE):
@@ -514,10 +532,13 @@ def test_camvid():
     dataset = Camvid(
         batch_size=batch_size,
         pre_processor=ResizeWithMask(image_size))
+    dataset = DatasetIterator(dataset)
+
     val_dataset = Camvid(
         subset="validation",
         batch_size=batch_size,
         pre_processor=ResizeWithMask(image_size))
+    val_dataset = DatasetIterator(val_dataset)
 
     assert dataset.num_classes == 11
     assert dataset.num_per_epoch == 367
@@ -542,6 +563,7 @@ def test_lm_things_of_a_table():
     image_size = [256, 512]
     dataset = LmThingsOnATable(batch_size=batch_size,
                                pre_processor=ResizeWithGtBoxes(image_size))
+    dataset = DatasetIterator(dataset)
 
     num_max_boxes = LmThingsOnATable.count_max_boxes()
 
@@ -560,12 +582,13 @@ def test_lm_things_of_a_table():
         assert labels.shape[2] == 5
 
 
-def test_mscoco():
+def test_mscoco_segmentation():
     batch_size = 3
     image_size = [256, 512]
-    dataset = Mscoco(
+    dataset = MscocoSegmentation(
         batch_size=batch_size,
         pre_processor=ResizeWithMask(image_size))
+    dataset = DatasetIterator(dataset)
 
     for _ in range(STEP_SIZE):
         images, labels = dataset.feed()
@@ -593,6 +616,7 @@ def test_mscoco_object_detection():
     dataset = MscocoObjectDetection(
         batch_size=batch_size,
         pre_processor=ResizeWithGtBoxes(image_size))
+    dataset = DatasetIterator(dataset)
 
     assert MscocoObjectDetection.count_max_boxes() == num_max_boxes
     assert dataset.num_max_boxes == num_max_boxes
@@ -600,6 +624,7 @@ def test_mscoco_object_detection():
 
     val_dataset = MscocoObjectDetection(subset="validation", batch_size=batch_size,
                                         pre_processor=ResizeWithGtBoxes(image_size))
+    val_dataset = DatasetIterator(val_dataset)
     assert val_dataset.num_per_epoch == num_val
 
     for _ in range(STEP_SIZE):
@@ -643,12 +668,14 @@ def test_mscoco_object_detection_person():
     dataset = MscocoObjectDetectionPerson(
         batch_size=batch_size,
         pre_processor=ResizeWithGtBoxes(image_size))
+    dataset = DatasetIterator(dataset)
 
     assert MscocoObjectDetectionPerson.count_max_boxes() == num_max_boxes
     assert dataset.num_max_boxes == num_max_boxes
     assert dataset.num_per_epoch == num_train
     val_dataset = MscocoObjectDetectionPerson(subset="validation", batch_size=batch_size,
                                               pre_processor=ResizeWithGtBoxes(image_size))
+    val_dataset = DatasetIterator(val_dataset)
 
     num_max_boxes = MscocoObjectDetectionPerson.count_max_boxes()
     assert val_dataset.num_per_epoch == num_val
@@ -688,10 +715,12 @@ def test_ilsvrc_2012():
     dataset = Ilsvrc2012(
         batch_size=batch_size,
         pre_processor=Resize(image_size))
+    dataset = DatasetIterator(dataset)
     val_dataset = Ilsvrc2012(
         subset="validation",
         batch_size=batch_size,
         pre_processor=Resize(image_size))
+    val_dataset = DatasetIterator(val_dataset)
 
     num_train = 1281167
     num_validation = 50000
@@ -730,13 +759,13 @@ def test_widerface():
 
     num_max_boxes = 3
 
-    num_train = 7255
+    num_train = 7250
     num_val = 1758
 
     dataset = WiderFace(batch_size=batch_size,
                         max_boxes=num_max_boxes,
                         pre_processor=ResizeWithGtBoxes(image_size))
-
+    dataset = DatasetIterator(dataset)
     assert dataset.num_max_boxes == num_max_boxes
     assert dataset.num_per_epoch == num_train
 
@@ -744,6 +773,7 @@ def test_widerface():
                             batch_size=batch_size,
                             max_boxes=num_max_boxes,
                             pre_processor=ResizeWithGtBoxes(image_size))
+    val_dataset = DatasetIterator(val_dataset)
     assert val_dataset.num_per_epoch == num_val
 
     for _ in range(STEP_SIZE):
@@ -787,6 +817,7 @@ def test_bdd100k():
     dataset = BDD100K(batch_size=batch_size,
                       max_boxes=num_max_boxes,
                       pre_processor=ResizeWithGtBoxes(image_size))
+    dataset = DatasetIterator(dataset)
 
     assert dataset.num_max_boxes == num_max_boxes
     assert dataset.num_per_epoch == num_train
@@ -795,6 +826,7 @@ def test_bdd100k():
                           batch_size=batch_size,
                           max_boxes=num_max_boxes,
                           pre_processor=ResizeWithGtBoxes(image_size))
+    val_dataset = DatasetIterator(val_dataset)
     assert val_dataset.num_per_epoch == num_val
 
     for _ in range(STEP_SIZE):
@@ -837,7 +869,7 @@ if __name__ == '__main__':
     test_pascalvoc_2007_2012()
     test_pascalvoc_2007_2012_no_skip_difficult()
     test_lm_things_of_a_table()
-    test_mscoco()
+    test_mscoco_segmentation()
     test_mscoco_object_detection()
     test_mscoco_object_detection_person()
     test_ilsvrc_2012()
