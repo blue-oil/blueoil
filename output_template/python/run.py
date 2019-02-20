@@ -95,8 +95,8 @@ def _run(model, input_image, config):
 
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
-        from lmnet.tf_graph_load_pb import TFGraphLoadPb
-        nn = TFGraphLoadPb(model)
+        from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
+        nn = TensorflowGraphRunner(model)
 
     # run the graph
     output = nn.run(data)
@@ -104,7 +104,7 @@ def _run(model, input_image, config):
     return output, raw_image
 
 
-def main_test(input_image, model, config_file, max_percent_incorrect_values=0.1):
+def run_prediction(input_image, model, config_file, max_percent_incorrect_values=0.1):
     if not input_image or not model or not config_file:
         print('Please check usage with --help option')
         exit(1)
@@ -166,9 +166,9 @@ def main_test(input_image, model, config_file, max_percent_incorrect_values=0.1)
     type=click.Path(exists=True),
     help="Config file Path",
 )
-def run_test(input_image, model, config_file):
-    main_test(input_image, model, config_file)
+def main(input_image, model, config_file):
+    run_prediction(input_image, model, config_file)
 
 
 if __name__ == "__main__":
-    run_test()
+    main()

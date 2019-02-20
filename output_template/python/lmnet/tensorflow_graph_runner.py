@@ -16,7 +16,7 @@
 import tensorflow as tf
 
 
-class TFGraphLoadPb:
+class TensorflowGraphRunner:
     """This class Loads Tensorflow Graph with Protocol Buffer File"""
 
     def __init__(self, model_path):
