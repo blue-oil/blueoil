@@ -82,6 +82,9 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
 
     for (unsigned i_bit = 0; i_bit < input_bitwidth; i_bit++) {
       output[idx_out++] = qinput_words_buf[i_bit];
+      // FIX ME (cannot delete below line now,
+      // later change implementation to use two register because input_bitwidth is always 2.)
+      qinput_words_buf[i_bit] = 0;
     }
   }
 
