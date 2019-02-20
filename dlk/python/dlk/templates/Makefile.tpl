@@ -138,8 +138,8 @@ clean:
 lm_x86:           CXX = g++
 lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_PNG -pthread -g
 
-lm_aarch64:           CXX = aarch64-linux-gnu-g++
-lm_aarch64:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_PNG -pthread -g -fopenmp
+lm_aarch64:       CXX = aarch64-linux-gnu-g++
+lm_aarch64:       FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_PNG -pthread -g -fopenmp
 
 lm_arm:           CXX = arm-linux-gnueabihf-g++
 lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
@@ -169,11 +169,11 @@ ar_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden 
 ar_x86:           LDFLAGS += -rcs
 ar_x86:           NAME = x86
 
-ar_aarch64:           AR = aarch64-linux-gnu-ar
-ar_aarch64:           CXX = aarch64-linux-gnu-g++
-ar_aarch64:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
-ar_aarch64:           LDFLAGS += -rcs
-ar_aarch64:           NAME = aarch64
+ar_aarch64:       AR = aarch64-linux-gnu-ar
+ar_aarch64:       CXX = aarch64-linux-gnu-g++
+ar_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
+ar_aarch64:       LDFLAGS += -rcs
+ar_aarch64:       NAME = aarch64
 
 ar_arm:           AR = arm-linux-gnueabihf-ar
 ar_arm:           CXX = arm-linux-gnueabihf-g++
