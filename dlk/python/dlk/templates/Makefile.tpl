@@ -107,7 +107,7 @@ ARS_X86     := ar_x86
 ARS_ARM     := ar_arm
 
 ARS_FPGA    := ar_fpga
-		   
+
 
 RM_TARGETS_LIST := $(TARGETS) \
                    hls_simulation \
@@ -137,9 +137,11 @@ clean:
 
 lm_x86:           CXX = g++
 lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -g -DUSE_PNG -pthread -g
+lm_x86:           CXXFLAGS +=
 
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
 lm_aarch64:       FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_PNG -pthread -g -fopenmp
+lm_aarch64:       CXXFLAGS +=
 
 lm_arm:           CXX = arm-linux-gnueabihf-g++
 lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
@@ -151,9 +153,11 @@ lm_fpga:          CXXFLAGS +=
 
 lib_x86:           CXX = g++
 lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
+lib_x86:           CXXFLAGS +=
 
 lib_aarch64:       CXX = aarch64-linux-gnu-g++
 lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
+lib_aarch64:       CXXFLAGS +=
 
 lib_arm:           CXX = arm-linux-gnueabihf-g++
 lib_arm:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
@@ -195,7 +199,7 @@ $(TARGETS_FPGA): $(OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ)
 	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_ARM_LIBS) -pthread -ldl
 
 $(TARGETS_AARCH64): $(OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
-        $(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_AARCH64_OBJ) -pthread -ldl
+	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_AARCH64_OBJ) -pthread -ldl
 
 $(TARGETS_X86): $(OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
 	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_X86_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_X86_LIBS) -pthread -ldl
@@ -204,7 +208,7 @@ $(LIBS_X86): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
 	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ) -o $@.so $(CXXFLAGS) $(TVM_X86_LIBS) -shared -pthread -ldl
 
 $(LIBS_AARCH64): $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
-        $(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ) -o $@.so $(CXXFLAGS) $(TVM_AARCH64_LIBS)  -shared -pthread -ldl
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ) -o $@.so $(CXXFLAGS) $(TVM_AARCH64_LIBS)  -shared -pthread -ldl
 
 $(LIBS_ARM): $(LIB_OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ)
 	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ) -o $@.so $(CXXFLAGS) $(TVM_ARM_LIBS) -shared -pthread -ldl
