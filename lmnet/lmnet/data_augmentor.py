@@ -392,7 +392,7 @@ def iou(boxes, box):
     Returns:
         iou: shape is [num_boxes]
     """
-    assert boxes.size != 0, "Cannot clculate if ground truth boxes is zero"
+    assert boxes.size != 0, "Cannot calculate if ground truth boxes is zero"
 
     # format boxes (left, top, right, bottom)
     boxes = np.stack([
@@ -427,6 +427,19 @@ def iou(boxes, box):
     union = area + areas - intersection
 
     return intersection / (union + epsilon)
+
+
+# TODO(tokunaga): Move to somewhere, It is generic function for object detection.
+def _fill_dummy_boxes(gt_boxes, num_max_boxes):
+    dummy_gt_box = [0, 0, 0, 0, -1]
+    if len(gt_boxes) == 0:
+        gt_boxes = np.array(dummy_gt_box * num_max_boxes)
+        return gt_boxes.reshape([num_max_boxes, 5])
+    elif len(gt_boxes) < num_max_boxes:
+        diff = num_max_boxes - len(gt_boxes)
+        gt_boxes = np.append(gt_boxes, [dummy_gt_box] * diff, axis=0)
+        return gt_boxes
+    return gt_boxes
 
 
 def _crop_boxes(boxes, crop_rect):
@@ -729,8 +742,8 @@ class SSDRandomCrop(data_processor.Processor):
         # Crop rectangle minimum ratio corresponding to original image.
         self.min_crop_ratio = min_crop_ratio
 
-    def __call__(self, image, gt_boxes=None, **kwargs):
-        """Crop
+    def __call__(self, image, gt_boxes, **kwargs):
+        """SSDRandomCrop
 
         Args:
             image (np.ndarray): a image. shape is [height, width, channel]
@@ -740,6 +753,7 @@ class SSDRandomCrop(data_processor.Processor):
         """
         boxes = gt_boxes
         height, width, _ = image.shape
+        num_max_boxes = len(gt_boxes)
 
         while True:
             # randomly choose a mode
@@ -807,6 +821,7 @@ class SSDRandomCrop(data_processor.Processor):
                 # take only matching gt boxes
                 masked_boxes = boxes[mask, :]
                 current_boxes = _crop_boxes(masked_boxes, crop_rect)
+                current_boxes = _fill_dummy_boxes(current_boxes, num_max_boxes)
 
                 return dict({'image': current_image, 'gt_boxes': current_boxes}, **kwargs)
 
