@@ -150,7 +150,7 @@ Tensor Resize(const Tensor& image, const int width, const int height,
   int channels = shape[2];
   assert(shape.size() == 3); // 3D shape: HWC
   assert((channels == 1) || (channels == 3)); // grayscale or RGB
-  assert((filter == RESIZE_FILTER_NEAREST_NEIGHBOR) || (channels == RESIZE_FILTER_BI_LINEAR));
+  assert((filter == RESIZE_FILTER_NEAREST_NEIGHBOR) || (filter == RESIZE_FILTER_BI_LINEAR));
   const int srcHeight = shape[0];
   const int srcWidth  = shape[1];
   Tensor dstImage = image;
