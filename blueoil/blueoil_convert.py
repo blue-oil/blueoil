@@ -141,7 +141,7 @@ docker run \
 	--runtime=nvidia \
 	-e PYTHONPATH=/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk \
 	-e OUTPUT_DIR=/home/blueoil/saved \
-        -e CUDA_VISIBLE_DEVICES=1 \
+        -e CUDA_VISIBLE_DEVICES=0 \
 	-v $(pwd)/config:/home/blueoil/config \
 	-v $(pwd)/dataset:/home/blueoil/dataset \
 	-v $(pwd)/lmnet/saved:/home/blueoil/saved \
@@ -149,7 +149,7 @@ docker run \
 	-v $(pwd)/blueoil:/home/blueoil/blueoil \
 	-v $(pwd)/lmnet/lmnet/networks:/home/blueoil/lmnet/lmnet/networks \
 	$(id -un)_blueoil:local_build \
-       ./blueoil/cli.py convert -e person_segmentation/4_v4/
+       ./blueoil/cli.py convert -e person_segmentation/7_v5/
 
        ./blueoil/cli.py convert -e experiment
     """
@@ -158,6 +158,7 @@ docker run \
     # run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
 
     export_dir = run_export(experiment_id, None, image_size=(128, 192), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
+    export_dir = run_export(experiment_id, None, image_size=(None, None), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
     # export_dir = get_export_directory(experiment_id, restore_path)
 
     # Set arguments

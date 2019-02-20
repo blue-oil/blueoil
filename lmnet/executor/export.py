@@ -194,7 +194,7 @@ def run(experiment_id, restore_path, image_size, images, config_file):
     executor.init_logging(config)
     config_util.display(config)
 
-    _export(config, restore_path, images)
+    return _export(config, restore_path, images)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
