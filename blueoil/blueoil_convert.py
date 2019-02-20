@@ -111,7 +111,7 @@ def make_all(project_dir, output_dir):
         ["lm_fpga", "lm_fpga.elf"],
         # ["lib_x86", "lib_x86.so"],
         # ["lib_arm", "lib_arm.so"],
-        # ["lib_fpga", "lib_fpga.so"],
+        ["lib_fpga", "lib_fpga.so"],
         # ["ar_x86", "libdlk_x86.a"],
         # ["ar_arm", "libdlk_arm.a"],
         # ["ar_fpga", "libdlk_fpga.a"],
@@ -141,15 +141,16 @@ docker run \
 	--runtime=nvidia \
 	-e PYTHONPATH=/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk \
 	-e OUTPUT_DIR=/home/blueoil/saved \
-        -e CUDA_VISIBLE_DEVICES=1 \
+        -e CUDA_VISIBLE_DEVICES=0 \
 	-v $(pwd)/config:/home/blueoil/config \
 	-v $(pwd)/dataset:/home/blueoil/dataset \
 	-v $(pwd)/lmnet/saved:/home/blueoil/saved \
 	-v $(pwd)/result:/home/blueoil/result \
 	-v $(pwd)/blueoil:/home/blueoil/blueoil \
 	-v $(pwd)/lmnet/lmnet/networks:/home/blueoil/lmnet/lmnet/networks \
+	-v $(pwd)/lmnet/executor:/home/blueoil/lmnet/executor \
 	$(id -un)_blueoil:local_build \
-       ./blueoil/cli.py convert -e person_segmentation/4_v4/
+       ./blueoil/cli.py convert -e person_segmentation/7_v5/
 
        ./blueoil/cli.py convert -e experiment
     """
@@ -158,6 +159,7 @@ docker run \
     # run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
 
     export_dir = run_export(experiment_id, None, image_size=(128, 192), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
+    export_dir = run_export(experiment_id, None, image_size=(None, None), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
     # export_dir = get_export_directory(experiment_id, restore_path)
 
     # Set arguments
@@ -189,6 +191,8 @@ docker run \
     project_dir_name = "{}.prj".format(project_name)
     project_dir = os.path.join(dest_dir_path, project_dir_name)
     make_all(project_dir, output_directories.get("library_dir"))
+
+    return export_dir
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
