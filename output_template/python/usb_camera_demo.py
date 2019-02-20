@@ -88,12 +88,9 @@ def run_inference(img):
     data = np.asarray(data, dtype=np.float32)
     data = np.expand_dims(data, axis=0)
 
-    start_time = time.time()
     result = nn.run(data)
 
-    inference_time = time.time() - start_time
     result = post_process(outputs=result)['outputs']
-    print('inference time: {:.3f}s'.format(inference_time))
 
     fps = 1.0/(time.time() - start)
     return result, fps
@@ -250,8 +247,8 @@ def run(model, config_file):
 
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
-        from lmnet.tf_graph_load_pb import TFGraphLoadPb
-        nn = TFGraphLoadPb(model)
+        from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
+        nn = TensorflowGraphRunner(model)
 
     if config.TASK == "IMAGE.CLASSIFICATION":
         run_classification(config)
