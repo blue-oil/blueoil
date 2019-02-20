@@ -20,11 +20,37 @@ import numpy as np
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
 from core.operators import Constant, Operator, Conv
-from core.data_types import Uint32, QUANTIZED_NOT_PACKED
+from core.data_types import Uint32, QUANTIZED_NOT_PACKED, Float32
 from typing import cast, List, Any
 from collections import defaultdict
 from modules.packer import Packer
 
+def _transform_kernels(ohwi_data: np.ndarray,
+                       ic: int,
+                       oc: int,
+                       kh: int,
+                       kw: int) -> List[Float32]:
+    """Calculates and prepares the transformd data for Convlution in advance.
+    Parameters
+    ----------
+    ohwi_data : np.ndarray
+        The input data.
+    ic : int
+        input channel
+    oc : int
+        output chennel
+    kh : int
+        kernel height
+    kw : int
+        kernel width
+    """
+    hwoi_data = [0.0] * ic * oc * kh * kw; 
+    for i in range(kh*kw):
+        for j in range(oc):
+            for k in range(ic):
+                hwoi_data[i*oc*ic + j*ic + k] = ohwi_data[i*ic + j*ic*kh*kw + k];
+
+    return hwoi_data
 
 def _transpose_kernels(kernel_data: np.ndarray,
                        oh: int,
@@ -396,6 +422,48 @@ def pass_compute_thresholds(graph: Graph) -> None:
     for op in to_be_removed:
         graph.remove_op(op)
 
+def pass_precompute_convolution_weights(graph: Graph) -> None:
+    exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
+    to_be_removed = []
+
+    for m in exec_list:
+        conv_node = m
+        
+        if conv_node.quantizer or conv_node.a_quantizer:
+            continue;
+                    
+        padding = conv_node.pads[0]
+        ic = conv_node.input_ops['X'].channel
+        oc = conv_node.channel
+        kh = conv_node.kernel_height
+        kw = conv_node.kernel_width
+        data = conv_node.input_ops['W'].data
+
+        if kh == 3 and kw == 3 and padding == 1:
+            conv_constant = Constant(
+                conv_node.input_ops['W'].name + '_new',
+                Float32(),
+                actual_shape=conv_node.shape,
+                transformed_data=_transform_kernels(data, ic, oc, kh, kw)
+            )
+        else:
+            continue;
+
+        # get nodes to be removed after being disconnected
+        get_nodes_in_branch(conv_node, None, to_be_removed)
+
+        # Add the constant to the graph and connect the new constant
+        graph.add_op(conv_constant)
+        conv_constant.add_outputs(conv_node.output_ops)
+        for output_name, consumer_list in conv_node.output_ops.items():
+            for consumer_node in consumer_list:
+                for input_name, input_node in consumer_node.input_ops.items():
+                    if input_node == conv_node:
+                        consumer_node.add_input(input_name, conv_constant)
+                        break
+
+    for op in to_be_removed:
+        graph.remove_op(op)
 
 def pass_pack_weights(graph: Graph) -> None:
     """Given a Quantized convolution node C, it will pack the weights of C into 32 bit words.
@@ -443,6 +511,7 @@ def pass_pack_weights(graph: Graph) -> None:
         kh = conv_node.kernel_height
         kw = conv_node.kernel_width
         kd = conv_node.input_ops['X'].channel
+
         quantized_constant = Constant(
             weight_quantizer.name + '_new',
             Uint32(),
