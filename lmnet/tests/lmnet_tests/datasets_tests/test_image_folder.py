@@ -25,7 +25,7 @@ from lmnet.pre_processor import Resize
 from lmnet.datasets.image_folder import (
     ImageFolderBase,
 )
-
+from lmnet.datasets.dataset_iterator import DatasetIterator
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")
@@ -35,19 +35,24 @@ class Dummy(ImageFolderBase):
     extend_dir = "dummy_classification"
 
 
+def setup_dataset(dataset_class, subset, **kwargs):
+    dataset = dataset_class(subset=subset, **kwargs)
+    return DatasetIterator(dataset, seed=0)
+
+
 def test_image_folder():
     validation_size = 0.2
     batch_size = 3
     image_size = [256, 256]
-    train_dataset = Dummy(subset="train",
-                          validation_size=validation_size,
-                          batch_size=batch_size,
-                          pre_processor=Resize(image_size))
+    train_dataset = setup_dataset(Dummy, subset="train",
+                                  validation_size=validation_size,
+                                  batch_size=batch_size,
+                                  pre_processor=Resize(image_size))
 
-    validation_dataset = Dummy(subset="validation",
-                               validation_size=validation_size,
-                               batch_size=batch_size,
-                               pre_processor=Resize(image_size))
+    validation_dataset = setup_dataset(Dummy, subset="validation",
+                                       validation_size=validation_size,
+                                       batch_size=batch_size,
+                                       pre_processor=Resize(image_size))
 
     expected_image_dir = os.path.join(environment.DATA_DIR, Dummy.extend_dir)
     expected_paths = [image_path for image_path in glob(os.path.join(expected_image_dir, "**/*"))

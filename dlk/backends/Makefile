@@ -1,12 +1,8 @@
 DEVICE := 5CSEBA6U23I7
-CLOCK  := 50MHz
+CLOCK  := 75MHz
 
 CXX :=
-# COMPONENTS := --component intel_hls_a8w1_qconv_with_kn2row_impl,intel_hls_qconv_with_kn2row_impl
-# COMPONENTS := --component intel_hls_qconv_with_kn2row_impl
-# COMPONENTS := --component intel_hls_apply_thresholds_impl
-COMPONENTS := --component intel_hls_qconv_with_kn2row_impl,intel_hls_apply_thresholds_impl
-# COMPONENTS := --component intel_hls_a8w1_qconv_with_kn2row_impl
+COMPONENTS := --component intel_hls_qconv_kn2row_tiling_impl
 
 SRC_DIR := ./src
 TB_DIR := $(SRC_DIR)/tb
@@ -52,13 +48,13 @@ clean:
 
 
 x86:	CXX = g++
-x86:	FLAGS += $(INCLUDE) -O3 -std=c++0x -g
+x86:	FLAGS += $(INCLUDE) -O0 -std=c++0x -g
 
 arm:	CXX = arm-linux-gnueabihf-g++
 arm:    FLAGS += $(INCLUDE) -static -s -std=c++0x -O3
 
 fpga:	CXX = arm-linux-gnueabihf-g++
-fpga:	FLAGS += $(INCLUDE) -static -s -std=c++0x -O3 -D_DE10_NANO_
+fpga:	FLAGS += $(INCLUDE) -static -std=c++0x -s -O3 -D_DE10_NANO_
 
 sim:   CXX = i++
 sim:   FLAGS += -march=x86-64 $(INTEL_HLS_INCLUDE) -lm $(COMPONENTS) -D_INTEL_HLS_

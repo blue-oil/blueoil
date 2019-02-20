@@ -17,13 +17,11 @@ import functools
 import os
 import os.path
 
-import pandas as pd
-import PIL
 import numpy as np
+import pandas as pd
 import xml.etree.ElementTree as ET
 
 from lmnet.datasets.base import ObjectDetectionBase
-from lmnet.utils.random import shuffle
 
 
 class PascalvocBase(ObjectDetectionBase):
@@ -103,36 +101,6 @@ class PascalvocBase(ObjectDetectionBase):
     @property
     def num_per_epoch(self):
         return len(self.files)
-
-    def _element(self):
-        """Return an image, gt_boxes."""
-        index = self.current_element_index
-
-        self.current_element_index += 1
-        if self.current_element_index == self.num_per_epoch:
-            self.current_element_index = 0
-            self._shuffle()
-
-        files, gt_boxes_list = self.files, self.annotations
-        target_file = files[index]
-        gt_boxes = gt_boxes_list[index]
-        gt_boxes = np.array(gt_boxes, dtype=np.float32)
-
-        image = PIL.Image.open(target_file)
-        image = np.array(image)
-
-        samples = {'image': image, 'gt_boxes': gt_boxes}
-
-        if callable(self.augmentor) and self.subset == "train":
-            samples = self.augmentor(**samples)
-
-        if callable(self.pre_processor):
-            samples = self.pre_processor(**samples)
-
-        image = samples['image']
-        gt_boxes = samples['gt_boxes']
-
-        return image, gt_boxes
 
     def _get_boxes_from_annotation(self, xml_file):
         """Get gt boxes list from annotation object.
@@ -225,15 +193,6 @@ class PascalvocBase(ObjectDetectionBase):
 
         return df.image_id.tolist()
 
-    def _shuffle(self):
-        """Shuffle data if train."""
-
-        if self.subset == "train" or self.subset == "train_validation":
-            self.files, self.annotations = shuffle(
-                self.files, self.annotations, seed=self.seed)
-            print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
-            self.seed += 1
-
     def _files_and_annotations(self):
         raise NotImplemented()
 
@@ -248,23 +207,18 @@ class PascalvocBase(ObjectDetectionBase):
             self.files, self.annotations = cached_obj.files, cached_obj.annotations
         else:
             self.files, self.annotations = self._files_and_annotations()
-            self._shuffle()
             cls._cache[cache_key] = self
 
-    def feed(self):
-        """Batch size numpy array of images and ground truth boxes.
+    def __getitem__(self, i, type=None):
+        target_file = self.files[i]
+        image = self._get_image(target_file)
 
-        Returns:
-          images: images numpy array. shape is [batch_size, height, width]
-          gt_boxes_list: gt_boxes numpy array. shape is [batch_size, num_max_boxes, 5(x, y, w, h, class_id)]
-        """
-        images, gt_boxes_list = zip(*[self._element() for _ in range(self.batch_size)])
+        gt_boxes = self.annotations[i]
+        gt_boxes = np.array(gt_boxes)
+        gt_boxes = gt_boxes.copy()  # is it really needed?
+        gt_boxes = self._fill_dummy_boxes(gt_boxes)
 
-        images = np.array(images)
+        return (image, gt_boxes)
 
-        gt_boxes_list = self._change_gt_boxes_shape(gt_boxes_list)
-
-        if self.data_format == "NCHW":
-            images = np.transpose(images, [0, 3, 1, 2])
-
-        return images, gt_boxes_list
+    def __len__(self):
+        return self.num_per_epoch
