@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 
 import time
 import os
+from multiprocessing import Pool
 from time import sleep
 from multiprocessing import Queue
 
@@ -28,7 +29,6 @@ import cv2
 import numpy as np
 
 from lmnet.nnlib import NNLib
-from multiprocessing import Pool
 from lmnet.utils.config import (
     load_yaml,
     build_pre_process,
