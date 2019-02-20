@@ -9,28 +9,6 @@ from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
-from lmnet.networks.quantize_param_init import QuantizeParamInit
-
-
-class TestBaseNetwork():
-    def __init__(self, *args, **kwargs):
-        self.first_layer_name = "conv1"
-        self.last_layer_name = "conv2"
-
-    def base(self, images, is_training):
-        with tf.variable_scope(self.first_layer_name):
-            tf.layers.dense(images)
-
-        with tf.variable_scope(self.last_layer_name):
-            tf.layers.dense(images)
-
-        return tf.constant(0)
-
-
-class TestNetwork(QuantizeParamInit, TestBaseNetwork):
-    def base(self, images, is_training):
-        with tf.variable_scope("", custom_getter=self.custom_getter):
-            return super().base(images, is_training)
 
 
 def test_required_arguments():
@@ -40,7 +18,6 @@ def test_required_arguments():
         DarknetQuantize,
         LMFYoloQuantize,
         YoloV2Quantize,
-        TestNetwork,
     ]
 
     for model in model_classes:
@@ -63,7 +40,7 @@ def test_required_arguments():
         assert network.last_layer_name is not None
 
 
-def test_quantized_both_layers():
+def test_quantized_both_layers(reset_default_graph):
     model_classes = [
         LmnetV0Quantize,
         LmnetV1Quantize,
