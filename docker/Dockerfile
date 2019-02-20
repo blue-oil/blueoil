@@ -87,9 +87,7 @@ RUN pyenv install ${python_version} && \
 RUN pip install -U pip setuptools
 
 # Install x-compiler
-RUN apt-get update && apt-get install -y \
-    g++-5-arm-linux-gnueabihf  \
-    g++-aarch64-linux-gnu && \
+RUN apt-get update && apt-get install -y g++-5-arm-linux-gnueabihf && \
     ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
 
 # Copy lmnet sources to docker image
