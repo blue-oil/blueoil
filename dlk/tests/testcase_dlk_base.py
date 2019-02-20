@@ -49,7 +49,7 @@ class TestCaseDLKBase(TestCase):
         output_path = '/tmp'
         hw_path = os.path.abspath(
                       os.path.join(os.getcwd(),
-                      os.path.join('hw', 'intel', 'de10_nano', 'qconv_with_kn2row')))
+                      os.path.join('hw', 'intel', 'de10_nano', 'qconv_kn2row_tiling')))
 
         board_available = setup_de10nano(host, hw_path, output_path)
 
