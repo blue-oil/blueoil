@@ -24,7 +24,6 @@ import pandas as pd
 
 from lmnet.datasets.base import Base
 from lmnet import data_processor
-from lmnet.utils.random import shuffle
 
 
 class Ilsvrc2012(Base):
@@ -56,6 +55,7 @@ class Ilsvrc2012(Base):
         self._init_files_and_annotations()
 
     @property
+    @functools.lru_cache(maxsize=None)
     def classes(self):
         # wget https://raw.githubusercontent.com/Lasagne/Recipes/master/examples/resnet50/imagenet_classes.txt
         df = pd.read_csv(os.path.join(self.data_dir, 'imagenet_classes.txt'), sep="\n", header=None)
@@ -66,67 +66,8 @@ class Ilsvrc2012(Base):
         files, _ = self._files_and_annotations()
         return len(files)
 
-    def feed(self):
-        """Returns numpy array of batch size data.
-
-        Returns:
-            images: images numpy array. shape is [batch_size, height, width]
-            labels: one hot labels. shape is [batch_size, num_classes]
-        """
-
-        images, labels = zip(*[self._element() for _ in range(self.batch_size)])
-
-        labels = data_processor.binarize(labels, self.num_classes)
-
-        images = np.array(images)
-
-        if self.data_format == "NCHW":
-            images = np.transpose(images, [0, 3, 1, 2])
-
-        return images, labels
-
-    def _element(self):
-        """Return an image and label."""
-        index = self.current_element_index
-
-        self.current_element_index += 1
-        if self.current_element_index == self.num_per_epoch:
-            self.current_element_index = 0
-            self._shuffle()
-
-        files, labels = self.files, self.annotations
-        target_file = files[index]
-        label = labels[index]
-
-        image = PIL.Image.open(target_file)
-        # sometime image data be gray.
-        image = image.convert("RGB")
-
-        image = np.array(image)
-
-        samples = {'image': image}
-
-        if callable(self.augmentor) and self.subset == "train":
-            samples = self.augmentor(**samples)
-
-        if callable(self.pre_processor):
-            samples = self.pre_processor(**samples)
-
-        image = samples['image']
-        return image, label
-
-    def _shuffle(self):
-        """Shuffle data if train."""
-
-        if self.subset == "train":
-            self.files, self.annotations = shuffle(
-                self.files, self.annotations, seed=self.seed)
-            print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
-            self.seed += 1
-
     def _init_files_and_annotations(self):
         self.files, self.annotations = self._files_and_annotations()
-        self._shuffle()
 
     @functools.lru_cache(maxsize=None)
     def _files_and_annotations(self):
@@ -144,3 +85,17 @@ class Ilsvrc2012(Base):
         labels = df.class_id.tolist()
 
         return files, labels
+
+    def __getitem__(self, i, type=None):
+        filename = self.files[i]
+
+        image = PIL.Image.open(filename)
+        # sometime image data be gray.
+        image = image.convert("RGB")
+        image = np.array(image)
+        label = data_processor.binarize(self.annotations[i], self.num_classes)
+        label = np.reshape(label, (self.num_classes))
+        return (image, label)
+
+    def __len__(self):
+        return self.num_per_epoch
