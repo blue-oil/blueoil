@@ -111,7 +111,7 @@ def make_all(project_dir, output_dir):
         ["lm_fpga", "lm_fpga.elf"],
         # ["lib_x86", "lib_x86.so"],
         # ["lib_arm", "lib_arm.so"],
-        # ["lib_fpga", "lib_fpga.so"],
+        ["lib_fpga", "lib_fpga.so"],
         # ["ar_x86", "libdlk_x86.a"],
         # ["ar_arm", "libdlk_arm.a"],
         # ["ar_fpga", "libdlk_fpga.a"],
@@ -148,6 +148,7 @@ docker run \
 	-v $(pwd)/result:/home/blueoil/result \
 	-v $(pwd)/blueoil:/home/blueoil/blueoil \
 	-v $(pwd)/lmnet/lmnet/networks:/home/blueoil/lmnet/lmnet/networks \
+	-v $(pwd)/lmnet/executor:/home/blueoil/lmnet/executor \
 	$(id -un)_blueoil:local_build \
        ./blueoil/cli.py convert -e person_segmentation/7_v5/
 
@@ -190,6 +191,8 @@ docker run \
     project_dir_name = "{}.prj".format(project_name)
     project_dir = os.path.join(dest_dir_path, project_dir_name)
     make_all(project_dir, output_directories.get("library_dir"))
+
+    return export_dir
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
