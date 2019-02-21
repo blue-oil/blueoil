@@ -22,14 +22,6 @@ limitations under the License.
 
 {% else -%}
 
-{% if node.transformed_data %}
-{{ node.dtype.cpptype() }} {{ node.name }}[] = {
-  {% for d in node.transposed_data -%}
-  {{- d -}},
-  {%- endfor %}
-};
-{% endif %}
-
 {% if node.transposed_data %}
 
 #if defined(RUN_ON_FPGA)
