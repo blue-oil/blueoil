@@ -268,6 +268,11 @@ class LmSegnetV1(Base):
 
             loss = loss_main + loss_cx_1 + loss_cx_2
 
+            if self.weight_decay_rate:
+                weight_decay_loss = self._weight_decay_loss()
+                tf.summary.scalar("weight_decay", weight_decay_loss)
+                loss = loss + weight_decay_loss
+
             tf.summary.scalar("loss", loss)
             return loss
 
