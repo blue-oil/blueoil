@@ -258,16 +258,21 @@ class CamHandler(BaseHTTPRequestHandler):
         self.end_headers()
         while True:
             try:
+                # if not flg:
+                #     continue
 
-                flg, camera_img = stream.read()
-                if not flg:
-                    continue
+                pool_result.wait()
 
                 if pool_result.ready():
+                    window_img = camera_img
                     result, fps = pool_result.get()
+
+                    flg, camera_img = stream.read()
                     pool_result = pool.apply_async(run_inference, (camera_img, ))
 
-                window_img = camera_img
+                else:
+                    result = None
+
                 if result is not None:
                     post_processed = _seg_post_process(result, input_height, input_width)
 
@@ -278,13 +283,12 @@ class CamHandler(BaseHTTPRequestHandler):
                     window_img = cv2.addWeighted(window_img, 1, seg_img, 0.8, 0)
                     window_img = add_fps(window_img, fps)
 
-                if window_img is None:
-                    continue
                 img_str = cv2.imencode('.jpg', window_img)[1].tostring()
                 self.send_header('Content-type', 'image/jpeg')
                 self.end_headers()
                 self.wfile.write(img_str)
                 self.wfile.write(b"\r\n--jpgboundary\r\n")
+
             except KeyboardInterrupt:
                 # end of the message - not sure how we ever get here, though
                 print("KeyboardInterrpt in server loop - breaking the loop (server now hung?)")
@@ -335,7 +339,6 @@ def run(library, config_file):
             # ctrl-c comes here but need another to end all.  Probably should have terminated thread here, too.
             print("KeyboardInterrpt in server - ending server")
             # capture.release()
-            pool.terminated()
             pool.close()
             pool.join()
             server.socket.close()
