@@ -69,24 +69,6 @@ void conv3x3_kn2row(T input[],
   Measurement::Stop();
 }
 
-// kernel format converter
-// ohwi : oc kh kw ic, hwoi: kh kw oc ic
-template<typename T>
-void ohwi_to_hwoi(const T ohwi[], T hwoi[], const struct convolution_parameters& p) {
-  int ic = p.kernel_depth;
-  int oc = p.output_channels;
-  int kh = p.kernel_height;
-  int kw = p.kernel_width;
-
-  for (unsigned int i = 0; i < kh*kw; ++i) {
-    for (unsigned int j = 0; j < oc; ++j) {
-      for (unsigned int k = 0; k < ic; ++k) {
-        hwoi[i*oc*ic + j*ic + k] = ohwi[i*ic + j*ic*kh*kw + k];
-      }
-    }
-  }
- }
-
 template<typename T, typename U>
 void conv1x1_kn2row(T input[],
                     T kernels[],
@@ -176,11 +158,7 @@ void convolution(
     conv1x1_kn2row(input, kernels, output, p);
     return;
   } else if (p.kernel_height == 3 && p.kernel_width == 3 && p.padding == 1) {
-    int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
-    T* kernels_hwoi = new T[kernels_size]();
-    //ohwi_to_hwoi(kernels, kernels_hwoi, p);
-    conv3x3_kn2row(input, kernels/*_hwoi*/, output, p);
-    delete[] kernels_hwoi;
+    conv3x3_kn2row(input, kernels, output, p);
     return;
   }
 
