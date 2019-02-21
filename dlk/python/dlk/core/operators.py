@@ -561,8 +561,7 @@ class Constant(Variable):
                  dimension_format: str = 'NHWC',
                  packed: bool = False,
                  actual_shape: List[int] = [],
-                 transposed_data: List[int] = None,
-                 transformed_data: List[Float32] = None) -> None:
+                 transposed_data: List[int] = None) -> None:
         """Init the variable.
 
         If the constant is hard quantized, data is packed and the actual shape
@@ -571,7 +570,6 @@ class Constant(Variable):
         shape = list(data.shape) if not packed else actual_shape
         self._packed = packed
         self._transposed_data = transposed_data
-        self._transfromed_data = transformed_data
         super().__init__(name, shape, dtype, {}, data, dimension_format=dimension_format)
 
     def run_forward(self) -> np.ndarray:
@@ -585,11 +583,6 @@ class Constant(Variable):
     def transposed_data(self) -> List[int]:
         """Return transposed data."""
         return self._transposed_data
-
-    @property
-    def transformed_data(self) -> List[Float32]:
-        """Return transformed data."""
-        return self._transformed_data
 
 
 class Output(Variable):
