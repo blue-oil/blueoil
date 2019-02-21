@@ -514,7 +514,6 @@ def pass_pack_weights(graph: Graph) -> None:
         kh = conv_node.kernel_height
         kw = conv_node.kernel_width
         kd = conv_node.input_ops['X'].channel
-
         quantized_constant = Constant(
             weight_quantizer.name + '_new',
             Uint32(),
