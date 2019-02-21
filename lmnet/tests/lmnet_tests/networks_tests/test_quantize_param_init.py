@@ -11,7 +11,7 @@ from lmnet.quantizations import (
 )
 
 
-def test_quantized_both_layers(reset_default_graph):
+def test_quantized_layers(reset_default_graph):
     model_classes = [
         LmnetV0Quantize,
         LmnetV1Quantize,
@@ -86,4 +86,4 @@ def test_quantized_both_layers(reset_default_graph):
 
 
 if __name__ == '__main__':
-    test_required_arguments()
+    test_quantized_layers()
