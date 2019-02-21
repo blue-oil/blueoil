@@ -11,35 +11,6 @@ from lmnet.quantizations import (
 )
 
 
-def test_required_arguments():
-    model_classes = [
-        LmnetV0Quantize,
-        LmnetV1Quantize,
-        DarknetQuantize,
-        LMFYoloQuantize,
-        YoloV2Quantize,
-    ]
-
-    for model in model_classes:
-        network = model(
-            classes=['accordion', 'airplanes', 'anchor'],
-            is_debug=True,
-            activation_quantizer=linear_mid_tread_half_quantizer,
-            batch_size=10,
-            data_format='NHWC',
-            image_size=[128, 128],
-            optimizer_class=tf.train.GradientDescentOptimizer,
-            weight_quantizer=binary_mean_scaling_quantizer,
-            activation_quantizer_kwargs={
-                'bit': 2,
-                'max_value': 2
-            }
-        )
-
-        assert network.first_layer_name is not None
-        assert network.last_layer_name is not None
-
-
 def test_quantized_both_layers(reset_default_graph):
     model_classes = [
         LmnetV0Quantize,
