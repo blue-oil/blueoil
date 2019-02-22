@@ -126,38 +126,69 @@ def _transpose_kernels(kernel_data: np.ndarray,
     return transposed_values
 
 
-def _precompute_convolution_weights(graph: Graph, op: Operator, weight_data: np.ndarray) -> None:
-    conv_node = op
+def pass_precompute_convolution_weights(graph: Graph) -> None:
+    done = False
+    processed_nodes = []
+    while not done:
+        exec_list = sort_graph(graph)
+        processed_before_precompute = len(processed_nodes)
 
-    padding = conv_node.pads[0]
-    ic = conv_node.input_ops['X'].channel
-    oc = conv_node.channel
-    kh = conv_node.kernel_height
-    kw = conv_node.kernel_width
+        for m in exec_list:
+            if m in processed_nodes:
+                continue
 
-    if kh != 3 or kw != 3 or padding != 1:
-        return
+            # We want operators with inputs
+            if not m.input_nodes:
+                continue
 
-    DN = oc
-    DH = kh
-    DW = kw
-    DC = ic
-    new_shape = [DN, DC, DH, DW]
-    data_array = np.array(_transform_kernels(weight_data.astype(np.float32), ic, oc, kh, kw))
-    data_array.reshape(new_shape)
+            precomputable = True
+            for input_node in m.input_nodes:
+                if input_node.op_type != 'Constant':
+                    precomputable = False
 
-    conv_constant = Constant(
-        conv_node.input_ops['W'].name + '_new',
-        Float32,
-        data=data_array,
-        actual_shape=new_shape,
-        packed=False
-    )
+            if not precomputable:
+                continue
 
-    graph.add_op(conv_constant)
-    conv_node.remove_input('W')
-    conv_node.add_input('W', conv_constant)
-    conv_constant.add_output('output', conv_node)
+            processed_nodes += m.input_nodes
+            processed_nodes.append(m)
+
+            weight_data = m.run_forward()
+
+            output_node = m.output_ops['output'][0]
+            if output_node.op_type == 'Conv' and not output_node.a_quantizer:
+                conv_node = output_node
+
+                padding = conv_node.pads[0]
+                ic = conv_node.input_ops['X'].channel
+                oc = conv_node.channel
+                kh = conv_node.kernel_height
+                kw = conv_node.kernel_width
+
+                if kh != 3 or kw != 3 or padding != 1:
+                    return
+
+                DN = oc
+                DH = kh
+                DW = kw
+                DC = ic
+                new_shape = [DN, DC, DH, DW]
+                data_array = np.array(_transform_kernels(weight_data.astype(np.float32), ic, oc, kh, kw))
+                data_array.reshape(new_shape)
+
+                conv_constant = Constant(
+                    conv_node.input_ops['W'].name + '_new',
+                    Float32,
+                    data=data_array,
+                    actual_shape=new_shape,
+                    packed=False
+                )
+
+                graph.add_op(conv_constant)
+                conv_node.remove_input('W')
+                conv_node.add_input('W', conv_constant)
+                conv_constant.add_output('output', conv_node)
+
+        done = len(processed_nodes) == processed_before_precompute
 
 
 def pass_remove_identities(graph: Graph) -> None:
@@ -261,15 +292,6 @@ def pass_constant_folding(graph: Graph) -> None:
             processed_nodes.append(m)
 
             data = m.run_forward()
-
-            """ optimization for Conv2D """
-            is_continue = False
-            output_node = m.output_ops['output'][0]
-            if output_node.op_type == 'Conv' and not output_node.a_quantizer:
-                _precompute_convolution_weights(graph, output_node, data)
-                is_continue = True
-            if is_continue:
-                continue
 
             new_constant = Constant(
                 m.name + '_new',
