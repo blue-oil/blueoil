@@ -188,6 +188,15 @@ def _save_meta_yaml(output_dir, config):
     Dumper.add_representer(Sequence, sequence_representer)
     Dumper.add_multi_representer(Processor, processor_representer)
 
+    if type(meta_dict['CLASSES']) != list:
+        DatasetClass = config.DATASET_CLASS
+        dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+        train_dataset = DatasetClass(
+            subset="train",
+            **dataset_kwargs,
+        )
+        meta_dict['CLASSES'] = train_dataset.classes
+
     with open(os.path.join(file_path), 'w') as f:
         yaml.dump(meta_dict, f, default_flow_style=False, Dumper=Dumper)
 
@@ -203,6 +212,15 @@ def _save_config_yaml(output_dir, config):
         def ignore_aliases(self, data):
             return True
     Dumper.add_representer(ABCMeta, Representer.represent_name)
+
+    if type(config_dict['CLASSES']) != list:
+        DatasetClass = config.DATASET_CLASS
+        dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+        train_dataset = DatasetClass(
+            subset="train",
+            **dataset_kwargs,
+        )
+        config_dict['CLASSES'] = train_dataset.classes
 
     with open(os.path.join(output_dir, file_name), 'w') as outfile:
         yaml.dump(config_dict, outfile, default_flow_style=False, Dumper=Dumper)
