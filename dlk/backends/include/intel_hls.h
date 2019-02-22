@@ -15,4 +15,4 @@ limitations under the License.
 
 #pragma once
 #include "intel_hls/config.h"
-#include "intel_hls/hls_components.h"
+#include "intel_hls/qconv_kn2row_tiling.h"
