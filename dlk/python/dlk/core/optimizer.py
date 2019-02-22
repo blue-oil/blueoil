@@ -144,14 +144,14 @@ def _precompute_convolution_weights(graph: Graph, op: Operator, weight_data: np.
     DC = ic
     new_shape = [DN, DC, DH, DW]
     data_array = np.array(_transform_kernels(weight_data.astype(np.float32), ic, oc, kh, kw))
-    data_array.reshape((DH, -1))
+    data_array.reshape(new_shape)
 
     conv_constant = Constant(
         conv_node.input_ops['W'].name + '_new',
         Float32,
         data=data_array,
         actual_shape=new_shape,
-        packed=True
+        packed=False
     )
 
     graph.add_op(conv_constant)
