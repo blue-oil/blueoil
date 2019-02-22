@@ -70,7 +70,7 @@ def _transpose_kernels(kernel_data: np.ndarray,
         flatten_value.extend(elem)
     while len(flatten_value) != k_size:
         flatten_value.extend("0")
-    
+
     copy_value = [0] * k_size
     for i in range(od * kh * kw * k_c_by_word):
         copy_value[i] = flatten_value[i]
@@ -87,9 +87,9 @@ def _transpose_kernels(kernel_data: np.ndarray,
             for h in range(kh):
                 for w in range(kw):
                     for c in range(k_c_by_word):
-                        idx_dst = h * (kw * kn_out * k_c_by_word * NUM_PE)
-                        idx_dst += w * (kn_out * k_c_by_word * NUM_PE)
-                        idx_dst += no * (k_c_by_word * NUM_PE)
+                        idx_dst = no * (kh * kw * k_c_by_word * NUM_PE)
+                        idx_dst += h * (kw * k_c_by_word * NUM_PE)
+                        idx_dst += w * (k_c_by_word * NUM_PE)
                         idx_dst += c * (NUM_PE)
                         idx_dst += ni
                         transposed_values[idx_dst] = copy_value[idx_src]
