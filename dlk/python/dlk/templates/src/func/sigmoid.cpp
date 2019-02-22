@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cmath>
+
 #include "global.h"
 #include "func/sigmoid.h"
 #include "time_measurement.h"
@@ -24,7 +26,7 @@ void func_Sigmoid(T_FLOAT input[], T_FLOAT output[], T_UINT out_height,
   T_UINT elements = out_height * out_width * out_depth;
 
   for (T_UINT i = 0; i < elements; i++)
-    output[i] = 1.0f / (1.0f + exp(-1.0f * input[x]));
+    output[i] = 1.0f / (1.0f + std::exp(-1.0f * input[x]));
 
   Measurement::Stop();
 }
