@@ -912,3 +912,90 @@ def affine_scale(img, scale, fill_color="white"):
     new_image.paste(scaled, (int(outer_width / 2), int(outer_height / 2)))
 
     return np.array(new_image)
+
+
+class RandomResize(data_processor.Processor):
+    """RandomResize image.
+
+    Args:
+        min_scale (int): min_scale
+        max_scale (int): max_scale
+    """
+
+    def __init__(self, min_scale, max_scale):
+
+        self.min_scale = min_scale
+        self.max_scale = max_scale
+
+    def __call__(self, image, mask=None, **kwargs):
+        original_height = image.shape[0]
+        original_width = image.shape[1]
+
+        height_scale = random.uniform(self.min_scale, self.max_scale)
+        width_scale = random.uniform(self.min_scale, self.max_scale)
+
+        resize_height = int(original_height * height_scale)
+        resize_width = int(original_width * width_scale)
+        image = pre_processor.resize(image, size=(resize_height, resize_width))
+        if mask is not None:
+            mask = pre_processor.resize(mask, size=(resize_height, resize_width))
+
+        return dict({'image': image, 'mask': mask}, **kwargs)
+
+
+class CropOrPad(data_processor.Processor):
+    """Crop image.
+
+    Args:
+        size (int | list | tuple): Crop to this size.
+        fill (int | float):
+    """
+
+    def __init__(self, size, fill=128, fill_label=0):
+
+        if type(size) in [int, float]:
+            height = size
+            width = size
+
+        elif len(size) == 2:
+            height, width = size
+
+        else:
+            raise Exception("Expected float or int, tuple/list with 2 entries. Got %s." % (type(size)))
+
+        assert height > 0
+        assert width > 0
+
+        self.height = height
+        self.width = width
+        self.fill = fill
+        self.fill_label = fill_label
+
+    def __call__(self, image, mask=None, **kwargs):
+        original_height = image.shape[0]
+        original_width = image.shape[1]
+
+        top = bottom = left = right = 0
+        if original_height < self.height:
+            top = int((self.height - original_height) / 2)
+            bottom = self.height - original_height - top
+        if original_width < self.width:
+            left = int((self.width - original_width) / 2)
+            right = self.width - original_width - right
+
+        pad_image = np.pad(image, ((top, bottom), (left, right), (0, 0)), 'constant', constant_values=self.fill)
+        if mask is not None:
+            pad_mask = np.pad(mask, ((top, bottom), (left, right)), 'constant', constant_values=self.fill_label)
+
+        # crop
+        top = left = 0
+        if original_height > self.height:
+            top = randint(0, original_height - self.height)
+        if original_width > self.width:
+            left = randint(0, original_width - self.width)
+
+        image = pad_image[top:top + self.height, left:left + self.width, :]
+        if mask is not None:
+            mask = pad_mask[top:top + self.height, left:left + self.width]
+
+        return dict({'image': image, 'mask': mask}, **kwargs)

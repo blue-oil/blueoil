@@ -30,6 +30,7 @@ class Base(BaseNetwork):
             self,
             *args,
             label_colors=None,
+            weight_decay_rate=None,
             **kwargs
     ):
         super().__init__(
@@ -37,6 +38,7 @@ class Base(BaseNetwork):
             **kwargs,
         )
         self.label_colors = label_colors
+        self.weight_decay_rate = weight_decay_rate
 
     def placeholderes(self):
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 3) \
@@ -55,6 +57,19 @@ class Base(BaseNetwork):
     def inference(self, images, is_training):
         base = self.base(images, is_training)
         return tf.identity(base, name="output")
+
+    def _weight_decay_loss(self):
+        """L2 weight decay (regularization) loss."""
+        losses = []
+        print("apply l2 loss these variables")
+        for var in tf.trainable_variables():
+
+            # exclude batch norm variable
+            if "kernel" in var.name:
+                print(var.name)
+                losses.append(tf.nn.l2_loss(var))
+
+        return tf.add_n(losses) * self.weight_decay_rate
 
     def loss(self, output, labels):
         """Loss
@@ -112,6 +127,13 @@ class Base(BaseNetwork):
         tf.summary.image("labels", tf.to_float(tf.expand_dims(labels, axis=3)))
 
         labels = self._color_labels(labels, name="labels_color")
+        images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
+
+        reversed_image = (images + tf.abs(tf.reduce_min(images)))
+        reversed_image = reversed_image * (255.0 / tf.reduce_max(reversed_image))
+
+        overlap_input_label = 0.5 * reversed_image + tf.cast(labels, tf.float32)
+        tf.summary.image('overlap_input_label', overlap_input_label)
 
     def summary(self, output, labels=None):
         output_transposed = output if self.data_format == 'NHWC' else tf.transpose(output, perm=[0, 2, 3, 1])
@@ -127,11 +149,13 @@ class Base(BaseNetwork):
 
         tf.summary.image('overlap_output_input', overlap_output_input)
 
+        if labels is not None:
+            self._summary_labels(labels)
+
         return overlap_output_input, reversed_image
 
     def metrics(self, output, labels):
         output_transposed = output if self.data_format == 'NHWC' else tf.transpose(output, perm=[0, 2, 3, 1])
-        self._summary_labels(labels)
 
         results = {}
         updates = []
