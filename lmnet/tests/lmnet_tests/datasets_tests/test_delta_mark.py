@@ -16,6 +16,7 @@
 import numpy as np
 import pytest
 
+from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.pre_processor import Resize, ResizeWithGtBoxes
 from lmnet.datasets.delta_mark import (
     ClassificationBase,
@@ -25,6 +26,11 @@ from lmnet.datasets.delta_mark import (
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")
+
+
+def setup_dataset(dataset_class, subset, **kwargs):
+    dataset = dataset_class(subset=subset, **kwargs)
+    return DatasetIterator(dataset, seed=0)
 
 
 def _show_images_with_boxes(images, labels):
@@ -62,17 +68,17 @@ def test_delta_mark_classification():
     image_size = [256, 128]
     all_data_num = 3
 
-    train_dataset = Dummy(
-        subset="train",
-        validation_size=validation_size,
-        batch_size=batch_size,
-        pre_processor=Resize(image_size))
+    train_dataset = setup_dataset(Dummy,
+                                  subset="train",
+                                  validation_size=validation_size,
+                                  batch_size=batch_size,
+                                  pre_processor=Resize(image_size))
 
-    validation_dataset = Dummy(
-        subset="validation",
-        validation_size=validation_size,
-        batch_size=batch_size,
-        pre_processor=Resize(image_size))
+    validation_dataset = setup_dataset(Dummy,
+                                       subset="validation",
+                                       validation_size=validation_size,
+                                       batch_size=batch_size,
+                                       pre_processor=Resize(image_size))
 
     assert train_dataset.num_per_epoch == (1 - validation_size) * all_data_num
     assert validation_dataset.num_per_epoch == validation_size * all_data_num
@@ -102,15 +108,15 @@ def test_delta_mark_classification_has_validation_path():
     train_data_num = 3
     validation_data_num = 2
 
-    train_dataset = DummyHasValidation(
-        subset="train",
-        batch_size=batch_size,
-        pre_processor=Resize(image_size))
+    train_dataset = setup_dataset(DummyHasValidation,
+                                  subset="train",
+                                  batch_size=batch_size,
+                                  pre_processor=Resize(image_size))
 
-    validation_dataset = DummyHasValidation(
-        subset="validation",
-        batch_size=batch_size,
-        pre_processor=Resize(image_size))
+    validation_dataset = setup_dataset(DummyHasValidation,
+                                       subset="validation",
+                                       batch_size=batch_size,
+                                       pre_processor=Resize(image_size))
 
     assert train_dataset.num_per_epoch == train_data_num
     assert validation_dataset.num_per_epoch == validation_data_num
@@ -152,17 +158,17 @@ def test_delta_mark_object_detection():
     image_size = [256, 128]
     all_data_num = 3
 
-    train_dataset = DummyObjectDetectio(
-        subset="train",
-        validation_size=validation_size,
-        batch_size=batch_size,
-        pre_processor=ResizeWithGtBoxes(image_size))
+    train_dataset = setup_dataset(DummyObjectDetectio,
+                                  subset="train",
+                                  validation_size=validation_size,
+                                  batch_size=batch_size,
+                                  pre_processor=ResizeWithGtBoxes(image_size))
 
-    validation_dataset = DummyObjectDetectio(
-        subset="validation",
-        validation_size=validation_size,
-        batch_size=batch_size,
-        pre_processor=ResizeWithGtBoxes(image_size))
+    validation_dataset = setup_dataset(DummyObjectDetectio,
+                                       subset="validation",
+                                       validation_size=validation_size,
+                                       batch_size=batch_size,
+                                       pre_processor=ResizeWithGtBoxes(image_size))
 
     num_max_boxes = train_dataset.num_max_boxes
     assert train_dataset.num_max_boxes == DummyObjectDetectio.count_max_boxes()
@@ -198,15 +204,15 @@ def test_delta_mark_object_detection_has_validation_path():
     train_data_num = 3
     validation_data_num = 2
 
-    train_dataset = DummyObjectDetectionHasValidationPath(
-        subset="train",
-        batch_size=batch_size,
-        pre_processor=ResizeWithGtBoxes(image_size))
+    train_dataset = setup_dataset(DummyObjectDetectionHasValidationPath,
+                                  subset="train",
+                                  batch_size=batch_size,
+                                  pre_processor=ResizeWithGtBoxes(image_size))
 
-    validation_dataset = DummyObjectDetectionHasValidationPath(
-        subset="validation",
-        batch_size=batch_size,
-        pre_processor=ResizeWithGtBoxes(image_size))
+    validation_dataset = setup_dataset(DummyObjectDetectionHasValidationPath,
+                                       subset="validation",
+                                       batch_size=batch_size,
+                                       pre_processor=ResizeWithGtBoxes(image_size))
 
     num_max_boxes = train_dataset.num_max_boxes
     assert train_dataset.num_max_boxes == DummyObjectDetectionHasValidationPath.count_max_boxes()

@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.classification.lmnet_quantize import LmnetQuantize
-from lmnet.datasets.cifar100_distribute import Cifar100Distribution
+from lmnet.datasets.cifar100 import Cifar100
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
@@ -37,7 +37,7 @@ from lmnet.quantizations import (
 IS_DEBUG = False
 
 NETWORK_CLASS = LmnetQuantize
-DATASET_CLASS = Cifar100Distribution
+DATASET_CLASS = Cifar100
 
 IMAGE_SIZE = [32, 32]
 BATCH_SIZE = 200

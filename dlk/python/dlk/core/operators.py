@@ -560,7 +560,8 @@ class Constant(Variable):
                  data: np.ndarray,
                  dimension_format: str = 'NHWC',
                  packed: bool = False,
-                 actual_shape: List[int] = []) -> None:
+                 actual_shape: List[int] = [],
+                 transposed_data: List[int] = None) -> None:
         """Init the variable.
 
         If the constant is hard quantized, data is packed and the actual shape
@@ -568,6 +569,7 @@ class Constant(Variable):
         """
         shape = list(data.shape) if not packed else actual_shape
         self._packed = packed
+        self._transposed_data = transposed_data
         super().__init__(name, shape, dtype, {}, data, dimension_format=dimension_format)
 
     def run_forward(self) -> np.ndarray:
@@ -576,6 +578,11 @@ class Constant(Variable):
     @property
     def is_packed(self) -> bool:
         return self._packed
+
+    @property
+    def transposed_data(self) -> List[int]:
+        """Return transposed data."""
+        return self._transposed_data
 
 
 class Output(Variable):
