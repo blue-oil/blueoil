@@ -1944,6 +1944,7 @@ class Relu(Operator):
     def preserve_quantization(self) -> bool:
         return False
 
+
 class Sigmoid(Operator):
     """
     Inputs
@@ -1977,6 +1978,7 @@ class Sigmoid(Operator):
     @property
     def preserve_quantization(self) -> bool:
         return False
+
 
 class Flatten(Operator):
     """Flatten class.
