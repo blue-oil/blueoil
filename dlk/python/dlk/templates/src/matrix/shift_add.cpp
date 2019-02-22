@@ -82,46 +82,46 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 #ifdef USE_NEON
               if (oc <= 8) {
                 for (; j + 3 < oc; j += 4) {
-                  float32x4_t b_ = vld1q_f32(b+j);
-                  float32x4_t r_ = vld1q_f32(r+j);
-                  vst1q_f32(r+j, vaddq_f32(b_, r_));
+                  float32x4_t buf_ = vld1q_f32(b+j);
+                  float32x4_t result_ = vld1q_f32(r+j);
+                  vst1q_f32(r+j, vaddq_f32(buf_, result_));
                 }
                 for (; j < oc; ++j) {
                   r[j] += b[j];
                 }
               } else {
                 if (oc % 8 == 4) {
-                  float32x4_t b_ = vld1q_f32(b);
-                  float32x4_t r_ = vld1q_f32(r);
+                  float32x4_t buf_ = vld1q_f32(b);
+                  float32x4_t result_ = vld1q_f32(r);
                   for (; j + 7 < oc; j += 8) {
-                    float32x4_t b2_ = vld1q_f32(b+j+4);
-                    float32x4_t r2_ = vld1q_f32(r+j+4);
-                    vst1q_f32(r+j, vaddq_f32(b_, r_));
-                    b_ = vld1q_f32(b+j+8);
-                    r_ = vld1q_f32(r+j+8);
-                    vst1q_f32(r+j+4, vaddq_f32(b2_, r2_));
+                    float32x4_t buf2_ = vld1q_f32(b+j+4);
+                    float32x4_t result2_ = vld1q_f32(r+j+4);
+                    vst1q_f32(r+j, vaddq_f32(buf_, result_));
+                    buf_ = vld1q_f32(b+j+8);
+                    result_ = vld1q_f32(r+j+8);
+                    vst1q_f32(r+j+4, vaddq_f32(buf2_, result2_));
 		  }
-		  vst1q_f32(r+oc-4, vaddq_f32(b_, r_));
+		  vst1q_f32(r+oc-4, vaddq_f32(buf_, result_));
 		} else if (oc % 8 == 0) {
-		  float32x4_t b_ = vld1q_f32(b);
-		  float32x4_t r_ = vld1q_f32(r);
+		  float32x4_t buf_ = vld1q_f32(b);
+		  float32x4_t result_ = vld1q_f32(r);
 		  for (; j + 7 < oc - 8; j += 8) {
-		    float32x4_t b2_ = vld1q_f32(b+j+4);
-		    float32x4_t r2_ = vld1q_f32(r+j+4);
-		    vst1q_f32(r+j, vaddq_f32(b_, r_));
-		    b_ = vld1q_f32(b+j+8);
-		    r_ = vld1q_f32(r+j+8);
-		    vst1q_f32(r+j+4, vaddq_f32(b2_, r2_));
+		    float32x4_t buf2_ = vld1q_f32(b+j+4);
+		    float32x4_t result2_ = vld1q_f32(r+j+4);
+		    vst1q_f32(r+j, vaddq_f32(buf_, result_));
+		    buf_ = vld1q_f32(b+j+8);
+		    result_ = vld1q_f32(r+j+8);
+		    vst1q_f32(r+j+4, vaddq_f32(buf2_, result2_));
 		  }
-		  float32x4_t b2_ = vld1q_f32(b+j+4);
-		  float32x4_t r2_ = vld1q_f32(r+j+4);
-		  vst1q_f32(r+oc-8, vaddq_f32(b_, r_));
-		  vst1q_f32(r+oc-4, vaddq_f32(b2_, r2_));
+		  float32x4_t buf2_ = vld1q_f32(b+j+4);
+		  float32x4_t result2_ = vld1q_f32(r+j+4);
+		  vst1q_f32(r+oc-8, vaddq_f32(buf_, result_));
+		  vst1q_f32(r+oc-4, vaddq_f32(buf2_, result2_));
 		} else {
 		  for (; j + 3 < oc; j += 4) {
-		    float32x4_t b_ = vld1q_f32(b+j);
-		    float32x4_t r_ = vld1q_f32(r+j);
-		    vst1q_f32(r+j, vaddq_f32(b_, r_));
+		    float32x4_t buf_ = vld1q_f32(b+j);
+		    float32x4_t result_ = vld1q_f32(r+j);
+		    vst1q_f32(r+j, vaddq_f32(buf_, result_));
 		  }
 		  for (; j < oc; ++j) {
 		    r[j] += b[j];
