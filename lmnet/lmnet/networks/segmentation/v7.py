@@ -17,7 +17,7 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.blocks import lmnet_block2
+from lmnet.blocks import lmnet_block
 from lmnet.networks.segmentation.base import Base
 
 
@@ -40,15 +40,18 @@ class LmSegnetV1(Base):
         self.auxiliary_weight = 0.5
         # I want to usesigmoid.
         self.attention_act = tf.nn.relu
+        self.batch_norm_decay = 0.9
 
     def _get_lmnet_block(self, is_training, channels_data_format):
-        return functools.partial(lmnet_block2,
+        return functools.partial(lmnet_block,
                                  activation=self.activation,
                                  custom_getter=self.custom_getter,
                                  is_training=is_training,
                                  is_debug=self.is_debug,
                                  use_bias=False,
-                                 data_format=channels_data_format)
+                                 data_format=channels_data_format,
+                                 batch_norm_decay=self.batch_norm_decay,
+        )
 
     def _space_to_depth(self, inputs=None, block_size=2, name=''):
         if self.data_format != 'NHWC':
@@ -81,7 +84,7 @@ class LmSegnetV1(Base):
     def batch_norm(self, inputs, training):
         return tf.contrib.layers.batch_norm(
             inputs,
-            decay=0.01,
+            decay=self.batch_norm_decay,
             updates_collections=None,
             is_training=training,
             activation_fn=None,
@@ -164,7 +167,8 @@ class LmSegnetV1(Base):
             x = tf.concat([cx, sp], axis=3)
             x = self.batch_norm(x, self.is_training)
             x = self.activation(x)
-            x = self.lmnet_block('conv_base', x, self.num_classes, 1, activation=tf.nn.relu)
+            x = self.lmnet_block('conv_base', x, 32, 1, activation=tf.nn.relu)
+            x = self.lmnet_block('float_conv_base', x, self.num_classes, 1, activation=tf.nn.relu)
             stock = x
             h = x.get_shape()[1].value
             w = x.get_shape()[2].value
