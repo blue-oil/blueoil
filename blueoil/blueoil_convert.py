@@ -158,7 +158,7 @@ docker run \
     # Export model
     # run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
 
-    export_dir = run_export(experiment_id, None, image_size=(128, 192), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
+    #  export_dir = run_export(experiment_id, None, image_size=(128, 192), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
     export_dir = run_export(experiment_id, None, image_size=(None, None), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
     # export_dir = get_export_directory(experiment_id, restore_path)
 
