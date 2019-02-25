@@ -27,26 +27,6 @@ from lmnet import environment
 from blueoil.vars import OUTPUT_TEMPLATE_DIR
 
 
-def get_export_directory(experiment_id, restore_path):
-    """Return output dir of export"""
-
-    config = config_util.load_from_experiment()
-
-    if restore_path is None:
-        restore_file = executor.search_restore_filename(environment.CHECKPOINTS_DIR)
-        restore_path = os.path.join(environment.CHECKPOINTS_DIR, restore_file)
-
-    print("Restore from {}".format(restore_path))
-
-    if not os.path.exists("{}.index".format(restore_path)):
-        raise Exception("restore file {} dont exists.".format(restore_path))
-
-    export_dir = os.path.join(environment.EXPERIMENT_DIR, "export")
-    export_dir = os.path.join(export_dir, os.path.basename(restore_path))
-    export_dir = os.path.join(export_dir, "{}x{}".format(config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
-
-    return export_dir
-
 
 def create_output_directory(output_root_dir, output_template_dir=None):
     """Create output directory from template."""
@@ -106,12 +86,12 @@ def make_all(project_dir, output_dir):
         # ["ar_fpga", "libdlk_fpga.a"],
     ]
     make_list = [
-        # ["lm_x86", "lm_x86.elf"],
+        ["lm_x86", "lm_x86.elf"],
         # ["lm_arm", "lm_arm.elf"],
-        ["lm_fpga", "lm_fpga.elf"],
+        # ["lm_fpga", "lm_fpga.elf"],
         # ["lib_x86", "lib_x86.so"],
         # ["lib_arm", "lib_arm.so"],
-        ["lib_fpga", "lib_fpga.so"],
+        # ["lib_fpga", "lib_fpga.so"],
         # ["ar_x86", "libdlk_x86.a"],
         # ["ar_arm", "libdlk_arm.a"],
         # ["ar_fpga", "libdlk_fpga.a"],
@@ -119,7 +99,7 @@ def make_all(project_dir, output_dir):
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)
-    os.environ["FLAGS"] = "-D__WITHOUT_TEST__"
+    # os.environ["FLAGS"] = "-D__WITHOUT_TEST__"
     os.environ["CXXFLAGS"] = "-DFUNC_TIME_MEASUREMENT"
     # Make each target and move output files
     for target, output in make_list:
@@ -158,9 +138,8 @@ docker run \
     # Export model
     # run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
 
-    #  export_dir = run_export(experiment_id, None, image_size=(128, 192), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
-    export_dir = run_export(experiment_id, None, image_size=(None, None), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
-    # export_dir = get_export_directory(experiment_id, restore_path)
+    # export_dir = run_export(experiment_id, restore_path, image_size=(192, 256), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
+    export_dir = run_export(experiment_id, restore_path, image_size=(None, None), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")
@@ -169,7 +148,7 @@ docker run \
     activate_hard_quantization = True
     threshold_skipping = True
     cache_dma = True
-
+    debug = True
     # Generate project
     run_generate_project(
         input_path=input_pb_path,
@@ -177,7 +156,8 @@ docker run \
         project_name=project_name,
         activate_hard_quantization=activate_hard_quantization,
         threshold_skipping=threshold_skipping,
-        cache_dma=cache_dma
+        cache_dma=cache_dma,
+        debug=debug,
     )
 
     # Create output dir from template

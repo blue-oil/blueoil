@@ -103,7 +103,7 @@ def label_to_color_image(results):
     label = np.argmax(results, axis=3)
     if np.max(label) >= len(colormap):
         raise ValueError('label value too large.')
-    
+
     return np.squeeze(colormap[label])
 
 
@@ -250,7 +250,9 @@ class CamHandler(BaseHTTPRequestHandler):
         result = None
         fps = 1.0
 
-        _, camera_img = stream.read()
+        flg, camera_img = stream.read()
+        if not flg:
+            Exception("Camera is wrong")
         pool_result = pool.apply_async(run_inference, (camera_img, ))
 
         self.send_response(200)
@@ -303,6 +305,11 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
 
 
+import signal
+def initializer():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+
 def run(library, config_file):
     global nn, pre_process, post_process
     global config, vc, pool, camera_width, camera_height
@@ -322,7 +329,7 @@ def run(library, config_file):
     vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
     vc.set(cv2.cv.CV_CAP_PROP_FPS, 1)
 
-    pool = Pool(processes=1)
+    pool = Pool(processes=1, initializer=initializer)
 
     if config.TASK == "IMAGE.CLASSIFICATION":
         run_classification(config)

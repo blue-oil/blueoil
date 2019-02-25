@@ -48,24 +48,26 @@ def main(debug_data_path, expected_data_path):
     debug_output = [e for e in d_output.iterdir() if e.suffix == '.npy' and ptrn_dbg.match(e.stem)]
 
     if not debug_output:
-        print(f"Debug path {dbg} is empty (no .npy files)")
+        print("Debug path {} is empty (no .npy files)".format(d_output))
 
     if not expected_output:
-        print(f"Expected data path {e_output} is empty (no .npy files)")
+        print("Expected data path {e_output} is empty (no .npy files)")
 
     for o in debug_output:
         name_dbg = ptrn_dbg.match(o.stem).group(1)
         for eo in expected_output:
             name_ex = ptrn_ex.match(eo.stem).group(1)
             output_id_ex = ptrn_ex.match(eo.stem).group(2)
+            # print("name_ex", name_ex)
+            # print("name_dbg", name_dbg)
             if name_ex == name_dbg and output_id_ex == '0':
-                data_dbg = np.load(o)
-                data_ex = np.load(eo)
+                data_dbg = np.load(str(o))
+                data_ex = np.load(str(eo))
 
                 if np.allclose(data_ex.flatten() * data_dbg['scale'], data_dbg['data'], rtol=0.00001, atol=0.00001):
-                    print(f"[OK]   {name_ex}")
+                    print("[OK]   {}".format(name_ex))
                 else:
-                    print(f"[FAIL] {name_ex}")
+                    print("[FAIL] {}".format(name_ex))
 
 
 if __name__ == '__main__':

@@ -137,8 +137,9 @@ def _export(config, restore_path, image_paths):
                 val = sess.run(op_output.name, feed_dict=feed_dict)
                 name = '%03d' % index + '_' + op_output.name.replace('/', '_')
 
-                if "image" in op_output.name or "output" in op_output.name:
-                    all_outputs.append({'val': val, 'name': name})
+                # if "image" in op_output.name or "output" in op_output.name:
+                #     all_outputs.append({'val': val, 'name': name})
+                all_outputs.append({'val': val, 'name': name})
                 index += 1
 
         _save_npy(image_path, npy_output_dir, image, raw_image, all_outputs, config.IMAGE_SIZE)

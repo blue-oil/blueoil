@@ -354,6 +354,8 @@ def pass_compute_thresholds(graph: Graph) -> None:
                     bn_scale = op.input_ops['scale'].data
                     bn_nega_idx = [v for v in range(len(bn_scale)) if bn_scale[v] < 0]
             threshold = (trans_th['data'] * np.float64(n)) / (np.float64(max_v) * scaling_factor)
+            threshold[threshold > max_th_value] = max_th_value
+            threshold[threshold < -max_th_value] = -max_th_value
 
             for ch_id, th_per_ch in enumerate(threshold):
                 if quantizer_conv_weights.op_type == 'QTZ_binary_channel_wise_mean_scaling':

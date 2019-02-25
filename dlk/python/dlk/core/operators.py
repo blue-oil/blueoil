@@ -2576,7 +2576,7 @@ class Split(Operator):
                      
     @property
     def preserve_quantization(self) -> bool:
-        return False
+        return True
                      
 
 class Pad(Operator):
