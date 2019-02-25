@@ -936,7 +936,7 @@ class RandomResize(data_processor.Processor):
 
         resize_height = int(original_height * height_scale)
         resize_width = int(original_width * width_scale)
-        image = pre_processor.resize(image, size=(resize_height, resize_width))
+        image = pre_processor.resize(image, size=(resize_height, resize_width), resample=Image.BILINEAR)
         if mask is not None:
             mask = pre_processor.resize(mask, size=(resize_height, resize_width))
 

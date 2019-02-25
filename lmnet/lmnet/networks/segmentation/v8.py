@@ -69,25 +69,14 @@ class LmSegnetV1(Base):
             output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
-    # def spatial(self, x):
-    #     with tf.variable_scope("spatial"):
-    #         x = self.lmnet_block('conv_1', x, 8, 3)
-    #         x = self._space_to_depth(name='spatial_s2d_1', inputs=x)
-    #         x = self._space_to_depth(name='spatial_s2d_2', inputs=x)
-    #         x = self._space_to_depth(name='spatial_s2d_3', inputs=x)
-    #         x = self.lmnet_block('conv_4', x, 32, 3, activation=tf.nn.relu)
-
-    #         return x
-
     def spatial(self, x):
         with tf.variable_scope("spatial"):
-            # x = self.lmnet_block('conv_1', x, 8, 3)
-            x = self._space_to_depth(name='sp_s2d_1', inputs=x)
-            x = self.lmnet_block('conv_2', x, 16, 3)
-            x = self._space_to_depth(name='sp_s2d_2', inputs=x)
-            x = self.lmnet_block('conv_3', x, 64, 3)
-            x = self._space_to_depth(name='sp_s2d_3', inputs=x)
-            x = self.lmnet_block('conv_4', x, 256, 3, activation=None)
+            x = self._space_to_depth(name='s2d_1', inputs=x)
+            x = self.lmnet_block('conv_1', x, 32, 3)
+            x = self._space_to_depth(name='s2d_2', inputs=x)
+            x = self.lmnet_block('conv_2', x, 64, 3)
+            x = self._space_to_depth(name='s2d_3', inputs=x)
+            x = self.lmnet_block('conv_3', x, 128, 3, activation=None)
 
             return x
 
@@ -105,42 +94,25 @@ class LmSegnetV1(Base):
         with tf.variable_scope("context"):
             x = self._space_to_depth(name='s2d_1', inputs=x, block_size=8)
 
-            x = self.lmnet_block('conv_1', x, 32, 1)
+            x = self.lmnet_block('conv_1', x, 64, 1)
+            x = self.lmnet_block('conv_2', x, 64, 3)
+            x = self.lmnet_block('conv_3', x, 64, 3)
+
             x = self._space_to_depth(name='s2d_2', inputs=x)
-            x = self.lmnet_block('block_5', x, 128, 3, activation=None)
-            x = tf.nn.relu(x)
+            x = self.lmnet_block('conv_4', x, 128, 1)
+            x = self.lmnet_block('conv_5', x, 128, 3)
+            # FIXME: need relu for convert.
+            x = self.lmnet_block('conv_6', x, 128, 3, activation=tf.nn.relu)
             x_down_16 = x
 
             x = self.activation(x)
             x = self._space_to_depth(name='s2d_3', inputs=x)
-            x = self.lmnet_block('block_8', x, 512, 3, activation=None)
+            x = self.lmnet_block('conv_7', x, 256, 1)
+            x = self.lmnet_block('conv_8', x, 256, 3)
+            x = self.lmnet_block('conv_9', x, 512, 3)
+            x = self.lmnet_block('conv_10', x, 512, 3, activation=tf.nn.relu)
             x_down_32 = x
             return x_down_32, x_down_16
-
-    # def context(self, x):
-    #     with tf.variable_scope("context"):
-    #         x = self._space_to_depth(name='s2d_1', inputs=x, block_size=8)
-
-    #         x = self.lmnet_block('conv_1', x, 32, 1)
-    #         x = self.lmnet_block('block_1', x, 32, 3)
-    #         x = self.lmnet_block('block_2', x, 32, 3)
-
-    #         x = self._space_to_depth(name='s2d_2', inputs=x)
-    #         x = self.lmnet_block('conv_2', x, 64, 1)
-    #         x = self.lmnet_block('block_3', x, 64, 3)
-    #         x = self.lmnet_block('block_4', x, 128, 3)
-    #         # need relu for convert.
-    #         x = self.lmnet_block('block_5', x, 128, 3, activation=tf.nn.relu)
-    #         x_down_16 = x
-
-    #         x = self.activation(x)
-    #         x = self._space_to_depth(name='s2d_3', inputs=x)
-    #         x = self.lmnet_block('conv_3', x, 256, 1)
-    #         x = self.lmnet_block('block_6', x, 256, 3)
-    #         x = self.lmnet_block('block_7', x, 512, 3)
-    #         x = self.lmnet_block('block_8', x, 512, 3, activation=tf.nn.relu)
-    #         x_down_32 = x
-    #         return x_down_32, x_down_16
 
     def attention(self, name, x):
         with tf.variable_scope(name):
@@ -151,9 +123,9 @@ class LmSegnetV1(Base):
             in_ch = x.get_shape()[3].value
             x = tf.layers.average_pooling2d(name="gap", inputs=x, pool_size=[h, w], padding="VALID", strides=1)
 
-            # x = self.batch_norm(x, self.is_training)
-            # x = self.activation(x)
-            x = self.lmnet_block("float conv", x, in_ch, 1, activation=self.attention_act)
+            x = self.batch_norm(x, self.is_training)
+            x = self.activation(x)
+            x = self.lmnet_block("conv", x, in_ch, 1, activation=self.attention_act)
 
             x = stock * x
 
@@ -177,28 +149,17 @@ class LmSegnetV1(Base):
     def fusion(self, sp, cx):
         with tf.variable_scope("fusion"):
             x = tf.concat([cx, sp], axis=3)
-            x = self.batch_norm(x, self.is_training)
-            x = self.activation(x)
+            x = self.lmnet_block('float_conv_base', x, self.num_classes, 1, activation=tf.nn.relu)
+            stock = x
+            h = x.get_shape()[1].value
+            w = x.get_shape()[2].value
+            x = tf.layers.average_pooling2d(name="gap", inputs=x, pool_size=[h, w], padding="VALID", strides=1)
+            # conv_1, conv_2 need to float convolution because support only 32x channle on our FPGA IP.
+            x = self.lmnet_block('float_conv_1', x, self.num_classes, 1, activation=tf.nn.relu)
+            x = self.lmnet_block('float_conv_2', x, self.num_classes, 1, activation=self.attention_act)
+            x = stock * x
+            x = stock + x
             return x
-
-    # def fusion(self, sp, cx):
-    #     with tf.variable_scope("fusion"):
-    #         x = tf.concat([cx, sp], axis=3)
-    #         x = self.batch_norm(x, self.is_training)
-    #         x = self.activation(x)
-    #         x = self.lmnet_block('conv_base', x, 32, 1, activation=tf.nn.relu)
-    #         x = self.lmnet_block('float_conv_base', x, self.num_classes, 1, activation=tf.nn.relu)
-    #         stock = x
-    #         h = x.get_shape()[1].value
-    #         w = x.get_shape()[2].value
-    #         x = tf.layers.average_pooling2d(name="gap", inputs=x, pool_size=[h, w], padding="VALID", strides=1)
-    #         x = self.activation(x)
-    #         # conv_1, conv_2 need to float convolution because support only 32x channle on our FPGA IP.
-    #         x = self.lmnet_block('float_conv_1', x, self.num_classes, 1, activation=tf.nn.relu)
-    #         x = self.lmnet_block('float_conv_2', x, self.num_classes, 1, activation=self.attention_act)
-    #         x = stock * x
-    #         x = stock + x
-    #         return x
 
     def base(self, images, is_training, *args, **kwargs):
         channels_data_format = 'channels_last' if self.data_format == 'NHWC' else 'channels_first'
@@ -218,8 +179,8 @@ class LmSegnetV1(Base):
         h = tail.get_shape()[1].value
         w = tail.get_shape()[2].value
         tail = tf.layers.average_pooling2d(name="gap", inputs=tail, pool_size=[h, w], padding="VALID", strides=1)
-        # cx_16 = self.attention("attention_16", cx_16)
-        # cx_32 = self.attention("attention_32", cx_32)
+        cx_16 = self.attention("attention_16", cx_16)
+        cx_32 = self.attention("attention_32", cx_32)
         cx_32 = cx_32 * tail
 
         cx_1 = self._depth_to_space(name="d2s_1", inputs=cx_16, block_size=2)
@@ -229,7 +190,7 @@ class LmSegnetV1(Base):
 
         x = self.fusion(sp, cx)
 
-        x = self.lmnet_block('last', x, self.num_classes, 1, activation=None)
+        x = self.lmnet_block('float_last', x, self.num_classes, 1, activation=None)
 
         # only for train
         self.cx_1 = self.conv("block_cx1", cx_1, self.num_classes, 1, activation=None)

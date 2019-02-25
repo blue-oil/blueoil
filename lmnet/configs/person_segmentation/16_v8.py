@@ -101,8 +101,7 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
-    RandomResize(min_scale=0.25, max_scale=1.75),
-    CropOrPad(size=IMAGE_SIZE),
+    Resize(size=IMAGE_SIZE),
     Brightness((0.75, 1.25)),
     Color((0.75, 1.25)),
     Contrast((0.75, 1.25)),

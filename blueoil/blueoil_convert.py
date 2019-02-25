@@ -148,7 +148,7 @@ docker run \
     activate_hard_quantization = True
     threshold_skipping = True
     cache_dma = True
-    debug = True
+    debug = False
     # Generate project
     run_generate_project(
         input_path=input_pb_path,

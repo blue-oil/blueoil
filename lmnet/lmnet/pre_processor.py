@@ -21,7 +21,7 @@ from lmnet.data_processor import (
 )
 
 
-def resize(image, size=[256, 256]):
+def resize(image, size=[256, 256], resample=PIL.Image.NEAREST):
     """Resize an image.
 
     Args:
@@ -36,7 +36,7 @@ def resize(image, size=[256, 256]):
 
     image = PIL.Image.fromarray(image)
 
-    image = image.resize([width, height])
+    image = image.resize([width, height], resample=resample)
 
     image = np.array(image)
     assert image.shape[0] == height
