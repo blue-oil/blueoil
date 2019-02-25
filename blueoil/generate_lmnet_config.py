@@ -22,6 +22,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 
 from lmnet.utils.module_loader import load_class
+from blueoil.vars import TEMPLATE_DIR
 
 
 # TODO(wakisaka): objecte detection, segmentation
@@ -280,7 +281,7 @@ def _blueoil_to_lmnet(blueoil_config):
 
 
 def _save(lmnet_config):
-    env = Environment(loader=FileSystemLoader('./blueoil/templates/lmnet', encoding='utf8'))
+    env = Environment(loader=FileSystemLoader(os.path.join(TEMPLATE_DIR, 'lmnet'), encoding='utf8'))
 
     template_file = lmnet_config["template_file"]
 

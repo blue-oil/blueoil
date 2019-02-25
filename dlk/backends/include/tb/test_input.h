@@ -15,13 +15,16 @@ limitations under the License.
 
 #pragma once
 
-enum input_type {
+enum input_type
+{
   SEQUENTIAL = 0,
   RANDOM = 1,
   ALL_1 = 2,
 };
 
-template <class T> T gen_random_value(int max, int s, int b) {
+template <class T>
+T gen_random_value(int max, int s, int b)
+{
   // s*x - b such that {x | x >= 0, x < max}
   // e.g. if you need 1 or -1, you can take max = 2, s = 2, z = 1
   // e.g. if you need from 0 to 256, you can take max  = 256, s = 1, z = 0
