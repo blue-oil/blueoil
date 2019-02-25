@@ -69,27 +69,27 @@ class LmSegnetV1(Base):
             output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
-    def spatial(self, x):
-        with tf.variable_scope("spatial"):
-            x = self.lmnet_block('conv_1', x, 8, 3)
-            x = self._space_to_depth(name='s2d_1', inputs=x)
-            x = self._space_to_depth(name='s2d_2', inputs=x)
-            x = self._space_to_depth(name='s2d_3', inputs=x)
-            x = self.lmnet_block('conv_4', x, 32, 3, activation=tf.nn.relu)
-
-            return x
-
     # def spatial(self, x):
     #     with tf.variable_scope("spatial"):
     #         x = self.lmnet_block('conv_1', x, 8, 3)
-    #         x = self._space_to_depth(name='s2d_1', inputs=x)
-    #         x = self.lmnet_block('conv_2', x, 16, 3)
-    #         x = self._space_to_depth(name='s2d_2', inputs=x)
-    #         x = self.lmnet_block('conv_3', x, 64, 3)
-    #         x = self._space_to_depth(name='s2d_3', inputs=x)
-    #         x = self.lmnet_block('conv_4', x, 256, 3, activation=tf.nn.relu)
+    #         x = self._space_to_depth(name='spatial_s2d_1', inputs=x)
+    #         x = self._space_to_depth(name='spatial_s2d_2', inputs=x)
+    #         x = self._space_to_depth(name='spatial_s2d_3', inputs=x)
+    #         x = self.lmnet_block('conv_4', x, 32, 3, activation=tf.nn.relu)
 
     #         return x
+
+    def spatial(self, x):
+        with tf.variable_scope("spatial"):
+            # x = self.lmnet_block('conv_1', x, 8, 3)
+            x = self._space_to_depth(name='sp_s2d_1', inputs=x)
+            x = self.lmnet_block('conv_2', x, 16, 3)
+            x = self._space_to_depth(name='sp_s2d_2', inputs=x)
+            x = self.lmnet_block('conv_3', x, 64, 3)
+            x = self._space_to_depth(name='sp_s2d_3', inputs=x)
+            x = self.lmnet_block('conv_4', x, 256, 3, activation=None)
+
+            return x
 
     def batch_norm(self, inputs, training):
         return tf.contrib.layers.batch_norm(
@@ -209,6 +209,8 @@ class LmSegnetV1(Base):
         self.lmnet_block = lmnet_block
 
         x = lmnet_block('block_1', images, 32, 1)
+        x = lmnet_block('block_2', images, 8, 1)
+
         sp = self.spatial(x)
 
         cx_32, cx_16 = self.context(x)

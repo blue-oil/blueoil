@@ -55,16 +55,20 @@ def main(debug_data_path, expected_data_path):
 
     for o in debug_output:
         name_dbg = ptrn_dbg.match(o.stem).group(1)
+        print("name_dbg", name_dbg)
         for eo in expected_output:
             name_ex = ptrn_ex.match(eo.stem).group(1)
             output_id_ex = ptrn_ex.match(eo.stem).group(2)
             # print("name_ex", name_ex)
-            # print("name_dbg", name_dbg)
+
             if name_ex == name_dbg and output_id_ex == '0':
                 data_dbg = np.load(str(o))
                 data_ex = np.load(str(eo))
 
-                if np.allclose(data_ex.flatten() * data_dbg['scale'], data_dbg['data'], rtol=0.00001, atol=0.00001):
+                print(data_dbg.__dir__)
+                print("scale", data_dbg['scale'])
+
+                if np.allclose(data_ex.flatten() * data_dbg['scale'], data_dbg['data'], rtol=0.01, atol=0.1):
                     print("[OK]   {}".format(name_ex))
                 else:
                     print("[FAIL] {}".format(name_ex))
