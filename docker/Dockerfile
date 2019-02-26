@@ -52,6 +52,9 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# install aarch64 cross compile environment
+RUN apt-get update && apt-get install -y crossbuild-essential-arm64
+
 # Locale setting
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
