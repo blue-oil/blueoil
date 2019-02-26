@@ -27,6 +27,9 @@ class LmSegnetV1(Base):
 
     def __init__(
             self,
+            auxiliary_weight=0.5,
+            use_FFM=True,
+            use_losss_weight=False,
             *args,
             **kwargs
     ):
@@ -37,11 +40,13 @@ class LmSegnetV1(Base):
 
         self.activation = tf.nn.relu
         self.custom_getter = None
-        self.auxiliary_weight = 0.5
+
+        self.auxiliary_weight = auxiliary_weight
         # I want to usesigmoid.
         self.attention_act = tf.nn.relu
         self.batch_norm_decay = 0.1
-        self.use_FFM = True  # use Feature fusion module
+        self.use_FFM = use_FFM  # use Feature fusion module
+        self.use_losss_weight = use_losss_weight
 
     def _get_lmnet_block(self, is_training, channels_data_format):
         return functools.partial(
@@ -205,11 +210,11 @@ class LmSegnetV1(Base):
 
         return x
 
-    def _cross_entropy(self, x, labels):
+    def _cross_entropy(self, x, labels, loss_weight):
         reshape_output = tf.reshape(x, (-1, self.num_classes))
         softmax = tf.nn.softmax(reshape_output)
         cross_entropy = -tf.reduce_sum(
-            (labels * tf.log(tf.clip_by_value(softmax, 1e-10, 1.0))),
+            (labels * tf.log(tf.clip_by_value(softmax, 1e-10, 1.0))) * loss_weight,
             axis=[1]
         )
         cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
@@ -222,13 +227,22 @@ class LmSegnetV1(Base):
         cx_2 = self.post_process(self.cx_2)
 
         with tf.name_scope("loss"):
+            if self.use_losss_weight:
+                loss_weight = []
+                all_size = tf.to_float(tf.reduce_prod(tf.shape(labels)))
+                for class_index in range(self.num_classes):
+                    num_label = tf.reduce_sum(tf.to_float(tf.equal(labels, class_index)))
+                    weight = (all_size - num_label) / all_size
+                    loss_weight.append(weight)
+            else:
+                loss_weight = 1.0
 
             label_flat = tf.reshape(labels, (-1, 1))
             labels = tf.reshape(tf.one_hot(label_flat, depth=self.num_classes), (-1, self.num_classes))
 
-            loss_main = self._cross_entropy(x, labels)
-            loss_cx_1 = self._cross_entropy(cx_1, labels) * self.auxiliary_weight
-            loss_cx_2 = self._cross_entropy(cx_2, labels) * self.auxiliary_weight
+            loss_main = self._cross_entropy(x, labels, loss_weight)
+            loss_cx_1 = self._cross_entropy(cx_1, labels, loss_weight) * self.auxiliary_weight
+            loss_cx_2 = self._cross_entropy(cx_2, labels, loss_weight) * self.auxiliary_weight
 
             loss = loss_main + loss_cx_1 + loss_cx_2
 

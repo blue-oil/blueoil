@@ -88,6 +88,7 @@ def lmnet_block(
     """
     with tf.variable_scope(name, custom_getter=custom_getter):
         conv = tf.layers.conv2d(inputs, filters=filters, kernel_size=kernel_size, padding='SAME', use_bias=False,
+                                kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
                                 data_format=data_format)
 
         if use_batch_norm:
