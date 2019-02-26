@@ -453,6 +453,20 @@ class TestPassComputeThresholds(unittest.TestCase):
 
         print("Test pass #8 compute_thresholds passed!")
 
+    def test_pass_compute_thresholds_for_huge_threshold_values(self) -> None:
+        """Test pass."""
+        data1 = np.float32(np.random.rand(1, 2, 2, 3))
+        # data2 = np.float32(np.random.rand(1, 2, 2, 3))
+        data2 = np.float32(np.random.uniform(10 ** (-30), 10 ** (-40), size=(1, 2, 2, 3)))
+        graph1 = self.create_sample_graph(data1, data2)
+
+        pass_compute_thresholds(graph1)
+
+        self.assertEqual(graph1.get_op('conv2').has_thresholds, True,
+                         '[Failed] Found threshold of Conv not calculated')
+
+        print("Test pass #8-1 compute_thresholds of enormously small values passed!")
+
     @staticmethod
     def create_sample_graph(data1: np.ndarray, data2: np.ndarray) -> Graph:
         graph = Graph()
