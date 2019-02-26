@@ -131,8 +131,6 @@ def run_inference(inputs):
     start = time.time()
 
     data = pre_process(image=img)["image"]
-    data = np.asarray(data, dtype=np.float32)
-    data = np.expand_dims(data, axis=0)
 
     result = nn.run(data)
 
