@@ -464,7 +464,7 @@ class TestPassComputeThresholds(unittest.TestCase):
         self.assertEqual(graph1.get_op('conv2').has_thresholds, True,
                          '[Failed] Found threshold of Conv not calculated')
 
-        print("Test pass #8-1 compute_thresholds of enormously small values passed!")
+        print("Test pass #8-1 compute_thresholds of enormous values passed!")
 
     @staticmethod
     def create_sample_graph(data1: np.ndarray, data2: np.ndarray) -> Graph:
