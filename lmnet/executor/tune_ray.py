@@ -51,12 +51,20 @@ def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
             network_kwargs['optimizer_kwargs'][key] = chosen_kwargs['optimizer_class'][key]
     network_kwargs['learning_rate_func'] = chosen_kwargs['learning_rate_func']['scheduler']
     base_lr = chosen_kwargs['learning_rate']
-    lr_factor = chosen_kwargs['learning_rate_func']['scheduler_factor']
-    network_kwargs['learning_rate_kwargs']['values'] = [base_lr,
-                                                        base_lr * lr_factor,
-                                                        base_lr * lr_factor * lr_factor,
-                                                        base_lr * lr_factor * lr_factor * lr_factor]
-    network_kwargs['learning_rate_kwargs']['boundaries'] = chosen_kwargs['learning_rate_func']['scheduler_steps']
+    if network_kwargs['learning_rate_func'] is tf.train.piecewise_constant:
+        lr_factor = chosen_kwargs['learning_rate_func']['scheduler_factor']
+        network_kwargs['learning_rate_kwargs']['values'] = [base_lr,
+                                                            base_lr * lr_factor,
+                                                            base_lr * lr_factor * lr_factor,
+                                                            base_lr * lr_factor * lr_factor * lr_factor]
+        network_kwargs['learning_rate_kwargs']['boundaries'] = chosen_kwargs['learning_rate_func']['scheduler_steps']
+    elif network_kwargs['learning_rate_func'] is tf.train.polynomial_decay:
+        network_kwargs['learning_rate_kwargs']['learning_rate'] = base_lr
+        network_kwargs['learning_rate_kwargs']['power'] = chosen_kwargs['learning_rate_func']['scheduler_power']
+        network_kwargs['learning_rate_kwargs']['decay_steps'] = chosen_kwargs['learning_rate_func']['scheduler_decay']
+    else:
+        network_kwargs['learning_rate_kwargs']['learning_rate'] = base_lr
+
     network_kwargs['weight_decay_rate'] = chosen_kwargs['weight_decay_rate']
     # print('after network args', network_kwargs)
     return network_kwargs

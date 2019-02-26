@@ -66,7 +66,10 @@ TUNE_SPACE = {
             },
             # {
             #     'optimizer': tf.train.AdamOptimizer,
-            # }
+            # },
+            # {
+            #     'optimizer': tf.train.AdagradOptimizer,
+            # },
         ]
     ),
     'learning_rate': hp.uniform('learning_rate', 0, 0.01),
@@ -76,6 +79,11 @@ TUNE_SPACE = {
                 'scheduler': tf.train.piecewise_constant,
                 'scheduler_factor': 0.1,
                 'scheduler_steps': [25000, 50000, 75000],
+            },
+            {
+                'scheduler': tf.train.polynomial_decay,
+                'scheduler_power': 0.9,
+                'scheduler_decay': 10000,
             }
         ]
     ),
