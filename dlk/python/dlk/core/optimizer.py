@@ -356,8 +356,8 @@ def pass_compute_thresholds(graph: Graph) -> None:
             threshold = (trans_th['data'] * np.float64(n)) / (np.float64(max_v) * scaling_factor)
 
             # take care of threshold values that are larger than 13-bit signed integer
-            # threshold[threshold > max_th_value] = max_th_value
-            # threshold[threshold < -max_th_value] = -max_th_value
+            threshold[threshold > max_th_value] = max_th_value
+            threshold[threshold < -max_th_value] = -max_th_value
 
             for ch_id, th_per_ch in enumerate(threshold):
                 if quantizer_conv_weights.op_type == 'QTZ_binary_channel_wise_mean_scaling':
@@ -368,10 +368,6 @@ def pass_compute_thresholds(graph: Graph) -> None:
                     threshold_table[ch_id, th_id] = int(math.floor(th_per_ch)) \
                         if (scaling_factor < 0) ^ (ch_id in bn_nega_idx) \
                         else int(math.ceil(th_per_ch))
-
-        # take care of threshold values that are larger than 13-bit signed integer
-        threshold_table[threshold_table > max_th_value] = max_th_value
-        threshold_table[threshold_table < -max_th_value] = -max_th_value
 
         for c in range(ch):
             threshold_table[c, -1] = 1 \

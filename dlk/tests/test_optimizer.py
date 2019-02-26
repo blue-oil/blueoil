@@ -456,7 +456,6 @@ class TestPassComputeThresholds(unittest.TestCase):
     def test_pass_compute_thresholds_for_huge_threshold_values(self) -> None:
         """Test pass."""
         data1 = np.float32(np.random.rand(1, 2, 2, 3))
-        # data2 = np.float32(np.random.rand(1, 2, 2, 3))
         data2 = np.float32(np.random.uniform(10 ** (-30), 10 ** (-40), size=(1, 2, 2, 3)))
         graph1 = self.create_sample_graph(data1, data2)
 
