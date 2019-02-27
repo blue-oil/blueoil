@@ -22,6 +22,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 
 from lmnet.utils.module_loader import load_class
+from blueoil.vars import TEMPLATE_DIR
 
 
 _TASK_TYPE_TEMPLATE_FILE = {
@@ -38,6 +39,10 @@ _NETWORK_NAME_NETWORK_MODULE_CLASS = {
     "LmnetV1Quantize": {
         "network_module": "lmnet_v1",
         "network_class": "LmnetV1Quantize",
+    },
+    "ResNetQuantize": {
+        "network_module": "lm_resnet",
+        "network_class": "LmResnetQuantize",
     },
     "LMFYoloQuantize": {
         "network_module": "lm_fyolo",
@@ -154,20 +159,37 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
+    optimizer  = blueoil_config["trainer"]["optimizer"]
+    if optimizer == 'Adam':
+        optimizer_class = "tf.train.AdamOptimizer"
+    elif optimizer == 'Momentum':
+        optimizer_class = "tf.train.MomentumOptimizer"
+    else:
+        raise ValueError("not supported optimizer.")
+
     initial_learning_rate = blueoil_config["trainer"]["initial_learning_rate"]
     learning_rate_schedule = blueoil_config["trainer"]["learning_rate_schedule"]
     max_epochs = blueoil_config["trainer"]["epochs"]
 
     step_per_epoch = float(_dataset_obj.num_per_epoch)/batch_size
 
-    learning_rate_func = None
     learning_rate_kwargs = None
     if learning_rate_schedule == "constant":
-        optimizer_kwargs = {"momentum": 0.9, "learning_rate": initial_learning_rate}
+        learning_rate_func = None
     else:
-        optimizer_kwargs = {"momentum": 0.9}
         learning_rate_func = "tf.train.piecewise_constant"
 
+    if learning_rate_schedule == "constant":
+        if optimizer == 'Momentum':
+            optimizer_kwargs = {"momentum": 0.9, "learning_rate": initial_learning_rate}
+        else:
+            optimizer_kwargs = {"learning_rate": initial_learning_rate}
+    else:
+        if optimizer == 'Momentum':
+            optimizer_kwargs = {"momentum": 0.9}
+        else:
+            optimizer_kwargs = {}            
+            
     if learning_rate_schedule == "2-step-decay":
         learning_rate_kwargs = {
             "values": [
@@ -243,6 +265,7 @@ def _blueoil_to_lmnet(blueoil_config):
         "dataset_class_property": dataset_class_property,
 
         "batch_size": batch_size,
+        "optimizer_class" : optimizer_class,
         "max_epochs": max_epochs,
 
         "optimizer_kwargs": optimizer_kwargs,
@@ -266,7 +289,7 @@ def _blueoil_to_lmnet(blueoil_config):
 
 
 def _save(lmnet_config):
-    env = Environment(loader=FileSystemLoader('./blueoil/templates/lmnet', encoding='utf8'))
+    env = Environment(loader=FileSystemLoader(os.path.join(TEMPLATE_DIR, 'lmnet'), encoding='utf8'))
 
     template_file = lmnet_config["template_file"]
 

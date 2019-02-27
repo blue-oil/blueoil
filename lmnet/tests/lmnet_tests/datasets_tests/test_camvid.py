@@ -14,8 +14,9 @@
 # limitations under the License.
 # =============================================================================
 import pytest
-from lmnet.datasets.camvid import Camvid, CamvidCustom
 import numpy as np
+from lmnet.datasets.camvid import Camvid, CamvidCustom
+from lmnet.datasets.dataset_iterator import DatasetIterator
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")
@@ -59,9 +60,9 @@ def _test_camvid_basics(train_dataset, test_dataset):
     assert len(colors) == 12
 
     # test training dataset
-    train_image_files, train_label_files = train_dataset.files_and_annotations
-    assert len(train_image_files) == 5
-    assert len(train_label_files) == 5
+    train_image_files, train_label_files = train_dataset.feed()
+    assert train_image_files.shape[0] == 1
+    assert train_label_files.shape[0] == 1
 
     train_images, train_labels = train_dataset.feed()
     assert isinstance(train_images, np.ndarray)
@@ -71,9 +72,9 @@ def _test_camvid_basics(train_dataset, test_dataset):
     # _show_image_with_annotation(train_images[0], train_labels[0], colors)
 
     # test test dataset
-    test_image_files, test_label_files = test_dataset.files_and_annotations
-    assert len(test_image_files) == 5
-    assert len(test_label_files) == 5
+    test_image_files, test_label_files = test_dataset.feed()
+    assert test_image_files.shape[0] == 1
+    assert test_label_files.shape[0] == 1
 
     test_images, test_labels = test_dataset.feed()
     assert isinstance(test_images, np.ndarray)
@@ -86,7 +87,9 @@ def _test_camvid_basics(train_dataset, test_dataset):
 def test_camvid():
     batch_size = 1
     train_dataset = DummyCamvid(subset="train", batch_size=batch_size)
+    train_dataset = DatasetIterator(train_dataset)
     test_dataset = DummyCamvid(subset="validation", batch_size=batch_size)
+    test_dataset = DatasetIterator(test_dataset)
 
     _test_camvid_basics(train_dataset, test_dataset)
 
@@ -94,23 +97,29 @@ def test_camvid():
 def test_camvid_custom():
     batch_size = 1
     train_dataset = DummyCamvidCustom(subset="train", batch_size=batch_size)
+    train_dataset = DatasetIterator(train_dataset)
     test_dataset = DummyCamvidCustom(subset="validation", batch_size=batch_size)
+    test_dataset = DatasetIterator(test_dataset)
 
     _test_camvid_basics(train_dataset, test_dataset)
 
 
 def test_camvid_custom_without_test_dataset():
-    batch_size = 1
+    batch_size = 5
     validation_size = 0.2
+
     train_dataset = DummyCamvidCustomWithoutTestDataset(subset="train", batch_size=batch_size,
                                                         validation_size=validation_size)
+    train_dataset = DatasetIterator(train_dataset)
+
     test_dataset = DummyCamvidCustomWithoutTestDataset(subset="validation", batch_size=batch_size,
                                                        validation_size=validation_size)
+    test_dataset = DatasetIterator(test_dataset)
 
-    image_files, label_files = train_dataset.files_and_annotations
-    assert len(image_files) == 4
-    assert len(label_files) == 4
+    image_files, label_files = train_dataset.feed()
+    assert image_files.shape[0] == 5
+    assert label_files.shape[0] == 5
 
-    image_files, label_files = test_dataset.files_and_annotations
-    assert len(image_files) == 1
-    assert len(label_files) == 1
+    image_files, label_files = test_dataset.feed()
+    assert image_files.shape[0] == 5
+    assert label_files.shape[0] == 5

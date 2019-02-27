@@ -31,7 +31,8 @@ from core.graph import Graph
 from core.operators import Operator, Conv, Identity, QTZ_binary_mean_scaling, \
     BatchNormalization, QTZ_linear_mid_tread_half, Add, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
-    Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, DepthToSpace, Split
+    Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, DepthToSpace, \
+    Split, Pad, MatMul
 
 DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
     # any
@@ -168,11 +169,11 @@ class Node(object):
                     shape.append(d.dim[v].size)
                 out_shapes.append(shape)
         else:
-            ValueError(f'{self.name} does not have output shapes.')
+            raise ValueError(f'{self.name} does not have output shapes.')
 
         if len(out_shapes) > 1 and self.nd_.op == 'Split':
             if not out_shapes[1:] == out_shapes[:-1]:
-                ValueError(f'{self.name} does not have identical output(s) shape.')
+                raise ValueError(f'{self.name} does not have identical output(s) shape.')
 
         return out_shapes[0]
 
@@ -191,8 +192,7 @@ class Node(object):
         """Return the attributes data corresponding to the node."""
         attrs = [x for x in self.attributes if x == attr_name]
         if len(attrs) != 1:
-            ValueError(
-                'f{self.op_type} {self.name} doesn\'t have the valid attribute.')
+            raise ValueError(f'{self.op_type} {self.name} doesn\'t have the valid attribute.')
 
         # TODO: hard coded for now, looking for better extraction methods
         attrs_data = []
@@ -207,8 +207,7 @@ class Node(object):
         elif attr_name in ['block_size', 'num_split']:
             attrs_data.append(self.nd_.attr[attr_name].i)
         else:
-            ValueError(
-                'f{self.op_type} {self.name} doesn\'t have the supported attribute.')
+            raise ValueError(f'{self.op_type} {self.name} doesn\'t have the supported attribute.')
 
         return attrs_data
 
@@ -379,12 +378,10 @@ class Importer(object):
 
     def __init__(self, tf_mp) -> None:  # type: ignore
         """Init the graph.
-
         Prameters
         ---------
         tf_mp : GraphDef
             GraphDef object
-
         """
         self.tf_gp = tf_mp
         self.in_lst: List[Input] = []
@@ -422,12 +419,12 @@ class Importer(object):
         return dlk_op_type if dlk_op_type else op_type
 
     def create_new_op(self, node: Any, op_dic: Dict[str, Operator], current_format: str,
-                      input_format_list: List[str]) -> Operator:
+                      input_format_list: List[str], nodes_to_remove) -> Operator:
         """Create new operators with Node, Input(Constant), Output."""
         new_op: Operator
 
         if isinstance(node, Node):  # operator nodes
-            new_op = self.create_new_node(node, op_dic, current_format, input_format_list)
+            new_op = self.create_new_node(node, op_dic, current_format, input_format_list, nodes_to_remove)
 
         else:  # Input, Output or Constant
             shape: List[int] = list(map(int, node.get_shape()))
@@ -471,7 +468,10 @@ class Importer(object):
     def add_all_nodes(self, graph: Graph) -> None:
         visited: Set[Any] = set()
         added: Dict[str, Operator] = {}
-        self.add_node_to_graph_recursive(self.out_lst[0], graph, visited, added, 'NHWC')
+        nodes_to_remove = []
+        self.add_node_to_graph_recursive(self.out_lst[0], graph, visited, added, 'NHWC', nodes_to_remove)
+        for node in nodes_to_remove:
+            graph.remove_op(node)
 
     def _get_format(self, node: Any, output_format: str) -> Tuple[str, List[str]]:
         """Get the dimension format, like 'NCHW', 'HWCN', 'NHWC', etc."""
@@ -517,10 +517,10 @@ class Importer(object):
             elif op_type == 'Gemm':
                 return out_format, ['', '', '']  # three inputs
 
-            elif op_type in ['Add', 'Mul', 'Maximum']:
+            elif op_type in ['Add', 'Mul', 'Maximum', 'MatMul']:
                 return out_format, ['', '']  # two inputs
 
-            elif op_type == 'Split':
+            elif op_type in ['Split', 'Pad']:
                 return out_format, [in_format, '']
 
             elif op_type == 'ConcatOnDepth':
@@ -533,7 +533,7 @@ class Importer(object):
             return output_format, [output_format]
 
     def add_node_to_graph_recursive(self, current: Any, graph: Graph, visited: Set[Any], added: Dict[str, Operator],
-                                    data_format: str) \
+                                    data_format: str, nodes_to_remove) \
             -> Operator:
         if current in visited:
             return added[current.name]
@@ -544,10 +544,10 @@ class Importer(object):
         current_format, input_formats = self._get_format(current, data_format)
         inputs = self.find_inputs(current)
         for in_put, in_format in zip(inputs, input_formats):
-            in_op = self.add_node_to_graph_recursive(in_put, graph, visited, added, in_format)
+            in_op = self.add_node_to_graph_recursive(in_put, graph, visited, added, in_format, nodes_to_remove)
             added_op_dic[in_op.name] = in_op
 
-        op = self.create_new_op(current, added_op_dic, current_format, input_formats)
+        op = self.create_new_op(current, added_op_dic, current_format, input_formats, nodes_to_remove)
 
         graph.add_op(op)
 
@@ -577,28 +577,22 @@ class Importer(object):
         return inputs
 
     def create_new_node(self, node: Node, op_dic: Dict[str, Operator], current_format: str,
-                        input_format_list: List[str]) -> Operator:
+                        input_format_list: List[str], nodes_to_remove) -> Operator:
         """Create a new operator node. This might be tooooo long code...
-
         Parameters
         ----------
         node : Node
             TF node corresponding to the operator
-
         op_dic : Dict from str to Operator
             Dict of preceding operators
-
         current_format : Dict from str to str
             Dict of data format of current node
-
         input_format_list : Dict from str to str
             Dict of data format of corresponding inputs of current node
-
         Returns
         -------
         new_op : Operator
             Newly created dlk operator
-
         """
         op_type = self.convert_operator(node.op_type)
         try:
@@ -617,11 +611,13 @@ class Importer(object):
         def get_inputs(cdef: Type[Operator], current_node: Any) -> Dict[str, Operator]:
             input_names = cdef.input_names
             in_ops: Dict[str, Operator] = {}
+            in_ops_order: List[int] = []
             for n, op in zip(input_names, current_node.inputs):
                 in_ops[n] = op_dic[op]
-            return in_ops
+                in_ops_order.append(n)
+            return in_ops, in_ops_order
 
-        input_ops = get_inputs(class_def, node)
+        input_ops, input_ops_order = get_inputs(class_def, node)
 
         # Here find the shape and data type for the op
         def infer_shape(attrs: Dict[str, Any]) -> List[int]:
@@ -676,8 +672,7 @@ class Importer(object):
                 pads = [0, 0, 0, 0]
 
             else:
-                ValueError(
-                    'f{op_type} {node.name} doesn\'t have the supported padding.')
+                raise ValueError(f'{op_type} {node.name} doesn\'t have the supported padding.')
 
             if not shape:
                 attributes = {'kernel_shape': [filt_h, filt_w],
@@ -697,7 +692,7 @@ class Importer(object):
             )
         elif op_type == 'BatchNormalization':
             epsilon = node.attribute('epsilon')[0]
-            is_test = node.attribute('is_test')
+            is_test = not node.attribute('is_training')
 
             if not shape:
                 attributes = {'epsilon': epsilon, 'is_test': is_test}
@@ -816,8 +811,7 @@ class Importer(object):
                 pads = [0, 0, 0, 0]
 
             else:
-                ValueError(
-                    'f{op_type} {node.name} doesn\'t have the supported padding.')
+                raise ValueError(f'{op_type} {node.name} doesn\'t have the supported padding.')
 
             if not shape:
                 attributes = {'kernel_shape': kernel_shape, 'pads': pads, 'strides': strides}
@@ -868,8 +862,7 @@ class Importer(object):
                 pads = [0, 0, 0, 0]
 
             else:
-                ValueError(
-                    'f{op_type} {node.name} doesn\'t have the supported padding.')
+                raise ValueError(f'{op_type} {node.name} doesn\'t have the supported padding.')
 
             if not shape:
                 attributes = {'kernel_shape': kernel_shape, 'pads': pads, 'strides': strides}
@@ -914,7 +907,7 @@ class Importer(object):
         elif op_type == 'SpaceToDepth':
             bs = node.attribute('block_size')
             if not bs:
-                ValueError('f{op_type} {node.name} block size not specified')
+                raise ValueError(f'{op_type} {node.name} block size not specified')
 
             if not shape:
                 attributes = {'block_size': bs[0]}
@@ -955,7 +948,7 @@ class Importer(object):
                 dimension_format=current_format,
             )
         elif op_type == 'ConcatOnDepth':
-            axis = node.attribute('axis')
+            axis = input_ops[input_ops_order[-1]]
             if current_format.index('C') != axis:
                 ValueError('f{op_type} {node.name} concatenation is only supported on the depth axis')
 
@@ -970,8 +963,11 @@ class Importer(object):
                 input_ops,
                 dimension_format=current_format,
             )
-        elif op_type == 'Maximum':
 
+            input_axis_name = input_ops_order[-1]
+            nodes_to_remove.append(new_op.input_ops[input_axis_name])
+            new_op.remove_input(input_axis_name)
+        elif op_type == 'Maximum':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
@@ -986,7 +982,7 @@ class Importer(object):
         elif op_type == 'DepthToSpace':
             bs = node.attribute('block_size')
             if not bs:
-                ValueError('f{op_type} {node.name} block size not specified')
+                raise ValueError(f'{op_type} {node.name} block size not specified')
 
             if not shape:
                 attributes = {'block_size': bs[0]}
@@ -1004,7 +1000,7 @@ class Importer(object):
             num_split = node.attribute('num_split')[0]
 
             if not isinstance(num_split, int):
-                ValueError('f{op_type} {node.name} only supports integer value')
+                raise ValueError(f'{op_type} {node.name} only supports integer value')
 
             if not shape:
                 attributes = {'split': num_split}
@@ -1016,7 +1012,34 @@ class Importer(object):
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-                split=num_split
+                num_split=num_split
+            )
+            input_axis_name = input_ops_order[0]
+            nodes_to_remove.append(new_op.input_ops[input_axis_name])
+            new_op.remove_input(input_axis_name)
+        elif op_type == 'Pad':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = Pad(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
+            )
+        elif op_type == 'MatMul':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = MatMul(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
             )
         else:
             raise UnsupportedNode(

@@ -18,6 +18,7 @@ from abc import abstractmethod
 import os
 
 import numpy as np
+import PIL
 
 from lmnet import environment
 
@@ -32,7 +33,8 @@ class Base(metaclass=ABCMeta):
             augmentor=None,
             pre_processor=None,
             data_format='NHWC',
-            seed=None
+            seed=None,
+            **kwargs
     ):
         assert subset in self.available_subsets, self.available_subsets
         self.subset = subset
@@ -41,7 +43,6 @@ class Base(metaclass=ABCMeta):
         self.pre_processor = pre_processor
         self.data_format = data_format
         self.seed = seed or 0
-        self.current_element_index = 0
 
     @property
     def data_dir(self):
@@ -87,10 +88,17 @@ class Base(metaclass=ABCMeta):
         """Returns the number of datas in the data subset."""
         pass
 
+    @property
     @abstractmethod
-    def feed(self):
-        """Returns numpy array of batch size data."""
-        pass
+    def __getitem__(self, i, type=None):
+        """Returns the i-th item of the dataset."""
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def __len__(self):
+        """returns the number of items in the dataset."""
+        raise NotImplementedError()
 
 
 class SegmentationBase(Base, metaclass=ABCMeta):
@@ -122,6 +130,17 @@ class ObjectDetectionBase(Base, metaclass=ABCMeta):
         """Returns conunt max box size of available subsets."""
         pass
 
+    def _fill_dummy_boxes(self, gt_boxes):
+        dummy_gt_box = [0, 0, 0, 0, -1]
+        if len(gt_boxes) == 0:
+            gt_boxes = np.array(dummy_gt_box * self.num_max_boxes)
+            return gt_boxes.reshape([self.num_max_boxes, 5])
+        elif len(gt_boxes) < self.num_max_boxes:
+            diff = self.num_max_boxes - len(gt_boxes)
+            gt_boxes = np.append(gt_boxes, [dummy_gt_box] * diff, axis=0)
+            return gt_boxes
+        return gt_boxes
+
     def _change_gt_boxes_shape(self, gt_boxes_list):
         """Change gt boxes list shape from [batch_size, num_boxes, 5] to [batch_size, num_max_boxes, 5].
 
@@ -133,22 +152,19 @@ class ObjectDetectionBase(Base, metaclass=ABCMeta):
         Return:
           gt_boxes_list: numpy ndarray [batch_size, num_max_boxes, 5].
         """
-        dummy_gt_box = [0, 0, 0, 0, -1]
         results = []
 
         for gt_boxes in gt_boxes_list:
-
-            if len(gt_boxes) == 0:
-                gt_boxes = np.array(dummy_gt_box * self.num_max_boxes)
-                gt_boxes = gt_boxes.reshape([self.num_max_boxes, 5])
-
-            elif len(gt_boxes) < self.num_max_boxes:
-                diff = self.num_max_boxes - len(gt_boxes)
-                gt_boxes = np.append(gt_boxes, [dummy_gt_box] * diff, axis=0)
-
+            gt_boxes = self._fill_dummy_boxes(gt_boxes)
             results.append(gt_boxes)
 
         return np.array(results)
+
+    def _get_image(self, target_file):
+        image = PIL.Image.open(target_file)
+        image = image.convert("RGB")
+        image = np.array(image)
+        return image
 
 
 class DistributionInterface(metaclass=ABCMeta):

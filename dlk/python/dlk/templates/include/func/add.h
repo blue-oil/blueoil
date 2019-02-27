@@ -20,6 +20,8 @@ limitations under the License.
 
 void func_Add(T_FLOAT input[], T_FLOAT term, T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
 
+void func_Add(T_FLOAT input[], T_FLOAT term[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+
 void func_Add(T_FLOAT input[], T_FLOAT term, T_FLOAT output[], T_UINT out_depth);
 
 void func_Add(T_FLOAT term, T_FLOAT input[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
@@ -27,5 +29,7 @@ void func_Add(T_FLOAT term, T_FLOAT input[], T_FLOAT output[], T_UINT out_height
 void func_Add(T_FLOAT input[], T_FLOAT term[], T_FLOAT output[], T_UINT out_depth);
 
 void func_Add_depthwise(T_FLOAT input[], T_FLOAT terms[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+
+void func_Add_depthwise(T_FLOAT input[], T_FLOAT terms[], T_FLOAT output[], T_UINT out_depth);
 
 #endif // DLK_FUNC_ADD_H_INCLUDED

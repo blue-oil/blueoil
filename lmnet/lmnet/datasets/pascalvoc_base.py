@@ -17,13 +17,11 @@ import functools
 import os
 import os.path
 
-import pandas as pd
-from bs4 import BeautifulSoup
-import PIL
 import numpy as np
+import pandas as pd
+import xml.etree.ElementTree as ET
 
 from lmnet.datasets.base import ObjectDetectionBase
-from lmnet.utils.random import shuffle
 
 
 class PascalvocBase(ObjectDetectionBase):
@@ -31,12 +29,12 @@ class PascalvocBase(ObjectDetectionBase):
 
     @classmethod
     @functools.lru_cache(maxsize=None)
-    def count_max_boxes(cls):
+    def count_max_boxes(cls, skip_difficult=True):
         """Count max boxes size over all subsets."""
         num_max_boxes = 0
 
         for subset in cls.available_subsets:
-            obj = cls(subset=subset)
+            obj = cls(subset=subset, skip_difficult=skip_difficult)
             gt_boxes_list = obj.annotations
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])
@@ -76,9 +74,11 @@ class PascalvocBase(ObjectDetectionBase):
             self,
             subset="train",
             batch_size=10,
+            skip_difficult=True,
             *args,
             **kwargs
     ):
+        self.skip_difficult = skip_difficult
 
         super().__init__(
             subset=subset,
@@ -96,103 +96,55 @@ class PascalvocBase(ObjectDetectionBase):
     @functools.lru_cache(maxsize=None)
     def num_max_boxes(self):
         cls = self.__class__
-        return cls.count_max_boxes()
+        return cls.count_max_boxes(self.skip_difficult)
 
     @property
     def num_per_epoch(self):
         return len(self.files)
 
-    def _element(self):
-        """Return an image, gt_boxes."""
-        index = self.current_element_index
-
-        self.current_element_index += 1
-        if self.current_element_index == self.num_per_epoch:
-            self.current_element_index = 0
-            self._shuffle()
-
-        files, gt_boxes_list = self.files, self.annotations
-        target_file = files[index]
-        gt_boxes = gt_boxes_list[index]
-        gt_boxes = np.array(gt_boxes, dtype=np.float32)
-
-        image = PIL.Image.open(target_file)
-        image = np.array(image)
-
-        samples = {'image': image, 'gt_boxes': gt_boxes}
-
-        if callable(self.augmentor) and self.subset == "train":
-            samples = self.augmentor(**samples)
-
-        if callable(self.pre_processor):
-            samples = self.pre_processor(**samples)
-
-        image = samples['image']
-        gt_boxes = samples['gt_boxes']
-
-        return image, gt_boxes
-
-    def _get_boxes_from_annotation(self, annotation):
+    def _get_boxes_from_annotation(self, xml_file):
         """Get gt boxes list from annotation object.
 
         Args:
-            annotation: BeautifulSoup object of traget image id.
+            xml_file: file name for bounding box annotation xml
 
         Return:
            gt boxes list [[x, y, w, h, class_id]].
         """
-        objs = annotation.findAll('object')
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
 
-        boxes = []
-        for obj in objs:
+        bboxes = []
 
-            obj_names = obj.findChildren('name')
-            for name_tag in obj_names:
-                difficult = obj.findChildren('difficult')[0].contents[0]
-                # Exclude the samples labeled as difficult
-                # It is the same py-faster-rcnn setting
-                # https://github.com/rbgirshick/py-faster-rcnn/blob/96dc9f1dea3087474d6da5a98879072901ee9bf9/lib/datasets/pascal_voc.py#L47
-                if difficult == 1:
-                    continue
+        for obj in root.iter('object'):
+            if self.skip_difficult and int(obj.find('difficult').text) >= 1:
+                continue
 
-                class_name = str(name_tag.contents[0])
+            class_name = obj.find('name').text
+            if class_name not in self.classes:
+                continue
 
-                # ignore category of foot, head, hand
-                if class_name not in self.classes:
-                    continue
+            class_index = self.classes.index(class_name)
 
-                class_index = self.classes.index(class_name)
+            for e in list(obj):
+                if e.tag == "bndbox":
+                    # subtract 1 to make boxes 0-based coordinate.
+                    ymin = int(e.find("ymin").text) - 1
+                    xmin = int(e.find("xmin").text) - 1
+                    ymax = int(e.find("ymax").text) - 1
+                    xmax = int(e.find("xmax").text) - 1
 
-                bbox = obj.findChildren('bndbox')[0]
-                # subtract 1 to make boxes 0-based coordinate.
-                xmin = int(bbox.findChildren('xmin')[0].contents[0]) - 1
-                ymin = int(bbox.findChildren('ymin')[0].contents[0]) - 1
-                xmax = int(bbox.findChildren('xmax')[0].contents[0]) - 1
-                ymax = int(bbox.findChildren('ymax')[0].contents[0]) - 1
+                    w = xmax - xmin
+                    h = ymax - ymin
+                    bbox = [xmin, ymin, w, h, class_index]
+                    bboxes.append(bbox)
 
-                x = xmin
-                y = ymin
-                w = xmax - xmin
-                h = ymax - ymin
-
-                boxes.append([x, y, w, h, class_index])
-
-        return boxes
+        return bboxes
 
     def _annotation_file_from_image_id(self, image_id):
         """Return annotation xml file path."""
 
         return os.path.join(self.annotations_dir, "{}.xml".format(image_id))
-
-    @functools.lru_cache(maxsize=None)
-    def _load_annotation(self, image_id):
-        """load annotation xml and create BeautifulSoup object of a image."""
-        xml = ""
-        annotation_file = self._annotation_file_from_image_id(image_id)
-        with open(annotation_file) as f:
-            xml = f.readlines()
-        xml = ''.join([line.strip('\t') for line in xml])
-        return BeautifulSoup(xml, "html.parser")
 
     def _image_file_from_image_id(self, image_id):
         """Return image file name of a image."""
@@ -202,10 +154,9 @@ class PascalvocBase(ObjectDetectionBase):
     @functools.lru_cache(maxsize=None)
     def _gt_boxes_from_image_id(self, image_id):
         """Return gt boxes list ([[x, y, w, h, class_id]]) of a image."""
-        annotation = self._load_annotation(image_id)
-        boxes = self._get_boxes_from_annotation(annotation)
 
-        return boxes
+        annotation_file = self._annotation_file_from_image_id(image_id)
+        return self._get_boxes_from_annotation(annotation_file)
 
     @functools.lru_cache(maxsize=None)
     def _image_ids(self, data_type=None):
@@ -242,22 +193,13 @@ class PascalvocBase(ObjectDetectionBase):
 
         return df.image_id.tolist()
 
-    def _shuffle(self):
-        """Shuffle data if train."""
-
-        if self.subset == "train" or self.subset == "train_validation":
-            self.files, self.annotations = shuffle(
-                self.files, self.annotations, seed=self.seed)
-            print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
-            self.seed += 1
-
     def _files_and_annotations(self):
         raise NotImplemented()
 
     def _init_files_and_annotations(self):
         """Init files and gt_boxes list, Cache these."""
 
-        cache_key = self.subset + self.data_dir + str(self.classes)
+        cache_key = self.subset + self.data_dir + str(self.classes) + str(self.skip_difficult)
         cls = self.__class__
 
         if cache_key in cls._cache:
@@ -265,23 +207,18 @@ class PascalvocBase(ObjectDetectionBase):
             self.files, self.annotations = cached_obj.files, cached_obj.annotations
         else:
             self.files, self.annotations = self._files_and_annotations()
-            self._shuffle()
             cls._cache[cache_key] = self
 
-    def feed(self):
-        """Batch size numpy array of images and ground truth boxes.
+    def __getitem__(self, i, type=None):
+        target_file = self.files[i]
+        image = self._get_image(target_file)
 
-        Returns:
-          images: images numpy array. shape is [batch_size, height, width]
-          gt_boxes_list: gt_boxes numpy array. shape is [batch_size, num_max_boxes, 5(x, y, w, h, class_id)]
-        """
-        images, gt_boxes_list = zip(*[self._element() for _ in range(self.batch_size)])
+        gt_boxes = self.annotations[i]
+        gt_boxes = np.array(gt_boxes)
+        gt_boxes = gt_boxes.copy()  # is it really needed?
+        gt_boxes = self._fill_dummy_boxes(gt_boxes)
 
-        images = np.array(images)
+        return (image, gt_boxes)
 
-        gt_boxes_list = self._change_gt_boxes_shape(gt_boxes_list)
-
-        if self.data_format == "NCHW":
-            images = np.transpose(images, [0, 3, 1, 2])
-
-        return images, gt_boxes_list
+    def __len__(self):
+        return self.num_per_epoch

@@ -23,6 +23,9 @@ from jinja2 import Environment, FileSystemLoader
 from lmnet.data_processor import Processor
 import lmnet.data_augmentor as augmentor
 
+from blueoil.vars import TEMPLATE_DIR
+
+
 task_type_choices = [
     'classification',
     'object_detection',
@@ -33,6 +36,10 @@ classification_network_definitions = [
     {
         'name': 'LmnetV1Quantize',
         'desc': 'Quantized Lmnet version 1. Accuracy is better than LmnetV0Quantize.',
+    },
+    {
+        'name': 'ResNetQuantize',
+        'desc': 'Quantized ResNet 18. Accuracy is better than LmnetV1Quantize.',
     },
 ]
 
@@ -52,6 +59,10 @@ semantic_segmentation_network_definitions = [
 
 IMAGE_SIZE_VALIDATION = {
     "LmnetV1Quantize": {
+        "max_size": 512,
+        "divider": 16,
+    },
+    "ResNetQuantize": {
         "max_size": 512,
         "divider": 16,
     },
@@ -177,15 +188,18 @@ def image_size_filter(raw):
     return image_size
 
 
-def save_config(blueoil_config):
-    env = Environment(loader=FileSystemLoader('./blueoil/templates', encoding='utf8'))
+def save_config(blueoil_config, output=None):
+    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR, encoding='utf8'))
     tpl = env.get_template('blueoil-config.tpl.yml')
 
     applied = tpl.render(blueoil_config)
-    config_file = blueoil_config['model_name'] + ".yml"
-    with open(config_file, 'w') as fp:
+
+    if not output:
+        output = blueoil_config['model_name'] + ".yml"
+    
+    with open(output, 'w') as fp:
         fp.write(applied)
-    return config_file
+    return output
 
 
 def ask_questions():
@@ -281,6 +295,16 @@ def ask_questions():
         'default': '100'
     }
     training_epochs = prompt(training_epochs_question)
+
+    training_optimizer_question = {
+        'type': 'rawlist',
+        'name': 'value',
+        'message': 'select optimizer:',
+        'choices': ['Momentum',
+                    'Adam'],
+        'default': 'Momentum'
+    }
+    training_optimizer = prompt(training_optimizer_question)
 
     initial_learning_rate_value_question = {
         'type': 'input',

@@ -24,6 +24,8 @@ from scripts.generate_project import run as run_generate_project
 from lmnet.utils import executor, config as config_util
 from lmnet import environment
 
+from blueoil.vars import OUTPUT_TEMPLATE_DIR
+
 
 def get_export_directory(experiment_id, restore_path):
     """Return output dir of export"""
@@ -46,10 +48,10 @@ def get_export_directory(experiment_id, restore_path):
     return export_dir
 
 
-def create_output_directory(output_root_dir):
+def create_output_directory(output_root_dir, output_template_dir=None):
     """Create output directory from template."""
 
-    template_dir = "/home/blueoil/output_template"
+    template_dir = OUTPUT_TEMPLATE_DIR if not output_template_dir else output_template_dir
     # Recreate output_root_dir from template
     if os.path.exists(output_root_dir):
         shutil.rmtree(output_root_dir)
@@ -96,12 +98,15 @@ def make_all(project_dir, output_dir):
         ["lm_x86", "lm_x86.elf"],
         ["lm_arm", "lm_arm.elf"],
         ["lm_fpga", "lm_fpga.elf"],
+        ["lm_aarch64", "lm_aarch64.elf"],
         ["lib_x86", "lib_x86.so"],
         ["lib_arm", "lib_arm.so"],
         ["lib_fpga", "lib_fpga.so"],
+        ["lib_aarch64", "lib_aarch64.so"],
         ["ar_x86", "libdlk_x86.a"],
         ["ar_arm", "libdlk_arm.a"],
         ["ar_fpga", "libdlk_fpga.a"],
+        ["ar_aarch64", "libdlk_aarch64.a"],
     ]
     running_dir = os.getcwd()
     # Change current directory to project directory
@@ -118,7 +123,7 @@ def make_all(project_dir, output_dir):
     os.chdir(running_dir)
 
 
-def run(experiment_id, restore_path):
+def run(experiment_id, restore_path, output_template_dir=None):
     """Convert from trained model."""
 
     # Export model
@@ -145,7 +150,7 @@ def run(experiment_id, restore_path):
 
     # Create output dir from template
     output_root_dir = os.path.join(export_dir, "output")
-    output_directories = create_output_directory(output_root_dir)
+    output_directories = create_output_directory(output_root_dir, output_template_dir)
 
     # Save meta.yaml to model output dir
     shutil.copy(os.path.join(export_dir, "meta.yaml"), output_directories.get("model_dir"))
