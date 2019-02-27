@@ -298,6 +298,22 @@ class DivideBy255(Processor):
         return dict({'image': image}, **kwargs)
 
 
+# https://github.com/facebook/fb.resnet.torch/blob/master/datasets/cifar10.lua    
+# local meanstd = {
+#    mean = {125.3, 123.0, 113.9},
+#    std  = {63.0,  62.1,  66.7},
+# }
+class Normalize(Processor):
+
+    def __init__(self, mean, std):
+        self.mean = np.array(mean)
+        self.std = np.array(std)
+
+    def __call__(self, image, **kwargs):
+        image = (image - self.mean) / self.std
+        return dict({'image': image}, **kwargs)
+
+
 # TODO(wakisaka): test.
 class LetterBoxes(Processor):
     """Darknet's letter boxes"""

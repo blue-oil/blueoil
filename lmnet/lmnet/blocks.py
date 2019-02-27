@@ -98,7 +98,7 @@ def lmnet_block(
             #                                              training=is_training)
             four_letter_data_format = 'NHWC' if data_format == 'channels_last' else 'NCHW'
             batch_normed = tf.contrib.layers.batch_norm(conv,
-                                                        decay=0.99,
+                                                        decay=0.0,
                                                         scale=True,
                                                         center=True,
                                                         updates_collections=None,

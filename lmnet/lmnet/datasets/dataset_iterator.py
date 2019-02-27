@@ -78,7 +78,7 @@ def _xorshift32(r):
     return r & 0xFFFFFFFF
 
 
-class _MultiProcessDatasetPrefetchThread(threading.Thread):
+class _MultiProcessPrefetchThreadLoader(threading.Thread):
     def __init__(self, dataset, result_queue, seed):
         super().__init__()
         # TODO(tokunaga): the number of processes should be configurable
@@ -94,10 +94,7 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
         self.setDaemon(True)
 
     def gen_ids(self):
-        if hasattr(self.dataset, "__len__"):
-            length = len(self.dataset)
-        else:
-            length = self.dataset.num_per_epoch
+        length = len(self.dataset)
         return list(range(0, length))
 
     def gen_task(self, task_batch_size):
@@ -127,29 +124,19 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
     def loop_body_getitem(self):
         task_list = self.gen_task(self.dataset.batch_size * 8)
         fetch_result = self.pool.map(_process_one_data, task_list)
+        print("loop body")
         for fetch_result_chunk in self.chunks(fetch_result, self.batch_size):
             data_batch = _concat_data(fetch_result_chunk)
             put_ok = False
+            print("looping")
             while not put_ok:
                 try:
-                    self.result_queue.put(data_batch, 1)
+                    self.result_queue.put(data_batch, timeout=1)
                     put_ok = True
                 except queue.Full:
                     if self.terminate:
-                        break
-
-    # for current dataset class
-    def loop_body_feed(self):
-        fetch_result = self.pool.map(_feed, list(range(0, 200)))
-        for data_batch in fetch_result:
-            put_ok = False
-            while not put_ok:
-                try:
-                    self.result_queue.put(data_batch, 1)
-                    put_ok = True
-                except queue.Full:
-                    if self.terminate:
-                        break
+                        print("terminate")
+                        return
 
     def loop_body(self):
         if self.support_getitem:
@@ -161,6 +148,7 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
         count = 0
         try:
             while True:
+                print("qsize", self.result_queue.qsize())
                 if count == 1000:
                     self.refresh_pool()
                     count = 0
@@ -172,47 +160,38 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
 
                 count += 1
         finally:
+            print("close , join")
             self.pool.close()
             self.pool.join()
 
-    def run_sync(self):
-        task_list = self.gen_task(self.dataset.batch_size)
+
+class _SimpleLoader:
+
+    def __init__(self, dataset, seed=0):
+        self.dataset = dataset
+        self.seed = seed
+        self._stock_ids = []
+
+    def _gen_ids(self, size):
+        """Generate ids which length is `size`"""
+        for _ in range(0, size):
+            # when _stock_ids is empty, fill and shuffle.
+            if len(self._stock_ids) == 0:
+                self._stock_ids = list(range(0, len(self.dataset)))
+                self.seed = _xorshift32(self.seed)
+                random_state = np.random.RandomState(self.seed)
+                random_state.shuffle(self._stock_ids)
+
+            id = self._stock_ids.pop()
+            yield id
+
+    def get(self):
         result = []
-        for i in task_list:
+        for i in self._gen_ids(self.dataset.batch_size):
             image, label = self.dataset[i]
             image, label = _apply_augmentations(self.dataset, image, label)
             result.append((image, label))
         return _concat_data(result)
-
-
-# fallback class for the datasets that don't support multiprocess prefetching
-class _SingleProcessDatasetPrefetchThread(threading.Thread):
-    def __init__(self, dataset, result_queue, seed):
-        super().__init__()
-
-        self.seed = seed
-        self.result_queue = result_queue
-        self.batch_size = dataset.batch_size
-        self.index = 0
-        self.dataset = dataset
-        self.terminate = False
-
-    def run(self):
-        count = 0
-        while True:
-            if self.terminate:
-                break
-
-            data_batch = self.dataset.feed()
-            put_ok = False
-            while not put_ok:
-                try:
-                    self.result_queue.put(data_batch, 1)
-                    put_ok = True
-                except queue.Full:
-                    if self.terminate:
-                        break
-            count += 1
 
 
 class DatasetIterator:
@@ -226,18 +205,15 @@ class DatasetIterator:
         self.seed = seed
 
         if self.enable_prefetch:
-            self.prefetch_result_queue = queue.Queue(maxsize=200)
+            self.prefetch_result_queue = queue.Queue(maxsize=100)
 
             if hasattr(dataset, "__getitem__"):
-                self.prefetcher = _MultiProcessDatasetPrefetchThread(self.dataset, self.prefetch_result_queue, seed)
-            else:
-                self.prefetcher = _SingleProcessDatasetPrefetchThread(self.dataset, self.prefetch_result_queue, seed)
+                self.loader = _MultiProcessPrefetchThreadLoader(self.dataset, self.prefetch_result_queue, seed)
 
-            self.prefetcher.start()
+            self.loader.start()
             print("ENABLE prefetch")
         else:
-            if hasattr(dataset, "__getitem__"):
-                self.prefetcher = _MultiProcessDatasetPrefetchThread(self.dataset, False, seed)
+            self.loader = _SimpleLoader(self.dataset, seed)
             print("DISABLE prefetch")
 
     @property
@@ -266,13 +242,9 @@ class DatasetIterator:
     def __next__(self):
         if self.enable_prefetch:
             (images, labels) = self.prefetch_result_queue.get()
-            return images, labels
-        elif self.prefetcher:
-            (images, labels) = self.prefetcher.run_sync()
-            return images, labels
         else:
-            images, labels = self.dataset.feed()
-            return images, labels
+            images, labels = self.loader.get()
+        return images, labels
 
     def feed(self):
         return self.__next__()
@@ -300,6 +272,9 @@ class DatasetIterator:
         print(random_indices[0:10])
         self.seed += 1
         return random_indices
+
+    def finish(self):
+        return
 
 
 if __name__ == '__main__':

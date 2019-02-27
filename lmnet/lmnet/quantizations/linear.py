@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.framework.function import Defun
 
@@ -109,3 +110,59 @@ def linear_mid_tread_half_quantizer(
         return _func(x, bit, float(max_value))
 
     return _forward
+
+
+def pact_quantizer(
+        bit=None,
+        initializer=10.0,
+        decay_rate=0.,
+        dtype=tf.float32,
+):
+    r"""PACT
+    """
+    min_value = 0
+
+    @Defun(dtype, tf.float32, tf.int32, dtype)
+    def _backward(x, alpha, bit, grad_quantized):
+        """Backward.
+        """
+        true = tf.ones(tf.shape(x))
+        false = tf.zeros(tf.shape(x))
+        dx = tf.where((x < alpha) & (x > min_value), true, false)
+
+        grad_alpha = tf.reduce_sum(
+            grad_quantized * tf.where(x > alpha, tf.ones_like(x), tf.zeros_like(x))
+        )
+
+        return grad_quantized * dx, grad_alpha, tf.constant(0)
+
+    @Defun(dtype, tf.float32, tf.int32, grad_func=_backward,
+           shape_func=lambda op: [op.inputs[0].get_shape()],
+           func_name='QTZ_linear_mid_tread_half')
+    def _forward(x, alpha, bit):
+        """Forward.
+        """
+
+        n = tf.pow(2., tf.cast(bit, dtype=tf.float32)) - 1
+        value_range = alpha - min_value
+
+        x = tf.clip_by_value(x, min_value, alpha, name="clip")
+        shifted = (x - min_value) / value_range
+        quantized = tf.round(shifted * n) / n
+        unshifted = quantized * value_range + min_value
+        return unshifted
+
+    def wrapper(weights):
+        alpha = tf.get_variable(
+            "pact_alpha",
+            initializer=initializer,
+            trainable=True,
+            dtype=tf.float32,
+            constraint=lambda x: tf.clip_by_value(x, 0, np.infty),
+            regularizer=tf.contrib.layers.l2_regularizer(scale=decay_rate, scope="pact_regularizer"),
+        )
+        tf.summary.scalar("pact_alpha", alpha)
+
+        return _forward(weights, alpha, bit)
+
+    return wrapper

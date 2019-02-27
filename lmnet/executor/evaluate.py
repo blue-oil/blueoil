@@ -44,7 +44,7 @@ def evaluate(config, restore_path):
     else:
         subset = "validation"
 
-    validation_dataset = DatasetIterator(DatasetClass(subset=subset, **dataset_kwargs), seed=0)
+    validation_dataset = DatasetIterator(DatasetClass(subset=subset, **dataset_kwargs), seed=0, enable_prefetch=False)
 
     graph = tf.Graph()
     with graph.as_default():
@@ -97,7 +97,7 @@ def evaluate(config, restore_path):
     print("test_step_size", test_step_size)
 
     for test_step in range(test_step_size):
-        print("test_step", test_step)
+        print("test_step {}/{}".format(test_step, test_step_size))
 
         images, labels = validation_dataset.feed()
         feed_dict = {
@@ -120,6 +120,10 @@ def evaluate(config, restore_path):
         [metrics_summary_op], feed_dict=metrics_feed_dict,
     )
     validation_writer.add_summary(metrics_summary, last_step)
+    validation_writer.flush()
+
+    validation_dataset.finish()
+    print("end")
 
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
