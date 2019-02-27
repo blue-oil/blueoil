@@ -66,8 +66,9 @@ def _save_images(output_dir, filename_images):
 
 def _run(model, input_image, config):
     filename, file_extension = os.path.splitext(model)
+    supported_files = ['.so', '.pb']
 
-    if not file_extension == '.so' or not file_extension == '.pb':
+    if file_extension not in supported_files:
         raise Exception("""
             Unknown file type. Got %s%s.
             Please check the model file (-m).
@@ -97,6 +98,7 @@ def _run(model, input_image, config):
         # only load tensorflow if user wants to use GPU
         from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
+        nn.init()
 
     # run the graph
     output = nn.run(data)
