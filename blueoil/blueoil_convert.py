@@ -98,12 +98,15 @@ def make_all(project_dir, output_dir):
         ["lm_x86", "lm_x86.elf"],
         ["lm_arm", "lm_arm.elf"],
         ["lm_fpga", "lm_fpga.elf"],
+        ["lm_aarch64", "lm_aarch64.elf"],
         ["lib_x86", "lib_x86.so"],
         ["lib_arm", "lib_arm.so"],
         ["lib_fpga", "lib_fpga.so"],
+        ["lib_aarch64", "lib_aarch64.so"],
         ["ar_x86", "libdlk_x86.a"],
         ["ar_arm", "libdlk_arm.a"],
         ["ar_fpga", "libdlk_fpga.a"],
+        ["ar_aarch64", "libdlk_aarch64.a"],
     ]
     running_dir = os.getcwd()
     # Change current directory to project directory
