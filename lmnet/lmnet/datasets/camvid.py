@@ -38,7 +38,6 @@ def get_image(filename, convert_rgb=True):
     return image
 
 
-
 class CamvidBase(SegmentationBase):
     """
     Base class for CamVid and the variant dataset formats.
@@ -266,7 +265,6 @@ class CamvidCustom(StoragePathCustomizable, CamvidBase):
         _, classes = self.parse_label_colors()
         return len(classes)
 
-
     def parse_label_colors(self):
         with open(os.path.join(self.data_dir, "label_colors.txt")) as f:
             lines = f.readlines()
@@ -320,4 +318,3 @@ class CamvidCustom(StoragePathCustomizable, CamvidBase):
         print("files and annotations are ready")
 
         return image_files, label_files
-
