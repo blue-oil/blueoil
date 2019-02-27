@@ -89,23 +89,36 @@ class SimpleConcatQuantize(Base):
                 return weight_quantization(var)
         return var
 
+    def concat(self, name, inputs, channel, kernel):
+        pass
+
     def base(self, images, is_training, *args, **kwargs):
         self.images = images
 
-        x = conv(images, 32, 1)
-        x = batch_norm(x, is_training)
-        x = self.activation(x)
-
-        stock = x
-
-        with tf.variable_scope("", custom_getter=self.custom_getter):
-
-            x = conv(x, 32, 3)
+        with tf.variable_scope("first"):
+            x = conv(images, 32, 1)
             x = batch_norm(x, is_training)
             x = self.activation(x)
+            stock = x
 
-            x = tf.concat([stock, x], axis=3)
+        with tf.variable_scope("", custom_getter=self.custom_getter):
+            with tf.variable_scope("second"):
+                x = conv(x, 32, 3)
+                x = batch_norm(x, is_training)
+                x = self.activation(x)
 
+                x = tf.concat([stock, x], axis=3)
+
+                stock = x
+
+            with tf.variable_scope("third"):
+                x = conv(x, 32, 3)
+                x = batch_norm(x, is_training)
+                x = self.activation(x)
+
+                x = tf.concat([stock, x], axis=3)
+
+        with tf.variable_scope("fourth"):
             x = conv(x, self.num_classes, 3)
             x = batch_norm(x, is_training)
 
