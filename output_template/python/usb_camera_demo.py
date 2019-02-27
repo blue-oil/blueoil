@@ -229,8 +229,9 @@ def run_classification(config):
 def run(model, config_file):
     global nn, pre_process, post_process
     filename, file_extension = os.path.splitext(model)
+    supported_files = ['.so', '.pb']
 
-    if not file_extension == '.so' or not file_extension == '.pb':
+    if file_extension not in supported_files:
         raise Exception("""
             Unknown file type. Got %s%s.
             Please check the model file (-m).

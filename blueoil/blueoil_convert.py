@@ -152,6 +152,9 @@ def run(experiment_id, restore_path, output_template_dir=None):
     # Save meta.yaml to model output dir
     shutil.copy(os.path.join(export_dir, "meta.yaml"), output_directories.get("model_dir"))
 
+    # Save minimal_graph_with_shape.pb to model output dir for TensforflowGraphRunner
+    shutil.copy(os.path.join(export_dir, "minimal_graph_with_shape.pb"), output_directories.get("model_dir"))
+
     # Make
     project_dir_name = "{}.prj".format(project_name)
     project_dir = os.path.join(dest_dir_path, project_dir_name)
