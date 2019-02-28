@@ -276,7 +276,7 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
                     for q in quant_details[n.name]:
                         qtzs.append(q)
 
-            quant_details[m.name] = qtzs if len(qtzs) == len(m.input_nodes) else []
+            quant_details[m.name] = qtzs
             # TODO: check if the quantizers use same n_bits
 
 
