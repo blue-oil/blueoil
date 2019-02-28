@@ -70,7 +70,7 @@ PRE_PROCESSOR = Sequence([
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+NETWORK.OPTIMIZER_CLASS = {{optimizer_class}}
 NETWORK.OPTIMIZER_KWARGS = {{optimizer_kwargs}}
 NETWORK.LEARNING_RATE_FUNC = {{learning_rate_func}}
 NETWORK.LEARNING_RATE_KWARGS = {{learning_rate_kwargs}}
