@@ -126,7 +126,7 @@ class LmSegnetV1(Base):
                 x = self.concat_block('concat_2', x, 192, 3)
                 x = self.concat_block('concat_3', x, 224, 3)
                 # FIXME: need relu for convert.
-                x = self.lmnet_block('conv_1', x, 128, 1, activation=tf.nn.relu)
+                x = self.lmnet_block('conv_2', x, 128, 1, activation=tf.nn.relu)
 
             x_down_16 = x
             x = self.activation(x)
@@ -140,7 +140,7 @@ class LmSegnetV1(Base):
                 x = self.concat_block('concat_4', x, 512, 3)
                 x = self.concat_block('concat_5', x, 576, 3)
                 x = self.concat_block('concat_6', x, 640, 3)
-                x = self.lmnet_block('conv_11', x, 512, 1, activation=tf.nn.relu)
+                x = self.lmnet_block('conv_2', x, 512, 1, activation=tf.nn.relu)
 
             x_down_32 = x
             return x_down_32, x_down_16
