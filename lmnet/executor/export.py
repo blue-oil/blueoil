@@ -96,7 +96,6 @@ def _export(config, restore_path, image_paths):
 
         images_placeholder, _ = model.placeholderes()
         output = model.inference(images_placeholder, is_training)
-        model.summary(output)
 
         summary_op = tf.summary.merge_all()
         init_op = tf.global_variables_initializer()
