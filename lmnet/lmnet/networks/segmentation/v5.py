@@ -17,7 +17,7 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.blocks import lmnet_block2
+from lmnet.blocks import lmnet_block
 from lmnet.networks.segmentation.base import Base
 
 
@@ -39,13 +39,14 @@ class LmSegnetV1(Base):
         self.custom_getter = None
 
     def _get_lmnet_block(self, is_training, channels_data_format):
-        return functools.partial(lmnet_block2,
+        return functools.partial(lmnet_block,
                                  activation=self.activation,
                                  custom_getter=self.custom_getter,
                                  is_training=is_training,
                                  is_debug=self.is_debug,
                                  use_bias=False,
-                                 data_format=channels_data_format)
+                                 data_format=channels_data_format,
+                                 batch_norm_decay=0.01,)
 
     def _space_to_depth(self, inputs=None, block_size=2, name=''):
         if self.data_format != 'NHWC':
