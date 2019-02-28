@@ -55,6 +55,15 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     // inputWidth * inputHeight
     val inputSpace = Input(UInt(avalonAddrWidth.W))
 
+    // (leftTileW + pad) * pad
+    val topBottomLeftPad = Input(UInt(tileCountWidth.W))
+    // middleTileW * pad
+    val topBottomMiddlePad = Input(UInt(tileCountWidth.W))
+    // (rightTileW + pad) * pad
+    val topBottomRightPad = Input(UInt(tileCountWidth.W))
+    // pad
+    val sidePad = Input(UInt(tileCountWidth.W))
+
     // Tile output interface with handshaking
     val tileStartAddress = Output(UInt(avalonAddrWidth.W))
     val tileHeight = Output(UInt(tileCountWidth.W))
@@ -62,6 +71,9 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     val tileRowToRowDistance = Output(UInt(tileCountWidth.W))
     val tileValid = Output(Bool())
     val tileAccepted = Input(Bool())
+    val tileStartPad = Output(UInt(tileCountWidth.W))
+    val tileSidePad = Output(UInt(tileCountWidth.W))
+    val tileEndPad = Output(UInt(tileCountWidth.W))
 
     // Synchronization interface
     val aWarDec = Output(Bool())
@@ -239,6 +251,45 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     }
   }
 
+  val tileStartPad = Reg(UInt(tileCountWidth.W))
+  when(setupTile) {
+    when(verticalTop) {
+      when(horizontalLeft) {
+        tileStartPad := io.topBottomLeftPad + io.sidePad
+      }.elsewhen(horizontalMiddle) {
+        tileStartPad := io.topBottomMiddlePad
+      }.otherwise {
+        tileStartPad := io.topBottomRightPad
+      }
+    }.elsewhen(horizontalLeft) {
+      tileStartPad := io.sidePad
+    }.otherwise {
+      tileStartPad := 0.U
+    }
+  }
+
+  val tileSidePad = Reg(UInt(tileCountWidth.W))
+  when(setupTile) {
+    tileSidePad := Mux(horizontalMiddle, 0.U, io.sidePad)
+  }
+
+  val tileEndPad = Reg(UInt(tileCountWidth.W))
+  when(setupTile) {
+    when(verticalBottom) {
+      when(horizontalLeft) {
+        tileEndPad := io.topBottomLeftPad
+      }.elsewhen(horizontalMiddle) {
+        tileEndPad := io.topBottomMiddlePad
+      }.otherwise {
+        tileEndPad := io.topBottomRightPad + io.sidePad
+      }
+    }.elsewhen(horizontalRight) {
+      tileEndPad := io.sidePad
+    }.otherwise {
+      tileEndPad := 0.U
+    }
+  }
+
   when(idle & io.start) {
     state := State.resetCounters
   }.elsewhen(resetCounters) {
@@ -258,6 +309,9 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   io.tileWidth := tileWidth
   io.tileRowToRowDistance := tileRowToRowDistance
   io.tileValid := valid
+  io.tileStartPad := tileStartPad
+  io.tileSidePad := tileSidePad
+  io.tileEndPad := tileEndPad
   io.aWarDec := syncDecAWar
 }
 

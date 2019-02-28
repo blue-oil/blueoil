@@ -20,6 +20,9 @@ class ADmaAMemWriter(b: Int, avalonDataWidth: Int, aAddrWidth: Int, tileCountWid
     // Tile Generator interface
     val tileHeight = Input(UInt(aAddrWidth.W))
     val tileWidth = Input(UInt(aAddrWidth.W))
+    val tileStartPad = Input(UInt(aAddrWidth.W))
+    val tileSidePad = Input(UInt(aAddrWidth.W))
+    val tileEndPad = Input(UInt(aAddrWidth.W))
     // once tileValid asserted above tile parameters must remain stable and until tileAccepted is asserted
     val tileValid = Input(Bool())
     // accepted at a clock when last request is sent
@@ -76,9 +79,13 @@ class ADmaAMemWriter(b: Int, avalonDataWidth: Int, aAddrWidth: Int, tileCountWid
   val amemAddress = Reg(UInt(aAddrWidth.W))
   when(~waitRequired) {
     when(idle) {
-      amemAddress := Cat(amemBufEvenOdd, 0.U((aAddrWidth - 1).W))
+      amemAddress := Cat(amemBufEvenOdd, 0.U((aAddrWidth - 1).W)) + io.tileStartPad
     }.otherwise {
-      amemAddress := amemAddress + 1.U
+      when(tileXCountLast) {
+        amemAddress := amemAddress + io.tileSidePad + 1.U
+      }.otherwise {
+        amemAddress := amemAddress + 1.U
+      }
     }
   }
 
