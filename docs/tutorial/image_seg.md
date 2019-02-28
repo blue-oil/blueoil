@@ -6,7 +6,7 @@ This guide trains a neural network model to semantic segmentation of [CamVid](ht
 
 ## Preparation
 
-The CamVid dataset is available from SegNet tutorial on [Github](https://github.com/alexgkendall/SegNet-Tutorial), but the dataset format contain fixed absolute path of the data like [`/SegNet/CamVid/test/0001TP_008550.png`](https://github.com/alexgkendall/SegNet-Tutorial/blob/master/CamVid/test.txt). We  changed the absolute paths to relative paths. You can download from our mirror site.
+The CamVid dataset is available from SegNet tutorial on [Github](https://github.com/alexgkendall/SegNet-Tutorial), but the dataset contain fixed absolute path of the data like [`/SegNet/CamVid/test/0001TP_008550.png`](https://github.com/alexgkendall/SegNet-Tutorial/blob/master/CamVid/test.txt). We  changed the absolute paths to relative paths. You can download from our mirror site.
 
 ```
 $ wget https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/camvid.tgz
