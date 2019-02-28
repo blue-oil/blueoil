@@ -67,7 +67,7 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
     T_FLOAT *out_temp = &output[f * out_depth];
 
     T_UINT d = 0;
-    for (; d < out_depth; d += 4) {
+    for (; d + 3 < out_depth; d += 4) {
       asm volatile("vldmia %0, {d16,d17}    \t\n" // q8(d16,d17) scale
                    "vldmia %1, {d18,d19}    \t\n" // q9(d18,d19) shift
                    "vldmia %2, {d20,d21}    \t\n" // q10(d20,d21) input
