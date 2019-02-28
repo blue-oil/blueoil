@@ -133,7 +133,7 @@ You can download data of this format by using [Delta-Mark](https://delta.leapmin
 
 ### CamvidCustom
 
-It is data format based on [CamVid](http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/). We can see sample dataset from [SegNet-Turorial](https://github.com/alexgkendall/SegNet-Tutorial) repository. In CamvidCustom dataset format, training and annotation data are both binary image file.
+It is data format based on [CamVid](http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/). We can see sample dataset from [SegNet-Tutorial](https://github.com/alexgkendall/SegNet-Tutorial) repository. In CamvidCustom dataset format, training and annotation data are both binary image file.
 
 Place the following files and directory.
 
