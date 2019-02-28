@@ -46,6 +46,11 @@ class TileGeneratorParameters(b: Int, avalonDataWidth: Int, tileHeight: Int, til
 
   val inputSpace = inputHeight * inputWidth
 
+  val topBottomLeftPad = (leftTileW + pad) * pad
+  val topBottomMiddlePad = middleTileW * pad
+  val topBottomRightPad = (rightTileW + pad) * pad
+  val sidePad = pad
+
   def referenceTileSequence() = {
     val tileSeq = mutable.ArrayBuffer[DummyTile]()
     var startAddr = 0

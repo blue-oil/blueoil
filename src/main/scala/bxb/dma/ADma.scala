@@ -61,6 +61,15 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
 
     // inputWidth * inputHeight
     val inputSpace = Input(UInt(avalonAddrWidth.W))
+
+    // (leftTileW + pad) * pad
+    val topBottomLeftPad = Input(UInt(tileCountWidth.W))
+    // middleTileW * pad
+    val topBottomMiddlePad = Input(UInt(tileCountWidth.W))
+    // (rightTileW + pad) * pad
+    val topBottomRightPad = Input(UInt(tileCountWidth.W))
+    // pad
+    val sidePad = Input(UInt(tileCountWidth.W))
     // Input geometry parameters --- end
 
     val avalonMasterAddress = Output(UInt(avalonAddrWidth.W))
@@ -104,6 +113,10 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   tileGenerator.io.topRowDistance := io.topRowDistance
   tileGenerator.io.midRowDistance := io.midRowDistance
   tileGenerator.io.inputSpace := io.inputSpace
+  tileGenerator.io.topBottomLeftPad := io.topBottomLeftPad
+  tileGenerator.io.topBottomMiddlePad := io.topBottomMiddlePad
+  tileGenerator.io.topBottomRightPad := io.topBottomRightPad
+  tileGenerator.io.sidePad := io.sidePad
   tileGenerator.io.tileAccepted := tileDone
   tileGenerator.io.aWarZero := io.aWarZero
   io.aWarDec := tileGenerator.io.aWarDec
@@ -112,6 +125,9 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   val amemWriter = Module(new ADmaAMemWriter(b, avalonDataWidth, aAddrWidth, tileCountWidth))
   amemWriter.io.tileHeight := tileGenerator.io.tileHeight
   amemWriter.io.tileWidth := tileGenerator.io.tileWidth
+  amemWriter.io.tileStartPad := tileGenerator.io.tileStartPad
+  amemWriter.io.tileSidePad := tileGenerator.io.tileSidePad
+  amemWriter.io.tileEndPad := tileGenerator.io.tileEndPad
   amemWriter.io.tileValid := tileGenerator.io.tileValid
   tileAcceptedByWriter := amemWriter.io.tileAccepted
   amemWriter.io.avalonMasterReadDataValid := io.avalonMasterReadDataValid
