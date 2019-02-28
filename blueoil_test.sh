@@ -59,6 +59,8 @@ function get_dataset_format_by_task(){
             echo "caltech101 delta_mark";;
         "object_detection" )
             echo "openimagesv4 delta_mark";;
+        "semantic_segmentation" )
+            echo "camvid_custom";;
     esac
 }
 
@@ -230,7 +232,7 @@ if [ "${YML_CONFIG_FILE}" == "" ]; then
     ADDITIONAL_TEST_FLAG=0
     TASK_TYPE_NUMBER=1
     ENABLE_DATA_AUGMENTATION="y"
-    for TASK_TYPE in "classification" "object_detection"
+    for TASK_TYPE in "classification" "object_detection" "semantic_segmentation"
     do
         DATASET_FORMAT_NUMBER=1
         for DATASET_FORMAT in $(get_dataset_format_by_task ${TASK_TYPE})
