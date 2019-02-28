@@ -1,5 +1,3 @@
-/* Copyright 2018 Leapmind Inc. */
-
 #include <dlfcn.h>
 #include <string>
 #include <vector>
@@ -8,6 +6,7 @@
 #include <algorithm>
 
 #include "blueoil.hpp"
+#include "blueoil_image.hpp"
 #include "blueoil_data_processor.hpp"
 
 namespace blueoil {
@@ -15,34 +14,17 @@ namespace data_processor {
 
 // TODO(wakisaka): imple resize.
 Tensor Resize(const Tensor& image, const std::pair<int, int>& size) {
-  const int height = size.first;
-  const int width = size.second;
-  const int channel = 3;
-  const int num = 1;
-
-  Tensor t;
-  const int data_size = channel * width * height * num;
-  std::vector<float> data(data_size, 0);
-  std::vector<int> shape = {num, height, width, channel};
-
-  for (int i = 0; i < data.size(); ++i) {
-    float f_rand = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 255;
-    data[i] = f_rand;
-  }
-
-  t.data = data;
-  t.shape = shape;
-  return t;
+  const int width = size.first;
+  const int height = size.second;
+  return blueoil::image::Resize(image, width, height,
+                                blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
 }
 
 Tensor DivideBy255(const Tensor& image) {
-  Tensor out = {
-    image.data,
-    image.shape
-  };
+  Tensor out(image);
 
   auto div255 = [](float i) { return i/255; };
-  std::transform(image.data.begin(), image.data.end(), out.data.begin(), div255);
+  std::transform(image.begin(), image.end(), out.begin(), div255);
 
   return out;
 }
@@ -55,9 +37,7 @@ Tensor FormatYoloV2(const Tensor& input,
                     const std::string& data_format,
                     const std::pair<int, int>& image_size,
                     const int& num_classes) {
-  Tensor t;
-  t.data = input.data;
-  t.shape = input.shape;
+  Tensor t(input);
 
   return t;
 }
@@ -73,9 +53,7 @@ Tensor FormatYoloV2(const Tensor& input, const FormatYoloV2Parameters& params) {
 
 // TODO(wakisaka): impl
 Tensor ExcludeLowScoreBox(const Tensor& input, const float& threshold) {
-  Tensor t;
-  t.data = input.data;
-  t.shape = input.shape;
+  Tensor t(input);
 
   return t;
 }
@@ -85,9 +63,7 @@ Tensor NMS(const Tensor& input,
            const float& iou_threshold,
            const int& max_output_size,
            const bool& per_class) {
-  Tensor t;
-  t.data = input.data;
-  t.shape = input.shape;
+  Tensor t(input);
 
   return t;
 }
@@ -101,5 +77,3 @@ Tensor NMS(const Tensor& input, const NMSParameters& params){
 };
 }  // namespace data_processor
 }  // namespace blueoil
-
-
