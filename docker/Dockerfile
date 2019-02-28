@@ -134,3 +134,5 @@ COPY output_template /home/blueoil/output_template
 
 # Set __init__.py for python modules
 RUN touch lmnet/lmnet/__init__.py
+
+RUN pip install ipdb

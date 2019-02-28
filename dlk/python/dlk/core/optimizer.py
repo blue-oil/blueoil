@@ -276,7 +276,7 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
                     for q in quant_details[n.name]:
                         qtzs.append(q)
 
-            quant_details[m.name] = qtzs if len(qtzs) == len(m.input_nodes) else []
+            quant_details[m.name] = qtzs
             # TODO: check if the quantizers use same n_bits
 
 
@@ -543,3 +543,4 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
     output_node = exec_list[-1]
     output_type = output_node.dtype
     output_dtype_changer(output_node, output_type)
+

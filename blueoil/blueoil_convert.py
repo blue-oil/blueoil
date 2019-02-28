@@ -85,12 +85,12 @@ def make_all(project_dir, output_dir):
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)
-    # os.environ["FLAGS"] = "-D__WITHOUT_TEST__"
+    os.environ["FLAGS"] = "-D__WITHOUT_TEST__"
     os.environ["CXXFLAGS"] = "-DFUNC_TIME_MEASUREMENT"
     # Make each target and move output files
     for target, output in make_list:
         subprocess.run(("make", "clean", "--quiet"))
-        subprocess.run(("make",  target, "-j4",))
+        subprocess.run(("make",  target, "-j4", "--quiet"))
         strip_binary(output)
         output_file_path = os.path.join(output_dir, output)
         os.rename(output, output_file_path)
@@ -107,7 +107,7 @@ docker run \
 	--runtime=nvidia \
 	-e PYTHONPATH=/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk \
 	-e OUTPUT_DIR=/home/blueoil/saved \
-        -e CUDA_VISIBLE_DEVICES=0 \
+        -e CUDA_VISIBLE_DEVICES=-1 \
 	-v $(pwd)/config:/home/blueoil/config \
 	-v $(pwd)/dataset:/home/blueoil/dataset \
 	-v $(pwd)/lmnet/saved:/home/blueoil/saved \
@@ -115,6 +115,7 @@ docker run \
 	-v $(pwd)/blueoil:/home/blueoil/blueoil \
 	-v $(pwd)/lmnet/lmnet/networks:/home/blueoil/lmnet/lmnet/networks \
 	-v $(pwd)/lmnet/executor:/home/blueoil/lmnet/executor \
+	-v $(pwd)/dlk/python:/home/blueoil/dlk/python \
 	$(id -un)_blueoil:local_build \
        ./blueoil/cli.py convert -e person_segmentation/7_v5/
 

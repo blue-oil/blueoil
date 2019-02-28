@@ -149,26 +149,29 @@ class LmSegnetV1(Base):
 
             return x
 
-    def conv(self,
-             name,
-             inputs,
-             filters,
-             kernel_size,
-             activation=None,):
+    def conv_bias(
+        self,
+        name,
+        inputs,
+        filters,
+        kernel_size,
+    ):
 
         with tf.variable_scope(name):
             conv = tf.layers.conv2d(
-                inputs, filters=filters, kernel_size=kernel_size, padding='SAME', use_bias=False,
+                inputs, filters=filters, kernel_size=kernel_size, padding='SAME',
+                use_bias=True,
                 kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
             )
-            x = self.batch_norm(conv, self.is_training)
-            return x
+            return conv
 
     def fusion(self, sp, cx):
         with tf.variable_scope("fusion"):
             x = tf.concat([cx, sp], axis=3)
             if self.use_FFM:
-                x = self.lmnet_block('float_conv_base', x, self.num_classes, 1, activation=tf.nn.relu)
+                x = self.batch_norm(x, self.is_training)
+                x = self.activation(x)
+                x = self.lmnet_block('conv_base', x, self.num_classes, 3, activation=tf.nn.relu)
                 stock = x
                 h = x.get_shape()[1].value
                 w = x.get_shape()[2].value
@@ -176,6 +179,7 @@ class LmSegnetV1(Base):
                 # conv_1, conv_2 need to float convolution because support only 32x channle on our FPGA IP.
                 x = self.lmnet_block('float_conv_1', x, self.num_classes, 1, activation=tf.nn.relu)
                 x = self.lmnet_block('float_conv_2', x, self.num_classes, 1, activation=self.attention_act)
+
                 x = stock * x
                 x = stock + x
                 return x
@@ -193,8 +197,8 @@ class LmSegnetV1(Base):
         self.images = images
         self.lmnet_block = lmnet_block
 
-        x = lmnet_block('block_1', images, 16, 1)
-        x = lmnet_block('block_3', x, 8, 3)
+        x = lmnet_block('block_1', images, 32, 1)
+        x = lmnet_block('block_2', x, 8, 3)
 
         sp = self.spatial(x)
 
@@ -214,11 +218,11 @@ class LmSegnetV1(Base):
 
         x = self.fusion(sp, cx)
 
-        x = self.lmnet_block('float_last', x, self.num_classes, 1, activation=None)
+        x = self.conv_bias('last', x, self.num_classes, 1)
 
         # only for train
-        self.cx_1 = self.conv("block_cx1", cx_1, self.num_classes, 1, activation=None)
-        self.cx_2 = self.conv("block_cx2", cx_2, self.num_classes, 1, activation=None)
+        self.cx_1 = self.conv_bias("block_cx1", cx_1, self.num_classes, 1)
+        self.cx_2 = self.conv_bias("block_cx2", cx_2, self.num_classes, 1)
 
         return x
 
@@ -348,5 +352,7 @@ class LmSegnetV1Quantize(LmSegnetV1):
                     if var.op.name.startswith("block_1/"):
                         print("not quantized", var.op.name)
                         return var
+
+                print("quantized", var.op.name)
                 return weight_quantization(var)
         return var

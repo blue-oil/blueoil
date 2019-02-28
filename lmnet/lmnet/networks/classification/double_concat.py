@@ -118,7 +118,12 @@ class DoubleConcatQuantize(Base):
 
                 x = tf.concat([stock, x], axis=3)
 
-        with tf.variable_scope("fourth"):
+            with tf.variable_scope("fourth"):
+                x = conv(x, 32, 3)
+                x = batch_norm(x, is_training)
+                x = tf.nn.relu(x)
+
+        with tf.variable_scope("fifth"):
             x = conv(x, self.num_classes, 3)
             x = batch_norm(x, is_training)
 

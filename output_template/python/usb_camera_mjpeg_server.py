@@ -21,12 +21,17 @@ from __future__ import unicode_literals
 import time
 from multiprocessing import Pool
 # from multiprocessing.dummy import Pool
-from time import sleep
 from Queue import Queue
+import signal
+from threading import Thread
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from SocketServer import ThreadingMixIn
 
 import click
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+import PIL.Image
 
 from lmnet.nnlib import NNLib
 from lmnet.utils.config import (
@@ -34,34 +39,17 @@ from lmnet.utils.config import (
     build_pre_process,
     build_post_process,
 )
-
 from lmnet.utils.demo import (
     add_rectangle,
     add_fps,
 )
 
+_color_map = plt.cm.jet
+_color_map._init()
+
 nn = None
 pre_process = None
 post_process = None
-
-
-class MyTime:
-    def __init__(self, function_name):
-        self.start_time = time.time()
-        self.function_name = function_name
-
-    def show(self):
-        print("TIME: ", self.function_name, time.time() - self.start_time)
-
-
-def add_class_label(canvas,
-                    text="Hello",
-                    font=cv2.FONT_HERSHEY_SIMPLEX,
-                    font_scale=0.42,
-                    font_color=(140, 40, 200),
-                    line_type=1,
-                    dl_corner=(50, 50)):
-    cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
 def create_label_colormap():
@@ -107,12 +95,6 @@ def label_to_color_image(results):
     return np.squeeze(colormap[label])
 
 
-import matplotlib.pyplot as plt
-
-_color_map = plt.cm.jet
-_color_map._init()
-
-
 def label_color_map(results):
 
     person_label = np.round(results[:, :, :, 1] * 255)
@@ -141,21 +123,10 @@ def run_inference(inputs):
     return result, fps
 
 
-def clear_queue(queue):
-    while not queue.empty():
-        queue.get()
-    return queue
-
-
-def swap_queue(q1, q2):
-    return q2, q1  # These results are swapped
-
-
-import signal
 def _init_worker():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-import PIL.Image
+
 
 
 def _seg_post_process(result, input_width, input_height):
@@ -177,9 +148,6 @@ def _seg_post_process(result, input_width, input_height):
     # print("sum", np.sum(result < threshold))
     result[result < threshold] = 0.
     return result
-
-
-from threading import Thread
 
 
 class FileVideoStream:
@@ -231,16 +199,10 @@ def softmax(x):
     return exp / np.expand_dims(exp.sum(axis=-1), -1)
 
 
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from SocketServer import ThreadingMixIn
-
-
 class CamHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        print("get")
         global config, vc, pool, camera_width, camera_height
-
-        print("get" * 100)
-
         input_width = config.IMAGE_SIZE[1]
         input_height = config.IMAGE_SIZE[0]
 
@@ -251,6 +213,7 @@ class CamHandler(BaseHTTPRequestHandler):
         flg, camera_img = stream.read()
         if not flg:
             Exception("Camera is wrong")
+
         pool_result = pool.apply_async(run_inference, (camera_img, ))
 
         self.send_response(200)
@@ -258,8 +221,7 @@ class CamHandler(BaseHTTPRequestHandler):
         self.end_headers()
         while True:
             try:
-                # if not flg:
-                #     continue
+                print("while loop")
 
                 pool_result.wait()
 
@@ -293,17 +255,18 @@ class CamHandler(BaseHTTPRequestHandler):
                 # end of the message - not sure how we ever get here, though
                 print("KeyboardInterrpt in server loop - breaking the loop (server now hung?)")
                 self.wfile.write(b"\r\n--jpgboundary--\r\n")
-                pool.close()
-                pool.join()
-                break
+
+            finally:
+                print("loop finaly")
+
         return
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
+    daemon_threads = True
 
 
-import signal
 def initializer():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -329,24 +292,27 @@ def run(library, config_file):
 
     pool = Pool(processes=1, initializer=initializer)
 
-    if config.TASK == "IMAGE.CLASSIFICATION":
-        run_classification(config)
+    # if config.TASK == "IMAGE.CLASSIFICATION":
+    #     run_classification(config)
 
-    if config.TASK == "IMAGE.OBJECT_DETECTION":
-        run_object_detection(config)
+    # if config.TASK == "IMAGE.OBJECT_DETECTION":
+    #     run_object_detection(config)
 
     if config.TASK == "IMAGE.SEMANTIC_SEGMENTATION":
         try:
             server = ThreadedHTTPServer(('', 80), CamHandler)
             print("server starting")
             server.serve_forever()
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as e:
             # ctrl-c comes here but need another to end all.  Probably should have terminated thread here, too.
             print("KeyboardInterrpt in server - ending server")
-            # capture.release()
-            pool.close()
+            vc.release()
+            pool.terminate()
             pool.join()
             server.socket.close()
+            server.shutdown()
+
+        return
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
