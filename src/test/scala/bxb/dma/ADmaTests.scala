@@ -437,21 +437,20 @@ class ADmaTestAMemWriting(dut: ADmaTestModule, amemSize: Int, tileHeight: Int, t
           poke(dut.io.aRawDec, true)
           for (y <- tileY until min(tileY + tileHeight, inputHeight + param.pad)) {
             for (x <- tileX until min(tileX + tileWidth, inputWidth + param.pad)) {
-              if (y >= 0 && y < inputHeight && x >= 0 && x < inputWidth) {
-                val inputAddr = tileC / 32 * inputHeight * inputWidth + y * inputWidth + x
-                for (row <- 0 until 32) {
-                  poke(dut.io.amemRead(row).addr, amemAddr)
-                  poke(dut.io.amemRead(row).enable, true)
-                }
-                doStep()
-                poke(dut.io.aWarInc, false)
-                poke(dut.io.aRawDec, false)
-                val inputLow = inputMemory(inputAddr * 2)
-                val inputHigh = inputMemory(inputAddr * 2 + 1)
-                for (row <- 0 until 32) {
-                  val expected = (((inputHigh >> row) & 0x1) << 1) | ((inputLow >> row) & 0x1)
-                  expect(dut.io.amemQ(row), expected)
-                }
+              val inputAddr = tileC / 32 * inputHeight * inputWidth + y * inputWidth + x
+              for (row <- 0 until 32) {
+                poke(dut.io.amemRead(row).addr, amemAddr)
+                poke(dut.io.amemRead(row).enable, true)
+              }
+              doStep()
+              poke(dut.io.aWarInc, false)
+              poke(dut.io.aRawDec, false)
+              val isPad = !(y >= 0 && y < inputHeight && x >= 0 && x < inputWidth)
+              val inputLow = if (isPad) 0 else inputMemory(inputAddr * 2)
+              val inputHigh = if (isPad) 0 else inputMemory(inputAddr * 2 + 1)
+              for (row <- 0 until 32) {
+                var expected = (((inputHigh >> row) & 0x1) << 1) | ((inputLow >> row) & 0x1)
+                expect(dut.io.amemQ(row), expected)
               }
               amemAddr = amemAddr + 1
             }
@@ -481,7 +480,7 @@ object ADmaTests {
     var ok = true
 
     breakable {
-      for (maxBurst <- List(1 /*, 2, 4*/)) {
+      for (maxBurst <- List(1, 2, 4)) {
         for ((tileHeight, tileWidth) <- List((4, 4), (5, 5), (10, 10))) {
           println(f"running with maxBurst:${maxBurst} tileHeight:${tileHeight} tileWidth:${tileWidth}")
           require(amemSize >= tileHeight * tileWidth)
