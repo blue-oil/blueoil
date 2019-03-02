@@ -1,6 +1,5 @@
-/* Copyright 2018 Leapmind Inc. */
-#ifndef RUNTIME_INCLUDE_DCORE_HPP_
-#define RUNTIME_INCLUDE_DCORE_HPP_
+#ifndef RUNTIME_INCLUDE_BLUEOIL_HPP_
+#define RUNTIME_INCLUDE_BLUEOIL_HPP_
 
 
 #include <string>
@@ -14,18 +13,41 @@ extern "C" {
   Network* network_create();
   void network_delete(Network *nn);
   bool network_init(Network *nn);
-  int network_get_input_rank(Network *nn);
-  int network_get_output_rank(Network *nn);
-  void network_get_input_shape(Network *nn, int *shape);
-  void network_get_output_shape(Network *nn, int *shape);
-  void network_run(Network *nn, float *input, float *output);
+  int network_get_input_rank(const Network *nn);
+  int network_get_output_rank(const Network *nn);
+  void network_get_input_shape(const Network *nn, int *shape);
+  void network_get_output_shape(const Network *nn, int *shape);
+  void network_run(Network *nn, const float *input, float *output);
 }
 
 
 namespace blueoil {
-struct Tensor {
-  std::vector<float> data;
-  std::vector<int> shape;
+class Tensor {
+private:
+  std::vector<int> shape_;
+  std::vector<float> data_;
+  int shapeVolume();
+public:
+  Tensor(std::vector<int> shape);
+  Tensor(std::vector<int> shape, std::vector<float> data);
+  Tensor(std::vector<int> shape, float *data);
+  Tensor(const Tensor &tensor);
+  std::vector<int> shape() const;
+  std::vector<float> & data();
+  const float *dataAsArray() const;
+  const float *dataAsArray(std::vector<int> indices) const;
+  float *dataAsArray();
+  float *dataAsArray(std::vector<int> indices);
+  void dump() const;
+  std::vector<float>::const_iterator begin() const;
+  std::vector<float>::const_iterator end() const;
+  std::vector<float>::iterator begin();
+  std::vector<float>::iterator end();
+  bool allequal(const Tensor &tensor) const;
+  bool allclose(const Tensor &tensor) const;
+  // rtol: relative tolerance parameter
+  // atol: absolute tolerance parameter
+  bool allclose(const Tensor &tensor, float rtol, float atol) const;
 };
 
 
@@ -76,9 +98,9 @@ struct DetectedBox:Box {
 };
 
 // format output tensor to detected box to easy use for the user. be able to do on object detection task.
-std::vector<DetectedBox> FormatDetectedBox(Tensor output_tensor);
+std::vector<DetectedBox> FormatDetectedBox(const Tensor& output_tensor);
 
 }  // namespace box_util
 }  // namespace blueoil
 
-#endif  // RUNTIME_INCLUDE_DCORE_HPP_
+#endif  // RUNTIME_INCLUDE_BLUEOIL_HPP_
