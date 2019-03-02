@@ -19,6 +19,7 @@ limitations under the License.
 #include "global.h"
 #include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_tiling.h"
+#include "time_measurement.h"
 
 #include <arm_neon.h>
 
@@ -36,6 +37,8 @@ void pack_input_for_tiling(QUANTIZED_NOT_PACKED input[],
     const int in_height,
     const int in_width,
     const int in_bitwidth) {
+  Measurement::Start("Pack_input_for_tiling");
+  
   constexpr T_UINT InTypeBitWidth = CHAR_BIT * sizeof(QUANTIZED_PACKED);
   const T_UINT in_stride = (in_channels + InTypeBitWidth - 1) / InTypeBitWidth;
 #pragma omp parallel for schedule(dynamic)
@@ -72,6 +75,8 @@ void pack_input_for_tiling(QUANTIZED_NOT_PACKED input[],
       }
     }
   }
+
+  Measurement::Stop();
 }
 
 void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
