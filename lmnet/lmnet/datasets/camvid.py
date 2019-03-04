@@ -109,28 +109,6 @@ class CamvidBase(SegmentationBase):
 
         return (image, label)
 
-    '''
-    def get_data(self):
-        if self.use_prefetch:
-            data_list = self.prefetch_result.get(None)
-            self.start_prefetch()
-            images, masks = zip(*data_list)
-            return images, masks
-        else:
-            images, masks = zip(*[self._element() for _ in range(self.batch_size)])
-
-            return images, masks
-
-    def feed(self):
-        """Returns batch size numpy array of images and binarized labels."""
-        images, labels = self.get_data()
-        images, labels = np.array(images), np.array(labels)
-
-        if self.data_format == 'NCHW':
-            images = np.transpose(images, [0, 3, 1, 2])
-        return images, labels
-    '''
-
     def __len__(self):
         return self.num_per_epoch
 
