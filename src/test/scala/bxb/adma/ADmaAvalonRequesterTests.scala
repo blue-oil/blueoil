@@ -43,13 +43,18 @@ class ADmaAvalonRequesterTestRequestSequence(dut: ADmaAvalonRequester, b: Int, t
   poke(dut.io.tileWidth, tileWidth)
   poke(dut.io.tileRowToRowDistance, ref.rowToRowDistance)
   poke(dut.io.avalonMasterWaitRequest, false)
+  poke(dut.io.writerDone, false)
   expect(dut.io.avalonMasterRead, false)
   for (req <- ref.requestSeq) {
     step(1)
     expect(dut.io.avalonMasterAddress, req.addr)
     expect(dut.io.avalonMasterRead, true)
     expect(dut.io.avalonMasterBurstCount, req.burst)
-    expect(dut.io.tileAccepted, req == ref.requestSeq.last)
+    expect(dut.io.tileAccepted, false)
+    if (req == ref.requestSeq.last) {
+      step(1)
+      expect(dut.io.tileAccepted, true)
+    }
   }
 }
 
@@ -60,6 +65,7 @@ class ADmaAvalonRequesterTestWaitRequest(dut: ADmaAvalonRequester, b: Int, tileH
   poke(dut.io.tileHeight, tileHeight)
   poke(dut.io.tileWidth, tileWidth)
   poke(dut.io.tileRowToRowDistance, ref.rowToRowDistance)
+  poke(dut.io.writerDone, false)
   var acceptDelay = 1
   expect(dut.io.avalonMasterRead, false)
   for (req <- ref.requestSeq) {
@@ -72,8 +78,11 @@ class ADmaAvalonRequesterTestWaitRequest(dut: ADmaAvalonRequester, b: Int, tileH
     }
     acceptDelay = (acceptDelay + 2) % 64
     poke(dut.io.avalonMasterWaitRequest, false)
-    expect(dut.io.tileAccepted, req == ref.requestSeq.last)
+    expect(dut.io.tileAccepted, false)
     step(1)
+    if (req == ref.requestSeq.last) {
+      expect(dut.io.tileAccepted, true)
+    }
   }
 }
 
