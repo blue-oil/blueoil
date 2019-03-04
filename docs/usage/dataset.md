@@ -138,10 +138,10 @@ It is data format based on [CamVid](http://mi.eng.cam.ac.uk/research/projects/Vi
 Place the following files and directory.
 
 - `label_colors.txt`: Class information file like under the example.
-- `train.txt`: The space separated pairs of data file path and annotation file path like under the example.
+- `train.txt`: Pair of data and annotation image file paths. see below example.
 - `train`: All training images are located under the directory.
 - `trainannot`: All training annotation images are located under the directory.
-- `val.txt`: The space separated pairs of data file path and annotation file path like under the example.
+- `val.txt`: Pair of data and annotation image file paths. see below example.
 - `val`: All test images are located under the directory.
 - `valannot`: All test annotation images are located under the directory.
 
