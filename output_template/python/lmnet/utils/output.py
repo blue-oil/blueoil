@@ -181,26 +181,18 @@ class ImageFromJson():
     """Create callable instance to return list of tuple (file_name, PIL image object) from prediction json."""
 
     color_maps = [
-        "#1f77b4",
-        "#aec7e8",
-        "#ff7f0e",
-        "#ffbb78",
-        "#2ca02c",
-        "#98df8a",
-        "#d62728",
-        "#ff9896",
-        "#9467bd",
-        "#c5b0d5",
-        "#8c564b",
-        "#c49c94",
-        "#e377c2",
-        "#f7b6d2",
-        "#7f7f7f",
-        "#c7c7c7",
-        "#bcbd22",
-        "#dbdb8d",
-        "#17becf",
-        "#9edae5",
+        [128, 128, 128],
+        [128, 0, 0],
+        [192, 192, 128],
+        [128, 64, 128],
+        [60, 40, 222],
+        [128, 128, 0],
+        [192, 128, 128],
+        [64, 64, 128],
+        [64, 0, 128],
+        [64, 64, 0],
+        [0, 128, 192],
+        [0, 0, 0],
     ]
 
     def __init__(self, task, classes, image_size):
@@ -261,7 +253,7 @@ class ImageFromJson():
             output_pil = PIL.Image.fromarray(output_image)
             filename_images.append((out_file, output_pil))
 
-            overlap_image = 0.5 * raw_image + output_image * 0.5
+            overlap_image = 0.2 * raw_image + output_image * 0.8
             overlap_image = overlap_image.astype(np.uint8)
             overlap = PIL.Image.fromarray(overlap_image)
 
