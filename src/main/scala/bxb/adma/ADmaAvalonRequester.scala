@@ -9,7 +9,7 @@ class ADmaAvalonRequester(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountW
   require(isPow2(avalonDataWidth) && avalonDataWidth >= 8)
   val avalonDataByteWidth = avalonDataWidth / 8
   val avalonDataByteWidthLog = Chisel.log2Up(avalonDataByteWidth)
-  val burstMsb = if (maxBurst != 1) Chisel.log2Up(maxBurst) else 0
+  val burstMsb = Chisel.log2Floor(maxBurst)
   val io = IO(new Bundle {
     // Tile Generator interface
     val tileStartAddress = Input(UInt(avalonAddrWidth.W))
