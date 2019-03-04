@@ -168,9 +168,9 @@ validation_dataset_path
 │   ├── 0016E5_07961.png
 │   ├── 0016E5_07963.png
 └── valannot
-    ├── 0001TP_006690.png
-    ├── 0001TP_006720.png
-    ├── 0001TP_006750.png
+    ├── 0016E5_07959.png
+    ├── 0016E5_07961.png
+    ├── 0016E5_07963.png
 ```
 
 Example of `train.txt`
