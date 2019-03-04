@@ -35,6 +35,10 @@ class ADmaAvalonRequester(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountW
     val avalonMasterWaitRequest = Input(Bool())
   })
 
+  private def toBytes(elements: UInt) = {
+    elements << avalonDataByteWidthLog.U
+  }
+
   object State {
     val idle :: runningLong :: runningShort :: waitingWriter :: Nil = Enum(4)
   }
@@ -82,11 +86,11 @@ class ADmaAvalonRequester(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountW
     when(idle) {
       avalonAddress := io.tileStartAddress
     }.elsewhen(tileXCountLast) {
-      avalonAddress := avalonAddress + (io.tileRowToRowDistance << avalonDataByteWidthLog.U)
+      avalonAddress := avalonAddress + toBytes(io.tileRowToRowDistance)
     }.elsewhen(runningLong) {
-      avalonAddress := avalonAddress + (maxBurst.U << avalonDataByteWidthLog.U)
+      avalonAddress := avalonAddress + toBytes(maxBurst.U)
     }.otherwise {
-      avalonAddress := avalonAddress + (tileXCountShort << avalonDataByteWidthLog.U)
+      avalonAddress := avalonAddress + toBytes(tileXCountShort)
     }
   }
 
