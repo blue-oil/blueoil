@@ -25,10 +25,10 @@ from lmnet.utils.module_loader import load_class
 from blueoil.vars import TEMPLATE_DIR
 
 
-# TODO(wakisaka): objecte detection, segmentation
 _TASK_TYPE_TEMPLATE_FILE = {
     "classification": "classification.tpl.py",
     "object_detection": "object_detection.tpl.py",
+    "semantic_segmentation": "semantic_segmentation.tpl.py",
 }
 
 _NETWORK_NAME_NETWORK_MODULE_CLASS = {
@@ -48,6 +48,10 @@ _NETWORK_NAME_NETWORK_MODULE_CLASS = {
         "network_module": "lm_fyolo",
         "network_class": "LMFYoloQuantize",
     },
+    "LmSegnetV1Quantize": {
+        "network_module": "lm_segnet_v1",
+        "network_class": "LmSegnetV1Quantize",
+    },
 }
 
 _DATASET_FORMAT_DATASET_MODULE_CLASS = {
@@ -66,6 +70,10 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
     "DeLTA-Mark for Object Detection": {
         "dataset_module": "delta_mark",
         "dataset_class": "ObjectDetectionBase",
+    },
+    "CamvidCustom": {
+        "dataset_module": "camvid",
+        "dataset_class": "CamvidCustom",
     },
 }
 
