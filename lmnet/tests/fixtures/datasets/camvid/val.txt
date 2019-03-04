@@ -1,0 +1,5 @@
+/SegNet/CamVid/val/0016E5_07959.png /SegNet/CamVid/valannot/0016E5_07959.png
+/SegNet/CamVid/val/0016E5_07961.png /SegNet/CamVid/valannot/0016E5_07961.png
+/SegNet/CamVid/val/0016E5_07963.png /SegNet/CamVid/valannot/0016E5_07963.png
+/SegNet/CamVid/val/0016E5_07965.png /SegNet/CamVid/valannot/0016E5_07965.png
+/SegNet/CamVid/val/0016E5_07967.png /SegNet/CamVid/valannot/0016E5_07967.png
