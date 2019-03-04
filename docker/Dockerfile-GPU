@@ -52,8 +52,12 @@ RUN curl -kL https://bootstrap.pypa.io/get-pip.py | python
 # Setup lmnet
 COPY lmnet /blueoil/lmnet
 RUN touch /blueoil/lmnet/lmnet/__init__.py
-RUN pip install -r /blueoil/lmnet/gpu.requirements.txt \
-    && pip install -e 'git+https://github.com/cocodataset/coco.git#egg=pycocotools&subdirectory=PythonAPI'
+RUN pip install -r /blueoil/lmnet/gpu.requirements.txt
+
+# Build coco. It needs numpy.
+# https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
+RUN cd /blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
+
 # In order to install blueoil requirements `prompt_toolkit==1.0.15`, uninstall prompt-toolkit v2.0 that depends on `pdb==0.10.2`.
 RUN pip uninstall -y prompt-toolkit
 
