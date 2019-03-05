@@ -17,20 +17,16 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
-from lmnet.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
-from lmnet.data_augmentor import (
-    Brightness,
-    Color,
-    Contrast,
-    FlipLeftRight,
-    Hue,
-    SSDRandomCrop,
-)
+from lmnet.networks.object_detection.{{network_module}} import {{network_class}}
+from lmnet.datasets.{{dataset_module}} import {{dataset_class}}
+{% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
+    {{ augmentor[0] }},{% endfor %}
+){% endif %}
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     ResizeWithGtBoxes,
     DivideBy255,
+    PerImageStandardization,
 )
 from lmnet.post_processor import (
     FormatYoloV2,
@@ -44,21 +40,21 @@ from lmnet.quantizations import (
 
 IS_DEBUG = False
 
-NETWORK_CLASS = LMFYoloQuantize
+NETWORK_CLASS = {{network_class}}
 
 # TODO(wakisaka): should be hidden. generate dataset class on the fly.
-DATASET_CLASS = Pascalvoc20072012
+DATASET_CLASS = type('DATASET_CLASS', ({{dataset_class}},), {{dataset_class_property}})
 
-IMAGE_SIZE = [320, 320]
-BATCH_SIZE = 32
+IMAGE_SIZE = {{image_size}}
+BATCH_SIZE = {{batch_size}}
 DATA_FORMAT = "NHWC"
 TASK = Tasks.OBJECT_DETECTION
-CLASSES = DATASET_CLASS.classes
+CLASSES = {{classes}}
 
-MAX_EPOCHS = 1000000
-SAVE_STEPS = 10000
-TEST_STEPS = 1000
-SUMMARISE_STEPS = 1000
+MAX_EPOCHS = {{max_epochs}}
+SAVE_STEPS = {{save_steps}}
+TEST_STEPS = {{test_steps}}
+SUMMARISE_STEPS = {{summarise_steps}}
 
 # distributed training
 IS_DISTRIBUTION = False
@@ -71,7 +67,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     ResizeWithGtBoxes(size=IMAGE_SIZE),
-    DivideBy255()
+    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 anchors = [
     (1.3221, 1.73145), (3.19275, 4.00944), (5.05587, 8.09892), (9.47112, 4.84053), (11.2364, 10.0071)
@@ -91,14 +87,12 @@ POST_PROCESSOR = Sequence([
 ])
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-step_per_epoch = int(16551 / BATCH_SIZE)
-NETWORK.LEARNING_RATE_KWARGS = {
-    "values": [5e-4, 2e-2, 5e-3, 5e-4],
-    "boundaries": [step_per_epoch, step_per_epoch * 80, step_per_epoch * 120],
-}
+
+NETWORK.OPTIMIZER_CLASS = {{optimizer_class}}
+
+NETWORK.OPTIMIZER_KWARGS = {{optimizer_kwargs}}
+NETWORK.LEARNING_RATE_FUNC = {{learning_rate_func}}
+NETWORK.LEARNING_RATE_KWARGS = {{learning_rate_kwargs}}
 
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
@@ -131,11 +125,6 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([
-    FlipLeftRight(),
-    Brightness((0.75, 1.25)),
-    Color((0.75, 1.25)),
-    Contrast((0.75, 1.25)),
-    Hue((-10, 10)),
-    SSDRandomCrop(min_crop_ratio=0.7),
-])
+DATASET.AUGMENTOR = Sequence([{% if data_augmentation %}{% for augmentor in data_augmentation %}
+    {{ augmentor[0] }}({% for d_name, d_value in augmentor[1] %}{{ d_name }}={{ d_value }}, {% endfor %}),{% endfor %}
+{% endif %}])

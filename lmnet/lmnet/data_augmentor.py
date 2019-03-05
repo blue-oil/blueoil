@@ -870,7 +870,7 @@ class Rotate(data_processor.Processor):
         self.min_angle = min_angle
         self.max_angle = max_angle
 
-    def __call__(self, image, mask=None, gt_boxes=None, **kwargs):
+    def __call__(self, image, mask=None, **kwargs):
         """
         Args:
             image (np.ndarray): a image. shape is [height, width, channel]
@@ -891,7 +891,7 @@ class Rotate(data_processor.Processor):
             mask_rot = np.array(mask_rot)
             mask = mask_rot
 
-        return dict({'image': img_rot, 'mask': mask, 'gt_boxes': gt_boxes}, **kwargs)
+        return dict({'image': img_rot, 'mask': mask}, **kwargs)
 
 
 # TODO(wakisaka): implement class

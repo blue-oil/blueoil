@@ -62,14 +62,6 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
         "dataset_module": "delta_mark",
         "dataset_class": "ObjectDetectionBase",
     },
-    "Pascalvoc": {
-        "dataset_module": "pascalvoc_2007_2012",
-        "dataset_class": "Pascalvoc20072012",
-    },
-    "Pascalvoc2007": {
-        "dataset_module": "pascalvoc_2007",
-        "dataset_class": "Pascalvoc2007",
-    },
 }
 
 
