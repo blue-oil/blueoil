@@ -55,10 +55,6 @@ def _show_image_with_annotation(image, label, colors):
 
 
 def _test_camvid_basics(train_dataset, test_dataset):
-    assert train_dataset.num_classes == 11
-    colors = train_dataset.label_colors
-    assert len(colors) == 12
-
     # test training dataset
     train_image_files, train_label_files = train_dataset.feed()
     assert train_image_files.shape[0] == 1
@@ -91,6 +87,10 @@ def test_camvid():
     test_dataset = DummyCamvid(subset="validation", batch_size=batch_size)
     test_dataset = DatasetIterator(test_dataset)
 
+    assert train_dataset.num_classes == 11
+    colors = train_dataset.label_colors
+    assert len(colors) == 12
+
     _test_camvid_basics(train_dataset, test_dataset)
 
 
@@ -100,6 +100,10 @@ def test_camvid_custom():
     train_dataset = DatasetIterator(train_dataset)
     test_dataset = DummyCamvidCustom(subset="validation", batch_size=batch_size)
     test_dataset = DatasetIterator(test_dataset)
+
+    assert train_dataset.num_classes == 12
+    colors = train_dataset.label_colors
+    assert len(colors) == 12
 
     _test_camvid_basics(train_dataset, test_dataset)
 
