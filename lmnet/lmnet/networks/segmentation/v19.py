@@ -28,7 +28,8 @@ class LmSegnetV1(Base):
     def __init__(
             self,
             auxiliary_weight=0.5,
-            use_FFM=True,
+            use_feature_fusion=True,
+            use_attention_refinement=True,
             use_losss_weight=False,
             *args,
             **kwargs
@@ -45,7 +46,8 @@ class LmSegnetV1(Base):
         # I want to usesigmoid.
         self.attention_act = tf.nn.relu
         self.batch_norm_decay = 0.1
-        self.use_FFM = use_FFM  # use Feature fusion module
+        self.use_feature_fusion = use_feature_fusion  # use Feature fusion module
+        self.use_attention_refinement = use_attention_refinement  # use attention refinement module
         self.use_losss_weight = use_losss_weight
 
     def _get_lmnet_block(self, is_training, channels_data_format):
@@ -177,7 +179,7 @@ class LmSegnetV1(Base):
     def fusion(self, sp, cx):
         with tf.variable_scope("fusion"):
             x = tf.concat([cx, sp], axis=3)
-            if self.use_FFM:
+            if self.use_feature_fusion:
                 x = self.batch_norm(x, self.is_training)
                 x = self.activation(x)
                 x = self.lmnet_block('conv_base', x, self.num_classes, 1, activation=tf.nn.relu)
@@ -214,8 +216,11 @@ class LmSegnetV1(Base):
         h = tail.get_shape()[1].value
         w = tail.get_shape()[2].value
         tail = tf.layers.average_pooling2d(name="gap", inputs=tail, pool_size=[h, w], padding="VALID", strides=1)
-        cx_16 = self.attention("attention_16", cx_16)
-        cx_32 = self.attention("attention_32", cx_32)
+
+        if self.use_attention_refinement:
+            cx_16 = self.attention("attention_16", cx_16)
+            cx_32 = self.attention("attention_32", cx_32)
+
         cx_32 = cx_32 * tail
 
         cx_1 = self._depth_to_space(name="d2s_1", inputs=cx_16, block_size=2)
