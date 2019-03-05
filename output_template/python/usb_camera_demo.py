@@ -99,7 +99,7 @@ def label_to_color_image(results):
     """Adds color defined by the dataset colormap to the label.
 
     Args:
-        label: A 2D array with integer type, storing the segmentation label.
+        results: A 2D array with integer type, storing the segmentation label.
 
     Returns:
         result: A 2D array with floating type. The element of the array
@@ -273,8 +273,6 @@ def run_sementic_segmentation(config):
     camera_width = 320
     camera_height = 240
     window_name = "Segmentation Demo"
-    input_width = config.IMAGE_SIZE[1]
-    input_height = config.IMAGE_SIZE[0]
 
     vc = cv2.VideoCapture(0)
     if not vc.isOpened():
@@ -322,83 +320,12 @@ def run_sementic_segmentation(config):
                 key = cv2.waitKey(2)    # Wait for 2ms
                 if key == 27:           # ESC to quit
                     return
-
             if pool_result.ready():
                 break
         q_show = clear_queue(q_show)
         q_save, q_show = swap_queue(q_save, q_show)
         result, fps = pool_result.get()
         m1.show()
-
-
-# def run_sementic_segmentation(config):
-#     camera_width = 320
-#     camera_height = 240
-#
-#     window_name = "Segmentation Demo"
-#     window_width = 320
-#     window_height = 240
-#
-#     vc = cv2.VideoCapture(0)
-#     if not vc.isOpened():
-#         print("VideoCapture failed")
-#
-#     vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
-#     vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-#     vc.set(cv2.cv.CV_CAP_PROP_FPS, 10)
-#
-#     pool = Pool(processes=1)
-#
-#     grabbed, camera_img = vc.read()
-#     if not grabbed:
-#         print("Frame is empty")
-#
-#     pool_result = pool.apply_async(run_inference, (camera_img, ))
-#     result = None
-#     fps = 1.0
-#     loop_count = 0
-#
-#     while True:
-#         m1 = MyTime("1 loop of while(1) of main()")
-#         key = cv2.waitKey(2)  # Wait for 2ms
-#         if key == 27:  # ESC to quit
-#             break
-#
-#         m2 = MyTime("vc.read()")
-#         grabbed, camera_img = vc.read()
-#         m2.show()
-#
-#         if pool_result.ready():
-#             result, fps = pool_result.get()
-#             pool_result = pool.apply_async(run_inference, (camera_img, ))
-#
-#         window_img = cv2.resize(camera_img, (480, 360))
-#
-#         # if (window_width == camera_width) and (window_height == camera_height):
-#         #     window_img = camera_img
-#         # else:
-#         #     window_img = cv2.resize(camera_img, (window_width, window_height))
-#
-#         seg_img = window_img
-#         if result is not None:
-#             seg_img = label_to_color_image(result)
-#             # print(seg_img)
-#             print(np.shape(seg_img))
-#             print(np.shape(window_img))
-#             loop_count += 1
-#             print("loop_count:", loop_count)
-#
-#         m3 = MyTime("cv2.imshow()")
-#         overlay_img = cv2.addWeighted(window_img, 1, seg_img, 0.8, 0)
-#         cv2.imshow(window_name, overlay_img)
-#         # cv2.imshow(window_name, window_img)
-#         # cv2.imshow(window_name + "seg_img", seg_img)
-#         m3.show()
-#
-#         m1.show()
-#         sleep(0.05)
-#
-#     cv2.destroyAllWindows()
 
 
 def run(model, config_file):
