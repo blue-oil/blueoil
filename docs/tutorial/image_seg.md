@@ -10,7 +10,7 @@ The CamVid dataset is available from SegNet tutorial on [Github](https://github.
 
 ```
 $ wget https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/camvid.tgz
-$ tar xzf camvid
+$ tar -xzf camvid.tgz
 ```
 
 The subdirectory of this dataset is like below structure. In CamVid dataset format, training and annotation data are both binary image file.
