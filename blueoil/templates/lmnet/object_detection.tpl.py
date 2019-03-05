@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
-from lmnet.datasets.pascalvoc_20072012 import Pascalvoc20072012
+from lmnet.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
 from lmnet.data_augmentor import (
     Brightness,
     Color,
