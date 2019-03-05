@@ -1,5 +1,3 @@
-/* Copyright 2018 Leapmind Inc. */
-
 #include <dlfcn.h>
 #include <string>
 #include <vector>
@@ -7,6 +5,8 @@
 #include <numeric>
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
+#include <cmath>
 
 #include "blueoil.hpp"
 #include "blueoil_data_processor.hpp"
@@ -15,6 +15,196 @@
 
 
 namespace blueoil {
+
+
+int calcVolume(const std::vector<int>& shape) {
+  return std::accumulate(shape.begin(), shape.end(),
+			 1, std::multiplies<int>());
+}
+
+Tensor::Tensor(std::vector<int> shape)
+  : shape_(shape),
+    data_(std::vector<float>(calcVolume(std::move(shape)), 0)) {
+}
+
+Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
+  : shape_(std::move(shape)),
+    data_(std::move(data)) {
+}
+
+Tensor::Tensor(std::vector<int> shape, float *arr)
+  : shape_(shape),
+    data_(std::vector<float>(arr,
+			      arr + calcVolume(std::move(shape)))) {
+}
+
+Tensor::Tensor(const Tensor &tensor)
+  : shape_(tensor.shape_),
+    data_(tensor.data_) {
+}
+
+int Tensor::shapeVolume() {
+  return calcVolume(shape_);
+}
+
+std::vector<int> Tensor::shape() const {
+  return shape_;
+}
+
+std::vector<float> &Tensor::data() {
+  return data_;
+}
+
+const float *Tensor::dataAsArray() const {
+  if (shape_.size() == 0) {
+    throw std::invalid_argument("Tensor have no shape");
+  }
+  return data_.data();
+}
+
+const float *Tensor::dataAsArray(std::vector<int> indices) const {
+  if (shape_.size() != indices.size() ) {
+    throw std::invalid_argument("shape.size != indices.size");
+  }
+  int i = 0;
+  for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+    if ((*itr < 0) || (shape_[i] <= *itr)) {
+      throw std::invalid_argument("indices out of shape range");
+    }
+  }
+  int offset = 0, size = data_.size();
+  i = 0;
+  for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+    size /= shape_[i];
+    offset += (*itr) * size;
+  }
+  return data_.data() + offset;
+}
+
+float *Tensor::dataAsArray() {
+  if (shape_.size() == 0) {
+    throw std::invalid_argument("Tensor have no shape");
+  }
+  return data_.data();
+}
+
+float *Tensor::dataAsArray(std::vector<int> indices) {
+  if (shape_.size() != indices.size() ) {
+    throw std::invalid_argument("shape.size != indices.size");
+  }
+  int i = 0;
+  for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+    if ((*itr < 0) || (shape_[i] <= *itr)) {
+      throw std::invalid_argument("indices out of shape range");
+    }
+  }
+  int offset = 0, size = data_.size();
+  i = 0;
+  for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+    size /= shape_[i];
+    offset += (*itr) * size;
+  }
+  return data_.data() + offset;
+}
+
+
+static void Tensor_shape_dump(const std::vector<int>& shape) {
+  std::cout << "shape:";
+  for (auto itr = shape.begin(); itr != shape.end(); ++itr) {
+    std::cout << *itr << " ";
+  }
+  std::cout << std::endl;
+}
+
+static void Tensor_data_dump(const float *data, const std::vector<int>& shape){
+  if (shape.size() == 1) { // 1-D array
+    auto itr = shape.begin();
+    int n = *itr;
+    for (int i = 0 ; i < n ;  i++) {
+      std::cout << data[i] << " ";
+    }
+    std::cout << std::endl;
+  } else if (shape.size() == 2) { // 2-D arra
+    auto itr = shape.begin();
+    int w = *itr;
+    int c = *(itr+1);
+    for (int x = 0 ; x < w ; x++) {
+      for (int i = 0 ; i < c ; i++) {
+	std::cout << data[c*x + i] << " ";
+      }
+      std::cout << " ";
+    }
+    std::cout << std::endl;
+  } else { // 3-D over to recursive
+    auto itr = shape.begin();
+    int n  = *itr;
+    int stride = 1;
+    for (itr++; itr != shape.end(); ++itr) {
+      stride *= *itr;
+    }
+    std::vector<int> shape2 = shape;
+    shape2.erase(shape2.begin());
+    for (int i = 0 ; i < n ; i++) {
+      Tensor_data_dump(data + i*stride, shape2);
+    }
+  }
+}
+
+// dump N-dimentional array
+void Tensor::dump() const {
+  Tensor_shape_dump(shape_);
+  Tensor_data_dump(data_.data(), shape_);
+}
+
+
+std::vector<float>::const_iterator Tensor::begin() const {
+  return data_.begin();
+}
+
+std::vector<float>::const_iterator Tensor::end() const {
+  return data_.end();
+}
+
+std::vector<float>::iterator Tensor::begin() {
+  return data_.begin();
+}
+
+std::vector<float>::iterator Tensor::end() {
+  return data_.end();
+}
+
+
+// all elements exact equals check.
+bool Tensor::allequal(const Tensor &tensor) const {
+  if ((shape_ != tensor.shape_) || (data_ != tensor.data_)) {
+    return false;
+  }
+  return true;
+}
+
+
+// all elements nealy equals check.
+bool Tensor::allclose(const Tensor &tensor) const {
+  float rtol=1.e-5, atol=1.e-8; // same as numpy isclose
+  return allclose(tensor, rtol, atol);
+}
+
+bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) const {
+  if (shape_ != tensor.shape_) {
+    return false;
+  }
+  int n = data_.size();
+  for (int i = 0 ; i < n ; i++) {
+    float a = data_[i];
+    float b = tensor.data_[i];
+    if (std::abs(a - b) > (atol + rtol * std::abs(b))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 // mapping process node to functions vector.
 void MappingProcess(const YAML::Node processors_node, std::vector<Processor>* functions) {
   switch (processors_node.Type()) {
@@ -93,7 +283,7 @@ void Predictor::SetupNetwork() {
   network_get_input_shape(net_, network_input_shape_.data());
   network_get_output_shape(net_, network_output_shape_.data());
 
-  this->expected_input_shape = network_input_shape_;
+  expected_input_shape = network_input_shape_;
 }
 
 
@@ -107,11 +297,11 @@ Predictor::Predictor(const std::string& meta_yaml_path) {
 void Predictor::SetupMeta(const std::string& meta_yaml_path) {
   YAML::Node meta = YAML::LoadFile(meta_yaml_path.c_str());
 
-  this->task = meta["TASK"].as<std::string>();
+  task = meta["TASK"].as<std::string>();
 
   std::vector<int> image_size_ = meta["IMAGE_SIZE"].as<std::vector<int>>();
 
-  this->classes = meta["CLASSES"].as<std::vector<std::string>>();
+  classes = meta["CLASSES"].as<std::vector<std::string>>();
 
   YAML::Node pre_processor_node = meta["PRE_PROCESSOR"];
   MappingProcess(pre_processor_node, &pre_process_);
@@ -143,14 +333,9 @@ Tensor Predictor::Run(const Tensor& image) {
   Tensor pre_processed = RunPreProcess(image);
 
   // build network output tensor.
-  const int size = std::accumulate(
-      network_output_shape_.begin(), network_output_shape_.end(), 1, std::multiplies<int>());
-  Tensor n_output = {
-    std::vector<float>(size, 0),
-    network_output_shape_
-  };
+  Tensor n_output(network_output_shape_);
 
-  network_run(net_, pre_processed.data.data(), n_output.data.data());
+  network_run(net_, pre_processed.dataAsArray(), n_output.dataAsArray());
 
   Tensor post_processed = RunPostProcess(n_output);
 
@@ -161,8 +346,7 @@ Tensor Predictor::Run(const Tensor& image) {
 namespace box_util {
 
 // TODO(wakiska): implement this func.
-std::vector<DetectedBox> FormatDetectedBox(blueoil::Tensor output_tensor);
+std::vector<DetectedBox> FormatDetectedBox(const blueoil::Tensor& output_tensor);
 }  // namespace box_util
 
 }  // namespace blueoil
-

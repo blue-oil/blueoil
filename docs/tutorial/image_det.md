@@ -60,7 +60,7 @@ Train your model by running `blueoil.sh train` command with model configuration.
 
 When training is started, training log and checkpoints are generated under `./saved/{Mode name}_{TIMESTAMP}` directory.
 
-Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process. 
+Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
     $ ./blueoil.sh tensorboard saved/{Model name}_{TIMESTAMP} {Port}
 
@@ -129,7 +129,7 @@ output
 	$ sudo pip install -r requirements.txt  # for the first time only
 	$ python run.py \
 	      -i {inference image path} \
-	      -l ../models/lib/lib_x86.so \
+	      -m ../models/lib/lib_x86.so \
 	      -c ../models/meta.yaml
 	```
 
@@ -145,33 +145,33 @@ output
 	```
 	{
 	    "classes": [
-	        {   
+	        {
 	            "id": 0,
 	            "name": "Humanface"
-	        }   
-	    ],  
+	        }
+	    ],
 	    "date": "2019-01-25T13:15:00.928639",
 	    "results": [
-	        {   
+	        {
 	            "file_path": "{inference_image_path}",
 	            "prediction": [
-	                {   
+	                {
 	                    "box": [
 	                        1151.0905382973808,
 	                        413.834205695561,
 	                        836.2847709655762,
 	                        1097.0762968063354
-	                    ],  
+	                    ],
 	                    "class": {
 	                        "id": 0,
 	                        "name": "Humanface"
-	                    },  
+	                    },
 	                    "score": "0.8219463229179382"
-	                }   
-	            ]   
-	        }   
-	    ],  
+	                }
+	            ]
+	        }
+	    ],
 	    "task": "IMAGE.OBJECT_DETECTION",
-	    "version": 0.2 
+	    "version": 0.2
 	}
 	```

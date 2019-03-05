@@ -19,9 +19,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import time
+import os
 from multiprocessing import Pool
 from time import sleep
-from Queue import Queue
+from multiprocessing import Queue
 
 import click
 import cv2
@@ -52,6 +53,22 @@ class MyTime:
         print("TIME: ", self.function_name, time.time() - self.start_time)
 
 
+def init_camera(camera_width, camera_height):
+    if hasattr(cv2, 'cv'):
+        vc = cv2.VideoCapture(0)
+        vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
+        vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
+        vc.set(cv2.cv.CV_CAP_PROP_FPS, 10)
+
+    else:
+        vc = cv2.VideoCapture(1)
+        vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
+        vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
+        vc.set(cv2.CAP_PROP_FPS, 10)
+
+    return vc
+
+
 def add_class_label(canvas,
                     text="Hello",
                     font=cv2.FONT_HERSHEY_SIMPLEX,
@@ -62,69 +79,8 @@ def add_class_label(canvas,
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
-def create_label_colormap():
-    colormap = np.array([
-        [64, 64, 64],
-        [128,   0,   0],
-        [192, 192, 128],
-        [128,  64, 128],
-        [190, 153, 153],
-        [128, 128,   0],
-        [192, 128, 128],
-        [ 64,  64, 128],
-        [ 64,   0, 128],
-        [ 64,  64,   0],
-        [  0, 128, 192]], dtype=np.uint8)
-    return colormap
-
-
-def label_to_color_image(results):
-    """Adds color defined by the dataset colormap to the label.
-
-    Args:
-        label: A 2D array with integer type, storing the segmentation label.
-
-    Returns:
-        result: A 2D array with floating type. The element of the array
-            is the color indexed by the corresponding element in the input label
-            to the PASCAL color map.
-
-    Raises:
-        ValueError: If label is not of rank 2 or its value is larger than color
-            map maximum entry.
-    """
-    if results.ndim != 4:
-        raise ValueError('Expect 4-D input results (1, height, width, classes).')
-
-    colormap = create_label_colormap()
-
-    label = np.argmax(results, axis=3)
-    if np.max(label) >= len(colormap):
-        raise ValueError('label value too large.')
-    
-    return np.squeeze(colormap[label])
-
-
-import matplotlib.pyplot as plt
-
-_color_map = plt.cm.jet
-_color_map._init()
-
-
-def label_color_map(results):
-
-    person_label = np.round(results[:, :, :, 1] * 255)
-    person_label = person_label.astype(np.uint8)
-    lut = _color_map._lut[:, :3]
-    lut = np.flip(lut, axis=1)
-    tmp = np.take(lut, person_label, axis=0)
-    tmp = np.round(tmp * 255).astype(np.uint8)
-    tmp[results[:, :, :, 0] > 0.5] = 0
-    return np.squeeze(tmp)
-
-
-def run_inference(inputs):
-    img = cv2.cvtColor(inputs, cv2.COLOR_BGR2RGB)
+def run_inference(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     global nn, pre_process, post_process
     start = time.time()
 
@@ -134,7 +90,6 @@ def run_inference(inputs):
 
     result = nn.run(data)
 
-    # if post_process is not None:
     result = post_process(outputs=result)['outputs']
 
     fps = 1.0/(time.time() - start)
@@ -151,27 +106,18 @@ def swap_queue(q1, q2):
     return q2, q1  # These results are swapped
 
 
-import signal
-def _init_worker():
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
-
-import PIL.Image
-
-
-def run_sementic_segmentation(config):
+def run_object_detection(config):
+    global nn
     # Set variables
     camera_width = 320
     camera_height = 240
-    window_name = "Semantic Segmentation Demo"
+    window_name = "Object Detection Demo"
     input_width = config.IMAGE_SIZE[1]
     input_height = config.IMAGE_SIZE[0]
 
-    vc = cv2.VideoCapture(0)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-    vc.set(cv2.cv.CV_CAP_PROP_FPS, 1)
+    vc = init_camera(camera_width, camera_height)
 
-    pool = Pool(processes=1)
+    pool = Pool(processes=1, initializer=nn.init)
     result = False
     fps = 1.0
 
@@ -186,10 +132,9 @@ def run_sementic_segmentation(config):
     #  ----------- Beginning of Main Loop ---------------
     while True:
         m1 = MyTime("1 loop of while(1) of main()")
-        pool_result = pool.apply_async(run_inference, (input_img,))
+        pool_result = pool.apply_async(run_inference, (input_img, ))
         is_first = True
         while True:
-            sleep(0.01)
             grabbed, camera_img = vc.read()
             if is_first:
                 input_img = camera_img.copy()
@@ -197,65 +142,114 @@ def run_sementic_segmentation(config):
             q_save.put(camera_img.copy())
             if not q_show.empty():
                 window_img = q_show.get()
-                if result is not False:
-                    result = np.squeeze(result)
-                    results = np.split(result, 2, axis=2)
-                    output = []
-                    for result in results:
-                        result = np.squeeze(result)
-                        result = PIL.Image.fromarray(result, mode="F")
-                        result = result.resize([input_width, input_height], PIL.Image.BILINEAR)
-                        result = np.array(result)
-                        result = np.expand_dims(result, axis=2)
-                        output.append(result)
-                    result = np.concatenate(output, axis=2)
-                    result = np.expand_dims(result, axis=0)
-                    result = softmax(result)
-                    threshold = 0.7
-
-                    # print("sum", np.sum(result < threshold))
-                    result[result < threshold] = 0.
-
-                    # seg_img = label_to_color_image(result)
-                    seg_img = label_color_map(result)
-                    seg_img = cv2.resize(seg_img, (camera_width, camera_height))
-
-                    window_img = cv2.addWeighted(window_img, 1, seg_img, 0.8, 0)
+                if result:
+                    window_img = add_rectangle(
+                        config.CLASSES,
+                        window_img,
+                        result,
+                        (input_height, input_width)
+                    )
                     window_img = add_fps(window_img, fps)
                 # ---------- END of if result != False -----------------
 
                 cv2.imshow(window_name, window_img)
-                key = cv2.waitKey(10)    # Wait for 10ms
+                key = cv2.waitKey(2)    # Wait for 2ms
                 if key == 27:           # ESC to quit
                     return
-
             if pool_result.ready():
                 break
+
         # -------------- END of wait loop ----------------------
         q_show = clear_queue(q_show)
         q_save, q_show = swap_queue(q_save, q_show)
         result, fps = pool_result.get()
-        print("fps: ", fps)
         m1.show()
 
     # --------------------- End of main Loop -----------------------
 
 
-def softmax(x):
-    exp = np.exp(x - np.max(x))
-    return exp / np.expand_dims(exp.sum(axis=-1), -1)
+def run_classification(config):
+    global nn
+    camera_height = 240
+    camera_width = 320
+
+    window_name = "Classification Demo"
+    window_width = 320
+    window_height = 240
+
+    vc = init_camera(camera_width, camera_height)
+
+    pool = Pool(processes=1, initializer=nn.init)
+
+    grabbed, camera_img = vc.read()
+
+    pool_result = pool.apply_async(run_inference, (camera_img, ))
+    result = None
+    fps = 1.0
+    loop_count = 0
+
+    while 1:
+
+        m1 = MyTime("1 loop of while(1) of main()")
+        key = cv2.waitKey(2)    # Wait for 2ms
+        if key == 27:           # ESC to quit
+            break
+
+        m2 = MyTime("vc.read()")
+        grabbed, camera_img = vc.read()
+        m2.show()
+
+        if pool_result.ready():
+            result, fps = pool_result.get()
+            pool_result = pool.apply_async(run_inference, (camera_img, ))
+
+        if (window_width == camera_width) and (window_height == camera_height):
+            window_img = camera_img
+        else:
+            window_img = cv2.resize(camera_img, (window_width, window_height))
+
+        if result is not None:
+            result_class = np.argmax(result, axis=1)
+            add_class_label(window_img, text=str(result[0, result_class][0]), font_scale=0.52, dl_corner=(230, 230))
+            add_class_label(window_img, text=config.CLASSES[result_class[0]], font_scale=0.52, dl_corner=(230, 210))
+            window_img = add_fps(window_img, fps)
+            loop_count += 1
+            print("loop_count:", loop_count)
+
+        m3 = MyTime("cv2.imshow()")
+        cv2.imshow(window_name, window_img)
+        m3.show()
+
+        m1.show()
+        sleep(0.05)
+
+    cv2.destroyAllWindows()
 
 
-def run(library, config_file):
+def run(model, config_file):
     global nn, pre_process, post_process
-    nn = NNLib()
-    nn.load(library)
-    nn.init()
+    filename, file_extension = os.path.splitext(model)
+    supported_files = ['.so', '.pb']
+
+    if file_extension not in supported_files:
+        raise Exception("""
+            Unknown file type. Got %s%s.
+            Please check the model file (-m).
+            Only .pb (protocol buffer) or .so (shared object) file is supported.
+            """ % (filename, file_extension))
 
     config = load_yaml(config_file)
-
     pre_process = build_pre_process(config.PRE_PROCESSOR)
     post_process = build_post_process(config.POST_PROCESSOR)
+
+    if file_extension == '.so':  # Shared library
+        nn = NNLib()
+        nn.load(model)
+
+    elif file_extension == '.pb':  # Protocol Buffer file
+        # only load tensorflow if user wants to use GPU
+        from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
+        nn = TensorflowGraphRunner(model)
 
     if config.TASK == "IMAGE.CLASSIFICATION":
         run_classification(config)
@@ -263,16 +257,13 @@ def run(library, config_file):
     if config.TASK == "IMAGE.OBJECT_DETECTION":
         run_object_detection(config)
 
-    if config.TASK == "IMAGE.SEMANTIC_SEGMENTATION":
-        run_sementic_segmentation(config)
-
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option(
-    "-l",
-    "--library",
+    "-m",
+    "--model",
     type=click.Path(exists=True),
-    help=u"Shared library filename",
+    help=u"Inference Model filename",
     default="../models/lib/lib_fpga.so",
 )
 @click.option(
@@ -282,8 +273,8 @@ def run(library, config_file):
     help=u"Config file Path",
     default="../models/meta.yaml",
 )
-def main(library, config_file):
-    run(library, config_file)
+def main(model, config_file):
+    run(model, config_file)
 
 
 if __name__ == "__main__":
