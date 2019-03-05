@@ -24,7 +24,7 @@ import PIL.Image
 
 from lmnet.datasets.base import Base, StoragePathCustomizable
 from lmnet import data_processor
-from lmnet.utils.random import shuffle, train_test_split
+from lmnet.utils.random import train_test_split
 
 
 class ImageFolderBase(StoragePathCustomizable, Base):
@@ -52,7 +52,6 @@ class ImageFolderBase(StoragePathCustomizable, Base):
         super().__init__(*args, **kwargs)
 
         self.is_shuffle = is_shuffle
-        self.element_counter = 0
 
     @property
     @functools.lru_cache(maxsize=None)
@@ -71,7 +70,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
     @property
     def num_per_epoch(self):
-        return len(self.data_files)
+        return len(self.files)
 
     def _all_files(self):
         all_image_files = []
@@ -85,7 +84,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
     @property
     @functools.lru_cache(maxsize=None)
-    def data_files(self):
+    def files(self):
         all_image_files = self._all_files()
 
         if self.validation_size > 0:
@@ -119,58 +118,15 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
         return image
 
-    @property
-    def feed_indices(self):
-        if not hasattr(self, "_feed_indices"):
-            if self.subset == "train" and self.is_shuffle:
-                self._feed_indices = shuffle(range(self.num_per_epoch), seed=self.seed)
-            else:
-                self._feed_indices = list(range(self.num_per_epoch))
-
-        return self._feed_indices
-
-    def _get_index(self, counter):
-        return self.feed_indices[counter]
-
-    def _shuffle(self):
-        if self.subset == "train" and self.is_shuffle:
-            self._feed_indices = shuffle(range(self.num_per_epoch), seed=self.seed)
-            print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
-            self.seed = self.seed + 1
-
-    def _element(self):
-        """Return an image and label."""
-        index = self._get_index(self.element_counter)
-
-        self.element_counter += 1
-        if self.element_counter == self.num_per_epoch:
-            self.element_counter = 0
-            self._shuffle()
-
-        target_file = self.data_files[index]
+    def __getitem__(self, i, type=None):
+        target_file = self.files[i]
 
         image = self.get_image(target_file)
         label = self.get_label(target_file)
 
-        samples = {'image': image}
+        label = data_processor.binarize(label, self.num_classes)
+        label = np.reshape(label, (self.num_classes))
+        return (image, label)
 
-        if callable(self.augmentor) and self.subset == "train":
-            samples = self.augmentor(**samples)
-
-        if callable(self.pre_processor):
-            samples = self.pre_processor(**samples)
-
-        image = samples['image']
-        return image, label
-
-    def feed(self):
-        """Returns batch size numpy array of images and binarized labels."""
-        images, labels = zip(*[self._element() for _ in range(self.batch_size)])
-
-        labels = data_processor.binarize(labels, self.num_classes)
-
-        images = np.array(images)
-
-        if self.data_format == 'NCHW':
-            images = np.transpose(images, [0, 3, 1, 2])
-        return images, labels
+    def __len__(self):
+        return self.num_per_epoch

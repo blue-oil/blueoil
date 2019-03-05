@@ -1,0 +1,5 @@
+train/0001TP_006690.png trainannot/0001TP_006690.png
+train/0001TP_006720.png trainannot/0001TP_006720.png
+train/0001TP_006750.png trainannot/0001TP_006750.png
+train/0001TP_006780.png trainannot/0001TP_006780.png
+train/0001TP_006810.png trainannot/0001TP_006810.png

@@ -19,6 +19,7 @@ limitations under the License.
 #include "global.h"
 #include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_tiling.h"
+#include "time_measurement.h"
 
 #include <arm_neon.h>
 
@@ -36,6 +37,8 @@ void pack_input_for_tiling(QUANTIZED_NOT_PACKED input[],
     const int in_height,
     const int in_width,
     const int in_bitwidth) {
+  Measurement::Start("Pack_input_for_tiling");
+  
   constexpr T_UINT InTypeBitWidth = CHAR_BIT * sizeof(QUANTIZED_PACKED);
   const T_UINT in_stride = (in_channels + InTypeBitWidth - 1) / InTypeBitWidth;
 #pragma omp parallel for schedule(dynamic)
@@ -53,12 +56,12 @@ void pack_input_for_tiling(QUANTIZED_NOT_PACKED input[],
     }
   }
 #pragma omp parallel for schedule(dynamic)
-  for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
-    for (unsigned int in_ch_low = 0; in_ch_low < InTypeBitWidth; ++in_ch_low) {
-      unsigned int in_ch = in_ch_high + in_ch_low;
-      if (in_ch >= in_channels) break;
-      for (unsigned int row = 0; row < in_height; ++row) {
-        for (unsigned int col = 0; col < in_width; ++col) {
+  for (unsigned int row = 0; row < in_height; ++row) {
+    for (unsigned int col = 0; col < in_width; ++col) {
+      for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
+	for (unsigned int in_ch_low = 0; in_ch_low < InTypeBitWidth; ++in_ch_low) {
+	  unsigned int in_ch = in_ch_high + in_ch_low;
+	  if (in_ch >= in_channels) break;
           QUANTIZED_NOT_PACKED val = input[row * in_width * in_channels + col * in_channels + in_ch];
           for (unsigned int in_bit_ch = 0; in_bit_ch < in_bitwidth; ++in_bit_ch) {
             QUANTIZED_NOT_PACKED bit = (val >> in_bit_ch) & 1;
@@ -72,6 +75,8 @@ void pack_input_for_tiling(QUANTIZED_NOT_PACKED input[],
       }
     }
   }
+
+  Measurement::Stop();
 }
 
 void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],

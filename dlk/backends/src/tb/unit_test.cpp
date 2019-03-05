@@ -14,13 +14,13 @@ limitations under the License.
 ==============================================================================*/
 
 #include "common/global.h"
-#include "tb/test_a8w1_conv.h"
 #include "tb/test_conv.h"
 
 using std::cout;
 using std::endl;
 
-bool parse_input_type(int argc, char const *argv[], input_type &in_type) {
+bool parse_input_type(int argc, char const *argv[], input_type &in_type)
+{
   bool flag = true;
 
   if (argc != 2) {
@@ -36,16 +36,16 @@ bool parse_input_type(int argc, char const *argv[], input_type &in_type) {
   } else if (std::strcmp(argv[1], "all_1") == 0) {
     in_type = ALL_1;
   } else {
-    cout << "Error: input type is not supported." << endl << "Available input type: <sequential|random|all_1>" << endl;
+    cout << "Error: input type is not supported." << endl << "Available input type: <sequential|random|add_1>" << endl;
     flag = false;
   }
 
   return flag;
 }
 
-bool test_conv(input_type &in_type) {
+bool test_conv(input_type &in_type)
+{
   srand((unsigned int)time(NULL));
-
   bool res = true;
 
   // test conv1x1
@@ -57,14 +57,8 @@ bool test_conv(input_type &in_type) {
   return res;
 }
 
-bool test_a8w1_conv(input_type &in_type) {
-  srand((unsigned int)time(NULL));
-
-  bool res = test_a8w1_conv<3, 3>(in_type);
-  return res;
-}
-
-int main(int argc, char const *argv[]) {
+int main(int argc, char const *argv[])
+{
   input_type in_type;
 
   bool input_valid = parse_input_type(argc, argv, in_type);
@@ -74,7 +68,6 @@ int main(int argc, char const *argv[]) {
 
   bool res_conv = true;
   res_conv &= test_conv(in_type);
-  res_conv &= test_a8w1_conv(in_type);
 
   return (res_conv) ? 0 : 1;
 }

@@ -70,7 +70,7 @@ def _transpose_kernels(kernel_data: np.ndarray,
         flatten_value.extend(elem)
     while len(flatten_value) != k_size:
         flatten_value.extend("0")
-    
+
     copy_value = [0] * k_size
     for i in range(od * kh * kw * k_c_by_word):
         copy_value[i] = flatten_value[i]
@@ -87,9 +87,9 @@ def _transpose_kernels(kernel_data: np.ndarray,
             for h in range(kh):
                 for w in range(kw):
                     for c in range(k_c_by_word):
-                        idx_dst = h * (kw * kn_out * k_c_by_word * NUM_PE)
-                        idx_dst += w * (kn_out * k_c_by_word * NUM_PE)
-                        idx_dst += no * (k_c_by_word * NUM_PE)
+                        idx_dst = no * (kh * kw * k_c_by_word * NUM_PE)
+                        idx_dst += h * (kw * k_c_by_word * NUM_PE)
+                        idx_dst += w * (k_c_by_word * NUM_PE)
                         idx_dst += c * (NUM_PE)
                         idx_dst += ni
                         transposed_values[idx_dst] = copy_value[idx_src]
@@ -355,6 +355,10 @@ def pass_compute_thresholds(graph: Graph) -> None:
                     bn_nega_idx = [v for v in range(len(bn_scale)) if bn_scale[v] < 0]
             threshold = (trans_th['data'] * np.float64(n)) / (np.float64(max_v) * scaling_factor)
 
+            # take care of threshold values that are larger than 13-bit signed integer
+            threshold[threshold > max_th_value] = max_th_value
+            threshold[threshold < -max_th_value] = -max_th_value
+
             for ch_id, th_per_ch in enumerate(threshold):
                 if quantizer_conv_weights.op_type == 'QTZ_binary_channel_wise_mean_scaling':
                     threshold_table[ch_id, th_id] = int(math.floor(th_per_ch)) \
@@ -364,10 +368,6 @@ def pass_compute_thresholds(graph: Graph) -> None:
                     threshold_table[ch_id, th_id] = int(math.floor(th_per_ch)) \
                         if (scaling_factor < 0) ^ (ch_id in bn_nega_idx) \
                         else int(math.ceil(th_per_ch))
-
-        # take care of threshold values that are larger than 13-bit signed integer
-        threshold_table[threshold_table > max_th_value] = max_th_value
-        threshold_table[threshold_table < -max_th_value] = -max_th_value
 
         for c in range(ch):
             threshold_table[c, -1] = 1 \
