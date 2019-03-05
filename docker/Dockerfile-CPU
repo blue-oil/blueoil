@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
     xz-utils \
     tk-dev \
     g++-5-arm-linux-gnueabihf \
+    crossbuild-essential-arm64 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -48,27 +49,31 @@ RUN ln -s /usr/bin/python3.6 /usr/bin/python
 RUN curl -kL https://bootstrap.pypa.io/get-pip.py | python
 
 # Setup lmnet
-COPY lmnet /blueoil/lmnet
-RUN touch /blueoil/lmnet/lmnet/__init__.py
-RUN pip install -r /blueoil/lmnet/cpu.requirements.txt
+COPY lmnet /home/blueoil/lmnet
+RUN touch /home/blueoil/lmnet/lmnet/__init__.py
+RUN pip install -r /home/blueoil/lmnet/cpu.requirements.txt
 
 # Build coco. It needs numpy.
 # https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
-RUN cd /blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
+RUN cd /home/blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
 
 # In order to install blueoil requirements `prompt_toolkit==1.0.15`, uninstall prompt-toolkit v2.0 that depends on `pdb==0.10.2`.
 RUN pip uninstall -y prompt-toolkit
 
 # Install dlk
-COPY dlk /blueoil/dlk
-RUN PYTHONPATH=/blueoil/dlk/python/dlk python /blueoil/dlk/setup.py install
+COPY dlk /home/blueoil/dlk
+RUN PYTHONPATH=/home/blueoil/dlk/python/dlk python /home/blueoil/dlk/setup.py install
 
 # Install blueoil
-COPY blueoil /blueoil/blueoil
-COPY output_template /blueoil/output_template
-COPY setup.py setup.cfg MANIFEST.in /blueoil/
-WORKDIR /blueoil
+COPY blueoil /home/blueoil/blueoil
+COPY output_template /home/blueoil/output_template
+COPY setup.py setup.cfg MANIFEST.in /home/blueoil/
+WORKDIR /home/blueoil
 RUN python setup.py install
+
+# Enable to be written by all user
+RUN chmod 777 /home/blueoil
+RUN chmod 777 /home/blueoil/dlk
 
 # Locale setting
 RUN locale-gen en_US.UTF-8
@@ -76,10 +81,8 @@ ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
 
-ENV PYTHONPATH=/blueoil:/blueoil/lmnet:/blueoil/dlk/python/dlk \
+ENV PYTHONPATH=/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk \
     MPLBACKEND=Agg \
-    DATA_DIR=/blueoil/dataset \
-    OUTPUT_DIR=/blueoil/saved \
-    OUTPUT_TEMPLATE_DIR=/blueoil/output_template
-
-ENTRYPOINT [ "blueoil" ]
+    DATA_DIR=/home/blueoil/dataset \
+    OUTPUT_DIR=/home/blueoil/saved \
+    OUTPUT_TEMPLATE_DIR=/home/blueoil/output_template
