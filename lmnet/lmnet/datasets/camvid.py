@@ -52,9 +52,6 @@ class CamvidBase(SegmentationBase):
             **kwargs
     ):
 
-        self.use_prefetch = kwargs.pop("enable_prefetch", False)
-        self.num_prefetch_process = kwargs.pop("num_prefetch_processes", 8)
-
         super().__init__(
             batch_size=batch_size,
             *args,
@@ -62,9 +59,6 @@ class CamvidBase(SegmentationBase):
         )
 
     extend_dir = "CamVid"
-
-    def prefetch_args(self, i):
-        return (self.image_files[i], self.label_files[i], self.augmentor, self.pre_processor, self.subset == "train")
 
     @property
     def available_subsets(self):
