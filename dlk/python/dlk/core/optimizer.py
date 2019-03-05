@@ -276,8 +276,17 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
                     for q in quant_details[n.name]:
                         qtzs.append(q)
 
-            quant_details[m.name] = qtzs
-            # TODO: check if the quantizers use same n_bits
+            nbits = []
+            max_vs = []
+            for qtz in qtzs:
+                nbits.append(qtz.nbit)
+                max_vs.append(qtz.max_v)
+            if not (len(set(nbits)) == 1) and not (len(set(max_vs)) == 1):
+                import warnings
+                warnings.warn(f'bits {nbits} or max values {max_vs} are not consistent')
+                quant_details[m.name] = []
+            else:
+                quant_details[m.name] = qtzs
 
 
 def pass_compute_thresholds(graph: Graph) -> None:
