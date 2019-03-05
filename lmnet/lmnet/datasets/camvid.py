@@ -246,9 +246,6 @@ class CamvidCustom(StoragePathCustomizable, CamvidBase):
             colors = [line[0].split(' ') for line in lines]
             classes = [line[-1] for line in lines]
 
-            # Void (empty) label is not use for train
-            # classes.remove('Void')
-
             return colors, classes
 
     @property
