@@ -85,10 +85,16 @@ def make_all(project_dir, output_dir):
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)
-    os.environ["FLAGS"] = "-D__WITHOUT_TEST__"
-    os.environ["CXXFLAGS"] = "-DFUNC_TIME_MEASUREMENT"
+
+    cxxflags_cache = os.getenv("CXXFLAGS", "")
+
     # Make each target and move output files
     for target, output in make_list:
+        if target in ["lm_x86", "lm_arm", "lm_fpga", "lm_aarch64"]:
+            os.environ["CXXFLAGS"] = cxxflags_cache + " -DFUNC_TIME_MEASUREMENT"
+        else:
+            os.environ["CXXFLAGS"] = cxxflags_cache
+
         subprocess.run(("make", "clean", "--quiet"))
         subprocess.run(("make",  target, "-j4", "--quiet"))
         strip_binary(output)
@@ -123,10 +129,10 @@ docker run \
     """
 
     # Export model
-    # run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
-
-    # export_dir = run_export(experiment_id, restore_path, image_size=(192, 256), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
-    export_dir = run_export(experiment_id, restore_path, image_size=(None, None), images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
+    # export_dir = run_export(experiment_id, restore_path, image_size=(192, 256),
+    #                         images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
+    export_dir = run_export(experiment_id, restore_path, image_size=(None, None),
+                            images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")
