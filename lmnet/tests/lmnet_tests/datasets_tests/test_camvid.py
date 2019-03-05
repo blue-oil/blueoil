@@ -116,6 +116,9 @@ def test_camvid_custom_without_test_dataset():
                                                        validation_size=validation_size)
     test_dataset = DatasetIterator(test_dataset)
 
+    assert train_dataset.num_per_epoch == 5 * (1 - validation_size)
+    assert test_dataset.num_per_epoch == 5 * (validation_size)
+
     image_files, label_files = train_dataset.feed()
     assert image_files.shape[0] == 5
     assert label_files.shape[0] == 5
