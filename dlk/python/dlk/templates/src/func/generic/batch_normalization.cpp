@@ -27,7 +27,6 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
   Measurement::Start("BatchNorm");
 
   // temporary fix: will be replaced by pre-allocated one
-  T_UINT elements = out_height * out_width * out_depth;
   T_FLOAT *scale = new float[out_depth];
   T_FLOAT *shift = new float[out_depth];
 
