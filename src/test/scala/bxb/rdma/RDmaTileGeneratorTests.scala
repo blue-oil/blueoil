@@ -27,8 +27,8 @@ class TileGeneratorParameters(b: Int, avalonDataWidth: Int, tileHeight: Int, til
   val regularTileW = tileWidth
   val lastTileW = outputWidth - (wCount - 1)  * tileWidth
 
-  val regularRowToRowDistance = outputWidth - regularTileW + (if (regularTileW % maxBurst == 0) maxBurst else regularTileW % maxBurst)
-  val lastRowToRowDistance = outputWidth - lastTileW + (if (lastTileW % maxBurst == 0) maxBurst else lastTileW % maxBurst)
+  val regularRowToRowDistance = outputWidth - regularTileW + 1
+  val lastRowToRowDistance = outputWidth - lastTileW + 1
 
   val outputSpace = outputHeight * outputWidth
 
@@ -74,7 +74,7 @@ class DummyTileGenerator(b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidt
         val width = tileEndX - tileX
 
         val tileAddr = (tileC / b * outputHeight * outputWidth + tileY * outputWidth + tileX) * bytesPerElement
-        val rowToRowDist = outputWidth - width + (if (width % maxBurst == 0) maxBurst else width % maxBurst)
+        val rowToRowDist = outputWidth - tileWidth + 1
         tileSeq += new DummyTile(tileAddr, height, width, rowToRowDist)
       }
     }
