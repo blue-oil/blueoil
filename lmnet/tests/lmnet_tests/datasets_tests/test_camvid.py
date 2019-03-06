@@ -35,6 +35,10 @@ class DummyCamvidCustomWithoutTestDataset(CamvidCustom):
     extend_dir = "camvid_custom"
 
 
+class DummyCamvidCustomWithoutIgnoreClass(CamvidCustom):
+    extend_dir = "camvid_custom_without_ignore"
+
+
 def _show_image_with_annotation(image, label, colors):
     """show image and annotation for debug"""
 
@@ -101,7 +105,7 @@ def test_camvid_custom():
     test_dataset = DummyCamvidCustom(subset="validation", batch_size=batch_size)
     test_dataset = DatasetIterator(test_dataset)
 
-    assert train_dataset.num_classes == 12
+    assert train_dataset.num_classes == 11
     colors = train_dataset.label_colors
     assert len(colors) == 12
 
@@ -130,3 +134,13 @@ def test_camvid_custom_without_test_dataset():
     image_files, label_files = test_dataset.feed()
     assert image_files.shape[0] == 5
     assert label_files.shape[0] == 5
+
+
+def test_camvid_custom_without_ignore():
+    batch_size = 1
+    train_dataset = DummyCamvidCustomWithoutIgnoreClass(subset="train", batch_size=batch_size)
+    train_dataset = DatasetIterator(train_dataset)
+
+    assert train_dataset.num_classes == 12
+    colors = train_dataset.label_colors
+    assert len(colors) == 12

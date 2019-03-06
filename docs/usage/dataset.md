@@ -137,7 +137,7 @@ It is data format based on [CamVid](http://mi.eng.cam.ac.uk/research/projects/Vi
 
 Place the following files and directory.
 
-- `label_colors.txt`: Class information file like under the example.
+- `label_display_colors.txt`: Class information file like under the example.
 - `train.txt`: Pair of data and annotation image file paths. see below example.
 - `train`: All training images are located under the directory.
 - `trainannot`: All training annotation images are located under the directory.
@@ -195,7 +195,7 @@ val/0016E5_07965.png valannot/0016E5_07965.png
 val/0016E5_07967.png valannot/0016E5_07967.png
 ```
 
-Example of `label_colors.txt`
+Example of `label_display_colors.txt`
 
 ```
 128 128 128	Sky
@@ -203,7 +203,8 @@ Example of `label_colors.txt`
 192 192 128	Column_Pole
 128 64 128	Road
 ...
-0 0 0		Void
+0 0 0		Ignore
 ```
 
-You should write `Void` (empty) label for not labeled area of the image.
+If last class name is `Ignore`,  `Ignore` class will not be used for training.
+You can use `Ignore` class for Background (unlabelled) class.

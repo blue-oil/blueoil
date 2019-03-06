@@ -238,13 +238,17 @@ class CamvidCustom(StoragePathCustomizable, CamvidBase):
         return len(classes)
 
     def parse_label_colors(self):
-        with open(os.path.join(self.data_dir, "label_colors.txt")) as f:
+        with open(os.path.join(self.data_dir, "label_display_colors.txt")) as f:
             lines = f.readlines()
             lines = [line.rstrip('\n').split('\t') for line in lines]
 
             # Split "R G B" -> ["R", "G", "B"]
             colors = [line[0].split(' ') for line in lines]
-            classes = [line[-1] for line in lines]
+
+            # TODO: Current implementation require Ignore class
+            #       is the last line of label_display_colors.txt.
+            #       Make Ignore class can exist in arbitrary line.
+            classes = [line[-1] for line in lines if line[-1] != "Ignore"]
 
             return colors, classes
 
