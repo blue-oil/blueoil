@@ -13,7 +13,7 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   // we could assume that each transaction bring us "one pixel" data for now
   val avalonDataWidth = b * aSz
   require(avalonDataWidth <= 256, "exceeds maximum size of hps sdram slave port")
-  require(maxBurst == 1 || maxBurst == (1 << Chisel.log2Up(maxBurst)), "max burst is not power of two")
+  require(isPow2(maxBurst))
 
   val io = IO(new Bundle {
     val start = Input(Bool())
