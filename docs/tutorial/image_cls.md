@@ -1,4 +1,4 @@
-# Training for Basic Classification 
+# Training for Basic Classification
 
 This guide trains a neural network model to classify images of 10 objects in the [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) dataset on GPU server.
 
@@ -83,13 +83,13 @@ If configuration finishes, configuration file is generated `{Model name}.yml` un
 
 ## Train a neural network
 
-Train your model by running `blueoil train` command with model configuration. 
+Train your model by running `blueoil train` command with model configuration.
 
     $ ./blueoil.sh train config/{Model name}.yml
 
 When training is started, training log and checkpoints are generated under `./saved/{Mode name}_{TIMESTAMP}` directory.
 
-Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process. 
+Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
     $ ./blueoil.sh tensorboard saved/{Model name}_{TIMESTAMP} {Port}
 
@@ -145,7 +145,7 @@ output
 
 - Run inference script
 
-    Explore into the `output/python` directory, and 
+    Explore into the `output/python` directory, and
     run `run.py` and inference result is saved in `./output/output.json`.
 
     Note: If you run the script for the first time, you have to setup a python environment (2.7 or 3.5+) and install requirements python packages.
@@ -154,7 +154,7 @@ output
       $ sudo pip install -r requirements.txt  # only the first time
       $ python run.py \
           -i {inference image path} \
-          -l ../models/lib/lib_x86.so \
+          -m ../models/lib/lib_x86.so \
           -c ../models/meta.yaml
 
 - Check inference result
