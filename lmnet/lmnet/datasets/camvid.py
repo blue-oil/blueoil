@@ -41,7 +41,7 @@ def get_image(filename, convert_rgb=True, ignore_class_idx=None):
                     pixel_value = image.getpixel((x, y))
                     if pixel_value > ignore_class_idx:
                         image.putpixel((x, y), pixel_value - 1)
-                    if pixel_value == ignore_class_idx:
+                    elif pixel_value == ignore_class_idx:
                         # To ignore, replace the value with enough large number
                         image.putpixel((x, y), 255)
 
