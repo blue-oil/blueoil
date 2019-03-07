@@ -1,7 +1,7 @@
 Sky
 Building
 Column_Pole
-Ignore
+Road
 Sidewalk
 Tree
 SignSymbol
@@ -9,3 +9,4 @@ Fence
 Car
 Pedestrian
 Bicyclist
+Background
