@@ -31,21 +31,17 @@ def get_image(filename, convert_rgb=True, ignore_class_idx=None):
     #  sometime image data is gray.
     if convert_rgb:
         image = image.convert("RGB")
+        image = np.array(image)
     else:
         image = image.convert("L")
 
         # For annotation image, 'Ignore' labelled class should be removed
+        image = np.array(image)
         if ignore_class_idx is not None:
-            for x in range(image.size[0]):
-                for y in range(image.size[1]):
-                    pixel_value = image.getpixel((x, y))
-                    if pixel_value > ignore_class_idx:
-                        image.putpixel((x, y), pixel_value - 1)
-                    elif pixel_value == ignore_class_idx:
-                        # To ignore, replace the value with enough large number
-                        image.putpixel((x, y), 255)
+            # Replace ignore labelled class with enough large value
+            image = np.where(image == ignore_class_idx, 255, image)
+            image = np.where((image > ignore_class_idx) & (image != 255), image - 1, image)
 
-    image = np.array(image)
     return image
 
 
