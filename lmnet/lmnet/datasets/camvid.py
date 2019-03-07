@@ -34,8 +34,6 @@ def get_image(filename, convert_rgb=True, ignore_class_idx=None):
         image = np.array(image)
     else:
         image = image.convert("L")
-
-        # For annotation image, 'Ignore' labelled class should be removed
         image = np.array(image)
         if ignore_class_idx is not None:
             # Replace ignore labelled class with enough large value
