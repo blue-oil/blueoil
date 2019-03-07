@@ -217,8 +217,6 @@ class CamvidCustom(StoragePathCustomizable, CamvidBase):
     """CamvidCustom
 
     CamVid base custom dataset format.
-    To define your own color labels, make `labels_colors.txt` like original CamVid color label description file.
-    http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/data/label_colors.txt
     """
 
     def __init__(
