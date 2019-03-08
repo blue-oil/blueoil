@@ -81,7 +81,9 @@ def add_rectangle(classes, orig, preds, pred_shape):
         max_color = max(color_r)
         text_color = (255, 255, 255) if max_color < 255 else (0, 0, 0)
 
-        cv2.rectangle(orig, (le, t), (le + label_size[0], t + label_size[1]), color_r, cv2.cv.CV_FILLED)
+        cv2_filed_config = cv2.cv.CV_FILLED if hasattr(cv2, 'cv') else cv2.FILLED
+
+        cv2.rectangle(orig, (le, t), (le + label_size[0], t + label_size[1]), color_r, cv2_filed_config)
         cv2.putText(orig, label_text, (le, t + label_size[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color)
 
     return orig
