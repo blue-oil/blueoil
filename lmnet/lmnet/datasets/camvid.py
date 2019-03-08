@@ -22,7 +22,7 @@ from PIL import Image
 
 from lmnet.datasets.base import SegmentationBase, StoragePathCustomizable
 from lmnet.utils.random import shuffle, train_test_split
-from lmnet.common import COLOR_MAP
+from lmnet.common import get_color_map
 
 
 def get_image(filename, convert_rgb=True, ignore_class_idx=None):
@@ -230,7 +230,7 @@ class CamvidCustom(StoragePathCustomizable, CamvidBase):
     @property
     def label_colors(self):
         classes = self.parse_labels()
-        return COLOR_MAP[:len(classes)]
+        return get_color_map(len(classes))
 
     @property
     def classes(self):
