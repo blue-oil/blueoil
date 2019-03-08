@@ -1,0 +1,11 @@
+Sky
+Building
+Column_Pole
+Ignore
+Sidewalk
+Tree
+SignSymbol
+Fence
+Car
+Pedestrian
+Bicyclist
