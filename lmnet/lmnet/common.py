@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 from enum import Enum
+import math
 
 
 class Tasks(Enum):
@@ -47,3 +48,9 @@ COLOR_MAP = [
     [0,   0,   192],  # COLOR18
     [192, 128, 128]   # COLOR19
 ]
+
+
+def get_color_map(length):
+    # This function generate arbitrary length color map.
+    color_map = COLOR_MAP * math.ceil(length / len(COLOR_MAP))
+    return color_map[:length]
