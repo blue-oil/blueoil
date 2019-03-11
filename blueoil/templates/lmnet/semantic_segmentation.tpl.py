@@ -16,13 +16,14 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from lmnet.common import Tasks, get_color_map
 from lmnet.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
 from lmnet.datasets.camvid import CamvidCustom
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
+    PerImageStandardization,
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -65,7 +66,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    DivideBy255(),
+    {% if quantize_first_convolution %}DivideBy255(){% else %}PerImageStandardization(){% endif %}
 ])
 POST_PROCESSOR = None
 
@@ -85,6 +86,7 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 }
 NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
+NETWORK.LABEL_COLORS = get_color_map(len({{classes}}))
 
 DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE

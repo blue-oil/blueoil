@@ -72,7 +72,7 @@ IMAGE_SIZE_VALIDATION = {
     },
     "LmSegnetV1Quantize": {
         "max_size": 512,
-        "divider": 1,
+        "divider": 8,
     },
 }
 

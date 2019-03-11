@@ -97,7 +97,6 @@ def start_training(config):
         elif ModelClass.__module__.startswith("lmnet.networks.segmentation"):
             model = ModelClass(
                 classes=train_dataset.classes,
-                label_colors=train_dataset.label_colors,
                 is_debug=config.IS_DEBUG,
                 **network_kwargs,
             )
