@@ -157,7 +157,7 @@ output
 	$ sudo pip install -r requirements.txt  # for the first time only
 	$ python run.py \
 	      -i {inference image path} \
-	      -l ../models/lib/lib_x86.so \
+	      -m ../models/lib/lib_x86.so \
 	      -c ../models/meta.yaml
 	```
 
