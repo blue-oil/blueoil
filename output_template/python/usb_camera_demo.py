@@ -28,6 +28,7 @@ import click
 import cv2
 import numpy as np
 
+from lmnet.common import COLOR_MAP
 from lmnet.nnlib import NNLib
 from lmnet.utils.config import (
     load_yaml,
@@ -79,22 +80,6 @@ def add_class_label(canvas,
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
-def create_label_colormap():
-    colormap = np.array([
-        [128, 128, 128],
-        [128,   0,   0],
-        [192, 192, 128],
-        [128,  64, 128],
-        [190, 153, 153],
-        [128, 128,   0],
-        [192, 128, 128],
-        [ 64,  64, 128],
-        [ 64,   0, 128],
-        [ 64,  64,   0],
-        [  0, 128, 192]], dtype=np.uint8)
-    return colormap
-
-
 def label_to_color_image(results):
     """Adds color defined by the dataset colormap to the label.
 
@@ -113,7 +98,7 @@ def label_to_color_image(results):
     if results.ndim != 4:
         raise ValueError('Expect 4-D input results (1, height, width, classes).')
 
-    colormap = create_label_colormap()
+    colormap = np.array(COLOR_MAP, dtype=np.uint8)
 
     label = np.argmax(results, axis=3)
     if np.max(label) >= len(colormap):
