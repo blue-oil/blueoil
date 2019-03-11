@@ -1,0 +1,5 @@
+/SegNet/CamVid/train/0001TP_006690.png /SegNet/CamVid/trainannot/0001TP_006690.png
+/SegNet/CamVid/train/0001TP_006720.png /SegNet/CamVid/trainannot/0001TP_006720.png
+/SegNet/CamVid/train/0001TP_006750.png /SegNet/CamVid/trainannot/0001TP_006750.png
+/SegNet/CamVid/train/0001TP_006780.png /SegNet/CamVid/trainannot/0001TP_006780.png
+/SegNet/CamVid/train/0001TP_006810.png /SegNet/CamVid/trainannot/0001TP_006810.png

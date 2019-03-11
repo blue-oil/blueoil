@@ -187,7 +187,7 @@ class StoragePathCustomizable():
     class.validation_extend_dir: specify validation path.
 
     When validation_extend_dir doesn't set, generate validation data from train set.
-    You should implemnt the validation subset split fron train data with `validation_size` in sub class.
+    You should implement the validation subset split from train data with `validation_size` in sub class.
     """
 
     available_subsets = ['train', 'validation']
