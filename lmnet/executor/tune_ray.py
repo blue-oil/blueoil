@@ -15,14 +15,10 @@
 # =============================================================================
 import os
 import math
-import sys
-
-import numpy as np
 import click
 import tensorflow as tf
 
 from lmnet.utils import executor, module_loader, config as config_util
-from lmnet import environment
 
 import ray
 from ray.tune import grid_search, run_experiments, register_trainable, Trainable, function
