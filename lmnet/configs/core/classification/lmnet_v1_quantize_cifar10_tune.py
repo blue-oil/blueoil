@@ -57,6 +57,19 @@ POST_PROCESSOR = None
 
 STEP_PER_EPOCH = int(50000 / BATCH_SIZE)
 
+TUNE_SPEC = {
+        'run': 'tunable',
+        'resources_per_trial': {"cpu": 2, "gpu": 0.5},
+        'stop': {
+            'mean_accuracy': 1.0,
+            'training_iteration': 200,
+        },
+        'config': {
+            'lm_config': None,
+        },
+        "num_samples": 300,
+}
+
 TUNE_SPACE = {
     'optimizer_class': hp.choice(
         'optimizer_class', [

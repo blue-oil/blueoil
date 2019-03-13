@@ -185,22 +185,13 @@ class TrainTunable(Trainable):
         return self.saver.restore(self.sess, path)
 
 
-def run(config_file, metric_target):
+def run(config_file):
     register_trainable("tunable", TrainTunable)
     lm_config = config_util.load(config_file)
     tune_space = lm_config['TUNE_SPACE']
-    tune_spec = {
-        'run': 'tunable',
-        'resources_per_trial': {"cpu": 2, "gpu": 0.5},
-        'stop': {
-            'mean_accuracy': metric_target,
-            'training_iteration': 200,
-        },
-        'config': {
-            'lm_config': os.path.join(os.getcwd(), config_file),
-        },
-        "num_samples": 300,
-    }
+    tune_spec = lm_config['TUNE_SPEC']
+    tune_spec['config']['lm_config'] = os.path.join(os.getcwd(), config_file)
+
     ray.init(num_cpus=8, num_gpus=2)
     algo = HyperOptSearch(tune_space, max_concurrent=4, reward_attr="mean_accuracy")
     scheduler = AsyncHyperBandScheduler(time_attr="training_iteration", reward_attr="mean_accuracy", max_t=200)
@@ -216,15 +207,8 @@ def run(config_file, metric_target):
     default=os.path.join("configs", "example.py"),
     required=True,
 )
-@click.option(
-    "-t",
-    "--metric_target",
-    help="target metric value",
-    default=1.0,
-    required=True,
-)
-def main(config_file, metric_target):
-    run(config_file, metric_target)
+def main(config_file):
+    run(config_file)
 
 
 if __name__ == '__main__':
