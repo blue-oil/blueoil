@@ -3,16 +3,22 @@ package bxb.wdma
 import chisel3._
 import chisel3.util._
 
+import bxb.wqdma.{WQDmaAvalonRequester}
 import bxb.memory.{PackedWritePort}
 import bxb.util.{Util}
 
 class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) extends Module {
   require(isPow2(avalonDataWidth) && avalonDataWidth >= 8)
   require(avalonDataWidth == b, "we expect everything to match prefectly")
+
   // FIXME: rid of copypaste
   val hCountWidth = 6
   val wCountWidth = 6
   val blockCountWidth = 14
+
+  val elementWidth = b
+  val elementsPerBlock = b
+
   val io = IO(new Bundle {
     val start = Input(Bool())
 
@@ -45,18 +51,18 @@ class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   val writerDone = Wire(Bool())
   val requesterNext = Wire(Bool())
 
-  val requester = Module(new WDmaAvalonRequester(b, avalonAddrWidth, avalonDataWidth))
+  val requester = Module(new WQDmaAvalonRequester(avalonAddrWidth, avalonDataWidth, elementWidth, elementsPerBlock))
   requester.io.start := io.start
   requester.io.startAddress := io.startAddress
   requester.io.outputHCount := io.outputHCount
   requester.io.outputWCount := io.outputWCount
-  requester.io.kernelBlockCount := io.kernelBlockCount
+  requester.io.blockCount := io.kernelBlockCount
 
   requesterNext := requester.io.requesterNext
   requester.io.writerDone := writerDone
 
-  requester.io.wWarZero := io.wWarZero
-  io.wWarDec := requester.io.wWarDec
+  requester.io.warZero := io.wWarZero
+  io.wWarDec := requester.io.warDec
 
   io.avalonMasterAddress := requester.io.avalonMasterAddress
   io.avalonMasterRead := requester.io.avalonMasterRead

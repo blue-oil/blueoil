@@ -1,16 +1,25 @@
-package bxb.wdma
+package bxb.wqdma
 
 import chisel3._
 import chisel3.util._
 
 import bxb.util.{Util}
 
-class WDmaAvalonRequester(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int) extends Module {
+class WQDmaAvalonRequester(avalonAddrWidth: Int, avalonDataWidth: Int, elementWidth: Int, elementsPerBlock: Int) extends Module {
+
   require(isPow2(avalonDataWidth) && avalonDataWidth >= 8)
-  require(avalonDataWidth == b, "we expect everything to match prefectly")
+  require(isPow2(elementWidth) && elementWidth % avalonDataWidth == 0)
+
   val hCountWidth = 6
   val wCountWidth = 6
   val blockCountWidth = 14
+
+  val wordsPerElement = elementWidth / avalonDataWidth
+  val wordsPerBlock = wordsPerElement * elementsPerBlock
+  val bytesPerBlock = elementWidth * elementsPerBlock / 8
+
+  val burstCountWidth = Chisel.log2Ceil(wordsPerBlock) + 1
+
   val io = IO(new Bundle {
     val start = Input(Bool())
 
@@ -19,27 +28,23 @@ class WDmaAvalonRequester(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int) ex
     val outputHCount = Input(UInt(hCountWidth.W))
     // - number of output tiles in Width direction
     val outputWCount = Input(UInt(wCountWidth.W))
-    // - (outputC / B * inputC / B * kernelY * kernelX)
-    val kernelBlockCount = Input(UInt(blockCountWidth.W))
+    // - number of input blocks to be fetched per tile
+    val blockCount = Input(UInt(blockCountWidth.W))
 
     // WMem writer interface
     val requesterNext = Output(Bool())
     val writerDone = Input(Bool())
 
     // Sync interface
-    val wWarZero = Input(Bool())
-    val wWarDec = Output(Bool())
+    val warZero = Input(Bool())
+    val warDec = Output(Bool())
 
     // Avalon interface
     val avalonMasterAddress = Output(UInt(avalonAddrWidth.W))
     val avalonMasterRead = Output(Bool())
-    val avalonMasterBurstCount = Output(UInt(10.W))
+    val avalonMasterBurstCount = Output(UInt(burstCountWidth.W))
     val avalonMasterWaitRequest = Input(Bool())
   })
-
-  private def toBytes(bits: UInt) = {
-    bits >> 3.U
-  }
 
   object State {
     val idle :: running :: waitingWriter :: waitWar :: Nil = Enum(4)
@@ -58,7 +63,7 @@ class WDmaAvalonRequester(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int) ex
   val blockCountLast = (blockCountLeft === 1.U)
   when(updateAddress) {
     when(idle | blockCountLast) {
-      blockCountLeft := io.kernelBlockCount
+      blockCountLeft := io.blockCount
     }.otherwise {
       blockCountLeft := blockCountLeft - 1.U
     }
@@ -89,13 +94,13 @@ class WDmaAvalonRequester(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int) ex
     when(idle | blockCountLast) {
       avalonAddress := io.startAddress
     }.otherwise {
-      avalonAddress := avalonAddress + toBytes((b * b).U)
+      avalonAddress := avalonAddress + bytesPerBlock.U
     }
   }
 
   when(idle & io.start) {
     state := State.waitWar
-  }.elsewhen(waitWar & ~io.wWarZero) {
+  }.elsewhen(waitWar & ~io.warZero) {
     state := State.running
   }.elsewhen(running & ~io.avalonMasterWaitRequest) {
     state := State.waitingWriter
@@ -107,17 +112,17 @@ class WDmaAvalonRequester(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int) ex
     }
   }
 
-  io.wWarDec := waitWar
+  io.warDec := waitWar
   io.requesterNext := running & ~io.avalonMasterWaitRequest
 
   io.avalonMasterAddress := avalonAddress
   io.avalonMasterRead := running
-  // XXX: expect avalon support at least b sized bursts
-  io.avalonMasterBurstCount := b.U
+  // XXX: expect avalon support bursts of suffucient size
+  io.avalonMasterBurstCount := wordsPerBlock.U
 }
 
-object WDmaAvalonRequester {
+object WQDmaAvalonRequester {
   def main(args: Array[String]): Unit = {
-    println(Util.getVerilog(new WDmaAvalonRequester(32, 32, 32)))
+    println(Util.getVerilog(new WQDmaAvalonRequester(32, 32, 32, 32)))
   }
 }
