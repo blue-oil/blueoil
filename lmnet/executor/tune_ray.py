@@ -17,6 +17,7 @@ import os
 import math
 import click
 import tensorflow as tf
+import multiprocessing
 
 from lmnet.utils import executor, module_loader, config as config_util
 
@@ -24,6 +25,18 @@ import ray
 from ray.tune import grid_search, run_experiments, register_trainable, Trainable, function
 from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
 from ray.tune.suggest import HyperOptSearch
+
+
+def get_num_gpu():
+    """
+    A simple check for number of GPUs available, should have more strict
+    check for environment that don't use any GPU.
+    Returns:
+        int: #available GPUs in CUDA_VISIBLE_DEVICES, or in the system.
+    """
+    from tensorflow.python.client import device_lib
+    local_device_protos = device_lib.list_local_devices()
+    return len([x.name for x in local_device_protos if x.device_type == 'GPU'])
 
 
 def get_best_trial(trial_list, metric):
@@ -188,7 +201,7 @@ def run(config_file):
     tune_spec = lm_config['TUNE_SPEC']
     tune_spec['config']['lm_config'] = os.path.join(os.getcwd(), config_file)
 
-    ray.init(num_cpus=8, num_gpus=2)
+    ray.init(num_cpus=multiprocessing.cpu_count() // 2, num_gpus=max(get_num_gpu(), 1))
     algo = HyperOptSearch(tune_space, max_concurrent=4, reward_attr="mean_accuracy")
     scheduler = AsyncHyperBandScheduler(time_attr="training_iteration", reward_attr="mean_accuracy", max_t=200)
     trials = run_experiments(experiments={'exp_tune': tune_spec}, search_alg=algo, scheduler=scheduler)
