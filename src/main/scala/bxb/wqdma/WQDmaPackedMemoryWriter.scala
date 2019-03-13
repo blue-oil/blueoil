@@ -1,4 +1,4 @@
-package bxb.wdma
+package bxb.wqdma
 
 import chisel3._
 import chisel3.util._
@@ -6,8 +6,12 @@ import chisel3.util._
 import bxb.memory.{PackedWritePort}
 import bxb.util.{Util}
 
-class WDmaWMemWriter(b: Int, avalonDataWidth: Int, wAddrWidth: Int) extends Module {
-  require(avalonDataWidth == b, "we expect everything to match prefectly")
+class WQDmaPackedMemoryWriter(avalonDataWidth: Int, wAddrWidth: Int, itemsPerPack: Int, itemWidth: Int, packsPerBlock: Int) extends Module {
+
+  require(isPow2(avalonDataWidth) && avalonDataWidth >= 8)
+  require(isPow2(itemsPerPack) && itemsPerPack % avalonDataWidth == 0)
+  require(itemsPerPack * itemWidth == avalonDataWidth) // TODO: generalize me
+
   val io = IO(new Bundle {
     // Avalon Requester interface
     // one cycle pulse after request was successfully sent
@@ -20,10 +24,10 @@ class WDmaWMemWriter(b: Int, avalonDataWidth: Int, wAddrWidth: Int) extends Modu
     val avalonMasterReadData = Input(UInt(avalonDataWidth.W))
 
     // Sync interface
-    val wRawInc = Output(Bool())
+    val rawInc = Output(Bool())
 
-    // WMem interface
-    val wmemWrite = Output(PackedWritePort(wAddrWidth, b, 1))
+    // Memory interface
+    val memWrite = Output(PackedWritePort(wAddrWidth, itemsPerPack, itemWidth))
   })
 
   object State {
@@ -37,17 +41,17 @@ class WDmaWMemWriter(b: Int, avalonDataWidth: Int, wAddrWidth: Int) extends Modu
 
   val acceptData = (running & io.avalonMasterReadDataValid)
 
-  val countLeft = Reg(UInt(Chisel.log2Up(b).W))
+  val countLeft = Reg(UInt(Chisel.log2Up(packsPerBlock).W))
   val countLast = (countLeft === 0.U)
   when(idle) {
-    countLeft := (b - 1).U
+    countLeft := (packsPerBlock - 1).U
   }.elsewhen(acceptData) {
     countLeft := countLeft - 1.U
   }
 
-  val wmemAddress = RegInit(0.U(wAddrWidth.W))
+  val memAddress = RegInit(0.U(wAddrWidth.W))
   when(acceptData) {
-    wmemAddress := wmemAddress + 1.U
+    memAddress := memAddress + 1.U
   }
 
   val acceptLast = (running & io.avalonMasterReadDataValid & countLast)
@@ -57,15 +61,19 @@ class WDmaWMemWriter(b: Int, avalonDataWidth: Int, wAddrWidth: Int) extends Modu
     state := State.idle
   }
 
-  io.wmemWrite.addr := wmemAddress
-  io.wmemWrite.data := Seq.tabulate(b){i => io.avalonMasterReadData(i)}
-  io.wmemWrite.enable := acceptData
+  io.memWrite.addr := memAddress
+  io.memWrite.data := Seq.tabulate(itemsPerPack){i =>
+    val itemMsb = (i + 1) * itemWidth - 1
+    val itemLsb = i * itemWidth
+    io.avalonMasterReadData(itemMsb, itemLsb)
+  }
+  io.memWrite.enable := acceptData
   io.writerDone := acceptLast
-  io.wRawInc := acceptLast
+  io.rawInc := acceptLast
 }
 
-object WDmaWMemWriter {
+object WQDmaPackedMemoryWriter {
   def main(args: Array[String]): Unit = {
-    println(Util.getVerilog(new WDmaWMemWriter(32, 32, 12)))
+    println(Util.getVerilog(new WQDmaPackedMemoryWriter(32, 12, 32, 1, 32)))
   }
 }

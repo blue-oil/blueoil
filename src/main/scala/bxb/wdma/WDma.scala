@@ -3,7 +3,7 @@ package bxb.wdma
 import chisel3._
 import chisel3.util._
 
-import bxb.wqdma.{WQDmaAvalonRequester}
+import bxb.wqdma.{WQDmaAvalonRequester, WQDmaPackedMemoryWriter}
 import bxb.memory.{PackedWritePort}
 import bxb.util.{Util}
 
@@ -16,8 +16,9 @@ class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   val wCountWidth = 6
   val blockCountWidth = 14
 
-  val elementWidth = b
-  val elementsPerBlock = b
+  val itemsPerPack = b
+  val itemWidth = 1
+  val packsPerBlock = b
 
   val io = IO(new Bundle {
     val start = Input(Bool())
@@ -51,7 +52,7 @@ class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   val writerDone = Wire(Bool())
   val requesterNext = Wire(Bool())
 
-  val requester = Module(new WQDmaAvalonRequester(avalonAddrWidth, avalonDataWidth, elementWidth, elementsPerBlock))
+  val requester = Module(new WQDmaAvalonRequester(avalonAddrWidth, avalonDataWidth, itemsPerPack * itemWidth, packsPerBlock))
   requester.io.start := io.start
   requester.io.startAddress := io.startAddress
   requester.io.outputHCount := io.outputHCount
@@ -69,16 +70,16 @@ class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   io.avalonMasterBurstCount := requester.io.avalonMasterBurstCount
   requester.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
 
-  val writer = Module(new WDmaWMemWriter(b, avalonDataWidth, wAddrWidth))
+  val writer = Module(new WQDmaPackedMemoryWriter(avalonDataWidth, wAddrWidth, itemsPerPack, itemWidth, packsPerBlock))
   writer.io.requesterNext := requesterNext
   writerDone := writer.io.writerDone
 
   writer.io.avalonMasterReadDataValid := io.avalonMasterReadDataValid
   writer.io.avalonMasterReadData := io.avalonMasterReadData
 
-  io.wRawInc := writer.io.wRawInc
+  io.wRawInc := writer.io.rawInc
 
-  io.wmemWrite := writer.io.wmemWrite
+  io.wmemWrite := writer.io.memWrite
 }
 
 object WDma {
