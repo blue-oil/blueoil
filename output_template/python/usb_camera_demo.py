@@ -28,7 +28,7 @@ import click
 import cv2
 import numpy as np
 
-from lmnet.common import COLOR_MAP
+from lmnet.common import get_color_map
 from lmnet.nnlib import NNLib
 from lmnet.utils.config import (
     load_yaml,
@@ -80,11 +80,12 @@ def add_class_label(canvas,
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
-def label_to_color_image(results):
+def label_to_color_image(results, length):
     """Adds color defined by the dataset colormap to the label.
 
     Args:
         results: A 2D array with integer type, storing the segmentation label.
+        length: Single value with int type. The number of classes.
 
     Returns:
         result: A 2D array with floating type. The element of the array
@@ -98,7 +99,7 @@ def label_to_color_image(results):
     if results.ndim != 4:
         raise ValueError('Expect 4-D input results (1, height, width, classes).')
 
-    colormap = np.array(COLOR_MAP, dtype=np.uint8)
+    colormap = np.array(get_color_map(length), dtype=np.uint8)
 
     label = np.argmax(results, axis=3)
     if np.max(label) >= len(colormap):
@@ -297,7 +298,7 @@ def run_sementic_segmentation(config):
                 window_img = q_show.get()
                 overlay_img = window_img
                 if result is not None:
-                    seg_img = label_to_color_image(result)
+                    seg_img = label_to_color_image(result, len(config['CLASSES']))
                     overlay_img = cv2.addWeighted(window_img, 1, seg_img, 0.8, 0)
 
                 cv2.imshow(window_name, overlay_img)
