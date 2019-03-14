@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import os
+import six
 import math
 import click
 import tensorflow as tf
@@ -28,17 +29,61 @@ from ray.tune import grid_search, run_experiments, register_trainable, Trainable
 from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
 from ray.tune.suggest import HyperOptSearch
 
+if six.PY2:
+    import subprocess32 as subprocess
+else:
+    import subprocess
+
+
+def subproc_call(cmd, timeout=None):
+    """
+    Execute a command with timeout, and return both STDOUT/STDERR.
+    Args:
+        cmd(str): the command to execute.
+        timeout(float): timeout in seconds.
+    Returns:
+        output(bytes), retcode(int). If timeout, retcode is -1.
+    """
+    try:
+        output = subprocess.check_output(
+            cmd, stderr=subprocess.STDOUT,
+            shell=True, timeout=timeout)
+        return output, 0
+    except subprocess.TimeoutExpired as e:
+        print("Command '{}' timeout!".format(cmd))
+        print(e.output.decode('utf-8'))
+        return e.output, -1
+    except subprocess.CalledProcessError as e:
+        print("Command '{}' failed, return code={}".format(cmd, e.returncode))
+        print(e.output.decode('utf-8'))
+        return e.output, e.returncode
+    except Exception:
+        print("Command '{}' failed to run.".format(cmd))
+        return "", -2
+
 
 def get_num_gpu():
     """
-    A simple check for number of GPUs available, should have more strict
-    check for environment that don't use any GPU.
     Returns:
         int: #available GPUs in CUDA_VISIBLE_DEVICES, or in the system.
     """
-    from tensorflow.python.client import device_lib
-    local_device_protos = device_lib.list_local_devices()
-    return len([x.name for x in local_device_protos if x.device_type == 'GPU'])
+
+    def warn_return(ret, message):
+        built_with_cuda = tf.test.is_built_with_cuda()
+        if not built_with_cuda and ret > 0:
+            print(message + "But TensorFlow was not built with CUDA support and could not use GPUs!")
+        return ret
+
+    env = os.environ.get('CUDA_VISIBLE_DEVICES', None)
+    if env:
+        return warn_return(len(env.split(',')), "Found non-empty CUDA_VISIBLE_DEVICES. ")
+    output, code = subproc_call("nvidia-smi -L", timeout=5)
+    if code == 0:
+        output = output.decode('utf-8')
+        return warn_return(len(output.strip().split('\n')), "Found nvidia-smi. ")
+    else:
+        print('Not working for this one... But there are other methods you can try...')
+        raise NotImplementedError
 
 
 def get_best_trial(trial_list, metric):
@@ -213,7 +258,8 @@ def run(config_file):
     tune_spec = easydict_to_dict(lm_config['TUNE_SPEC'])
     tune_spec['config'] = {'lm_config': os.path.join(os.getcwd(), config_file)}
 
-    ray.init(num_cpus=multiprocessing.cpu_count() // 2, num_gpus=1)
+    # Expecting use of gpus to do parameter search
+    ray.init(num_cpus=multiprocessing.cpu_count() // 2, num_gpus=max(get_num_gpu(), 1))
     algo = HyperOptSearch(tune_space, max_concurrent=4, reward_attr="mean_accuracy")
     scheduler = AsyncHyperBandScheduler(time_attr="training_iteration", reward_attr="mean_accuracy", max_t=200)
     trials = run_experiments(experiments={'exp_tune': tune_spec}, search_alg=algo, scheduler=scheduler)
