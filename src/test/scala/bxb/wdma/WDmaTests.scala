@@ -10,9 +10,8 @@ import chisel3.iotesters.{PeekPokeTester, Driver}
 import bxb.memory.{PackedBlockRam, ReadPort}
 import bxb.sync.{SemaphorePair}
 
-class WDmaTestModule(b: Int, wmemSize: Int) extends Module {
+class WDmaTestModule(b: Int, avalonDataWidth: Int, wmemSize: Int) extends Module {
   val avalonAddrWidth = 32
-  val avalonDataWidth = b
   val wAddrWidth = Chisel.log2Up(wmemSize)
   require(Chisel.isPow2(wmemSize))
   require(wmemSize % b == 0)
@@ -81,10 +80,12 @@ class WDmaTestModule(b: Int, wmemSize: Int) extends Module {
   wdma.io.avalonMasterReadData := io.avalonMasterReadData
 }
 
-class WDmaTestWMemWriting(dut: WDmaTestModule, b: Int, wmemSize: Int, hCount: Int, wCount: Int, blockCount: Int, avalonAcceptLatency: Int, avalonResponseLatency: Int) extends PeekPokeTester(dut) {
-  // input as 32 bit words laying in DDR
-  val inputMemory = Seq.fill(blockCount * b)(scala.util.Random.nextLong() & ((0x1L << 32) - 1))
-  val avalonDataWidth = b / 8 // assume that bus width matches data size nicely
+class WDmaTestWMemWriting(dut: WDmaTestModule, b: Int, avalonDataWidth: Int, wmemSize: Int, hCount: Int, wCount: Int, blockCount: Int, avalonAcceptLatency: Int, avalonResponseLatency: Int) extends PeekPokeTester(dut) {
+  val kernelDataWidth = b
+  val readsPerKenrel = kernelDataWidth / avalonDataWidth
+  // input as avalon data
+  val inputMemory = Seq.fill(blockCount * readsPerKenrel * b)(scala.util.Random.nextLong() & ((0x1L << avalonDataWidth) - 1))
+  val avalonDataByteWidth = avalonDataWidth / 8
 
   object AvalonStub {
     class Request(var addr: Int, var burst: Int) {
@@ -107,9 +108,9 @@ class WDmaTestWMemWriting(dut: WDmaTestModule, b: Int, wmemSize: Int, hCount: In
       else {
         val req = requests.front
         poke(dut.io.avalonMasterReadDataValid, true)
-        poke(dut.io.avalonMasterReadData, inputMemory(req.addr >> 2))
+        poke(dut.io.avalonMasterReadData, inputMemory(req.addr / avalonDataByteWidth))
         req.burst -= 1
-        req.addr += avalonDataWidth
+        req.addr += avalonDataByteWidth
         if (req.burst == 0)
           requests.dequeue()
         leftUntilResponse = avalonResponseLatency
@@ -132,6 +133,14 @@ class WDmaTestWMemWriting(dut: WDmaTestModule, b: Int, wmemSize: Int, hCount: In
   def doStep() = {
     AvalonStub.next()
     step(1)
+  }
+
+  def expectedData(kernel: Int) = {
+    var expected = 0
+    for (r <- 0 until readsPerKenrel) {
+      expected |= inputMemory(kernel * readsPerKenrel + r) << (r * avalonDataWidth)
+    }
+    expected
   }
 
   poke(dut.io.start, true)
@@ -157,7 +166,7 @@ class WDmaTestWMemWriting(dut: WDmaTestModule, b: Int, wmemSize: Int, hCount: In
           wmemAddr = (wmemAddr + 1) % wmemSize
           doStep()
           poke(dut.io.wRawDec, false)
-          val expected = inputMemory(kernel)
+          val expected = expectedData(kernel)
           for (k <- 0 until b) {
             expect(dut.io.wmemQ(k), (expected >> k) & 0x1)
           }
@@ -184,12 +193,14 @@ object WDmaTests {
 
     var ok = true
     breakable {
-      for (avalonAcceptLatency <- 0 until 3) {
-        for (avalonResponseLatency <- 0 until 3) {
-          ok &= Driver.execute(driverArgs, () => new WDmaTestModule(b, wmemSize))(
-            dut => new WDmaTestWMemWriting(dut, b, wmemSize, hCount, wCount, blockCount, avalonAcceptLatency, avalonResponseLatency))
-          if (!ok) {
-            break
+      for (avalonAcceptLatency <- 0 until 1) {
+        for (avalonResponseLatency <- 0 until 1) {
+          for (avalonDataWidth <- List(b, b / 2)) {
+            ok &= Driver.execute(driverArgs, () => new WDmaTestModule(b, avalonDataWidth, wmemSize))(
+              dut => new WDmaTestWMemWriting(dut, b, avalonDataWidth, wmemSize, hCount, wCount, blockCount, avalonAcceptLatency, avalonResponseLatency))
+            if (!ok) {
+              break
+            }
           }
         }
       }

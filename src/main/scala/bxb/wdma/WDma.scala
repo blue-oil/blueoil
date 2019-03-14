@@ -8,8 +8,7 @@ import bxb.memory.{PackedWritePort}
 import bxb.util.{Util}
 
 class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) extends Module {
-  require(isPow2(avalonDataWidth) && avalonDataWidth >= 8)
-  require(avalonDataWidth == b, "we expect everything to match prefectly")
+  require(avalonDataWidth <= b && b % avalonDataWidth == 0)
 
   // FIXME: rid of copypaste
   val hCountWidth = 6
