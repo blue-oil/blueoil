@@ -6,11 +6,35 @@ import chisel3.util._
 import bxb.memory.{PackedWritePort}
 import bxb.util.{Util}
 
-class WQDmaPackedMemoryWriter(avalonDataWidth: Int, wAddrWidth: Int, itemsPerPack: Int, itemWidth: Int, packsPerBlock: Int) extends Module {
+// like ShiftRegiter but provides parallel access to all stored elements
+private object ShiftingBuffer {
+  def apply(depth: Int, in: UInt, enable: Bool): UInt = {
+    if (depth == 0) {
+      in
+    }
+    else {
+      val shifter = Seq.fill(depth){Reg(in.cloneType)}
+      for (i <- 0 until depth) {
+        when(enable) {
+          shifter(i) := (if (i == 0) in else shifter(i - 1))
+        }
+      }
+      Cat(shifter)
+    }
+  }
+}
 
-  require(isPow2(avalonDataWidth) && avalonDataWidth >= 8)
-  require(isPow2(itemsPerPack) && itemsPerPack % avalonDataWidth == 0)
-  require(itemsPerPack * itemWidth == avalonDataWidth) // TODO: generalize me
+class WQDmaPackedMemoryWriter(avalonDataWidth: Int, wAddrWidth: Int, itemsPerPack: Int, itemWidth: Int, packsPerBlock: Int, itemWidthRaw: Int) extends Module {
+
+  def this(avalonDataWidth: Int, wAddrWidth: Int, itemsPerPack: Int, itemWidth: Int, packsPerBlock: Int) =
+    this(avalonDataWidth, wAddrWidth, itemsPerPack, itemWidth, packsPerBlock, itemWidth)
+
+  require(isPow2(avalonDataWidth) && avalonDataWidth >= 8 && avalonDataWidth >= itemWidthRaw)
+  require(avalonDataWidth % itemWidthRaw == 0)
+  require(itemWidthRaw >= itemWidth)
+
+  val readsPerPack = itemsPerPack * itemWidthRaw / avalonDataWidth
+  val packDelay = if (readsPerPack == 1) 0 else readsPerPack
 
   val io = IO(new Bundle {
     // Avalon Requester interface
@@ -30,6 +54,10 @@ class WQDmaPackedMemoryWriter(avalonDataWidth: Int, wAddrWidth: Int, itemsPerPac
     val memWrite = Output(PackedWritePort(wAddrWidth, itemsPerPack, itemWidth))
   })
 
+  def unpackRead(packed: UInt) = {
+    packed
+  }
+
   object State {
     val idle :: running :: Nil = Enum(2)
   }
@@ -39,14 +67,25 @@ class WQDmaPackedMemoryWriter(avalonDataWidth: Int, wAddrWidth: Int, itemsPerPac
   val idle = (state === State.idle)
   val running = (state === State.running)
 
-  val acceptData = (running & io.avalonMasterReadDataValid)
+  val readsCountLeft = if (packDelay == 0) 0.U else Reg(UInt(Chisel.log2Up(readsPerPack).W))
+  val readsCountLast = (readsCountLeft === 0.U)
+  if (packDelay != 0) {
+    when(idle) {
+      readsCountLeft := (readsPerPack - 1).U
+    }.elsewhen(running & io.avalonMasterReadDataValid) {
+      readsCountLeft := readsCountLeft - 1.U
+    }
+  }
 
-  val countLeft = Reg(UInt(Chisel.log2Up(packsPerBlock).W))
-  val countLast = (countLeft === 0.U)
+  val packDone = if (packDelay == 0) io.avalonMasterReadDataValid else RegNext(readsCountLast & io.avalonMasterReadDataValid)
+  val acceptData = (running & packDone)
+
+  val packsCountLeft = Reg(UInt(Chisel.log2Up(packsPerBlock).W))
+  val packsCountLast = (packsCountLeft === 0.U) & packDone
   when(idle) {
-    countLeft := (packsPerBlock - 1).U
+    packsCountLeft := (packsPerBlock - 1).U
   }.elsewhen(acceptData) {
-    countLeft := countLeft - 1.U
+    packsCountLeft := packsCountLeft - 1.U
   }
 
   val memAddress = RegInit(0.U(wAddrWidth.W))
@@ -54,18 +93,20 @@ class WQDmaPackedMemoryWriter(avalonDataWidth: Int, wAddrWidth: Int, itemsPerPac
     memAddress := memAddress + 1.U
   }
 
-  val acceptLast = (running & io.avalonMasterReadDataValid & countLast)
+  val acceptLast = (acceptData & packsCountLast)
   when(idle & io.requesterNext) {
     state := State.running
   }.elsewhen(acceptLast) {
     state := State.idle
   }
 
+  val buffer = ShiftingBuffer(packDelay, unpackRead(io.avalonMasterReadData), io.avalonMasterReadDataValid)
+
   io.memWrite.addr := memAddress
   io.memWrite.data := Seq.tabulate(itemsPerPack){i =>
     val itemMsb = (i + 1) * itemWidth - 1
     val itemLsb = i * itemWidth
-    io.avalonMasterReadData(itemMsb, itemLsb)
+    buffer(itemMsb, itemLsb)
   }
   io.memWrite.enable := acceptData
   io.writerDone := acceptLast
