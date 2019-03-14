@@ -21,6 +21,7 @@ import multiprocessing
 
 from easydict import EasyDict
 from lmnet.utils import executor, module_loader, config as config_util
+from lmnet.datasets.dataset_iterator import DatasetIterator
 
 import ray
 from ray.tune import grid_search, run_experiments, register_trainable, Trainable, function
@@ -80,29 +81,27 @@ def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
     return network_kwargs
 
 
+def setup_dataset(config, subset, rank):
+    """helper function from lmnet/train.py to setup the data iterator"""
+    dataset_class = config.DATASET_CLASS
+    dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+    dataset = dataset_class(subset=subset, **dataset_kwargs)
+    enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
+    return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
+
+
 class TrainTunable(Trainable):
     def _setup(self, config):
         self.lm_config = config_util.load(self.config['lm_config'])
         executor.init_logging(self.lm_config)
 
-        dataset_class = self.lm_config.DATASET_CLASS
         model_class = self.lm_config.NETWORK_CLASS
         network_kwargs = dict((key.lower(), val) for key, val in self.lm_config.NETWORK.items())
-        dataset_kwargs = dict((key.lower(), val) for key, val in self.lm_config.DATASET.items())
-
         network_kwargs = update_parameters_for_each_trial(network_kwargs, self.config)
 
-        self.train_dataset = dataset_class(
-            subset="train",
-            **dataset_kwargs,
-        )
-
-        self.validation_dataset = dataset_class(
-            subset="validation",
-            **dataset_kwargs,
-        )
-
-        print("train dataset num:", self.train_dataset.num_per_epoch)
+        # No distributed training was implemented, therefore rank set to 0
+        self.train_dataset = setup_dataset(self.lm_config, "train", 0)
+        self.validation_dataset = setup_dataset(self.lm_config, "validation", 0)
 
         if model_class.__module__.startswith("lmnet.networks.object_detection"):
             model = model_class(
