@@ -1,9 +1,8 @@
-package bxb.wdma
+package bxb.wqdma
 
 import chisel3._
 import chisel3.util._
 
-import bxb.wqdma.{WQDmaAvalonRequester, WQDmaPackedMemoryWriter}
 import bxb.memory.{PackedWritePort}
 import bxb.util.{Util}
 
