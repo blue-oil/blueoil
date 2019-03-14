@@ -1,4 +1,4 @@
-package bxb.wdma
+package bxb.wqdma
 
 import scala.collection._
 import scala.math.{min}
