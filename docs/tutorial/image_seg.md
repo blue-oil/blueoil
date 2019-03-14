@@ -133,7 +133,7 @@ output
  │   ├── README.md
  │   ├── requirements.txt
  │   ├── run.py (inference script)
- │   └── usb_camera_demo.py (demo script for object detection)
+ │   └── usb_camera_demo.py (demo script for object detection and classification)
  └── README.md
 ```
 
