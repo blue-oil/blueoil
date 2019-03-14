@@ -80,7 +80,7 @@ def add_class_label(canvas,
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
-def label_to_color_image(results, length):
+def label_to_color_image(results, colormap):
     """Adds color defined by the dataset colormap to the label.
 
     Args:
@@ -98,8 +98,6 @@ def label_to_color_image(results, length):
     """
     if results.ndim != 4:
         raise ValueError('Expect 4-D input results (1, height, width, classes).')
-
-    colormap = np.array(get_color_map(length), dtype=np.uint8)
 
     label = np.argmax(results, axis=3)
     if np.max(label) >= len(colormap):
@@ -256,6 +254,7 @@ def run_classification(config):
 
     
 def run_sementic_segmentation(config):
+    global nn
     camera_width = 320
     camera_height = 240
     window_name = "Segmentation Demo"
@@ -263,33 +262,31 @@ def run_sementic_segmentation(config):
     vc = cv2.VideoCapture(0)
     if not vc.isOpened():
         print("VideoCapture failed")
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
-    vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-    vc.set(cv2.cv.CV_CAP_PROP_FPS, 15)
 
-    pool = Pool(processes=1)
-    result = None
+    vc = init_camera(camera_width, camera_height)
+
+    pool = Pool(processes=1, initializer=nn.init)
+    result = False
     fps = 1.0
 
     q_save = Queue()
     q_show = Queue()
 
     grabbed, camera_img = vc.read()
-    camera_img = cv2.resize(camera_img, (480, 360))
     if not grabbed:
         print("Frame is empty")
 
     q_show.put(camera_img.copy())
     input_img = camera_img.copy()
 
+    colormap = np.array(get_color_map(len(config['CLASSES'])), dtype=np.uint8)
+
     while True:
         m1 = MyTime("1 loop of while(1) of main()")
         pool_result = pool.apply_async(run_inference, (input_img,))
         is_first = True
         while True:
-            sleep(0.01)
             grabbed, camera_img = vc.read()
-            camera_img = cv2.resize(camera_img, (480, 360))
             if is_first:
                 input_img = camera_img.copy()
                 is_first = False
@@ -297,12 +294,12 @@ def run_sementic_segmentation(config):
             if not q_show.empty():
                 window_img = q_show.get()
                 overlay_img = window_img
-                if result is not None:
-                    seg_img = label_to_color_image(result, len(config['CLASSES']))
+                if result:
+                    seg_img = label_to_color_image(result, colormap)
                     overlay_img = cv2.addWeighted(window_img, 1, seg_img, 0.8, 0)
+                    overlay_img = add_fps(overlay_img, fps)
 
                 cv2.imshow(window_name, overlay_img)
-                # cv2.imshow(window_name, window_img)
                 key = cv2.waitKey(2)    # Wait for 2ms
                 if key == 27:           # ESC to quit
                     return
