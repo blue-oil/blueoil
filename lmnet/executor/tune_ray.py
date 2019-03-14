@@ -19,6 +19,7 @@ import click
 import tensorflow as tf
 import multiprocessing
 
+from easydict import EasyDict
 from lmnet.utils import executor, module_loader, config as config_util
 
 import ray
@@ -195,13 +196,25 @@ class TrainTunable(Trainable):
 
 
 def run(config_file):
-    register_trainable("tunable", TrainTunable)
+    register_trainable('tunable', TrainTunable)
     lm_config = config_util.load(config_file)
-    tune_space = lm_config['TUNE_SPACE']
-    tune_spec = lm_config['TUNE_SPEC']
-    tune_spec['config']['lm_config'] = os.path.join(os.getcwd(), config_file)
 
-    ray.init(num_cpus=multiprocessing.cpu_count() // 2, num_gpus=max(get_num_gpu(), 1))
+    def easydict_to_dict(config):
+        if isinstance(config, EasyDict):
+            config = dict(config)
+
+        for key, value in config.items():
+            if isinstance(value, EasyDict):
+                value = dict(value)
+                easydict_to_dict(value)
+            config[key] = value
+        return config
+
+    tune_space = easydict_to_dict(lm_config['TUNE_SPACE'])
+    tune_spec = easydict_to_dict(lm_config['TUNE_SPEC'])
+    tune_spec['config'] = {'lm_config': os.path.join(os.getcwd(), config_file)}
+
+    ray.init(num_cpus=multiprocessing.cpu_count() // 2, num_gpus=1)
     algo = HyperOptSearch(tune_space, max_concurrent=4, reward_attr="mean_accuracy")
     scheduler = AsyncHyperBandScheduler(time_attr="training_iteration", reward_attr="mean_accuracy", max_t=200)
     trials = run_experiments(experiments={'exp_tune': tune_spec}, search_alg=algo, scheduler=scheduler)

@@ -65,9 +65,9 @@ TUNE_SPEC = {
             'training_iteration': 200,
         },
         'config': {
-            'lm_config': None,
+            'lm_config': {},
         },
-        "num_samples": 300,
+        "num_samples": 100,
 }
 
 TUNE_SPACE = {
