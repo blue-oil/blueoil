@@ -1,4 +1,4 @@
-package bxb.wdma
+package bxb.wqdma
 
 import chisel3._
 import chisel3.util._
@@ -7,12 +7,17 @@ import bxb.memory.{PackedWritePort}
 import bxb.util.{Util}
 
 class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) extends Module {
-  require(isPow2(avalonDataWidth) && avalonDataWidth >= 8)
-  require(avalonDataWidth == b, "we expect everything to match prefectly")
+  require(avalonDataWidth <= b && b % avalonDataWidth == 0)
+
   // FIXME: rid of copypaste
   val hCountWidth = 6
   val wCountWidth = 6
   val blockCountWidth = 14
+
+  val itemsPerPack = b
+  val itemWidth = 1
+  val packsPerBlock = b
+
   val io = IO(new Bundle {
     val start = Input(Bool())
 
@@ -45,34 +50,34 @@ class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   val writerDone = Wire(Bool())
   val requesterNext = Wire(Bool())
 
-  val requester = Module(new WDmaAvalonRequester(b, avalonAddrWidth, avalonDataWidth))
+  val requester = Module(new WQDmaAvalonRequester(avalonAddrWidth, avalonDataWidth, itemsPerPack * itemWidth, packsPerBlock))
   requester.io.start := io.start
   requester.io.startAddress := io.startAddress
   requester.io.outputHCount := io.outputHCount
   requester.io.outputWCount := io.outputWCount
-  requester.io.kernelBlockCount := io.kernelBlockCount
+  requester.io.blockCount := io.kernelBlockCount
 
   requesterNext := requester.io.requesterNext
   requester.io.writerDone := writerDone
 
-  requester.io.wWarZero := io.wWarZero
-  io.wWarDec := requester.io.wWarDec
+  requester.io.warZero := io.wWarZero
+  io.wWarDec := requester.io.warDec
 
   io.avalonMasterAddress := requester.io.avalonMasterAddress
   io.avalonMasterRead := requester.io.avalonMasterRead
   io.avalonMasterBurstCount := requester.io.avalonMasterBurstCount
   requester.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
 
-  val writer = Module(new WDmaWMemWriter(b, avalonDataWidth, wAddrWidth))
+  val writer = Module(new WQDmaPackedMemoryWriter(avalonDataWidth, wAddrWidth, itemsPerPack, itemWidth, packsPerBlock))
   writer.io.requesterNext := requesterNext
   writerDone := writer.io.writerDone
 
   writer.io.avalonMasterReadDataValid := io.avalonMasterReadDataValid
   writer.io.avalonMasterReadData := io.avalonMasterReadData
 
-  io.wRawInc := writer.io.wRawInc
+  io.wRawInc := writer.io.rawInc
 
-  io.wmemWrite := writer.io.wmemWrite
+  io.wmemWrite := writer.io.memWrite
 }
 
 object WDma {
