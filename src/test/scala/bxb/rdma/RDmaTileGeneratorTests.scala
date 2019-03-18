@@ -74,7 +74,7 @@ class DummyTileGenerator(b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidt
         val width = tileEndX - tileX
 
         val tileAddr = (tileC / b * outputHeight * outputWidth + tileY * outputWidth + tileX) * bytesPerElement
-        val rowToRowDist = outputWidth - tileWidth + 1
+        val rowToRowDist = outputWidth - width + 1
         tileSeq += new DummyTile(tileAddr, height, width, rowToRowDist)
       }
     }
