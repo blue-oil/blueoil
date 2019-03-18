@@ -146,5 +146,14 @@ class LmSegnetV1Quantize(LmSegnetV1):
         with tf.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
+
+                if var.op.name.startswith("conv1/"):
+                    print("not quantized", var.op.name)
+                    return var
+
+                if var.op.name.startswith("conv11/"):
+                    print("not quantized", var.op.name)
+                    return var
+
                 return weight_quantization(var)
         return var
