@@ -16,6 +16,7 @@
 import tensorflow as tf
 
 from lmnet.networks.base import BaseNetwork
+from lmnet.common import get_color_map
 
 
 class Base(BaseNetwork):
@@ -37,7 +38,10 @@ class Base(BaseNetwork):
             *args,
             **kwargs,
         )
-        self.label_colors = label_colors
+        if label_colors is None:
+            self.label_colors = get_color_map(self.num_classes)
+        else:
+            self.label_colors = label_colors
         self.weight_decay_rate = weight_decay_rate
 
     def placeholderes(self):

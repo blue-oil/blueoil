@@ -21,6 +21,8 @@ output_files = [
     'delta_mark_object_detection_has_validation',
     'openimagesv4_object_detection',
     'openimagesv4_object_detection_has_validation',
+    'camvid_custom_semantic_segmentation',
+    'camvid_custom_semantic_segmentation_has_validation',
 ]
 
 task_types = [
@@ -32,6 +34,8 @@ task_types = [
     'task_type: object_detection\n\n',
     'task_type: object_detection\n\n',
     'task_type: object_detection\n\n',
+    'task_type: semantic_segmentation\n\n',
+    'task_type: semantic_segmentation\n\n',
 ]
 
 network_names = [
@@ -43,6 +47,8 @@ network_names = [
     'network_name: LMFYoloQuantize\n\n',
     'network_name: LMFYoloQuantize\n\n',
     'network_name: LMFYoloQuantize\n\n',
+    'network_name: LmSegnetV1Quantize\n\n',
+    'network_name: LmSegnetV1Quantize\n\n',
 ]
 
 dataset_formats = [
@@ -54,6 +60,8 @@ dataset_formats = [
     '  format: DeLTA-Mark for Object Detection\n',
     '  format: OpenImagesV4\n',
     '  format: OpenImagesV4\n',
+    '  format: CamvidCustom\n',
+    '  format: CamvidCustom\n',
 ]
 
 dataset_train_paths = [
@@ -65,6 +73,8 @@ dataset_train_paths = [
     '  train_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_object_detection/for_train\n',
     '  train_path: ./lmnet/tests/fixtures/datasets/custom_open_images_v4_bounding_boxes/for_train\n',
     '  train_path: ./lmnet/tests/fixtures/datasets/custom_open_images_v4_bounding_boxes/for_train\n',
+    '  train_path: ./lmnet/tests/fixtures/datasets/camvid_custom\n',
+    '  train_path: ./lmnet/tests/fixtures/datasets/camvid_custom\n',
 ]
 
 dataset_test_paths = [
@@ -76,6 +86,8 @@ dataset_test_paths = [
     '  test_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_object_detection/for_validation\n',
     '  test_path: \n',
     '  test_path: ./lmnet/tests/fixtures/datasets/custom_open_images_v4_bounding_boxes/for_validation\n',
+    '  test_path: \n',
+    '  test_path: ./lmnet/tests/fixtures/datasets/camvid_custom\n',
 ]
 
 trainer_batch_sizes = [
@@ -87,9 +99,13 @@ trainer_batch_sizes = [
     '  batch_size: 1\n',
     '  batch_size: 1\n',
     '  batch_size: 1\n',
+    '  batch_size: 1\n',
+    '  batch_size: 1\n',
 ]
 
 trainer_epochs = [
+    '  epochs: 1\n',
+    '  epochs: 1\n',
     '  epochs: 1\n',
     '  epochs: 1\n',
     '  epochs: 1\n',
@@ -117,6 +133,8 @@ trainer_optimizers = [
     '  optimizer: Momentum\n',
     '  optimizer: Momentum\n',
     '  optimizer: Momentum\n',
+    '  optimizer: Adam\n',
+    '  optimizer: Adam\n',
 ]
 
 trainer_lr_schedule_comment = """\
@@ -138,9 +156,13 @@ trainer_lr_schedules = [
     '  learning_rate_schedule: constant\n',
     '  learning_rate_schedule: constant\n',
     '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
 ]
 
 trainer_initial_lrs = [
+    '  initial_learning_rate: 0.001\n',
+    '  initial_learning_rate: 0.001\n',
     '  initial_learning_rate: 0.001\n',
     '  initial_learning_rate: 0.001\n',
     '  initial_learning_rate: 0.001\n',
@@ -160,6 +182,8 @@ network_quantize_first_convolution = [
     '  quantize_first_convolution: yes\n',
     '  quantize_first_convolution: yes\n',
     '  quantize_first_convolution: yes\n',
+    '  quantize_first_convolution: yes\n',
+    '  quantize_first_convolution: yes\n',
 ]
 
 common_image_size_heights = [
@@ -171,9 +195,13 @@ common_image_size_heights = [
     '    - 128  # height\n',
     '    - 128  # height\n',
     '    - 128  # height\n',
+    '    - 128  # height\n',
+    '    - 128  # height\n',
 ]
 
 common_image_size_widths = [
+    '    - 128  # width\n',
+    '    - 128  # width\n',
     '    - 128  # width\n',
     '    - 128  # width\n',
     '    - 128  # width\n',
@@ -195,11 +223,15 @@ common_is_pretrain_model = [
     '  pretrain_model: false\n',
     '  pretrain_model: false\n',
     '  pretrain_model: false\n',
+    '  pretrain_model: false\n',
+    '  pretrain_model: false\n',
 ]
 
 common_enable_prefetch_comment = '  # enable dataset prefetch, set false if weired problem happens\n'
 
 common_enable_prefetch = [
+    '  dataset_prefetch: true',
+    '  dataset_prefetch: true',
     '  dataset_prefetch: true',
     '  dataset_prefetch: true',
     '  dataset_prefetch: true',
