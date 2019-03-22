@@ -13,8 +13,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
     val tileHCount = Input(UInt(addrWidth.W))
     val tileStep = Input(UInt(2.W))
     val tileGap = Input(UInt(2.W))
-    val tileOffset = Input(UInt(addrWidth.W))
-    val tileOffsetValid = Input(Bool())
+    val tileValid = Input(Bool())
     val control = Output(A2fControl(addrWidth, addrWidth))
     val controlValid = Output(Bool())
     // A Semaphore Pair Dec interface
@@ -99,10 +98,18 @@ class A2fSequencer(addrWidth: Int) extends Module {
     }
   }
 
+  val aAddrEvenOdd = RegInit(0.U(1.W))
+  val nextAAddr = Cat(aAddrEvenOdd, 0.U((addrWidth - 1).W))
+  when(~waitRequired) {
+    when((idle & io.tileValid) | kernelVCountLast) {
+      aAddrEvenOdd := ~aAddrEvenOdd
+    }
+  }
+
   val offset = Reg(UInt(addrWidth.W))
   when(~waitRequired) {
     when(idle | kernelVCountLast) {
-      offset := io.tileOffset
+      offset := nextAAddr
     }.elsewhen(kernelHCountLast) {
       offset := offset + io.tileHCount
     }.elsewhen(tileVCountLast) {
@@ -113,7 +120,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
   val aAddr = Reg(UInt(addrWidth.W))
   when(~waitRequired) {
     when(idle | kernelVCountLast) {
-      aAddr := io.tileOffset
+      aAddr := nextAAddr
     }.elsewhen(kernelHCountLast) {
       aAddr := offset + io.tileHCount
     }.elsewhen(tileVCountLast) {
@@ -125,10 +132,21 @@ class A2fSequencer(addrWidth: Int) extends Module {
     }
   }
 
+  val fAddrEvenOdd = RegInit(0.U(1.W))
+  val nextFAddr = Cat(fAddrEvenOdd, 0.U((addrWidth - 1).W))
+  val currenFAddr = Cat(~fAddrEvenOdd, 0.U((addrWidth - 1).W))
+  when(~waitRequired) {
+    when((idle & io.tileValid) | kernelVCountLast) {
+      fAddrEvenOdd := ~fAddrEvenOdd
+    }
+  }
+
   val fAddr = Reg(UInt(addrWidth.W))
   when(~waitRequired) {
-    when(idle | tileVCountLast) {
-      fAddr := io.tileOffset
+    when(idle | kernelVCountLast) {
+      fAddr := nextFAddr
+    }.elsewhen(tileVCountLast) {
+      fAddr := currenFAddr
     }.otherwise {
       fAddr := fAddr + 1.U
     }
@@ -143,7 +161,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
     }
     when(idle | kernelVCountLast) {
       controlAccumulate := false.B
-      when(io.tileOffsetValid) {
+      when(io.tileValid) {
         state := State.doingFirst
         controlWrite := true.B
       }.otherwise {
@@ -163,7 +181,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
 
   when(~waitRequired) {
     when(idle) {
-      syncDecARaw := io.tileOffsetValid
+      syncDecARaw := io.tileValid
     }.elsewhen(kernelVCountLast) {
       syncDecARaw := true.B
     }.otherwise {
@@ -174,7 +192,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
 
   when(~waitRequired) {
     when(idle) {
-      syncDecMRaw := io.tileOffsetValid
+      syncDecMRaw := io.tileValid
     }.elsewhen(tileVCountLast) {
       syncDecMRaw := true.B
     }.otherwise {
@@ -185,7 +203,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
 
   when(~waitRequired) {
     when(idle) {
-      syncDecFWar := io.tileOffsetValid
+      syncDecFWar := io.tileValid
     }.elsewhen(kernelVCountLast) {
       syncDecFWar := true.B
     }.otherwise {
