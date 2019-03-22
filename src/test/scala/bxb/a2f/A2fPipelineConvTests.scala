@@ -82,6 +82,7 @@ class TestA2fConvModule(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends 
   a2fSequencer.io.tileOffsetValid := io.tileOffsetValid 
   io.controlValid := a2fSequencer.io.controlValid
   a2fSequencer.io.aRawZero := false.B
+  a2fSequencer.io.fWarZero := false.B
   a2fSequencer.io.mRawZero := io.mRawZero
   val a2fPipeline = Module(new A2fPipeline(b, addrWidth, aWidth, addrWidth, fWidth))
   a2fPipeline.io.control := a2fSequencer.io.control
