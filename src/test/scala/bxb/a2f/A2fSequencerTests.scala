@@ -10,9 +10,9 @@ class DummyControl(val start: Boolean, val aAddr: Int, val fAddr: Int, val accum
 
 class DummyControlSequencer(repeats: Int, b: Int, amemSize: Int, tileHeight: Int, tileWidth: Int, inputChannels: Int) {
   val controlSeq = mutable.ArrayBuffer[DummyControl]()
+  val cCount = inputChannels / b
   val vCount = tileHeight - 2
   val hCount = tileWidth - 2
-  val cCount = inputChannels / b
   val step = 1
   val gap = 3
   private val amemHalf = amemSize / 2
@@ -23,7 +23,7 @@ class DummyControlSequencer(repeats: Int, b: Int, amemSize: Int, tileHeight: Int
     for (c <- 0 until cCount) {
       for (ki <- 0 until 3) {
         for (kj <- 0 until 3) {
-          val acc = !(ki == 0 && kj == 0)
+          val acc = !(ki == 0 && kj == 0 && c == 0)
           var aAddr = aOffset
           var fAddr = fOffset
           aOffset += (if (kj == 2) hCount else 1)
@@ -34,7 +34,7 @@ class DummyControlSequencer(repeats: Int, b: Int, amemSize: Int, tileHeight: Int
               val incAWar = (ki == 2 && kj == 2 && i == vCount - 1 && j == hCount - 1)
               val decMRaw = (i == 0 && j == 0) // decrement semaphore before starting 1x1 convolution
               val incMWar = (i == vCount - 1 && j == hCount - 1) // increment semaphore when 1x1 done
-              val incFRaw = (ki == 2 && kj == 2 && i == vCount - 1 && j == hCount - 1)
+              val incFRaw = (ki == 2 && kj == 2 && i == vCount - 1 && j == hCount - 1 && c == cCount - 1)
               controlSeq += new DummyControl(start, aAddr, fAddr, acc, evenOdd, decMRaw, incMWar, decARaw, incAWar, incFRaw)
               aAddr += (if (j == hCount - 1) gap else step)
               fAddr += 1
@@ -44,13 +44,14 @@ class DummyControlSequencer(repeats: Int, b: Int, amemSize: Int, tileHeight: Int
         }
       }
       aOffset = if (aOffset < amemHalf) amemHalf else 0 // use another half
-      fOffset = if (fOffset < amemHalf) amemHalf else 0 // use another half
     }
+    fOffset = if (fOffset < amemHalf) amemHalf else 0 // use another half
   }
 }
 
 class A2fSequencerTestSequence(dut: A2fSequencer, b: Int, amemSize: Int, tileHeight: Int, tileWidth: Int, inputChannels: Int) extends PeekPokeTester(dut) {
   val ref = new DummyControlSequencer(3, b, amemSize, tileHeight, tileWidth, inputChannels)
+  poke(dut.io.inputCCount, ref.cCount)
   poke(dut.io.tileHCount, ref.hCount)
   poke(dut.io.tileVCount, ref.vCount)
   poke(dut.io.tileStep, ref.step)
@@ -81,6 +82,7 @@ class A2fSequencerTestSequence(dut: A2fSequencer, b: Int, amemSize: Int, tileHei
 
 class A2fSequencerTestEvenOdd(dut: A2fSequencer, b: Int, amemSize: Int, tileHeight: Int, tileWidth: Int, inputChannels: Int) extends PeekPokeTester(dut) {
   val ref = new DummyControlSequencer(3, b, amemSize, tileHeight, tileWidth, inputChannels)
+  poke(dut.io.inputCCount, ref.cCount)
   poke(dut.io.tileHCount, ref.hCount)
   poke(dut.io.tileVCount, ref.vCount)
   poke(dut.io.tileStep, ref.step)
@@ -103,6 +105,7 @@ class A2fSequencerTestEvenOdd(dut: A2fSequencer, b: Int, amemSize: Int, tileHeig
 
 class A2fSequencerTestARawZero(dut: A2fSequencer, b: Int, amemSize: Int, tileHeight: Int, tileWidth: Int, inputChannels: Int) extends PeekPokeTester(dut) {
   val ref = new DummyControlSequencer(3, b, amemSize, tileHeight, tileWidth, inputChannels)
+  poke(dut.io.inputCCount, ref.cCount)
   poke(dut.io.tileHCount, ref.hCount)
   poke(dut.io.tileVCount, ref.vCount)
   poke(dut.io.tileStep, ref.step)
@@ -140,6 +143,7 @@ class A2fSequencerTestARawZero(dut: A2fSequencer, b: Int, amemSize: Int, tileHei
 
 class A2fSequencerTestMRawZero(dut: A2fSequencer, b: Int, amemSize: Int, tileHeight: Int, tileWidth: Int, inputChannels: Int) extends PeekPokeTester(dut) {
   val ref = new DummyControlSequencer(3, b, amemSize, tileHeight, tileWidth, inputChannels)
+  poke(dut.io.inputCCount, ref.cCount)
   poke(dut.io.tileHCount, ref.hCount)
   poke(dut.io.tileVCount, ref.vCount)
   poke(dut.io.tileStep, ref.step)
@@ -177,6 +181,7 @@ class A2fSequencerTestMRawZero(dut: A2fSequencer, b: Int, amemSize: Int, tileHei
 
 class A2fSequencerTestOffsetValid(dut: A2fSequencer, b: Int, amemSize: Int, tileHeight: Int, tileWidth: Int, inputChannels: Int) extends PeekPokeTester(dut) {
   val ref = new DummyControlSequencer(3, b, amemSize, tileHeight, tileWidth, inputChannels)
+  poke(dut.io.inputCCount, ref.cCount)
   poke(dut.io.tileHCount, ref.hCount)
   poke(dut.io.tileVCount, ref.vCount)
   poke(dut.io.tileStep, ref.step)
@@ -224,7 +229,7 @@ object A2fSequencerTests {
 
     val tileHeight = 6
     val tileWidth = 6
-    val inputChannels = b * 1
+    val inputChannels = b * 2
 
     var ok = true
     ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestSequence(dut, b, amemSize, tileHeight, tileWidth, inputChannels))

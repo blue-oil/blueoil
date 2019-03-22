@@ -71,6 +71,7 @@ class TestA2fConvModule(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends 
   fmem.io.readB := io.fmemRead
   io.fmemQ := fmem.io.qB
   val a2fSequencer = Module(new A2fSequencer(addrWidth))
+  a2fSequencer.io.inputCCount := 1.U
   a2fSequencer.io.kernelVCount := io.kernelVCount
   a2fSequencer.io.kernelHCount := io.kernelHCount
   a2fSequencer.io.tileVCount := io.tileVCount
