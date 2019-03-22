@@ -10,7 +10,6 @@ class DummyControl(val aAddr: Int, val fAddr: Int, val accumulate: Boolean, val 
 
 class DummyControlSequencer(tileHeight: Int, tileWidth: Int) {
   val controlSeq = mutable.ArrayBuffer[DummyControl]()
-  val aOffsetSeq = mutable.ArrayBuffer[Int]()
   val vCount = tileHeight - 2
   val hCount = tileWidth - 2
   val step = 1
@@ -22,7 +21,6 @@ class DummyControlSequencer(tileHeight: Int, tileWidth: Int) {
       val acc = !(ki == 0 && kj == 0)
       var aAddr = aOffset
       var fAddr = 0
-      aOffsetSeq += aOffset
       aOffset += (if (kj == 2) hCount else 1)
       for (i <- 0 until vCount) {
         for (j <- 0 until hCount) {
