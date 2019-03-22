@@ -39,8 +39,8 @@ class DummyControlSequencer(tileHeight: Int, tileWidth: Int) {
   }
 }
 
-class A2fSequencerTestSequence(dut: A2fSequencer) extends PeekPokeTester(dut) {
-  val ref = new DummyControlSequencer(6, 6)
+class A2fSequencerTestSequence(dut: A2fSequencer, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
+  val ref = new DummyControlSequencer(tileHeight, tileWidth)
   poke(dut.io.tileHCount, ref.hCount)
   poke(dut.io.tileVCount, ref.vCount)
   poke(dut.io.tileStep, ref.step)
@@ -70,8 +70,8 @@ class A2fSequencerTestSequence(dut: A2fSequencer) extends PeekPokeTester(dut) {
   }
 }
 
-class A2fSequencerTestEvenOdd(dut: A2fSequencer) extends PeekPokeTester(dut) {
-  val ref = new DummyControlSequencer(6, 6)
+class A2fSequencerTestEvenOdd(dut: A2fSequencer, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
+  val ref = new DummyControlSequencer(tileHeight, tileWidth)
   poke(dut.io.tileHCount, ref.hCount)
   poke(dut.io.tileVCount, ref.vCount)
   poke(dut.io.tileStep, ref.step)
@@ -91,8 +91,8 @@ class A2fSequencerTestEvenOdd(dut: A2fSequencer) extends PeekPokeTester(dut) {
   }
 }
 
-class A2fSequencerTestARawZero(dut: A2fSequencer) extends PeekPokeTester(dut) {
-  val ref = new DummyControlSequencer(6, 6)
+class A2fSequencerTestARawZero(dut: A2fSequencer, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
+  val ref = new DummyControlSequencer(tileHeight, tileWidth)
   poke(dut.io.tileHCount, ref.hCount)
   poke(dut.io.tileVCount, ref.vCount)
   poke(dut.io.tileStep, ref.step)
@@ -129,8 +129,8 @@ class A2fSequencerTestARawZero(dut: A2fSequencer) extends PeekPokeTester(dut) {
   }
 }
 
-class A2fSequencerTestMRawZero(dut: A2fSequencer) extends PeekPokeTester(dut) {
-  val ref = new DummyControlSequencer(6, 6)
+class A2fSequencerTestMRawZero(dut: A2fSequencer, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
+  val ref = new DummyControlSequencer(tileHeight, tileWidth)
   poke(dut.io.tileHCount, ref.hCount)
   poke(dut.io.tileVCount, ref.vCount)
   poke(dut.io.tileStep, ref.step)
@@ -167,8 +167,8 @@ class A2fSequencerTestMRawZero(dut: A2fSequencer) extends PeekPokeTester(dut) {
   }
 }
 
-class A2fSequencerTestOffsetValid(dut: A2fSequencer) extends PeekPokeTester(dut) {
-  val ref = new DummyControlSequencer(6, 6)
+class A2fSequencerTestOffsetValid(dut: A2fSequencer, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
+  val ref = new DummyControlSequencer(tileHeight, tileWidth)
   poke(dut.io.tileHCount, ref.hCount)
   poke(dut.io.tileVCount, ref.vCount)
   poke(dut.io.tileStep, ref.step)
@@ -208,14 +208,19 @@ class A2fSequencerTestOffsetValid(dut: A2fSequencer) extends PeekPokeTester(dut)
 
 object A2fSequencerTests {
   def main(args: Array[String]): Unit = {
+
     val verilatorArgs = Array("--backend-name", "verilator", "--is-verbose", "true")
     val driverArgs = if (args.contains("verilator")) verilatorArgs else Array[String]()
+
+    val tileHeight = 6
+    val tileWidth = 6
+
     var ok = true
-    ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestSequence(dut))
-    ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestEvenOdd(dut))
-    ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestARawZero(dut))
-    ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestMRawZero(dut))
-    ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestOffsetValid(dut))
+    ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestSequence(dut, tileHeight, tileWidth))
+    ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestEvenOdd(dut, tileHeight, tileWidth))
+    ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestARawZero(dut, tileHeight, tileWidth))
+    ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestMRawZero(dut, tileHeight, tileWidth))
+    ok &= Driver.execute(driverArgs, () => new A2fSequencer(10))(dut => new A2fSequencerTestOffsetValid(dut, tileHeight, tileWidth))
     if (!ok && args.contains("noexit"))
       System.exit(1)
   }
