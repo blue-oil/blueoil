@@ -126,6 +126,7 @@ class TestA2fW2mIntegrationModule(b: Int, amemSize: Int, aWidth: Int, fmemSize: 
   val a2fSequencer = Module(new A2fSequencer(aAddrWidth))
   a2fSequencer.io.kernelVCount := io.kernelVCount
   a2fSequencer.io.kernelHCount := io.kernelHCount
+  a2fSequencer.io.inputCCount := 1.U
   a2fSequencer.io.tileVCount := io.tileVCount
   a2fSequencer.io.tileHCount := io.tileHCount
   a2fSequencer.io.tileStep := io.tileStep 

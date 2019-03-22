@@ -7,6 +7,7 @@ import bxb.util.{Util}
 
 class A2fSequencer(addrWidth: Int) extends Module {
   val io = IO(new Bundle {
+    val inputCCount = Input(UInt(6.W))
     val kernelVCount = Input(UInt(2.W))
     val kernelHCount = Input(UInt(2.W))
     val tileVCount = Input(UInt(addrWidth.W))
@@ -98,10 +99,22 @@ class A2fSequencer(addrWidth: Int) extends Module {
     }
   }
 
+  val inputCCountLeft = Reg(UInt(6.W))
+  val inputCCountLast = RegNext(inputCCountLeft === 1.U) & kernelVCountLast
+  when(~waitRequired) {
+    when(idle | inputCCountLast) {
+      inputCCountLeft := io.inputCCount
+    }.elsewhen(kernelVCountLast) {
+      inputCCountLeft := inputCCountLeft - 1.U
+    }
+  }
+
+  val nextIsIdle = (inputCCountLast & ~io.tileValid)
+
   val aAddrEvenOdd = RegInit(0.U(1.W))
   val nextAAddr = Cat(aAddrEvenOdd, 0.U((addrWidth - 1).W))
   when(~waitRequired) {
-    when((idle & io.tileValid) | kernelVCountLast) {
+    when((idle & io.tileValid) | (kernelVCountLast & ~nextIsIdle)) {
       aAddrEvenOdd := ~aAddrEvenOdd
     }
   }
@@ -136,14 +149,14 @@ class A2fSequencer(addrWidth: Int) extends Module {
   val nextFAddr = Cat(fAddrEvenOdd, 0.U((addrWidth - 1).W))
   val currenFAddr = Cat(~fAddrEvenOdd, 0.U((addrWidth - 1).W))
   when(~waitRequired) {
-    when((idle & io.tileValid) | kernelVCountLast) {
+    when((idle & io.tileValid) | (inputCCountLast & ~nextIsIdle)) {
       fAddrEvenOdd := ~fAddrEvenOdd
     }
   }
 
   val fAddr = Reg(UInt(addrWidth.W))
   when(~waitRequired) {
-    when(idle | kernelVCountLast) {
+    when(idle | inputCCountLast) {
       fAddr := nextFAddr
     }.elsewhen(tileVCountLast) {
       fAddr := currenFAddr
@@ -159,7 +172,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
     when(tileVCountLast) {
       controlEvenOdd := ~controlEvenOdd
     }
-    when(idle | kernelVCountLast) {
+    when(idle | inputCCountLast) {
       controlAccumulate := false.B
       when(io.tileValid) {
         state := State.doingFirst
@@ -204,13 +217,13 @@ class A2fSequencer(addrWidth: Int) extends Module {
   when(~waitRequired) {
     when(idle) {
       syncDecFWar := io.tileValid
-    }.elsewhen(kernelVCountLast) {
+    }.elsewhen(inputCCountLast) {
       syncDecFWar := true.B
     }.otherwise {
       syncDecFWar := false.B
     }
   }
-  syncIncFRaw := kernelVCountLast
+  syncIncFRaw := inputCCountLast
 
   io.aRawDec := ~waitRequired & syncDecARaw
   io.mRawDec := ~waitRequired & syncDecMRaw
