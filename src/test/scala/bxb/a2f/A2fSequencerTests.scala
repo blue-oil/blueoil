@@ -5,7 +5,7 @@ import scala.collection._
 import chisel3._
 import chisel3.iotesters.{PeekPokeTester, Driver}
 
-class DummyControl(val aAddr: Int, val fAddr: Int, val accumulate: Boolean, val evenOdd: Int, val decMRaw: Boolean, val incMWar: Boolean, val decARaw: Boolean, val incAWar: Boolean) {
+class DummyControl(val aAddr: Int, val fAddr: Int, val accumulate: Boolean, val evenOdd: Int, val decMRaw: Boolean, val incMWar: Boolean, val decARaw: Boolean, val incAWar: Boolean, val incFRaw: Boolean) {
 }
 
 class DummyControlSequencer(tileHeight: Int, tileWidth: Int) {
@@ -28,7 +28,8 @@ class DummyControlSequencer(tileHeight: Int, tileWidth: Int) {
           val incAWar = (ki == 2 && kj == 2 && i == vCount - 1 && j == hCount - 1)
           val decMRaw = (i == 0 && j == 0) // decrement semaphore before starting 1x1 convolution
           val incMWar = (i == vCount - 1 && j == hCount - 1) // increment semaphore when 1x1 done
-          controlSeq += new DummyControl(aAddr, fAddr, acc, evenOdd, decMRaw, incMWar, decARaw, incAWar)
+          val incFRaw = (ki == 2 && kj == 2 && i == vCount - 1 && j == hCount - 1)
+          controlSeq += new DummyControl(aAddr, fAddr, acc, evenOdd, decMRaw, incMWar, decARaw, incAWar, incFRaw)
           aAddr += (if (j == hCount - 1) gap else step)
           fAddr += 1
         }
@@ -61,6 +62,7 @@ class A2fSequencerTestSequence(dut: A2fSequencer) extends PeekPokeTester(dut) {
       expect(dut.io.control.accumulate, ctl.accumulate)
       expect(dut.io.control.syncInc.aWar, ctl.incAWar)
       expect(dut.io.control.syncInc.mWar, ctl.incMWar)
+      expect(dut.io.control.syncInc.fRaw, ctl.incFRaw)
       expect(dut.io.aRawDec, ctl.decARaw)
       expect(dut.io.mRawDec, ctl.decMRaw)
       step(1)
@@ -118,6 +120,7 @@ class A2fSequencerTestARawZero(dut: A2fSequencer) extends PeekPokeTester(dut) {
       expect(dut.io.control.accumulate, ctl.accumulate)
       expect(dut.io.control.syncInc.aWar, ctl.incAWar)
       expect(dut.io.control.syncInc.mWar, ctl.incMWar)
+      expect(dut.io.control.syncInc.fRaw, ctl.incFRaw)
       expect(dut.io.aRawDec, ctl.decARaw)
       expect(dut.io.mRawDec, ctl.decMRaw)
       step(1)
@@ -155,6 +158,7 @@ class A2fSequencerTestMRawZero(dut: A2fSequencer) extends PeekPokeTester(dut) {
       expect(dut.io.control.accumulate, ctl.accumulate)
       expect(dut.io.control.syncInc.aWar, ctl.incAWar)
       expect(dut.io.control.syncInc.mWar, ctl.incMWar)
+      expect(dut.io.control.syncInc.fRaw, ctl.incFRaw)
       expect(dut.io.aRawDec, ctl.decARaw)
       expect(dut.io.mRawDec, ctl.decMRaw)
       step(1)
@@ -196,6 +200,7 @@ class A2fSequencerTestOffsetValid(dut: A2fSequencer) extends PeekPokeTester(dut)
       expect(dut.io.mRawDec, ctl.decMRaw)
       expect(dut.io.control.syncInc.aWar, ctl.incAWar)
       expect(dut.io.control.syncInc.mWar, ctl.incMWar)
+      expect(dut.io.control.syncInc.fRaw, ctl.incFRaw)
       step(1)
     }
   }
