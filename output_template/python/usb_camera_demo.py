@@ -261,10 +261,14 @@ def run(model, config_file):
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option(
     "-m",
+    "-l",
     "--model",
     type=click.Path(exists=True),
-    help=u"Inference Model filename",
-    default="../models/lib/lib_fpga.so",
+    help=u"""
+        Inference Model filename
+        (-l is deprecated please use -m instead)
+    """,
+    default="../models/minimal_graph_with_shape.pb",
 )
 @click.option(
     "-c",

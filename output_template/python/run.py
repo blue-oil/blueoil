@@ -158,9 +158,14 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
 )
 @click.option(
     "-m",
+    "-l",
     "--model",
     type=click.Path(exists=True),
-    help="Inference Model filename",
+    help=u"""
+        Inference Model filename
+        (-l is deprecated please use -m instead)
+    """,
+    default="../models/minimal_graph_with_shape.pb",
 )
 @click.option(
     "-c",
