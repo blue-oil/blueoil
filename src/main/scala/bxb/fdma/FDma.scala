@@ -62,6 +62,9 @@ class FDma(b: Int, fAddrWidth: Int, avalonAddrWidth: Int, avalonDataWidth: Int, 
     val fRawDec = Output(Bool())
     val fRawZero = Input(Bool())
     val fWarInc = Output(Bool())
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   val tileAccepted = Wire(Bool())
@@ -91,6 +94,8 @@ class FDma(b: Int, fAddrWidth: Int, avalonAddrWidth: Int, avalonDataWidth: Int, 
   io.fRawDec := tileGenerator.io.fRawDec
   tileGenerator.io.fRawZero := io.fRawZero
   io.fWarInc := tileAccepted
+
+  io.statusReady := tileGenerator.io.statusReady
 
   val fmemReader = Module(new FDmaFMemReader(b, avalonDataWidth, fAddrWidth, tileCountWidth))
   fmemReader.io.tileHeight := tileGenerator.io.tileHeight
