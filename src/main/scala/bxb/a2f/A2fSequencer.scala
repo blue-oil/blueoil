@@ -15,6 +15,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
     val tileStep = Input(UInt(2.W))
     val tileGap = Input(UInt(2.W))
     val tileValid = Input(Bool())
+    val tileAccepted = Output(Bool())
     val control = Output(A2fControl(addrWidth, addrWidth))
     val controlValid = Output(Bool())
     // A Semaphore Pair Dec interface
@@ -231,6 +232,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
   io.control.syncInc.aWar := ~waitRequired & syncIncAWar
   io.control.syncInc.mWar := ~waitRequired & syncIncMWar
   io.control.syncInc.fRaw := ~waitRequired & syncIncFRaw
+  io.tileAccepted := inputCCountLast
 }
 
 object A2fSequencer {
