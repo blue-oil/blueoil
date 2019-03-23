@@ -56,6 +56,9 @@ class A2f(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Module {
     val aSync = ConsumerSyncIO()
     val mSync = ConsumerSyncIO()
     val fSync = ProducerSyncIO()
+    
+    // Status
+    val statusReady = Output(Bool())
   })
 
   val tileAccepted = Wire(Bool())
@@ -68,6 +71,7 @@ class A2f(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Module {
   tileGen.io.regularTileW := io.regularTileW
   tileGen.io.lastTileW := io.lastTileW
   tileGen.io.tileAccepted := tileAccepted
+  io.statusReady := tileGen.io.statusReady
 
   val sequencer = Module(new A2fSequencer(addrWidth))
   sequencer.io.inputCCount := io.inputCCount

@@ -78,6 +78,9 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     // Synchronization interface
     val aWarDec = Output(Bool())
     val aWarZero = Input(Bool())
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   private def toBytes(elements: UInt) = {
@@ -317,6 +320,7 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   io.tileSidePad := tileSidePad
   io.tileEndPad := tileEndPad
   io.aWarDec := syncDecAWar
+  io.statusReady := idle
 }
 
 object ADmaTileGenerator {
