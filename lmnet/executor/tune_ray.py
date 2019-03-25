@@ -280,7 +280,6 @@ def run(config_file, local_dir):
     "--local_dir",
     help="result saving directory of training results",
     default=None,
-    required=True,
 )
 def main(config_file, local_dir):
     run(config_file, local_dir)
