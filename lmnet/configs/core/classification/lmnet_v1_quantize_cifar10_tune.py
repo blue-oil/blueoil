@@ -93,14 +93,14 @@ TUNE_SPACE = {
                 'scheduler_factor': 0.1,
                 'scheduler_steps': [25000, 50000, 75000],
             },
-            {
-                'scheduler': tf.train.polynomial_decay,
-                'scheduler_power': 0.9,
-                'scheduler_decay': 10000,
-            }
+            # {
+            #     'scheduler': tf.train.polynomial_decay,
+            #     'scheduler_power': 0.9,
+            #     'scheduler_decay': 10000,
+            # }
         ]
     ),
-    'weight_decay_rate': hp.uniform('weight_decay_rate', 0, 0.0005),
+    'weight_decay_rate': 0.0001,
 }
 
 NETWORK = EasyDict()
