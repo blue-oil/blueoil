@@ -239,7 +239,7 @@ class TrainTunable(Trainable):
         return self.saver.restore(self.sess, path)
 
 
-def run(config_file):
+def run(config_file, local_dir):
     register_trainable('tunable', TrainTunable)
     lm_config = config_util.load(config_file)
 
@@ -257,6 +257,7 @@ def run(config_file):
     tune_space = easydict_to_dict(lm_config['TUNE_SPACE'])
     tune_spec = easydict_to_dict(lm_config['TUNE_SPEC'])
     tune_spec['config'] = {'lm_config': os.path.join(os.getcwd(), config_file)}
+    tune_spec['local_dir'] = local_dir
 
     # Expecting use of gpus to do parameter search
     ray.init(num_cpus=multiprocessing.cpu_count() // 2, num_gpus=max(get_num_gpu(), 1))
@@ -274,8 +275,15 @@ def run(config_file):
     default=os.path.join("configs", "example.py"),
     required=True,
 )
-def main(config_file):
-    run(config_file)
+@click.option(
+    "-s",
+    "--local_dir",
+    help="result saving directory of training results",
+    default=None,
+    required=True,
+)
+def main(config_file, local_dir):
+    run(config_file, local_dir)
 
 
 if __name__ == '__main__':
