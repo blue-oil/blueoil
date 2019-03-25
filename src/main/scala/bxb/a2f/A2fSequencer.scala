@@ -56,12 +56,11 @@ class A2fSequencer(addrWidth: Int) extends Module {
 
   val waitRequired = ((syncDecARaw & io.aRawZero) | (syncDecMRaw & io.mRawZero) | (syncDecFWar & io.fWarZero))
 
+  // TODO: it was preliminary optimized by inserting RegNext in front of the comparator
+  // but it breaks cases of 2x2 and 1x1 output sizes, registers were removed for first two counters
+  // review this one more time later
   val tileHCountLeft = Reg(UInt(addrWidth.W))
-  // the idea is to make combinational chains shorter
-  // by feeding comparator output into delay registers
-  // it will delay signal by one cycle thus last signal
-  // should be generated one cycle earlier
-  val tileHCountLast = RegNext(tileHCountLeft === 2.U)
+  val tileHCountLast = (tileHCountLeft === 1.U)
   when(~waitRequired) {
     when(idle | tileHCountLast) {
       tileHCountLeft := io.tileHCount
@@ -71,7 +70,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
   }
 
   val tileVCountLeft = Reg(UInt(addrWidth.W))
-  val tileVCountLast = RegNext(tileVCountLeft === 1.U) & tileHCountLast
+  val tileVCountLast = (tileVCountLeft === 1.U) & tileHCountLast
   when(~waitRequired) {
     when(idle | tileVCountLast) {
       tileVCountLeft := io.tileVCount
