@@ -99,8 +99,6 @@ def get_best_result(trial_list, metric, param):
 
 def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
     """Update selected parameters for each trial"""
-    # print('chosen args', chosen_kwargs)
-    # print('before network args', network_kwargs)
     network_kwargs['optimizer_class'] = chosen_kwargs['optimizer_class']['optimizer']
     for key in list(chosen_kwargs['optimizer_class'].keys()):
         if key != 'optimizer':
@@ -121,8 +119,9 @@ def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
     else:
         network_kwargs['learning_rate_kwargs']['learning_rate'] = base_lr
 
-    network_kwargs['weight_decay_rate'] = chosen_kwargs['weight_decay_rate']
-    # print('after network args', network_kwargs)
+    if chosen_kwargs['weight_decay_rate'] is not None:
+        network_kwargs['weight_decay_rate'] = chosen_kwargs['weight_decay_rate']
+
     return network_kwargs
 
 
