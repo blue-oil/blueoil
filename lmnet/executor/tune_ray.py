@@ -239,8 +239,8 @@ class TrainTunable(Trainable):
         return self.saver.restore(self.sess, path)
 
 
-def run(config_file, local_dir):
-    register_trainable('tunable', TrainTunable)
+def run(config_file, tunable_id, local_dir):
+    register_trainable(tunable_id, TrainTunable)
     lm_config = config_util.load(config_file)
 
     def easydict_to_dict(config):
@@ -256,6 +256,7 @@ def run(config_file, local_dir):
 
     tune_space = easydict_to_dict(lm_config['TUNE_SPACE'])
     tune_spec = easydict_to_dict(lm_config['TUNE_SPEC'])
+    tune_spec['run'] = tunable_id
     tune_spec['config'] = {'lm_config': os.path.join(os.getcwd(), config_file)}
     tune_spec['local_dir'] = local_dir
 
@@ -269,20 +270,26 @@ def run(config_file, local_dir):
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option(
-    "-c",
-    "--config_file",
+    '-c',
+    '--config_file',
     help="config file path for this training",
-    default=os.path.join("configs", "example.py"),
+    default=os.path.join('configs', 'example.py'),
     required=True,
 )
 @click.option(
-    "-s",
-    "--local_dir",
-    help="result saving directory of training results",
+    '-i',
+    '--tunable_id',
+    help='[optional] id of this tuning',
+    default="tunable",
+)
+@click.option(
+    '-s',
+    '--local_dir',
+    help='[optional] result saving directory of training results, defaults in ~/ray_results',
     default=None,
 )
-def main(config_file, local_dir):
-    run(config_file, local_dir)
+def main(config_file, tunable_id, local_dir):
+    run(config_file, tunable_id, local_dir)
 
 
 if __name__ == '__main__':

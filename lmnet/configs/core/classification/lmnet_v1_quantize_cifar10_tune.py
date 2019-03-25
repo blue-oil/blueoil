@@ -78,12 +78,9 @@ TUNE_SPACE = {
                 'optimizer': tf.train.MomentumOptimizer,
                 'momentum': hp.uniform('momentum', 0, 0.9),
             },
-            # {
-            #     'optimizer': tf.train.AdamOptimizer,
-            # },
-            # {
-            #     'optimizer': tf.train.AdagradOptimizer,
-            # },
+            {
+                'optimizer': tf.train.AdamOptimizer,
+            },
         ]
     ),
     'learning_rate': hp.uniform('learning_rate', 0, 0.01),

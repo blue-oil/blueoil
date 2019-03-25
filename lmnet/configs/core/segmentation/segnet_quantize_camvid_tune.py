@@ -62,8 +62,8 @@ TUNE_SPEC = {
         'config': {
             'lm_config': {},
         },
-        "local_dir": None,
-        "num_samples": 100,
+        'local_dir': None,
+        'num_samples': 100,
 }
 
 TUNE_SPACE = {
