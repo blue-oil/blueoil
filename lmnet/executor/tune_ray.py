@@ -119,7 +119,7 @@ def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
     else:
         network_kwargs['learning_rate_kwargs']['learning_rate'] = base_lr
 
-    if chosen_kwargs['weight_decay_rate'] is not None:
+    if 'weight_decay_rate' in chosen_kwargs:
         network_kwargs['weight_decay_rate'] = chosen_kwargs['weight_decay_rate']
 
     return network_kwargs
