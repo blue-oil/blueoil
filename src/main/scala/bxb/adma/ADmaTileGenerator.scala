@@ -301,7 +301,11 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   }.elsewhen((setupTile | waitSync) & ~io.aWarZero) {
     state := State.valid
   }.elsewhen(valid & io.tileAccepted) {
-    state := State.updateCounters
+    when(inputHCountLast) {
+      state := State.idle
+    }.otherwise {
+      state := State.updateCounters
+    }
   }
 
   io.tileStartAddress := tileAddress

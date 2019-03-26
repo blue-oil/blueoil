@@ -187,7 +187,11 @@ class FDmaTileGenerator(avalonAddrWidth: Int, dataWidth: Int, tileCountWidth: In
   }.elsewhen((setupTile | waitSync) & ~io.fRawZero) {
     state := State.valid
   }.elsewhen(valid & io.tileAccepted) {
-    state := State.updateCounters
+    when(outputHCountLast) {
+      state := State.idle
+    }.otherwise {
+      state := State.updateCounters
+    }
   }
 
   io.tileStartAddress := tileAddress
