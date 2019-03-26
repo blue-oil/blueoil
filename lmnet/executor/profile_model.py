@@ -73,7 +73,7 @@ def _profile(config, restore_path, bit, unquant_layers):
 
     minimal_graph = tf.Graph()
     with minimal_graph.as_default():
-        tf.import_graph_def(minimal_graph)
+        tf.import_graph_def(minimal_graph_def)
 
     scopes = {"_TFProfRoot": 0}
     scope_idx = 1
@@ -86,8 +86,8 @@ def _profile(config, restore_path, bit, unquant_layers):
 
     # [level, node name, total param, 32 bits size, quantized size, flops]
     res = []
-    res = _profile_params(sess, res, bit, unquant_layers)
-    res = _profile_flops(sess, res, scopes)
+    res = _profile_params(graph, res, bit, unquant_layers)
+    res = _profile_flops(minimal_graph, res, scopes)
 
     _render(name, bit, res)
 
