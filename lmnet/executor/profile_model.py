@@ -65,9 +65,19 @@ def _profile(config, restore_path, bit, unquant_layers):
 
     name = ModelClass.__name__
 
+    minimal_graph_def = tf.graph_util.convert_variables_to_constants(
+        sess,
+        sess.graph.as_graph_def(add_shapes=True),
+        ["output"],
+    )
+
+    minimal_graph = tf.Graph()
+    with minimal_graph.as_default():
+        tf.import_graph_def(minimal_graph)
+
     scopes = {"_TFProfRoot": 0}
     scope_idx = 1
-    for node in sess.graph_def.node:
+    for node in minimal_graph_def.node:
         names = node.name.split("/")
         scope = names[0]
         if scope not in scopes:
@@ -104,21 +114,13 @@ def _render(name, bit, res):
     print("Model's profile has been saved into {}".format("{}_profile.md".format(name)))
 
 
-def _profile_flops(sess, res, scopes):
-    minimal_graph = tf.graph_util.convert_variables_to_constants(
-        sess,
-        sess.graph.as_graph_def(add_shapes=True),
-        ["output"],
-    )
-    float_graph = tf.Graph()
-    with float_graph.as_default():
-        tf.import_graph_def(minimal_graph)
-        float_prof = tf.profiler.profile(float_graph, options=tf.profiler.ProfileOptionBuilder.float_operation())
-        float_res_dict = collections.defaultdict(int)
-        float_res_dict["_TFProfRoot"] = float_prof.total_float_ops
-        for node in float_prof.children:
-            scope = node.name.split("/")[1]
-            float_res_dict[scope] += node.total_float_ops
+def _profile_flops(graph, res, scopes):
+    float_prof = tf.profiler.profile(graph, options=tf.profiler.ProfileOptionBuilder.float_operation())
+    float_res_dict = collections.defaultdict(int)
+    float_res_dict["_TFProfRoot"] = float_prof.total_float_ops
+    for node in float_prof.children:
+        scope = node.name.split("/")[1]
+        float_res_dict[scope] += node.total_float_ops
 
     new_res = []
     res_dict = collections.defaultdict(list)
@@ -134,8 +136,8 @@ def _profile_flops(sess, res, scopes):
     return new_res
 
 
-def _profile_params(sess, res, bit, unquant_layers):
-    prof = tf.profiler.profile(sess.graph, options=tf.profiler.ProfileOptionBuilder.trainable_variables_parameter())
+def _profile_params(graph, res, bit, unquant_layers):
+    prof = tf.profiler.profile(graph, options=tf.profiler.ProfileOptionBuilder.trainable_variables_parameter())
 
     # helper func to make profile res
     def helper(node, level):

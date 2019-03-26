@@ -32,7 +32,7 @@ from lmnet.data_augmentor import (
     Hue,
 )
 from lmnet.quantizations import (
-    binary_mean_scaling_quantizer,
+    binary_channel_wise_mean_scaling_quantizer, 
     linear_mid_tread_half_quantizer,
 )
 
@@ -83,7 +83,7 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,
     'max_value': 2
 }
-NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
+NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
 DATASET = EasyDict()
