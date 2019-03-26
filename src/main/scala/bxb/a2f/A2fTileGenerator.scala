@@ -98,7 +98,11 @@ class A2fTileGenerator(tileCountWidth: Int) extends Module {
   }.elsewhen(setupTile) {
     state := State.valid
   }.elsewhen(valid & io.tileAccepted) {
-    state := State.updateCounters
+    when(outputHCountLast) {
+      state := State.idle
+    }.otherwise {
+      state := State.updateCounters
+    }
   }
 
   io.tileHeight := tileHeight

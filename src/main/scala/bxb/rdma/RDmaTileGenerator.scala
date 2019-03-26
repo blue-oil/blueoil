@@ -187,7 +187,11 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   }.elsewhen((setupTile | waitSync) & ~io.rRawZero) {
     state := State.valid
   }.elsewhen(valid & io.tileAccepted) {
-    state := State.updateCounters
+    when(outputHCountLast) {
+      state := State.idle
+    }.otherwise {
+      state := State.updateCounters
+    }
   }
 
   io.tileStartAddress := tileAddress
