@@ -61,14 +61,14 @@ TUNE_SPEC = {
         'run': 'tunable',
         'resources_per_trial': {"cpu": 2, "gpu": 0.5},
         'stop': {
-            'mean_accuracy': 1.0,
+            'mean_accuracy': 0.87,
             'training_iteration': 200,
         },
         'config': {
             'lm_config': {},
         },
         "local_dir": None,
-        "num_samples": 100,
+        "num_samples": 300,
 }
 
 TUNE_SPACE = {
@@ -76,10 +76,7 @@ TUNE_SPACE = {
         'optimizer_class', [
             {
                 'optimizer': tf.train.MomentumOptimizer,
-                'momentum': hp.uniform('momentum', 0, 0.9),
-            },
-            {
-                'optimizer': tf.train.AdamOptimizer,
+                'momentum': 0.9,
             },
         ]
     ),
@@ -88,14 +85,9 @@ TUNE_SPACE = {
         'learning_rate_func', [
             {
                 'scheduler': tf.train.piecewise_constant,
-                'scheduler_factor': 0.1,
+                'scheduler_factor': hp.uniform('scheduler_factor', 0.05, 0.5),
                 'scheduler_steps': [25000, 50000, 75000],
             },
-            # {
-            #     'scheduler': tf.train.polynomial_decay,
-            #     'scheduler_power': 0.9,
-            #     'scheduler_decay': 10000,
-            # }
         ]
     ),
     'weight_decay_rate': 0.0001,
