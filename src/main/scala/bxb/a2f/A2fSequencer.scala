@@ -7,14 +7,14 @@ import bxb.util.{Util}
 
 class A2fSequencer(addrWidth: Int) extends Module {
   val io = IO(new Bundle {
+    val inputCCount = Input(UInt(6.W))
     val kernelVCount = Input(UInt(2.W))
     val kernelHCount = Input(UInt(2.W))
     val tileVCount = Input(UInt(addrWidth.W))
     val tileHCount = Input(UInt(addrWidth.W))
     val tileStep = Input(UInt(2.W))
     val tileGap = Input(UInt(2.W))
-    val tileOffset = Input(UInt(addrWidth.W))
-    val tileOffsetValid = Input(Bool())
+    val tileValid = Input(Bool())
     val control = Output(A2fControl(addrWidth, addrWidth))
     val controlValid = Output(Bool())
     // A Semaphore Pair Dec interface
@@ -99,10 +99,30 @@ class A2fSequencer(addrWidth: Int) extends Module {
     }
   }
 
+  val inputCCountLeft = Reg(UInt(6.W))
+  val inputCCountLast = RegNext(inputCCountLeft === 1.U) & kernelVCountLast
+  when(~waitRequired) {
+    when(idle | inputCCountLast) {
+      inputCCountLeft := io.inputCCount
+    }.elsewhen(kernelVCountLast) {
+      inputCCountLeft := inputCCountLeft - 1.U
+    }
+  }
+
+  val nextIsIdle = (inputCCountLast & ~io.tileValid)
+
+  val aAddrEvenOdd = RegInit(0.U(1.W))
+  val nextAAddr = Cat(aAddrEvenOdd, 0.U((addrWidth - 1).W))
+  when(~waitRequired) {
+    when((idle & io.tileValid) | (kernelVCountLast & ~nextIsIdle)) {
+      aAddrEvenOdd := ~aAddrEvenOdd
+    }
+  }
+
   val offset = Reg(UInt(addrWidth.W))
   when(~waitRequired) {
     when(idle | kernelVCountLast) {
-      offset := io.tileOffset
+      offset := nextAAddr
     }.elsewhen(kernelHCountLast) {
       offset := offset + io.tileHCount
     }.elsewhen(tileVCountLast) {
@@ -113,7 +133,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
   val aAddr = Reg(UInt(addrWidth.W))
   when(~waitRequired) {
     when(idle | kernelVCountLast) {
-      aAddr := io.tileOffset
+      aAddr := nextAAddr
     }.elsewhen(kernelHCountLast) {
       aAddr := offset + io.tileHCount
     }.elsewhen(tileVCountLast) {
@@ -125,10 +145,21 @@ class A2fSequencer(addrWidth: Int) extends Module {
     }
   }
 
+  val fAddrEvenOdd = RegInit(0.U(1.W))
+  val nextFAddr = Cat(fAddrEvenOdd, 0.U((addrWidth - 1).W))
+  val currenFAddr = Cat(~fAddrEvenOdd, 0.U((addrWidth - 1).W))
+  when(~waitRequired) {
+    when((idle & io.tileValid) | (inputCCountLast & ~nextIsIdle)) {
+      fAddrEvenOdd := ~fAddrEvenOdd
+    }
+  }
+
   val fAddr = Reg(UInt(addrWidth.W))
   when(~waitRequired) {
-    when(idle | tileVCountLast) {
-      fAddr := io.tileOffset
+    when(idle | inputCCountLast) {
+      fAddr := nextFAddr
+    }.elsewhen(tileVCountLast) {
+      fAddr := currenFAddr
     }.otherwise {
       fAddr := fAddr + 1.U
     }
@@ -141,9 +172,9 @@ class A2fSequencer(addrWidth: Int) extends Module {
     when(tileVCountLast) {
       controlEvenOdd := ~controlEvenOdd
     }
-    when(idle | kernelVCountLast) {
+    when(idle | inputCCountLast) {
       controlAccumulate := false.B
-      when(io.tileOffsetValid) {
+      when(io.tileValid) {
         state := State.doingFirst
         controlWrite := true.B
       }.otherwise {
@@ -163,7 +194,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
 
   when(~waitRequired) {
     when(idle) {
-      syncDecARaw := io.tileOffsetValid
+      syncDecARaw := io.tileValid
     }.elsewhen(kernelVCountLast) {
       syncDecARaw := true.B
     }.otherwise {
@@ -174,7 +205,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
 
   when(~waitRequired) {
     when(idle) {
-      syncDecMRaw := io.tileOffsetValid
+      syncDecMRaw := io.tileValid
     }.elsewhen(tileVCountLast) {
       syncDecMRaw := true.B
     }.otherwise {
@@ -185,14 +216,14 @@ class A2fSequencer(addrWidth: Int) extends Module {
 
   when(~waitRequired) {
     when(idle) {
-      syncDecFWar := io.tileOffsetValid
-    }.elsewhen(kernelVCountLast) {
+      syncDecFWar := io.tileValid
+    }.elsewhen(inputCCountLast) {
       syncDecFWar := true.B
     }.otherwise {
       syncDecFWar := false.B
     }
   }
-  syncIncFRaw := kernelVCountLast
+  syncIncFRaw := inputCCountLast
 
   io.aRawDec := ~waitRequired & syncDecARaw
   io.mRawDec := ~waitRequired & syncDecMRaw
