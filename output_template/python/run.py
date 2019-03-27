@@ -16,6 +16,7 @@
 import numpy as np
 import click
 import os
+import sys
 
 from PIL import Image
 from lmnet.nnlib import NNLib as NNLib
@@ -174,7 +175,14 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
     help="Config file Path",
 )
 def main(input_image, model, config_file):
+    _check_deprecated_arguments()
     run_prediction(input_image, model, config_file)
+
+
+def _check_deprecated_arguments():
+    argument_list = sys.argv
+    if '-l' in argument_list:
+        print("Deprecated warning: -l is deprecated please use -m instead")
 
 
 if __name__ == "__main__":
