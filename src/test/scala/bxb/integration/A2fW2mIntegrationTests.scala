@@ -60,8 +60,7 @@ class TestA2fW2mIntegrationModule(b: Int, amemSize: Int, aWidth: Int, fmemSize: 
     val tileHCount = Input(UInt(aAddrWidth.W))
     val tileStep = Input(UInt(3.W))
     val tileGap = Input(UInt(2.W))
-    val tileOffset = Input(UInt(aAddrWidth.W))
-    val tileOffsetValid = Input(Bool())
+    val tileValid = Input(Bool())
     // AMem sync test interface
     val aWarZero = Output(Bool())
     val aWarDec = Input(Bool())
@@ -127,12 +126,12 @@ class TestA2fW2mIntegrationModule(b: Int, amemSize: Int, aWidth: Int, fmemSize: 
   val a2fSequencer = Module(new A2fSequencer(aAddrWidth))
   a2fSequencer.io.kernelVCount := io.kernelVCount
   a2fSequencer.io.kernelHCount := io.kernelHCount
+  a2fSequencer.io.inputCCount := 1.U
   a2fSequencer.io.tileVCount := io.tileVCount
   a2fSequencer.io.tileHCount := io.tileHCount
   a2fSequencer.io.tileStep := io.tileStep 
   a2fSequencer.io.tileGap := io.tileGap 
-  a2fSequencer.io.tileOffset := io.tileOffset 
-  a2fSequencer.io.tileOffsetValid := io.tileOffsetValid
+  a2fSequencer.io.tileValid := io.tileValid
 
   a2fSequencer.io.aRawZero := aSemaPair.io.consumer.rawZero
   aSemaPair.io.consumer.rawDec := a2fSequencer.io.aRawDec
@@ -326,8 +325,7 @@ class A2fW2mIntegrationConvTests(dut: TestA2fW2mIntegrationModule, b: Int, tileH
   poke(dut.io.tileHCount, ref.outputWidth)
   poke(dut.io.tileStep, 1)
   poke(dut.io.tileGap, 3)
-  poke(dut.io.tileOffset, 0)
-  poke(dut.io.tileOffsetValid, true)
+  poke(dut.io.tileValid, true)
 
   val computationTime = (ref.tileHeight * ref.tileWidth * ref.kernelHeight * ref.kernelWidth + 2 * b)
   val amemLoadTime = (ref.tileHeight * ref.tileWidth)
