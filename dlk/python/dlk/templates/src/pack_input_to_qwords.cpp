@@ -68,24 +68,24 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
       }
   }
 
-  for (; idx_in < len; idx_in++) {
-    QUANTIZED_NOT_PACKED tmp_input = input[idx_in];
-    unsigned int b0 = tmp_input & 0x1;
-    unsigned int b1 = (tmp_input & 0x2) >> 1;
+  // Remainder
+  {
+    for (; idx_in < len; idx_in++) {
+      QUANTIZED_NOT_PACKED tmp_input = input[idx_in];
+      unsigned int b0 = tmp_input & 0x1;
+      unsigned int b1 = (tmp_input & 0x2) >> 1;
 
-    qinput_words_buf[0] |= (b0 << bit_count);
-    qinput_words_buf[1] |= (b1 << bit_count);
-    ++bit_count;
+      qinput_words_buf[0] |= (b0 << bit_count);
+      qinput_words_buf[1] |= (b1 << bit_count);
+      ++bit_count;
+    }
 
-    if (bit_count == nbit_qinput_word)
-      {
-        for (unsigned i_bit = 0; i_bit < input_bitwidth; i_bit++) {
-          output[idx_out++] = qinput_words_buf[i_bit];
-          qinput_words_buf[i_bit] = 0;
-        }
-
-        bit_count = 0;
-      }
+    for (unsigned i_bit = 0; i_bit < input_bitwidth; i_bit++) {
+      output[idx_out++] = qinput_words_buf[i_bit];
+      // FIX ME (cannot delete below line now,
+      // later change implementation to use two register because input_bitwidth is always 2.)
+      qinput_words_buf[i_bit] = 0;
+    }
   }
 
   Measurement::Stop();
