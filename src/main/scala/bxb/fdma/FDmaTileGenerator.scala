@@ -53,6 +53,9 @@ class FDmaTileGenerator(avalonAddrWidth: Int, dataWidth: Int, tileCountWidth: In
     // Synchronization interface
     val fRawDec = Output(Bool())
     val fRawZero = Input(Bool())
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   private def toBytes(elements: UInt) = {
@@ -187,7 +190,11 @@ class FDmaTileGenerator(avalonAddrWidth: Int, dataWidth: Int, tileCountWidth: In
   }.elsewhen((setupTile | waitSync) & ~io.fRawZero) {
     state := State.valid
   }.elsewhen(valid & io.tileAccepted) {
-    state := State.updateCounters
+    when(outputHCountLast) {
+      state := State.idle
+    }.otherwise {
+      state := State.updateCounters
+    }
   }
 
   io.tileStartAddress := tileAddress
@@ -196,6 +203,7 @@ class FDmaTileGenerator(avalonAddrWidth: Int, dataWidth: Int, tileCountWidth: In
   io.tileWordRowToRowDistance := tileWordRowToRowDistance
   io.tileValid := valid
   io.fRawDec := syncDecRRaw
+  io.statusReady := idle
 }
 
 object FDmaTileGenerator {

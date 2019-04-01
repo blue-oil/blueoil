@@ -62,6 +62,9 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val rRawDec = Output(Bool())
     val rRawZero = Input(Bool())
     val rWarInc = Output(Bool())
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   val tileAccepted = Wire(Bool())
@@ -91,6 +94,8 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   io.rRawDec := tileGenerator.io.rRawDec
   tileGenerator.io.rRawZero := io.rRawZero
   io.rWarInc := tileAccepted
+
+  io.statusReady := tileGenerator.io.statusReady
 
   val rmemReader = Module(new RDmaBufferedRMemReader(b, avalonDataWidth, rAddrWidth, tileCountWidth))
   rmemReader.io.tileHeight := tileGenerator.io.tileHeight

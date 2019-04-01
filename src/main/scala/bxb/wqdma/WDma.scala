@@ -45,6 +45,9 @@ class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
 
     // WMem interface
     val wmemWrite = Output(PackedWritePort(wAddrWidth, b, 1))
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   val writerDone = Wire(Bool())
@@ -67,6 +70,8 @@ class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   io.avalonMasterRead := requester.io.avalonMasterRead
   io.avalonMasterBurstCount := requester.io.avalonMasterBurstCount
   requester.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
+
+  io.statusReady := requester.io.statusReady
 
   val writer = Module(new WQDmaPackedMemoryWriter(avalonDataWidth, wAddrWidth, itemsPerPack, itemWidth, packsPerBlock))
   writer.io.requesterNext := requesterNext

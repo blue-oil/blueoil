@@ -53,6 +53,9 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     // Synchronization interface
     val rRawDec = Output(Bool())
     val rRawZero = Input(Bool())
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   private def toBytes(elements: UInt) = {
@@ -187,7 +190,11 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   }.elsewhen((setupTile | waitSync) & ~io.rRawZero) {
     state := State.valid
   }.elsewhen(valid & io.tileAccepted) {
-    state := State.updateCounters
+    when(outputHCountLast) {
+      state := State.idle
+    }.otherwise {
+      state := State.updateCounters
+    }
   }
 
   io.tileStartAddress := tileAddress
@@ -196,6 +203,7 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   io.tileRowToRowDistance := tileRowToRowDistance
   io.tileValid := valid
   io.rRawDec := syncDecRRaw
+  io.statusReady := idle
 }
 
 object RDmaTileGenerator {

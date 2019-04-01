@@ -44,6 +44,9 @@ class WQDmaAvalonRequester(avalonAddrWidth: Int, avalonDataWidth: Int, elementWi
     val avalonMasterRead = Output(Bool())
     val avalonMasterBurstCount = Output(UInt(burstCountWidth.W))
     val avalonMasterWaitRequest = Input(Bool())
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   object State {
@@ -119,6 +122,7 @@ class WQDmaAvalonRequester(avalonAddrWidth: Int, avalonDataWidth: Int, elementWi
   io.avalonMasterRead := running
   // XXX: expect avalon support bursts of suffucient size
   io.avalonMasterBurstCount := wordsPerBlock.U
+  io.statusReady := idle
 }
 
 object WQDmaAvalonRequester {

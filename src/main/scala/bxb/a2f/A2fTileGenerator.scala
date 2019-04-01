@@ -29,6 +29,9 @@ class A2fTileGenerator(tileCountWidth: Int) extends Module {
     val tileWidth = Output(UInt(tileCountWidth.W))
     val tileValid = Output(Bool())
     val tileAccepted = Input(Bool())
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   // FIXME: it is too much for the task done
@@ -98,12 +101,17 @@ class A2fTileGenerator(tileCountWidth: Int) extends Module {
   }.elsewhen(setupTile) {
     state := State.valid
   }.elsewhen(valid & io.tileAccepted) {
-    state := State.updateCounters
+    when(outputHCountLast) {
+      state := State.idle
+    }.otherwise {
+      state := State.updateCounters
+    }
   }
 
   io.tileHeight := tileHeight
   io.tileWidth := tileWidth
   io.tileValid := valid
+  io.statusReady := idle
 }
 
 object A2fTileGenerator {

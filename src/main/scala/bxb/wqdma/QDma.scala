@@ -49,6 +49,9 @@ class QDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
 
     // QMem interface
     val qmemWrite = Output(PackedWritePort(wAddrWidth, b, thresholdsTripleWidth))
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   val writerDone = Wire(Bool())
@@ -70,6 +73,8 @@ class QDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   io.avalonMasterRead := requester.io.avalonMasterRead
   io.avalonMasterBurstCount := requester.io.avalonMasterBurstCount
   requester.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
+
+  io.statusReady := requester.io.statusReady
 
   class QDmaPackedMemoryWriter extends WQDmaPackedMemoryWriter(avalonDataWidth, wAddrWidth, thresholdsTriplesPerPack, thresholdsTripleWidth, packsPerBlock, thresholdsTripleWidthRaw) {
     // XXX: we may need to generalize it later,
