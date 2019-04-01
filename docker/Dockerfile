@@ -45,48 +45,88 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install dependencies for Pillow, Scipy and matplotlib for display, and requirements for pyenv and pyenv virtualenv installation
+
+ARG USE_PYTHON_3_NOT_2
+ARG _PY_SUFFIX=${USE_PYTHON_3_NOT_2:+3}
+ARG PYTHON=python${_PY_SUFFIX}
+ARG PIP=pip${_PY_SUFFIX}
+
+# See http://bugs.python.org/issue19846
+ENV LANG C.UTF-8
+
 RUN apt-get update && apt-get install -y \
-    bzip2 \
-    dpkg-dev \
-    tk8.6-dev \
-    tcl-dev \
-    libxft-dev \
-    ncurses-bin \
-    libbz2-1.0=1.0.6-8.1 \
-    libtinfo5=6.0+20160213-1ubuntu1 \
-    libncurses5=6.0+20160213-1ubuntu1 \
-    libtinfo-dev=6.0+20160213-1ubuntu1 \
-    libncursesw5=6.0+20160213-1ubuntu1 \
-    libreadline6-dev=6.3-8ubuntu2 \
-    libsqlite3-0=3.11.0-1ubuntu1.1 \
-    zlib1g=1:1.2.8.dfsg-2ubuntu4.1 \
-    python3-pil \
-    libjpeg8-dev \
-    zlib1g-dev \
-    python3-matplotlib \
-    liblapack-dev \
-    git \
-    make \
+    ${PYTHON} \
+    ${PYTHON}-pip
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
+
+RUN apt-get update && apt-get install -y \
     build-essential \
-    libssl-dev \
-    libbz2-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    wget \
     curl \
-    llvm \
-    libncurses5-dev \
-    libncursesw5-dev \
-    xz-utils \
-    tk-dev \
-    && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    git \
+    wget \
+    openjdk-8-jdk \
+    ${PYTHON}-dev \
+    swig
+
+# Install dependencies for Pillow, Scipy and matplotlib for display, and requirements for pyenv and pyenv virtualenv installation
+RUN ${PIP} --no-cache-dir install \
+    Pillow \
+    h5py \
+    keras_applications \
+    keras_preprocessing \
+    matplotlib \
+    mock \
+    numpy \
+    scipy \
+    sklearn \
+    pandas \
+    && test "${USE_PYTHON_3_NOT_2}" -eq 1 && true || ${PIP} --no-cache-dir install \
+    enum34
 
 # install aarch64 cross compile environment
-RUN apt-get update && apt-get install -y crossbuild-essential-arm64
-
+RUN apt-get update && apt-get install -y \
+    perl-base=5.26.1-6ubuntu0.3 \
+    perl-modules-5.26 \
+    libperl5.26 \
+    perl \
+    libdpkg-perl \
+    libconfig-inifiles-perl \
+    libfile-which-perl \
+    libxml-sax-base-perl \
+    perl-modules-5.22 \
+    libperl5.22 \
+    dpkg-dev \
+    libconfig-auto-perl \
+    libio-string-perl \
+    libyaml-perl \
+    libdebian-dpkgcross-perl \
+    libfile-homedir-perl \
+    libxml-namespacesupport-perl \
+    libxml-sax-perl \
+    libxml-simple-perl \
+#    perl-base=5.22.1-9 \
+#    perl-base=5.26.1-6ubuntu0.3 \
+#    perlapi-5.22.1 \
+    libxml-libxml-perl \
+    binutils=2.26.1-1ubuntu1~16.04.8 \
+    binutils-aarch64-linux-gnu \
+#    libxml-simple-perl \
+    liblocale-gettext-perl \ 
+    libconfig-auto-perl \
+    libdebian-dpkgcross-perl \
+    g++-5-aarch64-linux-gnu \
+    gcc-5-aarch64-linux-gnu \
+    gcc-aarch64-linux-gnu \
+    g++-aarch64-linux-gnu \
+    dpkg-cross \
+    crossbuild-essential-arm64
+  
 # Locale setting
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
