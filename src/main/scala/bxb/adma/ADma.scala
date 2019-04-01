@@ -85,6 +85,9 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val aWarDec = Output(Bool())
     val aWarZero = Input(Bool())
     val aRawInc = Output(Bool())
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   val tileAcceptedByRequester = Wire(Bool())
@@ -120,6 +123,7 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   tileGenerator.io.tileAccepted := tileDone
   tileGenerator.io.aWarZero := io.aWarZero
   io.aWarDec := tileGenerator.io.aWarDec
+  io.statusReady := tileGenerator.io.statusReady
 
   // Destination Address Generator
   val amemWriter = Module(new ADmaAMemWriter(b, avalonDataWidth, aAddrWidth, tileCountWidth))

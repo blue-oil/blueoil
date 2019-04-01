@@ -78,6 +78,9 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     // Synchronization interface
     val aWarDec = Output(Bool())
     val aWarZero = Input(Bool())
+
+    // Status
+    val statusReady = Output(Bool())
   })
 
   private def toBytes(elements: UInt) = {
@@ -301,7 +304,11 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   }.elsewhen((setupTile | waitSync) & ~io.aWarZero) {
     state := State.valid
   }.elsewhen(valid & io.tileAccepted) {
-    state := State.updateCounters
+    when(inputHCountLast) {
+      state := State.idle
+    }.otherwise {
+      state := State.updateCounters
+    }
   }
 
   io.tileStartAddress := tileAddress
@@ -313,6 +320,7 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   io.tileSidePad := tileSidePad
   io.tileEndPad := tileEndPad
   io.aWarDec := syncDecAWar
+  io.statusReady := idle
 }
 
 object ADmaTileGenerator {
