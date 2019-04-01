@@ -123,3 +123,7 @@ will give you a systolic array of size `B=32` instead of `3`
 
 **A2F <-> W2M sync**
 ![w2m_a2f_sync.png](/docs/diagrams/w2m_a2f_sync.png)
+
+
+## F2A
+![f2aPipeline](/docs/diagrams/f2apipeline.png)
