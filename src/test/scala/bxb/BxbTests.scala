@@ -40,8 +40,8 @@ class Reference(b: Int, inputHeight: Int, inputWidth: Int, tileHeight: Int, tile
     val wCount = fdmaParam.wCount
     val blockCount = (outputChannels / b * inputChannels / b * kernelHeight * kernelWidth)
   }
-  val a2fParam = new bxb.a2f.TileGeneratorParameters(outputTileHeight, outputTileWidth, outputHeight, outputWidth) {
-    val cCount = inputChannels / b
+  val a2fParam = new bxb.a2f.TileGeneratorParameters(b, outputTileHeight, outputTileWidth, outputHeight, outputWidth, outputChannels) {
+    val cInCount = inputChannels / b
     val kernelVCount = kernelHeight
     val kernelHCount = kernelWidth
     val step = 1
@@ -271,7 +271,7 @@ class BxbTests(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputChannel
     (BxbCsrField.fdmaOutputSpace, ref.fdmaParam.outputSpace),
     (BxbCsrField.fdmaRowDistance, ref.fdmaParam.rowDistance),
 
-    (BxbCsrField.a2fInputCCount, ref.a2fParam.cCount),
+    (BxbCsrField.a2fInputCCount, ref.a2fParam.cInCount),
     (BxbCsrField.a2fKernelVCount, ref.a2fParam.kernelVCount),
     (BxbCsrField.a2fKernelHCount, ref.a2fParam.kernelHCount),
     (BxbCsrField.a2fTileStep, ref.a2fParam.step),
