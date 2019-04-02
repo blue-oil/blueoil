@@ -15,8 +15,8 @@ class DummyADmaRequest(request: DummyRequest, val startOfTile: Boolean) {
   var burst = request.burst
 }
 
-class DummyADmaRequestSequenceGenerator(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, maxBurst: Int) {
-  val tileGen = new DummyTileGenerator(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
+class DummyADmaRequestSequenceGenerator(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, maxBurst: Int) {
+  val tileGen = new DummyTileGenerator(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
   val requestSeq = mutable.ArrayBuffer[DummyADmaRequest]()
   for (tile <- tileGen.tileSeq) {
     println(f"startAddress: ${tile.startAddress}, height: ${tile.height}, width: ${tile.width}, rowToRowDistance: ${tile.rowToRowDistance}")
@@ -26,16 +26,17 @@ class DummyADmaRequestSequenceGenerator(b: Int, avalonAddrWidth: Int, avalonData
   }
 }
 
-class ADmaTestRequestSequence(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
-  val ref = new DummyADmaRequestSequenceGenerator(b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
-  val param = new TileGeneratorParameters(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
+class ADmaTestRequestSequence(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
+  val ref = new DummyADmaRequestSequenceGenerator(b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
+  val param = new TileGeneratorParameters(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
 
   poke(dut.io.start, true)
 
   poke(dut.io.inputAddress, 0)
   poke(dut.io.inputHCount, param.hCount)
   poke(dut.io.inputWCount, param.wCount)
-  poke(dut.io.inputCCount, param.cCount)
+  poke(dut.io.inputCCount, param.cInCount)
+  poke(dut.io.outputCCount, param.cOutCount)
 
   poke(dut.io.topTileH, param.topTileH)
   poke(dut.io.middleTileH, param.middleTileH)
@@ -65,7 +66,7 @@ class ADmaTestRequestSequence(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDat
   poke(dut.io.avalonMasterWaitRequest, false)
   poke(dut.io.aWarZero, false)
 
-  val timeout = t + 3 * param.hCount * param.wCount * param.cCount * b / maxBurst
+  val timeout = t + 3 * param.hCount * param.wCount * param.cInCount * b * param.cOutCount / maxBurst
 
   var pendingReads = 0
   breakable {
@@ -92,16 +93,17 @@ class ADmaTestRequestSequence(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDat
   }
 }
 
-class ADmaTestWaitRequest(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
-  val ref = new DummyADmaRequestSequenceGenerator(b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
-  val param = new TileGeneratorParameters(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
+class ADmaTestWaitRequest(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
+  val ref = new DummyADmaRequestSequenceGenerator(b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
+  val param = new TileGeneratorParameters(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
 
   poke(dut.io.start, true)
 
   poke(dut.io.inputAddress, 0)
   poke(dut.io.inputHCount, param.hCount)
   poke(dut.io.inputWCount, param.wCount)
-  poke(dut.io.inputCCount, param.cCount)
+  poke(dut.io.inputCCount, param.cInCount)
+  poke(dut.io.outputCCount, param.cOutCount)
 
   poke(dut.io.topTileH, param.topTileH)
   poke(dut.io.middleTileH, param.middleTileH)
@@ -164,16 +166,17 @@ class ADmaTestWaitRequest(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWid
   }
 }
 
-class ADmaTestAWarZero(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
-  val ref = new DummyADmaRequestSequenceGenerator(b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
-  val param = new TileGeneratorParameters(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
+class ADmaTestAWarZero(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
+  val ref = new DummyADmaRequestSequenceGenerator(b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
+  val param = new TileGeneratorParameters(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
 
   poke(dut.io.start, true)
 
   poke(dut.io.inputAddress, 0)
   poke(dut.io.inputHCount, param.hCount)
   poke(dut.io.inputWCount, param.wCount)
-  poke(dut.io.inputCCount, param.cCount)
+  poke(dut.io.inputCCount, param.cInCount)
+  poke(dut.io.outputCCount, param.cOutCount)
 
   poke(dut.io.topTileH, param.topTileH)
   poke(dut.io.middleTileH, param.middleTileH)
@@ -247,6 +250,7 @@ class ADmaTestModule(amemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val inputHCount = Input(UInt(6.W))
     val inputWCount = Input(UInt(6.W))
     val inputCCount = Input(UInt(6.W))
+    val outputCCount = Input(UInt(6.W))
 
     val topTileH = Input(UInt(tileCountWidth.W))
     val middleTileH = Input(UInt(tileCountWidth.W))
@@ -304,6 +308,7 @@ class ADmaTestModule(amemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   adma.io.inputHCount := io.inputHCount
   adma.io.inputWCount := io.inputWCount
   adma.io.inputCCount := io.inputCCount
+  adma.io.outputCCount := io.outputCCount
   adma.io.topTileH := io.topTileH
   adma.io.middleTileH := io.middleTileH
   adma.io.bottomTileH := io.bottomTileH
@@ -334,7 +339,7 @@ class ADmaTestModule(amemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   aSemaPair.io.producer.rawInc := adma.io.aRawInc
 }
 
-class ADmaTestAMemWriting(dut: ADmaTestModule, amemSize: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
+class ADmaTestAMemWriting(dut: ADmaTestModule, amemSize: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
   // input as 32 bit words laying in DDR
   val inputMemory = Seq.fill(inputHeight * inputWidth * inputChannels * 2)(scala.util.Random.nextLong() & ((0x1L << 32) - 1))
   val avalonDataWidth = 32 * 2 / 8 // assume that bus width matches data size nicely
@@ -377,15 +382,16 @@ class ADmaTestAMemWriting(dut: ADmaTestModule, amemSize: Int, tileHeight: Int, t
     step(1)
   }
 
-  val ref = new DummyTileGenerator(32, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
-  val param = new TileGeneratorParameters(32, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
+  val ref = new DummyTileGenerator(32, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
+  val param = new TileGeneratorParameters(32, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
 
   poke(dut.io.start, true)
 
   poke(dut.io.inputAddress, 0)
   poke(dut.io.inputHCount, param.hCount)
   poke(dut.io.inputWCount, param.wCount)
-  poke(dut.io.inputCCount, param.cCount)
+  poke(dut.io.inputCCount, param.cInCount)
+  poke(dut.io.outputCCount, param.cOutCount)
 
   poke(dut.io.topTileH, param.topTileH)
   poke(dut.io.middleTileH, param.middleTileH)
@@ -420,44 +426,46 @@ class ADmaTestAMemWriting(dut: ADmaTestModule, amemSize: Int, tileHeight: Int, t
   val amemHalf = amemSize / 2
   for (tileY <- -param.pad until (inputHeight) by (tileHeight - param.dep)) {
     for (tileX <- -param.pad until (inputWidth) by (tileWidth - param.dep)) {
-      for (tileC <- 0 until inputChannels by 32) {
-        val dataY = if (tileY < 0) 0 else tileY
-        val dataEndY = if (tileY + tileHeight > inputHeight) inputHeight else tileY + tileHeight
-        val dataHeight = dataEndY - dataY
+      for (tileOutC <- 0 until outputChannels by 32) {
+        for (tileC <- 0 until inputChannels by 32) {
+          val dataY = if (tileY < 0) 0 else tileY
+          val dataEndY = if (tileY + tileHeight > inputHeight) inputHeight else tileY + tileHeight
+          val dataHeight = dataEndY - dataY
 
-        val dataX = if (tileX < 0) 0 else tileX
-        val dataEndX = if (tileX + tileWidth > inputWidth) inputWidth else tileX + tileWidth
-        val dataWidth = dataEndX - dataX
+          val dataX = if (tileX < 0) 0 else tileX
+          val dataEndX = if (tileX + tileWidth > inputWidth) inputWidth else tileX + tileWidth
+          val dataWidth = dataEndX - dataX
 
-        if (dataWidth + param.pad > param.dep && dataHeight + param.pad > param.dep) {
-          while (peek(dut.io.aRawZero).toInt != 0) {
-            doStep()
-            poke(dut.io.aWarInc, false)
-          }
-          poke(dut.io.aRawDec, true)
-          for (y <- tileY until min(tileY + tileHeight, inputHeight + param.pad)) {
-            for (x <- tileX until min(tileX + tileWidth, inputWidth + param.pad)) {
-              val inputAddr = tileC / 32 * inputHeight * inputWidth + y * inputWidth + x
-              for (row <- 0 until 32) {
-                poke(dut.io.amemRead(row).addr, amemAddr)
-                poke(dut.io.amemRead(row).enable, true)
-              }
+          if (dataWidth + param.pad > param.dep && dataHeight + param.pad > param.dep) {
+            while (peek(dut.io.aRawZero).toInt != 0) {
               doStep()
               poke(dut.io.aWarInc, false)
-              poke(dut.io.aRawDec, false)
-              val isPad = !(y >= 0 && y < inputHeight && x >= 0 && x < inputWidth)
-              val inputLow = if (isPad) 0 else inputMemory(inputAddr * 2)
-              val inputHigh = if (isPad) 0 else inputMemory(inputAddr * 2 + 1)
-              for (row <- 0 until 32) {
-                var expected = (((inputHigh >> row) & 0x1) << 1) | ((inputLow >> row) & 0x1)
-                expect(dut.io.amemQ(row), expected)
-              }
-              amemAddr = amemAddr + 1
             }
+            poke(dut.io.aRawDec, true)
+            for (y <- tileY until min(tileY + tileHeight, inputHeight + param.pad)) {
+              for (x <- tileX until min(tileX + tileWidth, inputWidth + param.pad)) {
+                val inputAddr = tileC / 32 * inputHeight * inputWidth + y * inputWidth + x
+                for (row <- 0 until 32) {
+                  poke(dut.io.amemRead(row).addr, amemAddr)
+                  poke(dut.io.amemRead(row).enable, true)
+                }
+                doStep()
+                poke(dut.io.aWarInc, false)
+                poke(dut.io.aRawDec, false)
+                val isPad = !(y >= 0 && y < inputHeight && x >= 0 && x < inputWidth)
+                val inputLow = if (isPad) 0 else inputMemory(inputAddr * 2)
+                val inputHigh = if (isPad) 0 else inputMemory(inputAddr * 2 + 1)
+                for (row <- 0 until 32) {
+                  var expected = (((inputHigh >> row) & 0x1) << 1) | ((inputLow >> row) & 0x1)
+                  expect(dut.io.amemQ(row), expected)
+                }
+                amemAddr = amemAddr + 1
+              }
+            }
+            // ping pong buffering assumed
+            amemAddr = if (amemAddr < amemHalf) amemHalf else 0
+            poke(dut.io.aWarInc, true)
           }
-          // ping pong buffering assumed
-          amemAddr = if (amemAddr < amemHalf) amemHalf else 0
-          poke(dut.io.aWarInc, true)
         }
       }
     }
@@ -470,6 +478,7 @@ object ADmaTests {
     val inputWidth = 20
     val inputHeight = 20
     val inputChannels = 2 * b
+    val outputChannels = 2 * b
     val amemSize = 32 * 32
     val aAddrWidth = Chisel.log2Up(amemSize)
     val avalonAddrWidth = Chisel.log2Up(inputWidth * inputWidth * inputChannels * b * 2 / 8)
@@ -485,13 +494,13 @@ object ADmaTests {
           println(f"running with maxBurst:${maxBurst} tileHeight:${tileHeight} tileWidth:${tileWidth}")
           require(amemSize >= tileHeight * tileWidth)
           ok &= Driver.execute(driverArgs, () => new ADma(b, aAddrWidth, avalonAddrWidth, maxBurst))(
-            dut => new ADmaTestRequestSequence(dut, b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst))
+            dut => new ADmaTestRequestSequence(dut, b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst))
           ok &= Driver.execute(driverArgs, () => new ADma(b, aAddrWidth, avalonAddrWidth, maxBurst))(
-            dut => new ADmaTestWaitRequest(dut, b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst))
+            dut => new ADmaTestWaitRequest(dut, b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst))
           ok &= Driver.execute(driverArgs, () => new ADma(b, aAddrWidth, avalonAddrWidth, maxBurst))(
-            dut => new ADmaTestAWarZero(dut, b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst))
+            dut => new ADmaTestAWarZero(dut, b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst))
           ok &= Driver.execute(driverArgs, () => new ADmaTestModule(amemSize, avalonAddrWidth, maxBurst))(
-            dut => new ADmaTestAMemWriting(dut, amemSize, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst))
+            dut => new ADmaTestAMemWriting(dut, amemSize, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst))
           if (!ok) {
             println(f"Failed for maxBurst:${maxBurst} tileHeight:${tileHeight} tileWidth:${tileWidth}")
             break

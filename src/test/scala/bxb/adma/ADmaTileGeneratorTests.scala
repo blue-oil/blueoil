@@ -9,7 +9,7 @@ import chisel3.iotesters.{PeekPokeTester, Driver}
 class DummyTile(val startAddress: Int, val height: Int, val width: Int, val rowToRowDistance: Int) {
 }
 
-class TileGeneratorParameters(b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, maxBurst: Int) {
+class TileGeneratorParameters(b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, maxBurst: Int) {
   private def divRoundUp(x: Int, y: Int) = {
     (x + y - 1) / y
   }
@@ -23,7 +23,8 @@ class TileGeneratorParameters(b: Int, avalonDataWidth: Int, tileHeight: Int, til
 
   val hCount = divRoundUp(inputHeight + 2 * pad - dep, tileHeight - dep)
   val wCount = divRoundUp(inputWidth + 2 * pad - dep, tileWidth - dep)
-  val cCount = inputChannels / b
+  val cInCount = inputChannels / b
+  val cOutCount = outputChannels / b
 
   val leftTileW = if (wCount == 1) inputWidth else tileWidth - pad
   val middleTileW = tileWidth
@@ -55,24 +56,26 @@ class TileGeneratorParameters(b: Int, avalonDataWidth: Int, tileHeight: Int, til
     var startAddr = 0
     for (h <- 0 until hCount) {
       for (w <- 0 until wCount) {
-        val verticalTop = (h == 0)
-        val verticalMiddle = (h != hCount - 1)
-        val horizontalLeft = (w == 0)
-        val horizontalMiddle = (w != wCount - 1)
-        val height = if (verticalTop) topTileH else if (verticalMiddle) middleTileH else bottomTileH
-        val width = if (horizontalLeft) leftTileW else if (horizontalMiddle) middleTileW else rightTileW
-        val rowToRowDist = if (horizontalLeft) leftRowToRowDistance else if (horizontalMiddle) middleRowToRowDistance else rightRowToRowDistance
-        for (c <- 0 until cCount) {
-          tileSeq += new DummyTile(startAddr + c * inputSpace * bytesPerElement, height, width, rowToRowDist)
-        }
-        if (horizontalLeft) {
-          startAddr += leftStep * bytesPerElement
-        }
-        else if (horizontalMiddle) {
-          startAddr += middleStep * bytesPerElement
-        }
-        else {
-          startAddr += (if (verticalTop) topRowDistance else midRowDistance) * bytesPerElement
+        for (cOut <- 0 until cOutCount) {
+          val verticalTop = (h == 0)
+          val verticalMiddle = (h != hCount - 1)
+          val horizontalLeft = (w == 0)
+          val horizontalMiddle = (w != wCount - 1)
+          val height = if (verticalTop) topTileH else if (verticalMiddle) middleTileH else bottomTileH
+          val width = if (horizontalLeft) leftTileW else if (horizontalMiddle) middleTileW else rightTileW
+          val rowToRowDist = if (horizontalLeft) leftRowToRowDistance else if (horizontalMiddle) middleRowToRowDistance else rightRowToRowDistance
+          for (c <- 0 until cInCount) {
+            tileSeq += new DummyTile(startAddr + c * inputSpace * bytesPerElement, height, width, rowToRowDist)
+          }
+          if (horizontalLeft) {
+            startAddr += leftStep * bytesPerElement
+          }
+          else if (horizontalMiddle) {
+            startAddr += middleStep * bytesPerElement
+          }
+          else {
+            startAddr += (if (verticalTop) topRowDistance else midRowDistance) * bytesPerElement
+          }
         }
       }
     }
@@ -80,7 +83,7 @@ class TileGeneratorParameters(b: Int, avalonDataWidth: Int, tileHeight: Int, til
   }
 }
 
-class DummyTileGenerator(b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, maxBurst: Int) {
+class DummyTileGenerator(b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, maxBurst: Int) {
   val tileSeq = mutable.ArrayBuffer[DummyTile]()
 
   val pad = 1
@@ -90,34 +93,37 @@ class DummyTileGenerator(b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidt
 
   for (tileY <- -pad until (inputHeight) by (tileHeight - dep)) {
     for (tileX <- -pad until (inputWidth) by (tileWidth - dep)) {
-      for (tileC <- 0 until inputChannels by b) {
-        val dataY = if (tileY < 0) 0 else tileY
-        val dataEndY = if (tileY + tileHeight > inputHeight) inputHeight else tileY + tileHeight
-        val dataHeight = dataEndY - dataY
+      for (tileOutC <- 0 until outputChannels by b) {
+        for (tileInC <- 0 until inputChannels by b) {
+          val dataY = if (tileY < 0) 0 else tileY
+          val dataEndY = if (tileY + tileHeight > inputHeight) inputHeight else tileY + tileHeight
+          val dataHeight = dataEndY - dataY
 
-        val dataX = if (tileX < 0) 0 else tileX
-        val dataEndX = if (tileX + tileWidth > inputWidth) inputWidth else tileX + tileWidth
-        val dataWidth = dataEndX - dataX
+          val dataX = if (tileX < 0) 0 else tileX
+          val dataEndX = if (tileX + tileWidth > inputWidth) inputWidth else tileX + tileWidth
+          val dataWidth = dataEndX - dataX
 
-        if (dataWidth + pad > dep && dataHeight + pad > dep) {
-          val dataAddr = (tileC / b * inputHeight * inputWidth + dataY * inputWidth + dataX) * bytesPerElement
-          val rowToRowDist = inputWidth - dataWidth + (if (dataWidth % maxBurst == 0) maxBurst else dataWidth % maxBurst)
-          tileSeq += new DummyTile(dataAddr, dataHeight, dataWidth, rowToRowDist)
+          if (dataWidth + pad > dep && dataHeight + pad > dep) {
+            val dataAddr = (tileInC / b * inputHeight * inputWidth + dataY * inputWidth + dataX) * bytesPerElement
+            val rowToRowDist = inputWidth - dataWidth + (if (dataWidth % maxBurst == 0) maxBurst else dataWidth % maxBurst)
+            tileSeq += new DummyTile(dataAddr, dataHeight, dataWidth, rowToRowDist)
+          }
         }
       }
     }
   }
 }
 
-class ADmaTileGeneratorTestSequence(dut: ADmaTileGenerator, b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
-  val ref = new DummyTileGenerator(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
-  val param = new TileGeneratorParameters(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
+class ADmaTileGeneratorTestSequence(dut: ADmaTileGenerator, b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
+  val ref = new DummyTileGenerator(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
+  val param = new TileGeneratorParameters(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
   poke(dut.io.start, true)
 
   poke(dut.io.inputAddress, 0)
   poke(dut.io.inputHCount, param.hCount)
   poke(dut.io.inputWCount, param.wCount)
-  poke(dut.io.inputCCount, param.cCount)
+  poke(dut.io.inputCCount, param.cInCount)
+  poke(dut.io.outputCCount, param.cOutCount)
 
   poke(dut.io.topTileH, param.topTileH)
   poke(dut.io.middleTileH, param.middleTileH)
@@ -155,15 +161,16 @@ class ADmaTileGeneratorTestSequence(dut: ADmaTileGenerator, b: Int, avalonDataWi
   }
 }
 
-class ADmaTileGeneratorTestAWarZero(dut: ADmaTileGenerator, b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
-  val ref = new DummyTileGenerator(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
-  val param = new TileGeneratorParameters(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
+class ADmaTileGeneratorTestAWarZero(dut: ADmaTileGenerator, b: Int, avalonDataWidth: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {
+  val ref = new DummyTileGenerator(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
+  val param = new TileGeneratorParameters(b, avalonDataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
   poke(dut.io.start, true)
 
   poke(dut.io.inputAddress, 0)
   poke(dut.io.inputHCount, param.hCount)
   poke(dut.io.inputWCount, param.wCount)
-  poke(dut.io.inputCCount, param.cCount)
+  poke(dut.io.inputCCount, param.cInCount)
+  poke(dut.io.outputCCount, param.cOutCount)
 
   poke(dut.io.topTileH, param.topTileH)
   poke(dut.io.middleTileH, param.middleTileH)
@@ -214,7 +221,8 @@ object ADmaTileGeneratorTests {
     val b = 32
     val inputWidth = 20
     val inputHeight = 20
-    val inputChannels = 1 * b
+    val inputChannels = 2 * b
+    val outputChannels = 2 * b
     val amemSize = 32 * 32
     val aAddrWidth = Chisel.log2Up(amemSize)
     val tileCountWidth = aAddrWidth
@@ -233,9 +241,9 @@ object ADmaTileGeneratorTests {
     for (maxBurst <- List(1, 2, 4)) {
       for ((tileHeight, tileWidth) <- List((4, 4), (5, 5), (10, 10))) {
         ok &= Driver.execute(driverArgs, () => new ADmaTileGenerator(avalonAddrWidth, b * 2, tileCountWidth))(
-          dut => new ADmaTileGeneratorTestSequence(dut, b, b * 2, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, 4))
+          dut => new ADmaTileGeneratorTestSequence(dut, b, b * 2, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst))
         ok &= Driver.execute(driverArgs, () => new ADmaTileGenerator(avalonAddrWidth, b * 2, tileCountWidth))(
-          dut => new ADmaTileGeneratorTestAWarZero(dut, b, b * 2, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, 4))
+          dut => new ADmaTileGeneratorTestAWarZero(dut, b, b * 2, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst))
       }
     }
   }

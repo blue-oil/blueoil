@@ -6,12 +6,9 @@ import scala.math.{min}
 import chisel3._
 import chisel3.iotesters.{PeekPokeTester, Driver}
 
-class Reference(b: Int, inputHeight: Int, inputWidth: Int, tileHeight: Int, tileWidth: Int) {
-  val inputChannels = b
-
+class Reference(b: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, tileHeight: Int, tileWidth: Int) {
   val outputHeight = inputHeight
   val outputWidth = inputWidth
-  val outputChannels = b
 
   val kernelHeight = 3
   val kernelWidth = 3
@@ -33,15 +30,15 @@ class Reference(b: Int, inputHeight: Int, inputWidth: Int, tileHeight: Int, tile
   val outputTileHeight = inputTileHeight - dep
   val outputTileWidth = inputTileWidth - dep
 
-  val admaParam = new bxb.adma.TileGeneratorParameters(b, admaAvalonDataWidth, inputTileHeight, inputTileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
+  val admaParam = new bxb.adma.TileGeneratorParameters(b, admaAvalonDataWidth, inputTileHeight, inputTileWidth, inputHeight, inputWidth, inputChannels, outputChannels, maxBurst)
   val fdmaParam = new bxb.fdma.TileGeneratorParameters(b, fdmaAvalonDataWidth,  fdmaDataWidth, outputTileHeight, outputTileWidth, outputHeight, outputWidth, outputChannels, maxBurst)
   val wdmaParam = new {
     val hCount = fdmaParam.hCount
     val wCount = fdmaParam.wCount
     val blockCount = (outputChannels / b * inputChannels / b * kernelHeight * kernelWidth)
   }
-  val a2fParam = new bxb.a2f.TileGeneratorParameters(outputTileHeight, outputTileWidth, outputHeight, outputWidth) {
-    val cCount = inputChannels / b
+  val a2fParam = new bxb.a2f.TileGeneratorParameters(b, outputTileHeight, outputTileWidth, outputHeight, outputWidth, outputChannels) {
+    val cInCount = inputChannels / b
     val kernelVCount = kernelHeight
     val kernelHCount = kernelWidth
     val step = 1
@@ -86,21 +83,23 @@ class Reference(b: Int, inputHeight: Int, inputWidth: Int, tileHeight: Int, tile
   val inputAddresses = mutable.ArrayBuffer[Int]()
   for (tileY <- -pad until (inputHeight) by (inputTileHeight - dep)) {
     for (tileX <- -pad until (inputWidth) by (inputTileWidth - dep)) {
-      for (tileC <- 0 until inputChannels by b) {
-        val dataY = if (tileY < 0) 0 else tileY
-        val dataEndY = if (tileY + inputTileHeight > inputHeight) inputHeight else tileY + inputTileHeight
-        val dataHeight = dataEndY - dataY
+      for (tileOutC <- 0 until outputChannels by b) {
+        for (tileC <- 0 until inputChannels by b) {
+          val dataY = if (tileY < 0) 0 else tileY
+          val dataEndY = if (tileY + inputTileHeight > inputHeight) inputHeight else tileY + inputTileHeight
+          val dataHeight = dataEndY - dataY
 
-        val dataX = if (tileX < 0) 0 else tileX
-        val dataEndX = if (tileX + inputTileWidth > inputWidth) inputWidth else tileX + inputTileWidth
-        val dataWidth = dataEndX - dataX
+          val dataX = if (tileX < 0) 0 else tileX
+          val dataEndX = if (tileX + inputTileWidth > inputWidth) inputWidth else tileX + inputTileWidth
+          val dataWidth = dataEndX - dataX
 
-        if (dataWidth + pad > dep && dataHeight + pad > dep) {
-          for (y <- tileY until min(tileY + inputTileHeight, inputHeight + pad)) {
-            for (x <- tileX until min(tileX + inputTileWidth, inputWidth + pad)) {
-              if (y >= 0 && y < inputHeight && x >= 0 && x < inputWidth) {
-                val inputAddr = (tileC / b * inputHeight * inputWidth + y * inputWidth + x) * admaAvalonDataByteWidth
-                inputAddresses += inputAddr
+          if (dataWidth + pad > dep && dataHeight + pad > dep) {
+            for (y <- tileY until min(tileY + inputTileHeight, inputHeight + pad)) {
+              for (x <- tileX until min(tileX + inputTileWidth, inputWidth + pad)) {
+                if (y >= 0 && y < inputHeight && x >= 0 && x < inputWidth) {
+                  val inputAddr = (tileC / b * inputHeight * inputWidth + y * inputWidth + x) * admaAvalonDataByteWidth
+                  inputAddresses += inputAddr
+                }
               }
             }
           }
@@ -134,8 +133,8 @@ class Reference(b: Int, inputHeight: Int, inputWidth: Int, tileHeight: Int, tile
   }
 }
 
-class BxbTests(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
-  val ref = new Reference(b, inputHeight, inputWidth, tileHeight, tileWidth)
+class BxbTests(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
+  val ref = new Reference(b, inputHeight, inputWidth, inputChannels, outputChannels, tileHeight, tileWidth)
 
   class Request(var addr: Int, var burst: Int) {
   }
@@ -233,7 +232,7 @@ class BxbTests(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputChannel
     (BxbCsrField.admaInputAddress, 0),
     (BxbCsrField.admaInputHCount, ref.admaParam.hCount),
     (BxbCsrField.admaInputWCount, ref.admaParam.wCount),
-    (BxbCsrField.admaInputCCount, ref.admaParam.cCount),
+    (BxbCsrField.admaInputCCount, ref.admaParam.cInCount),
     (BxbCsrField.admaTopTileH, ref.admaParam.topTileH),
     (BxbCsrField.admaMiddleTileH, ref.admaParam.middleTileH),
     (BxbCsrField.admaBottomTileH, ref.admaParam.bottomTileH),
@@ -271,7 +270,7 @@ class BxbTests(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputChannel
     (BxbCsrField.fdmaOutputSpace, ref.fdmaParam.outputSpace),
     (BxbCsrField.fdmaRowDistance, ref.fdmaParam.rowDistance),
 
-    (BxbCsrField.a2fInputCCount, ref.a2fParam.cCount),
+    (BxbCsrField.a2fInputCCount, ref.a2fParam.cInCount),
     (BxbCsrField.a2fKernelVCount, ref.a2fParam.kernelVCount),
     (BxbCsrField.a2fKernelHCount, ref.a2fParam.kernelHCount),
     (BxbCsrField.a2fTileStep, ref.a2fParam.step),
@@ -316,6 +315,7 @@ object BxbTests {
     val inputHeight = 10
     val inputWidth = 10
     val inputChannels = 1 * b
+    val outputChannels = 2 * b
     // val inputHeight = 100
     // val inputWidth = 100
 
@@ -333,6 +333,6 @@ object BxbTests {
 
     println(f"running with tileHeight:${tileHeight} tileWidth:${tileWidth}")
     require(dataMemSize >= tileHeight * tileWidth)
-    ok &= Driver.execute(driverArgs, () => new Bxb(dataMemSize, wmemSize))(dut => new BxbTests(dut, b, inputHeight, inputWidth, inputChannels, tileHeight, tileWidth))
+    ok &= Driver.execute(driverArgs, () => new Bxb(dataMemSize, wmemSize))(dut => new BxbTests(dut, b, inputHeight, inputWidth, inputChannels, outputChannels, tileHeight, tileWidth))
   }
 }
