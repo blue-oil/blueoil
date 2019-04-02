@@ -10,9 +10,12 @@ class A2fTileGenerator(tileCountWidth: Int) extends Module {
     val start = Input(Bool())
 
     // Tile generation parameters
+    // - should be equal to roundUp(outpuHeight / tileHeight)
     val outputHCount = Input(UInt(6.W))
     // - should be equal to roundUp(outputWidth / tileWidth)
     val outputWCount = Input(UInt(6.W))
+    // - should be equeal to roundUp(outputChannels / B)
+    val outputCCount = Input(UInt(6.W))
 
     // tileHeight
     val regularTileH = Input(UInt(tileCountWidth.W))
@@ -46,12 +49,24 @@ class A2fTileGenerator(tileCountWidth: Int) extends Module {
   val setupTile = (state === State.setupTile)
   val valid = (state === State.valid)
 
+  val outputCCountLeft = Reg(UInt(tileCountWidth.W))
+  val outputCCountLast = (outputCCountLeft === 1.U)
+  when(resetCounters) {
+    outputCCountLeft := io.outputCCount
+  }.elsewhen(updateCounters) {
+    when(outputCCountLast) {
+      outputCCountLeft := io.outputCCount
+    }.otherwise {
+      outputCCountLeft := outputCCountLeft - 1.U
+    }
+  }
+
   val outputWCountLeft = Reg(UInt(tileCountWidth.W))
   val outputWCountOne = (outputWCountLeft === 1.U)
-  val outputWCountLast = outputWCountOne
+  val outputWCountLast = outputWCountOne & outputCCountLast
   when(resetCounters) {
     outputWCountLeft := io.outputWCount
-  }.elsewhen(updateCounters) {
+  }.elsewhen(updateCounters & outputCCountLast) {
     when(outputWCountLast) {
       outputWCountLeft := io.outputWCount
     }.otherwise {

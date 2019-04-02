@@ -95,6 +95,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
     val admaInputHCount = Output(UInt(6.W))
     val admaInputWCount = Output(UInt(6.W))
     val admaInputCCount = Output(UInt(6.W))
+    val admaOutputCCount = Output(UInt(6.W))
     val admaTopTileH = Output(UInt(tileCountWidth.W))
     val admaMiddleTileH = Output(UInt(tileCountWidth.W))
     val admaBottomTileH = Output(UInt(tileCountWidth.W))
@@ -142,6 +143,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
     val a2fTileGap = Output(UInt(2.W))
     val a2fOutputHCount = Output(UInt(6.W))
     val a2fOutputWCount = Output(UInt(6.W))
+    val a2fOutputCCount = Output(UInt(6.W))
     val a2fRegularTileH = Output(UInt(tileCountWidth.W))
     val a2fLastTileH = Output(UInt(tileCountWidth.W))
     val a2fRegularTileW = Output(UInt(tileCountWidth.W))
@@ -172,6 +174,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
   io.admaInputHCount := field(BxbCsrField.admaInputHCount.U)
   io.admaInputWCount := field(BxbCsrField.admaInputWCount.U)
   io.admaInputCCount := field(BxbCsrField.admaInputCCount.U)
+  io.admaOutputCCount := field(BxbCsrField.fdmaOutputCCount.U)
   io.admaTopTileH := field(BxbCsrField.admaTopTileH.U)
   io.admaMiddleTileH := field(BxbCsrField.admaMiddleTileH.U)
   io.admaBottomTileH := field(BxbCsrField.admaBottomTileH.U)
@@ -213,6 +216,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
   io.a2fTileGap := field(BxbCsrField.a2fTileGap.U)
   io.a2fOutputHCount := field(BxbCsrField.a2fOutputHCount.U)
   io.a2fOutputWCount := field(BxbCsrField.a2fOutputWCount.U)
+  io.a2fOutputCCount := field(BxbCsrField.fdmaOutputCCount.U)
   io.a2fRegularTileH := field(BxbCsrField.a2fRegularTileH.U)
   io.a2fLastTileH := field(BxbCsrField.a2fLastTileH.U)
   io.a2fRegularTileW := field(BxbCsrField.a2fRegularTileW.U)
@@ -377,6 +381,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int) extends Module {
   adma.io.inputHCount := csr.io.admaInputHCount
   adma.io.inputWCount := csr.io.admaInputWCount
   adma.io.inputCCount := csr.io.admaInputCCount
+  adma.io.outputCCount := csr.io.admaOutputCCount
   adma.io.topTileH := csr.io.admaTopTileH
   adma.io.middleTileH := csr.io.admaMiddleTileH
   adma.io.bottomTileH := csr.io.admaBottomTileH
@@ -494,6 +499,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int) extends Module {
   a2f.io.tileGap := csr.io.a2fTileGap
   a2f.io.outputHCount := csr.io.a2fOutputHCount
   a2f.io.outputWCount := csr.io.a2fOutputWCount
+  a2f.io.outputCCount := csr.io.a2fOutputCCount
   a2f.io.regularTileH := csr.io.a2fRegularTileH
   a2f.io.lastTileH := csr.io.a2fLastTileH
   a2f.io.regularTileW := csr.io.a2fRegularTileW

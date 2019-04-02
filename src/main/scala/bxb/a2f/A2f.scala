@@ -25,9 +25,12 @@ class A2f(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Module {
     val tileGap = Input(UInt(2.W))
 
     // Tile generation parameters
+    // - should be equal to roundUp(outputHeight / tileHeight)
     val outputHCount = Input(UInt(6.W))
     // - should be equal to roundUp(outputWidth / tileWidth)
     val outputWCount = Input(UInt(6.W))
+    // - should be equal to outputChannels / B
+    val outputCCount = Input(UInt(6.W))
 
     // tileHeight
     val regularTileH = Input(UInt(tileCountWidth.W))
@@ -66,6 +69,7 @@ class A2f(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Module {
   tileGen.io.start := io.start
   tileGen.io.outputHCount := io.outputHCount
   tileGen.io.outputWCount := io.outputWCount
+  tileGen.io.outputCCount := io.outputCCount
   tileGen.io.regularTileH := io.regularTileH
   tileGen.io.lastTileH := io.lastTileH
   tileGen.io.regularTileW := io.regularTileW
