@@ -1,6 +1,7 @@
 package bxb.adma
 
 import scala.collection._
+import scala.math.{min}
 
 import chisel3._
 import chisel3.iotesters.{PeekPokeTester, Driver}
@@ -24,13 +25,11 @@ class TileGeneratorParameters(b: Int, avalonDataWidth: Int, tileHeight: Int, til
   val wCount = divRoundUp(inputWidth + 2 * pad - dep, tileWidth - dep)
   val cCount = inputChannels / b
 
-  require(hCount >= 3 && wCount >= 3, "tile generator assumes that at least 3 tiles exist in each direction")
-
-  val leftTileW = tileWidth - pad
+  val leftTileW = if (wCount == 1) inputWidth else tileWidth - pad
   val middleTileW = tileWidth
-  val rightTileW = inputWidth + pad - (wCount - 1) * (tileWidth - dep)
+  val rightTileW = if (wCount == 1) inputWidth else inputWidth + pad - (wCount - 1) * (tileWidth - dep)
 
-  val topTileH = tileHeight - pad
+  val topTileH = if (hCount == 1) inputHeight else tileHeight - pad
   val middleTileH = tileHeight
   val bottomTileH = inputHeight + pad - (hCount - 1)  * (tileHeight - dep)
 
@@ -49,7 +48,7 @@ class TileGeneratorParameters(b: Int, avalonDataWidth: Int, tileHeight: Int, til
   val topBottomLeftPad = (leftTileW + pad) * pad
   val topBottomMiddlePad = middleTileW * pad
   val topBottomRightPad = (rightTileW + pad) * pad
-  val sidePad = pad
+  val sidePad = if (wCount == 1) 2 * pad else pad
 
   def referenceTileSequence() = {
     val tileSeq = mutable.ArrayBuffer[DummyTile]()
