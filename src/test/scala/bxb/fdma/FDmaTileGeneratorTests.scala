@@ -197,7 +197,7 @@ object FDmaTileGeneratorTests {
 
     breakable {
       for (maxBurst <- List(1, 2, 4)) {
-        for ((tileHeight, tileWidth) <- List((4, 4), (5, 5), (10, 10))) {
+        for ((tileHeight, tileWidth) <- List((4, 4), (5, 5), (10, 10), (outputHeight, outputWidth))) {
           ok &= Driver.execute(driverArgs, () => new FDmaTileGenerator(avalonAddrWidth, dataWidth, tileCountWidth))(
             dut => new FDmaTileGeneratorTestSequence(dut, b, avalonDataWidth, dataWidth, tileHeight, tileWidth, outputHeight, outputWidth, outputChannels, 4))
           ok &= Driver.execute(driverArgs, () => new FDmaTileGenerator(avalonAddrWidth, dataWidth, tileCountWidth))(
