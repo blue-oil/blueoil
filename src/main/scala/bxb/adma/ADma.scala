@@ -27,6 +27,8 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val inputWCount = Input(UInt(6.W))
     // - should be equal to roundUp(inputChannels / B)
     val inputCCount = Input(UInt(6.W))
+    // - should be equal to roundUp(outputChannels / B)
+    val outputCCount = Input(UInt(6.W))
 
     // - tileHeight - pad
     val topTileH = Input(UInt(tileCountWidth.W))
@@ -102,6 +104,7 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   tileGenerator.io.inputHCount := io.inputHCount
   tileGenerator.io.inputWCount := io.inputWCount
   tileGenerator.io.inputCCount := io.inputCCount
+  tileGenerator.io.outputCCount := io.outputCCount
   tileGenerator.io.topTileH := io.topTileH
   tileGenerator.io.middleTileH := io.middleTileH
   tileGenerator.io.bottomTileH := io.bottomTileH
