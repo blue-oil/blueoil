@@ -481,7 +481,7 @@ object ADmaTests {
 
     breakable {
       for (maxBurst <- List(1, 2, 4)) {
-        for ((tileHeight, tileWidth) <- List((4, 4), (5, 5), (10, 10))) {
+        for ((tileHeight, tileWidth) <- List((6, 6), (5, 5), (10, 10), (inputHeight + 2, inputWidth + 2))) {
           println(f"running with maxBurst:${maxBurst} tileHeight:${tileHeight} tileWidth:${tileWidth}")
           require(amemSize >= tileHeight * tileWidth)
           ok &= Driver.execute(driverArgs, () => new ADma(b, aAddrWidth, avalonAddrWidth, maxBurst))(

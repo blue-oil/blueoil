@@ -444,7 +444,7 @@ object FDmaTests {
 
     breakable {
       for (maxBurst <- List(4)) {
-        for ((tileHeight, tileWidth) <- List((4, 4), (5, 5), (10, 10))) {
+        for ((tileHeight, tileWidth) <- List((4, 4), (5, 5), (10, 10), (outputHeight, outputWidth))) {
           println(f"running with maxBurst:${maxBurst} tileHeight:${tileHeight} tileWidth:${tileWidth}")
           require(amemSize >= tileHeight * tileWidth)
           ok &= Driver.execute(driverArgs, () => new FDma(b, aAddrWidth, avalonAddrWidth, avalonDataWidth, maxBurst))(

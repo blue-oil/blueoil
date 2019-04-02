@@ -93,7 +93,7 @@ class ADmaAMemWriter(b: Int, avalonDataWidth: Int, aAddrWidth: Int, tileCountWid
   val padMiddleCountLeft = Reg(UInt(tileCountWidth.W))
   val padMiddleCountLast = (padMiddleCountLeft === 1.U) & padSideCountLast
   when(idle) {
-    padMiddleCountLeft := io.tileHeight - io.tileSidePad
+    padMiddleCountLeft := io.tileHeight - 1.U
   }.elsewhen(padMiddle & padSideCountLast) {
     padMiddleCountLeft := padMiddleCountLeft - 1.U
   }

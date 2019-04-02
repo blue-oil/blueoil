@@ -279,12 +279,12 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val tileEndPad = Reg(UInt(tileCountWidth.W))
   when(setupTile) {
     when(verticalBottom) {
-      when(horizontalLeft) {
-        tileEndPad := io.topBottomLeftPad
+      when(horizontalRight) {
+        tileEndPad := io.topBottomRightPad + io.sidePad
       }.elsewhen(horizontalMiddle) {
         tileEndPad := io.topBottomMiddlePad
       }.otherwise {
-        tileEndPad := io.topBottomRightPad + io.sidePad
+        tileEndPad := io.topBottomLeftPad
       }
     }.elsewhen(horizontalRight) {
       tileEndPad := io.sidePad
