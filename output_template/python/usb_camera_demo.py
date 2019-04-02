@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 
 import time
 import os
+import sys
 from multiprocessing import Pool
 from time import sleep
 from multiprocessing import Queue
@@ -261,10 +262,14 @@ def run(model, config_file):
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option(
     "-m",
+    "-l",
     "--model",
     type=click.Path(exists=True),
-    help=u"Inference Model filename",
-    default="../models/lib/lib_fpga.so",
+    help=u"""
+        Inference Model filename
+        (-l is deprecated please use -m instead)
+    """,
+    default="../models/minimal_graph_with_shape.pb",
 )
 @click.option(
     "-c",
@@ -274,7 +279,14 @@ def run(model, config_file):
     default="../models/meta.yaml",
 )
 def main(model, config_file):
+    _check_deprecated_arguments()
     run(model, config_file)
+
+
+def _check_deprecated_arguments():
+    argument_list = sys.argv
+    if '-l' in argument_list:
+        print("Deprecated warning: -l is deprecated please use -m instead")
 
 
 if __name__ == "__main__":

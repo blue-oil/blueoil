@@ -23,12 +23,12 @@ pytestmark = pytest.mark.usefixtures("set_test_environment")
 def test_get_color_map_with_small_length():
     color_map = get_color_map(5)
     assert len(color_map) == 5
-    assert color_map[0] == [192, 0, 128]
-    assert color_map[4] == [64, 0, 128]
+    assert color_map[0] == (192, 0, 128)
+    assert color_map[4] == (64, 0, 128)
 
 
 def test_get_color_map_with_large_length():
     color_map = get_color_map(30)
     assert len(color_map) == 30
-    assert color_map[0] == [192, 0, 128]
-    assert color_map[29] == [128, 0, 192]
+    assert color_map[0] == (192, 0, 128)
+    assert color_map[29] == (128, 0, 192)
