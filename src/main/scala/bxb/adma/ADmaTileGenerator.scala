@@ -20,6 +20,8 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     val inputWCount = Input(UInt(6.W))
     // - should be equal to roundUp(inputChannels / B)
     val inputCCount = Input(UInt(6.W))
+    // - should be equal to roundUp(outputChannels / B)
+    val outputCCount = Input(UInt(6.W))
 
     // - tileHeight - pad
     val topTileH = Input(UInt(tileCountWidth.W))
@@ -129,12 +131,24 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     }
   }
 
+  val outputCCountLeft = Reg(UInt(tileCountWidth.W))
+  val outputCCountLast = (outputCCountLeft === 1.U) & inputCCountLast
+  when(resetCounters) {
+    outputCCountLeft := io.outputCCount
+  }.elsewhen(updateCounters & inputCCountLast) {
+    when(outputCCountLast) {
+      outputCCountLeft := io.outputCCount
+    }.otherwise {
+      outputCCountLeft := outputCCountLeft - 1.U
+    }
+  }
+
   val inputWCountLeft = Reg(UInt(tileCountWidth.W))
   val inputWCountOne = (inputWCountLeft === 1.U)
-  val inputWCountLast = inputWCountOne & inputCCountLast
+  val inputWCountLast = inputWCountOne & outputCCountLast
   when(resetCounters) {
     inputWCountLeft := io.inputWCount
-  }.elsewhen(updateCounters & inputCCountLast) {
+  }.elsewhen(updateCounters & outputCCountLast) {
     when(inputWCountLast) {
       inputWCountLeft := io.inputWCount
     }.otherwise {
@@ -153,7 +167,7 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
 
   when(resetCounters) {
     horizontalState := HorizontalState.left
-  }.elsewhen(updateCounters & inputCCountLast) {
+  }.elsewhen(updateCounters & outputCCountLast) {
     when(inputWCountLast) {
       horizontalState := HorizontalState.left
     }.elsewhen(horizontalLeft) {
@@ -196,7 +210,7 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val tileFirstChannelAddress = Reg(UInt(avalonAddrWidth.W))
   when(resetCounters) {
     tileFirstChannelAddress := io.inputAddress
-  }.elsewhen(updateCounters & inputCCountLast) {
+  }.elsewhen(updateCounters & outputCCountLast) {
     when(horizontalLeft) {
       tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.leftStep)
     }.elsewhen(horizontalMiddle) {

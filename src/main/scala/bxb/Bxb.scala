@@ -95,6 +95,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
     val admaInputHCount = Output(UInt(6.W))
     val admaInputWCount = Output(UInt(6.W))
     val admaInputCCount = Output(UInt(6.W))
+    val admaOutputCCount = Output(UInt(6.W))
     val admaTopTileH = Output(UInt(tileCountWidth.W))
     val admaMiddleTileH = Output(UInt(tileCountWidth.W))
     val admaBottomTileH = Output(UInt(tileCountWidth.W))
@@ -173,6 +174,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
   io.admaInputHCount := field(BxbCsrField.admaInputHCount.U)
   io.admaInputWCount := field(BxbCsrField.admaInputWCount.U)
   io.admaInputCCount := field(BxbCsrField.admaInputCCount.U)
+  io.admaOutputCCount := field(BxbCsrField.fdmaOutputCCount.U)
   io.admaTopTileH := field(BxbCsrField.admaTopTileH.U)
   io.admaMiddleTileH := field(BxbCsrField.admaMiddleTileH.U)
   io.admaBottomTileH := field(BxbCsrField.admaBottomTileH.U)
@@ -379,6 +381,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int) extends Module {
   adma.io.inputHCount := csr.io.admaInputHCount
   adma.io.inputWCount := csr.io.admaInputWCount
   adma.io.inputCCount := csr.io.admaInputCCount
+  adma.io.outputCCount := csr.io.admaOutputCCount
   adma.io.topTileH := csr.io.admaTopTileH
   adma.io.middleTileH := csr.io.admaMiddleTileH
   adma.io.bottomTileH := csr.io.admaBottomTileH
