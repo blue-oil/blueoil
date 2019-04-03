@@ -132,7 +132,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
     val fdmaLastTileW = Output(UInt(tileCountWidth.W))
     val fdmaRegularRowToRowDistance = Output(UInt(tileCountWidth.W))
     val fdmaLastRowToRowDistance = Output(UInt(tileCountWidth.W))
-    val fdmaOutputSpace = Output(UInt(tileCountWidth.W))
+    val fdmaOutputSpace = Output(UInt(avalonAddrWidth.W))
     val fdmaRowDistance = Output(UInt(avalonAddrWidth.W))
 
     // A2F parameters
