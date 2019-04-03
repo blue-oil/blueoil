@@ -17,6 +17,7 @@ import tensorflow as tf
 from lmnet.layers import conv2d, batch_norm
 
 
+# TODO(wakisaka): should be replace to conv_bn_act().
 def darknet(name, inputs, filters, kernel_size, is_training=tf.constant(False), activation=None, data_format="NHWC"):
     """Darknet19 block.
 
@@ -53,6 +54,7 @@ def darknet(name, inputs, filters, kernel_size, is_training=tf.constant(False), 
         return output
 
 
+# TODO(wakisaka): should be replace to conv_bn_act().
 def lmnet_block(
         name,
         inputs,
@@ -126,3 +128,192 @@ def lmnet_block(
             tf.summary.histogram('output', output)
 
         return output
+
+
+def conv_bn_act(
+        name,
+        inputs,
+        filters,
+        kernel_size,
+        weight_decay_rate=0.0,
+        is_training=tf.constant(False),
+        activation=None,
+        batch_norm_decay=0.99,
+        data_format="NHWC",
+        enable_detail_summary=False,
+):
+    """Block of convolution -> batch norm -> activation.
+
+    Args:
+        name (str): Block name, as scope name.
+        inputs (tf.Tensor): Inputs.
+        filters (int): Number of filters (output channel) for convolution.
+        kernel_size (int): Kernel size.
+        weight_decay_rate (float): Number of L2 regularization be applied to convolution weights.
+           Need `tf.losses.get_regularization_loss()` in loss function to apply this parameter to loss.
+        is_training (tf.constant): Flag if training or not for batch norm.
+        activation (callable): Activation function.
+        batch_norm_decay (float): Batch norm decay rate.
+        data_format (string):  Fromat for inputs data. NHWC or NCHW.
+        enable_detail_summary (bool): Flag for summarize feature maps for each operation on tensorboard.
+    Returns:
+        output (tf.Tensor): Output of this block.
+
+    """
+    if data_format == "NCHW":
+        channel_data_format = "channels_first"
+    elif data_format == "NHWC":
+        channel_data_format = "channels_last"
+    else:
+        raise ValueError("data format must be 'NCHW' or 'NHWC'. got {}.".format(data_format))
+
+    with tf.variable_scope(name):
+        conved = tf.layers.conv2d(
+            inputs,
+            filters=filters,
+            kernel_size=kernel_size,
+            padding='SAME',
+            use_bias=False,
+            kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),  # he initializer
+            data_format=channel_data_format,
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(weight_decay_rate),
+        )
+
+        batch_normed = tf.contrib.layers.batch_norm(
+            conved,
+            decay=batch_norm_decay,
+            updates_collections=None,
+            is_training=is_training,
+            center=True,
+            scale=True,
+            data_format=data_format,
+            )
+
+        if activation:
+            output = activation(batch_normed)
+        else:
+            output = batch_normed
+
+        if enable_detail_summary:
+            tf.summary.histogram('conv_output', conved)
+            tf.summary.histogram('batch_norm_output', batch_normed)
+            tf.summary.histogram('output', output)
+
+        return output
+
+
+def _dense_layer_conv_bn_act(
+        name,
+        inputs,
+        growth_rate,
+        bottleneck_rate,
+        weight_decay_rate,
+        is_training,
+        activation,
+        batch_norm_decay,
+        data_format,
+        enable_detail_summary,
+):
+    """Densenet lyaer
+
+    In order to fast execute for quantization, use order of layer
+    convolution -> batch norm -> activation instead of paper original's batch norm -> activation -> convolution.
+    """
+    bottleneck_channel = growth_rate * bottleneck_rate
+
+    with tf.variable_scope(name):
+
+        output_1x1 = conv_bn_act(
+            "bottleneck_1x1",
+            inputs,
+            filters=bottleneck_channel,
+            kernel_size=1,
+            weight_decay_rate=weight_decay_rate,
+            is_training=is_training,
+            activation=activation,
+            batch_norm_decay=batch_norm_decay,
+            data_format=data_format,
+            enable_detail_summary=enable_detail_summary,
+        )
+
+        output_3x3 = conv_bn_act(
+            "conv_3x3",
+            output_1x1,
+            filters=growth_rate,
+            kernel_size=3,
+            weight_decay_rate=weight_decay_rate,
+            is_training=is_training,
+            activation=activation,
+            batch_norm_decay=batch_norm_decay,
+            data_format=data_format,
+            enable_detail_summary=enable_detail_summary,
+        )
+
+        if data_format == "NHWC":
+            concat_axis = -1
+        if data_format == "NCHW":
+            concat_axis = 1
+
+        output = tf.concat([inputs, output_3x3], axis=concat_axis)
+
+        if enable_detail_summary:
+            tf.summary.histogram('output', output)
+
+    return output
+
+
+def densenet(
+        name,
+        inputs,
+        num_layers,
+        growth_rate,
+        bottleneck_rate=4,
+        weight_decay_rate=0.0,
+        is_training=tf.constant(False),
+        activation=None,
+        batch_norm_decay=0.99,
+        data_format="NHWC",
+        enable_detail_summary=False,
+):
+    """Block of Densent.
+
+    paper: https://arxiv.org/abs/1608.06993
+    In the original paper, dense block consists from the layers
+    which batch norm -> activation(relu) -> convolution(1x1) and batch norm -> activation -> convolution(3x3).
+    But in this method, the order of each layer change to convolution -> batch norm -> activation.
+
+    Args:
+        name (str): Block name, as scope name.
+        inputs (tf.Tensor): Inputs.
+        num_layers (int): Number of dense layer which consits 1x1 and 3x3 cov.
+        growth_rate (int): How many filters (out channel) to add each layer.
+        bottleneck_rate (int): The factor to be calculated bottle-neck 1x1 conv output channel.
+            `bottleneck_channel = growth_rate * bottleneck_rate`.
+            The default value `4` is from original paper.
+        weight_decay_rate (float): Number of L2 regularization be applied to convolution weights.
+        is_training (tf.constant): Flag if training or not.
+        activation (callable): Activation function.
+        batch_norm_decay (float): Batch norm decay rate.
+        enable_detail_summary (bool): Flag for summarize feature maps for each operation on tensorboard.
+        data_format (string):  Fromat for inputs data. NHWC or NCHW.
+    Returns:
+        tf.Tensor: Output of current  block.
+    """
+
+    with tf.variable_scope(name):
+        x = inputs
+        for i in range(0, num_layers):
+            x = _dense_layer_conv_bn_act(
+                "layer_{}".format(i),
+                x,
+                growth_rate,
+                bottleneck_rate,
+                weight_decay_rate,
+                is_training,
+                activation,
+                batch_norm_decay,
+                data_format,
+                enable_detail_summary,
+            )
+
+        return x
