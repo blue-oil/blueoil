@@ -37,7 +37,7 @@ class FDmaTileGenerator(avalonAddrWidth: Int, dataWidth: Int, tileCountWidth: In
     val lastRowToRowDistance = Input(UInt(tileCountWidth.W))
 
     // outputHeight * outputWidth
-    val outputSpace = Input(UInt(tileCountWidth.W))
+    val outputSpace = Input(UInt(avalonAddrWidth.W))
 
     // outputWidth * regularTileH - outputWidth + lastTileW
     val rowDistance = Input(UInt(avalonAddrWidth.W))

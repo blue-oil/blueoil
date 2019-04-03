@@ -42,7 +42,7 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val lastRowToRowDistance = Input(UInt(tileCountWidth.W))
 
     // outputHeight * outputWidth
-    val outputSpace = Input(UInt(tileCountWidth.W))
+    val outputSpace = Input(UInt(avalonAddrWidth.W))
 
     // outputWidth * regularTileH - outputWidth + lastTileW
     val rowDistance = Input(UInt(avalonAddrWidth.W))

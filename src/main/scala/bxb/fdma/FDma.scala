@@ -42,7 +42,7 @@ class FDma(b: Int, fAddrWidth: Int, avalonAddrWidth: Int, avalonDataWidth: Int, 
     val lastRowToRowDistance = Input(UInt(tileCountWidth.W))
 
     // outputHeight * outputWidth
-    val outputSpace = Input(UInt(tileCountWidth.W))
+    val outputSpace = Input(UInt(avalonAddrWidth.W))
 
     // outputWidth * regularTileH - outputWidth + lastTileW
     val rowDistance = Input(UInt(avalonAddrWidth.W))
