@@ -21,12 +21,12 @@ import tensorflow as tf
 import multiprocessing
 
 from easydict import EasyDict
-from lmnet.utils import executor, module_loader, config as config_util
+from lmnet.utils import executor, config as config_util
 from lmnet.datasets.dataset_iterator import DatasetIterator
 
 import ray
-from ray.tune import grid_search, run_experiments, register_trainable, Trainable, function
-from ray.tune.schedulers import PopulationBasedTraining, AsyncHyperBandScheduler
+from ray.tune import run_experiments, register_trainable, Trainable
+from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.suggest import HyperOptSearch
 
 if six.PY2:
