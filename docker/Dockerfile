@@ -1,11 +1,11 @@
-FROM nvidia/cuda:10.0-cudnn7-devel
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu16.04
 
 MAINTAINER masuda@leapmind.io
 
 # TensorBoard
 EXPOSE 6006
 
-ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64:$äLD_LIBRARY_PATHå
+ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH}
 
 RUN echo "deb http://ftp.jaist.ac.jp/ubuntu/ xenial main restricted universe multiverse \n\
 deb-src http://ftp.jaist.ac.jp/ubuntu/ xenial main restricted universe multiverse \n\
@@ -17,26 +17,8 @@ deb http://security.ubuntu.com/ubuntu xenial-security main restricted universe m
 deb-src http://security.ubuntu.com/ubuntu xenial-security main restricted universe multiverse" > /etc/apt/sources.list
 
 RUN apt-get update && apt-get install -y \
-    dpkg \
-    procps \
-    libarchive13 \
-    libcurl3 \
-    libexpat1 \
-    libgcc1 \
-    libjsoncpp1 \
-    libc6 \
-    libstdc++6 \
-    zlib1g \
-    libc-bin \
-    debconf \
-    python3-minimal \
-    python3.5 \
-    libpython3-stdlib \
-    libpython3-dev \
-    python3.5-dev \
-    ca-certificates \
-    python-pip-whl \
     cmake \
+    locales \
     python3 \
     python3-dev \
     python3-pip \
@@ -45,87 +27,33 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-
-ARG USE_PYTHON_3_NOT_2
-ARG _PY_SUFFIX=${USE_PYTHON_3_NOT_2:+3}
-ARG PYTHON=python${_PY_SUFFIX}
-ARG PIP=pip${_PY_SUFFIX}
-
-# See http://bugs.python.org/issue19846
-ENV LANG C.UTF-8
-
-RUN apt-get update && apt-get install -y \
-    ${PYTHON} \
-    ${PYTHON}-pip
-
-RUN ${PIP} --no-cache-dir install --upgrade \
-    pip \
-    setuptools
-
-# Some TF tools expect a "python" binary
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
-
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    git \
-    wget \
-    openjdk-8-jdk \
-    ${PYTHON}-dev \
-    swig
-
 # Install dependencies for Pillow, Scipy and matplotlib for display, and requirements for pyenv and pyenv virtualenv installation
-RUN ${PIP} --no-cache-dir install \
-    Pillow \
-    h5py \
-    keras_applications \
-    keras_preprocessing \
-    matplotlib \
-    mock \
-    numpy \
-    scipy \
-    sklearn \
-    pandas \
-    && test "${USE_PYTHON_3_NOT_2}" -eq 1 && true || ${PIP} --no-cache-dir install \
-    enum34
-
-# install aarch64 cross compile environment
 RUN apt-get update && apt-get install -y \
-    perl-base=5.26.1-6ubuntu0.3 \
-    perl-modules-5.26 \
-    libperl5.26 \
-    perl \
-    libdpkg-perl \
-    libconfig-inifiles-perl \
-    libfile-which-perl \
-    libxml-sax-base-perl \
-    perl-modules-5.22 \
-    libperl5.22 \
-    dpkg-dev \
-    libconfig-auto-perl \
-    libio-string-perl \
-    libyaml-perl \
-    libdebian-dpkgcross-perl \
-    libfile-homedir-perl \
-    libxml-namespacesupport-perl \
-    libxml-sax-perl \
-    libxml-simple-perl \
-#    perl-base=5.22.1-9 \
-#    perl-base=5.26.1-6ubuntu0.3 \
-#    perlapi-5.22.1 \
-    libxml-libxml-perl \
-    binutils=2.26.1-1ubuntu1~16.04.8 \
-    binutils-aarch64-linux-gnu \
-#    libxml-simple-perl \
-    liblocale-gettext-perl \ 
-    libconfig-auto-perl \
-    libdebian-dpkgcross-perl \
-    g++-5-aarch64-linux-gnu \
-    gcc-5-aarch64-linux-gnu \
-    gcc-aarch64-linux-gnu \
-    g++-aarch64-linux-gnu \
-    dpkg-cross \
-    crossbuild-essential-arm64
+     python3-pil \
+     libjpeg8-dev \
+     zlib1g-dev \
+     python3-matplotlib \
+     liblapack-dev \
+     git \
+     make \
+     build-essential \
+     libssl-dev \
+     libbz2-dev \
+     libreadline-dev \
+     libsqlite3-dev \
+     wget \
+     curl \
+     llvm \
+     libncurses5-dev \
+     libncursesw5-dev \
+     xz-utils \
+     tk-dev \
+     && \
+     apt-get clean && \
+     rm -rf /var/lib/apt/lists/*
+     
+# install aarch64 cross compile environment
+RUN apt-get update && apt-get install -y crossbuild-essential-arm64
   
 # Locale setting
 RUN locale-gen en_US.UTF-8
