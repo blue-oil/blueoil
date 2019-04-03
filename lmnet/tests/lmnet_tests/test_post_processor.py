@@ -301,7 +301,6 @@ def test_resize_bilinear_pillow():
     assert np.allclose(out, expect, atol=1e-4, rtol=1e-4)
 
 
-
 if __name__ == '__main__':
     test_format_yolov2_shape()
     test_exclude_low_score_box()
