@@ -312,9 +312,9 @@ class BxbTests(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputChannel
 object BxbTests {
   def main(args: Array[String]): Unit = {
     val b = 32
-    val inputHeight = 10
-    val inputWidth = 10
-    val inputChannels = 1 * b
+    val inputHeight = 64
+    val inputWidth = 64
+    val inputChannels = 2 * b
     val outputChannels = 2 * b
     // val inputHeight = 100
     // val inputWidth = 100
