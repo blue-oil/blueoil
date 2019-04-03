@@ -204,7 +204,7 @@ class RDmaTestModule(rmemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val lastTileW = Input(UInt(tileCountWidth.W))
     val regularRowToRowDistance = Input(UInt(tileCountWidth.W))
     val lastRowToRowDistance = Input(UInt(tileCountWidth.W))
-    val outputSpace = Input(UInt(tileCountWidth.W))
+    val outputSpace = Input(UInt(avalonAddrWidth.W))
     val rowDistance = Input(UInt(avalonAddrWidth.W))
 
     // Avalon interface
@@ -398,8 +398,8 @@ class RDmaTestRMemReading(dut: RDmaTestModule, rmemSize: Int, tileHeight: Int, t
 object RDmaTests {
   def main(args: Array[String]): Unit = {
     val b = 32
-    val outputWidth = 20
-    val outputHeight = 20
+    val outputWidth = 64
+    val outputHeight = 64
     val outputChannels = 2 * b
     val amemSize = 32 * 32
     val aAddrWidth = Chisel.log2Up(amemSize)
