@@ -134,8 +134,7 @@ def run(experiment_id, restore_path, output_template_dir=None):
     """Convert from trained model."""
 
     # Export model
-    run_export(experiment_id, restore_path, image_size=(None, None),
-               images=["lmnet/tests/fixtures/sample_images/cat.jpg"], config_file=None)
+    run_export(experiment_id, restore_path=restore_path)
     export_dir = get_export_directory(experiment_id, restore_path)
 
     # Set arguments
