@@ -254,7 +254,6 @@ def test_resize_bilinear():
     size = (12, 16)
 
     inputs = np.random.normal(size=(batch_size, height, width, num_classes)).astype(np.float32)
-    # inputs = inputs * 100
 
     expect = tf.image.resize_bilinear(inputs, size, align_corners=True)
     with tf.Session():
