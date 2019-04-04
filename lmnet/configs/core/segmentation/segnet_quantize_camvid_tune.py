@@ -17,34 +17,35 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.classification.lmnet_v1 import LmnetV1Quantize
-from lmnet.datasets.cifar10 import Cifar10
+from lmnet.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
+from lmnet.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
 )
 from lmnet.data_augmentor import (
-    Crop,
+    Brightness,
+    Color,
+    Contrast,
     FlipLeftRight,
-    Pad,
+    Hue,
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
-
 from hyperopt import hp
 
 IS_DEBUG = False
 
-NETWORK_CLASS = LmnetV1Quantize
-DATASET_CLASS = Cifar10
+NETWORK_CLASS = LmSegnetQuantize
+DATASET_CLASS = Camvid
 
-IMAGE_SIZE = [32, 32]
-BATCH_SIZE = 100
+IMAGE_SIZE = [360, 480]
+BATCH_SIZE = 8
 DATA_FORMAT = "NHWC"
-TASK = Tasks.CLASSIFICATION
+TASK = Tasks.SEMANTIC_SEGMENTATION
 CLASSES = DATASET_CLASS.classes
 
 PRE_PROCESSOR = Sequence([
@@ -53,28 +54,25 @@ PRE_PROCESSOR = Sequence([
 ])
 POST_PROCESSOR = None
 
-STEP_PER_EPOCH = int(50000 / BATCH_SIZE)
-
 TUNE_SPEC = {
         'run': 'tunable',
-        'resources_per_trial': {"cpu": 2, "gpu": 0.5},
+        'resources_per_trial': {"cpu": 2, "gpu": 1},
         'stop': {
-            'mean_accuracy': 0.87,
+            'mean_accuracy': 1.0,
             'training_iteration': 200,
         },
         'config': {
             'lm_config': {},
         },
-        "local_dir": None,
-        "num_samples": 300,
+        'local_dir': None,
+        'num_samples': 100,
 }
 
 TUNE_SPACE = {
     'optimizer_class': hp.choice(
         'optimizer_class', [
             {
-                'optimizer': tf.train.MomentumOptimizer,
-                'momentum': 0.9,
+                'optimizer': tf.train.AdamOptimizer,
             },
         ]
     ),
@@ -83,12 +81,11 @@ TUNE_SPACE = {
         'learning_rate_func', [
             {
                 'scheduler': tf.train.piecewise_constant,
-                'scheduler_factor': hp.uniform('scheduler_factor', 0.05, 0.5),
+                'scheduler_factor': 1.0,
                 'scheduler_steps': [25000, 50000, 75000],
             },
         ]
     ),
-    'weight_decay_rate': 0.0001,
 }
 
 NETWORK = EasyDict()
@@ -96,7 +93,6 @@ NETWORK.OPTIMIZER_CLASS = None
 NETWORK.OPTIMIZER_KWARGS = {}
 NETWORK.LEARNING_RATE_FUNC = None
 NETWORK.LEARNING_RATE_KWARGS = {}
-NETWORK.WEIGHT_DECAY_RATE = None
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
@@ -108,14 +104,15 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
-# dataset
 DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
-    Pad(2),
-    Crop(size=IMAGE_SIZE),
+    Brightness((0.75, 1.25)),
+    Color((0.75, 1.25)),
+    Contrast((0.75, 1.25)),
     FlipLeftRight(),
+    Hue((-10, 10)),
 ])
-DATASET.TRAIN_VALIDATION_SAVING_SIZE = 5000
+DATASET.ENABLE_PREFETCH = True
