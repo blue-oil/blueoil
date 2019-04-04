@@ -98,7 +98,7 @@ def get_best_result(trial_list, metric, param):
 
 
 def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
-    """Update selected parameters for each trial"""
+    """Update selected parameters to the configuration of each trial"""
     network_kwargs['optimizer_class'] = chosen_kwargs['optimizer_class']['optimizer']
     for key in list(chosen_kwargs['optimizer_class'].keys()):
         if key != 'optimizer':
