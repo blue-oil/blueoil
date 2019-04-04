@@ -202,7 +202,7 @@ def conv_bn_act(
         return output
 
 
-def _dense_layer_conv_bn_act(
+def _densenet_conv_bn_act(
         name,
         inputs,
         growth_rate,
@@ -214,10 +214,11 @@ def _dense_layer_conv_bn_act(
         data_format,
         enable_detail_summary,
 ):
-    """Densenet lyaer
+    """Densenet block.
 
-    In order to fast execute for quantization, use order of layer
+    In order to fast execute for quantization, use order of layers
     convolution -> batch norm -> activation instead of paper original's batch norm -> activation -> convolution.
+    This is not `Dense block` called by original paper, this is the part of `Dense block`.
     """
     bottleneck_channel = growth_rate * bottleneck_rate
 
@@ -262,10 +263,10 @@ def _dense_layer_conv_bn_act(
     return output
 
 
-def densenet(
+def densenet_group(
         name,
         inputs,
-        num_layers,
+        num_blocks,
         growth_rate,
         bottleneck_rate=4,
         weight_decay_rate=0.0,
@@ -275,17 +276,17 @@ def densenet(
         data_format="NHWC",
         enable_detail_summary=False,
 ):
-    """Block of Densent.
+    """Group of Densent blocks.
 
     paper: https://arxiv.org/abs/1608.06993
-    In the original paper, dense block consists from the layers
+    In the original paper, this method is called `Dense block` which consists of some 1x1 and 3x3 conv blocks
     which batch norm -> activation(relu) -> convolution(1x1) and batch norm -> activation -> convolution(3x3).
-    But in this method, the order of each layer change to convolution -> batch norm -> activation.
+    But in this method, the order of each block change to convolution -> batch norm -> activation.
 
     Args:
         name (str): Block name, as scope name.
         inputs (tf.Tensor): Inputs.
-        num_layers (int): Number of dense layer which consits 1x1 and 3x3 cov.
+        num_blocks (int): Number of dense blocks which consits of 1x1 and 3x3 cov.
         growth_rate (int): How many filters (out channel) to add each layer.
         bottleneck_rate (int): The factor to be calculated bottle-neck 1x1 conv output channel.
             `bottleneck_channel = growth_rate * bottleneck_rate`.
@@ -302,9 +303,9 @@ def densenet(
 
     with tf.variable_scope(name):
         x = inputs
-        for i in range(0, num_layers):
-            x = _dense_layer_conv_bn_act(
-                "layer_{}".format(i),
+        for i in range(num_blocks):
+            x = _densenet_conv_bn_act(
+                "densenet_block_{}".format(i),
                 x,
                 growth_rate,
                 bottleneck_rate,
