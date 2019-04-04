@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import os
+import shutil
+
 import click
 
 from blueoil.generate_lmnet_config import generate
@@ -22,11 +25,26 @@ from executor.train import run as run_train
 def run(blueoil_config_file, experiment_id):
     """Train from blueoil config."""
 
+    # Copy bueoil config yaml.
+    output_dir = os.environ.get('OUTPUT_DIR', 'saved')
+    experiment_dir = os.path.join(output_dir, experiment_id)
+    save_config_file(blueoil_config_file, experiment_dir)
+
     # Generete lmnet config from blueoil config.
     lmnet_config_file = generate(blueoil_config_file)
 
     # Start training
     run_train(network=None, dataset=None, config_file=lmnet_config_file, experiment_id=experiment_id, recreate=False)
+
+
+def save_config_file(config_file, dest_dir):
+    if not os.path.exists(dest_dir):
+        os.mkdir(dest_dir)
+
+    return shutil.copyfile(
+        config_file,
+        os.path.join(dest_dir, 'blueoil_config.yaml')
+    )
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
