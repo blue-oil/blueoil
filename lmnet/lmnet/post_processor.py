@@ -386,14 +386,11 @@ class Bilinear(Processor):
                 if compatible_tensorflow_v1:
                     center_y = h * scale[0]
                     center_x = w * scale[1]
-                else:
-                    center_y = (h + 0.5) * (scale[0]) - 0.5
-                    center_x = (w + 0.5) * (scale[1]) - 0.5
-
-                if compatible_tensorflow_v1:
                     int_y = int(center_y)
                     int_x = int(center_x)
                 else:
+                    center_y = (h + 0.5) * (scale[0]) - 0.5
+                    center_x = (w + 0.5) * (scale[1]) - 0.5
                     int_y = int(math.floor(center_y))
                     int_x = int(math.floor(center_x))
 
