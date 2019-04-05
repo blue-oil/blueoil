@@ -15,6 +15,7 @@
 # =============================================================================
 """Module of optimization passes."""
 import math
+import warnings
 import numpy as np
 
 from core.graph import Graph
@@ -276,8 +277,20 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
                     for q in quant_details[n.name]:
                         qtzs.append(q)
 
-            quant_details[m.name] = qtzs if len(qtzs) == len(m.input_nodes) else []
-            # TODO: check if the quantizers use same n_bits
+            if qtzs:
+                nbits = []
+                max_vs = []
+                for qtz in qtzs:
+                    nbits.append(qtz.nbit)
+                    max_vs.append(qtz.max_v)
+                if not (len(set(nbits)) == 1) and not (len(set(max_vs)) == 1):
+                    warnings.warn(f'bits {nbits} or max values {max_vs} are not consistent '
+                                  f'to propagate quantization information to {m.name}')
+                    quant_details[m.name] = []
+                else:
+                    quant_details[m.name] = qtzs
+            else:
+                quant_details[m.name] = []
 
 
 def pass_compute_thresholds(graph: Graph) -> None:

@@ -74,7 +74,9 @@ NAME=$0 # Name of the script
 BASE_DIR=$(dirname $0)
 ABS_BASE_DIR=$(get_abs_path ${BASE_DIR})
 # Docker image of blueoil
-DOCKER_IMAGE=$(id -un)_blueoil:local_build
+IMAGE_NAME=blueoil_$(id -un)
+BUILD_VERSION=$(git describe --tags --always --dirty --match="v*" 2> /dev/null || cat $(CURDIR/.version 2> /dev/null || echo v0))
+DOCKER_IMAGE=$IMAGE_NAME:$BUILD_VERSION
 # Argument of path for docker needs to be absolute path.
 GUEST_HOME_DIR="/home/blueoil"
 GUEST_CONFIG_DIR="${GUEST_HOME_DIR}/config"
