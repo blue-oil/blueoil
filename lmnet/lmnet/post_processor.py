@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import math
+
 import numpy as np
 
 from lmnet.data_processor import (
@@ -311,3 +313,103 @@ class NMS(Processor):
             results.append(result_per_batch)
 
         return dict({"outputs": results}, **kwargs)
+
+
+class Bilinear(Processor):
+    """Bilinear
+
+    Change feature map spatial size with bilinear method, currenly support only up-sampling.
+    """
+
+    def __init__(self, size, data_format="NHWC", compatible_tensorflow_v1=True):
+        """
+        Args:
+            size (list): Target size [height, width].
+            data_format (string): currently support only "NHWC".
+            compatible_tensorflow_v1 (bool): When the flag is True, it is compatible with tensorflow v1 resize function. Otherwise tensorflow v2 and Pillow resize function.
+                Tensorflow v1 image resize function `tf.image.resize_bilinear()` which has the bug of calculataion of center pixel. The bug is fixed in tensorflow v2 `tf.image.resize()` which given the same result as Pillow's resize.
+                See also https://github.com/tensorflow/tensorflow/issues/6720 and https://github.com/tensorflow/tensorflow/commit/3ae2c6691b7c6e0986d97b150c9283e5cc52c15f
+        """ # NOQA
+
+        self.size = size
+        self.data_format = data_format
+        # TODO(wakisaka): support "NCHW" format.
+        assert data_format == "NHWC", "data_format only support NHWC but given {}".format(data_format)
+        self.compatible_tensorflow_v1 = compatible_tensorflow_v1
+
+    def __call__(self, outputs, **kwargs):
+        """
+        Args:
+            outputs (numpy.ndarray): 4-D ndarray of network outputs to be resized cahnnel-wise.
+
+        Returns:
+            all args (dict):
+                outputs (numpy.ndarray): resized outputs. 4-D ndarray.
+        """
+        output_height = self.size[0]
+        output_width = self.size[1]
+
+        input_height = outputs.shape[0]
+        input_width = outputs.shape[1]
+
+        # TODO(wakisaka): should support downsample.
+        assert output_height >= input_height
+        assert output_width >= input_width
+
+        batch_size = len(outputs)
+        results = []
+        for i in range(batch_size):
+            image = outputs[i, :, :, :]
+            image = self._bilinear(image, size=self.size, compatible_tensorflow_v1=self.compatible_tensorflow_v1)
+            results.append(image)
+        results = np.array(results)
+        return dict({'outputs': results}, **kwargs)
+
+    @staticmethod
+    def _bilinear(inputs, size, compatible_tensorflow_v1=True):
+        output_height = size[0]
+        output_width = size[1]
+
+        input_height = inputs.shape[0]
+        input_width = inputs.shape[1]
+        channel = inputs.shape[2]
+
+        if compatible_tensorflow_v1:
+            scale = [(input_height - 1)/(output_height - 1), (input_width - 1)/(output_width - 1)]
+        else:
+            scale = [(input_height - 0)/(output_height - 0), (input_width - 0)/(output_width - 0)]
+
+        output = np.zeros((output_height, output_width, channel)).astype(inputs.dtype)
+
+        for h in range(output_height):
+            for w in range(output_width):
+                if compatible_tensorflow_v1:
+                    center_y = h * scale[0]
+                    center_x = w * scale[1]
+                    int_y = int(center_y)
+                    int_x = int(center_x)
+                else:
+                    center_y = (h + 0.5) * (scale[0]) - 0.5
+                    center_x = (w + 0.5) * (scale[1]) - 0.5
+                    int_y = int(math.floor(center_y))
+                    int_x = int(math.floor(center_x))
+
+                dx = center_x - int_x
+                dy = center_y - int_y
+
+                top = max(int_y, 0)
+                bottom = min(int_y + 1, input_height-1)
+                left = max(int_x, 0)
+                right = min(int_x + 1, input_width-1)
+
+                t_l = inputs[top, left, :]
+                t_r = inputs[top, right, :]
+                b_l = inputs[bottom, left, :]
+                b_r = inputs[bottom, right, :]
+
+                t = t_l + (t_r - t_l) * dx
+                b = b_l + (b_r - b_l) * dx
+                out = t + (b - t) * dy
+
+                output[h, w, :] = out
+        return output
