@@ -18,7 +18,7 @@ deb-src http://security.ubuntu.com/ubuntu xenial-security main restricted univer
 
 RUN apt-get update && apt-get install -y \
     cmake \
-    locales \
+    locales\
     python3 \
     python3-dev \
     python3-pip \
@@ -29,32 +29,32 @@ RUN apt-get update && apt-get install -y \
 
 # Install dependencies for Pillow, Scipy and matplotlib for display, and requirements for pyenv and pyenv virtualenv installation
 RUN apt-get update && apt-get install -y \
-     python3-pil \
-     libjpeg8-dev \
-     zlib1g-dev \
-     python3-matplotlib \
-     liblapack-dev \
-     git \
-     make \
-     build-essential \
-     libssl-dev \
-     libbz2-dev \
-     libreadline-dev \
-     libsqlite3-dev \
-     wget \
-     curl \
-     llvm \
-     libncurses5-dev \
-     libncursesw5-dev \
-     xz-utils \
-     tk-dev \
-     && \
-     apt-get clean && \
-     rm -rf /var/lib/apt/lists/*
-     
+    python3-pil \
+    libjpeg8-dev \
+    zlib1g-dev \
+    python3-matplotlib \
+    liblapack-dev \
+    git \
+    make \
+    build-essential \
+    libssl-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    wget \
+    curl \
+    llvm \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # install aarch64 cross compile environment
 RUN apt-get update && apt-get install -y crossbuild-essential-arm64
-  
+
 # Locale setting
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
