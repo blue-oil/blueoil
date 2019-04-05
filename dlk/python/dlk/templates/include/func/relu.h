@@ -20,4 +20,6 @@ limitations under the License.
 
 void func_Relu(T_FLOAT input[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
 
+void func_LeakyRelu(T_FLOAT input[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+
 #endif // DLK_FUNC_RELU_H_INCLUDED

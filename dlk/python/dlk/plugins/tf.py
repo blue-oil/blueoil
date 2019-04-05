@@ -32,7 +32,7 @@ from core.operators import Operator, Conv, Identity, QTZ_binary_mean_scaling, \
     BatchNormalization, QTZ_linear_mid_tread_half, Add, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
     Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, DepthToSpace, \
-    Split, Pad, MatMul
+    Split, Pad, MatMul, LeakyRelu
 
 DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
     # any
@@ -899,6 +899,18 @@ class Importer(object):
                 shape = infer_shape(attributes)
 
             new_op = Relu(
+                node.name,
+                shape,
+                dtype,
+                input_ops
+            )
+        elif op_type == 'LeakyRelu':
+
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = LeakyRelu(
                 node.name,
                 shape,
                 dtype,
