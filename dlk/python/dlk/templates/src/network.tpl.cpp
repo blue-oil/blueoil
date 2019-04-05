@@ -38,6 +38,7 @@ limitations under the License.
 #include "func/quantized_conv2d.h"
 #include "func/real_div.h"
 #include "func/relu.h"
+#include "func/leaky_relu.h"
 #include "func/round.h"
 #include "func/scale.h"
 #include "func/softmax.h"

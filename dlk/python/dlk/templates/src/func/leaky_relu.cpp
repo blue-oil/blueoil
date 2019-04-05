@@ -13,11 +13,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef DLK_FUNC_RELU_H_INCLUDED
-#define DLK_FUNC_RELU_H_INCLUDED
-
 #include "global.h"
+#include "func/leaky_relu.h"
+#include "time_measurement.h"
 
-void func_Relu(T_FLOAT input[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+void func_LeakyRelu(T_FLOAT input[], T_FLOAT output[], T_FLOAT alpha, T_UINT out_height,
+               T_UINT out_width, T_UINT out_depth) {
+  Measurement::Start("LeakyReLu");
 
-#endif // DLK_FUNC_RELU_H_INCLUDED
+  T_UINT elements = out_height * out_width * out_depth;
+
+  for (T_UINT i = 0; i < elements; i++)
+    output[i] = (input[i] * alpha > input[i] ? input[i] * alpha : input[i]);
+
+  Measurement::Stop();
+}

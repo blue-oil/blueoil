@@ -28,15 +28,3 @@ void func_Relu(T_FLOAT input[], T_FLOAT output[], T_UINT out_height,
 
   Measurement::Stop();
 }
-
-void func_LeakyRelu(T_FLOAT input1[], T_UINT alpha, T_FLOAT output[], T_UINT out_height,
-               T_UINT out_width, T_UINT out_depth) {
-  Measurement::Start("ReLu");
-
-  T_UINT elements = out_height * out_width * out_depth;
-
-  for (T_UINT i = 0; i < elements; i++)
-    output[i] = (input[i] * alpha > input[i] ? input[i] * alpha : input[i]);
-
-  Measurement::Stop();
-}

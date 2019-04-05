@@ -13,11 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef DLK_FUNC_RELU_H_INCLUDED
-#define DLK_FUNC_RELU_H_INCLUDED
+#ifndef DLK_FUNC_LEAKY_RELU_H_INCLUDED
+#define DLK_FUNC_LEAKY_RELU_H_INCLUDED
 
 #include "global.h"
 
-void func_Relu(T_FLOAT input[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+void func_LeakyRelu(T_FLOAT input[], T_FLOAT output[], T_FLOAT alpha, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
 
-#endif // DLK_FUNC_RELU_H_INCLUDED
+#endif // DLK_FUNC_LEAKY_RELU_H_INCLUDED

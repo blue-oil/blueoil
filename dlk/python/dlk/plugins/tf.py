@@ -200,7 +200,7 @@ class Node(object):
             attrs_data.append(self.nd_.attr[attr_name].s)
         elif attr_name in ['strides', 'ksize']:
             attrs_data.append(self.nd_.attr[attr_name].list.i)
-        elif attr_name == 'epsilon':
+        elif attr_name in ['epsilon', 'alpha']:
             attrs_data.append(self.nd_.attr[attr_name].f)
         elif attr_name == 'is_training' or attr_name == 'use_cudnn_on_gpu':
             attrs_data.append(self.nd_.attr[attr_name].b)
@@ -906,15 +906,19 @@ class Importer(object):
             )
         elif op_type == 'LeakyRelu':
 
+            alpha = node.attribute("alpha")[0]
+
             if not shape:
-                attributes = {}
+                attributes = {'alpha': alpha}
                 shape = infer_shape(attributes)
 
             new_op = LeakyRelu(
                 node.name,
                 shape,
                 dtype,
-                input_ops
+                input_ops,
+                dimension_format=current_format,
+                alpha=alpha,
             )
         elif op_type == 'SpaceToDepth':
             bs = node.attribute('block_size')

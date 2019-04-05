@@ -433,9 +433,11 @@ class View(object):
             inputs_string = self.inputs_to_string(input_ops)
             shape_string = self.shape_to_string(op.shape)
 
+            afa = op.alpha
+
             return self.format_string(
                 f"""
-                func_LeakyRelu({inputs_string}, {op.name}, {shape_string});
+                func_LeakyRelu({inputs_string}, {op.name}, {afa}, {shape_string});
                 """
             )
 
