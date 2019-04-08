@@ -21,7 +21,7 @@ from lmnet.layers.experiment import max_unpool_with_argmax
 
 
 def test_unpool():
-    tf.InteractiveSession()
+    sess = tf.InteractiveSession()
 
     # shape is (1, 4, 4, 2)
     raw_inputs = np.array([
@@ -120,6 +120,8 @@ def test_unpool():
     unpooled = max_unpool_with_argmax(pooled, indices, (1, 2, 2, 1))
 
     assert np.all(unpooled.eval() == expect_unpooled)
+
+    sess.close()
 
 
 if __name__ == '__main__':

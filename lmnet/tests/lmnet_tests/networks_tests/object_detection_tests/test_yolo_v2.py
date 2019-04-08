@@ -244,7 +244,7 @@ def test_offset_boxes():
         is_dynamic_image_size=True,
     )
 
-    tf.InteractiveSession()
+    sess = tf.InteractiveSession()
     offset_x, offset_y, offset_w, offset_h = model.offset_boxes()
 
     # import ipdb; ipdb.set_trace()
@@ -265,6 +265,8 @@ def test_offset_boxes():
     assert np.all(offset_h.eval() == expected_h)
     assert np.all(offset_h.eval()[:, :, :, 0] == anchors[0][1])
     assert np.all(offset_h.eval()[:, :, :, 1] == anchors[1][1])
+
+    sess.close()
 
 
 def test_calculate_truth_and_maskes():
@@ -602,7 +604,7 @@ def test_calculate_truth_and_maskes():
     cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes =\
         model.loss_function._calculate_truth_and_maskes(gt_boxes_list, predict_boxes, is_training=False)
 
-    tf.InteractiveSession()
+    sess = tf.InteractiveSession()
     cell_gt_boxes_val = cell_gt_boxes.eval()
     object_maskes_val = object_maskes.eval()
     coordinate_maskes_val = coordinate_maskes.eval()
@@ -610,6 +612,8 @@ def test_calculate_truth_and_maskes():
     assert np.all(cell_gt_boxes_val == expected_cell_gt_boxes)
     assert np.all(object_maskes_val == expected_object_maskes)
     assert np.all(coordinate_maskes_val == expected_object_maskes)
+
+    sess.close()
 
 
 def test_convert_boxes_space_inverse():
@@ -620,7 +624,7 @@ def test_convert_boxes_space_inverse():
         batch_size=1,
     )
 
-    tf.InteractiveSession()
+    sess = tf.InteractiveSession()
 
     # shape is  [batch_size, image_size[0]/32, image_size[1]/32, boxes_per_cell, 4(center_x, center_y, w, h)]
     boxes = np.array([
@@ -669,6 +673,8 @@ def test_convert_boxes_space_inverse():
     )
     assert np.allclose(reversed_boxes.eval(), yolo_boxes.eval())
 
+    sess.close()
+
 
 def test_reorg():
 
@@ -686,7 +692,7 @@ def test_reorg():
 
     outputs = model._reorg("reorg", inputs, stride=2, data_format="NHWC", use_space_to_depth=False)
 
-    tf.InteractiveSession()
+    sess = tf.InteractiveSession()
 
     outputs_np = outputs.eval()
 
@@ -695,6 +701,8 @@ def test_reorg():
     outputs2 = model._reorg("reorg", inputs, stride=2, data_format="NHWC", use_space_to_depth=True)
 
     assert np.all(outputs_np == outputs2.eval())
+
+    sess.close()
 
 
 def test_training():
@@ -734,7 +742,7 @@ def test_training():
 
 
 def test_yolov2_post_process():
-    tf.InteractiveSession()
+    sess = tf.InteractiveSession()
 
     image_size = [96, 64]
     batch_size = 2
@@ -778,6 +786,8 @@ def test_yolov2_post_process():
 
     for y, expected_y in zip(ys, expected_ys):
         assert np.allclose(y.eval(), expected_y), (y.eval(), expected_y)
+
+    sess.close()
 
 
 if __name__ == '__main__':

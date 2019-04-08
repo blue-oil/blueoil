@@ -221,7 +221,7 @@ def test_convert_boxes_space_inverse():
         batch_size=1,
     )
 
-    tf.InteractiveSession()
+    sess = tf.InteractiveSession()
     boxes = np.array([
         [
             [
@@ -261,6 +261,8 @@ def test_convert_boxes_space_inverse():
         model.convert_boxes_space_from_yolo_to_real(yolo_boxes)
     )
     assert np.allclose(reversed_boxes.eval(), yolo_boxes.eval())
+
+    sess.close()
 
 
 def test_training():
