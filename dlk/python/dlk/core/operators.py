@@ -1949,7 +1949,7 @@ class LeakyRelu(Operator):
     """Relu class.
 
     Leaky_relu takes one input data (Tensor) and produces one output data (Tensor)
-    where the rectified linear function, y = max(input * alpha, input), is applied to the tensor elementwise.
+    where the function, y = max(input * alpha, input), is applied to the tensor elementwise.
 
     Inputs
     ------
