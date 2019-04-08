@@ -63,11 +63,15 @@ def _profile(config, restore_path, bit, unquant_layers):
     if not os.path.exists(main_output_dir):
         os.makedirs(main_output_dir)
 
-    name = ModelClass.__name__
+    inference_graph_def = executor.convert_variables_to_constants(sess)
+
+    inference_graph = tf.Graph()
+    with inference_graph.as_default():
+        tf.import_graph_def(inference_graph_def)
 
     scopes = {"_TFProfRoot": 0}
     scope_idx = 1
-    for node in sess.graph_def.node:
+    for node in inference_graph_def.node:
         names = node.name.split("/")
         scope = names[0]
         if scope not in scopes:
@@ -76,16 +80,23 @@ def _profile(config, restore_path, bit, unquant_layers):
 
     # [level, node name, total param, 32 bits size, quantized size, flops]
     res = []
-    res = _profile_params(sess, res, bit, unquant_layers)
-    res = _profile_flops(sess, res, scopes)
+    res = _profile_params(graph, res, bit, unquant_layers)
+    res = _profile_flops(inference_graph, res, scopes)
 
-    _render(name, bit, res)
+    name = ModelClass.__name__
+    image_size = config.IMAGE_SIZE
+    num_classes = len(config.CLASSES)
+    _render(name, image_size, num_classes, bit, res)
 
 
-def _render(name, bit, res):
+def _render(name, image_size, num_classes, bit, res):
     with open(os.path.join("executor", "profile_template.md"), "r") as f:
         file_data = f.read()
-    file_data = file_data.replace("{name}", name).replace("{bit}", str(bit))
+    file_data = file_data.replace("{name}", name)\
+                         .replace("{image_size_h}", str(image_size[0]))\
+                         .replace("{image_size_w}", str(image_size[1]))\
+                         .replace("{num_classes}", str(num_classes))\
+                         .replace("{bit}", str(bit))
 
     table_rows, table_row = "", "| {} | {} | {} | {} | {} |"
     for r in res:
@@ -99,26 +110,19 @@ def _render(name, bit, res):
         table_rows += table_row.format(*r[1:]) + "\n"
     file_data = file_data.replace("{table}", table_rows)
 
-    with open(os.path.join(environment.EXPERIMENT_DIR, "{}_profile.md".format(name)), "w") as f:
+    output_file = os.path.join(environment.EXPERIMENT_DIR, "{}_profile.md".format(name))
+    with open(output_file, "w") as f:
         f.write(file_data)
-    print("Model's profile has been saved into {}".format("{}_profile.md".format(name)))
+    print("Model's profile has been saved into {}".format(output_file))
 
 
-def _profile_flops(sess, res, scopes):
-    minimal_graph = tf.graph_util.convert_variables_to_constants(
-        sess,
-        sess.graph.as_graph_def(add_shapes=True),
-        ["output"],
-    )
-    float_graph = tf.Graph()
-    with float_graph.as_default():
-        tf.import_graph_def(minimal_graph)
-        float_prof = tf.profiler.profile(float_graph, options=tf.profiler.ProfileOptionBuilder.float_operation())
-        float_res_dict = collections.defaultdict(int)
-        float_res_dict["_TFProfRoot"] = float_prof.total_float_ops
-        for node in float_prof.children:
-            scope = node.name.split("/")[1]
-            float_res_dict[scope] += node.total_float_ops
+def _profile_flops(graph, res, scopes):
+    float_prof = tf.profiler.profile(graph, options=tf.profiler.ProfileOptionBuilder.float_operation())
+    float_res_dict = collections.defaultdict(int)
+    float_res_dict["_TFProfRoot"] = float_prof.total_float_ops
+    for node in float_prof.children:
+        scope = node.name.split("/")[1]
+        float_res_dict[scope] += node.total_float_ops
 
     new_res = []
     res_dict = collections.defaultdict(list)
@@ -134,8 +138,8 @@ def _profile_flops(sess, res, scopes):
     return new_res
 
 
-def _profile_params(sess, res, bit, unquant_layers):
-    prof = tf.profiler.profile(sess.graph, options=tf.profiler.ProfileOptionBuilder.trainable_variables_parameter())
+def _profile_params(graph, res, bit, unquant_layers):
+    prof = tf.profiler.profile(graph, options=tf.profiler.ProfileOptionBuilder.trainable_variables_parameter())
 
     # helper func to make profile res
     def helper(node, level):

@@ -1948,8 +1948,8 @@ class Relu(Operator):
 class LeakyRelu(Operator):
     """Relu class.
 
-    Relu takes one input data (Tensor) and produces one output data (Tensor)
-    where the rectified linear function, y = max(0, x), is applied to the tensor elementwise.
+    Leaky_relu takes one input data (Tensor) and produces one output data (Tensor)
+    where the function, y = max(input * alpha, input), is applied to the tensor elementwise.
 
     Inputs
     ------
@@ -1966,9 +1966,25 @@ class LeakyRelu(Operator):
     _input_names = ['X']
     _output_names = ['Y']
 
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC',
+                 alpha: float = 0.2) -> None:
+        """Init the LeakyRelu operator."""
+        self.alpha = alpha
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
     def _check_consistency(self) -> None:
         super()._check_consistency()
         self._assert(self.input_ops['X'].shape == self.shape)
+
+    def run_forward(self) -> np.ndarray:
+        in_data = self.input_ops['X'].data
+        self._data = np.maximum(in_data * self.alpha, in_data)
+        return self._data
 
     @property
     def is_monotonic(self) -> bool:
