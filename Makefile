@@ -37,5 +37,5 @@ pep8-dlk:
 .PHONY: clean
 clean:
 	# Clean created files
-	docker rmi  $(IMAGE_NAME):$(BUILD_VERSION) -f
+	docker rmi  $(IMAGE_NAME):$(BUILD_VERSION)
 	rm -rf tmp/*
