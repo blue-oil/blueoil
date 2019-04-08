@@ -30,7 +30,7 @@ from core.exceptions import UnsupportedNode, UnsupportedDataType
 from core.graph import Graph
 from core.operators import Operator, Conv, Identity, QTZ_binary_mean_scaling, \
     BatchNormalization, QTZ_linear_mid_tread_half, Add, \
-    MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
+    MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, Sigmoid, SpaceToDepth, \
     Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, DepthToSpace, \
     Split, Pad, MatMul
 
@@ -899,6 +899,18 @@ class Importer(object):
                 shape = infer_shape(attributes)
 
             new_op = Relu(
+                node.name,
+                shape,
+                dtype,
+                input_ops
+            )
+        elif op_type == 'Sigmoid':
+
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = Sigmoid(
                 node.name,
                 shape,
                 dtype,

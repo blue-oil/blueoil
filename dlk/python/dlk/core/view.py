@@ -426,6 +426,19 @@ class View(object):
                 """
             )
 
+        elif self.op.op_type == 'Sigmoid':
+            if len(input_ops) != 1:
+                self.raise_invalid_args_exception(op, input_ops, output_ops)
+
+            inputs_string = self.inputs_to_string(input_ops)
+            shape_string = self.shape_to_string(op.shape)
+
+            return self.format_string(
+                f"""
+                func_Sigmoid({inputs_string}, {op.name}, {shape_string});
+                """
+            )
+
         elif self.op.op_type == 'Sqrt':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)

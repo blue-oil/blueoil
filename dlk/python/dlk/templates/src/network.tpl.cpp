@@ -40,6 +40,7 @@ limitations under the License.
 #include "func/relu.h"
 #include "func/round.h"
 #include "func/scale.h"
+#include "func/sigmoid.h"
 #include "func/softmax.h"
 #include "func/split.h"
 #include "func/sqrt.h"

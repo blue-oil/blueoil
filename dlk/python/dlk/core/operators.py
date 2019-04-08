@@ -1945,6 +1945,41 @@ class Relu(Operator):
         return False
 
 
+class Sigmoid(Operator):
+    """
+    Inputs
+    ------
+    X
+        Input tensor
+
+    Outputs
+    -------
+    Y
+        Output tensor
+
+    """
+
+    _input_names = ['X']
+    _output_names = ['Y']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+        self._assert(self.input_ops['X'].shape == self.shape)
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        return lists['X']
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
 class Flatten(Operator):
     """Flatten class.
 
