@@ -56,15 +56,15 @@ class QuantizedPacked {
 template <typename pack_type>
 inline QuantizedPacked<pack_type> operator^(const QuantizedPacked<pack_type>& lhs, const QuantizedPacked<pack_type>& rhs) {
   using packed_t = QuantizedPacked<pack_type>;
-  return packed_t(static_cast<typename packed_t::T>(lhs) ^ static_cast<typename packed_t::T>(rhs));
+  return packed_t(lhs.Raw() ^ rhs.Raw());
 }
 template <typename pack_type>
 inline QuantizedPacked<pack_type> operator~(const QuantizedPacked<pack_type>& x) {
-  return QuantizedPacked<pack_type>(~static_cast<typename QuantizedPacked<pack_type>::T>(x));
+  return QuantizedPacked<pack_type>(~x.Raw());
 }
 template <typename pack_type>
 inline int pop_count(const QuantizedPacked<pack_type>& x) {
-  return dlk::impl::pop_count(static_cast<typename QuantizedPacked<pack_type>::T>(x));
+  return dlk::impl::pop_count(x.Raw());
 }
 
 #if defined RUN_ON_FPGA

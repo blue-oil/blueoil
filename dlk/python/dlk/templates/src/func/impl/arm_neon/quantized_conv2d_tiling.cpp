@@ -181,13 +181,13 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
                     uint8x16_t nk18 = vreinterpretq_u8_u32(nk1);
                     uint8x16_t nk28 = vreinterpretq_u8_u32(nk2);
                     uint8x16_t nk38 = vreinterpretq_u8_u32(nk3);
-                    uint32x4_t in = vdupq_n_u32(static_cast<QUANTIZED_PACKED::T>(in_tile[row + kr][col + kc][0]));
+                    uint32x4_t in = vdupq_n_u32(in_tile[row + kr][col + kc][0].Raw());
                     uint8x16_t in8 = vreinterpretq_u8_u32(in);
                     xnorsum00 += vcntq_u8(in8 ^ nk08);
                     xnorsum10 += vcntq_u8(in8 ^ nk18);
                     xnorsum20 += vcntq_u8(in8 ^ nk28);
                     xnorsum30 += vcntq_u8(in8 ^ nk38);
-                    in = vdupq_n_u32(static_cast<QUANTIZED_PACKED::T>(in_tile[row + kr][col + kc][1]));
+                    in = vdupq_n_u32(in_tile[row + kr][col + kc][1].Raw());
                     in8 = vreinterpretq_u8_u32(in);
                     xnorsum01 += vcntq_u8(in8 ^ nk08);
                     xnorsum11 += vcntq_u8(in8 ^ nk18);
@@ -302,10 +302,10 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
                   for (unsigned int kc = 0; kc < kw; ++kc) {
                     uint32x4_t nk = vld1q_u32(&notk[kr][kc][0]);
                     uint8x16_t nk8 = vreinterpretq_u8_u32(nk);
-                    uint32x4_t in = vdupq_n_u32(static_cast<QUANTIZED_PACKED::T>(in_tile[row + kr][col + kc][0]));
+                    uint32x4_t in = vdupq_n_u32(in_tile[row + kr][col + kc][0].Raw());
                     uint8x16_t in8 = vreinterpretq_u8_u32(in);
                     xnorsum0 += vcntq_u8(in8 ^ nk8);
-                    in = vdupq_n_u32(static_cast<QUANTIZED_PACKED::T>(in_tile[row + kr][col + kc][1]));
+                    in = vdupq_n_u32(in_tile[row + kr][col + kc][1].Raw());
                     in8 = vreinterpretq_u8_u32(in);
                     xnorsum1 += vcntq_u8(in8 ^ nk8);
                   }
