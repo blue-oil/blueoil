@@ -14,7 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import tensorflow as tf
-import matplotlib.pyplot as plt
+from matplotlib import cm
 
 from lmnet.networks.base import BaseNetwork
 
@@ -138,7 +138,7 @@ class Base(BaseNetwork):
         for i, class_name in enumerate(self.classes):
             class_heatmap = heatmap[:, :, :, i]
             indices = tf.to_int32(tf.round(class_heatmap * 255))
-            color_map = plt.cm.jet
+            color_map = cm.jet
             # Init color map for useing color lookup table(_lut).
             color_map._init()
             colors = tf.constant(color_map._lut[:, :3], dtype=tf.float32)
