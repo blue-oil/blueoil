@@ -43,6 +43,7 @@ class QuantizedPacked {
     val |= that.val;
     return *this;
   }
+  T Raw() const { return val; }
  private:
   T val;
 } __attribute__ ((packed));
