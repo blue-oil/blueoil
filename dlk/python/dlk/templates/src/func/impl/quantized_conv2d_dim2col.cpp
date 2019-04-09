@@ -104,8 +104,8 @@ void binary_convolution_cpu(QUANTIZED_PACKED input_channels[],
         QUANTIZED_PACKED in_data = input_channels[idx_in];
 
         for (T_UINT k_pe = 0; k_pe < num_kernels; k_pe++) {
-          T_UINT kernel_buf = kernel[k_pe * bin_kernel_nwords + idx_k];
-          T_INT xnor_result = pop_count(~(static_cast<QUANTIZED_PACKED::T>(in_data) ^ kernel_buf));
+          const auto kernel_buf = QUANTIZED_PACKED(kernel[k_pe * bin_kernel_nwords + idx_k]);
+          T_INT xnor_result = pop_count(~(in_data ^ kernel_buf));
           T_UINT kernel_bit_count = pop_count(~kernel_buf);
 
           T_INT conv_result;
