@@ -40,6 +40,10 @@ class QuantizedPacked {
   explicit QuantizedPacked(const T val) : val(val) {}
   explicit operator T() const { return val; }
   explicit operator T() { return val; }
+  QuantizedPacked<T>& operator|=(const QuantizedPacked<T>& that) {
+    val |= that.val;
+    return *this;
+  }
  private:
   T val;
 } __attribute__ ((packed));
