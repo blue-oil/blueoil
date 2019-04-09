@@ -40,7 +40,7 @@ class QuantizedPacked {
   explicit operator T() { return val; }
  private:
   T val;
-};
+} __attribute__ ((packed));
 
 #if defined RUN_ON_FPGA
   using QUANTIZED_PACKED = QuantizedPacked<volatile {{ params.default_qword_dtype.cpptype() }}>;
