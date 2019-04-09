@@ -1,9 +1,14 @@
 package bxb.array
 
 import chisel3._
+import chisel3.util._
 import bxb.util.{Util}
 
 class MacArray(b: Int, accWidth: Int, aWidth: Int) extends Module {
+  val maxAVal = (0x1 << aWidth) - 1
+  val maxAccVal = b * maxAVal
+  val macAccWidth = Chisel.log2Ceil(maxAccVal) + 1
+  require(macAccWidth <= accWidth)
   val io = IO(new Bundle {
     val aIn = Input(Vec(b, UInt(aWidth.W)))
     val mIn = Input(Vec(b, Vec(2, UInt(1.W))))
@@ -11,7 +16,12 @@ class MacArray(b: Int, accWidth: Int, aWidth: Int) extends Module {
     val mWe = Input(Vec(2, Bool()))
     val accOut = Output(Vec(b, UInt(accWidth.W)))
   })
-  val macs = Seq.fill(b, b){Module(new Mac(accWidth, aWidth))}
+  def signedExtend(acc: UInt) = {
+    val padding = accWidth - macAccWidth
+    val msb = acc(macAccWidth - 1)
+    Cat(Fill(padding, msb), acc)
+  }
+  val macs = Seq.fill(b, b){Module(new Mac(macAccWidth, aWidth))}
   for (row <- 0 until b) {
     for (col <- 0 until b) {
       macs(row)(col).io.aIn := (if (col == 0) io.aIn(row) else macs(row)(col - 1).io.aOut)
@@ -24,7 +34,7 @@ class MacArray(b: Int, accWidth: Int, aWidth: Int) extends Module {
     }
   }
   for (col <- 0 until b) {
-    io.accOut(col) := macs(b - 1)(col).io.accOut
+    io.accOut(col) := signedExtend(macs(b - 1)(col).io.accOut)
   }
 }
 
