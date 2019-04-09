@@ -301,7 +301,6 @@ def _save(lmnet_config):
             prefix="blueoil_config_{}".format(lmnet_config['model_name']),
             suffix=".py", delete=False, mode="w") as fp:
         fp.write(applied)
-        print(fp.name)
         return fp.name
 
 
