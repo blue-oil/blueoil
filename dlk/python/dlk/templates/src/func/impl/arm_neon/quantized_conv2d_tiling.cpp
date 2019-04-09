@@ -64,12 +64,12 @@ void pack_input_for_tiling(QUANTIZED_NOT_PACKED input[],
 	  if (in_ch >= in_channels) break;
           QUANTIZED_NOT_PACKED val = input[row * in_width * in_channels + col * in_channels + in_ch];
           for (unsigned int in_bit_ch = 0; in_bit_ch < in_bitwidth; ++in_bit_ch) {
-            QUANTIZED_NOT_PACKED bit = (val >> in_bit_ch) & 1;
+            QUANTIZED_PACKED::T bit = (val >> in_bit_ch) & 1;
             unsigned int index = (in_ch_high / InTypeBitWidth) * in_height * in_width * in_bitwidth
               + row * in_width * in_bitwidth
               + col * in_bitwidth
               + in_bit_ch;
-            output[index] = QUANTIZED_PACKED(static_cast<QUANTIZED_PACKED::T>(output[index]) | (QUANTIZED_PACKED::T)bit << in_ch_low);
+            output[index] |= QUANTIZED_PACKED(bit << in_ch_low);
           }
         }
       }
