@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+#include <climits>
 #include <inttypes.h>
 #include <limits>
 
@@ -34,6 +35,7 @@ template <typename pack_type>
 class QuantizedPacked {
  public:
   using T = pack_type;
+  static constexpr std::size_t BitCount = sizeof(pack_type) * CHAR_BIT;
   QuantizedPacked() = default;
   explicit QuantizedPacked(const T val) : val(val) {}
   explicit operator T() const { return val; }
