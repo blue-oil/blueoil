@@ -30,11 +30,7 @@ typedef int16_t   T_INT16;
 
 #define QUANTIZED_NOT_PACKED uint8_t
 
-enum class MemoryFormat {
-  HWC,
-};
-
-template <typename pack_type, MemoryFormat memory_format>
+template <typename pack_type>
 class QuantizedPacked {
  public:
   using T = pack_type;
@@ -47,13 +43,13 @@ class QuantizedPacked {
 };
 
 #if defined RUN_ON_FPGA
-  using QUANTIZED_PACKED = QuantizedPacked<volatile {{ params.default_qword_dtype.cpptype() }}, MemoryFormat::HWC>;
+  using QUANTIZED_PACKED = QuantizedPacked<volatile {{ params.default_qword_dtype.cpptype() }}>;
 #else
-  using QUANTIZED_PACKED = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}, MemoryFormat::HWC>;
+  using QUANTIZED_PACKED = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
 #endif
-template <typename pack_type, MemoryFormat memory_format>
-inline QuantizedPacked<pack_type, memory_format> operator^(const QuantizedPacked<pack_type, memory_format>& lhs, const QuantizedPacked<pack_type, memory_format>& rhs) {
-  using packed_t = QuantizedPacked<pack_type, memory_format>;
+template <typename pack_type>
+inline QuantizedPacked<pack_type> operator^(const QuantizedPacked<pack_type>& lhs, const QuantizedPacked<pack_type>& rhs) {
+  using packed_t = QuantizedPacked<pack_type>;
   return packed_t(static_cast<typename packed_t::T>(lhs) ^ static_cast<typename packed_t::T>(rhs));
 }
 
