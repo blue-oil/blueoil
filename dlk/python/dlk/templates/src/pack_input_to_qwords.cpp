@@ -34,8 +34,6 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
     }
   #endif
 
-  const unsigned nbit_qinput_word = sizeof(QUANTIZED_PACKED) * 8;
-
   unsigned idx_in = 0;
   unsigned idx_out = 0;
   unsigned bit_count = 0;
@@ -57,7 +55,7 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
     qinput_words_buf[1] |= (b1 << bit_count);
     bit_count += 4;
 
-    if (bit_count == nbit_qinput_word)
+    if (bit_count == QUANTIZED_PACKED::BitCount)
       {
         for (unsigned i_bit = 0; i_bit < input_bitwidth; i_bit++) {
           output[idx_out++] = QUANTIZED_PACKED(qinput_words_buf[i_bit]);
