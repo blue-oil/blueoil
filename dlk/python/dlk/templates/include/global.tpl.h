@@ -19,7 +19,7 @@ limitations under the License.
 #include <climits>
 #include <inttypes.h>
 #include <limits>
-
+#include "func/impl/pop_count.h"
 
 typedef uint32_t T_UINT;
 typedef int32_t  T_INT;
@@ -53,6 +53,14 @@ template <typename pack_type>
 inline QuantizedPacked<pack_type> operator^(const QuantizedPacked<pack_type>& lhs, const QuantizedPacked<pack_type>& rhs) {
   using packed_t = QuantizedPacked<pack_type>;
   return packed_t(static_cast<typename packed_t::T>(lhs) ^ static_cast<typename packed_t::T>(rhs));
+}
+template <typename pack_type>
+inline QuantizedPacked<pack_type> operator~(const QuantizedPacked<pack_type>& x) {
+  return QuantizedPacked<pack_type>(~static_cast<typename QuantizedPacked<pack_type>::T>(x));
+}
+template <typename pack_type>
+inline int pop_count(const QuantizedPacked<pack_type>& x) {
+  return dlk::impl::pop_count(static_cast<typename QuantizedPacked<pack_type>::T>(x));
 }
 
 #if defined RUN_ON_FPGA

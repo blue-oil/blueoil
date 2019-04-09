@@ -31,8 +31,7 @@ static int pop_count(T_UINT i) {
   return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }
 
-#define CONV(i, k) r##i##k += pop_count(~(a ^ static_cast<QUANTIZED_PACKED::T>(b##k##0))) \
-                              + 2 * pop_count(~(a ^ static_cast<QUANTIZED_PACKED::T>(b##k##1))) - 3 * (pop_count(~a));
+#define CONV(i, k) r##i##k += pop_count(~(a ^ b##k##0)) + 2 * pop_count(~(a ^ b##k##1)) - 3 * (pop_count(~a));
 
 void quantized_matrix_multiplication_body(
   const dlk::MatrixView<T_UINT, dlk::MatrixOrder::RowMajor>& A,
