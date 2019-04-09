@@ -22,7 +22,7 @@ import json
 import numpy as np
 import PIL.Image
 import PIL.ImageDraw
-import matplotlib.pyplot as plt
+from matplotlib import cm
 
 from lmnet.common import Tasks
 
@@ -228,7 +228,7 @@ class ImageFromJson():
             masks = np.stack(masks, axis=2)
             argmax = np.argmax(masks, axis=2)
 
-            color_maps = (np.array(plt.cm.tab20.colors) * 255).tolist()
+            color_maps = (np.array(cm.tab20.colors) * 255).tolist()
 
             result = []
 
@@ -261,7 +261,7 @@ class ImageFromJson():
             draw = PIL.ImageDraw.Draw(image)
 
             predictions = result["prediction"]
-            color_maps = (np.array(plt.cm.tab20.colors) * 255).astype(np.uint8).tolist()
+            color_maps = (np.array(cm.tab20.colors) * 255).astype(np.uint8).tolist()
 
             for prediction in predictions:
                 box = prediction["box"]
