@@ -85,13 +85,14 @@ def _config_file_path_to_copy(config_file):
 
 
 def check_config(config, mode="inference"):
-    """Check config dict key. Raise error when requirement keys don't exist in config"""
+    """Check config dict key. Raise exception when config is wrong."""
 
     if mode == "inference":
         requirements = REQUIEMNT_PARAMS_FOR_INFERENCE
     if mode == "training":
         requirements = REQUIEMNT_PARAMS_FOR_TRAINING
 
+    # Raise error when requirement keys don't exist in config.
     for key in requirements:
         if isinstance(key, tuple):
             keys = key
@@ -100,6 +101,20 @@ def check_config(config, mode="inference"):
         else:
             if key not in config:
                 raise KeyError("config file should be included {} parameter".format(key))
+
+    # Raise error when DATASET.AUGMENTOR elements don't mutch current TASK.
+    if mode == "training":
+        _check_config_augmentor(config)
+
+
+def _check_config_augmentor(config):
+    if config.DATASET.AUGMENTOR is None:
+        return
+
+    for augmentor in config.DATASET.AUGMENTOR:
+        if config.TASK not in augmentor.available_tasks:
+            raise Exception("The {} augmentation can't be used in {} task.".format(
+                augmentor.__class__.__name__, config.TASK.value))
 
 
 def load(config_file):

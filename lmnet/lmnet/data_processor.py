@@ -45,6 +45,9 @@ class Sequence:
     def __repr__(self):
         return pprint.saferepr(self.processors)
 
+    def __iter__(self):
+        return iter(self.processors)
+
     # TODO(wakisaka): Should create interface class to set image size for processor child class.
     def set_image_size(self, image_size):
         """Override processors image size
