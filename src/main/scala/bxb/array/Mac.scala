@@ -1,6 +1,7 @@
 package bxb.array
 
 import chisel3._
+import chisel3.util._
 
 import bxb.util.{Util}
 
@@ -18,10 +19,9 @@ class Mac(accWidth: Int, aWidth: Int) extends Module {
   })
   val m = Seq.fill(2)(Reg(UInt(1.W)))
   val sign = Mux(io.evenOddIn.toBool(), m(1), m(0))
-  // XXX: it supposed to be implemented with single adder
-  // we could directly instantiate altera adder megafunction in verilog to implement it
-  // but for simplicity write it with just a mutex for now
-  val mac = Mux(sign.toBool(), io.accIn - io.aIn, io.accIn + io.aIn)
+  val aZeroExtend = Cat(0.U((accWidth - aWidth).W), io.aIn)
+  // XXX: expected to become adder with carry in
+  val mac = io.accIn + Mux(sign.toBool(), ~aZeroExtend, aZeroExtend) + sign
   val aNext = RegNext(io.aIn)
   val accNext = RegNext(mac)
   val evenOddNext = RegNext(io.evenOddIn)
