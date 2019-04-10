@@ -7,8 +7,9 @@ import scala.math._
 
 import bxb.memory.{ReadPort, WritePort, MemArray, TwoBlockMemArray}
 
-class ReferenceQuantize(val b: Int, val tileLength: Int, val fWidth: Int, val aWidth: Int) {
+class ReferenceQuantize(val b: Int, val tileHeight: Int, val tileWidth: Int,  val fWidth: Int, val aWidth: Int) {
   val inputChannels = b
+  val tileLength = tileWidth * tileHeight
   val input = mutable.Seq.fill(tileLength, inputChannels)(scala.util.Random.nextInt(pow(2, 13).toInt))
   val qInputs = mutable.Seq.fill(b,3)(scala.util.Random.nextInt(8192)) // 13bit
   val qInputsSorted = mutable.Seq.fill(inputChannels,3)(0)
@@ -61,7 +62,8 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
     // QMem test interface
     val qmemWrite = Input(Vec(b, WritePort(addrWidth, qWidth)))
     // Sequencer interface
-    val tileLength = Input(UInt(fWidth.W)) //TODO: split vCount into H&W
+    val tileHeight = Input(UInt(fWidth.W))
+    val tileWidth = Input(UInt(fWidth.W))
     val aOffset = Input(UInt(addrWidth.W))
     val qOffset = Input(UInt(addrWidth.W))
     val fOffset = Input(UInt(addrWidth.W))
@@ -74,7 +76,8 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
   val fmem = Module (new TwoBlockMemArray(b, memSize, fWidth))
   val qmem = Module (new MemArray(b, memSize, qWidth))
   val f2aSequencer = Module(new F2aSequencer(b, fWidth, qWidth, aWidth, addrWidth, addrWidth, addrWidth))
-  f2aSequencer.io.vCount := io.tileLength//TODO: split vCount into H&W
+  f2aSequencer.io.hCount := io.tileHeight
+  f2aSequencer.io.wCount := io.tileWidth
   f2aSequencer.io.aOffset := io.aOffset
   f2aSequencer.io.qOffset := io.qOffset
   f2aSequencer.io.fOffset := io.fOffset
@@ -104,8 +107,8 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
   }
 }
 
-class F2aPipelineQuantizeTests(dut: TestF2aQuantizeModule, b: Int, tileLength: Int, fWidth: Int, aWidth: Int) extends PeekPokeTester(dut) {
-  val ref = new ReferenceQuantize(b, tileLength, fWidth, aWidth)
+class F2aPipelineQuantizeTests(dut: TestF2aQuantizeModule, b: Int, tileHeight: Int, tileWidth: Int, fWidth: Int, aWidth: Int) extends PeekPokeTester(dut) {
+  val ref = new ReferenceQuantize(b, tileHeight, tileWidth, fWidth, aWidth)
 
   def loadDataToFmem() = {
     for (l <- 0 until ref.tileLength) {
@@ -141,7 +144,8 @@ class F2aPipelineQuantizeTests(dut: TestF2aQuantizeModule, b: Int, tileLength: I
   loadDataToQmem()
   loadDataToFmem()
 
-  poke(dut.io.tileLength, ref.tileLength)
+  poke(dut.io.tileHeight, ref.tileHeight)
+  poke(dut.io.tileWidth, ref.tileWidth)
 
   poke(dut.io.fRawZero, true)
   poke(dut.io.qRawZero, true)
@@ -169,9 +173,10 @@ object F2aPipelineQuantizeTests {
     val aWidth = 2
     val qWidth = 40
     val memSize = 1024
-    val tileLength = 12
+    val tileHeight = 4
+    val tileWidth = 3
     val verilatorArgs = Array("--backend-name", "verilator", "--is-verbose", "false")
     val driverArgs = if (args.contains("verilator")) verilatorArgs else Array[String]()
-    val ok = Driver.execute(driverArgs, () => new TestF2aQuantizeModule(b, memSize, aWidth, qWidth, fWidth))(c => new F2aPipelineQuantizeTests(c, b, tileLength, fWidth, aWidth))
+    val ok = Driver.execute(driverArgs, () => new TestF2aQuantizeModule(b, memSize, aWidth, qWidth, fWidth))(c => new F2aPipelineQuantizeTests(c, b, tileHeight, tileWidth, fWidth, aWidth))
   }
 }
