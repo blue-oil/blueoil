@@ -16,6 +16,8 @@
 from typing import List
 import numpy as np
 
+def quantized_packed_type(t):
+    return f"QuantizedPacked<{t}>"
 
 class DataType(object):
 
@@ -80,10 +82,30 @@ class Int8(Primitive, int):
         return np.int8
 
 
+class PackedInt8(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QuantizedPacked<int8_t>'
+
+    @classmethod
+    def nptype(cls):
+        return np.int8
+
+
 class Uint8(Primitive, int):
     @classmethod
     def cpptype(cls):
         return 'uint8_t'
+
+    @classmethod
+    def nptype(cls):
+        return np.uint8
+
+
+class PackedUint8(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QuantizedPacked<uint8_t>'
 
     @classmethod
     def nptype(cls):
@@ -100,10 +122,30 @@ class Int16(Primitive, int):
         return np.int16
 
 
+class PackedInt16(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QuantizedPacked<int16_t>'
+
+    @classmethod
+    def nptype(cls):
+        return np.int16
+
+
 class Uint16(Primitive, int):
     @classmethod
     def cpptype(cls):
         return 'uint16_t'
+
+    @classmethod
+    def nptype(cls):
+        return np.uint8
+
+
+class PackedUint16(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QuantizedPacked<uint16_t>'
 
     @classmethod
     def nptype(cls):
@@ -120,10 +162,30 @@ class Int32(Primitive, int):
         return np.int32
 
 
+class PackedInt32(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QuantizedPacked<int32_t>'
+
+    @classmethod
+    def nptype(cls):
+        return np.int32
+
+
 class Uint32(Primitive, int):
     @classmethod
     def cpptype(cls):
         return 'uint32_t'
+
+    @classmethod
+    def nptype(cls):
+        return np.uint32
+
+
+class PackedUint32(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QuantizedPacked<uint32_t>'
 
     @classmethod
     def nptype(cls):
@@ -140,10 +202,30 @@ class Int64(Primitive, int):
         return np.int64
 
 
+class PackedInt64(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QuantizedPacked<int64_t>'
+
+    @classmethod
+    def nptype(cls):
+        return np.int64
+
+
 class Uint64(Primitive, int):
     @classmethod
     def cpptype(cls):
         return 'uint64_t'
+
+    @classmethod
+    def nptype(cls):
+        return np.uint64
+
+
+class PackedUint64(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QuantizedPacked<uint64_t>'
 
     @classmethod
     def nptype(cls):
