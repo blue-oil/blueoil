@@ -22,11 +22,12 @@ from lmnet.data_processor import (
 )
 from lmnet.data_augmentor import iou
 
+
 def _softmax(x):
     exp = np.exp(x - np.max(x))
     return exp / np.expand_dims(exp.sum(axis=-1), -1)
 
-    
+
 def format_cxcywh_to_xywh(boxes, axis=1):
     """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimention.
 
@@ -419,4 +420,3 @@ class Softmax(Processor):
     def __call__(self, outputs, **kwargs):
         results = _softmax(outputs)
         return dict({'outputs': results}, **kwargs)
-
