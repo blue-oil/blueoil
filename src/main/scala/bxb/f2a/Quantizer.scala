@@ -5,43 +5,52 @@ import chisel3._
 import bxb.memory.{ReadPort, WritePort}
 import bxb.util.{Util}
 
-class QuantizeBlock(fWidth: Int, qWidth: Int, aWidth: Int) extends Module {
+class QuantizeBlock(fWidth: Int, aWidth: Int) extends Module {
   val io = IO(new Bundle {
     val writeEnable = Input(Bool())
-    val qMemQ = Input(Vec(3, UInt(qWidth.W)))
+    val qMemQ = Input(UInt(40.W))
     val fMemQ = Input(UInt(fWidth.W))
     val aOut = Output(UInt(aWidth.W))
   })
-  val thres = RegInit(0.U.asTypeOf(io.qMemQ))
+  val th0 = RegInit(0.U(13.W))
+  val th1 = RegInit(0.U(13.W))
+  val th2 = RegInit(0.U(13.W))
   io.aOut := 0.U
   when(io.writeEnable === true.B) {
-    thres := io.qMemQ
-  }
-    
-  when(io.fMemQ > thres(2)) {
-    io.aOut := 3.U
-  }.elsewhen(io.fMemQ > thres(1)) {
-    io.aOut := 2.U
-  }.elsewhen(io.fMemQ > thres(0)) {
-    io.aOut := 1.U
+    when(io.qMemQ(39) === 1.U) {
+      th2 := io.qMemQ(38,26)
+      th0 := io.qMemQ(12,0)
+    }.otherwise {
+      th0 := io.qMemQ(38,26)
+      th2 := io.qMemQ(12,0)
+    }
+      th1 := io.qMemQ(25,13)
   }.otherwise {
-    io.aOut := 0.U
+    when(io.fMemQ > th2) {
+      io.aOut := 3.U
+    }.elsewhen(io.fMemQ > th1) {
+      io.aOut := 2.U
+    }.elsewhen(io.fMemQ > th0) {
+      io.aOut := 1.U
+    }.otherwise {
+      io.aOut := 0.U
+    }
   }
 }
 
-class QuantizePipeline(b: Int, fWidth: Int, qWidth: Int, aWidth: Int) extends Module {
+class QuantizePipeline(b: Int, fWidth: Int, aWidth: Int) extends Module {
   val io = IO(new Bundle {
     // from controller
     val control = Input(F2aControl()) 
     // FMem interface
     val fMemQ = Input(Vec(b, UInt(fWidth.W)))
     // QMem interface
-    val qMemQ = Input(Vec(b, Vec(3, UInt(qWidth.W))))
+    val qMemQ = Input(Vec(b, UInt(40.W)))
     // AMem interface
     val aOut = Output(Vec(b, UInt(aWidth.W)))
   })
   
-  val pipeline = Seq.fill(b){Module(new QuantizeBlock(fWidth, qWidth, aWidth))}
+  val pipeline = Seq.fill(b){Module(new QuantizeBlock(fWidth, aWidth))}
   for (col <- 0 until b){
     pipeline(col).io.qMemQ := io.qMemQ(col)
     pipeline(col).io.writeEnable := io.control.qWe
