@@ -17,6 +17,7 @@ import argparse
 import os
 import re
 import importlib
+from tempfile import NamedTemporaryFile
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
@@ -296,10 +297,11 @@ def _save(lmnet_config):
     tpl = env.get_template(template_file)
 
     applied = tpl.render(lmnet_config)
-    config_file = "{}.py".format(lmnet_config['model_name'])
-    with open(config_file, 'w') as fp:
+    with NamedTemporaryFile(
+            prefix="blueoil_config_{}".format(lmnet_config['model_name']),
+            suffix=".py", delete=False, mode="w") as fp:
         fp.write(applied)
-    return config_file
+        return fp.name
 
 
 def main():
