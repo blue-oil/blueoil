@@ -58,14 +58,14 @@ void quantized_matrix_multiplication_body(
           A.rows() - i < block_size_i ||
           A.cols() - j < block_size_j) {
           for (unsigned int j2 = 0; j2 < std::min(block_size_j, A.cols() - j); ++j2) {
-            T_UINT b00;
-            T_UINT b01;
-            T_UINT b10;
-            T_UINT b11;
-            T_UINT b20;
-            T_UINT b21;
-            T_UINT b30;
-            T_UINT b31;
+            QUANTIZED_PACKED b00;
+            QUANTIZED_PACKED b01;
+            QUANTIZED_PACKED b10;
+            QUANTIZED_PACKED b11;
+            QUANTIZED_PACKED b20;
+            QUANTIZED_PACKED b21;
+            QUANTIZED_PACKED b30;
+            QUANTIZED_PACKED b31;
             if (end - k > 0) {
               b00 = *B.data(2*(j+j2)  , k+0);
               b01 = *B.data(2*(j+j2)+1, k+0);
@@ -82,13 +82,13 @@ void quantized_matrix_multiplication_body(
               b30 = *B.data(2*(j+j2)  , k+3);
               b31 = *B.data(2*(j+j2)+1, k+3);
             }
-            T_UINT b_ary[4][2] = {
+            QUANTIZED_PACKED b_ary[4][2] = {
               {b00, b01},
               {b10, b11},
               {b20, b21},
               {b30, b31}
             };
-            uint32x4x2_t b = vld2q_u32(&b_ary[0][0]);
+            uint32x4x2_t b = vld2q_u32((uint32_t*)&b_ary[0][0]);
             if (A.rows() - i > 0) {
               uint32x4_t a = vdupq_n_u32(*A.data(i+0, j+j2));
               res0 += pop_count_4(~(a ^ b.val[0]))
@@ -116,21 +116,21 @@ void quantized_matrix_multiplication_body(
           }
         } else {
           for (unsigned int j2 = 0; j2 < block_size_j; ++j2) {
-            T_UINT b00 = *B.data(2*(j+j2)  , k+0);
-            T_UINT b01 = *B.data(2*(j+j2)+1, k+0);
-            T_UINT b10 = *B.data(2*(j+j2)  , k+1);
-            T_UINT b11 = *B.data(2*(j+j2)+1, k+1);
-            T_UINT b20 = *B.data(2*(j+j2)  , k+2);
-            T_UINT b21 = *B.data(2*(j+j2)+1, k+2);
-            T_UINT b30 = *B.data(2*(j+j2)  , k+3);
-            T_UINT b31 = *B.data(2*(j+j2)+1, k+3);
-            T_UINT b_ary[4][2] = {
+            QUANTIZED_PACKED b00 = *B.data(2*(j+j2)  , k+0);
+            QUANTIZED_PACKED b01 = *B.data(2*(j+j2)+1, k+0);
+            QUANTIZED_PACKED b10 = *B.data(2*(j+j2)  , k+1);
+            QUANTIZED_PACKED b11 = *B.data(2*(j+j2)+1, k+1);
+            QUANTIZED_PACKED b20 = *B.data(2*(j+j2)  , k+2);
+            QUANTIZED_PACKED b21 = *B.data(2*(j+j2)+1, k+2);
+            QUANTIZED_PACKED b30 = *B.data(2*(j+j2)  , k+3);
+            QUANTIZED_PACKED b31 = *B.data(2*(j+j2)+1, k+3);
+            QUANTIZED_PACKED b_ary[4][2] = {
               {b00, b01},
               {b10, b11},
               {b20, b21},
               {b30, b31}
             };
-            uint32x4x2_t b = vld2q_u32(&b_ary[0][0]);
+            uint32x4x2_t b = vld2q_u32((uint32_t*)&b_ary[0][0]);
             uint32x4_t a = vdupq_n_u32(*A.data(i+0, j+j2));
             res0 += pop_count_4(~(a ^ b.val[0]))
               + (pop_count_4(~(a ^ b.val[1])) << 1)
