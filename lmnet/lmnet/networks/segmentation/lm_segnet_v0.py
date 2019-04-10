@@ -20,10 +20,10 @@ from tensorflow.python.framework import ops
 
 from lmnet.blocks import lmnet_block
 from lmnet.layers.experiment import max_unpool_with_argmax
-from lmnet.networks.segmentation.base import Base
+from lmnet.networks.segmentation.base import SegnetBase
 
 
-class LmSegnetV0(Base):
+class LmSegnetV0(SegnetBase):
     """LM customized SegNet Network."""
 
     def __init__(
