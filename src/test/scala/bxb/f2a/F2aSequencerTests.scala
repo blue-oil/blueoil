@@ -8,10 +8,10 @@ import chisel3.iotesters.{PeekPokeTester, Driver}
 class DummyControl(val aOffset: Int, val fOffset: Int, val qOffset: Int, val aAddr: Int, val fAddr: Int, val qAddr: Int, val decFRaw: Boolean, val incFWar: Boolean, val decAWar: Boolean, val incARaw: Boolean, val decQRaw: Boolean, val incQWar: Boolean) {
 }
 
-class DummyControlSequencer(tileLength: Int) {
+class DummyControlSequencer(tileHeight: Int, tileWidth: Int) {
   val controlSeq = mutable.ArrayBuffer[DummyControl]()
   val aOffsetSeq = mutable.ArrayBuffer[Int]()
-  val vCount = tileLength 
+  val vCount = tileHeight * tileWidth
   var qOffset = 0
   var fOffset = 0
   var aOffset = 0
@@ -41,8 +41,8 @@ class DummyControlSequencer(tileLength: Int) {
   }
 }
 
-class _F2aSequencerSubTest(countMax: Int, dut: F2aSequencer) extends PeekPokeTester(dut) {
-  val ref = new DummyControlSequencer(countMax)
+class _F2aSequencerSubTest(tileHeight: Int, tileWidth: Int, dut: F2aSequencer) extends PeekPokeTester(dut) {
+  val ref = new DummyControlSequencer(tileHeight, tileWidth)
   for (ctl <- ref.controlSeq) {
     poke(dut.io.qOffset, ctl.qOffset)
     poke(dut.io.fOffset, ctl.fOffset)
@@ -58,20 +58,24 @@ class _F2aSequencerSubTest(countMax: Int, dut: F2aSequencer) extends PeekPokeTes
 }
 
 class F2aSequencerTestSequence(dut: F2aSequencer) extends PeekPokeTester(dut) {
-  var countMax = 8
-  poke(dut.io.vCount, countMax)
+  val tileHeight = 4
+  val tileWidth = 2
+  poke(dut.io.hCount, tileHeight)
+  poke(dut.io.wCount, tileWidth)
   poke(dut.io.aWarZero, false)
   poke(dut.io.fRawZero, false)
   poke(dut.io.qRawZero, false)
 
   for (i <- 0 until 3) {
-    val subTest = new _F2aSequencerSubTest(countMax, dut)
+    val subTest = new _F2aSequencerSubTest(tileHeight, tileWidth, dut)
   }
 }
 
 class F2aSequencerTestAWarZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
-  var countMax = 8
-  poke(dut.io.vCount, countMax)
+  val tileHeight = 4
+  val tileWidth = 2
+  poke(dut.io.hCount, tileHeight)
+  poke(dut.io.wCount, tileWidth)
   poke(dut.io.aWarZero, false)
   poke(dut.io.fRawZero, false)
   poke(dut.io.qRawZero, false)
@@ -83,13 +87,15 @@ class F2aSequencerTestAWarZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
       step(1)
     }
     poke(dut.io.aWarZero, false)
-    val subTest = new _F2aSequencerSubTest(countMax, dut)
+    val subTest = new _F2aSequencerSubTest(tileHeight, tileWidth, dut)
   }
 }
 
 class F2aSequencerTestFRawZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
-  var countMax = 8
-  poke(dut.io.vCount, countMax)
+  val tileHeight = 4
+  val tileWidth = 2
+  poke(dut.io.hCount, tileHeight)
+  poke(dut.io.wCount, tileWidth)
   poke(dut.io.aWarZero, false)
   poke(dut.io.fRawZero, false)
   poke(dut.io.qRawZero, false)
@@ -101,13 +107,15 @@ class F2aSequencerTestFRawZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
       step(1)
     }
     poke(dut.io.fRawZero, false)
-    val subTest = new _F2aSequencerSubTest(countMax, dut)
+    val subTest = new _F2aSequencerSubTest(tileHeight, tileWidth, dut)
   }
 }
 
 class F2aSequencerTestQRawZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
-  var countMax = 8
-  poke(dut.io.vCount, countMax)
+  val tileHeight = 4
+  val tileWidth = 2
+  poke(dut.io.hCount, tileHeight)
+  poke(dut.io.wCount, tileWidth)
   poke(dut.io.aWarZero, false)
   poke(dut.io.fRawZero, false)
   poke(dut.io.qRawZero, false)
@@ -119,7 +127,7 @@ class F2aSequencerTestQRawZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
       step(1)
     }
     poke(dut.io.qRawZero, false)
-    val subTest = new _F2aSequencerSubTest(countMax, dut)
+    val subTest = new _F2aSequencerSubTest(tileHeight, tileWidth, dut)
   }
 }
 
