@@ -57,9 +57,7 @@ class _F2aSequencerSubTest(tileHeight: Int, tileWidth: Int, dut: F2aSequencer) e
   }
 }
 
-class F2aSequencerTestSequence(dut: F2aSequencer) extends PeekPokeTester(dut) {
-  val tileHeight = 4
-  val tileWidth = 2
+class F2aSequencerTestSequence(dut: F2aSequencer, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
   poke(dut.io.hCount, tileHeight)
   poke(dut.io.wCount, tileWidth)
   poke(dut.io.aWarZero, false)
@@ -71,9 +69,7 @@ class F2aSequencerTestSequence(dut: F2aSequencer) extends PeekPokeTester(dut) {
   }
 }
 
-class F2aSequencerTestAWarZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
-  val tileHeight = 4
-  val tileWidth = 2
+class F2aSequencerTestAWarZero(dut: F2aSequencer, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
   poke(dut.io.hCount, tileHeight)
   poke(dut.io.wCount, tileWidth)
   poke(dut.io.aWarZero, false)
@@ -91,9 +87,7 @@ class F2aSequencerTestAWarZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
   }
 }
 
-class F2aSequencerTestFRawZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
-  val tileHeight = 4
-  val tileWidth = 2
+class F2aSequencerTestFRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
   poke(dut.io.hCount, tileHeight)
   poke(dut.io.wCount, tileWidth)
   poke(dut.io.aWarZero, false)
@@ -111,9 +105,7 @@ class F2aSequencerTestFRawZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
   }
 }
 
-class F2aSequencerTestQRawZero(dut: F2aSequencer) extends PeekPokeTester(dut) {
-  val tileHeight = 4
-  val tileWidth = 2
+class F2aSequencerTestQRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
   poke(dut.io.hCount, tileHeight)
   poke(dut.io.wCount, tileWidth)
   poke(dut.io.aWarZero, false)
@@ -135,11 +127,17 @@ object F2aSequencerTests {
   def main(args: Array[String]): Unit = {
     val verilatorArgs = Array("--backend-name", "verilator", "--is-verbose", "true")
     val driverArgs = if (args.contains("verilator")) verilatorArgs else Array[String]()
+    val tileHeight = 4
+    val tileWidth = 2
     var ok = true
-    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,10,10,10))(dut => new F2aSequencerTestSequence(dut))
-    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,10,10,10))(dut => new F2aSequencerTestAWarZero(dut))
-    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,10,10,10))(dut => new F2aSequencerTestFRawZero(dut))
-    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,10,10,10))(dut => new F2aSequencerTestQRawZero(dut))
+    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,10,10,10))(
+      dut => new F2aSequencerTestSequence(dut, tileHeight, tileWidth))
+    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,10,10,10))(
+      dut => new F2aSequencerTestAWarZero(dut, tileHeight, tileWidth))
+    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,10,10,10))(
+      dut => new F2aSequencerTestFRawZero(dut, tileHeight, tileWidth))
+    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,10,10,10))(
+      dut => new F2aSequencerTestQRawZero(dut, tileHeight, tileWidth))
     if (!ok && args.contains("noexit"))
       System.exit(1)
   }
