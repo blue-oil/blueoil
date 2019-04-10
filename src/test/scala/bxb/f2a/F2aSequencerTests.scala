@@ -41,22 +41,6 @@ class DummyControlSequencer(tileHeight: Int, tileWidth: Int) {
   }
 }
 
-class _F2aSequencerSubTest(tileHeight: Int, tileWidth: Int, dut: F2aSequencer) extends PeekPokeTester(dut) {
-  val ref = new DummyControlSequencer(tileHeight, tileWidth)
-  for (ctl <- ref.controlSeq) {
-    poke(dut.io.qOffset, ctl.qOffset)
-    poke(dut.io.fOffset, ctl.fOffset)
-    poke(dut.io.aOffset, ctl.aOffset)
-    step(1)
-    expect(dut.io.control.syncInc.qWar, ctl.incQWar)
-    expect(dut.io.control.syncInc.fWar, ctl.incFWar)
-    expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
-    expect(dut.io.aWarDec, ctl.decAWar)
-    expect(dut.io.fRawDec, ctl.decFRaw)
-    expect(dut.io.qRawDec, ctl.decQRaw)
-  }
-}
-
 class F2aSequencerTestSequence(dut: F2aSequencer, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
   poke(dut.io.hCount, tileHeight)
   poke(dut.io.wCount, tileWidth)
@@ -64,8 +48,20 @@ class F2aSequencerTestSequence(dut: F2aSequencer, tileHeight: Int, tileWidth: In
   poke(dut.io.fRawZero, false)
   poke(dut.io.qRawZero, false)
 
+  val ref = new DummyControlSequencer(tileHeight, tileWidth)
   for (i <- 0 until 3) {
-    val subTest = new _F2aSequencerSubTest(tileHeight, tileWidth, dut)
+    for (ctl <- ref.controlSeq) {
+      poke(dut.io.qOffset, ctl.qOffset)
+      poke(dut.io.fOffset, ctl.fOffset)
+      poke(dut.io.aOffset, ctl.aOffset)
+      step(1)
+      expect(dut.io.control.syncInc.qWar, ctl.incQWar)
+      expect(dut.io.control.syncInc.fWar, ctl.incFWar)
+      expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
+      expect(dut.io.aWarDec, ctl.decAWar)
+      expect(dut.io.fRawDec, ctl.decFRaw)
+      expect(dut.io.qRawDec, ctl.decQRaw)
+    }
   }
 }
 
@@ -77,13 +73,25 @@ class F2aSequencerTestAWarZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
   poke(dut.io.qRawZero, false)
   var waitDelay = 3
 
+  val ref = new DummyControlSequencer(tileHeight, tileWidth)
   for (i <- 0 until 3) {
     poke(dut.io.aWarZero, true)
     for (j <- 0 until waitDelay) {
       step(1)
     }
     poke(dut.io.aWarZero, false)
-    val subTest = new _F2aSequencerSubTest(tileHeight, tileWidth, dut)
+    for (ctl <- ref.controlSeq) {
+      poke(dut.io.qOffset, ctl.qOffset)
+      poke(dut.io.fOffset, ctl.fOffset)
+      poke(dut.io.aOffset, ctl.aOffset)
+      step(1)
+      expect(dut.io.control.syncInc.qWar, ctl.incQWar)
+      expect(dut.io.control.syncInc.fWar, ctl.incFWar)
+      expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
+      expect(dut.io.aWarDec, ctl.decAWar)
+      expect(dut.io.fRawDec, ctl.decFRaw)
+      expect(dut.io.qRawDec, ctl.decQRaw)
+    }
   }
 }
 
@@ -95,13 +103,25 @@ class F2aSequencerTestFRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
   poke(dut.io.qRawZero, false)
   var waitDelay = 3
 
+  val ref = new DummyControlSequencer(tileHeight, tileWidth)
   for (i <- 0 until 3) {
     poke(dut.io.fRawZero, true)
     for (j <- 0 until waitDelay) {
       step(1)
     }
     poke(dut.io.fRawZero, false)
-    val subTest = new _F2aSequencerSubTest(tileHeight, tileWidth, dut)
+    for (ctl <- ref.controlSeq) {
+      poke(dut.io.qOffset, ctl.qOffset)
+      poke(dut.io.fOffset, ctl.fOffset)
+      poke(dut.io.aOffset, ctl.aOffset)
+      step(1)
+      expect(dut.io.control.syncInc.qWar, ctl.incQWar)
+      expect(dut.io.control.syncInc.fWar, ctl.incFWar)
+      expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
+      expect(dut.io.aWarDec, ctl.decAWar)
+      expect(dut.io.fRawDec, ctl.decFRaw)
+      expect(dut.io.qRawDec, ctl.decQRaw)
+    }
   }
 }
 
@@ -113,13 +133,25 @@ class F2aSequencerTestQRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
   poke(dut.io.qRawZero, false)
   var waitDelay = 3
 
+  val ref = new DummyControlSequencer(tileHeight, tileWidth)
   for (i <- 0 until 3) {
     poke(dut.io.qRawZero, true)
     for (j <- 0 until waitDelay) {
       step(1)
     }
     poke(dut.io.qRawZero, false)
-    val subTest = new _F2aSequencerSubTest(tileHeight, tileWidth, dut)
+    for (ctl <- ref.controlSeq) {
+      poke(dut.io.qOffset, ctl.qOffset)
+      poke(dut.io.fOffset, ctl.fOffset)
+      poke(dut.io.aOffset, ctl.aOffset)
+      step(1)
+      expect(dut.io.control.syncInc.qWar, ctl.incQWar)
+      expect(dut.io.control.syncInc.fWar, ctl.incFWar)
+      expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
+      expect(dut.io.aWarDec, ctl.decAWar)
+      expect(dut.io.fRawDec, ctl.decFRaw)
+      expect(dut.io.qRawDec, ctl.decQRaw)
+    }
   }
 }
 
