@@ -21,7 +21,9 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
 
     val writeEnable = Output(Bool())
 
-    val vCount = Input(UInt(fAddrWidth.W)) //TODO: split vCount into H&W
+    val hCount = Input(UInt(fAddrWidth.W))
+    val wCount = Input(UInt(fAddrWidth.W))
+
     val fOffset = Input(UInt(fAddrWidth.W))
     val qOffset = Input(UInt(qAddrWidth.W))
     val aOffset = Input(UInt(aAddrWidth.W))
@@ -48,9 +50,25 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
 
   val waitRequired = (io.fRawZero | io.qRawZero | io.aWarZero)
 
-  val vCountLeft = Reg(UInt(fAddrWidth.W)) //TODO: split vCount into H&W
-  val vCountMax = RegInit(UInt(fAddrWidth.W),0.U)//TODO: split vCount into H&W
-  val countLast = (vCountLeft === 0.U)
+  val wCountLeft = Reg(UInt(fAddrWidth.W))
+  val wCountLast = (wCountLeft === 1.U)
+  when(~waitRequired) {
+    when(doingQRead | wCountLast) {
+      wCountLeft := io.wCount
+    }.elsewhen(doingQuantize) {
+      wCountLeft := wCountLeft - 1.U
+    }
+  }
+
+  val hCountLeft = Reg(UInt(fAddrWidth.W))
+  val hCountLast = (hCountLeft === 1.U) & wCountLast
+  when(~waitRequired) {
+    when(doingQRead) {
+      hCountLeft := io.hCount
+    }.elsewhen(doingQuantize & wCountLast) {
+      hCountLeft := hCountLeft - 1.U
+    }
+  }
 
   val fAddr = RegInit(UInt(fAddrWidth.W), io.fOffset)
   val qAddr = RegInit(UInt(qAddrWidth.W), io.qOffset)
@@ -63,7 +81,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
       state := State.doingQRead
       controlWrite := true.B
       syncDecQRaw := true.B
-      vCountMax := io.vCount - 1.U
 
       fAddr := io.fOffset
       qAddr := io.qOffset
@@ -72,7 +89,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
       controlWrite := false.B
       syncDecQRaw := false.B
       syncIncQWar := true.B
-      vCountLeft := vCountMax
     }
   }
   when(~waitRequired) {
@@ -82,7 +98,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
       state := State.doingQuantize
     }.elsewhen(doingQuantize) {
       fAddr := fAddr + 1.U
-      vCountLeft := vCountLeft - 1.U
     }
   }
   when(~waitRequired) {
@@ -90,7 +105,7 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
       syncDecAWar := true.B
 
       aAddr := aAddr + 1.U
-      when(countLast) {
+      when(hCountLast) {
         state := State.idle
         syncIncFWar := ~syncIncFWar
         syncIncARaw := ~syncIncARaw
