@@ -34,6 +34,7 @@ class LMBiSeNet(Base):
     * Use attention refinement module reference to BiSeNet after last layer of 1/32
         (BiSeNet: both 1/16 and 1/32) in context path.
     * Use relu activation instead of sigmoid in attention refinement and feature fusion module.
+    * In up-sampling followed by context path, alternate d2s and 1x1 conv for reducing channel size.
     """
 
     def __init__(
