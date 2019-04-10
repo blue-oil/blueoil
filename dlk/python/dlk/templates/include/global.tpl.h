@@ -16,9 +16,10 @@ limitations under the License.
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+#include <climits>
 #include <inttypes.h>
 #include <limits>
-
+#include "func/impl/pop_count.h"
 
 typedef uint32_t T_UINT;
 typedef int32_t  T_INT;
@@ -30,12 +31,41 @@ typedef int16_t   T_INT16;
 
 #define QUANTIZED_NOT_PACKED uint8_t
 
+template <typename pack_type>
+class QuantizedPacked {
+ public:
+  using T = pack_type;
+  static constexpr std::size_t BitCount = sizeof(pack_type) * CHAR_BIT;
+  QuantizedPacked() = default;
+  explicit QuantizedPacked(const T val) : val(val) {}
+  explicit operator T() const { return val; }
+  QuantizedPacked<T>& operator|=(const QuantizedPacked<T>& that) {
+    val |= that.val;
+    return *this;
+  }
+  T Raw() const { return val; }
+ private:
+  T val;
+} __attribute__ ((packed));
 
 #if defined RUN_ON_FPGA
-  #define QUANTIZED_PACKED volatile {{ params.default_qword_dtype.cpptype() }}
+  using QUANTIZED_PACKED = QuantizedPacked<volatile {{ params.default_qword_dtype.cpptype() }}>;
 #else
-  #define QUANTIZED_PACKED {{ params.default_qword_dtype.cpptype() }}
+  using QUANTIZED_PACKED = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
 #endif
+template <typename pack_type>
+inline QuantizedPacked<pack_type> operator^(const QuantizedPacked<pack_type>& lhs, const QuantizedPacked<pack_type>& rhs) {
+  using packed_t = QuantizedPacked<pack_type>;
+  return packed_t(lhs.Raw() ^ rhs.Raw());
+}
+template <typename pack_type>
+inline QuantizedPacked<pack_type> operator~(const QuantizedPacked<pack_type>& x) {
+  return QuantizedPacked<pack_type>(~x.Raw());
+}
+template <typename pack_type>
+inline int pop_count(const QuantizedPacked<pack_type>& x) {
+  return dlk::impl::pop_count(x.Raw());
+}
 
 #if defined RUN_ON_FPGA
   typedef volatile T_INT16 BIN_CONV_OUTPUT;

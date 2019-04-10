@@ -46,7 +46,6 @@ Note: The private repository submodules are set to connect by ssh, if you want t
 ## How to make document
 
 ```
-pip install -r doc.requirements.txt
 cd docs
 make html
 ```
