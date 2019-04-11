@@ -21,7 +21,7 @@ class DummyControlSequencer(tileHeight: Int, tileWidth: Int, amemSize: Int, qmem
   var fAddr = 0
 
   for (ki <- 0 until repeat) {
-    for (i <- 0 until vCount + 2) {
+    for (i <- 0 until vCount + 3) {
       val decQRaw = (i == 0)
       val incQWar = (i == 1)
       val decFRaw = (i == 1)
