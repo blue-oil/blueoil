@@ -103,8 +103,9 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
     }
   }
   when(~waitRequired) {
+    syncDecFRaw := false.B
     when(doingQRead) {
-      syncDecFRaw := ~syncDecFRaw
+      syncDecFRaw := true.B
     }
   }
   when(~waitRequired) {
@@ -140,10 +141,9 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
   io.control.syncInc.aRaw := ~(syncIncARaw ^ ffAInc)
 
   val ffADec = RegNext(~syncDecAWar)
-  val ffFDec = RegNext(~syncDecFRaw)
   io.aWarDec := syncDecAWar && ffADec
   io.qRawDec := doingQRead
-  io.fRawDec := ~(syncDecFRaw ^ ffFDec)
+  io.fRawDec := syncDecFRaw
 
   io.fmemRead := fAddr
   io.fmemReadEnable := doingQuantize
