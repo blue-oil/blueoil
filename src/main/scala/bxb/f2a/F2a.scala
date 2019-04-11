@@ -53,9 +53,6 @@ class F2a(b: Int, memSize: Int, aWidth: Int, fWidth: Int, qWidth: Int) extends M
   sequencer.io.hCount := io.hCount
   sequencer.io.wCount := io.wCount
 
-  sequencer.io.fOffset := io.fmemQ
-  sequencer.io.aOffset := io.amemQ
-
   io.fmemRead := sequencer.io.fmemRead
   io.qmemRead := sequencer.io.qmemRead
   io.amemWrite := sequencer.io.amemWriteAddr

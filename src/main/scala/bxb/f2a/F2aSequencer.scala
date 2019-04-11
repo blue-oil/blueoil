@@ -24,10 +24,8 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
     val hCount = Input(UInt(fAddrWidth.W))
     val wCount = Input(UInt(fAddrWidth.W))
 
-    val fOffset = Input(UInt(fAddrWidth.W))
-    val aOffset = Input(UInt(aAddrWidth.W))
-
     val fmemRead = Output(UInt(fAddrWidth.W))
+    val fmemReadEnable = Output(Bool())
     val qmemRead = Output(UInt(qAddrWidth.W))
     val amemWriteAddr = Output(UInt(aAddrWidth.W))
   })
@@ -69,8 +67,29 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
     }
   }
 
-  val fAddr = RegInit(UInt(fAddrWidth.W), io.fOffset)
-  val aAddr = RegInit(UInt(aAddrWidth.W), io.aOffset)
+  val aAddrEvenOdd = RegInit(0.U(1.W))
+  when(~waitRequired) {
+    when(doingQuantize & hCountLast) {
+      aAddrEvenOdd := ~aAddrEvenOdd
+    }
+  }
+  val aAddr = Reg(UInt(aAddrWidth.W))
+  when(~waitRequired) {
+    when(idle) {
+      aAddr := Cat(aAddrEvenOdd, 0.U((aAddrWidth - 1).W))
+    }.elsewhen(doingQuantize) {
+      aAddr := aAddr + 1.U
+    }
+  }
+  val fAddr = Reg(UInt(fAddrWidth.W))
+  when(~waitRequired) {
+    when(idle) {
+      fAddr := Cat(aAddrEvenOdd, 0.U((fAddrWidth - 1).W))
+    }.elsewhen(doingQuantize) {
+      fAddr := fAddr + 1.U
+    }
+  }
+
 
   val controlWrite = RegInit(false.B)
 
@@ -86,9 +105,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
       state := State.doingQRead
       controlWrite := true.B
       syncDecQRaw := true.B
-
-      fAddr := io.fOffset
-      aAddr := io.aOffset
     }.elsewhen(doingQRead) {
       controlWrite := false.B
       syncDecQRaw := false.B
@@ -100,15 +116,12 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
       syncDecFRaw := ~syncDecFRaw
       syncIncQWar := ~syncIncQWar
       state := State.doingQuantize
-    }.elsewhen(doingQuantize) {
-      fAddr := fAddr + 1.U
     }
   }
   when(~waitRequired) {
     when(doingQuantize) {
       syncDecAWar := true.B
 
-      aAddr := aAddr + 1.U
       when(hCountLast) {
         state := State.idle
         syncIncFWar := ~syncIncFWar
@@ -137,6 +150,7 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
   io.fRawDec := ~(syncDecFRaw ^ ffFDec)
 
   io.fmemRead := fAddr
+  io.fmemReadEnable := doingQuantize
   io.qmemRead := qAddr  
   io.amemWriteAddr := aAddr
 
