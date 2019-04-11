@@ -16,11 +16,11 @@
 from abc import ABCMeta
 import os
 import pprint
-import shutil
 
 from easydict import EasyDict
 import yaml
 from yaml.representer import Representer
+from tensorflow import gfile
 
 from lmnet.common import Tasks
 from lmnet.data_processor import Processor, Sequence
@@ -197,7 +197,7 @@ def _save_meta_yaml(output_dir, config):
         )
         meta_dict['CLASSES'] = train_dataset.classes
 
-    with open(os.path.join(file_path), 'w') as f:
+    with gfile.GFile(os.path.join(file_path), 'w') as f:
         yaml.dump(meta_dict, f, default_flow_style=False, Dumper=Dumper)
 
     return file_path
@@ -222,7 +222,7 @@ def _save_config_yaml(output_dir, config):
         )
         config_dict['CLASSES'] = train_dataset.classes
 
-    with open(os.path.join(output_dir, file_name), 'w') as outfile:
+    with gfile.GFile(os.path.join(output_dir, file_name), 'w') as outfile:
         yaml.dump(config_dict, outfile, default_flow_style=False, Dumper=Dumper)
 
     return file_path
@@ -235,8 +235,8 @@ def save_yaml(output_dir, config):
     2. 'meta.yaml' for application. The yaml's keys defined by `PARAMS_FOR_EXPORT`.
     """
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    if not gfile.Exists(output_dir):
+        gfile.MakeDirs(output_dir)
 
     config_yaml_path = _save_config_yaml(output_dir, config)
     meta_yaml_path = _save_meta_yaml(output_dir, config)
@@ -245,7 +245,7 @@ def save_yaml(output_dir, config):
 
 
 def _load_yaml(config_file):
-    with open(config_file) as config_file_stream:
+    with gfile.GFile(config_file) as config_file_stream:
         config = yaml.load(config_file_stream, Loader=yaml.Loader)
 
     # use only upper key.
@@ -274,7 +274,7 @@ def display(config):
 def copy_to_experiment_dir(config_file):
     # copy config file to the experiment directory
     saved_config_file_path = _config_file_path_to_copy(config_file)
-    shutil.copyfile(config_file, saved_config_file_path)
+    gfile.Copy(config_file, saved_config_file_path)
 
 
 def init_config(config, training_id, recreate=False):
