@@ -126,7 +126,7 @@ private:
 };
 
 void qconv_with_kn2row(unsigned long input_addr, unsigned long output_addr,
-                       const T_UINT k_data_packed[], BIN_CONV_OUTPUT th_data[],
+                       const QUANTIZED_PACKED_KERNEL k_data_packed[], BIN_CONV_OUTPUT th_data[],
                        unsigned in_w, unsigned in_h, unsigned in_c_by_word,
                        unsigned nbits_in_data, unsigned out_w, unsigned out_h,
                        unsigned out_c, unsigned k_w, unsigned k_h, unsigned pad,
@@ -226,7 +226,7 @@ private:
 };
 
 void qconv_kn2row_tiling(unsigned long input_addr, unsigned long output_addr,
-                         const T_UINT k_data_packed[],
+                         const QUANTIZED_PACKED_KERNEL k_data_packed[],
                          BIN_CONV_OUTPUT th_data[], unsigned in_w,
                          unsigned in_h, unsigned in_c_by_word,
                          unsigned nbits_in_data, unsigned out_w, unsigned out_h,
@@ -239,7 +239,7 @@ void qconv_kn2row_tiling(unsigned long input_addr, unsigned long output_addr,
   const unsigned k_size = k_h * k_w * in_c_by_word * out_c;
 
   static QconvKn2rowTiling qkt;
-  MappedMem k_data_mem(KERNEL_ADDR, k_size, sizeof(T_UINT));
+  MappedMem k_data_mem(KERNEL_ADDR, k_size, sizeof(QUANTIZED_PACKED_KERNEL));
   k_data_mem.Write(k_data_packed, k_size);
   unsigned use_threshold = (th_data != NULL) ? 1 : 0;
 

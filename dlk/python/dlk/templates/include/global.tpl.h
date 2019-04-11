@@ -56,6 +56,7 @@ class QuantizedPacked {
 #else
   using QUANTIZED_PACKED = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
 #endif
+using QUANTIZED_PACKED_KERNEL = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
 template <typename T1, typename T2,
     std::enable_if_t<std::is_same<std::remove_cv_t<T1>, std::remove_cv<T2>>::value, int> = 0>
 inline auto operator^(const QuantizedPacked<T1>& lhs, const QuantizedPacked<T2>& rhs) {
