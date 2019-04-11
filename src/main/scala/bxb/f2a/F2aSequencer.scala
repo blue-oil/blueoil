@@ -89,9 +89,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
     }
   }
 
-
-  val controlWrite = RegInit(false.B)
-
   val qAddr = RegInit(0.U(qAddrWidth.W))
   when(~waitRequired) {
     when(doingQuantize & hCountLast) {
@@ -100,10 +97,7 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
   }
 
   when(~waitRequired) {
-    when(idle) {
-      controlWrite := true.B
-    }.elsewhen(doingQRead) {
-      controlWrite := false.B
+    when(doingQRead) {
       syncIncQWar := true.B
     }
   }
@@ -157,7 +151,7 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
   io.qmemRead := qAddr  
   io.amemWriteAddr := aAddr
 
-  io.control.qWe := controlWrite
+  io.control.qWe := doingQRead
 }
 
 object F2aSequencer {
