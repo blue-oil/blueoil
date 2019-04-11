@@ -5,7 +5,7 @@ import scala.collection._
 import chisel3._
 import chisel3.iotesters.{PeekPokeTester, Driver}
 
-class DummyControl(val start: Boolean, val aAddr: Int, val aWriteEnable: Boolean, val fAddr: Int, val fReadEnable: Boolean, val qAddr: Int, val decFRaw: Boolean, val incFWar: Boolean, val decAWar: Boolean, val incARaw: Boolean, val decQRaw: Boolean, val incQWar: Boolean) {
+class DummyControl(val start: Boolean, val aAddr: Int, val aWriteEnable: Boolean, val fAddr: Int, val fReadEnable: Boolean, val qAddr: Int, val decFRaw: Boolean, val incFWar: Boolean, val decAWar: Boolean, val incARaw: Boolean, val decQRaw: Boolean, val incQWar: Boolean, val tileAccepted: Boolean) {
 }
 
 class DummyControlSequencer(tileHeight: Int, tileWidth: Int, amemSize: Int, qmemSize: Int, fmemSize: Int, repeat: Int) {
@@ -28,6 +28,7 @@ class DummyControlSequencer(tileHeight: Int, tileWidth: Int, amemSize: Int, qmem
       val incFWar = (i == (vCount + 1))
       val decAWar = (i == 2)
       val incARaw = (i == (vCount + 1))
+      val tileAccepted = (i == (vCount + 1))
       if (i == (vCount + 1)) {
         qAddr = (qAddr + 1) % qmemSize
         aAddr = if (aAddr <= amemHalf) amemHalf else 0
@@ -35,7 +36,7 @@ class DummyControlSequencer(tileHeight: Int, tileWidth: Int, amemSize: Int, qmem
       }
       val aWriteEnable = (i > 0 && i < vCount + 1)
       val fReadEnable = (i > 0 && i < vCount + 1)
-      controlSeq += new DummyControl(i == 0, aAddr, aWriteEnable, fAddr, fReadEnable, qAddr, decFRaw, incFWar, decAWar, incARaw, decQRaw, incQWar)
+      controlSeq += new DummyControl(i == 0, aAddr, aWriteEnable, fAddr, fReadEnable, qAddr, decFRaw, incFWar, decAWar, incARaw, decQRaw, incQWar, tileAccepted)
       if ((i >= 1) && (i <= vCount - 0)) {
         fAddr += 1
       }
@@ -52,6 +53,7 @@ class F2aSequencerTestSequence(dut: F2aSequencer, tileHeight: Int, tileWidth: In
   poke(dut.io.aWarZero, false)
   poke(dut.io.fRawZero, false)
   poke(dut.io.qRawZero, false)
+  poke(dut.io.tileValid, true)
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
   for (ctl <- ref.controlSeq) {
@@ -71,6 +73,7 @@ class F2aSequencerTestSequence(dut: F2aSequencer, tileHeight: Int, tileWidth: In
     expect(dut.io.aWarDec, ctl.decAWar)
     expect(dut.io.fRawDec, ctl.decFRaw)
     expect(dut.io.qRawDec, ctl.decQRaw)
+    expect(dut.io.tileAccepted, ctl.tileAccepted)
   }
 }
 
@@ -80,6 +83,7 @@ class F2aSequencerTestAWarZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
   poke(dut.io.aWarZero, false)
   poke(dut.io.fRawZero, false)
   poke(dut.io.qRawZero, false)
+  poke(dut.io.tileValid, true)
   var waitDelay = 3
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
@@ -111,6 +115,7 @@ class F2aSequencerTestAWarZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
     expect(dut.io.aWarDec, ctl.decAWar)
     expect(dut.io.fRawDec, ctl.decFRaw)
     expect(dut.io.qRawDec, ctl.decQRaw)
+    expect(dut.io.tileAccepted, ctl.tileAccepted)
   }
 }
 
@@ -120,6 +125,7 @@ class F2aSequencerTestFRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
   poke(dut.io.aWarZero, false)
   poke(dut.io.fRawZero, false)
   poke(dut.io.qRawZero, false)
+  poke(dut.io.tileValid, true)
   var waitDelay = 3
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
@@ -149,6 +155,7 @@ class F2aSequencerTestFRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
     expect(dut.io.aWarDec, ctl.decAWar)
     expect(dut.io.fRawDec, ctl.decFRaw)
     expect(dut.io.qRawDec, ctl.decQRaw)
+    expect(dut.io.tileAccepted, ctl.tileAccepted)
   }
 }
 
@@ -158,6 +165,7 @@ class F2aSequencerTestQRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
   poke(dut.io.aWarZero, false)
   poke(dut.io.fRawZero, false)
   poke(dut.io.qRawZero, false)
+  poke(dut.io.tileValid, true)
   var waitDelay = 3
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
@@ -185,6 +193,52 @@ class F2aSequencerTestQRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
     expect(dut.io.aWarDec, ctl.decAWar)
     expect(dut.io.fRawDec, ctl.decFRaw)
     expect(dut.io.qRawDec, ctl.decQRaw)
+    expect(dut.io.tileAccepted, ctl.tileAccepted)
+  }
+}
+
+class F2aSequencerTestTileValid(dut: F2aSequencer, tileHeight: Int, tileWidth: Int, amemSize: Int, qmemSize: Int, fmemSize: Int) extends PeekPokeTester(dut) {
+  poke(dut.io.hCount, tileHeight)
+  poke(dut.io.wCount, tileWidth)
+  poke(dut.io.aWarZero, false)
+  poke(dut.io.fRawZero, false)
+  poke(dut.io.qRawZero, false)
+  var waitDelay = 3
+
+  val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
+
+  var tileAccepted = false
+  poke(dut.io.tileValid, false)
+  for (j <- 0 until waitDelay) {
+    step(1)
+  }
+  poke(dut.io.tileValid, true)
+  for (ctl <- ref.controlSeq) {
+    step(1)
+    if (tileAccepted) {
+      poke(dut.io.tileValid, false)
+      for (j <- 0 until waitDelay) {
+        step(1)
+      }
+      poke(dut.io.tileValid, true)
+    }
+    expect(dut.io.writeEnable, ctl.aWriteEnable)
+    if (ctl.aWriteEnable) {
+      expect(dut.io.amemWriteAddr, ctl.aAddr)
+    }
+    expect(dut.io.fmemReadEnable, ctl.fReadEnable)
+    if (ctl.fReadEnable) {
+      expect(dut.io.fmemRead, ctl.fAddr)
+    }
+    expect(dut.io.qmemRead, ctl.qAddr)
+    expect(dut.io.control.syncInc.qWar, ctl.incQWar)
+    expect(dut.io.control.syncInc.fWar, ctl.incFWar)
+    expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
+    expect(dut.io.aWarDec, ctl.decAWar)
+    expect(dut.io.fRawDec, ctl.decFRaw)
+    expect(dut.io.qRawDec, ctl.decQRaw)
+    expect(dut.io.tileAccepted, ctl.tileAccepted)
+    tileAccepted = ctl.tileAccepted
   }
 }
 
@@ -209,6 +263,8 @@ object F2aSequencerTests {
       dut => new F2aSequencerTestFRawZero(dut, tileHeight, tileWidth, amemSize, qmemSize, fmemSize))
     ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,fAddrWidth,qAddrWidth,aAddrWidth))(
       dut => new F2aSequencerTestQRawZero(dut, tileHeight, tileWidth, amemSize, qmemSize, fmemSize))
+    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,fAddrWidth,qAddrWidth,aAddrWidth))(
+      dut => new F2aSequencerTestTileValid(dut, tileHeight, tileWidth, amemSize, qmemSize, fmemSize))
     if (!ok && args.contains("noexit"))
       System.exit(1)
   }
