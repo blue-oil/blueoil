@@ -110,7 +110,7 @@ def run(experiment_id, restore_path, output_template_dir=None):
     """Convert from trained model."""
 
     # Export model
-    export_dir = run_export(experiment_id, restore_path=restore_path, image_size=[160, 160])
+    export_dir = run_export(experiment_id, restore_path=restore_path)
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")
