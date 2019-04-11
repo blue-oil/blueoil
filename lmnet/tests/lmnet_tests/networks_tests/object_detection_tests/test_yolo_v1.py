@@ -221,7 +221,7 @@ def test_convert_boxes_space_inverse():
         batch_size=1,
     )
 
-    with tf.Session() as sess:
+    with tf.InteractiveSession():
         boxes = np.array([
             [
                 [

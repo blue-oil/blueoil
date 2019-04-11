@@ -244,7 +244,7 @@ def test_offset_boxes():
         is_dynamic_image_size=True,
     )
 
-    with tf.Session() as sess:
+    with tf.InteractiveSession():
         offset_x, offset_y, offset_w, offset_h = model.offset_boxes()
 
         # import ipdb; ipdb.set_trace()
@@ -602,7 +602,7 @@ def test_calculate_truth_and_maskes():
     cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes =\
         model.loss_function._calculate_truth_and_maskes(gt_boxes_list, predict_boxes, is_training=False)
 
-    with tf.Session() as sess:
+    with tf.InteractiveSession():
         cell_gt_boxes_val = cell_gt_boxes.eval()
         object_maskes_val = object_maskes.eval()
         coordinate_maskes_val = coordinate_maskes.eval()
@@ -620,7 +620,7 @@ def test_convert_boxes_space_inverse():
         batch_size=1,
     )
 
-    with tf.Session() as sess:
+    with tf.InteractiveSession():
 
         # shape is  [batch_size, image_size[0]/32, image_size[1]/32, boxes_per_cell, 4(center_x, center_y, w, h)]
         boxes = np.array([
@@ -686,7 +686,7 @@ def test_reorg():
 
     outputs = model._reorg("reorg", inputs, stride=2, data_format="NHWC", use_space_to_depth=False)
 
-    with tf.Session() as sess:
+    with tf.InteractiveSession():
         outputs_np = outputs.eval()
 
         assert outputs_np.shape == (inputs_shape[0], inputs_shape[1]/2, inputs_shape[2]/2, inputs_shape[3]*2*2,)
@@ -733,7 +733,7 @@ def test_training():
 
 
 def test_yolov2_post_process():
-    with tf.Session() as sess:
+    with tf.InteractiveSession():
 
         image_size = [96, 64]
         batch_size = 2

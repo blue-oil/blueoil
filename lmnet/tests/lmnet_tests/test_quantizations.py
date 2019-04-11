@@ -61,7 +61,7 @@ def make_test_input(x_size=default_x_size, input_range=(-10., 10.)):
 
 
 def test_binary_channel_wise_mean_scaling_quantizer():
-    with tf.Session() as sess:
+    with tf.InteractiveSession():
 
         quantizer = binary_channel_wise_mean_scaling_quantizer()
 
@@ -89,7 +89,7 @@ def test_binary_channel_wise_mean_scaling_quantizer():
 
 
 def test_binary_mean_scaling_quantizer():
-    with tf.Session() as sess:
+    with tf.InteractiveSession():
 
         quantizer = binary_mean_scaling_quantizer()
 
@@ -116,7 +116,7 @@ def test_binary_mean_scaling_quantizer():
 @pytest.mark.parametrize("bit_size", [2, 3])
 @pytest.mark.parametrize("max_value", [1.0, 2.0])
 def test_linear_mid_tread_half_quantizer(bit_size, max_value):
-    with tf.Session() as sess:
+    with tf.InteractiveSession():
 
         quantizer = linear_mid_tread_half_quantizer(bit=bit_size, max_value=max_value)
 
@@ -151,7 +151,7 @@ def test_linear_mid_tread_half_quantizer(bit_size, max_value):
 
 @pytest.mark.parametrize("threshold", [0.3, 0.7])
 def test_twn_weight_quantizer(threshold):
-    with tf.Session() as sess:
+    with tf.InteractiveSession():
 
         quantizer = twn_weight_quantizer(threshold=threshold)
 
@@ -190,7 +190,7 @@ def test_twn_weight_quantizer(threshold):
 # TODO(wakisaka): Test positive, negative is not 1.0 case. current these init by 1.0.
 # TTP can't represent approximate forward.
 def test_ttq_weight_quantizer():
-    with tf.Session() as sess:
+    with tf.InteractiveSession() as sess:
         threshold = 0.005
 
         np_x = np.array([-5, -3, -0.0001, 0.0001, 5], dtype=np.float32)

@@ -512,7 +512,7 @@ def test_average_precision():
 
     average_precision = _calc_average_precision(precision, recall)
 
-    with tf.Session() as sess():
+    with tf.InteractiveSession():
         tf_average_precision = _average_precision(tf.convert_to_tensor(precision), tf.convert_to_tensor(recall))
 
         assert np.allclose(average_precision, tf_average_precision.eval())
