@@ -67,6 +67,16 @@ inline int pop_count(const QuantizedPacked<pack_type>& x) {
   return dlk::impl::pop_count(x.Raw());
 }
 
+template <typename T>
+struct Base {
+  using type = T;
+};
+
+template <typename T>
+struct Base<QuantizedPacked<T>> {
+  using type = T;
+};
+
 #if defined RUN_ON_FPGA
   typedef volatile T_INT16 BIN_CONV_OUTPUT;
 #else

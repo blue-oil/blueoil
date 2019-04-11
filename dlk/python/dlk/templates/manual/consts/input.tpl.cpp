@@ -46,8 +46,8 @@ Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {%- endfor %}
 };
 
-{{ node.dtype.cpptype() }} {{ node.name }}* = reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw);
-
 {% endif %}
+
+{{ node.dtype.cpptype() }}* {{ node.name }} = reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw);
 
 {%- endif %}
