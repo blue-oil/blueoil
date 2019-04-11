@@ -61,31 +61,31 @@ def make_test_input(x_size=default_x_size, input_range=(-10., 10.)):
 
 
 def test_binary_channel_wise_mean_scaling_quantizer():
-    with tf.InteractiveSession():
+    tf.InteractiveSession()
 
-        quantizer = binary_channel_wise_mean_scaling_quantizer()
+    quantizer = binary_channel_wise_mean_scaling_quantizer()
 
-        def forward_np(x):
-            expectation = np.mean(np.abs(np_x), axis=(0, 1, 2))
-            return np.sign(x) * expectation
+    def forward_np(x):
+        expectation = np.mean(np.abs(np_x), axis=(0, 1, 2))
+        return np.sign(x) * expectation
 
-        def approximate_forward_np(x):
-            return x
+    def approximate_forward_np(x):
+        return x
 
-        np_x, x = make_test_input()
-        grad_y = make_grad_y()
+    np_x, x = make_test_input()
+    grad_y = make_grad_y()
 
-        expected_y = forward_np(np_x)
-        expected_grad_x = grad_y * numerical_derivative(np_x, approximate_forward_np)
+    expected_y = forward_np(np_x)
+    expected_grad_x = grad_y * numerical_derivative(np_x, approximate_forward_np)
 
-        y = quantizer(x)
-        grad_x, = tf.gradients(y, x, grad_ys=grad_y)
+    y = quantizer(x)
+    grad_x, = tf.gradients(y, x, grad_ys=grad_y)
 
-        for split in np.split(y.eval(), 4, axis=3):
-            assert len(np.unique(split)) == 2
+    for split in np.split(y.eval(), 4, axis=3):
+        assert len(np.unique(split)) == 2
 
-        assert np.allclose(y.eval(), expected_y)
-        assert np.allclose(grad_x.eval(), expected_grad_x)
+    assert np.allclose(y.eval(), expected_y)
+    assert np.allclose(grad_x.eval(), expected_grad_x)
 
 
 def test_binary_mean_scaling_quantizer():
