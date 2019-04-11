@@ -102,7 +102,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
 
   when(~waitRequired) {
     when(idle) {
-      state := State.doingQRead
       controlWrite := true.B
       syncDecQRaw := true.B
     }.elsewhen(doingQRead) {
@@ -115,7 +114,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
     when(doingQRead) {
       syncDecFRaw := ~syncDecFRaw
       syncIncQWar := ~syncIncQWar
-      state := State.doingQuantize
     }
   }
   when(~waitRequired) {
@@ -123,12 +121,21 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
       syncDecAWar := true.B
 
       when(hCountLast) {
-        state := State.idle
         syncIncFWar := ~syncIncFWar
         syncIncARaw := ~syncIncARaw
       }
     }.elsewhen(doingQRead) {
       syncDecAWar := false.B
+    }
+  }
+
+  when(~waitRequired) {
+    when(idle) {
+      state := State.doingQRead
+    }.elsewhen(doingQRead) {
+      state := State.doingQuantize
+    }.elsewhen(doingQuantize & hCountLast) {
+      state := State.idle
     }
   }
 
