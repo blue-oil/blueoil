@@ -18,10 +18,10 @@ import functools
 import tensorflow as tf
 
 from lmnet.blocks import lmnet_block
-from lmnet.networks.segmentation.base import Base
+from lmnet.networks.segmentation.base import SegnetBase
 
 
-class LmSegnetV1(Base):
+class LmSegnetV1(SegnetBase):
     """LM original semantic segmentation network.
     This network is composed of 11 convolution layers with space_to_depth and depth_to_space."""
 
