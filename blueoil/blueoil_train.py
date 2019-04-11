@@ -14,9 +14,9 @@
 # limitations under the License.
 # =============================================================================
 import os
-import shutil
 
 import click
+from tensorflow import gfile
 
 from blueoil.generate_lmnet_config import generate
 from executor.train import run as run_train
@@ -38,10 +38,10 @@ def run(blueoil_config_file, experiment_id):
 
 
 def save_config_file(config_file, dest_dir):
-    if not os.path.exists(dest_dir):
-        os.mkdir(dest_dir)
+    if not gfile.Exists(dest_dir):
+        gfile.MkDir(dest_dir)
 
-    return shutil.copyfile(
+    return gfile.Copy(
         config_file,
         os.path.join(dest_dir, 'blueoil_config.yaml')
     )
