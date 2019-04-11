@@ -84,14 +84,20 @@ class F2aSequencerTestAWarZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
   for (ctl <- ref.controlSeq) {
-    if (ctl.start) {
+    step(1)
+    if (ctl.decAWar) {
+      expect(dut.io.control.syncInc.fWar, ctl.incFWar)
+      expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
       poke(dut.io.aWarZero, true)
       for (j <- 0 until waitDelay) {
+        expect(dut.io.aWarDec, ctl.decAWar)
         step(1)
+        // increments are single cycle pulse independent from back pressure
+        expect(dut.io.control.syncInc.fWar, false)
+        expect(dut.io.control.syncInc.aRaw, false)
       }
       poke(dut.io.aWarZero, false)
     }
-    step(1)
     expect(dut.io.writeEnable, ctl.aWriteEnable)
     if (ctl.aWriteEnable) {
       expect(dut.io.amemWriteAddr, ctl.aAddr)
@@ -102,8 +108,6 @@ class F2aSequencerTestAWarZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
     }
     expect(dut.io.qmemRead, ctl.qAddr)
     expect(dut.io.control.syncInc.qWar, ctl.incQWar)
-    expect(dut.io.control.syncInc.fWar, ctl.incFWar)
-    expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
     expect(dut.io.aWarDec, ctl.decAWar)
     expect(dut.io.fRawDec, ctl.decFRaw)
     expect(dut.io.qRawDec, ctl.decQRaw)
@@ -120,14 +124,17 @@ class F2aSequencerTestFRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
   for (ctl <- ref.controlSeq) {
-    if (ctl.start) {
+    step(1)
+    if (ctl.decFRaw) {
+      expect(dut.io.control.syncInc.qWar, ctl.incQWar)
       poke(dut.io.fRawZero, true)
       for (j <- 0 until waitDelay) {
         step(1)
+        // increments are single cycle pulse independent from back pressure
+        expect(dut.io.control.syncInc.qWar, false)
       }
       poke(dut.io.fRawZero, false)
     }
-    step(1)
     expect(dut.io.writeEnable, ctl.aWriteEnable)
     if (ctl.aWriteEnable) {
       expect(dut.io.amemWriteAddr, ctl.aAddr)
@@ -137,7 +144,6 @@ class F2aSequencerTestFRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
       expect(dut.io.fmemRead, ctl.fAddr)
     }
     expect(dut.io.qmemRead, ctl.qAddr)
-    expect(dut.io.control.syncInc.qWar, ctl.incQWar)
     expect(dut.io.control.syncInc.fWar, ctl.incFWar)
     expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
     expect(dut.io.aWarDec, ctl.decAWar)
@@ -156,14 +162,14 @@ class F2aSequencerTestQRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
   for (ctl <- ref.controlSeq) {
-    if (ctl.start) {
+    step(1)
+    if (ctl.decQRaw) {
       poke(dut.io.qRawZero, true)
       for (j <- 0 until waitDelay) {
         step(1)
       }
       poke(dut.io.qRawZero, false)
     }
-    step(1)
     expect(dut.io.writeEnable, ctl.aWriteEnable)
     if (ctl.aWriteEnable) {
       expect(dut.io.amemWriteAddr, ctl.aAddr)
