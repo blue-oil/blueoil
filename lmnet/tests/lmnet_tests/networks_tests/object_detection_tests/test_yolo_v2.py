@@ -244,29 +244,27 @@ def test_offset_boxes():
         is_dynamic_image_size=True,
     )
 
-    sess = tf.InteractiveSession()
-    offset_x, offset_y, offset_w, offset_h = model.offset_boxes()
+    with tf.Session() as sess:
+        offset_x, offset_y, offset_w, offset_h = model.offset_boxes()
 
-    # import ipdb; ipdb.set_trace()
-    assert np.all(offset_x.eval() == expected_x)
-    assert np.all(offset_x.eval()[:, :, 0, :] == 0)
-    assert np.all(offset_x.eval()[:, :, 1, :] == 1)
-    assert np.all(offset_x.eval()[:, :, 2, :] == 2)
+        # import ipdb; ipdb.set_trace()
+        assert np.all(offset_x.eval() == expected_x)
+        assert np.all(offset_x.eval()[:, :, 0, :] == 0)
+        assert np.all(offset_x.eval()[:, :, 1, :] == 1)
+        assert np.all(offset_x.eval()[:, :, 2, :] == 2)
 
-    assert np.all(offset_y.eval() == expected_y)
-    assert np.all(offset_y.eval()[:, 0, :, :] == 0)
-    assert np.all(offset_y.eval()[:, 1, :, :] == 1)
-    assert np.all(offset_y.eval()[:, 2, :, :] == 2)
+        assert np.all(offset_y.eval() == expected_y)
+        assert np.all(offset_y.eval()[:, 0, :, :] == 0)
+        assert np.all(offset_y.eval()[:, 1, :, :] == 1)
+        assert np.all(offset_y.eval()[:, 2, :, :] == 2)
 
-    assert np.all(offset_w.eval() == expected_w)
-    assert np.all(offset_w.eval()[:, :, :, 0] == anchors[0][0])
-    assert np.all(offset_w.eval()[:, :, :, 1] == anchors[1][0])
+        assert np.all(offset_w.eval() == expected_w)
+        assert np.all(offset_w.eval()[:, :, :, 0] == anchors[0][0])
+        assert np.all(offset_w.eval()[:, :, :, 1] == anchors[1][0])
 
-    assert np.all(offset_h.eval() == expected_h)
-    assert np.all(offset_h.eval()[:, :, :, 0] == anchors[0][1])
-    assert np.all(offset_h.eval()[:, :, :, 1] == anchors[1][1])
-
-    sess.close()
+        assert np.all(offset_h.eval() == expected_h)
+        assert np.all(offset_h.eval()[:, :, :, 0] == anchors[0][1])
+        assert np.all(offset_h.eval()[:, :, :, 1] == anchors[1][1])
 
 
 def test_calculate_truth_and_maskes():
@@ -604,16 +602,14 @@ def test_calculate_truth_and_maskes():
     cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes =\
         model.loss_function._calculate_truth_and_maskes(gt_boxes_list, predict_boxes, is_training=False)
 
-    sess = tf.InteractiveSession()
-    cell_gt_boxes_val = cell_gt_boxes.eval()
-    object_maskes_val = object_maskes.eval()
-    coordinate_maskes_val = coordinate_maskes.eval()
+    with tf.Session() as sess:
+        cell_gt_boxes_val = cell_gt_boxes.eval()
+        object_maskes_val = object_maskes.eval()
+        coordinate_maskes_val = coordinate_maskes.eval()
 
-    assert np.all(cell_gt_boxes_val == expected_cell_gt_boxes)
-    assert np.all(object_maskes_val == expected_object_maskes)
-    assert np.all(coordinate_maskes_val == expected_object_maskes)
-
-    sess.close()
+        assert np.all(cell_gt_boxes_val == expected_cell_gt_boxes)
+        assert np.all(object_maskes_val == expected_object_maskes)
+        assert np.all(coordinate_maskes_val == expected_object_maskes)
 
 
 def test_convert_boxes_space_inverse():
@@ -624,56 +620,54 @@ def test_convert_boxes_space_inverse():
         batch_size=1,
     )
 
-    sess = tf.InteractiveSession()
+    with tf.Session() as sess:
 
-    # shape is  [batch_size, image_size[0]/32, image_size[1]/32, boxes_per_cell, 4(center_x, center_y, w, h)]
-    boxes = np.array([
-        [
+        # shape is  [batch_size, image_size[0]/32, image_size[1]/32, boxes_per_cell, 4(center_x, center_y, w, h)]
+        boxes = np.array([
             [
                 [
-                    [10, 20, 5, 8, ],
-                ],
-                [
-                    [5, 10, 40, 20, ],
-                ],
-                [
-                    [90, 32, 2, 10],
-                ],
+                    [
+                        [10, 20, 5, 8, ],
+                    ],
+                    [
+                        [5, 10, 40, 20, ],
+                    ],
+                    [
+                        [90, 32, 2, 10],
+                    ],
 
+                ],
+                [
+                    [
+                        [1, 2, 30, 38, ],
+                    ],
+                    [
+                        [20, 40, 4, 4, ],
+                    ],
+                    [
+                        [90, 32, 2, 10],
+                    ],
+                ],
             ],
-            [
-                [
-                    [1, 2, 30, 38, ],
-                ],
-                [
-                    [20, 40, 4, 4, ],
-                ],
-                [
-                    [90, 32, 2, 10],
-                ],
-            ],
-        ],
-    ])
+        ])
 
-    boxes_tensor = tf.convert_to_tensor(boxes, dtype=tf.float32)
+        boxes_tensor = tf.convert_to_tensor(boxes, dtype=tf.float32)
 
-    yolo_boxes = model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
+        yolo_boxes = model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
 
-    # real -> yolo -> real
-    reversed_boxes = model.convert_boxes_space_from_yolo_to_real(
-        model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
-    )
+        # real -> yolo -> real
+        reversed_boxes = model.convert_boxes_space_from_yolo_to_real(
+            model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
+        )
 
-    assert np.allclose(reversed_boxes.eval(), boxes)
+        assert np.allclose(reversed_boxes.eval(), boxes)
 
-    # yolo -> real -> yolo
-    yolo_boxes = model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
-    reversed_boxes = model.convert_boxes_space_from_real_to_yolo(
-        model.convert_boxes_space_from_yolo_to_real(yolo_boxes)
-    )
-    assert np.allclose(reversed_boxes.eval(), yolo_boxes.eval())
-
-    sess.close()
+        # yolo -> real -> yolo
+        yolo_boxes = model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
+        reversed_boxes = model.convert_boxes_space_from_real_to_yolo(
+            model.convert_boxes_space_from_yolo_to_real(yolo_boxes)
+        )
+        assert np.allclose(reversed_boxes.eval(), yolo_boxes.eval())
 
 
 def test_reorg():
@@ -692,17 +686,14 @@ def test_reorg():
 
     outputs = model._reorg("reorg", inputs, stride=2, data_format="NHWC", use_space_to_depth=False)
 
-    sess = tf.InteractiveSession()
+    with tf.Session() as sess:
+        outputs_np = outputs.eval()
 
-    outputs_np = outputs.eval()
+        assert outputs_np.shape == (inputs_shape[0], inputs_shape[1]/2, inputs_shape[2]/2, inputs_shape[3]*2*2,)
 
-    assert outputs_np.shape == (inputs_shape[0], inputs_shape[1]/2, inputs_shape[2]/2, inputs_shape[3]*2*2,)
+        outputs2 = model._reorg("reorg", inputs, stride=2, data_format="NHWC", use_space_to_depth=True)
 
-    outputs2 = model._reorg("reorg", inputs, stride=2, data_format="NHWC", use_space_to_depth=True)
-
-    assert np.all(outputs_np == outputs2.eval())
-
-    sess.close()
+        assert np.all(outputs_np == outputs2.eval())
 
 
 def test_training():
@@ -742,52 +733,50 @@ def test_training():
 
 
 def test_yolov2_post_process():
-    sess = tf.InteractiveSession()
+    with tf.Session() as sess:
 
-    image_size = [96, 64]
-    batch_size = 2
-    classes = range(5)
-    anchors = [(0.1, 0.2), (1.2, 1.1)]
-    data_format = "NCHW"
-    score_threshold = 0.25
-    nms_iou_threshold = 0.5
+        image_size = [96, 64]
+        batch_size = 2
+        classes = range(5)
+        anchors = [(0.1, 0.2), (1.2, 1.1)]
+        data_format = "NCHW"
+        score_threshold = 0.25
+        nms_iou_threshold = 0.5
 
-    model = YoloV2(
-        image_size=image_size,
-        batch_size=batch_size,
-        classes=classes,
-        anchors=anchors,
-        data_format=data_format,
-        score_threshold=score_threshold,
-        nms_iou_threshold=nms_iou_threshold,
-    )
-
-    post_process = Sequence([
-        FormatYoloV2(
+        model = YoloV2(
             image_size=image_size,
+            batch_size=batch_size,
             classes=classes,
             anchors=anchors,
             data_format=data_format,
-        ),
-        ExcludeLowScoreBox(threshold=score_threshold),
-        NMS(
-            iou_threshold=nms_iou_threshold,
-            classes=classes,
-        ),
-    ])
+            score_threshold=score_threshold,
+            nms_iou_threshold=nms_iou_threshold,
+        )
 
-    shape = (batch_size, len(anchors) * (len(classes) + 5), image_size[0]//32, image_size[1]//32)
-    np_output = np.random.uniform(-2., 2., size=shape).astype(np.float32)
-    output = tf.constant(np_output)
+        post_process = Sequence([
+            FormatYoloV2(
+                image_size=image_size,
+                classes=classes,
+                anchors=anchors,
+                data_format=data_format,
+            ),
+            ExcludeLowScoreBox(threshold=score_threshold),
+            NMS(
+                iou_threshold=nms_iou_threshold,
+                classes=classes,
+            ),
+        ])
 
-    ys = model.post_process(output)
+        shape = (batch_size, len(anchors) * (len(classes) + 5), image_size[0]//32, image_size[1]//32)
+        np_output = np.random.uniform(-2., 2., size=shape).astype(np.float32)
+        output = tf.constant(np_output)
 
-    expected_ys = post_process(outputs=np_output)["outputs"]
+        ys = model.post_process(output)
 
-    for y, expected_y in zip(ys, expected_ys):
-        assert np.allclose(y.eval(), expected_y), (y.eval(), expected_y)
+        expected_ys = post_process(outputs=np_output)["outputs"]
 
-    sess.close()
+        for y, expected_y in zip(ys, expected_ys):
+            assert np.allclose(y.eval(), expected_y), (y.eval(), expected_y)
 
 
 if __name__ == '__main__':

@@ -1948,7 +1948,6 @@ class Relu(Operator):
 class LeakyRelu(Operator):
     """Leaky relu class.
 
-
     Leaky_relu takes one input data (Tensor) and produces one output data (Tensor)
     where the function, y = max(input * alpha, input), is applied to the tensor elementwise.
 
