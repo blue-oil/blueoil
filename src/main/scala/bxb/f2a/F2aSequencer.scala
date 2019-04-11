@@ -45,7 +45,7 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
   val syncIncQWar = RegInit(false.B)
   val syncDecAWar = RegInit(false.B)
 
-  val waitRequired = (io.fRawZero | io.qRawZero | io.aWarZero)
+  val waitRequired = ((doingQRead & io.qRawZero) | (syncDecFRaw & io.fRawZero) | (syncDecAWar & io.aWarZero))
 
   val wCountLeft = Reg(UInt(fAddrWidth.W))
   val wCountLast = (wCountLeft === 1.U)
