@@ -81,16 +81,17 @@ def add_class_label(canvas,
 
 
 def label_to_color_image(results, colormap):
-    """Adds color defined by the dataset colormap to the label.
+    """Adds color defined by the colormap to the label.
 
     Args:
-        results: A 2D array with integer type, storing the segmentation label.
-        length: Single value with int type. The number of classes.
+        results: A 2D array with float type, storing the segmentation label.
+        colormap: An ndarray with integer type. The number of classes with
+        respective colour label.
 
     Returns:
-        result: A 2D array with floating type. The element of the array
-            is the color indexed by the corresponding element in the input label
-            to the PASCAL color map.
+        A 2D array with integer type. The element of the array
+        is the color indexed by the corresponding element in the input label
+        to the CamVid color map.
 
     Raises:
         ValueError: If label is not of rank 2 or its value is larger than color
