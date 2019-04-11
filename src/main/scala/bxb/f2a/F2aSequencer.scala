@@ -120,7 +120,7 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
   }
 
 
-  io.writeEnable := syncDecAWar
+  io.writeEnable := doingQuantize
 
   val ffQInc = RegNext(~syncIncQWar)
   val ffFInc = RegNext(~syncIncFWar)

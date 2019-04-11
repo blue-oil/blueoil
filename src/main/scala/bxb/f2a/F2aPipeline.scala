@@ -16,6 +16,7 @@ class F2aPipeline(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, addrWidth: Int)
   })
   val quantizer = Module(new QuantizePipeline(b, fWidth, aWidth))
   val addrBuf = RegNext(io.amemWriteAddr)
+  val writeEnableBuf = RegNext(io.writeEnable, init=false.B)
 
   quantizer.io.control := io.control
   quantizer.io.fMemQ   := io.fMemQ  
@@ -23,6 +24,6 @@ class F2aPipeline(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, addrWidth: Int)
   for (col <- 0 until b) {
     io.amemWrite(col).data := quantizer.io.aOut(col)
     io.amemWrite(col).addr := addrBuf
-    io.amemWrite(col).enable := io.writeEnable
+    io.amemWrite(col).enable := writeEnableBuf
   }
 }
