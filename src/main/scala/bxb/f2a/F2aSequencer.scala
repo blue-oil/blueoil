@@ -25,7 +25,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
     val wCount = Input(UInt(fAddrWidth.W))
 
     val fOffset = Input(UInt(fAddrWidth.W))
-    val qOffset = Input(UInt(qAddrWidth.W))
     val aOffset = Input(UInt(aAddrWidth.W))
 
     val fmemRead = Output(UInt(fAddrWidth.W))
@@ -71,10 +70,16 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
   }
 
   val fAddr = RegInit(UInt(fAddrWidth.W), io.fOffset)
-  val qAddr = RegInit(UInt(qAddrWidth.W), io.qOffset)
   val aAddr = RegInit(UInt(aAddrWidth.W), io.aOffset)
 
   val controlWrite = RegInit(false.B)
+
+  val qAddr = RegInit(0.U(qAddrWidth.W))
+  when(~waitRequired) {
+    when(doingQuantize & hCountLast) {
+      qAddr := qAddr + 1.U
+    }
+  }
 
   when(~waitRequired) {
     when(idle) {
@@ -83,7 +88,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
       syncDecQRaw := true.B
 
       fAddr := io.fOffset
-      qAddr := io.qOffset
       aAddr := io.aOffset
     }.elsewhen(doingQRead) {
       controlWrite := false.B

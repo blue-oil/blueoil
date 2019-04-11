@@ -65,7 +65,6 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
     val tileHeight = Input(UInt(fWidth.W))
     val tileWidth = Input(UInt(fWidth.W))
     val aOffset = Input(UInt(addrWidth.W))
-    val qOffset = Input(UInt(addrWidth.W))
     val fOffset = Input(UInt(addrWidth.W))
     // Sequencer Sync interface
     val fRawZero = Input(Bool())
@@ -79,7 +78,6 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
   f2aSequencer.io.hCount := io.tileHeight
   f2aSequencer.io.wCount := io.tileWidth
   f2aSequencer.io.aOffset := io.aOffset
-  f2aSequencer.io.qOffset := io.qOffset
   f2aSequencer.io.fOffset := io.fOffset
   f2aSequencer.io.aWarZero := io.aWarZero
   f2aSequencer.io.fRawZero := io.fRawZero
