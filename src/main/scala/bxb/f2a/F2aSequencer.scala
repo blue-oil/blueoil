@@ -30,12 +30,14 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
     val amemWriteAddr = Output(UInt(aAddrWidth.W))
   })
   object State {
-    val idle :: doingQuantize :: doingQRead :: acknowledge :: Nil = Enum(4)
+    val idle :: doingQRead :: quantizeFirst :: quantizeRest :: acknowledge :: Nil = Enum(5)
   }
 
   val state = RegInit(State.idle)
   val idle = (state === State.idle)
-  val doingQuantize = (state === State.doingQuantize)
+  val quantizeFirst = (state === State.quantizeFirst)
+  val quantizeRest = (state === State.quantizeRest)
+  val doingQuantize = (quantizeFirst | quantizeRest)
   val doingQRead = (state === State.doingQRead)
   val acknowledge = (state === State.acknowledge)
 
@@ -108,10 +110,9 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
     }
   }
   when(~waitRequired) {
-    when(doingQuantize) {
+    syncDecAWar := false.B
+    when(quantizeFirst) {
       syncDecAWar := true.B
-    }.elsewhen(doingQRead) {
-      syncDecAWar := false.B
     }
   }
 
@@ -119,9 +120,11 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
     when(idle) {
       state := State.doingQRead
     }.elsewhen(doingQRead) {
-      state := State.doingQuantize
-    }.elsewhen(doingQuantize & hCountLast) {
+      state := State.quantizeFirst
+    }.elsewhen((quantizeFirst | quantizeRest) & hCountLast) {
       state := State.acknowledge
+    }.elsewhen(quantizeFirst) {
+      state := State.quantizeRest
     }.elsewhen(acknowledge) {
       state := State.idle
     }
@@ -134,8 +137,7 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
   io.control.syncInc.fWar := acknowledge
   io.control.syncInc.aRaw := acknowledge
 
-  val ffADec = RegNext(~syncDecAWar)
-  io.aWarDec := syncDecAWar && ffADec
+  io.aWarDec := syncDecAWar
   io.qRawDec := doingQRead
   io.fRawDec := syncDecFRaw
 
