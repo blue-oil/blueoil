@@ -64,6 +64,8 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
     // Sequencer interface
     val tileHeight = Input(UInt(fWidth.W))
     val tileWidth = Input(UInt(fWidth.W))
+    val tileValid = Input(Bool())
+
     // Sequencer Sync interface
     val fRawZero = Input(Bool())
     val qRawZero = Input(Bool())
@@ -75,6 +77,7 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
   val f2aSequencer = Module(new F2aSequencer(b, fWidth, qWidth, aWidth, addrWidth, addrWidth, addrWidth))
   f2aSequencer.io.hCount := io.tileHeight
   f2aSequencer.io.wCount := io.tileWidth
+  f2aSequencer.io.tileValid := io.tileValid
   f2aSequencer.io.aWarZero := io.aWarZero
   f2aSequencer.io.fRawZero := io.fRawZero
   f2aSequencer.io.qRawZero := io.qRawZero
@@ -134,6 +137,7 @@ class F2aPipelineQuantizeTests(dut: TestF2aQuantizeModule, b: Int, tileHeight: I
   poke(dut.io.fRawZero, false)
   poke(dut.io.qRawZero, false)
   poke(dut.io.aWarZero, false)
+  poke(dut.io.tileValid, true)
 
   loadDataToQmem()
   loadDataToFmem()
