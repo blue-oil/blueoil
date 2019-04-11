@@ -41,7 +41,7 @@ class QuantizedPacked {
   QuantizedPacked() = default;
   explicit QuantizedPacked(const T val) : val(val) {}
   explicit operator base_t() const { return val; }
-  template <typename U, std::enable_if_t<std::is_same<std::remove_cv<T>, std::remove_cv<U>>::value, int> = 0>
+  template <typename U, std::enable_if_t<std::is_same<std::remove_cv_t<T>, std::remove_cv_t<U>>::value, int> = 0>
   QuantizedPacked<T>& operator|=(const QuantizedPacked<U>& that) {
     val |= that.val;
     return *this;
@@ -58,7 +58,7 @@ class QuantizedPacked {
 #endif
 using QUANTIZED_PACKED_KERNEL = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
 template <typename T1, typename T2,
-    std::enable_if_t<std::is_same<std::remove_cv_t<T1>, std::remove_cv<T2>>::value, int> = 0>
+    std::enable_if_t<std::is_same<std::remove_cv_t<T1>, std::remove_cv_t<T2>>::value, int> = 0>
 inline auto operator^(const QuantizedPacked<T1>& lhs, const QuantizedPacked<T2>& rhs) {
   using packed_t = QuantizedPacked<std::remove_cv_t<T1>>;
   return packed_t(lhs.Raw() ^ rhs.Raw());
