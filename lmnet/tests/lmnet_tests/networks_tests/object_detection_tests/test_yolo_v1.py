@@ -221,46 +221,45 @@ def test_convert_boxes_space_inverse():
         batch_size=1,
     )
 
-    with tf.InteractiveSession():
-        boxes = np.array([
+    tf.InteractiveSession()
+    boxes = np.array([
+        [
             [
                 [
-                    [
-                        [100, 200, 50, 80, ],
-                    ],
-                    [
-                        [50, 100, 400, 200, ],
-                    ],
-
+                    [100, 200, 50, 80, ],
                 ],
                 [
-                    [
-                        [10, 20, 300, 380, ],
-                    ],
-                    [
-                        [200, 400, 40, 44, ],
-                    ],
+                    [50, 100, 400, 200, ],
                 ],
             ],
-        ])
+            [
+                [
+                    [10, 20, 300, 380, ],
+                ],
+                [
+                    [200, 400, 40, 44, ],
+                ],
+            ],
+        ],
+    ])
 
-        boxes_tensor = tf.convert_to_tensor(boxes, dtype=tf.float32)
+    boxes_tensor = tf.convert_to_tensor(boxes, dtype=tf.float32)
 
-        yolo_boxes = model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
+    yolo_boxes = model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
 
-        # real -> yolo -> real
-        reversed_boxes = model.convert_boxes_space_from_yolo_to_real(
-            model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
-        )
+    # real -> yolo -> real
+    reversed_boxes = model.convert_boxes_space_from_yolo_to_real(
+        model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
+    )
 
-        assert np.allclose(reversed_boxes.eval(), boxes)
+    assert np.allclose(reversed_boxes.eval(), boxes)
 
-        # yolo -> real -> yolo
-        yolo_boxes = model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
-        reversed_boxes = model.convert_boxes_space_from_real_to_yolo(
-            model.convert_boxes_space_from_yolo_to_real(yolo_boxes)
-        )
-        assert np.allclose(reversed_boxes.eval(), yolo_boxes.eval())
+    # yolo -> real -> yolo
+    yolo_boxes = model.convert_boxes_space_from_real_to_yolo(boxes_tensor)
+    reversed_boxes = model.convert_boxes_space_from_real_to_yolo(
+        model.convert_boxes_space_from_yolo_to_real(yolo_boxes)
+    )
+    assert np.allclose(reversed_boxes.eval(), yolo_boxes.eval())
 
 
 def test_training():

@@ -89,132 +89,132 @@ def test_binary_channel_wise_mean_scaling_quantizer():
 
 
 def test_binary_mean_scaling_quantizer():
-    with tf.InteractiveSession():
+    tf.InteractiveSession()
 
-        quantizer = binary_mean_scaling_quantizer()
+    quantizer = binary_mean_scaling_quantizer()
 
-        def forward_np(x):
-            expectation = np.mean(np.abs(np_x))
-            return np.sign(x / expectation) * expectation
+    def forward_np(x):
+        expectation = np.mean(np.abs(np_x))
+        return np.sign(x / expectation) * expectation
 
-        def approximate_forward_np(x):
-            return x
+    def approximate_forward_np(x):
+        return x
 
-        np_x, x = make_test_input()
-        grad_y = make_grad_y()
+    np_x, x = make_test_input()
+    grad_y = make_grad_y()
 
-        expected_y = forward_np(np_x)
-        expected_grad_x = grad_y * numerical_derivative(np_x, approximate_forward_np)
+    expected_y = forward_np(np_x)
+    expected_grad_x = grad_y * numerical_derivative(np_x, approximate_forward_np)
 
-        y = quantizer(x)
-        grad_x, = tf.gradients(y, x, grad_ys=grad_y)
+    y = quantizer(x)
+    grad_x, = tf.gradients(y, x, grad_ys=grad_y)
 
-        assert np.allclose(y.eval(), expected_y)
-        assert np.allclose(grad_x.eval(), expected_grad_x)
+    assert np.allclose(y.eval(), expected_y)
+    assert np.allclose(grad_x.eval(), expected_grad_x)
 
 
 @pytest.mark.parametrize("bit_size", [2, 3])
 @pytest.mark.parametrize("max_value", [1.0, 2.0])
 def test_linear_mid_tread_half_quantizer(bit_size, max_value):
-    with tf.InteractiveSession():
+    tf.InteractiveSession()
 
-        quantizer = linear_mid_tread_half_quantizer(bit=bit_size, max_value=max_value)
+    quantizer = linear_mid_tread_half_quantizer(bit=bit_size, max_value=max_value)
 
-        min_value = 0.0
+    min_value = 0.0
 
-        def forward_np(x):
-            n = float(2 ** bit_size - 1)
-            value_range = max_value - min_value
+    def forward_np(x):
+        n = float(2 ** bit_size - 1)
+        value_range = max_value - min_value
 
-            x = np.clip(x, min_value, max_value)
-            shifted = (x - min_value) / value_range
-            quantized = np.round(shifted * n) / n
-            unshifted = quantized * value_range + min_value
-            return unshifted
+        x = np.clip(x, min_value, max_value)
+        shifted = (x - min_value) / value_range
+        quantized = np.round(shifted * n) / n
+        unshifted = quantized * value_range + min_value
+        return unshifted
 
-        def approximate_forward_np(x):
-            any_const = 1
-            return np.where((x < max_value) & (x > min_value), x, any_const)
+    def approximate_forward_np(x):
+        any_const = 1
+        return np.where((x < max_value) & (x > min_value), x, any_const)
 
-        np_x, x = make_test_input()
-        grad_y = make_grad_y()
+    np_x, x = make_test_input()
+    grad_y = make_grad_y()
 
-        expected_y = forward_np(np_x)
-        expected_grad_x = grad_y * numerical_derivative(np_x, approximate_forward_np)
+    expected_y = forward_np(np_x)
+    expected_grad_x = grad_y * numerical_derivative(np_x, approximate_forward_np)
 
-        y = quantizer(x)
-        grad_x, = tf.gradients(y, x, grad_ys=grad_y)
+    y = quantizer(x)
+    grad_x, = tf.gradients(y, x, grad_ys=grad_y)
 
-        assert np.allclose(y.eval(), expected_y)
-        assert np.allclose(grad_x.eval(), expected_grad_x)
+    assert np.allclose(y.eval(), expected_y)
+    assert np.allclose(grad_x.eval(), expected_grad_x)
 
 
 @pytest.mark.parametrize("threshold", [0.3, 0.7])
 def test_twn_weight_quantizer(threshold):
-    with tf.InteractiveSession():
+    tf.InteractiveSession()
 
-        quantizer = twn_weight_quantizer(threshold=threshold)
+    quantizer = twn_weight_quantizer(threshold=threshold)
 
-        def forward_np(weights):
-            ternary_threshold = np.sum(np.abs(weights)) * threshold / np.size(weights)
-            mask_positive = (weights > ternary_threshold)
-            mask_negative = (weights < -ternary_threshold)
-            mask_p_or_n = mask_positive | mask_negative
+    def forward_np(weights):
+        ternary_threshold = np.sum(np.abs(weights)) * threshold / np.size(weights)
+        mask_positive = (weights > ternary_threshold)
+        mask_negative = (weights < -ternary_threshold)
+        mask_p_or_n = mask_positive | mask_negative
 
-            p_or_n_weights = np.where(mask_p_or_n, weights, np.zeros_like(weights))
-            scaling_factor = np.sum(np.abs(p_or_n_weights)) / np.sum(mask_p_or_n)
+        p_or_n_weights = np.where(mask_p_or_n, weights, np.zeros_like(weights))
+        scaling_factor = np.sum(np.abs(p_or_n_weights)) / np.sum(mask_p_or_n)
 
-            positive_weights = scaling_factor * np.where(mask_positive, np.ones_like(weights), np.zeros_like(weights))
-            negative_weights = - scaling_factor * np.where(mask_negative, np.ones_like(weights), np.zeros_like(weights))
+        positive_weights = scaling_factor * np.where(mask_positive, np.ones_like(weights), np.zeros_like(weights))
+        negative_weights = - scaling_factor * np.where(mask_negative, np.ones_like(weights), np.zeros_like(weights))
 
-            quantized = positive_weights + negative_weights
+        quantized = positive_weights + negative_weights
 
-            return quantized
+        return quantized
 
-        def approximate_forward_np(weights):
-            return weights
+    def approximate_forward_np(weights):
+        return weights
 
-        np_x, x = make_test_input()
-        grad_y = make_grad_y()
+    np_x, x = make_test_input()
+    grad_y = make_grad_y()
 
-        expected_y = forward_np(np_x)
-        expected_grad_x = grad_y * numerical_derivative(np_x, approximate_forward_np)
+    expected_y = forward_np(np_x)
+    expected_grad_x = grad_y * numerical_derivative(np_x, approximate_forward_np)
 
-        y = quantizer(x)
-        grad_x, = tf.gradients(y, x, grad_ys=grad_y)
+    y = quantizer(x)
+    grad_x, = tf.gradients(y, x, grad_ys=grad_y)
 
-        assert np.allclose(y.eval(), expected_y)
-        assert np.allclose(grad_x.eval(), expected_grad_x)
+    assert np.allclose(y.eval(), expected_y)
+    assert np.allclose(grad_x.eval(), expected_grad_x)
 
 
 # TODO(wakisaka): Test positive, negative is not 1.0 case. current these init by 1.0.
 # TTP can't represent approximate forward.
 def test_ttq_weight_quantizer():
-    with tf.InteractiveSession() as sess:
-        threshold = 0.005
+    sess = tf.InteractiveSession()
+    threshold = 0.005
 
-        np_x = np.array([-5, -3, -0.0001, 0.0001, 5], dtype=np.float32)
-        x = tf.convert_to_tensor(np_x)
-        grad_y = tf.convert_to_tensor(np.array([1, 2, 3, 4, 5], dtype=np.float32))
+    np_x = np.array([-5, -3, -0.0001, 0.0001, 5], dtype=np.float32)
+    x = tf.convert_to_tensor(np_x)
+    grad_y = tf.convert_to_tensor(np.array([1, 2, 3, 4, 5], dtype=np.float32))
 
-        expected_y = np.array([-1, -1, 0, 0, 1], dtype=np.float32)
-        expected_grad_x = np.array([1, 2, 3, 4, 5], dtype=np.float32)
-        expected_grad_p = 5
-        expected_grad_n = 1 + 2
+    expected_y = np.array([-1, -1, 0, 0, 1], dtype=np.float32)
+    expected_grad_x = np.array([1, 2, 3, 4, 5], dtype=np.float32)
+    expected_grad_p = 5
+    expected_grad_n = 1 + 2
 
-        weight_quantizer = ttq_weight_quantizer(threshold)
-        y = weight_quantizer(x)
+    weight_quantizer = ttq_weight_quantizer(threshold)
+    y = weight_quantizer(x)
 
-        positive = tf.get_collection(tf.GraphKeys.VARIABLES, "positive")[0]
-        negative = tf.get_collection(tf.GraphKeys.VARIABLES, "negative")[0]
-        grad_x, grad_p, grad_n = tf.gradients(y, [x, positive, negative], grad_ys=grad_y)
+    positive = tf.get_collection(tf.GraphKeys.VARIABLES, "positive")[0]
+    negative = tf.get_collection(tf.GraphKeys.VARIABLES, "negative")[0]
+    grad_x, grad_p, grad_n = tf.gradients(y, [x, positive, negative], grad_ys=grad_y)
 
-        sess.run(tf.global_variables_initializer())
+    sess.run(tf.global_variables_initializer())
 
-        assert np.allclose(y.eval(), expected_y)
-        assert np.allclose(grad_x.eval(), expected_grad_x)
-        assert np.allclose(grad_p.eval(), expected_grad_p)
-        assert np.allclose(grad_n.eval(), expected_grad_n)
+    assert np.allclose(y.eval(), expected_y)
+    assert np.allclose(grad_x.eval(), expected_grad_x)
+    assert np.allclose(grad_p.eval(), expected_grad_p)
+    assert np.allclose(grad_n.eval(), expected_grad_n)
 
 
 if __name__ == '__main__':
