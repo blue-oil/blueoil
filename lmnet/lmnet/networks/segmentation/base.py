@@ -60,43 +60,6 @@ class Base(BaseNetwork):
         base = self.base(images, is_training)
         return tf.identity(base, name="output")
 
-    def loss(self, output, labels):
-        """Loss
-
-        Args:
-           output: Tensor of network output. shape is (batch_size, output_height, output_width, num_classes).
-           labels: Tensor of grayscale imnage gt labels. shape is (batch_size, height, width).
-        """
-        if self.data_format == 'NCHW':
-            output = tf.transpose(output, perm=[0, 2, 3, 1])
-        with tf.name_scope("loss"):
-            # calculate loss weights for each batch.
-            loss_weight = []
-            all_size = tf.to_float(tf.reduce_prod(tf.shape(labels)))
-            for class_index in range(self.num_classes):
-                num_label = tf.reduce_sum(tf.to_float(tf.equal(labels, class_index)))
-                weight = (all_size - num_label) / all_size
-                # TODO(wakisaka): 3 is masic number. ratio setting
-                # weight = weight ** 3
-                loss_weight.append(weight)
-
-            loss_weight = tf.Print(loss_weight, loss_weight, message="loss_weight:")
-
-            reshape_output = tf.reshape(output, (-1, self.num_classes))
-
-            label_flat = tf.reshape(labels, (-1, 1))
-            labels = tf.reshape(tf.one_hot(label_flat, depth=self.num_classes), (-1, self.num_classes))
-            softmax = tf.nn.softmax(reshape_output)
-
-            cross_entropy = -tf.reduce_sum(
-                (labels * tf.log(tf.clip_by_value(softmax, 1e-10, 1.0))) * loss_weight,
-                axis=[1]
-            )
-
-            cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
-            tf.summary.scalar("loss", cross_entropy_mean)
-            return cross_entropy_mean
-
     def _color_labels(self, images, name=""):
         with tf.name_scope(name):
             results = []
@@ -175,3 +138,78 @@ class Base(BaseNetwork):
             updates_op = tf.group(*updates)
 
             return results, updates_op
+
+
+class SegnetBase(Base):
+    """Base network class for LMSegnetV0 and LMSegnetV1.
+
+    In loss function, multiply the ratio of the class frequency on the batch.
+    The ratio is difference from `median  frequency  balancing` described in [SegNet](https://arxiv.org/pdf/1511.00561.pdf).
+    """ # NOQA
+
+    def __init__(
+            self,
+            weight_decay_rate=None,
+            *args,
+            **kwargs
+    ):
+        super().__init__(
+            *args,
+            **kwargs,
+        )
+
+        self.weight_decay_rate = weight_decay_rate
+
+    def loss(self, output, labels):
+        """Loss
+
+        Args:
+           output: Tensor of network output. shape is (batch_size, output_height, output_width, num_classes).
+           labels: Tensor of grayscale imnage gt labels. shape is (batch_size, height, width).
+        """
+        if self.data_format == 'NCHW':
+            output = tf.transpose(output, perm=[0, 2, 3, 1])
+        with tf.name_scope("loss"):
+            # calculate loss weights for each class.
+            loss_weight = []
+            all_size = tf.to_float(tf.reduce_prod(tf.shape(labels)))
+            for class_index in range(self.num_classes):
+                num_label = tf.reduce_sum(tf.to_float(tf.equal(labels, class_index)))
+                weight = (all_size - num_label) / all_size
+                loss_weight.append(weight)
+
+            loss_weight = tf.Print(loss_weight, loss_weight, message="loss_weight:")
+
+            reshape_output = tf.reshape(output, (-1, self.num_classes))
+
+            label_flat = tf.reshape(labels, (-1, 1))
+            labels = tf.reshape(tf.one_hot(label_flat, depth=self.num_classes), (-1, self.num_classes))
+            softmax = tf.nn.softmax(reshape_output)
+
+            cross_entropy = -tf.reduce_sum(
+                (labels * tf.log(tf.clip_by_value(softmax, 1e-10, 1.0))) * loss_weight,
+                axis=[1]
+            )
+
+            cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
+            loss = cross_entropy_mean
+            if self.weight_decay_rate:
+                weight_decay_loss = self._weight_decay_loss()
+                tf.summary.scalar("weight_decay", weight_decay_loss)
+                loss = loss + weight_decay_loss
+
+            tf.summary.scalar("loss", loss)
+            return loss
+
+    def _weight_decay_loss(self):
+        """L2 weight decay (regularization) loss."""
+        losses = []
+        print("apply l2 loss these variables")
+        for var in tf.trainable_variables():
+
+            # exclude batch norm variable
+            if "kernel" in var.name:
+                print(var.name)
+                losses.append(tf.nn.l2_loss(var))
+
+        return tf.add_n(losses) * self.weight_decay_rate
