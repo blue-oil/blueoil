@@ -34,21 +34,19 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
     }
   #endif
 
-  const unsigned nbit_qinput_word = sizeof(QUANTIZED_PACKED) * 8;
-
   unsigned idx_in = 0;
   unsigned idx_out = 0;
   unsigned bit_count = 0;
 
-  static T_INT qinput_words_buf[MAX_NBIT_QINPUT] = {}; // must be initialized
+  static QUANTIZED_PACKED::T qinput_words_buf[MAX_NBIT_QINPUT] = {}; // must be initialized
 
   for (idx_in = 0; idx_in + 3 < len; idx_in += 4) {
-    T_INT t = ((T_INT*)(&input[idx_in]))[0];
-    T_UINT b0 = (t & 0x00000001)
+    QUANTIZED_PACKED::T t = ((QUANTIZED_PACKED::T*)(&input[idx_in]))[0];
+    QUANTIZED_PACKED::T b0 = (t & 0x00000001)
       | ((t & 0x01000000) >> 21)
       | ((t & 0x00010000) >> 14)
       | ((t & 0x00000100) >> 7);
-    T_UINT b1 = ((t & 0x02000000) >> 22)
+    QUANTIZED_PACKED::T b1 = ((t & 0x02000000) >> 22)
       | ((t & 0x00020000) >> 15)
       | ((t & 0x00000200) >> 8)
       | ((t & 0x00000002) >> 1);
@@ -57,10 +55,10 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
     qinput_words_buf[1] |= (b1 << bit_count);
     bit_count += 4;
 
-    if (bit_count == nbit_qinput_word)
+    if (bit_count == QUANTIZED_PACKED::BitCount)
       {
         for (unsigned i_bit = 0; i_bit < input_bitwidth; i_bit++) {
-          output[idx_out++] = qinput_words_buf[i_bit];
+          output[idx_out++] = QUANTIZED_PACKED(qinput_words_buf[i_bit]);
           qinput_words_buf[i_bit] = 0;
         }
 
@@ -72,8 +70,8 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
   {
     for (; idx_in < len; idx_in++) {
       QUANTIZED_NOT_PACKED tmp_input = input[idx_in];
-      unsigned int b0 = tmp_input & 0x1;
-      unsigned int b1 = (tmp_input & 0x2) >> 1;
+      QUANTIZED_PACKED::T b0 = tmp_input & 0x1;
+      QUANTIZED_PACKED::T b1 = (tmp_input & 0x2) >> 1;
 
       qinput_words_buf[0] |= (b0 << bit_count);
       qinput_words_buf[1] |= (b1 << bit_count);
@@ -81,7 +79,7 @@ void pack_input_to_qwords(QUANTIZED_NOT_PACKED input[],
     }
 
     for (unsigned i_bit = 0; i_bit < input_bitwidth; i_bit++) {
-      output[idx_out++] = qinput_words_buf[i_bit];
+      output[idx_out++] = QUANTIZED_PACKED(qinput_words_buf[i_bit]);
       // FIX ME (cannot delete below line now,
       // later change implementation to use two register because input_bitwidth is always 2.)
       qinput_words_buf[i_bit] = 0;
