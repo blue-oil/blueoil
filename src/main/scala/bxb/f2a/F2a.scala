@@ -16,18 +16,15 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWi
     val wCount = Input(UInt(dataAddrWidth.W))
 
     // AMem interface
-    val amemRead = Output(Vec(b, ReadPort(dataAddrWidth)))
     val amemWrite = Output(Vec(b, WritePort(dataAddrWidth, aWidth)))
-    val amemQ = Input(Vec(b, UInt(aWidth.W)))
 
     // FMem interface
     val fmemRead = Output(Vec(b, ReadPort(dataAddrWidth)))
-    val fmemWrite = Output(Vec(b, WritePort(dataAddrWidth, fWidth)))
     val fmemQ = Input(Vec(b, UInt(fWidth.W)))
 
     // QMem interface
     val qmemRead = Output(ReadPort(qAddrWidth))
-    val qmemQ = Input(Vec(b, UInt(1.W)))
+    val qmemQ = Input(Vec(b, UInt(40.W)))
 
     // Sync interface
     val aSync = ProducerSyncIO()
@@ -40,8 +37,6 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWi
   })
 
   val sequencer = Module(new F2aSequencer(b, fWidth, qWidth, aWidth, dataAddrWidth, qAddrWidth, dataAddrWidth))
-  sequencer.io.control := pipeline.io.control
-
   io.qSync.rawDec := sequencer.io.qRawDec
   sequencer.io.qRawZero := io.qSync.rawZero
   io.aSync.warDec := sequencer.io.aWarDec
@@ -54,18 +49,15 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWi
 
   io.fmemRead := sequencer.io.fmemRead
   io.qmemRead := sequencer.io.qmemRead
-  io.amemWrite := sequencer.io.amemWriteAddr
 
   val pipeline = Module(new F2aPipeline(b, fWidth, qWidth, aWidth, dataAddrWidth))
   pipeline.io.control := sequencer.io.control
   pipeline.io.fMemQ := io.fmemQ
   pipeline.io.qMemQ := io.qmemQ
-  pipeline.io.amemWriteAddr := io.amemRead
+  pipeline.io.amemWriteAddr := sequencer.io.amemWriteAddr
   pipeline.io.writeEnable := sequencer.io.writeEnable
 
   io.amemWrite := pipeline.io.amemWrite
-  pipeline.io.writeEnable := sequencer.io.writeEnable
-
 }
 
 object F2a {
