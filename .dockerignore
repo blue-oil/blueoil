@@ -10,4 +10,8 @@ saved/
 */saved/
 dataset/
 config/
-tmp/
+*.github/
+*tmp/
+*.tox/
+*docs/
+.firebase/

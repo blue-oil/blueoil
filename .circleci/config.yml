@@ -7,12 +7,15 @@ jobs:
     steps:
       - checkout
       # Build documents
-      - run: sudo pip install -r doc.requirements.txt && cd docs && make html
+      - run:
+          # circleci/python rquires sudo to install pip packages into /usr/local
+          command: |
+            sudo pip install -r docs/requirements.txt
+            cd docs && make html
       - persist_to_workspace:
           root: ~/repo/docs/_build
           paths:
             - html
-
   deploy:
     docker:
       - image: circleci/node:7.10
