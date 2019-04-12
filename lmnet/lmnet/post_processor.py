@@ -23,6 +23,11 @@ from lmnet.data_processor import (
 from lmnet.data_augmentor import iou
 
 
+def _softmax(x):
+    exp = np.exp(x - np.max(x))
+    return exp / np.expand_dims(exp.sum(axis=-1), -1)
+
+
 def format_cxcywh_to_xywh(boxes, axis=1):
     """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimention.
 
@@ -53,11 +58,6 @@ class FormatYoloV2(Processor):
     @property
     def num_cell(self):
         return self.image_size[0] // 32, self.image_size[1] // 32
-
-    @staticmethod
-    def softmax(x):
-        exp = np.exp(x - np.max(x))
-        return exp / np.expand_dims(exp.sum(axis=-1), -1)
 
     @staticmethod
     def sigmoid(x):
@@ -186,7 +186,7 @@ class FormatYoloV2(Processor):
 
         predict_classes, predict_confidence, predict_boxes = self._sprit_prediction(outputs)
 
-        predict_classes = self.softmax(predict_classes)
+        predict_classes = _softmax(predict_classes)
         predict_confidence = self.sigmoid(predict_confidence)
         predict_boxes = np.stack([
             self.sigmoid(predict_boxes[:, :, :, :, 0]),
@@ -413,3 +413,10 @@ class Bilinear(Processor):
 
                 output[h, w, :] = out
         return output
+
+
+class Softmax(Processor):
+
+    def __call__(self, outputs, **kwargs):
+        results = _softmax(outputs)
+        return dict({'outputs': results}, **kwargs)
