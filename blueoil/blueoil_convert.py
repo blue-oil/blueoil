@@ -111,9 +111,16 @@ def make_all(project_dir, output_dir):
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)
-    os.environ["FLAGS"] = "-D__WITHOUT_TEST__"
+
+    cxxflags_cache = os.getenv("CXXFLAGS", "")
+
     # Make each target and move output files
     for target, output in make_list:
+        if target in ["lm_x86", "lm_arm", "lm_fpga", "lm_aarch64"]:
+            os.environ["CXXFLAGS"] = cxxflags_cache + " -DFUNC_TIME_MEASUREMENT"
+        else:
+            os.environ["CXXFLAGS"] = cxxflags_cache
+
         subprocess.run(("make", "clean", "--quiet"))
         subprocess.run(("make",  target, "-j4", "--quiet"))
         strip_binary(output)
@@ -127,7 +134,7 @@ def run(experiment_id, restore_path, output_template_dir=None):
     """Convert from trained model."""
 
     # Export model
-    run_export(experiment_id, restore_path, image_size=(None, None), images=[], config_file=None)
+    run_export(experiment_id, restore_path=restore_path)
     export_dir = get_export_directory(experiment_id, restore_path)
 
     # Set arguments

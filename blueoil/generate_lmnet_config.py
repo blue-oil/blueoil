@@ -17,6 +17,7 @@ import argparse
 import os
 import re
 import importlib
+from tempfile import NamedTemporaryFile
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
@@ -25,10 +26,10 @@ from lmnet.utils.module_loader import load_class
 from blueoil.vars import TEMPLATE_DIR
 
 
-# TODO(wakisaka): objecte detection, segmentation
 _TASK_TYPE_TEMPLATE_FILE = {
     "classification": "classification.tpl.py",
     "object_detection": "object_detection.tpl.py",
+    "semantic_segmentation": "semantic_segmentation.tpl.py",
 }
 
 _NETWORK_NAME_NETWORK_MODULE_CLASS = {
@@ -48,6 +49,10 @@ _NETWORK_NAME_NETWORK_MODULE_CLASS = {
         "network_module": "lm_fyolo",
         "network_class": "LMFYoloQuantize",
     },
+    "LmSegnetV1Quantize": {
+        "network_module": "lm_segnet_v1",
+        "network_class": "LmSegnetV1Quantize",
+    },
 }
 
 _DATASET_FORMAT_DATASET_MODULE_CLASS = {
@@ -66,6 +71,10 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
     "DeLTA-Mark for Object Detection": {
         "dataset_module": "delta_mark",
         "dataset_class": "ObjectDetectionBase",
+    },
+    "CamvidCustom": {
+        "dataset_module": "camvid",
+        "dataset_class": "CamvidCustom",
     },
 }
 
@@ -288,10 +297,11 @@ def _save(lmnet_config):
     tpl = env.get_template(template_file)
 
     applied = tpl.render(lmnet_config)
-    config_file = "{}.py".format(lmnet_config['model_name'])
-    with open(config_file, 'w') as fp:
+    with NamedTemporaryFile(
+            prefix="blueoil_config_{}".format(lmnet_config['model_name']),
+            suffix=".py", delete=False, mode="w") as fp:
         fp.write(applied)
-    return config_file
+        return fp.name
 
 
 def main():
