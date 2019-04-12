@@ -255,66 +255,6 @@ class Bxb(dataMemSize: Int, wmemSize: Int) extends Module {
     val csrSlaveRead = Input(Bool())
     val csrSlaveReadData = Output(UInt(32.W))
 
-    // // TODO: parameter & start slave
-    // val start = Input(Bool())
-
-    // // ADMA parameters
-    // val admaInputAddress = Input(UInt(avalonAddrWidth.W))
-    // val admaInputHCount = Input(UInt(6.W))
-    // val admaInputWCount = Input(UInt(6.W))
-    // val admaInputCCount = Input(UInt(6.W))
-    // val admaTopTileH = Input(UInt(tileCountWidth.W))
-    // val admaMiddleTileH = Input(UInt(tileCountWidth.W))
-    // val admaBottomTileH = Input(UInt(tileCountWidth.W))
-    // val admaLeftTileW = Input(UInt(tileCountWidth.W))
-    // val admaMiddleTileW = Input(UInt(tileCountWidth.W))
-    // val admaRightTileW = Input(UInt(tileCountWidth.W))
-    // val admaLeftRowToRowDistance = Input(UInt(tileCountWidth.W))
-    // val admaMiddleRowToRowDistance = Input(UInt(tileCountWidth.W))
-    // val admaRightRowToRowDistance = Input(UInt(tileCountWidth.W))
-    // val admaLeftStep = Input(UInt(avalonAddrWidth.W))
-    // val admaMiddleStep = Input(UInt(avalonAddrWidth.W))
-    // val admaTopRowDistance = Input(UInt(avalonAddrWidth.W))
-    // val admaMidRowDistance = Input(UInt(avalonAddrWidth.W))
-    // val admaInputSpace = Input(UInt(avalonAddrWidth.W))
-    // val admaTopBottomLeftPad = Input(UInt(tileCountWidth.W))
-    // val admaTopBottomMiddlePad = Input(UInt(tileCountWidth.W))
-    // val admaTopBottomRightPad = Input(UInt(tileCountWidth.W))
-    // val admaSidePad = Input(UInt(tileCountWidth.W))
-
-    // // WDMA parameters
-    // val wdmaStartAddress = Input(UInt(avalonAddrWidth.W))
-    // val wdmaOutputHCount = Input(UInt(hCountWidth.W))
-    // val wdmaOutputWCount = Input(UInt(wCountWidth.W))
-    // val wdmaKernelBlockCount = Input(UInt(blockCountWidth.W))
-
-    // // FDMA parameters
-    // val fdmaOutputAddress = Input(UInt(avalonAddrWidth.W))
-    // val fdmaOutputHCount = Input(UInt(6.W))
-    // val fdmaOutputWCount = Input(UInt(6.W))
-    // val fdmaOutputCCount = Input(UInt(6.W))
-    // val fdmaRegularTileH = Input(UInt(tileCountWidth.W))
-    // val fdmaLastTileH = Input(UInt(tileCountWidth.W))
-    // val fdmaRegularTileW = Input(UInt(tileCountWidth.W))
-    // val fdmaLastTileW = Input(UInt(tileCountWidth.W))
-    // val fdmaRegularRowToRowDistance = Input(UInt(tileCountWidth.W))
-    // val fdmaLastRowToRowDistance = Input(UInt(tileCountWidth.W))
-    // val fdmaOutputSpace = Input(UInt(tileCountWidth.W))
-    // val fdmaRowDistance = Input(UInt(avalonAddrWidth.W))
-
-    // // A2F parameters
-    // val a2fInputCCount = Input(UInt(6.W))
-    // val a2fKernelVCount = Input(UInt(2.W))
-    // val a2fKernelHCount = Input(UInt(2.W))
-    // val a2fTileStep = Input(UInt(2.W))
-    // val a2fTileGap = Input(UInt(2.W))
-    // val a2fOutputHCount = Input(UInt(6.W))
-    // val a2fOutputWCount = Input(UInt(6.W))
-    // val a2fRegularTileH = Input(UInt(tileCountWidth.W))
-    // val a2fLastTileH = Input(UInt(tileCountWidth.W))
-    // val a2fRegularTileW = Input(UInt(tileCountWidth.W))
-    // val a2fLastTileW = Input(UInt(tileCountWidth.W))
-
     // ADMA Avalon Interface
     // FIXME: refactor avalon interface
     val admaAvalonAddress = Output(UInt(avalonAddrWidth.W))
