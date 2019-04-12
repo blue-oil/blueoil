@@ -41,7 +41,7 @@ class QuantizedPacked {
   QuantizedPacked() = default;
   explicit QuantizedPacked(const T val) : val(val) {}
   explicit operator base_t() const { return val; }
-  template <typename U, std::enable_if_t<std::is_same<std::remove_cv_t<T>, std::remove_cv_t<U>>::value, int> = 0>
+  template <typename U, std::enable_if_t<std::is_same<base_t, std::remove_cv_t<U>>::value, int> = 0>
   QuantizedPacked<T>& operator|=(const QuantizedPacked<U>& that) {
     val |= that.val;
     return *this;
