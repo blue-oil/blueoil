@@ -25,6 +25,12 @@ from lmnet.utils import executor, config as config_util
 from lmnet import environment
 
 
+DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "export_inference_test_data_images",
+    "5605039097_05baa93bfd_m.jpg")
+
+
 # TODO(wakisaka): duplicated function with executor/measure_latency.py
 def _load_image(filename):
     """ Returns numpy array of an image """
@@ -44,6 +50,7 @@ def _pre_process(raw_image, pre_processor, data_format):
 
 
 def _save_npy(image_path, output_dir, image, raw_image, all_outputs, image_size):
+    shutil.copy(image_path, os.path.join(output_dir))
     shutil.copy(image_path, os.path.join(output_dir, "raw_image.png"))
     np.save(os.path.join(output_dir, "raw_image.npy"), raw_image)
 
@@ -64,7 +71,7 @@ def _minimal_operations(sess):
     return ops
 
 
-def _export(config, restore_path, image_paths):
+def _export(config, restore_path, image_path):
     if restore_path is None:
         restore_file = executor.search_restore_filename(environment.CHECKPOINTS_DIR)
         restore_path = os.path.join(environment.CHECKPOINTS_DIR, restore_file)
@@ -116,10 +123,9 @@ def _export(config, restore_path, image_paths):
         os.makedirs(main_output_dir)
 
     # npy files for DLK debug.
-    if image_paths:
+    if image_path:
         all_ops = _minimal_operations(sess)
-    for i, image_path in enumerate(image_paths):
-        npy_output_dir = os.path.join(main_output_dir, os.path.basename(image_path))
+        npy_output_dir = os.path.join(main_output_dir, "inference_test_data")
         if not os.path.exists(npy_output_dir):
             os.makedirs(npy_output_dir)
 
@@ -142,28 +148,32 @@ def _export(config, restore_path, image_paths):
         _save_npy(image_path, npy_output_dir, image, raw_image, all_outputs, config.IMAGE_SIZE)
 
         summary = sess.run(summary_op, feed_dict=feed_dict)
-        export_writer.add_summary(summary, i)
+        export_writer.add_summary(summary)
 
     yaml_names = config_util.save_yaml(main_output_dir, config)
     pb_name = executor.save_pb_file(sess, main_output_dir)
 
     message = """
 Create pb and yaml files in: {}
-Create npy files in under each image name's folder
 pb: {}
 yaml: {}, {}
 """.format(main_output_dir,
            pb_name,
            *yaml_names)
 
-    if image_paths:
+    if image_path:
+        message += "Create npy files in under `inference_test_data` folder \n"
         message += "npy: {}".format([d["name"] for d in all_outputs] + ["raw_image", "preprocessed_image", ])
 
     print(message)
     print("finish")
 
 
-def run(experiment_id, restore_path, image_size, images, config_file):
+def run(experiment_id,
+        restore_path=None,
+        image_size=(None, None),
+        image=DEFAULT_INFERENCE_TEST_DATA_IMAGE,
+        config_file=None):
     environment.init(experiment_id)
 
     config = config_util.load_from_experiment()
@@ -192,7 +202,7 @@ def run(experiment_id, restore_path, image_size, images, config_file):
     executor.init_logging(config)
     config_util.display(config)
 
-    _export(config, restore_path, images)
+    _export(config, restore_path, image)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
@@ -217,23 +227,22 @@ def run(experiment_id, restore_path, image_size, images, config_file):
     default=(None, None),
 )
 @click.option(
-    "--images",
-    help="path of target images",
-    default=[],
-    multiple=True,
+    "--image",
+    help="path of target image",
+    default=DEFAULT_INFERENCE_TEST_DATA_IMAGE,
 )
 @click.option(
     "-c",
     "--config_file",
     help="config file path. override saved experiment config.",
 )
-def main(experiment_id, restore_path, image_size, images, config_file):
+def main(experiment_id, restore_path, image_size, image, config_file):
     """Exporting a trained model to proto buffer files and meta config yaml.
 
-    In the case with `images` option, create each layer output value npy files in
-    `export/{restore_path}/{image_size}/{image_name}/**.npy` for debug.
+    In the case with `image` option, create each layer output value npy files in
+    `export/{restore_path}/{image_size}/inference_test_data/**.npy` for debug.
     """
-    run(experiment_id, restore_path, image_size, images, config_file)
+    run(experiment_id, restore_path, image_size, image, config_file)
 
 
 if __name__ == '__main__':
