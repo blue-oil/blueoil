@@ -48,8 +48,6 @@ class F2a(b: Int, memSize: Int, aWidth: Int, fWidth: Int, qWidth: Int) extends M
   io.fSync.rawDec := sequencer.io.fRawDec
   sequencer.io.fRawZero := io.fSync.rawZero
 
-  pipeline.io.writeEnable := sequencer.io.writeEnable
-
   sequencer.io.hCount := io.hCount
   sequencer.io.wCount := io.wCount
 
@@ -62,6 +60,7 @@ class F2a(b: Int, memSize: Int, aWidth: Int, fWidth: Int, qWidth: Int) extends M
   pipeline.io.fMemQ := io.fmemQ
   pipeline.io.qMemQ := io.qmemQ
   pipeline.io.amemWriteAddr := io.amemRead
+  pipeline.io.writeEnable := sequencer.io.writeEnable
 
   io.amemWrite := pipeline.io.amemWrite
   pipeline.io.writeEnable := sequencer.io.writeEnable
