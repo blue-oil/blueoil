@@ -260,14 +260,10 @@ def run_sementic_segmentation(config):
     camera_height = 240
     window_name = "Segmentation Demo"
 
-    vc = cv2.VideoCapture(0)
-    if not vc.isOpened():
-        print("VideoCapture failed")
-
     vc = init_camera(camera_width, camera_height)
 
     pool = Pool(processes=1, initializer=nn.init)
-    result = False
+    result = None
     fps = 1.0
 
     q_save = Queue()
@@ -295,8 +291,9 @@ def run_sementic_segmentation(config):
             if not q_show.empty():
                 window_img = q_show.get()
                 overlay_img = window_img
-                if result:
+                if result is not None:
                     seg_img = label_to_color_image(result, colormap)
+                    seg_img = cv2.resize(seg_img, dsize=(camera_width, camera_height))
                     overlay_img = cv2.addWeighted(window_img, 1, seg_img, 0.8, 0)
                     overlay_img = add_fps(overlay_img, fps)
 

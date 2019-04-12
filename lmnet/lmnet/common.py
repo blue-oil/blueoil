@@ -52,5 +52,5 @@ COLOR_MAP = [
 
 def get_color_map(length):
     # This function generate arbitrary length color map.
-    color_map = COLOR_MAP * math.ceil(length / len(COLOR_MAP))
+    color_map = COLOR_MAP * int(math.ceil(float(length) / len(COLOR_MAP)))
     return color_map[:length]
