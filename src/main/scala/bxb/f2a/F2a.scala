@@ -47,16 +47,12 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWi
   sequencer.io.hCount := io.hCount
   sequencer.io.wCount := io.wCount
 
-  io.fmemRead := sequencer.io.fmemRead
-  io.qmemRead := sequencer.io.qmemRead
-
-  val pipeline = Module(new F2aPipeline(b, fWidth, qWidth, aWidth, dataAddrWidth))
+  val pipeline = Module(new F2aPipeline(b, fWidth, qWidth, aWidth, dataAddrWidth, qAddrWidth, dataAddrWidth))
   pipeline.io.control := sequencer.io.control
-  pipeline.io.fMemQ := io.fmemQ
-  pipeline.io.qMemQ := io.qmemQ
-  pipeline.io.amemWriteAddr := sequencer.io.amemWriteAddr
-  pipeline.io.writeEnable := sequencer.io.writeEnable
-
+  io.fmemRead := pipeline.io.fmemRead
+  pipeline.io.fmemQ := io.fmemQ
+  io.qmemRead := pipeline.io.qmemRead
+  pipeline.io.qmemQ := io.qmemQ
   io.amemWrite := pipeline.io.amemWrite
 }
 

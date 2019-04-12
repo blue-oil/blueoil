@@ -5,7 +5,7 @@ import chisel3.iotesters.{PeekPokeTester, Driver}
 import scala.collection._
 import scala.math._
 
-import bxb.memory.{ReadPort, WritePort, MemArray, TwoBlockMemArray}
+import bxb.memory.{ReadPort, WritePort, PackedWritePort, MemArray, TwoBlockMemArray, PackedBlockRam}
 
 class ReferenceQuantize(val b: Int, val tileHeight: Int, val tileWidth: Int,  val fWidth: Int, val aWidth: Int) {
   val inputChannels = b
@@ -60,7 +60,7 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
     // FMem test interface
     val fmemWrite = Input(Vec(b, WritePort(addrWidth, fWidth)))
     // QMem test interface
-    val qmemWrite = Input(Vec(b, WritePort(addrWidth, qWidth)))
+    val qmemWrite = Input(PackedWritePort(addrWidth, b, qWidth))
     // Sequencer interface
     val tileHeight = Input(UInt(fWidth.W))
     val tileWidth = Input(UInt(fWidth.W))
@@ -73,7 +73,7 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
   })
   val amem = Module(new MemArray(b, memSize, aWidth))
   val fmem = Module (new TwoBlockMemArray(b, memSize, fWidth))
-  val qmem = Module (new MemArray(b, memSize, qWidth))
+  val qmem = Module (new PackedBlockRam(b, memSize, qWidth))
   val f2aSequencer = Module(new F2aSequencer(b, fWidth, qWidth, aWidth, addrWidth, addrWidth, addrWidth))
   f2aSequencer.io.hCount := io.tileHeight
   f2aSequencer.io.wCount := io.tileWidth
@@ -82,12 +82,12 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
   f2aSequencer.io.fRawZero := io.fRawZero
   f2aSequencer.io.qRawZero := io.qRawZero
 
-  val f2aPipeline = Module(new F2aPipeline(b, fWidth, qWidth, aWidth, addrWidth))
+  val f2aPipeline = Module(new F2aPipeline(b, fWidth, qWidth, aWidth, addrWidth, addrWidth, addrWidth))
   f2aPipeline.io.control := f2aSequencer.io.control
-  f2aPipeline.io.writeEnable := f2aSequencer.io.writeEnable
-  f2aPipeline.io.fMemQ := fmem.io.qB
-  f2aPipeline.io.qMemQ := qmem.io.q
-  f2aPipeline.io.amemWriteAddr := f2aSequencer.io.amemWriteAddr
+  fmem.io.readB := f2aPipeline.io.fmemRead
+  f2aPipeline.io.fmemQ := fmem.io.qB
+  qmem.io.read := f2aPipeline.io.qmemRead
+  f2aPipeline.io.qmemQ := qmem.io.q
 
   fmem.io.writeA := io.fmemWrite
   qmem.io.write := io.qmemWrite
@@ -97,10 +97,6 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
   for (col <- 0 until b) {
     fmem.io.readA(col).addr := 0.U
     fmem.io.readA(col).enable := false.B
-    fmem.io.readB(col).addr := f2aSequencer.io.fmemRead
-    fmem.io.readB(col).enable := true.B
-    qmem.io.read(col).addr := f2aSequencer.io.qmemRead
-    qmem.io.read(col).enable := true.B
   }
 }
 
@@ -123,15 +119,13 @@ class F2aPipelineQuantizeTests(dut: TestF2aQuantizeModule, b: Int, tileHeight: I
   }
   def loadDataToQmem() = {
     val addr = 0
+    poke(dut.io.qmemWrite.addr, addr)
+    poke(dut.io.qmemWrite.enable, true)
     for (channel <- 0 until b) {
-      poke(dut.io.qmemWrite(channel).addr, addr)
-      poke(dut.io.qmemWrite(channel).data, ref.th(channel))
-      poke(dut.io.qmemWrite(channel).enable, true)
+      poke(dut.io.qmemWrite.data(channel), ref.th(channel))
     }
     step(1)
-    for (channel <- 0 until b) {
-      poke(dut.io.qmemWrite(channel).enable, false)
-    }
+    poke(dut.io.qmemWrite.enable, false)
   }
 
   poke(dut.io.fRawZero, false)

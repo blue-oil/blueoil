@@ -58,15 +58,15 @@ class F2aSequencerTestSequence(dut: F2aSequencer, tileHeight: Int, tileWidth: In
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
   for (ctl <- ref.controlSeq) {
     step(1)
-    expect(dut.io.writeEnable, ctl.aWriteEnable)
+    expect(dut.io.control.amemWriteEnable, ctl.aWriteEnable)
     if (ctl.aWriteEnable) {
-      expect(dut.io.amemWriteAddr, ctl.aAddr)
+      expect(dut.io.control.amemAddr, ctl.aAddr)
     }
-    expect(dut.io.fmemReadEnable, ctl.fReadEnable)
+    expect(dut.io.control.fmemReadEnable, ctl.fReadEnable)
     if (ctl.fReadEnable) {
-      expect(dut.io.fmemRead, ctl.fAddr)
+      expect(dut.io.control.fmemAddr, ctl.fAddr)
     }
-    expect(dut.io.qmemRead, ctl.qAddr)
+    expect(dut.io.control.qmemAddr, ctl.qAddr)
     expect(dut.io.control.syncInc.qWar, ctl.incQWar)
     expect(dut.io.control.syncInc.fWar, ctl.incFWar)
     expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
@@ -102,15 +102,15 @@ class F2aSequencerTestAWarZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
       }
       poke(dut.io.aWarZero, false)
     }
-    expect(dut.io.writeEnable, ctl.aWriteEnable)
+    expect(dut.io.control.amemWriteEnable, ctl.aWriteEnable)
     if (ctl.aWriteEnable) {
-      expect(dut.io.amemWriteAddr, ctl.aAddr)
+      expect(dut.io.control.amemAddr, ctl.aAddr)
     }
-    expect(dut.io.fmemReadEnable, ctl.fReadEnable)
+    expect(dut.io.control.fmemReadEnable, ctl.fReadEnable)
     if (ctl.fReadEnable) {
-      expect(dut.io.fmemRead, ctl.fAddr)
+      expect(dut.io.control.fmemAddr, ctl.fAddr)
     }
-    expect(dut.io.qmemRead, ctl.qAddr)
+    expect(dut.io.control.qmemAddr, ctl.qAddr)
     expect(dut.io.control.syncInc.qWar, ctl.incQWar)
     expect(dut.io.aWarDec, ctl.decAWar)
     expect(dut.io.fRawDec, ctl.decFRaw)
@@ -141,15 +141,15 @@ class F2aSequencerTestFRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
       }
       poke(dut.io.fRawZero, false)
     }
-    expect(dut.io.writeEnable, ctl.aWriteEnable)
+    expect(dut.io.control.amemWriteEnable, ctl.aWriteEnable)
     if (ctl.aWriteEnable) {
-      expect(dut.io.amemWriteAddr, ctl.aAddr)
+      expect(dut.io.control.amemAddr, ctl.aAddr)
     }
-    expect(dut.io.fmemReadEnable, ctl.fReadEnable)
+    expect(dut.io.control.fmemReadEnable, ctl.fReadEnable)
     if (ctl.fReadEnable) {
-      expect(dut.io.fmemRead, ctl.fAddr)
+      expect(dut.io.control.fmemAddr, ctl.fAddr)
     }
-    expect(dut.io.qmemRead, ctl.qAddr)
+    expect(dut.io.control.qmemAddr, ctl.qAddr)
     expect(dut.io.control.syncInc.fWar, ctl.incFWar)
     expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
     expect(dut.io.aWarDec, ctl.decAWar)
@@ -178,15 +178,15 @@ class F2aSequencerTestQRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
       }
       poke(dut.io.qRawZero, false)
     }
-    expect(dut.io.writeEnable, ctl.aWriteEnable)
+    expect(dut.io.control.amemWriteEnable, ctl.aWriteEnable)
     if (ctl.aWriteEnable) {
-      expect(dut.io.amemWriteAddr, ctl.aAddr)
+      expect(dut.io.control.amemAddr, ctl.aAddr)
     }
-    expect(dut.io.fmemReadEnable, ctl.fReadEnable)
+    expect(dut.io.control.fmemReadEnable, ctl.fReadEnable)
     if (ctl.fReadEnable) {
-      expect(dut.io.fmemRead, ctl.fAddr)
+      expect(dut.io.control.fmemAddr, ctl.fAddr)
     }
-    expect(dut.io.qmemRead, ctl.qAddr)
+    expect(dut.io.control.qmemAddr, ctl.qAddr)
     expect(dut.io.control.syncInc.qWar, ctl.incQWar)
     expect(dut.io.control.syncInc.fWar, ctl.incFWar)
     expect(dut.io.control.syncInc.aRaw, ctl.incARaw)
@@ -222,15 +222,15 @@ class F2aSequencerTestTileValid(dut: F2aSequencer, tileHeight: Int, tileWidth: I
       }
       poke(dut.io.tileValid, true)
     }
-    expect(dut.io.writeEnable, ctl.aWriteEnable)
+    expect(dut.io.control.amemWriteEnable, ctl.aWriteEnable)
     if (ctl.aWriteEnable) {
-      expect(dut.io.amemWriteAddr, ctl.aAddr)
+      expect(dut.io.control.amemAddr, ctl.aAddr)
     }
-    expect(dut.io.fmemReadEnable, ctl.fReadEnable)
+    expect(dut.io.control.fmemReadEnable, ctl.fReadEnable)
     if (ctl.fReadEnable) {
-      expect(dut.io.fmemRead, ctl.fAddr)
+      expect(dut.io.control.fmemAddr, ctl.fAddr)
     }
-    expect(dut.io.qmemRead, ctl.qAddr)
+    expect(dut.io.control.qmemAddr, ctl.qAddr)
     expect(dut.io.control.syncInc.qWar, ctl.incQWar)
     expect(dut.io.control.syncInc.fWar, ctl.incFWar)
     expect(dut.io.control.syncInc.aRaw, ctl.incARaw)

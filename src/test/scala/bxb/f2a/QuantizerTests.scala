@@ -17,12 +17,9 @@ class TestQuantizerModule(b: Int, fWidth: Int, aWidth: Int) extends Module {
   })
   val quantizePipeline = Module(new QuantizePipeline(b, fWidth, aWidth))
   
-  quantizePipeline.io.control.qWe := io.qWe
+  quantizePipeline.io.qWe := io.qWe
   quantizePipeline.io.fMemQ := io.fMemQ
   quantizePipeline.io.qMemQ := io.qMemQ
-  quantizePipeline.io.control.syncInc.aRaw := false.B
-  quantizePipeline.io.control.syncInc.fWar := false.B
-  quantizePipeline.io.control.syncInc.qWar := false.B
   io.aOut := quantizePipeline.io.aOut
 }
 
