@@ -2,6 +2,7 @@ package bxb.f2a
 
 import chisel3._
 
+import bxb.a2f.{A2fTileGenerator}
 import bxb.memory.{ReadPort, WritePort}
 import bxb.sync.{ConsumerSyncIO, ProducerSyncIO}
 
@@ -10,10 +11,26 @@ import bxb.util.{Util}
 class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWidth: Int) extends Module {
   val dataAddrWidth = Chisel.log2Up(dataMemSize)
   val qAddrWidth = Chisel.log2Up(qmemSize)
+  val tileCountWidth = dataAddrWidth
   val io = IO(new Bundle {
+    val start = Input(Bool())
 
-    val hCount = Input(UInt(dataAddrWidth.W))
-    val wCount = Input(UInt(dataAddrWidth.W))
+    // Tile generation parameters
+    // - should be equal to roundUp(outputHeight / tileHeight)
+    val outputHCount = Input(UInt(6.W))
+    // - should be equal to roundUp(outputWidth / tileWidth)
+    val outputWCount = Input(UInt(6.W))
+    // - should be equal to outputChannels / B
+    val outputCCount = Input(UInt(6.W))
+
+    // tileHeight
+    val regularTileH = Input(UInt(tileCountWidth.W))
+    // - outputHeight - (hCount - 1)  * tileHeight
+    val lastTileH = Input(UInt(tileCountWidth.W))
+    // tileWidth
+    val regularTileW = Input(UInt(tileCountWidth.W))
+    // - outputWidth - (wCount - 1)  * tileWidth
+    val lastTileW = Input(UInt(tileCountWidth.W))
 
     // AMem interface
     val amemWrite = Output(Vec(b, WritePort(dataAddrWidth, aWidth)))
@@ -31,10 +48,22 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWi
     val qSync = ConsumerSyncIO()
     val fSync = ConsumerSyncIO()
 
-    // TODO: Is the statusReady need to CSR?
     // Status
-    //val statusReady = Output(Bool())
+    val statusReady = Output(Bool())
   })
+
+  val tileAccepted = Wire(Bool())
+  val tileGen = Module(new A2fTileGenerator(tileCountWidth))
+  tileGen.io.start := io.start
+  tileGen.io.outputHCount := io.outputHCount
+  tileGen.io.outputWCount := io.outputWCount
+  tileGen.io.outputCCount := io.outputCCount
+  tileGen.io.regularTileH := io.regularTileH
+  tileGen.io.lastTileH := io.lastTileH
+  tileGen.io.regularTileW := io.regularTileW
+  tileGen.io.lastTileW := io.lastTileW
+  tileGen.io.tileAccepted := tileAccepted
+  io.statusReady := tileGen.io.statusReady
 
   val sequencer = Module(new F2aSequencer(b, fWidth, qWidth, aWidth, dataAddrWidth, qAddrWidth, dataAddrWidth))
   io.qSync.rawDec := sequencer.io.qRawDec
@@ -44,8 +73,10 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWi
   io.fSync.rawDec := sequencer.io.fRawDec
   sequencer.io.fRawZero := io.fSync.rawZero
 
-  sequencer.io.hCount := io.hCount
-  sequencer.io.wCount := io.wCount
+  sequencer.io.hCount := tileGen.io.tileHeight
+  sequencer.io.wCount := tileGen.io.tileWidth
+  sequencer.io.tileValid := tileGen.io.tileValid
+  tileAccepted := sequencer.io.tileAccepted
 
   val pipeline = Module(new F2aPipeline(b, fWidth, qWidth, aWidth, dataAddrWidth, qAddrWidth, dataAddrWidth))
   pipeline.io.control := sequencer.io.control
