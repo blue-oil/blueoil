@@ -5,25 +5,37 @@ import chisel3._
 import bxb.memory.{ReadPort, WritePort}
 import bxb.util.{Util}
 
-class F2aPipeline(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, addrWidth: Int) extends Module {
+class F2aPipeline(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) extends Module {
   val io = IO(new Bundle{
-    val control = Input(F2aControl())
-    val fMemQ = Input(Vec(b, UInt(fWidth.W)))
-    val qMemQ = Input(Vec(b, UInt(40.W)))
-    val amemWriteAddr = Input(UInt(addrWidth.W))
-    val writeEnable = Input(Bool())
-    val amemWrite = Output(Vec(b, WritePort(addrWidth, aWidth)))
+    val control = Input(F2aControl(fAddrWidth, qAddrWidth, aAddrWidth))
+
+    val fmemRead = Output(Vec(b, ReadPort(fAddrWidth)))
+    val fmemQ = Input(Vec(b, UInt(fWidth.W)))
+
+    val qmemRead = Output(ReadPort(qAddrWidth))
+    val qmemQ = Input(Vec(b, UInt(40.W)))
+
+    val amemWrite = Output(Vec(b, WritePort(aAddrWidth, aWidth)))
   })
   val quantizer = Module(new QuantizePipeline(b, fWidth, aWidth))
-  val addrBuf = RegNext(io.amemWriteAddr)
-  val writeEnableBuf = RegNext(io.writeEnable, init=false.B)
+  val amemAddrBuf = RegNext(io.control.amemAddr)
+  val amemWriteEnableBuf = RegNext(io.control.amemWriteEnable, init=false.B)
 
-  quantizer.io.control := io.control
-  quantizer.io.fMemQ   := io.fMemQ  
-  quantizer.io.qMemQ   := io.qMemQ  
+  quantizer.io.qWe := io.control.qWe
+
+  for (col <- 0 until b) {
+    io.fmemRead(col).addr := io.control.fmemAddr
+    io.fmemRead(col).enable := io.control.fmemReadEnable
+  }
+  quantizer.io.fMemQ := io.fmemQ
+
+  io.qmemRead.addr := io.control.qmemAddr
+  io.qmemRead.enable := true.B
+  quantizer.io.qMemQ := io.qmemQ
+
   for (col <- 0 until b) {
     io.amemWrite(col).data := quantizer.io.aOut(col)
-    io.amemWrite(col).addr := addrBuf
-    io.amemWrite(col).enable := writeEnableBuf
+    io.amemWrite(col).addr := amemAddrBuf
+    io.amemWrite(col).enable := amemWriteEnableBuf
   }
 }

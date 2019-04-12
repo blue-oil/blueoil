@@ -8,7 +8,7 @@ import bxb.memory.{ReadPort}
 
 class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) extends Module {
   val io = IO(new Bundle {
-    val control = Output(F2aControl())
+    val control = Output(F2aControl(fAddrWidth, qAddrWidth, aAddrWidth))
     // Q Semaphore Pair Dec interface
     val qRawDec = Output(Bool())
     val qRawZero = Input(Bool())
@@ -19,15 +19,8 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
     val fRawDec = Output(Bool())
     val fRawZero = Input(Bool())
 
-    val writeEnable = Output(Bool())
-
     val hCount = Input(UInt(fAddrWidth.W))
     val wCount = Input(UInt(fAddrWidth.W))
-
-    val fmemRead = Output(UInt(fAddrWidth.W))
-    val fmemReadEnable = Output(Bool())
-    val qmemRead = Output(UInt(qAddrWidth.W))
-    val amemWriteAddr = Output(UInt(aAddrWidth.W))
 
     // Tile generator interface
     val tileValid = Input(Bool())
@@ -135,8 +128,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
   }
 
 
-  io.writeEnable := doingQuantize
-
   io.control.syncInc.qWar := syncIncQWar
   io.control.syncInc.fWar := acknowledge
   io.control.syncInc.aRaw := acknowledge
@@ -145,11 +136,11 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
   io.qRawDec := doingQRead
   io.fRawDec := syncDecFRaw
 
-  io.fmemRead := fAddr
-  io.fmemReadEnable := doingQuantize
-  io.qmemRead := qAddr  
-  io.amemWriteAddr := aAddr
-
+  io.control.fmemAddr := fAddr
+  io.control.fmemReadEnable := doingQuantize
+  io.control.qmemAddr := qAddr
+  io.control.amemAddr := aAddr
+  io.control.amemWriteEnable := doingQuantize
   io.control.qWe := doingQRead
 
   io.tileAccepted := acknowledge

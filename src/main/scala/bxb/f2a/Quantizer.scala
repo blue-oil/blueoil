@@ -41,7 +41,7 @@ class QuantizeBlock(fWidth: Int, aWidth: Int) extends Module {
 class QuantizePipeline(b: Int, fWidth: Int, aWidth: Int) extends Module {
   val io = IO(new Bundle {
     // from controller
-    val control = Input(F2aControl()) 
+    val qWe = Input(Bool())
     // FMem interface
     val fMemQ = Input(Vec(b, UInt(fWidth.W)))
     // QMem interface
@@ -53,7 +53,7 @@ class QuantizePipeline(b: Int, fWidth: Int, aWidth: Int) extends Module {
   val pipeline = Seq.fill(b){Module(new QuantizeBlock(fWidth, aWidth))}
   for (col <- 0 until b){
     pipeline(col).io.qMemQ := io.qMemQ(col)
-    pipeline(col).io.writeEnable := io.control.qWe
+    pipeline(col).io.writeEnable := io.qWe
     pipeline(col).io.fMemQ := io.fMemQ(col)
     io.aOut(col) := pipeline(col).io.aOut
   }
