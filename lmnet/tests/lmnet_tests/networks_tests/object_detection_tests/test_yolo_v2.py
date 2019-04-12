@@ -687,6 +687,7 @@ def test_reorg():
     outputs = model._reorg("reorg", inputs, stride=2, data_format="NHWC", use_space_to_depth=False)
 
     tf.InteractiveSession()
+
     outputs_np = outputs.eval()
 
     assert outputs_np.shape == (inputs_shape[0], inputs_shape[1]/2, inputs_shape[2]/2, inputs_shape[3]*2*2,)
