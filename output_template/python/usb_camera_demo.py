@@ -269,7 +269,7 @@ def run(model, config_file):
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
-    default="../models/minimal_graph_with_shape.pb",
+    default="../models/lib/lib_fpga.so",
 )
 @click.option(
     "-c",
