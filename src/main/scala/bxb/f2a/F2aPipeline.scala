@@ -16,6 +16,7 @@ class F2aPipeline(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: Int
     val qmemQ = Input(Vec(b, UInt(40.W)))
 
     val amemWrite = Output(Vec(b, WritePort(aAddrWidth, aWidth)))
+    val syncInc = Output(F2aSyncInc())
   })
   val quantizer = Module(new QuantizePipeline(b, fWidth, aWidth))
   val amemAddrBuf = RegNext(io.control.amemAddr)
@@ -38,4 +39,6 @@ class F2aPipeline(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: Int
     io.amemWrite(col).addr := amemAddrBuf
     io.amemWrite(col).enable := amemWriteEnableBuf
   }
+
+  io.syncInc := RegNext(io.control.syncInc, init=0.U.asTypeOf(io.control.syncInc))
 }

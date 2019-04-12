@@ -54,6 +54,10 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWi
   io.qmemRead := pipeline.io.qmemRead
   pipeline.io.qmemQ := io.qmemQ
   io.amemWrite := pipeline.io.amemWrite
+
+  io.aSync.rawInc := pipeline.io.syncInc.aRaw
+  io.qSync.warInc := pipeline.io.syncInc.qWar
+  io.fSync.warInc := pipeline.io.syncInc.fWar
 }
 
 object F2a {
