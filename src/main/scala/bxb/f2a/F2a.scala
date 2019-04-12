@@ -7,25 +7,26 @@ import bxb.sync.{ConsumerSyncIO, ProducerSyncIO}
 
 import bxb.util.{Util}
 
-class F2a(b: Int, memSize: Int, aWidth: Int, fWidth: Int, qWidth: Int) extends Module {
-  val addrWidth = Chisel.log2Up(memSize)
+class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWidth: Int) extends Module {
+  val dataAddrWidth = Chisel.log2Up(dataMemSize)
+  val qAddrWidth = Chisel.log2Up(qmemSize)
   val io = IO(new Bundle {
 
-    val hCount = Input(UInt(addrWidth.W))
-    val wCount = Input(UInt(addrWidth.W))
+    val hCount = Input(UInt(dataAddrWidth.W))
+    val wCount = Input(UInt(dataAddrWidth.W))
 
     // AMem interface
-    val amemRead = Output(Vec(b, ReadPort(addrWidth)))
-    val amemWrite = Output(Vec(b, WritePort(addrWidth, aWidth)))
+    val amemRead = Output(Vec(b, ReadPort(dataAddrWidth)))
+    val amemWrite = Output(Vec(b, WritePort(dataAddrWidth, aWidth)))
     val amemQ = Input(Vec(b, UInt(aWidth.W)))
 
     // FMem interface
-    val fmemRead = Output(Vec(b, ReadPort(addrWidth)))
-    val fmemWrite = Output(Vec(b, WritePort(addrWidth, fWidth)))
+    val fmemRead = Output(Vec(b, ReadPort(dataAddrWidth)))
+    val fmemWrite = Output(Vec(b, WritePort(dataAddrWidth, fWidth)))
     val fmemQ = Input(Vec(b, UInt(fWidth.W)))
 
     // QMem interface
-    val qmemRead = Output(ReadPort(addrWidth))
+    val qmemRead = Output(ReadPort(qAddrWidth))
     val qmemQ = Input(Vec(b, UInt(1.W)))
 
     // Sync interface
@@ -38,7 +39,7 @@ class F2a(b: Int, memSize: Int, aWidth: Int, fWidth: Int, qWidth: Int) extends M
     //val statusReady = Output(Bool())
   })
 
-  val sequencer = Module(new F2aSequencer(b, fWidth, qWidth, aWidth, addrWidth, addrWidth, addrWidth))
+  val sequencer = Module(new F2aSequencer(b, fWidth, qWidth, aWidth, dataAddrWidth, qAddrWidth, dataAddrWidth))
   sequencer.io.control := pipeline.io.control
 
   io.qSync.rawDec := sequencer.io.qRawDec
@@ -55,7 +56,7 @@ class F2a(b: Int, memSize: Int, aWidth: Int, fWidth: Int, qWidth: Int) extends M
   io.qmemRead := sequencer.io.qmemRead
   io.amemWrite := sequencer.io.amemWriteAddr
 
-  val pipeline = Module(new F2aPipeline(b, fWidth, qWidth, aWidth, addrWidth))
+  val pipeline = Module(new F2aPipeline(b, fWidth, qWidth, aWidth, dataAddrWidth))
   pipeline.io.control := sequencer.io.control
   pipeline.io.fMemQ := io.fmemQ
   pipeline.io.qMemQ := io.qmemQ
@@ -69,6 +70,6 @@ class F2a(b: Int, memSize: Int, aWidth: Int, fWidth: Int, qWidth: Int) extends M
 
 object F2a {
   def main(args: Array[String]): Unit = {
-    println(Util.getVerilog(new F2a(3, 1024, 2, 16, 13)))
+    println(Util.getVerilog(new F2a(3, 1024, 32, 2, 16, 13)))
   }
 }
