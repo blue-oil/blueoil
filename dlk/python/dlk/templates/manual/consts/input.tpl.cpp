@@ -25,13 +25,13 @@ limitations under the License.
 {% if node.transposed_data %}
 
 #if defined(RUN_ON_FPGA)
-Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
+static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {% for d in node.transposed_data -%}
   {{- d -}},
   {%- endfor %}
 };
 #else
-Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
+static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {% for d in node.data.flatten() -%}
   {{- d -}},
   {%- endfor %}
@@ -40,7 +40,7 @@ Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
 
 {% else -%}
 
-Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
+static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {% for d in node.data.flatten() -%}
   {{- d -}},
   {%- endfor %}
