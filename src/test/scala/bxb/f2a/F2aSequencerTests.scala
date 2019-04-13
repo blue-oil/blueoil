@@ -255,15 +255,15 @@ object F2aSequencerTests {
     val fmemSize = 16
     val fAddrWidth = Chisel.log2Ceil(fmemSize)
     var ok = true
-    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,fAddrWidth,qAddrWidth,aAddrWidth))(
+    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,fAddrWidth,qAddrWidth,aAddrWidth))(
       dut => new F2aSequencerTestSequence(dut, tileHeight, tileWidth, amemSize, qmemSize, fmemSize))
-    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,fAddrWidth,qAddrWidth,aAddrWidth))(
+    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,fAddrWidth,qAddrWidth,aAddrWidth))(
       dut => new F2aSequencerTestAWarZero(dut, tileHeight, tileWidth, amemSize, qmemSize, fmemSize))
-    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,fAddrWidth,qAddrWidth,aAddrWidth))(
+    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,fAddrWidth,qAddrWidth,aAddrWidth))(
       dut => new F2aSequencerTestFRawZero(dut, tileHeight, tileWidth, amemSize, qmemSize, fmemSize))
-    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,fAddrWidth,qAddrWidth,aAddrWidth))(
+    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,fAddrWidth,qAddrWidth,aAddrWidth))(
       dut => new F2aSequencerTestQRawZero(dut, tileHeight, tileWidth, amemSize, qmemSize, fmemSize))
-    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,10,10,10,fAddrWidth,qAddrWidth,aAddrWidth))(
+    ok &= Driver.execute(driverArgs, () => new F2aSequencer(3,fAddrWidth,qAddrWidth,aAddrWidth))(
       dut => new F2aSequencerTestTileValid(dut, tileHeight, tileWidth, amemSize, qmemSize, fmemSize))
     if (!ok && args.contains("noexit"))
       System.exit(1)

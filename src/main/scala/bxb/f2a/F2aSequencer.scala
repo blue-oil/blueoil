@@ -6,7 +6,7 @@ import chisel3.util._
 import bxb.util.{Util}
 import bxb.memory.{ReadPort}
 
-class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) extends Module {
+class F2aSequencer(b: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) extends Module {
   val io = IO(new Bundle {
     val control = Output(F2aControl(fAddrWidth, qAddrWidth, aAddrWidth))
     // Q Semaphore Pair Dec interface
@@ -148,6 +148,6 @@ class F2aSequencer(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: In
 
 object F2aSequencer {
   def main(args: Array[String]): Unit = {
-    println(Util.getVerilog(new F2aSequencer(10,10,10,10,10,10,10)))
+    println(Util.getVerilog(new F2aSequencer(10,10,10,10)))
   }
 }

@@ -5,7 +5,7 @@ import chisel3._
 import bxb.memory.{ReadPort, WritePort}
 import bxb.util.{Util}
 
-class F2aPipeline(b: Int, fWidth: Int, qWidth: Int, aWidth: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) extends Module {
+class F2aPipeline(b: Int, fWidth: Int, aWidth: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) extends Module {
   val io = IO(new Bundle{
     val control = Input(F2aControl(fAddrWidth, qAddrWidth, aAddrWidth))
 
