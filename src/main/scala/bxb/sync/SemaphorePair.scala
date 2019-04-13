@@ -47,6 +47,20 @@ class SemaphorePair(counterWidth: Int, initValueRaw: Int, initValueWar: Int) ext
   warSema.io.increment := io.consumer.warInc
 }
 
+class ConsumerSyncMux extends Module {
+  val io = IO(new Bundle {
+    val select = Input(Bool())
+    val out = ConsumerSyncIO()
+    val a = Flipped(ConsumerSyncIO())
+    val b = Flipped(ConsumerSyncIO())
+  })
+
+  io.out.rawDec := Mux(io.select, io.a.rawDec, io.b.rawDec)
+  io.a.rawZero := io.out.rawZero
+  io.b.rawZero := io.out.rawZero
+  io.out.warInc := Mux(io.select, io.a.warInc, io.b.warInc)
+}
+
 object SemaphorePair {
   def main(args: Array[String]): Unit = {
     println(Util.getVerilog(new SemaphorePair(2, 0, 3)))
