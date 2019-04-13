@@ -8,7 +8,7 @@ import bxb.sync.{ConsumerSyncIO, ProducerSyncIO}
 
 import bxb.util.{Util}
 
-class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWidth: Int) extends Module {
+class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int) extends Module {
   val dataAddrWidth = Chisel.log2Up(dataMemSize)
   val qAddrWidth = Chisel.log2Up(qmemSize)
   val tileCountWidth = dataAddrWidth
@@ -65,7 +65,7 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWi
   tileGen.io.tileAccepted := tileAccepted
   io.statusReady := tileGen.io.statusReady
 
-  val sequencer = Module(new F2aSequencer(b, fWidth, qWidth, aWidth, dataAddrWidth, qAddrWidth, dataAddrWidth))
+  val sequencer = Module(new F2aSequencer(b, dataAddrWidth, qAddrWidth, dataAddrWidth))
   io.qSync.rawDec := sequencer.io.qRawDec
   sequencer.io.qRawZero := io.qSync.rawZero
   io.aSync.warDec := sequencer.io.aWarDec
@@ -78,7 +78,7 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWi
   sequencer.io.tileValid := tileGen.io.tileValid
   tileAccepted := sequencer.io.tileAccepted
 
-  val pipeline = Module(new F2aPipeline(b, fWidth, qWidth, aWidth, dataAddrWidth, qAddrWidth, dataAddrWidth))
+  val pipeline = Module(new F2aPipeline(b, fWidth, aWidth, dataAddrWidth, qAddrWidth, dataAddrWidth))
   pipeline.io.control := sequencer.io.control
   io.fmemRead := pipeline.io.fmemRead
   pipeline.io.fmemQ := io.fmemQ
@@ -93,6 +93,6 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int, qWi
 
 object F2a {
   def main(args: Array[String]): Unit = {
-    println(Util.getVerilog(new F2a(3, 1024, 32, 2, 16, 13)))
+    println(Util.getVerilog(new F2a(3, 1024, 32, 2, 16)))
   }
 }

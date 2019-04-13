@@ -51,7 +51,7 @@ class ReferenceQuantize(val b: Int, val tileHeight: Int, val tileWidth: Int,  va
   }
 }
 
-class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWidth: Int) extends Module {
+class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Module {
   val addrWidth = Chisel.log2Up(memSize)
   val io = IO(new Bundle {
     // AMem test interface
@@ -60,7 +60,7 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
     // FMem test interface
     val fmemWrite = Input(Vec(b, WritePort(addrWidth, fWidth)))
     // QMem test interface
-    val qmemWrite = Input(PackedWritePort(addrWidth, b, qWidth))
+    val qmemWrite = Input(PackedWritePort(addrWidth, b, 40))
     // Sequencer interface
     val tileHeight = Input(UInt(fWidth.W))
     val tileWidth = Input(UInt(fWidth.W))
@@ -73,8 +73,8 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
   })
   val amem = Module(new MemArray(b, memSize, aWidth))
   val fmem = Module (new TwoBlockMemArray(b, memSize, fWidth))
-  val qmem = Module (new PackedBlockRam(b, memSize, qWidth))
-  val f2aSequencer = Module(new F2aSequencer(b, fWidth, qWidth, aWidth, addrWidth, addrWidth, addrWidth))
+  val qmem = Module (new PackedBlockRam(b, memSize, 40))
+  val f2aSequencer = Module(new F2aSequencer(b, addrWidth, addrWidth, addrWidth))
   f2aSequencer.io.hCount := io.tileHeight
   f2aSequencer.io.wCount := io.tileWidth
   f2aSequencer.io.tileValid := io.tileValid
@@ -82,7 +82,7 @@ class TestF2aQuantizeModule(b: Int, memSize: Int, aWidth: Int, qWidth: Int, fWid
   f2aSequencer.io.fRawZero := io.fRawZero
   f2aSequencer.io.qRawZero := io.qRawZero
 
-  val f2aPipeline = Module(new F2aPipeline(b, fWidth, qWidth, aWidth, addrWidth, addrWidth, addrWidth))
+  val f2aPipeline = Module(new F2aPipeline(b, fWidth, aWidth, addrWidth, addrWidth, addrWidth))
   f2aPipeline.io.control := f2aSequencer.io.control
   fmem.io.readB := f2aPipeline.io.fmemRead
   f2aPipeline.io.fmemQ := fmem.io.qB
@@ -163,12 +163,11 @@ object F2aPipelineQuantizeTests {
     val b = 32
     val fWidth = 16
     val aWidth = 2
-    val qWidth = 40
     val memSize = 1024
     val tileHeight = 4
     val tileWidth = 3
     val verilatorArgs = Array("--backend-name", "verilator", "--is-verbose", "false")
     val driverArgs = if (args.contains("verilator")) verilatorArgs else Array[String]()
-    val ok = Driver.execute(driverArgs, () => new TestF2aQuantizeModule(b, memSize, aWidth, qWidth, fWidth))(c => new F2aPipelineQuantizeTests(c, b, tileHeight, tileWidth, fWidth, aWidth))
+    val ok = Driver.execute(driverArgs, () => new TestF2aQuantizeModule(b, memSize, aWidth, fWidth))(c => new F2aPipelineQuantizeTests(c, b, tileHeight, tileWidth, fWidth, aWidth))
   }
 }
