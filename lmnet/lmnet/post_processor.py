@@ -397,9 +397,9 @@ class Bilinear(Processor):
         dy = np.reshape(dy, (output_height, 1, 1))
 
         top = np.maximum(int_y, 0)
-        bottom = np.minimum(int_y + 1, input_height-1)
+        bottom = np.minimum(int_y + 1, input_height - 1)
         left = np.maximum(int_x, 0)
-        right = np.minimum(int_x + 1, input_width-1)
+        right = np.minimum(int_x + 1, input_width - 1)
 
         tops = inputs[top, :, :]
         t_l = tops[:, left, :]
