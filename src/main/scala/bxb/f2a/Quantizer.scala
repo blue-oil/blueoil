@@ -12,28 +12,38 @@ class QuantizeBlock(fWidth: Int, aWidth: Int) extends Module {
     val fMemQ = Input(UInt(fWidth.W))
     val aOut = Output(UInt(aWidth.W))
   })
-  val th0 = RegInit(0.U(13.W))
-  val th1 = RegInit(0.U(13.W))
-  val th2 = RegInit(0.U(13.W))
-  io.aOut := 0.U
+  val th0 = Reg(SInt(13.W))
+  val th1 = Reg(SInt(13.W))
+  val th2 = Reg(SInt(13.W))
+  val sign = Reg(Bool())
+
   when(io.writeEnable === true.B) {
-    when(io.qMemQ(39) === 1.U) {
-      th2 := io.qMemQ(38,26)
-      th0 := io.qMemQ(12,0)
-    }.otherwise {
-      th0 := io.qMemQ(38,26)
-      th2 := io.qMemQ(12,0)
-    }
-      th1 := io.qMemQ(25,13)
-  }.otherwise {
-    when(io.fMemQ > th2) {
-      io.aOut := 3.U
-    }.elsewhen(io.fMemQ > th1) {
-      io.aOut := 2.U
-    }.elsewhen(io.fMemQ > th0) {
-      io.aOut := 1.U
-    }.otherwise {
+    th2 := io.qMemQ(38,26).asSInt
+    th1 := io.qMemQ(25,13).asSInt
+    th0 := io.qMemQ(12,0).asSInt
+    sign := io.qMemQ(39)
+  }
+
+  val value = io.fMemQ.asSInt
+  when(~sign) {
+    when(RegNext(value < th0)) {
       io.aOut := 0.U
+    }.elsewhen(RegNext(value < th1)) {
+      io.aOut := 1.U
+    }.elsewhen(RegNext(value < th2)) {
+      io.aOut := 2.U
+    }.otherwise {
+      io.aOut := 3.U
+    }
+  }.otherwise {
+    when(RegNext(value > th0)) {
+      io.aOut := 0.U
+    }.elsewhen(RegNext(value > th1)) {
+      io.aOut := 1.U
+    }.elsewhen(RegNext(value > th2)) {
+      io.aOut := 2.U
+    }.otherwise {
+      io.aOut := 3.U
     }
   }
 }
