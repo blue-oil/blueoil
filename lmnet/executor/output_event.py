@@ -18,7 +18,7 @@ import itertools
 
 import click
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
-from tensorboard.backend.event_processing.event_multiplexer import GetLogdirSubdirectories
+from tensorboard.backend.event_processing.io_wrapper import GetLogdirSubdirectories
 import pandas as pd
 import pytablewriter
 

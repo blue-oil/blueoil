@@ -1,2 +1,2 @@
 -r dev.requirements.txt
-tensorflow==1.4.1
+tensorflow==1.13.1
