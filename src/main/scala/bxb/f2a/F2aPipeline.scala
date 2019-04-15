@@ -19,8 +19,9 @@ class F2aPipeline(b: Int, fWidth: Int, aWidth: Int, fAddrWidth: Int, qAddrWidth:
     val syncInc = Output(F2aSyncInc())
   })
   val quantizer = Module(new QuantizePipeline(b, fWidth, aWidth))
-  val amemAddrBuf = RegNext(io.control.amemAddr)
-  val amemWriteEnableBuf = RegNext(io.control.amemWriteEnable, init=false.B)
+  // TODO: use latency pipe
+  val amemAddrBuf = RegNext(RegNext(io.control.amemAddr))
+  val amemWriteEnableBuf = RegNext(RegNext(io.control.amemWriteEnable, init=false.B), init=false.B)
 
   quantizer.io.qWe := io.control.qWe
 

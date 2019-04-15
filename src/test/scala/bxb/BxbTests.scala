@@ -345,6 +345,7 @@ class BxbTestWithBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputC
         if (req.burst == 0)
           requests.dequeue()
         lastAddrIdx += 1
+        poke(dut.io.admaAvalonReadData, scala.util.Random.nextLong() & ((0x1L << 32) - 1))
       }
       if (peek(dut.io.admaAvalonRead).toInt == 1) {
         expect(dut.io.admaAvalonAddress, ref.inputAddresses(nextAddrIdx))
@@ -391,6 +392,7 @@ class BxbTestWithBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputC
         req.addr += ref.qdmaAvalonDataWidth / 8
         if (req.burst == 0)
           requests.dequeue()
+        poke(dut.io.qdmaAvalonReadData, scala.util.Random.nextLong())
       }
       if (peek(dut.io.qdmaAvalonRead).toInt == 1) {
         requests.enqueue(new Request(peek(dut.io.qdmaAvalonAddress).toInt, peek(dut.io.qdmaAvalonBurstCount).toInt))
@@ -543,11 +545,11 @@ object BxbTests {
 
     println(f"running with tileHeight:${tileHeight} tileWidth:${tileWidth}")
     require(dataMemSize >= tileHeight * tileWidth)
-    ok &= Driver.execute(driverArgs, () => new Bxb(dataMemSize, wmemSize, qmemSize))(dut => new BxbTestWithoutBnq(dut, b, inputHeight, inputWidth, inputChannels, outputChannels, tileHeight, tileWidth))
-    if (!ok) {
-      println("failed without bnq")
-      return
-    }
+    // ok &= Driver.execute(driverArgs, () => new Bxb(dataMemSize, wmemSize, qmemSize))(dut => new BxbTestWithoutBnq(dut, b, inputHeight, inputWidth, inputChannels, outputChannels, tileHeight, tileWidth))
+    // if (!ok) {
+    //   println("failed without bnq")
+    //   return
+    // }
     ok &= Driver.execute(driverArgs, () => new Bxb(dataMemSize, wmemSize, qmemSize))(dut => new BxbTestWithBnq(dut, b, inputHeight, inputWidth, inputChannels, outputChannels, tileHeight, tileWidth))
     if (!ok) {
       println("failed with bnq")
