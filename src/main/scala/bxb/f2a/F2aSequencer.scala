@@ -114,7 +114,8 @@ class F2aSequencer(b: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) ex
   }
 
   when(~waitRequired) {
-    when(idle & io.tileValid) {
+    // FIXME: workaround
+    when(idle & io.tileValid & ~io.qRawZero) {
       state := State.doingQRead
     }.elsewhen(doingQRead) {
       state := State.quantizeFirst
@@ -137,10 +138,10 @@ class F2aSequencer(b: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) ex
   io.fRawDec := syncDecFRaw
 
   io.control.fmemAddr := fAddr
-  io.control.fmemReadEnable := doingQuantize
+  io.control.fmemReadEnable := (doingQuantize & ~waitRequired)
   io.control.qmemAddr := qAddr
   io.control.amemAddr := aAddr
-  io.control.amemWriteEnable := doingQuantize
+  io.control.amemWriteEnable := (doingQuantize & ~waitRequired)
   io.control.qWe := doingQRead
 
   io.tileAccepted := acknowledge
