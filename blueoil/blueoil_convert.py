@@ -107,7 +107,12 @@ def make_all(project_dir, output_dir):
 
 
 def run(experiment_id, restore_path, output_template_dir=None):
-    """Convert from trained model."""
+    """Convert from trained model.
+
+    Returns:
+        output_root_dir (str): Path of exported dir.
+            (i.e. `(path to saved)/saved/det_20190326181434/export/save.ckpt-161/128x128/output/`)
+    """
 
     # Export model
     export_dir = run_export(experiment_id, restore_path=restore_path)
@@ -144,6 +149,8 @@ def run(experiment_id, restore_path, output_template_dir=None):
     project_dir_name = "{}.prj".format(project_name)
     project_dir = os.path.join(dest_dir_path, project_dir_name)
     make_all(project_dir, output_directories.get("library_dir"))
+
+    return output_root_dir
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
