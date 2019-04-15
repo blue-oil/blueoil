@@ -24,7 +24,7 @@ extern {{ node.dtype.cpptype() }} {{ node.name }};
 
 {% else -%}
 
-extern {{ node.dtype.cpptype() }} {{ node.name }}[];
+extern {{ node.dtype.cpptype() }}* {{ node.name }};
 
 {%- endif %}
 

@@ -16,6 +16,8 @@
 from typing import List
 import numpy as np
 
+def quantized_packed_type(t):
+    return f"QuantizedPacked<{t}>"
 
 class DataType(object):
 
@@ -130,6 +132,16 @@ class Uint32(Primitive, int):
         return np.uint32
 
 
+class PackedUint32(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QuantizedPacked<uint32_t>'
+
+    @classmethod
+    def nptype(cls):
+        return np.uint32
+
+
 class Int64(Primitive, int):
     @classmethod
     def cpptype(cls):
@@ -144,6 +156,16 @@ class Uint64(Primitive, int):
     @classmethod
     def cpptype(cls):
         return 'uint64_t'
+
+    @classmethod
+    def nptype(cls):
+        return np.uint64
+
+
+class PackedUint64(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QuantizedPacked<uint64_t>'
 
     @classmethod
     def nptype(cls):
