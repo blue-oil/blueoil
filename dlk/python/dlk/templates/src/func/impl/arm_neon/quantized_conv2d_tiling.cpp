@@ -80,7 +80,7 @@ void pack_input_for_tiling(QUANTIZED_NOT_PACKED input[],
 }
 
 void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
-                                  const T_UINT kernel[],
+                                  const QUANTIZED_PACKED_KERNEL kernel[],
                                   const binary_convolution_parameters &p) {
   constexpr T_UINT InTypeBitWidth = CHAR_BIT * sizeof(QUANTIZED_PACKED);
   convolution_parameters cp = p.normal_conv_params;
@@ -125,7 +125,7 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
           }
         }
         for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
-          T_UINT notk[kh][kw][OutChUnroll];
+          QUANTIZED_PACKED_KERNEL notk[kh][kw][OutChUnroll];
           int16_t notsum[OutChUnroll] = {};
           for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
             notsum[out_ch] = 0;
@@ -136,7 +136,7 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
                     + kc * in_stride
                     + in_ch_high / InTypeBitWidth;
                 notk[kr][kc][out_ch] = ~kernel[index];
-                notsum[out_ch] += __builtin_popcount(notk[kr][kc][out_ch]);
+                notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
               }
             }
           }
@@ -173,10 +173,10 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
                 uint8x16_t xnorsum31 = vdupq_n_u8(0);
                 for (unsigned int kr = 0; kr < kh; ++kr) {
                   for (unsigned int kc = 0; kc < kw; ++kc) {
-                    uint32x4_t nk0 = vld1q_u32(&notk[kr][kc][ 0]);
-                    uint32x4_t nk1 = vld1q_u32(&notk[kr][kc][ 4]);
-                    uint32x4_t nk2 = vld1q_u32(&notk[kr][kc][ 8]);
-                    uint32x4_t nk3 = vld1q_u32(&notk[kr][kc][12]);
+                    uint32x4_t nk0 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 0]));
+                    uint32x4_t nk1 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 4]));
+                    uint32x4_t nk2 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 8]));
+                    uint32x4_t nk3 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][12]));
                     uint8x16_t nk08 = vreinterpretq_u8_u32(nk0);
                     uint8x16_t nk18 = vreinterpretq_u8_u32(nk1);
                     uint8x16_t nk28 = vreinterpretq_u8_u32(nk2);
@@ -257,7 +257,7 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
           }
         }
         for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
-          T_UINT notk[kh][kw][OutChUnroll2];
+          QUANTIZED_PACKED_KERNEL notk[kh][kw][OutChUnroll2];
           int16_t notsum[OutChUnroll2] = {};
           for (unsigned int out_ch = 0; out_ch < OutChUnroll2; ++out_ch) {
             if (out_ch_high + out_ch >= out_channels) break;
@@ -269,7 +269,7 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
                     + kc * in_stride
                     + in_ch_high / InTypeBitWidth;
                 notk[kr][kc][out_ch] = ~kernel[index];
-                notsum[out_ch] += __builtin_popcount(notk[kr][kc][out_ch]);
+                notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
               }
             }
           }
@@ -300,7 +300,7 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
                 uint8x16_t xnorsum1 = vdupq_n_u8(0);
                 for (unsigned int kr = 0; kr < kh; ++kr) {
                   for (unsigned int kc = 0; kc < kw; ++kc) {
-                    uint32x4_t nk = vld1q_u32(&notk[kr][kc][0]);
+                    uint32x4_t nk = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][0]));
                     uint8x16_t nk8 = vreinterpretq_u8_u32(nk);
                     uint32x4_t in = vdupq_n_u32(in_tile[row + kr][col + kc][0].Raw());
                     uint8x16_t in8 = vreinterpretq_u8_u32(in);

@@ -19,6 +19,7 @@ limitations under the License.
 #include <climits>
 #include <inttypes.h>
 #include <limits>
+#include <type_traits>
 #include "func/impl/pop_count.h"
 
 typedef uint32_t T_UINT;
@@ -35,15 +36,17 @@ template <typename pack_type>
 class QuantizedPacked {
  public:
   using T = pack_type;
+  using base_t = std::remove_cv_t<T>;
   static constexpr std::size_t BitCount = sizeof(pack_type) * CHAR_BIT;
   QuantizedPacked() = default;
   explicit QuantizedPacked(const T val) : val(val) {}
-  explicit operator T() const { return val; }
-  QuantizedPacked<T>& operator|=(const QuantizedPacked<T>& that) {
+  explicit operator base_t() const { return val; }
+  template <typename U, std::enable_if_t<std::is_same<base_t, std::remove_cv_t<U>>::value, int> = 0>
+  QuantizedPacked<T>& operator|=(const QuantizedPacked<U>& that) {
     val |= that.val;
     return *this;
   }
-  T Raw() const { return val; }
+  base_t Raw() const { return val; }
  private:
   T val;
 } __attribute__ ((packed));
@@ -53,19 +56,31 @@ class QuantizedPacked {
 #else
   using QUANTIZED_PACKED = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
 #endif
-template <typename pack_type>
-inline QuantizedPacked<pack_type> operator^(const QuantizedPacked<pack_type>& lhs, const QuantizedPacked<pack_type>& rhs) {
-  using packed_t = QuantizedPacked<pack_type>;
+using QUANTIZED_PACKED_KERNEL = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
+template <typename T1, typename T2,
+    std::enable_if_t<std::is_same<std::remove_cv_t<T1>, std::remove_cv_t<T2>>::value, int> = 0>
+inline auto operator^(const QuantizedPacked<T1>& lhs, const QuantizedPacked<T2>& rhs) {
+  using packed_t = QuantizedPacked<std::remove_cv_t<T1>>;
   return packed_t(lhs.Raw() ^ rhs.Raw());
 }
 template <typename pack_type>
-inline QuantizedPacked<pack_type> operator~(const QuantizedPacked<pack_type>& x) {
-  return QuantizedPacked<pack_type>(~x.Raw());
+inline auto operator~(const QuantizedPacked<pack_type>& x) {
+  return QuantizedPacked<std::remove_cv_t<pack_type>>(~x.Raw());
 }
 template <typename pack_type>
 inline int pop_count(const QuantizedPacked<pack_type>& x) {
   return dlk::impl::pop_count(x.Raw());
 }
+
+template <typename T>
+struct Base {
+  using type = T;
+};
+
+template <typename T>
+struct Base<QuantizedPacked<T>> {
+  using type = T;
+};
 
 #if defined RUN_ON_FPGA
   typedef volatile T_INT16 BIN_CONV_OUTPUT;

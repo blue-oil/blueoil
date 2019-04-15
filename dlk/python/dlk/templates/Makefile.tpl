@@ -141,58 +141,58 @@ clean:
 	-$(RM) $(OBJ)
 
 lm_x86:           CXX = g++
-lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -DUSE_PNG -pthread -g
+lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -DUSE_PNG -pthread -g
 lm_x86:           CXXFLAGS +=
 
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
-lm_aarch64:       FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_PNG -pthread -g -fopenmp
+lm_aarch64:       FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_PNG -pthread -g -fopenmp
 lm_aarch64:       CXXFLAGS +=
 
 lm_arm:           CXX = arm-linux-gnueabihf-g++
-lm_arm:           FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_arm:           FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
 lm_arm:           CXXFLAGS +=
 
 lm_fpga:          CXX = arm-linux-gnueabihf-g++
-lm_fpga:          FLAGS += $(INCLUDES) -std=c++0x -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_fpga:          FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
 lm_fpga:          CXXFLAGS +=
 
 lib_x86:           CXX = g++
-lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
+lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -pthread -g
 lib_x86:           CXXFLAGS +=
 
 lib_aarch64:       CXX = aarch64-linux-gnu-g++
-lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
+lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -pthread -g
 lib_aarch64:       CXXFLAGS +=
 
 lib_arm:           CXX = arm-linux-gnueabihf-g++
-lib_arm:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
+lib_arm:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
 lib_arm:           CXXFLAGS +=
 
 lib_fpga:          CXX = arm-linux-gnueabihf-g++
-lib_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -DRUN_ON_FPGA -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
+lib_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -DRUN_ON_FPGA -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
 lib_fpga:          CXXFLAGS +=
 
 ar_x86:           AR = ar
 ar_x86:           CXX = g++
-ar_x86:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
+ar_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -pthread -g
 ar_x86:           LDFLAGS += -rcs
 ar_x86:           NAME = x86
 
 ar_aarch64:       AR = aarch64-linux-gnu-ar
 ar_aarch64:       CXX = aarch64-linux-gnu-g++
-ar_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -fvisibility=hidden -pthread -g
+ar_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -pthread -g
 ar_aarch64:       LDFLAGS += -rcs
 ar_aarch64:       NAME = aarch64
 
 ar_arm:           AR = arm-linux-gnueabihf-ar
 ar_arm:           CXX = arm-linux-gnueabihf-g++
-ar_arm:           FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
+ar_arm:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
 ar_arm:           LDFLAGS += -rcs
 ar_arm:           NAME = arm
 
 ar_fpga:          AR = arm-linux-gnueabihf-ar
 ar_fpga:          CXX = arm-linux-gnueabihf-g++
-ar_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++0x -fPIC -DUSE_NEON -DRUN_ON_FPGA -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
+ar_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -DRUN_ON_FPGA -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
 ar_fpga:          LDFLAGS += -rcs
 ar_fpga:          NAME = fpga
 

@@ -73,7 +73,7 @@ int pop_count(T_UINT i) {
 }
 
 void binary_convolution_cpu(QUANTIZED_PACKED input_channels[],
-                            BIN_CONV_OUTPUT result[], T_UINT *kernel,
+                            BIN_CONV_OUTPUT result[], QUANTIZED_PACKED_KERNEL *kernel,
                             T_UINT output_channel_index,
                             struct binary_convolution_parameters bcp) {
   const T_UINT num_in_channels = bcp.bin_input_bitwidth;
@@ -104,7 +104,7 @@ void binary_convolution_cpu(QUANTIZED_PACKED input_channels[],
         QUANTIZED_PACKED in_data = input_channels[idx_in];
 
         for (T_UINT k_pe = 0; k_pe < num_kernels; k_pe++) {
-          const auto kernel_buf = QUANTIZED_PACKED(kernel[k_pe * bin_kernel_nwords + idx_k]);
+          const auto kernel_buf = kernel[k_pe * bin_kernel_nwords + idx_k];
           T_INT xnor_result = pop_count(~(in_data ^ kernel_buf));
           T_UINT kernel_bit_count = pop_count(~kernel_buf);
 
@@ -169,7 +169,7 @@ void binary_convolution_cpu(QUANTIZED_PACKED input_channels[],
 
 void binary_convolution(QUANTIZED_PACKED input_channels[],
                         BIN_CONV_OUTPUT result[],
-                        T_UINT kernel[MAX_SIZE_QKERNELS_PER_PE],
+                        QUANTIZED_PACKED_KERNEL kernel[MAX_SIZE_QKERNELS_PER_PE],
                         T_UINT output_channel_index,
                         struct binary_convolution_parameters bcp) {
   binary_convolution_cpu(input_channels, result, kernel, output_channel_index,
@@ -182,7 +182,7 @@ namespace dlk {
 
 namespace impl {
 
-void QuantizedConv2DIm2Col(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
+void QuantizedConv2DIm2Col(QUANTIZED_NOT_PACKED input[], QUANTIZED_PACKED_KERNEL kernel[],
                                   const binary_convolution_parameters &p) {
   convolution_parameters cp = p.normal_conv_params;
   static QUANTIZED_NOT_PACKED
