@@ -92,16 +92,6 @@ class Uint8(Primitive, int):
         return np.uint8
 
 
-class PackedUint8(Primitive, int):
-    @classmethod
-    def cpptype(cls):
-        return 'QuantizedPacked<uint8_t>'
-
-    @classmethod
-    def nptype(cls):
-        return np.uint8
-
-
 class Int16(Primitive, int):
     @classmethod
     def cpptype(cls):
