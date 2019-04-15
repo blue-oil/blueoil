@@ -21,7 +21,7 @@ import numpy as np
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
 from core.operators import Constant, Operator, Conv
-from core.data_types import Uint32, QUANTIZED_NOT_PACKED
+from core.data_types import PackedUint32, QUANTIZED_NOT_PACKED
 from typing import cast, List, Any
 from collections import defaultdict
 from modules.packer import Packer
@@ -458,7 +458,7 @@ def pass_pack_weights(graph: Graph) -> None:
         kd = conv_node.input_ops['X'].channel
         quantized_constant = Constant(
             weight_quantizer.name + '_new',
-            Uint32(),
+            PackedUint32(),
             data,
             packed=True,
             actual_shape=weight_quantizer.shape,
@@ -508,7 +508,7 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             conv_node.dtype = QUANTIZED_NOT_PACKED()
 
         # change the output data type of the quantizers
-        conv_node.quantizer.dtype = Uint32()
+        conv_node.quantizer.dtype = PackedUint32()
         for qtz in conv_node.a_quantizer:
             qtz.dtype = QUANTIZED_NOT_PACKED()
 
