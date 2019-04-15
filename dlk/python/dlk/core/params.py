@@ -46,7 +46,7 @@ class Params(object):
 
     @property
     def default_nbit_qword(self):
-        if self.default_qword_dtype == Int32:
+        if self.default_qword_dtype == Uint32:
             return 32
         else:
             raise NotImplemented
