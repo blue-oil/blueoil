@@ -1,4 +1,4 @@
-FROM nvidia/cuda:8.0-cudnn6-devel
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu16.04
 
 MAINTAINER masuda@leapmind.io
 
