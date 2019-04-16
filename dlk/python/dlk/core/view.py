@@ -227,15 +227,19 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            x_op = input_ops[0]
+            x_op = input_ops['X']
+            ih = x_op.height
+            iw = x_op.width
+            id = x_op.channel
 
-            ih = x_op.H
-            iw = x_op.W
-            kh = op.KH
-            kw = op.KW
-            kd = x_op.C
-            oh = op.H
-            ow = op.W
+            oh = op.height
+            ow = op.width
+            od = op.channel
+
+            kh = op.kernel_height
+            kw = op.kernel_width
+            kd = 1
+
             elems = op.size
             pad = op.pads[0]
             stride = op.strides[0]
@@ -244,14 +248,15 @@ class View(object):
 
             return self.format_string(
                 f"""
-                MaxPool_struct.input.H = {ih};
-                MaxPool_struct.input.W = {iw};
-                MaxPool_struct.kernel.H = {kh};
-                MaxPool_struct.kernel.W = {kw};
-                MaxPool_struct.kernel.C = {kd};
+                MaxPool_struct.input_height = {ih};
+                MaxPool_struct.input_height = {iw};
+                MaxPool_struct.kernel_height = {kh};
+                MaxPool_struct.kernel_width = {kw};
+                MaxPool_struct.kernel_depth = {kd};
                 MaxPool_struct.output_elements = {elems};
-                MaxPool_struct.output.H = {oh};
-                MaxPool_struct.output.W = {ow};
+                MaxPool_struct.output_channels = {od};
+                MaxPool_struct.output_height = {oh};
+                MaxPool_struct.output_width= {ow};
                 MaxPool_struct.padding = {pad};
                 MaxPool_struct.stride = {stride};
 
@@ -507,7 +512,7 @@ class View(object):
             return self.format_string(
                 f"""
                 AveragePool_struct.input_height = {ih};
-                AveragePool_struct.input_width = {iw};
+                AveragePool_struct.input_height = {iw};
                 AveragePool_struct.input_depth = {id};
                 AveragePool_struct.kernel_depth = {kd};
                 AveragePool_struct.kernel_height = {kh};
