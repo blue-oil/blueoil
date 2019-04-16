@@ -9,7 +9,7 @@ You need the following devices.
     - Docker >=1.12 (or >=17.03.0)
     - nvidia-docker >= 2.0
 
-    <br>Training by Blueoil is run on docker container with original docker image based on NVIDIA's [CUDA images](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA#requirements) (cuda:8.0-cudnn6-devel).
+    <br>Training by Blueoil is run on docker container with original docker image based on NVIDIA's [CUDA images](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA#requirements) (cuda:10.0-cudnn7-devel-ubuntu16.04).
 
     The machine running the CUDA container only requires the NVIDIA driver, the CUDA toolkit doesn't have to be installed.
 
