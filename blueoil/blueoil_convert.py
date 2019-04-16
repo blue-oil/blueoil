@@ -21,31 +21,7 @@ import shutil
 from executor.export import run as run_export
 from scripts.generate_project import run as run_generate_project
 
-from lmnet.utils import executor, config as config_util
-from lmnet import environment
-
 from blueoil.vars import OUTPUT_TEMPLATE_DIR
-
-
-def get_export_directory(experiment_id, restore_path):
-    """Return output dir of export"""
-
-    config = config_util.load_from_experiment()
-
-    if restore_path is None:
-        restore_file = executor.search_restore_filename(environment.CHECKPOINTS_DIR)
-        restore_path = os.path.join(environment.CHECKPOINTS_DIR, restore_file)
-
-    print("Restore from {}".format(restore_path))
-
-    if not os.path.exists("{}.index".format(restore_path)):
-        raise Exception("restore file {} dont exists.".format(restore_path))
-
-    export_dir = os.path.join(environment.EXPERIMENT_DIR, "export")
-    export_dir = os.path.join(export_dir, os.path.basename(restore_path))
-    export_dir = os.path.join(export_dir, "{}x{}".format(config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
-
-    return export_dir
 
 
 def create_output_directory(output_root_dir, output_template_dir=None):
@@ -131,11 +107,15 @@ def make_all(project_dir, output_dir):
 
 
 def run(experiment_id, restore_path, output_template_dir=None):
-    """Convert from trained model."""
+    """Convert from trained model.
+
+    Returns:
+        output_root_dir (str): Path of exported dir.
+            (i.e. `(path to saved)/saved/det_20190326181434/export/save.ckpt-161/128x128/output/`)
+    """
 
     # Export model
-    run_export(experiment_id, restore_path=restore_path)
-    export_dir = get_export_directory(experiment_id, restore_path)
+    export_dir = run_export(experiment_id, restore_path=restore_path)
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")
@@ -169,6 +149,8 @@ def run(experiment_id, restore_path, output_template_dir=None):
     project_dir_name = "{}.prj".format(project_name)
     project_dir = os.path.join(dest_dir_path, project_dir_name)
     make_all(project_dir, output_directories.get("library_dir"))
+
+    return output_root_dir
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
