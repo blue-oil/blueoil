@@ -168,6 +168,8 @@ yaml: {}, {}
     print(message)
     print("finish")
 
+    return main_output_dir
+
 
 def run(experiment_id,
         restore_path=None,
@@ -202,7 +204,7 @@ def run(experiment_id,
     executor.init_logging(config)
     config_util.display(config)
 
-    _export(config, restore_path, image)
+    return _export(config, restore_path, image)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
