@@ -21,6 +21,7 @@ limitations under the License.
 struct max_pooling_parameters {
   T_UINT input_height;
   T_UINT input_width;
+  T_UINT input_depth;
   T_UINT output_channels;
   T_UINT output_height;
   T_UINT output_width;

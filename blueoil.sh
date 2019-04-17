@@ -88,16 +88,6 @@ GROUP_ID=$(id -g)
 # Shared docker options
 PYHONPATHS="-e PYTHONPATH=/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk"
 SHARED_DOCKER_OPTIONS="--rm -t -u ${USER_ID}:${GROUP_ID} ${PYHONPATHS}"
-# Mount source code directories if they are exist on host.
-# Docker's -v option overwrite container's directory with mounted host directory.
-# Currently, we do not mount dlk, because dlk directory include pre compiled library
-if [ -e lmnet ] && [ -e blueoil ] ; then
-	touch lmnet/lmnet/__init__.py
-	SHARED_DOCKER_OPTIONS=${SHARED_DOCKER_OPTIONS}" \
-		-v ${ABS_BASE_DIR}/dlk:${GUEST_HOME_DIR}/dlk \
-		-v ${ABS_BASE_DIR}/lmnet:${GUEST_HOME_DIR}/lmnet \
-		-v ${ABS_BASE_DIR}/blueoil:${GUEST_HOME_DIR}/blueoil"
-fi
 
 function blueoil_init(){
 	CONFIG_DIR=${ABS_BASE_DIR}/config

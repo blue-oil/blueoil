@@ -249,14 +249,15 @@ class View(object):
             return self.format_string(
                 f"""
                 MaxPool_struct.input_height = {ih};
-                MaxPool_struct.input_height = {iw};
+                MaxPool_struct.input_width = {iw};
+                MaxPool_struct.input_depth = {id};
                 MaxPool_struct.kernel_height = {kh};
                 MaxPool_struct.kernel_width = {kw};
                 MaxPool_struct.kernel_depth = {kd};
                 MaxPool_struct.output_elements = {elems};
                 MaxPool_struct.output_channels = {od};
                 MaxPool_struct.output_height = {oh};
-                MaxPool_struct.output_width= {ow};
+                MaxPool_struct.output_width = {ow};
                 MaxPool_struct.padding = {pad};
                 MaxPool_struct.stride = {stride};
 
@@ -512,7 +513,7 @@ class View(object):
             return self.format_string(
                 f"""
                 AveragePool_struct.input_height = {ih};
-                AveragePool_struct.input_height = {iw};
+                AveragePool_struct.input_width = {iw};
                 AveragePool_struct.input_depth = {id};
                 AveragePool_struct.kernel_depth = {kd};
                 AveragePool_struct.kernel_height = {kh};
