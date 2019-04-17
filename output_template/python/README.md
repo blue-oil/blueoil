@@ -88,14 +88,14 @@ $ python usb_camera_demo.py -c ../models/meta.yaml -m minimal_graph_with_shape.p
 ## Prerequisites
 ```
 Python = 3.6
-Opencv = 3.1.0
-python opencv = 3.1.0
+Opencv = 3.3.1
+python opencv = 3.3.1
 ```
 
 ```
 $ pkg-config --modversion opencv
-3.3.0
+3.3.1
 
 $ python3 -c "import cv2; print(cv2.__version__)"
-3.3.0
+3.3.1
 ```
