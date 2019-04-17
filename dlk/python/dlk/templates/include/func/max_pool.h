@@ -49,7 +49,7 @@ struct MaxPoolWithArgmax_parameters {
 
 void func_MaxPool(T_FLOAT input[], T_FLOAT output[], struct max_pooling_parameters mpp, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
 
-void func_MaxPool(T_INT input[], T_INT output[], struct max_pooling_parameters mpp, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+void func_MaxPool(QUANTIZED_NOT_PACKED input[], QUANTIZED_NOT_PACKED output[], struct max_pooling_parameters mpp, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
 
 void func_MaxPoolWithArgmax(Quantized_t input[], Quantized_t output[], T_UINT indices[], struct MaxPoolWithArgmax_parameters mpp, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
 

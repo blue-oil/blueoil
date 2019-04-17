@@ -34,12 +34,12 @@ void max_pooling(
   int idx_out = 0;
   const T_FLOAT num_k_elems = p.kernel_height * p.kernel_width * p.kernel_depth;
 
-  std::memset(output, 0.0f, p.output_channels * p.output_height * p.output_width * sizeof(T_FLOAT));
+  std::memset(output, 0.0f, p.output_channels * p.output_height * p.output_width * sizeof(TYPE));
 
   for(T_UINT oc = 0; oc < p.output_channels; oc++) {
     for(T_UINT wi = 0; wi < p.output_height; wi++) {
       for(T_UINT wj = 0; wj < p.output_width; wj++){
-        T_FLOAT out = 0;
+        TYPE out = 0;
         for(T_UINT ki = 0; ki < p.kernel_height; ki++) {
           for(T_UINT kj = 0; kj < p.kernel_width; kj++) {
 	          T_INT row = (wi * p.stride) - p.padding + ki;
@@ -58,7 +58,7 @@ void max_pooling(
               }
           }
         }
-        output[(p.output_channels * p.output_width) * wi + p.output_channels * wj + oc] += T_FLOAT(out);
+        output[(p.output_channels * p.output_width) * wi + p.output_channels * wj + oc] += TYPE(out);
       }
     }
   }
@@ -114,7 +114,7 @@ void func_MaxPool(T_FLOAT input[], T_FLOAT output[],
   Measurement::Stop();
 }
 
-void func_MaxPool(T_INT input[], T_INT output[],
+void func_MaxPool(QUANTIZED_NOT_PACKED input[], QUANTIZED_NOT_PACKED output[],
                   struct max_pooling_parameters mpp, T_UINT out_height,
                   T_UINT out_width, T_UINT out_depth) {
   Measurement::Start("MaxPooling");
