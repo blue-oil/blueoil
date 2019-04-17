@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import math
-
 import numpy as np
 
 from lmnet.data_processor import (
@@ -372,46 +370,47 @@ class Bilinear(Processor):
 
         input_height = inputs.shape[0]
         input_width = inputs.shape[1]
-        channel = inputs.shape[2]
 
         if compatible_tensorflow_v1:
             scale = [(input_height - 1)/(output_height - 1), (input_width - 1)/(output_width - 1)]
         else:
             scale = [(input_height - 0)/(output_height - 0), (input_width - 0)/(output_width - 0)]
 
-        output = np.zeros((output_height, output_width, channel)).astype(inputs.dtype)
+        h = np.arange(0, output_height)
+        w = np.arange(0, output_width)
 
-        for h in range(output_height):
-            for w in range(output_width):
-                if compatible_tensorflow_v1:
-                    center_y = h * scale[0]
-                    center_x = w * scale[1]
-                    int_y = int(center_y)
-                    int_x = int(center_x)
-                else:
-                    center_y = (h + 0.5) * (scale[0]) - 0.5
-                    center_x = (w + 0.5) * (scale[1]) - 0.5
-                    int_y = int(math.floor(center_y))
-                    int_x = int(math.floor(center_x))
+        if compatible_tensorflow_v1:
+            center_y = h * scale[0]
+            center_x = w * scale[1]
+            int_y = center_y.astype(np.int32)
+            int_x = center_x.astype(np.int32)
 
-                dx = center_x - int_x
-                dy = center_y - int_y
+        else:
+            center_y = (h + 0.5) * (scale[0]) - 0.5
+            center_x = (w + 0.5) * (scale[1]) - 0.5
+            int_y = (np.floor(center_y)).astype(np.int32)
+            int_x = (np.floor(center_x)).astype(np.int32)
 
-                top = max(int_y, 0)
-                bottom = min(int_y + 1, input_height-1)
-                left = max(int_x, 0)
-                right = min(int_x + 1, input_width-1)
+        dy = center_y - int_y
+        dx = center_x - int_x
+        dx = np.reshape(dx, (1, output_width, 1))
+        dy = np.reshape(dy, (output_height, 1, 1))
 
-                t_l = inputs[top, left, :]
-                t_r = inputs[top, right, :]
-                b_l = inputs[bottom, left, :]
-                b_r = inputs[bottom, right, :]
+        top = np.maximum(int_y, 0)
+        bottom = np.minimum(int_y + 1, input_height - 1)
+        left = np.maximum(int_x, 0)
+        right = np.minimum(int_x + 1, input_width - 1)
 
-                t = t_l + (t_r - t_l) * dx
-                b = b_l + (b_r - b_l) * dx
-                out = t + (b - t) * dy
+        tops = inputs[top, :, :]
+        t_l = tops[:, left, :]
+        t_r = tops[:, right, :]
+        bottoms = inputs[bottom, :, :]
+        b_l = bottoms[:, left, :]
+        b_r = bottoms[:, right, :]
 
-                output[h, w, :] = out
+        t = t_l + (t_r - t_l) * dx
+        b = b_l + (b_r - b_l) * dx
+        output = t + (b - t) * dy
         return output
 
 
