@@ -22,7 +22,7 @@ import yaml
 
 from blueoil.blueoil_init import ask_questions, save_config
 from blueoil.blueoil_train import run as run_train
-from blueoil.blueoil_convert import run as run_convert, get_export_directory
+from blueoil.blueoil_convert import run as run_convert
 from executor.predict import run as run_predict
 
 
@@ -117,12 +117,10 @@ def convert(experiment_id, checkpoint, template):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
     restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
 
-    run_convert(experiment_id, restore_path, template)
+    export_output_root_dir = run_convert(experiment_id, restore_path, template)
 
-    export_dir = get_export_directory(experiment_id, restore_path)
-    output_root_dir = os.path.join(export_dir, 'output')
-    click.echo('Output files are generated in {}'.format(output_root_dir))
-    click.echo('Please see {}/README.md to run prediction'.format(output_root_dir))
+    click.echo('Output files are generated in {}'.format(export_output_root_dir))
+    click.echo('Please see {}/README.md to run prediction'.format(export_output_root_dir))
 
 
 @main.command(help='Predict by using trained model.')
