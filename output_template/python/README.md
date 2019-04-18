@@ -52,7 +52,7 @@ $ python usb_camera_demo.py -c ../models/meta.yaml -m ../models/lib/lib_fpga.so
 
 ## Prerequisites
 ```
-Python = 3.5
+Python = 3.5, 3.6
 pip >= 9.0.1
 ```
 
@@ -87,9 +87,9 @@ $ python usb_camera_demo.py -c ../models/meta.yaml -m minimal_graph_with_shape.p
 
 ## Prerequisites
 ```
-Python = 3.6
-Opencv = 3.3.1
-python opencv = 3.3.1
+Python = 3.5, 3.6
+Opencv => 3.1.0
+python Opencv => 3.1.0
 ```
 
 ```
