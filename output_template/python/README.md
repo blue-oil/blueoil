@@ -88,8 +88,8 @@ $ python usb_camera_demo.py -c ../models/meta.yaml -m minimal_graph_with_shape.p
 ## Prerequisites
 ```
 Python = 3.5, 3.6
-Opencv => 3.1.0
-python opencv => 3.1.0
+Opencv >= 3.1.0
+python opencv >= 3.1.0
 ```
 
 ```
