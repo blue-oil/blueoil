@@ -48,6 +48,7 @@ class FDmaTileGenerator(avalonAddrWidth: Int, dataWidth: Int, tileCountWidth: In
     val tileWidth = Output(UInt(tileCountWidth.W))
     val tileWordRowToRowDistance = Output(UInt(tileCountWidth.W))
     val tileValid = Output(Bool())
+    val tileFirst = Output(Bool())
     val tileAccepted = Input(Bool())
 
     // Synchronization interface
@@ -75,6 +76,13 @@ class FDmaTileGenerator(avalonAddrWidth: Int, dataWidth: Int, tileCountWidth: In
   val valid = (state === State.valid)
 
   val syncDecRRaw = (setupTile | waitSync)
+
+  val tileFirst = Reg(Bool())
+  when(idle) {
+    tileFirst := true.B
+  }.elsewhen(valid & io.tileAccepted) {
+    tileFirst := false.B
+  }
 
   val outputCCountLeft = Reg(UInt(tileCountWidth.W))
   val outputCCountLast = (outputCCountLeft === 1.U)
@@ -201,6 +209,7 @@ class FDmaTileGenerator(avalonAddrWidth: Int, dataWidth: Int, tileCountWidth: In
   io.tileHeight := tileHeight
   io.tileWidth := tileWidth
   io.tileWordRowToRowDistance := tileWordRowToRowDistance
+  io.tileFirst := tileFirst
   io.tileValid := valid
   io.fRawDec := syncDecRRaw
   io.statusReady := idle

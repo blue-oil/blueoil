@@ -100,6 +100,7 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   val rmemReader = Module(new RDmaBufferedRMemReader(b, avalonDataWidth, rAddrWidth, tileCountWidth))
   rmemReader.io.tileHeight := tileGenerator.io.tileHeight
   rmemReader.io.tileWidth := tileGenerator.io.tileWidth
+  rmemReader.io.tileFirst := tileGenerator.io.tileFirst
   rmemReader.io.tileValid := tileGenerator.io.tileValid
   io.rmemRead := rmemReader.io.rmemRead
   rmemReader.io.rmemQ := io.rmemQ

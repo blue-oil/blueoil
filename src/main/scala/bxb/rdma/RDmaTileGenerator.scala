@@ -47,6 +47,7 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     val tileHeight = Output(UInt(tileCountWidth.W))
     val tileWidth = Output(UInt(tileCountWidth.W))
     val tileRowToRowDistance = Output(UInt(tileCountWidth.W))
+    val tileFirst = Output(Bool())
     val tileValid = Output(Bool())
     val tileAccepted = Input(Bool())
 
@@ -75,6 +76,13 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val valid = (state === State.valid)
 
   val syncDecRRaw = (setupTile | waitSync)
+
+  val tileFirst = Reg(Bool())
+  when(idle) {
+    tileFirst := true.B
+  }.elsewhen(valid & io.tileAccepted) {
+    tileFirst := false.B
+  }
 
   val outputCCountLeft = Reg(UInt(tileCountWidth.W))
   val outputCCountLast = (outputCCountLeft === 1.U)
@@ -201,6 +209,7 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   io.tileHeight := tileHeight
   io.tileWidth := tileWidth
   io.tileRowToRowDistance := tileRowToRowDistance
+  io.tileFirst := tileFirst
   io.tileValid := valid
   io.rRawDec := syncDecRRaw
   io.statusReady := idle

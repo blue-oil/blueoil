@@ -136,6 +136,7 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   amemWriter.io.tileSidePad := tileGenerator.io.tileSidePad
   amemWriter.io.tileEndPad := tileGenerator.io.tileEndPad
   amemWriter.io.tileValid := tileGenerator.io.tileValid
+  amemWriter.io.tileFirst := tileGenerator.io.tileFirst
   tileAcceptedByWriter := amemWriter.io.tileAccepted
   amemWriter.io.avalonMasterReadDataValid := io.avalonMasterReadDataValid
   amemWriter.io.avalonMasterReadData := io.avalonMasterReadData

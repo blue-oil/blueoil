@@ -11,6 +11,7 @@ class RDmaBufferedRMemReader(b: Int, avalonDataWidth: Int, rAddrWidth: Int, tile
   // current data format assumes 32 activations packed into two 32 bit words:
   // first contains 32 lsb bits, second contains 32 msb bits
   val rBitPackSize = 32
+  val rAddrLowWidth = rAddrWidth - 1
 
   require(avalonDataWidth <= 256, "exceeds maximum size of hps sdram slave port")
   require(b >= rBitPackSize && avalonDataWidth >= 2 * rBitPackSize,
@@ -22,6 +23,7 @@ class RDmaBufferedRMemReader(b: Int, avalonDataWidth: Int, rAddrWidth: Int, tile
     // Tile Generator interface
     val tileHeight = Input(UInt(rAddrWidth.W))
     val tileWidth = Input(UInt(rAddrWidth.W))
+    val tileFirst = Input(Bool())
     // once tileValid asserted above tile parameters must remain stable and until tileAccepted is asserted
     val tileValid = Input(Bool())
 
@@ -72,22 +74,24 @@ class RDmaBufferedRMemReader(b: Int, avalonDataWidth: Int, rAddrWidth: Int, tile
     }
   }
 
-  val rmemBufEvenOdd = RegInit(0.U(1.W))
-  when(idle & io.tileValid) {
-    rmemBufEvenOdd := ~rmemBufEvenOdd
+  val rmemAddressMsb = RegInit(0.U(1.W))
+  when(idle & io.tileValid & io.tileFirst) {
+    rmemAddressMsb := 0.U
+  }.elsewhen(idle & io.tileValid) {
+    rmemAddressMsb := ~rmemAddressMsb
   }
 
-  val rmemAddress = Reg(UInt(rAddrWidth.W))
+  val rmemAddressLow = Reg(UInt(rAddrLowWidth.W))
   when(updateAddress) {
     when(idle) {
-      rmemAddress := Cat(rmemBufEvenOdd, 0.U((rAddrWidth - 1).W))
+      rmemAddressLow := 0.U
     }.elsewhen(~tileYCountLast) {
-      rmemAddress := rmemAddress + 1.U
+      rmemAddressLow := rmemAddressLow + 1.U
     }
   }
 
   for (row <- 0 until b) {
-    io.rmemRead(row).addr := rmemAddress
+    io.rmemRead(row).addr := Cat(rmemAddressMsb, rmemAddressLow)
     io.rmemRead(row).enable := true.B
   }
 

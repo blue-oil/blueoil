@@ -6,6 +6,7 @@ import chisel3.util._
 import bxb.util.{Util}
 
 class A2fSequencer(addrWidth: Int) extends Module {
+  val addrLowWidth = addrWidth - 1
   val io = IO(new Bundle {
     val inputCCount = Input(UInt(6.W))
     val kernelVCount = Input(UInt(2.W))
@@ -14,6 +15,7 @@ class A2fSequencer(addrWidth: Int) extends Module {
     val tileHCount = Input(UInt(addrWidth.W))
     val tileStep = Input(UInt(2.W))
     val tileGap = Input(UInt(2.W))
+    val tileFirst = Input(Bool())
     val tileValid = Input(Bool())
     val tileAccepted = Output(Bool())
     val control = Output(A2fControl(addrWidth, addrWidth))
@@ -110,18 +112,19 @@ class A2fSequencer(addrWidth: Int) extends Module {
     }
   }
 
-  val aAddrEvenOdd = RegInit(0.U(1.W))
-  val nextAAddr = Cat(aAddrEvenOdd, 0.U((addrWidth - 1).W))
+  val aAddrMsb = RegInit(0.U(1.W))
   when(~waitRequired) {
-    when((idle & io.tileValid) | (~idle & tileVCountLast & ~inputCCountLast)) {
-      aAddrEvenOdd := ~aAddrEvenOdd
+    when(idle & io.tileValid & io.tileFirst) {
+      aAddrMsb := 0.U
+    }.elsewhen((idle & io.tileValid) | (~idle & kernelVCountLast & ~inputCCountLast)) {
+      aAddrMsb := ~aAddrMsb
     }
   }
 
-  val offset = Reg(UInt(addrWidth.W))
+  val offset = Reg(UInt(addrLowWidth.W))
   when(~waitRequired) {
     when(idle | kernelVCountLast) {
-      offset := nextAAddr
+      offset := 0.U
     }.elsewhen(kernelHCountLast) {
       offset := offset + io.tileHCount
     }.elsewhen(tileVCountLast) {
@@ -129,43 +132,41 @@ class A2fSequencer(addrWidth: Int) extends Module {
     }
   }
 
-  val aAddr = Reg(UInt(addrWidth.W))
+  val aAddrLow = Reg(UInt(addrLowWidth.W))
   when(~waitRequired) {
     when(idle | kernelVCountLast) {
-      aAddr := nextAAddr
+      aAddrLow := 0.U
     }.elsewhen(kernelHCountLast) {
-      aAddr := offset + io.tileHCount
+      aAddrLow := offset + io.tileHCount
     }.elsewhen(tileVCountLast) {
-      aAddr := offset + 1.U
+      aAddrLow := offset + 1.U
     }.elsewhen(tileHCountLast) {
-      aAddr := aAddr + io.tileGap
+      aAddrLow := aAddrLow + io.tileGap
     }.otherwise {
-      aAddr := aAddr + io.tileStep
+      aAddrLow := aAddrLow + io.tileStep
     }
   }
 
-  val fAddrEvenOdd = RegInit(0.U(1.W))
-  val nextFAddr = Cat(fAddrEvenOdd, 0.U((addrWidth - 1).W))
-  val currenFAddr = Cat(~fAddrEvenOdd, 0.U((addrWidth - 1).W))
+  val fAddrMsb = RegInit(0.U(1.W))
   when(~waitRequired) {
-    when(idle & io.tileValid) {
-      fAddrEvenOdd := ~fAddrEvenOdd
+    when(idle & io.tileValid & io.tileFirst) {
+      fAddrMsb := 0.U
+    }.elsewhen(idle & io.tileValid) {
+      fAddrMsb := ~fAddrMsb
     }
   }
 
-  val fAddr = Reg(UInt(addrWidth.W))
+  val fAddrLow = Reg(UInt(addrLowWidth.W))
   when(~waitRequired) {
-    when(idle | inputCCountLast) {
-      fAddr := nextFAddr
-    }.elsewhen(tileVCountLast) {
-      fAddr := currenFAddr
+    when(idle | inputCCountLast | tileVCountLast) {
+      fAddrLow := 0.U
     }.otherwise {
-      fAddr := fAddr + 1.U
+      fAddrLow := fAddrLow + 1.U
     }
   }
 
-  io.control.aAddr := aAddr
-  io.control.fAddr := fAddr
+  io.control.aAddr := Cat(aAddrMsb, aAddrLow)
+  io.control.fAddr := Cat(fAddrMsb, fAddrLow)
 
   when(~waitRequired) {
     when(~idle & tileVCountLast) {

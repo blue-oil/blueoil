@@ -11,6 +11,7 @@ class ADmaAMemWriter(b: Int, avalonDataWidth: Int, aAddrWidth: Int, tileCountWid
   // current data format assumes 32 activations packed into two 32 bit words:
   // first contains 32 lsb bits, second contains 32 msb bits
   val aBitPackSize = 32
+  val aAddrLowWidth = aAddrWidth - 1
 
   require(avalonDataWidth <= 256, "exceeds maximum size of hps sdram slave port")
   require(b >= aBitPackSize && avalonDataWidth >= 2 * aBitPackSize,
@@ -23,6 +24,7 @@ class ADmaAMemWriter(b: Int, avalonDataWidth: Int, aAddrWidth: Int, tileCountWid
     val tileStartPad = Input(UInt(aAddrWidth.W))
     val tileSidePad = Input(UInt(aAddrWidth.W))
     val tileEndPad = Input(UInt(aAddrWidth.W))
+    val tileFirst = Input(Bool())
     // once tileValid asserted above tile parameters must remain stable and until tileAccepted is asserted
     val tileValid = Input(Bool())
     // accepted at a clock when last request is sent
@@ -106,52 +108,50 @@ class ADmaAMemWriter(b: Int, avalonDataWidth: Int, aAddrWidth: Int, tileCountWid
     padEndCountLeft := padEndCountLeft - 1.U
   }
 
-  // pointer to next half of AMem to be used
-  val amemBufEvenOdd = RegInit(0.U(1.W))
-  val amemStartAddressNext = Cat(amemBufEvenOdd, 0.U((aAddrWidth - 1).W))
-  val amemStartAddressPtr = Reg(UInt(aAddrWidth.W))
-  when(idle & io.tileValid) {
-    amemBufEvenOdd := ~amemBufEvenOdd
-    amemStartAddressPtr := amemStartAddressNext
+  val amemAddressMsb = RegInit(0.U(1.W))
+  when(idle & io.tileValid & io.tileFirst) {
+    amemAddressMsb := 0.U
+  }.elsewhen(idle & io.tileValid) {
+    amemAddressMsb := ~amemAddressMsb
   }
 
   val hasStartPad = RegNext(io.tileStartPad =/= 0.U)
   val hasSidePad = RegNext(io.tileSidePad =/= 0.U)
   val hasEndPad = RegNext(io.tileEndPad =/= 0.U)
 
-  val amemAddress = Reg(UInt(aAddrWidth.W))
+  val amemAddressLow = Reg(UInt(aAddrLowWidth.W))
   when(~waitRequired) {
     when(idle) {
-      amemAddress := amemStartAddressNext + io.tileStartPad
+      amemAddressLow := io.tileStartPad
     }.elsewhen(running) {
-      // when all data from memory is written move amemAddress to start write padding
+      // when all data from memory is written move amemAddressLow to start write padding
       when(tileYCountLast) {
         when(hasStartPad) {
-          amemAddress := amemStartAddressPtr
+          amemAddressLow := 0.U
         }.elsewhen(hasSidePad) {
-          amemAddress := amemStartAddressPtr + io.tileWidth
+          amemAddressLow := io.tileWidth
         }.otherwise {
-          amemAddress := amemAddress + 1.U
+          amemAddressLow := amemAddressLow + 1.U
         }
       }.elsewhen(tileXCountLast) {
-        amemAddress := amemAddress + io.tileSidePad + 1.U
+        amemAddressLow := amemAddressLow + io.tileSidePad + 1.U
       }.otherwise {
-        amemAddress := amemAddress + 1.U
+        amemAddressLow := amemAddressLow + 1.U
       }
     }.elsewhen(padStart) {
       when(padStartCountLast) {
-        amemAddress := amemAddress + io.tileWidth + 1.U
+        amemAddressLow := amemAddressLow + io.tileWidth + 1.U
       }.otherwise {
-        amemAddress := amemAddress + 1.U
+        amemAddressLow := amemAddressLow + 1.U
       }
     }.elsewhen(padMiddle) {
       when(padSideCountLast) {
-        amemAddress := amemAddress + io.tileWidth + 1.U
+        amemAddressLow := amemAddressLow + io.tileWidth + 1.U
       }.otherwise {
-        amemAddress := amemAddress + 1.U
+        amemAddressLow := amemAddressLow + 1.U
       }
     }.elsewhen(padEnd) {
-      amemAddress := amemAddress + 1.U
+      amemAddressLow := amemAddressLow + 1.U
     }
   }
 
@@ -202,7 +202,7 @@ class ADmaAMemWriter(b: Int, avalonDataWidth: Int, aAddrWidth: Int, tileCountWid
     val msbWord = row / aBitPackSize * 2 + 1 // 1, 3, 5
     val msbPos = msbWord * aBitPackSize + row % aBitPackSize
 
-    io.amemWrite(row).addr := amemAddress
+    io.amemWrite(row).addr := Cat(amemAddressMsb, amemAddressLow)
     io.amemWrite(row).data := Mux(running, Cat(io.avalonMasterReadData(msbPos), io.avalonMasterReadData(lsbPos)), 0.U(aSz.W))
     io.amemWrite(row).enable := writeEnable
   }

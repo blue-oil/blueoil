@@ -100,6 +100,7 @@ class FDma(b: Int, fAddrWidth: Int, avalonAddrWidth: Int, avalonDataWidth: Int, 
   val fmemReader = Module(new FDmaFMemReader(b, avalonDataWidth, fAddrWidth, tileCountWidth))
   fmemReader.io.tileHeight := tileGenerator.io.tileHeight
   fmemReader.io.tileWidth := tileGenerator.io.tileWidth
+  fmemReader.io.tileFirst := tileGenerator.io.tileFirst
   fmemReader.io.tileValid := tileGenerator.io.tileValid
   io.fmemRead := fmemReader.io.fmemRead
   fmemReader.io.fmemQ := io.fmemQ
