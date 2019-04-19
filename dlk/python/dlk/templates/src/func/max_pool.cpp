@@ -34,7 +34,7 @@ void max_pooling(
   int idx_out = 0;
   const T_FLOAT num_k_elems = p.kernel_height * p.kernel_width * p.kernel_depth;
 
-  std::memset(output, 0.0f, p.output_channels * p.output_height * p.output_width * sizeof(TYPE));
+  std::memset(output, 0, p.output_channels * p.output_height * p.output_width * sizeof(output[0]));
 
   for(T_UINT oc = 0; oc < p.output_channels; oc++) {
     for(T_UINT wi = 0; wi < p.output_height; wi++) {
