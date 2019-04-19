@@ -5,7 +5,7 @@ import scala.collection._
 import chisel3._
 import chisel3.iotesters.{PeekPokeTester, Driver}
 
-class DummyControl(val start: Boolean, val aAddr: Int, val fAddr: Int, val accumulate: Boolean, val evenOdd: Int, val decMRaw: Boolean, val incMWar: Boolean, val decARaw: Boolean, val incAWar: Boolean, val incFRaw: Boolean) {
+class DummyControl(val start: Boolean, val first: Boolean, val aAddr: Int, val fAddr: Int, val accumulate: Boolean, val evenOdd: Int, val decMRaw: Boolean, val incMWar: Boolean, val decARaw: Boolean, val incAWar: Boolean, val incFRaw: Boolean) {
 }
 
 class DummyControlSequencer(repeats: Int, b: Int, amemSize: Int, tileHeight: Int, tileWidth: Int, inputChannels: Int) {
@@ -35,7 +35,7 @@ class DummyControlSequencer(repeats: Int, b: Int, amemSize: Int, tileHeight: Int
               val decMRaw = (i == 0 && j == 0) // decrement semaphore before starting 1x1 convolution
               val incMWar = (i == vCount - 1 && j == hCount - 1) // increment semaphore when 1x1 done
               val incFRaw = (ki == 2 && kj == 2 && i == vCount - 1 && j == hCount - 1 && c == cCount - 1)
-              controlSeq += new DummyControl(start, aAddr, fAddr, acc, evenOdd, decMRaw, incMWar, decARaw, incAWar, incFRaw)
+              controlSeq += new DummyControl(start, r == 0, aAddr, fAddr, acc, evenOdd, decMRaw, incMWar, decARaw, incAWar, incFRaw)
               aAddr += (if (j == hCount - 1) gap else step)
               fAddr += 1
             }
@@ -62,6 +62,7 @@ class A2fSequencerTestSequence(dut: A2fSequencer, b: Int, amemSize: Int, tileHei
   poke(dut.io.mRawZero, false)
   poke(dut.io.aRawZero, false)
   for (ctl <- ref.controlSeq) {
+    poke(dut.io.tileFirst, ctl.first)
     if (ctl.start) {
       while (peek(dut.io.controlValid) == 0) {
         step(1)
@@ -93,6 +94,7 @@ class A2fSequencerTestEvenOdd(dut: A2fSequencer, b: Int, amemSize: Int, tileHeig
   poke(dut.io.mRawZero, false)
   poke(dut.io.aRawZero, false)
   for (ctl <- ref.controlSeq) {
+    poke(dut.io.tileFirst, ctl.first)
     if (ctl.start) {
       while (peek(dut.io.controlValid) == 0) {
         step(1)
@@ -117,6 +119,7 @@ class A2fSequencerTestARawZero(dut: A2fSequencer, b: Int, amemSize: Int, tileHei
   poke(dut.io.aRawZero, true)
   var waitDelay = 1
   for (ctl <- ref.controlSeq) {
+    poke(dut.io.tileFirst, ctl.first)
     if (ctl.start) {
       poke(dut.io.aRawZero, true)
       for (j <- 0 until waitDelay) {
@@ -155,6 +158,7 @@ class A2fSequencerTestMRawZero(dut: A2fSequencer, b: Int, amemSize: Int, tileHei
   poke(dut.io.aRawZero, false)
   var waitDelay = 1
   for (ctl <- ref.controlSeq) {
+    poke(dut.io.tileFirst, ctl.first)
     if (ctl.start) {
       poke(dut.io.mRawZero, true)
       for (j <- 0 until waitDelay) {
@@ -193,6 +197,7 @@ class A2fSequencerTestOffsetValid(dut: A2fSequencer, b: Int, amemSize: Int, tile
   poke(dut.io.aRawZero, false)
   var waitDelay = 1
   for (ctl <- ref.controlSeq) {
+    poke(dut.io.tileFirst, ctl.first)
     if (ctl.start) {
       for (j <- 0 until waitDelay) {
         step(1)

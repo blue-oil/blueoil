@@ -9,6 +9,7 @@ import bxb.util.{Util, CatLeastFirst}
 class FDmaFMemReader(b: Int, avalonDataWidth: Int, fAddrWidth: Int, tileCountWidth: Int) extends Module {
   val fSz = 16
   val rowWidth = fSz * b
+  val fAddrLowWidth = fAddrWidth - 1
 
   require(isPow2(avalonDataWidth))
   require(avalonDataWidth <= 256, "exceeds maximum size of hps sdram slave port")
@@ -21,6 +22,7 @@ class FDmaFMemReader(b: Int, avalonDataWidth: Int, fAddrWidth: Int, tileCountWid
     // Tile Generator interface
     val tileHeight = Input(UInt(fAddrWidth.W))
     val tileWidth = Input(UInt(fAddrWidth.W))
+    val tileFirst = Input(Bool())
     // once tileValid asserted above tile parameters must remain stable and until tileAccepted is asserted
     val tileValid = Input(Bool())
 
@@ -79,23 +81,25 @@ class FDmaFMemReader(b: Int, avalonDataWidth: Int, fAddrWidth: Int, tileCountWid
     }
   }
 
-  val fmemBufEvenOdd = RegInit(0.U(1.W))
-  when(idle & io.tileValid) {
-    fmemBufEvenOdd := ~fmemBufEvenOdd
+  val fmemAddressMsb = RegInit(0.U(1.W))
+  when(idle & io.tileValid & io.tileFirst) {
+    fmemAddressMsb := 0.U
+  }.elsewhen(idle & io.tileValid) {
+    fmemAddressMsb := ~fmemAddressMsb
   }
 
   val loadData = (loadFirst | (dataAccepted & wordsCountLast))
   val shiftData = dataAccepted
 
-  val fmemAddress = Reg(UInt(fAddrWidth.W))
+  val fmemAddressLow = Reg(UInt(fAddrLowWidth.W))
   when(idle) {
-    fmemAddress := Cat(fmemBufEvenOdd, 0.U((fAddrWidth - 1).W))
+    fmemAddressLow := 0.U
   }.elsewhen(loadData & ~tileYCountLast) {
-    fmemAddress := fmemAddress + 1.U
+    fmemAddressLow := fmemAddressLow + 1.U
   }
 
   for (row <- 0 until b) {
-    io.fmemRead(row).addr := fmemAddress
+    io.fmemRead(row).addr := Cat(fmemAddressMsb, fmemAddressLow)
     io.fmemRead(row).enable := (askFirst | running)
   }
 

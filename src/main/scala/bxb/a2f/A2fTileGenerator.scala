@@ -30,6 +30,7 @@ class A2fTileGenerator(tileCountWidth: Int) extends Module {
     // Tile output interface with handshaking
     val tileHeight = Output(UInt(tileCountWidth.W))
     val tileWidth = Output(UInt(tileCountWidth.W))
+    val tileFirst = Output(Bool())
     val tileValid = Output(Bool())
     val tileAccepted = Input(Bool())
 
@@ -48,6 +49,13 @@ class A2fTileGenerator(tileCountWidth: Int) extends Module {
   val updateCounters = (state === State.updateCounters)
   val setupTile = (state === State.setupTile)
   val valid = (state === State.valid)
+
+  val tileFirst = Reg(Bool())
+  when(idle) {
+    tileFirst := true.B
+  }.elsewhen(valid & io.tileAccepted) {
+    tileFirst := false.B
+  }
 
   val outputCCountLeft = Reg(UInt(tileCountWidth.W))
   val outputCCountLast = (outputCCountLeft === 1.U)
@@ -125,6 +133,7 @@ class A2fTileGenerator(tileCountWidth: Int) extends Module {
 
   io.tileHeight := tileHeight
   io.tileWidth := tileWidth
+  io.tileFirst := tileFirst
   io.tileValid := valid
   io.statusReady := idle
 }

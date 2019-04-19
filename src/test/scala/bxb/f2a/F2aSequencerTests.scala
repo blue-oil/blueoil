@@ -5,7 +5,7 @@ import scala.collection._
 import chisel3._
 import chisel3.iotesters.{PeekPokeTester, Driver}
 
-class DummyControl(val start: Boolean, val aAddr: Int, val aWriteEnable: Boolean, val fAddr: Int, val fReadEnable: Boolean, val qAddr: Int, val decFRaw: Boolean, val incFWar: Boolean, val decAWar: Boolean, val incARaw: Boolean, val decQRaw: Boolean, val incQWar: Boolean, val tileAccepted: Boolean) {
+class DummyControl(val start: Boolean, val first: Boolean, val aAddr: Int, val aWriteEnable: Boolean, val fAddr: Int, val fReadEnable: Boolean, val qAddr: Int, val decFRaw: Boolean, val incFWar: Boolean, val decAWar: Boolean, val incARaw: Boolean, val decQRaw: Boolean, val incQWar: Boolean, val tileAccepted: Boolean) {
 }
 
 class DummyControlSequencer(tileHeight: Int, tileWidth: Int, amemSize: Int, qmemSize: Int, fmemSize: Int, repeat: Int) {
@@ -36,7 +36,7 @@ class DummyControlSequencer(tileHeight: Int, tileWidth: Int, amemSize: Int, qmem
       }
       val aWriteEnable = (i > 0 && i < vCount + 1)
       val fReadEnable = (i > 0 && i < vCount + 1)
-      controlSeq += new DummyControl(i == 0, aAddr, aWriteEnable, fAddr, fReadEnable, qAddr, decFRaw, incFWar, decAWar, incARaw, decQRaw, incQWar, tileAccepted)
+      controlSeq += new DummyControl(i == 0, ki == 0, aAddr, aWriteEnable, fAddr, fReadEnable, qAddr, decFRaw, incFWar, decAWar, incARaw, decQRaw, incQWar, tileAccepted)
       if ((i >= 1) && (i <= vCount - 0)) {
         fAddr += 1
       }
@@ -57,6 +57,7 @@ class F2aSequencerTestSequence(dut: F2aSequencer, tileHeight: Int, tileWidth: In
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
   for (ctl <- ref.controlSeq) {
+    poke(dut.io.tileFirst, ctl.first)
     step(1)
     expect(dut.io.control.amemWriteEnable, ctl.aWriteEnable)
     if (ctl.aWriteEnable) {
@@ -88,6 +89,7 @@ class F2aSequencerTestAWarZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
   for (ctl <- ref.controlSeq) {
+    poke(dut.io.tileFirst, ctl.first)
     step(1)
     if (ctl.decAWar) {
       expect(dut.io.control.syncInc.fWar, ctl.incFWar)
@@ -130,6 +132,7 @@ class F2aSequencerTestFRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
   for (ctl <- ref.controlSeq) {
+    poke(dut.io.tileFirst, ctl.first)
     step(1)
     if (ctl.decFRaw) {
       expect(dut.io.control.syncInc.qWar, ctl.incQWar)
@@ -170,6 +173,7 @@ class F2aSequencerTestQRawZero(dut: F2aSequencer, tileHeight: Int, tileWidth: In
 
   val ref = new DummyControlSequencer(tileHeight, tileWidth, amemSize, qmemSize, fmemSize, 9)
   for (ctl <- ref.controlSeq) {
+    poke(dut.io.tileFirst, ctl.first)
     step(1)
     if (ctl.decQRaw) {
       poke(dut.io.qRawZero, true)
@@ -209,11 +213,13 @@ class F2aSequencerTestTileValid(dut: F2aSequencer, tileHeight: Int, tileWidth: I
 
   var tileAccepted = false
   poke(dut.io.tileValid, false)
+  poke(dut.io.tileFirst, true)
   for (j <- 0 until waitDelay) {
     step(1)
   }
   poke(dut.io.tileValid, true)
   for (ctl <- ref.controlSeq) {
+    poke(dut.io.tileFirst, ctl.first)
     step(1)
     if (tileAccepted) {
       poke(dut.io.tileValid, false)

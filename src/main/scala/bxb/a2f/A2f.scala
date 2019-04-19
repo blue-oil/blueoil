@@ -85,6 +85,7 @@ class A2f(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Module {
   sequencer.io.tileHCount := tileGen.io.tileWidth
   sequencer.io.tileStep := io.tileStep
   sequencer.io.tileGap := io.tileGap
+  sequencer.io.tileFirst := tileGen.io.tileFirst
   sequencer.io.tileValid := tileGen.io.tileValid
   tileAccepted := sequencer.io.tileAccepted
 

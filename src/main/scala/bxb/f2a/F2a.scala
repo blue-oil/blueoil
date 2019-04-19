@@ -75,6 +75,7 @@ class F2a(b: Int, dataMemSize: Int, qmemSize: Int, aWidth: Int, fWidth: Int) ext
 
   sequencer.io.hCount := tileGen.io.tileHeight
   sequencer.io.wCount := tileGen.io.tileWidth
+  sequencer.io.tileFirst := tileGen.io.tileFirst
   sequencer.io.tileValid := tileGen.io.tileValid
   tileAccepted := sequencer.io.tileAccepted
 

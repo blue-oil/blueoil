@@ -76,6 +76,7 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     val tileStartPad = Output(UInt(tileCountWidth.W))
     val tileSidePad = Output(UInt(tileCountWidth.W))
     val tileEndPad = Output(UInt(tileCountWidth.W))
+    val tileFirst = Output(Bool())
 
     // Synchronization interface
     val aWarDec = Output(Bool())
@@ -102,6 +103,13 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val valid = (state === State.valid)
 
   val syncDecAWar = (setupTile | waitSync)
+
+  val tileFirst = Reg(Bool())
+  when(idle) {
+    tileFirst := true.B
+  }.elsewhen(valid & io.tileAccepted) {
+    tileFirst := false.B
+  }
 
   val inputCCountLeft = Reg(UInt(tileCountWidth.W))
   val inputCCountLast = (inputCCountLeft === 1.U)
@@ -333,6 +341,7 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   io.tileStartPad := tileStartPad
   io.tileSidePad := tileSidePad
   io.tileEndPad := tileEndPad
+  io.tileFirst := tileFirst
   io.aWarDec := syncDecAWar
   io.statusReady := idle
 }

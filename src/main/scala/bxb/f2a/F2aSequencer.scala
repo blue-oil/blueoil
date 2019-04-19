@@ -23,6 +23,7 @@ class F2aSequencer(b: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) ex
     val wCount = Input(UInt(fAddrWidth.W))
 
     // Tile generator interface
+    val tileFirst = Input(Bool())
     val tileValid = Input(Bool())
     val tileAccepted = Output(Bool())
   })
@@ -64,26 +65,28 @@ class F2aSequencer(b: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) ex
     }
   }
 
-  val aAddrEvenOdd = RegInit(0.U(1.W))
+  val addrMsb = RegInit(0.U(1.W))
   when(~waitRequired) {
-    when(doingQuantize & hCountLast) {
-      aAddrEvenOdd := ~aAddrEvenOdd
+    when(idle & io.tileValid & io.tileFirst) {
+      addrMsb := 0.U
+    }.elsewhen(doingQuantize & hCountLast) {
+      addrMsb := ~addrMsb
     }
   }
-  val aAddr = Reg(UInt(aAddrWidth.W))
+  val aAddrLow = Reg(UInt((aAddrWidth - 1).W))
   when(~waitRequired) {
     when(idle & io.tileValid) {
-      aAddr := Cat(aAddrEvenOdd, 0.U((aAddrWidth - 1).W))
+      aAddrLow := 0.U
     }.elsewhen(doingQuantize) {
-      aAddr := aAddr + 1.U
+      aAddrLow := aAddrLow + 1.U
     }
   }
-  val fAddr = Reg(UInt(fAddrWidth.W))
+  val fAddrLow = Reg(UInt((fAddrWidth - 1).W))
   when(~waitRequired) {
     when(idle & io.tileValid) {
-      fAddr := Cat(aAddrEvenOdd, 0.U((fAddrWidth - 1).W))
+      fAddrLow := 0.U
     }.elsewhen(doingQuantize) {
-      fAddr := fAddr + 1.U
+      fAddrLow := fAddrLow + 1.U
     }
   }
 
@@ -137,10 +140,10 @@ class F2aSequencer(b: Int, fAddrWidth: Int, qAddrWidth: Int, aAddrWidth: Int) ex
   io.qRawDec := doingQRead
   io.fRawDec := syncDecFRaw
 
-  io.control.fmemAddr := fAddr
+  io.control.fmemAddr := Cat(addrMsb, fAddrLow)
   io.control.fmemReadEnable := (doingQuantize & ~waitRequired)
   io.control.qmemAddr := qAddr
-  io.control.amemAddr := aAddr
+  io.control.amemAddr := Cat(addrMsb, aAddrLow)
   io.control.amemWriteEnable := (doingQuantize & ~waitRequired)
   io.control.qWe := doingQRead
 
