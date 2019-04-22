@@ -15,7 +15,6 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
 {%- if config.threshold_skipping %}
     $(SRC_DIR)/thresholds.cpp \
 {%- endif %}
-    $(SRC_DIR)/func/add.cpp \
     $(SRC_DIR)/func/average_pool.cpp \
     $(SRC_DIR)/func/bias_add.cpp \
     $(SRC_DIR)/func/conv2d.cpp \

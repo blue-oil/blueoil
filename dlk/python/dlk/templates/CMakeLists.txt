@@ -30,7 +30,6 @@ set(CMAKE_CXX_EXTENSIONS YES)
 #
 file(GLOB SRC_LIB_ALL "src/inputs/*.cpp")
 list(APPEND SRC_LIB_ALL
-    src/func/add.cpp
     src/func/average_pool.cpp
     src/func/bias_add.cpp
     src/func/conv2d.cpp
