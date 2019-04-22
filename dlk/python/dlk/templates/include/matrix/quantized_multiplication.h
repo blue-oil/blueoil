@@ -22,7 +22,7 @@ limitations under the License.
 namespace dlk {
 
 void quantized_matrix_multiplication(
-  const MatrixView<T_UINT, MatrixOrder::RowMajor>& A,
+  const MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>& A,
   const MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>& B,
   MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>& C);
 

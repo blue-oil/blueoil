@@ -15,12 +15,13 @@
 # =============================================================================
 """Module of optimization passes."""
 import math
+import warnings
 import numpy as np
 
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
 from core.operators import Constant, Operator, Conv
-from core.data_types import Uint32, QUANTIZED_NOT_PACKED
+from core.data_types import PackedUint32, QUANTIZED_NOT_PACKED
 from typing import cast, List, Any
 from collections import defaultdict
 from modules.packer import Packer
@@ -276,8 +277,20 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
                     for q in quant_details[n.name]:
                         qtzs.append(q)
 
-            quant_details[m.name] = qtzs if len(qtzs) == len(m.input_nodes) else []
-            # TODO: check if the quantizers use same n_bits
+            if qtzs:
+                nbits = []
+                max_vs = []
+                for qtz in qtzs:
+                    nbits.append(qtz.nbit)
+                    max_vs.append(qtz.max_v)
+                if not (len(set(nbits)) == 1) and not (len(set(max_vs)) == 1):
+                    warnings.warn(f'bits {nbits} or max values {max_vs} are not consistent '
+                                  f'to propagate quantization information to {m.name}')
+                    quant_details[m.name] = []
+                else:
+                    quant_details[m.name] = qtzs
+            else:
+                quant_details[m.name] = []
 
 
 def pass_compute_thresholds(graph: Graph) -> None:
@@ -445,7 +458,7 @@ def pass_pack_weights(graph: Graph) -> None:
         kd = conv_node.input_ops['X'].channel
         quantized_constant = Constant(
             weight_quantizer.name + '_new',
-            Uint32(),
+            PackedUint32(),
             data,
             packed=True,
             actual_shape=weight_quantizer.shape,
@@ -495,7 +508,7 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             conv_node.dtype = QUANTIZED_NOT_PACKED()
 
         # change the output data type of the quantizers
-        conv_node.quantizer.dtype = Uint32()
+        conv_node.quantizer.dtype = PackedUint32()
         for qtz in conv_node.a_quantizer:
             qtz.dtype = QUANTIZED_NOT_PACKED()
 

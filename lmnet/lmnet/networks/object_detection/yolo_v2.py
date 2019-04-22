@@ -1551,7 +1551,7 @@ def summary_boxes(tag, images, boxes, image_size, max_outputs=3, data_format="NH
     tag: name of summary tag.
     images: Tesnsor of images [batch_size, height, widths, 3].
     boxes: Tensor of boxes. assumed shape is [batch_size, num_boxes, 4(y1, x1, y2, x2)].
-    image_size: pyhon list image size [height, width].
+    image_size: python list image size [height, width].
     """
     with tf.name_scope("summary_boxes"):
 

@@ -1,3 +1,3 @@
 [build]
   publish = "docs/_build/html"
-  command = "source $HOME/python3.6/bin/activate && pip install -r doc.requirements.txt && cd docs && make html"
+  command = "source $HOME/python3.6/bin/activate && cd docs && make html"

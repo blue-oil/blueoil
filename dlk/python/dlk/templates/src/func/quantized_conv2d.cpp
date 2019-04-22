@@ -46,7 +46,7 @@ void func_linear_to_float(BIN_CONV_OUTPUT input[], T_INT nbit,
   }
 }
 
-void QuantizedConv2D(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
+void QuantizedConv2D(QUANTIZED_NOT_PACKED input[], QUANTIZED_PACKED_KERNEL kernel[],
                             binary_convolution_parameters p) {
   constexpr T_UINT TilingInTypeBitWidth = CHAR_BIT * sizeof(QUANTIZED_PACKED);
   int kh = p.normal_conv_params.kernel_height;
@@ -80,7 +80,7 @@ void QuantizedConv2D(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
 
 } // namespace
 
-void func_QuantizedConv2D(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
+void func_QuantizedConv2D(QUANTIZED_NOT_PACKED input[], QUANTIZED_PACKED_KERNEL kernel[],
                           T_FLOAT output[], T_FLOAT scaling_factor,
                           binary_convolution_parameters p) {
   Measurement::Start("QuantizedConv2D");
@@ -105,7 +105,7 @@ void func_QuantizedConv2D(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
   Measurement::Stop();
 }
 
-void func_QuantizedConv2D(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
+void func_QuantizedConv2D(QUANTIZED_NOT_PACKED input[], QUANTIZED_PACKED_KERNEL kernel[],
                           T_FLOAT output[], T_FLOAT scaling_factor[],
                           binary_convolution_parameters p) {
   Measurement::Start("QuantizedConv2D");
@@ -136,7 +136,7 @@ void func_QuantizedConv2D(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
 }
 
 void func_QuantizedConv2DWithThreshold(QUANTIZED_NOT_PACKED input[],
-                                       T_UINT kernel[],
+                                       QUANTIZED_PACKED_KERNEL kernel[],
                                        QUANTIZED_NOT_PACKED output[],
                                        T_FLOAT scaling_factor,
                                        binary_convolution_parameters p) {
@@ -152,7 +152,7 @@ void func_QuantizedConv2DWithThreshold(QUANTIZED_NOT_PACKED input[],
 }
 
 void func_QuantizedConv2DWithThreshold(QUANTIZED_NOT_PACKED input[],
-                                       T_UINT kernel[], T_FLOAT output[],
+                                       QUANTIZED_PACKED_KERNEL kernel[], T_FLOAT output[],
                                        T_FLOAT scaling_factor,
                                        binary_convolution_parameters p) {
   QuantizedConv2D(input, kernel, p);
@@ -168,7 +168,7 @@ void func_QuantizedConv2DWithThreshold(QUANTIZED_NOT_PACKED input[],
 }
 
 void func_QuantizedConv2DWithThreshold(QUANTIZED_NOT_PACKED input[],
-                                       T_UINT kernel[],
+                                       QUANTIZED_PACKED_KERNEL kernel[],
                                        QUANTIZED_NOT_PACKED output[],
                                        T_FLOAT scaling_factor[],
                                        binary_convolution_parameters p) {
@@ -177,7 +177,7 @@ void func_QuantizedConv2DWithThreshold(QUANTIZED_NOT_PACKED input[],
 }
 
 void func_QuantizedConv2DWithThreshold(QUANTIZED_NOT_PACKED input[],
-                                       T_UINT kernel[], T_FLOAT output[],
+                                       QUANTIZED_PACKED_KERNEL kernel[], T_FLOAT output[],
                                        T_FLOAT scaling_factor[],
                                        binary_convolution_parameters p) {
   func_QuantizedConv2DWithThreshold(input, kernel, output, scaling_factor[0],

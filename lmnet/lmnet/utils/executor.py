@@ -14,9 +14,9 @@
 # limitations under the License.
 # =============================================================================
 import os
-import shutil
 
 import tensorflow as tf
+from tensorflow import gfile
 
 from lmnet import environment
 
@@ -60,23 +60,23 @@ checkpoints_dir: {checkpoints_dir}
     print(message)
 
     if recreate:
-        if os.path.exists(experiment_dir):
-            shutil.rmtree(experiment_dir)
+        if gfile.Exists(experiment_dir):
+            gfile.DeleteRecursively(experiment_dir)
 
-        if os.path.exists(tensorboard_dir):
-            shutil.rmtree(tensorboard_dir)
+        if gfile.Exists(tensorboard_dir):
+            gfile.DeleteRecursively(tensorboard_dir)
 
-        if os.path.exists(checkpoints_dir):
-            shutil.rmtree(checkpoints_dir)
+        if gfile.Exists(checkpoints_dir):
+            gfile.DeleteRecursively(checkpoints_dir)
 
-    if not os.path.exists(experiment_dir):
-        os.makedirs(experiment_dir)
+    if not gfile.Exists(experiment_dir):
+        gfile.MakeDirs(experiment_dir)
 
-    if not os.path.exists(tensorboard_dir):
-        os.makedirs(tensorboard_dir)
+    if not gfile.Exists(tensorboard_dir):
+        gfile.MakeDirs(tensorboard_dir)
 
-    if not os.path.exists(checkpoints_dir):
-        os.makedirs(checkpoints_dir)
+    if not gfile.Exists(checkpoints_dir):
+        gfile.MakeDirs(checkpoints_dir)
 
 
 def search_restore_filename(checkpoints_dir):

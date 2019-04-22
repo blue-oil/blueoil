@@ -38,7 +38,7 @@ Please see the detail in the nvidia-docker's [prerequisites](https://github.com/
 ## Set up
 There are some submodules in this repositry, so you should run `git submodule update --init --recursive` after cloning or `git clone --recursive [this repository]`.
 ```
-./docker_build.sh
+make build
 ```
 Note: The private repository submodules are set to connect by ssh, if you want to use HTTPS, you should edit URLs in `.gitmodules` and run `git submodule sync` before `git submodule update --init --recursive` command. ([see how to edit](https://stackoverflow.com/a/30885128))
 
@@ -46,7 +46,6 @@ Note: The private repository submodules are set to connect by ssh, if you want t
 ## How to make document
 
 ```
-pip install -r doc.requirements.txt
 cd docs
 make html
 ```
@@ -72,4 +71,4 @@ Arguments:
 ```
 
 ### Tests for CI
-* [Jenkins settings for CI](./.jenkins/README.md)
+* [Jenkins settings for CI](./tests/README.md)

@@ -21,6 +21,11 @@ from lmnet.data_processor import (
 from lmnet.data_augmentor import iou
 
 
+def _softmax(x):
+    exp = np.exp(x - np.max(x))
+    return exp / np.expand_dims(exp.sum(axis=-1), -1)
+
+
 def format_cxcywh_to_xywh(boxes, axis=1):
     """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimention.
 
@@ -51,11 +56,6 @@ class FormatYoloV2(Processor):
     @property
     def num_cell(self):
         return self.image_size[0] // 32, self.image_size[1] // 32
-
-    @staticmethod
-    def softmax(x):
-        exp = np.exp(x - np.max(x))
-        return exp / np.expand_dims(exp.sum(axis=-1), -1)
 
     @staticmethod
     def sigmoid(x):
@@ -184,7 +184,7 @@ class FormatYoloV2(Processor):
 
         predict_classes, predict_confidence, predict_boxes = self._sprit_prediction(outputs)
 
-        predict_classes = self.softmax(predict_classes)
+        predict_classes = _softmax(predict_classes)
         predict_confidence = self.sigmoid(predict_confidence)
         predict_boxes = np.stack([
             self.sigmoid(predict_boxes[:, :, :, :, 0]),
@@ -311,3 +311,111 @@ class NMS(Processor):
             results.append(result_per_batch)
 
         return dict({"outputs": results}, **kwargs)
+
+
+class Bilinear(Processor):
+    """Bilinear
+
+    Change feature map spatial size with bilinear method, currenly support only up-sampling.
+    """
+
+    def __init__(self, size, data_format="NHWC", compatible_tensorflow_v1=True):
+        """
+        Args:
+            size (list): Target size [height, width].
+            data_format (string): currently support only "NHWC".
+            compatible_tensorflow_v1 (bool): When the flag is True, it is compatible with tensorflow v1 resize function. Otherwise tensorflow v2 and Pillow resize function.
+                Tensorflow v1 image resize function `tf.image.resize_bilinear()` which has the bug of calculataion of center pixel. The bug is fixed in tensorflow v2 `tf.image.resize()` which given the same result as Pillow's resize.
+                See also https://github.com/tensorflow/tensorflow/issues/6720 and https://github.com/tensorflow/tensorflow/commit/3ae2c6691b7c6e0986d97b150c9283e5cc52c15f
+        """ # NOQA
+
+        self.size = size
+        self.data_format = data_format
+        # TODO(wakisaka): support "NCHW" format.
+        assert data_format == "NHWC", "data_format only support NHWC but given {}".format(data_format)
+        self.compatible_tensorflow_v1 = compatible_tensorflow_v1
+
+    def __call__(self, outputs, **kwargs):
+        """
+        Args:
+            outputs (numpy.ndarray): 4-D ndarray of network outputs to be resized cahnnel-wise.
+
+        Returns:
+            all args (dict):
+                outputs (numpy.ndarray): resized outputs. 4-D ndarray.
+        """
+        output_height = self.size[0]
+        output_width = self.size[1]
+
+        input_height = outputs.shape[0]
+        input_width = outputs.shape[1]
+
+        # TODO(wakisaka): should support downsample.
+        assert output_height >= input_height
+        assert output_width >= input_width
+
+        batch_size = len(outputs)
+        results = []
+        for i in range(batch_size):
+            image = outputs[i, :, :, :]
+            image = self._bilinear(image, size=self.size, compatible_tensorflow_v1=self.compatible_tensorflow_v1)
+            results.append(image)
+        results = np.array(results)
+        return dict({'outputs': results}, **kwargs)
+
+    @staticmethod
+    def _bilinear(inputs, size, compatible_tensorflow_v1=True):
+        output_height = size[0]
+        output_width = size[1]
+
+        input_height = inputs.shape[0]
+        input_width = inputs.shape[1]
+
+        if compatible_tensorflow_v1:
+            scale = [(input_height - 1)/(output_height - 1), (input_width - 1)/(output_width - 1)]
+        else:
+            scale = [(input_height - 0)/(output_height - 0), (input_width - 0)/(output_width - 0)]
+
+        h = np.arange(0, output_height)
+        w = np.arange(0, output_width)
+
+        if compatible_tensorflow_v1:
+            center_y = h * scale[0]
+            center_x = w * scale[1]
+            int_y = center_y.astype(np.int32)
+            int_x = center_x.astype(np.int32)
+
+        else:
+            center_y = (h + 0.5) * (scale[0]) - 0.5
+            center_x = (w + 0.5) * (scale[1]) - 0.5
+            int_y = (np.floor(center_y)).astype(np.int32)
+            int_x = (np.floor(center_x)).astype(np.int32)
+
+        dy = center_y - int_y
+        dx = center_x - int_x
+        dx = np.reshape(dx, (1, output_width, 1))
+        dy = np.reshape(dy, (output_height, 1, 1))
+
+        top = np.maximum(int_y, 0)
+        bottom = np.minimum(int_y + 1, input_height - 1)
+        left = np.maximum(int_x, 0)
+        right = np.minimum(int_x + 1, input_width - 1)
+
+        tops = inputs[top, :, :]
+        t_l = tops[:, left, :]
+        t_r = tops[:, right, :]
+        bottoms = inputs[bottom, :, :]
+        b_l = bottoms[:, left, :]
+        b_r = bottoms[:, right, :]
+
+        t = t_l + (t_r - t_l) * dx
+        b = b_l + (b_r - b_l) * dx
+        output = t + (b - t) * dy
+        return output
+
+
+class Softmax(Processor):
+
+    def __call__(self, outputs, **kwargs):
+        results = _softmax(outputs)
+        return dict({'outputs': results}, **kwargs)

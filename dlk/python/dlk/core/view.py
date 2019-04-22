@@ -426,6 +426,21 @@ class View(object):
                 """
             )
 
+        elif self.op.op_type == 'LeakyRelu':
+            if len(input_ops) != 1:
+                self.raise_invalid_args_exception(op, input_ops, output_ops)
+
+            inputs_string = self.inputs_to_string(input_ops)
+            shape_string = self.shape_to_string(op.shape)
+
+            alpha = op.alpha
+
+            return self.format_string(
+                f"""
+                func_LeakyRelu({inputs_string}, {op.name}, {alpha}, {shape_string});
+                """
+            )
+
         elif self.op.op_type == 'Sqrt':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)

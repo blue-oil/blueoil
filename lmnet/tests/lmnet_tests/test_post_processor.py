@@ -14,12 +14,15 @@
 # limitations under the License.
 # =============================================================================
 import numpy as np
+import PIL.Image
 import pytest
+import tensorflow as tf
 
 from lmnet.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,
+    Bilinear,
 )
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
@@ -242,9 +245,66 @@ def test_nms_max_output_size():
         assert np.allclose(expected_y, y), (expected_y, y)
 
 
+def test_resize_bilinear():
+    """Verify Bilinear post process results are same as tf.image.resize_bilinear()"""
+    batch_size = 2
+    height = 3
+    width = 2
+    num_classes = 3
+    size = (12, 16)
+
+    inputs = np.random.normal(size=(batch_size, height, width, num_classes)).astype(np.float32)
+
+    expect = tf.image.resize_bilinear(inputs, size, align_corners=True)
+    with tf.Session():
+        expect = expect.eval()
+
+    bilinear = Bilinear(size=size, compatible_tensorflow_v1=True)
+    out = bilinear(outputs=inputs)["outputs"]
+
+    assert np.allclose(out, expect, atol=1e-4, rtol=1e-4)
+
+
+def test_resize_bilinear_pillow():
+    """Verify Bilinear post process results are same as Pillow resize()."""
+    batch_size = 2
+    height = 3
+    width = 2
+    num_classes = 3
+    size = (12, 16)
+
+    inputs = np.random.normal(size=(batch_size, height, width, num_classes)).astype(np.float32)
+
+    expect = []
+    for i in range(batch_size):
+        image = inputs[i, :, :, :]
+        feature_maps = np.split(image, num_classes, axis=2)
+        result = []
+        for class_id in range(num_classes):
+            feature_map = np.squeeze(feature_maps[class_id])
+
+            image = PIL.Image.fromarray(feature_map)
+            resized = image.resize([size[1], size[0]], resample=PIL.Image.BILINEAR)
+            resized = np.array(resized)
+            resized = np.expand_dims(resized, axis=2)
+
+            result.append(resized)
+
+        image = np.concatenate(result, axis=2)
+        expect.append(image)
+    expect = np.array(expect)
+
+    bilinear = Bilinear(size=size, compatible_tensorflow_v1=False)
+    out = bilinear(outputs=inputs)["outputs"]
+
+    assert np.allclose(out, expect, atol=1e-4, rtol=1e-4)
+
+
 if __name__ == '__main__':
     test_format_yolov2_shape()
     test_exclude_low_score_box()
     test_nms()
     test_nms_not_per_class()
     test_nms_max_output_size()
+    test_resize_bilinear()
+    test_resize_bilinear_pillow()

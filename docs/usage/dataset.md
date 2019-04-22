@@ -137,7 +137,7 @@ It is data format based on [CamVid](http://mi.eng.cam.ac.uk/research/projects/Vi
 
 Place the following files and directory.
 
-- `label_colors.txt`: Class information file like under the example.
+- `labels.txt`: Class information file like under the example.
 - `train.txt`: Pair of data and annotation image file paths. see below example.
 - `train`: All training images are located under the directory.
 - `trainannot`: All training annotation images are located under the directory.
@@ -149,7 +149,7 @@ Example of dataset structure
 
 ```
 training_dataset_path
-├── label_colors.txt
+├── labels.txt
 ├── train.txt
 ├── train
 │   ├── 0001TP_006690.png
@@ -195,15 +195,15 @@ val/0016E5_07965.png valannot/0016E5_07965.png
 val/0016E5_07967.png valannot/0016E5_07967.png
 ```
 
-Example of `label_colors.txt`
+Example of `labels.txt`
 
 ```
-128 128 128	Sky
-128 0 0		Building
-192 192 128	Column_Pole
-128 64 128	Road
-...
-0 0 0		Void
+Sky
+Building
+Column_Pole
+Road
+Ignore
 ```
 
-You should write `Void` (empty) label for not labeled area of the image.
+`labels.txt` contains the list of classes. each class are correspond to annotation image color value.
+If the `Ignore` class exists, the corresponding class will not be used for training.
