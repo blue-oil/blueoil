@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 RUN ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
 
 # Python
-RUN ln -s /usr/bin/python3.6 /usr/bin/python 
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 10 
 
 # Install python pip
 RUN curl -kL https://bootstrap.pypa.io/get-pip.py | python
