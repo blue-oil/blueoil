@@ -571,7 +571,9 @@ def pass_propagate_data_layout(graph: Graph) -> None:
             m.set_layout(m.input_ops['input'].dimension)
         elif m.op_type in ['Add', 'Sub', 'Div', 'Mul', 'Maximum', 'Minimum']:
             m.set_layout(rank_to_format[max(m.input_nodes[0].rank, m.input_nodes[1].rank)])
-        elif m.op_type in ['Split', 'Pad']:
+        elif m.op_type in ['Pad']:
             m.set_layout(m.input_ops['A'].dimension)
+        elif m.op_type in ['Split']:
+            m.set_layout(m.input_ops['B'].dimension)
         else:
             m.set_layout(m.input_nodes[0].dimension)
