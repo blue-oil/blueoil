@@ -489,6 +489,15 @@ class Operator(object):
         raise NotImplementedError(
             f'Preservation for quantization of operator {self.op_type} is not defined.')
 
+    def set_layout(self, l) -> None:
+        """Update layout.
+
+        This dimension consists of 'C', 'WC', 'HWC', and 'NHWC', where 'N' is the number of batch size,
+        'C' is the number of channels, 'H' and 'C' are the height and the weight in the 2-D image.
+        """
+        assert l in ['C', 'WC', 'HWC', 'NHWC'], 'unexpected format layout'
+        self.__update_shape(self.shape, l)
+
 
 class Variable(Operator):
     """Variable class, which must be Input, Output or a constant."""
