@@ -37,7 +37,7 @@ static int16x4_t pop_count_4(uint32x4_t v) {
 }
 
 void quantized_matrix_multiplication_body(
-  const dlk::MatrixView<T_UINT, dlk::MatrixOrder::RowMajor>& A,
+  const dlk::MatrixView<QUANTIZED_PACKED_KERNEL, dlk::MatrixOrder::RowMajor>& A,
   const dlk::MatrixView<QUANTIZED_PACKED, dlk::MatrixOrder::ColMajor>& B,
   unsigned int begin,
   unsigned int end,
@@ -90,25 +90,25 @@ void quantized_matrix_multiplication_body(
             };
             uint32x4x2_t b = vld2q_u32((uint32_t*)&b_ary[0][0]);
             if (A.rows() - i > 0) {
-              uint32x4_t a = vdupq_n_u32(*A.data(i+0, j+j2));
+              uint32x4_t a = vdupq_n_u32(A(i+0, j+j2).Raw());
               res0 += pop_count_4(~(a ^ b.val[0]))
                 + (pop_count_4(~(a ^ b.val[1])) << 1)
                 - 3 * pop_count_4(~a);
             }
             if (A.rows() - i > 1) {
-              uint32x4_t a = vdupq_n_u32(*A.data(i+1, j+j2));
+              uint32x4_t a = vdupq_n_u32(A(i+1, j+j2).Raw());
               res1 += pop_count_4(~(a ^ b.val[0]))
                 + (pop_count_4(~(a ^ b.val[1])) << 1)
                 - 3 * pop_count_4(~a);
             }
             if (A.rows() - i > 2) {
-              uint32x4_t a = vdupq_n_u32(*A.data(i+2, j+j2));
+              uint32x4_t a = vdupq_n_u32(A(i+2, j+j2).Raw());
               res2 += pop_count_4(~(a ^ b.val[0]))
                 + (pop_count_4(~(a ^ b.val[1])) << 1)
                 - 3 * pop_count_4(~a);
             }
             if (A.rows() - i > 3) {
-              uint32x4_t a = vdupq_n_u32(*A.data(i+3, j+j2));
+              uint32x4_t a = vdupq_n_u32(A(i+3, j+j2).Raw());
               res3 += pop_count_4(~(a ^ b.val[0]))
                 + (pop_count_4(~(a ^ b.val[1])) << 1)
                 - 3 * pop_count_4(~a);
@@ -131,19 +131,19 @@ void quantized_matrix_multiplication_body(
               {b30, b31}
             };
             uint32x4x2_t b = vld2q_u32((uint32_t*)&b_ary[0][0]);
-            uint32x4_t a = vdupq_n_u32(*A.data(i+0, j+j2));
+            uint32x4_t a = vdupq_n_u32(A(i+0, j+j2).Raw());
             res0 += pop_count_4(~(a ^ b.val[0]))
               + (pop_count_4(~(a ^ b.val[1])) << 1)
               - 3 * pop_count_4(~a);
-            a = vdupq_n_u32(*A.data(i+1, j+j2));
+            a = vdupq_n_u32(A(i+1, j+j2).Raw());
             res1 += pop_count_4(~(a ^ b.val[0]))
               + (pop_count_4(~(a ^ b.val[1])) << 1)
               - 3 * pop_count_4(~a);
-            a = vdupq_n_u32(*A.data(i+2, j+j2));
+            a = vdupq_n_u32(A(i+2, j+j2).Raw());
             res2 += pop_count_4(~(a ^ b.val[0]))
               + (pop_count_4(~(a ^ b.val[1])) << 1)
               - 3 * pop_count_4(~a);
-            a = vdupq_n_u32(*A.data(i+3, j+j2));
+            a = vdupq_n_u32(A(i+3, j+j2).Raw());
             res3 += pop_count_4(~(a ^ b.val[0]))
               + (pop_count_4(~(a ^ b.val[1])) << 1)
               - 3 * pop_count_4(~a);
@@ -183,7 +183,7 @@ void quantized_matrix_multiplication_body(
 namespace dlk {
 
 void quantized_matrix_multiplication(
-  const MatrixView<T_UINT, MatrixOrder::RowMajor>& A,
+  const MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>& A,
   const MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>& B,
   MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>& C) {
 

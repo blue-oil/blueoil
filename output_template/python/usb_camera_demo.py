@@ -29,6 +29,7 @@ import click
 import cv2
 import numpy as np
 
+from lmnet.common import get_color_map
 from lmnet.nnlib import NNLib
 from lmnet.utils.config import (
     load_yaml,
@@ -78,6 +79,33 @@ def add_class_label(canvas,
                     line_type=1,
                     dl_corner=(50, 50)):
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
+
+
+def label_to_color_image(results, colormap):
+    """Adds color defined by the colormap to the label.
+
+    Args:
+        results: A 2D array with float type, storing the segmentation label.
+        colormap: An ndarray with integer type. The number of classes with
+        respective colour label.
+
+    Returns:
+        A 2D array with integer type. The element of the array
+        is the color indexed by the corresponding element in the input label
+        to the CamVid color map.
+
+    Raises:
+        ValueError: If label is not of rank 2 or its value is larger than color
+            map maximum entry.
+    """
+    if results.ndim != 4:
+        raise ValueError('Expect 4-D input results (1, height, width, classes).')
+
+    label = np.argmax(results, axis=3)
+    if np.max(label) >= len(colormap):
+        raise ValueError('label value too large.')
+
+    return np.squeeze(colormap[label])
 
 
 def run_inference(img):
@@ -226,6 +254,61 @@ def run_classification(config):
 
     cv2.destroyAllWindows()
 
+    
+def run_sementic_segmentation(config):
+    global nn
+    camera_width = 320
+    camera_height = 240
+    window_name = "Segmentation Demo"
+
+    vc = init_camera(camera_width, camera_height)
+
+    pool = Pool(processes=1, initializer=nn.init)
+    result = None
+    fps = 1.0
+
+    q_save = Queue()
+    q_show = Queue()
+
+    grabbed, camera_img = vc.read()
+    if not grabbed:
+        print("Frame is empty")
+
+    q_show.put(camera_img.copy())
+    input_img = camera_img.copy()
+
+    colormap = np.array(get_color_map(len(config['CLASSES'])), dtype=np.uint8)
+
+    while True:
+        m1 = MyTime("1 loop of while(1) of main()")
+        pool_result = pool.apply_async(run_inference, (input_img,))
+        is_first = True
+        while True:
+            grabbed, camera_img = vc.read()
+            if is_first:
+                input_img = camera_img.copy()
+                is_first = False
+            q_save.put(camera_img.copy())
+            if not q_show.empty():
+                window_img = q_show.get()
+                overlay_img = window_img
+                if result is not None:
+                    seg_img = label_to_color_image(result, colormap)
+                    seg_img = cv2.resize(seg_img, dsize=(camera_width, camera_height))
+                    overlay_img = cv2.addWeighted(window_img, 1, seg_img, 0.8, 0)
+                    overlay_img = add_fps(overlay_img, fps)
+
+                cv2.imshow(window_name, overlay_img)
+                key = cv2.waitKey(2)    # Wait for 2ms
+                if key == 27:           # ESC to quit
+                    return
+            if pool_result.ready():
+                break
+        q_show = clear_queue(q_show)
+        q_save, q_show = swap_queue(q_save, q_show)
+        result, fps = pool_result.get()
+        m1.show()
+
 
 def run(model, config_file):
     global nn, pre_process, post_process
@@ -258,6 +341,9 @@ def run(model, config_file):
     if config.TASK == "IMAGE.OBJECT_DETECTION":
         run_object_detection(config)
 
+    if config.TASK == "IMAGE.SEMANTIC_SEGMENTATION":
+        run_sementic_segmentation(config)
+
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option(
@@ -269,7 +355,7 @@ def run(model, config_file):
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
-    default="../models/minimal_graph_with_shape.pb",
+    default="../models/lib/lib_fpga.so",
 )
 @click.option(
     "-c",

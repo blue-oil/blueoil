@@ -52,23 +52,23 @@ $ python usb_camera_demo.py -c ../models/meta.yaml -m ../models/lib/lib_fpga.so
 
 ## Prerequisites
 ```
-Python = 3.5
+Python = 3.5, 3.6
 pip >= 9.0.1
 ```
 
 ### Tensorflow
-The project is developed and tested in TensorFlow v1.4.1.
+The project is developed and tested in TensorFlow v1.13.1.
 Please ensure specific tensorflow `GPU` version is installed.
 
-> _tensorflow-gpu==1.4.1_ has been used
+> _tensorflow-gpu==1.13.1_ has been used
 
 ```
-$ pip install tensorflow-gpu==1.4.1
+$ pip install tensorflow-gpu==1.13.1
 ```
 
 ### CUDA
 Cuda requirement highly depends on TensorFlow version.
-For TF 1.4.1 we need Cuda 8.0 with Cudnn 6.0.
+For TF 1.13.1 we need Cuda 10.0 with Cudnn 7.0.
 For installation details click [here](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
 
 
@@ -87,15 +87,15 @@ $ python usb_camera_demo.py -c ../models/meta.yaml -m minimal_graph_with_shape.p
 
 ## Prerequisites
 ```
-Python = 3.5
-Opencv = 3.1.0
-python opencv = 3.1.0
+Python = 3.5, 3.6
+Opencv >= 3.1.0
+python opencv >= 3.1.0
 ```
 
 ```
 $ pkg-config --modversion opencv
-3.1.0
+3.3.1
 
 $ python3 -c "import cv2; print(cv2.__version__)"
-3.1.0
+3.3.1
 ```
