@@ -306,7 +306,7 @@ bool Network::run(float *network_input, float *network_output)
 
   {% endfor -%}
 
-  std::copy({{ graph_output.name }}, {{ graph_output.name }} + {{ graph_output.view.shape }}, network_output);
+  std::copy({{ graph_output.name }}.data(), {{ graph_output.name }}.data() + {{ graph_output.view.shape }}, network_output);
 
   return true;
 }
