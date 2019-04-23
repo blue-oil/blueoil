@@ -135,6 +135,7 @@ def setup_dataset(config, subset, rank):
 
 
 class TrainTunable(Trainable):
+    """ TrainTunable class interfaces with Ray framework """
     def _setup(self, config):
         self.lm_config = config_util.load(self.config['lm_config'])
         executor.init_logging(self.lm_config)
