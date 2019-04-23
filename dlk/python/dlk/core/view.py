@@ -182,7 +182,6 @@ class View(object):
                     inputs_string = inputs_string + ', ' + input_ops['W'].name
                 else:
                     inputs_string = self.inputs_to_string(input_ops)
-                shape_string = self.shape_to_string(op.shape)
 
                 render_string = self.format_string(
                     f"""
@@ -199,7 +198,7 @@ class View(object):
                     Conv2D_struct.stride_along_height = {stride};
                     Conv2D_struct.stride_along_width = {stride};
 
-                    func_Conv2D({inputs_string}, {op.name}, Conv2D_struct, {shape_string});
+                    func_Conv2D({inputs_string}, {op.name}, Conv2D_struct);
                     """
                 )
 
