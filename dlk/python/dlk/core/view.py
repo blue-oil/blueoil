@@ -617,13 +617,11 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            func_name = 'func_Mul_broadcast' if op.is_depthwise else 'func_Mul'
             inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
                 f"""
-                {func_name}({inputs_string}, {op.name}, {shape_string});
+                func_Mul({inputs_string}, {op.name});
                 """
             )
         elif self.op.op_type == 'ConcatOnDepth':
