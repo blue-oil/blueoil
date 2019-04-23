@@ -550,8 +550,8 @@ class View(object):
             inputs_string = self.inputs_to_string(input_ops)
             shape_string = self.shape_to_string(op.shape)
 
-            args1 = f"{inputs_string}, {op.name}, {in_w}, "
-            args2 = f"{in_d}, {k_w}, {stride_w}, {shape_string}"
+            args1 = f"{inputs_string}, {op.name}, "
+            args2 = f"{k_w}, {stride_w}"
             return self.format_string(
                 f"""
                 func_ExtractImagePatches({args1}{args2});
@@ -609,8 +609,8 @@ class View(object):
             iw = x_op.width
             ic = x_op.channel
 
-            args1 = f"{inputs_string}, {op.name}, {iw}, "
-            args2 = f"{ic}, {bs}, {bs}, {shape_string}"
+            args1 = f"{inputs_string}, {op.name}, "
+            args2 = f"{bs}, {bs}"
 
             return self.format_string(
                 f"""

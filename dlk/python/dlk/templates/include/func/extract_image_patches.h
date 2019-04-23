@@ -17,12 +17,23 @@ limitations under the License.
 #define DLK_FUNC_EXTRACT_IMAGE_PATCHES
 
 #include "global.h"
+#include "tensor_view.h"
 #include "time_measurement.h"
 
 template<class T>
-void func_ExtractImagePatches(T input[], T output[], T_UINT input_width, T_UINT input_depth, T_UINT kernel_size, T_UINT stride, T_UINT out_height, T_UINT out_width, T_UINT out_depth)
+void func_ExtractImagePatches(
+    const TensorView<T, MemoryLayout::NHWC>& input,
+    const TensorView<T, MemoryLayout::NHWC>& output,
+    T_UINT kernel_size, T_UINT stride)
 {
   Measurement::Start("ExtractImagePatches");
+  const auto in_shape = input.get_shape();
+  const T_UINT input_width = in_shape[2];
+  const T_UINT input_depth = in_shape[3];
+  const auto out_shape = output.get_shape();
+  const T_UINT out_height = out_shape[1];
+  const T_UINT out_width = out_shape[2];
+  const T_UINT out_depth = out_shape[3];
 
   T_UINT output_index = 0;
 
@@ -36,7 +47,7 @@ void func_ExtractImagePatches(T input[], T output[], T_UINT input_width, T_UINT 
             T_INT row = (wi * stride) + ki;
             T_INT col = (wj * stride) + kj;
 
-            output[output_index++] = input[row * (input_width * input_depth) + col * (input_depth) + kz];
+            output.data()[output_index++] = input(0, row, col, kz);
           }
       }
 
