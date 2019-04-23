@@ -554,26 +554,3 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
     output_node = exec_list[-1]
     output_type = output_node.dtype
     output_dtype_changer(output_node, output_type)
-
-
-def pass_propagate_data_layout(graph: Graph) -> None:
-
-    exec_list = sort_graph(graph)
-
-    rank_to_format = {1: 'C', 2: 'WC', 3: 'HWC', 4: 'NHWC'}
-
-    for m in exec_list:
-        if m.op_type in ['Constant', 'Input']:
-            m.set_layout(rank_to_format[m.rank])
-        elif m.op_type == ['Conv', 'BatchNormalization', 'MaxPool', 'AveragePool', 'QTZ_linear_mid_tread_half']:
-            m.set_layout(m.input_ops['X'].dimension)
-        elif m.op_type in ['QTZ_binary_mean_scaling', 'QTZ_binary_channel_wise_mean_scaling']:
-            m.set_layout(m.input_ops['input'].dimension)
-        elif m.op_type in ['Add', 'Sub', 'Div', 'Mul', 'Maximum', 'Minimum']:
-            m.set_layout(rank_to_format[max(m.input_nodes[0].rank, m.input_nodes[1].rank)])
-        elif m.op_type in ['Pad']:
-            m.set_layout(m.input_ops['A'].dimension)
-        elif m.op_type in ['Split']:
-            m.set_layout(m.input_ops['B'].dimension)
-        else:
-            m.set_layout(m.input_nodes[0].dimension)

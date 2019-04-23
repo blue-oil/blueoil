@@ -53,10 +53,7 @@ def optimize_graph_step(model: Model, config: Config) -> None:
     """
     graph: Graph = model.graph
     pass_remove_identities(graph)
-
     pass_transpose(graph)
-
-    pass_propagate_data_layout(graph)
 
     if config.activate_hard_quantization:
         pass_propagate_quantization_details_into_conv(graph)
