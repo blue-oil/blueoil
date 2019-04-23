@@ -45,7 +45,6 @@ list(APPEND SRC_LIB_ALL
     src/func/quantize.cpp
     src/func/real_div.cpp
     src/func/relu.cpp
-    src/func/leaky_relu.cpp
     src/func/round.cpp
     src/func/scale.cpp
     src/func/softmax.cpp
