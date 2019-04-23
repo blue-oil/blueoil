@@ -31,7 +31,6 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/real_div.cpp \
     $(SRC_DIR)/func/scale.cpp \
     $(SRC_DIR)/func/softmax.cpp \
-    $(SRC_DIR)/func/sqrt.cpp \
     $(SRC_DIR)/func/sub.cpp \
     $(SRC_DIR)/func/unpooling.cpp \
     $(SRC_DIR)/matrix/shift_add.cpp \

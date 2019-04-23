@@ -46,7 +46,6 @@ list(APPEND SRC_LIB_ALL
     src/func/real_div.cpp
     src/func/scale.cpp
     src/func/softmax.cpp
-    src/func/sqrt.cpp
     src/func/sub.cpp
     src/func/unpooling.cpp
     src/matrix/shift_add.cpp
