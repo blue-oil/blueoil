@@ -47,7 +47,11 @@ class View(object):
                 op_name = op.name + '_' + str(list(op.output_ops.keys())[0])
             else:
                 op_name = op.name
-            self.reuse_buffer_str = f"{op.dtype.cpptype()} *{op_name} = {op.available_buffer};"
+
+            shape_string = self.shape_to_string(op.shape, channel_active=True)
+
+            self.reuse_buffer_str = f"""TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}>::tensor_info_t<std::size_t> {op_name}_shape = {{ {shape_string} }};
+            TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op_name}({op.available_buffer}_raw, {op_name}_shape);"""
 
         if self.op.op_type == 'QTZ_binary_mean_scaling':
             if len(input_ops) != 1:
