@@ -31,8 +31,7 @@ from code_generater import CodeGenerater
 from frontend import TensorFlowIO
 from core.optimizer import pass_remove_identities, pass_transpose, pass_constant_folding, \
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
-    pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward, \
-    pass_propagate_data_layout
+    pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
 
 SCRITPS_DIR = path.abspath(path.dirname(__file__))
 DLK_ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '..'))
