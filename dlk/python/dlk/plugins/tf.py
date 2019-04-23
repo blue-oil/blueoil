@@ -474,16 +474,21 @@ class Importer(object):
             graph.remove_op(node)
 
     def _get_format(self, node: Any, output_format: str) -> Tuple[str, List[str]]:
-        """Get the dimension format, like 'NCHW', 'HWCN', 'NHWC', etc."""
+        """Get the dimension format, like 'NCHW', 'HWCN', 'NHWC', etc for operators."""
 
         _default_format = 'NHWC'
         _default_w_format = 'HWCN'
 
         rank_to_format = {1: 'C', 2: 'WC', 3: 'HWC', 4: 'NHWC'}
 
-        def guess_node_format(node: Any) -> str:
-            """Provide the node format from reference"""
-            node_rank = len(node.get_shape())
+        def guess_node_format(input_node: Any) -> str:
+            """Provide the node format from references
+            By means of guessing, the rank decides the input layout format of current node.
+            For instance, if the input has same rank as the output of the current node,
+            then the input is assumed to have same layout format as the output, otherwise,
+            the format follows 'C', 'WC', and 'HWC' respectively of rank 1, 2, 3.
+            """
+            node_rank = len(input_node.get_shape())
             return out_format if node_rank == len(out_format) else rank_to_format[node_rank]
 
         if isinstance(node, Node):
