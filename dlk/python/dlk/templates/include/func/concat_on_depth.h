@@ -20,17 +20,24 @@ limitations under the License.
 #include "time_measurement.h"
 
 template<class T>
-void func_ConcatOnDepth(T *inputs[], T_UINT *depths, T_UINT n_inputs, T output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth)
-{
+void func_ConcatOnDepth(const TensorView<T, MemoryLayout::NHWC> inputs[],
+    T_UINT *depths, T_UINT n_inputs,
+    const TensorView<T, MemoryLayout::NHWC>& output) {
   Measurement::Start("func_ConcatOnDepth");
+  const auto shape = output.get_shape();
+  T_UINT out_height = shape[1];
+  T_UINT out_width = shape[2];
 
   T_UINT output_index = 0;
   T_UINT input_index[32] = {0};
 
-  for(T_UINT i = 0; i < out_height * out_width; i++)
-    for(T_UINT n = 0; n < n_inputs; n++)
-      for(T_UINT d = 0; d < depths[n]; d++)
-        output[output_index++] = inputs[n][input_index[n]++];
+  for(T_UINT h = 0; h < out_height; h++)
+    for(T_UINT w = 0; w < out_width; w++) {
+      T_UINT index = 0;
+      for(T_UINT n = 0; n < n_inputs; n++)
+        for(T_UINT d = 0; d < depths[n]; d++)
+          output(0, h, w, index++) = inputs[n](0, h, w, d);
+    }
 
   Measurement::Stop();
 }

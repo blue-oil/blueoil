@@ -647,15 +647,14 @@ class View(object):
                     concat_input[k] = v
 
             inputs_string = self.inputs_to_string(concat_input)
-            shape_string = self.shape_to_string(op.shape)
 
             depth_list = ', '.join(map(lambda x: str(x.channel), concat_input.values()))
 
             return self.format_string(
                 f"""
-                {op.dtype.cpptype()} *{input_list_name}[] = {{ {inputs_string} }};
+                const TensorView<{op.dtype.cpptype()}, MemoryLayout::NHWC> {input_list_name}[] = {{ {inputs_string} }};
                 T_UINT {depth_list_name}[] = {{ {depth_list} }};
-                func_ConcatOnDepth({input_list_name}, {depth_list_name}, {number_of_inputs}, {op.name}, {shape_string});
+                func_ConcatOnDepth({input_list_name}, {depth_list_name}, {number_of_inputs}, {op.name});
                 """
             )
         elif self.op.op_type == 'Maximum':
