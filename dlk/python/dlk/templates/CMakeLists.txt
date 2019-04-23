@@ -40,7 +40,6 @@ list(APPEND SRC_LIB_ALL
     src/func/quantize.cpp
     src/func/scale.cpp
     src/func/softmax.cpp
-    src/func/sub.cpp
     src/func/unpooling.cpp
     src/matrix/shift_add.cpp
     src/network_c_interface.cpp
