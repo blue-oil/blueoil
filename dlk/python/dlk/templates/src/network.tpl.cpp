@@ -25,7 +25,6 @@ limitations under the License.
 #include "func/concat_on_depth.h"
 #include "func/concat_v2.h"
 #include "func/conv2d.h"
-#include "func/bias_add.h"
 #include "func/depth_to_space.h"
 #include "func/extract_image_patches.h"
 #include "func/max.h"
