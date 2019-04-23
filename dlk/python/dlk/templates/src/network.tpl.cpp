@@ -281,7 +281,12 @@ bool Network::run(float *network_input, float *network_output)
   binConv2D_struct.dma_output_buffer = &dma_output_buffer;
   #endif
 
-  {{ graph_input.dtype.cpptype() }}* {{ graph_input.name }} = network_input;
+  TensorView<{{ graph_input.dtype.cpptype() }}, MemoryLayout::{{ graph_input.dimension }}>::tensor_info_t<std::size_t> {{ graph_input.name }}_shape = {
+    {% for len in graph_input.shape -%}
+    {{- len -}},
+    {%- endfor %}
+  };
+  TensorView<{{ graph_input.dtype.cpptype() }}, MemoryLayout::{{ graph_input.dimension }}> {{ graph_input.name }}(network_input, {{ graph_input.name }}_shape);
   {{ '\n' -}}
 
   {%- for node in graph.non_variables %}
