@@ -29,7 +29,6 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/matmul.cpp \
     $(SRC_DIR)/func/quantize.cpp \
     $(SRC_DIR)/func/real_div.cpp \
-    $(SRC_DIR)/func/round.cpp \
     $(SRC_DIR)/func/scale.cpp \
     $(SRC_DIR)/func/softmax.cpp \
     $(SRC_DIR)/func/sqrt.cpp \

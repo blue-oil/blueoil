@@ -44,7 +44,6 @@ list(APPEND SRC_LIB_ALL
     src/func/matmul.cpp
     src/func/quantize.cpp
     src/func/real_div.cpp
-    src/func/round.cpp
     src/func/scale.cpp
     src/func/softmax.cpp
     src/func/sqrt.cpp
