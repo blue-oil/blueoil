@@ -481,7 +481,7 @@ class Importer(object):
         https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
         - 'QTZ_binary_mean_scaling', 'QTZ_binary_channel_wise_mean_scaling':
         kernel quantizer is also in HWCN
-        - 'Transpose': depending on the perm attribute
+        - 'Transpose': depending on the permutation attribute
         """
 
         _default_format = 'NHWC'
@@ -495,7 +495,10 @@ class Importer(object):
             For instance, if the input has same rank as the output of the current node,
             then the input is assumed to have same layout format as the output, otherwise,
             the format follows 'C', 'WC', and 'HWC' respectively of rank 1, 2, 3.
+            Note: Ensure the tf node always has valid value of attribute _output_shape defined.
             """
+            assert len(input_node.get_shape()) != 0, \
+                f'output shape of {input_node.name} of {input_node.op_type} is not properly defined in .pb file'
             node_rank = len(input_node.get_shape())
             return out_format if node_rank == len(out_format) else rank_to_format[node_rank]
 
@@ -510,6 +513,8 @@ class Importer(object):
                 return out_format, [out_format, _default_w_format, 'C']
             elif op_type in ['QTZ_binary_mean_scaling', 'QTZ_binary_channel_wise_mean_scaling']:
                 return _default_w_format, [_default_w_format]
+            elif op_type in ['QTZ_linear_mid_tread_half']:
+                return out_format, [out_format, 'C', 'C']
             elif op_type == 'Transpose':
                 perm = list(node.attribute("perm"))
                 inv_perm = [perm.index(i) for i in range(len(perm))]  # inverse permutation
