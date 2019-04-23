@@ -35,7 +35,6 @@ list(APPEND SRC_LIB_ALL
     src/func/impl/apply_thresholds.cpp
     src/func/impl/quantized_conv2d_dim2col.cpp
     src/func/max_pool.cpp
-    src/func/minimum.cpp
     src/func/pad.cpp
     src/func/matmul.cpp
     src/func/quantize.cpp
