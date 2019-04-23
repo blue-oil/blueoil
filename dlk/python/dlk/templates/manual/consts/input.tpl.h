@@ -20,11 +20,11 @@ limitations under the License.
 
 {% if node.is_scalar -%}
 
-extern {{ node.dtype.cpptype() }} {{ node.name }};
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom> {{ node.name }};
 
 {% else -%}
 
-extern {{ node.dtype.cpptype() }}* {{ node.name }};
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension}}> {{ node.name }};
 
 {%- endif %}
 
