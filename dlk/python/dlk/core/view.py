@@ -498,7 +498,6 @@ class View(object):
             stride = op.strides[0]
 
             inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
                 f"""
@@ -515,7 +514,7 @@ class View(object):
                 AveragePool_struct.padding = {pad};
                 AveragePool_struct.stride = {stride};
 
-                func_AveragePool({inputs_string}, {op.name}, AveragePool_struct, {shape_string});
+                func_AveragePool({inputs_string}, {op.name}, AveragePool_struct);
                 """
             )
 
