@@ -17,12 +17,19 @@ limitations under the License.
 #define DLK_FUNC_CONCAT_V2_H_INCLUDED
 
 #include "global.h"
+#include "tensor_view.h"
 #include "time_measurement.h"
 
 template<class T>
-void func_ConcatV2(T input1[], T input2[], T output[], T_INT axis, T_UINT input1_depth, T_UINT input2_depth, T_UINT out_height, T_UINT out_width, T_UINT out_depth)
-{
+void func_ConcatV2(const TensorView<T, MemoryLayout::NHWC>& input1,
+    const TensorView<T, MemoryLayout::NHWC>& input2,
+    const TensorView<T, MemoryLayout::NHWC>& output,
+    T_INT axis, T_UINT input1_depth, T_UINT input2_depth) {
   Measurement::Start("ConcatV2");
+
+  const auto out_shape = output.get_shape();
+  const auto out_height = out_shape[1];
+  const auto out_width = out_shape[2];
 
   T_UINT output_index = 0;
   T_UINT input1_index = 0;
@@ -31,10 +38,10 @@ void func_ConcatV2(T input1[], T input2[], T output[], T_INT axis, T_UINT input1
   for(T_UINT i = 0; i < out_height * out_width; i++)
   {
     for(T_UINT d = 0; d < input1_depth; d++)
-      output[output_index++] = input1[input1_index++];
+      output.data()[output_index++] = input1.data()[input1_index++];
 
     for(T_UINT d = 0; d < input2_depth; d++)
-      output[output_index++] = input2[input2_index++];
+      output.data()[output_index++] = input2.data()[input2_index++];
   }
 
   Measurement::Stop();

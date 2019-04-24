@@ -555,14 +555,13 @@ class View(object):
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape)
 
             in0_d = input_ops[0].C
             in1_d = input_ops[1].C
 
             return self.format_string(
                 f"""
-                func_ConcatV2({inputs_string}, {op.name}, {op.axis}, {in0_d}, {in1_d}, {shape_string});
+                func_ConcatV2({inputs_string}, {op.name}, {op.axis}, {in0_d}, {in1_d});
                 """
             )
 
