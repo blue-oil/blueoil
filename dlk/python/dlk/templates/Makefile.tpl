@@ -28,7 +28,6 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/mul.cpp \
     $(SRC_DIR)/func/matmul.cpp \
     $(SRC_DIR)/func/quantize.cpp \
-    $(SRC_DIR)/func/quantized_conv2d.cpp \
     $(SRC_DIR)/func/real_div.cpp \
     $(SRC_DIR)/func/relu.cpp \
     $(SRC_DIR)/func/leaky_relu.cpp \
