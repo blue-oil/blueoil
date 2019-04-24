@@ -309,12 +309,10 @@ class View(object):
             index_data_op = input_ops[1]
 
             inputs_string = self.inputs_to_string(input_ops)
-            index_elems = index_data_op.elements
-            shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
                 f"""
-                func_Unpooling({inputs_string}, {index_elems}, {op.name}, {shape_string});
+                func_Unpooling({inputs_string}, {op.name});
                 """
             )
 
