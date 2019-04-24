@@ -463,11 +463,10 @@ class View(object):
 
             inputs_string = self.inputs_to_string(input_ops)
             conv_scaling_factor = op.conv_scaling_factor
-            shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
                 f"""
-                func_Scale({inputs_string}, {conv_scaling_factor}, {op.name}, {shape_string});
+                func_Scale({inputs_string}, {conv_scaling_factor}, {op.name});
                 """
             )
 
