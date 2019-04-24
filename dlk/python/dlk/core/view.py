@@ -243,7 +243,6 @@ class View(object):
             pad = op.pads[0]
             stride = op.strides[0]
             inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
                 f"""
@@ -260,7 +259,7 @@ class View(object):
                 MaxPool_struct.padding = {pad};
                 MaxPool_struct.stride = {stride};
 
-                func_MaxPool({inputs_string}, {op.name}, MaxPool_struct, {shape_string});
+                func_MaxPool({inputs_string}, {op.name}, MaxPool_struct);
                 """
             )
 
@@ -282,7 +281,6 @@ class View(object):
             stride = op.strides[0]
             inputs_string = self.inputs_to_string(input_ops)
             output = 'output'  # NotImplemented
-            shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
                 f"""
@@ -300,8 +298,7 @@ class View(object):
                 func_MaxPoolWithArgmax({inputs_string},
                                        {op.name},
                                        {output},
-                                       MaxPoolWithArgmax_struct,
-                                       {shape_string});
+                                       MaxPoolWithArgmax_struct);
                 """,
             )
 
