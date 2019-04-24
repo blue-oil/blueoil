@@ -56,11 +56,10 @@ class View(object):
         if self.op.op_type == 'QTZ_binary_mean_scaling':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
-            shape_string = self.shape_to_string(op.shape, channel_active=True)
 
             return self.format_string(
                 f"""
-                func_QTZ_binary_mean_scaling({inputs_string}, {op.name}, {shape_string});
+                func_QTZ_binary_mean_scaling({inputs_string}, {op.name});
                 """
             )
 
@@ -69,11 +68,10 @@ class View(object):
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
                 f"""
-                func_QTZ_linear_mid_tread_half({inputs_string}, {op.name}, {shape_string});
+                func_QTZ_linear_mid_tread_half({inputs_string}, {op.name});
                 """
             )
 
@@ -82,11 +80,10 @@ class View(object):
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape, channel_active=True)
 
             return self.format_string(
                 f"""
-                func_QTZ_binary_channel_wise_mean_scaling({inputs_string}, {op.name}, {shape_string});
+                func_QTZ_binary_channel_wise_mean_scaling({inputs_string}, {op.name});
                 """
             )
 
