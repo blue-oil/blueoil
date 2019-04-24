@@ -34,6 +34,7 @@ enum class MemoryLayout {
   HWChBCl,
   ChHWBCl,
   Im2col,
+  Padding,
   Invalid,
 };
 
@@ -52,6 +53,7 @@ constexpr std::size_t get_dim(const MemoryLayout& layout) {
     case MemoryLayout::HWChBCl: return 5;
     case MemoryLayout::ChHWBCl: return 5;
     case MemoryLayout::Im2col: return 4;
+    case MemoryLayout::Padding: return 2;
     default: return 0;
   }
 }
