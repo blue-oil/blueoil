@@ -662,7 +662,6 @@ class View(object):
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape)
 
             bs = op.block_size
             x_op = input_ops['input']
@@ -670,7 +669,7 @@ class View(object):
             ic = x_op.channel
 
             args1 = f"{inputs_string}, {op.name}, {iw}, "
-            args2 = f"{ic}, {bs}, {bs}, {shape_string}"
+            args2 = f"{ic}, {bs}, {bs}"
 
             return self.format_string(
                 f"""

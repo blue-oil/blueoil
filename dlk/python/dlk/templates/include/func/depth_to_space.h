@@ -18,11 +18,18 @@ limitations under the License.
 
 #include "global.h"
 #include "time_measurement.h"
+#include "tensor_view.h"
 
 template<class T>
-void func_DepthToSpace(T input[], T output[], T_UINT a, T_UINT b, T_UINT kernel_size, T_UINT stride, T_UINT out_height, T_UINT out_width, T_UINT out_depth)
-{
+void func_DepthToSpace(const TensorView<T, MemoryLayout::NHWC>& input,
+    const TensorView<T, MemoryLayout::NHWC>& output,
+    T_UINT a, T_UINT b, T_UINT kernel_size, T_UINT stride) {
   Measurement::Start("ExtractImagePatches");
+
+  const auto out_shape = output.get_shape();
+  const auto out_height = out_shape[1];
+  const auto out_width = out_shape[2];
+  const auto out_depth = out_shape[3];
 
   T_UINT input_index = 0;
 
@@ -36,7 +43,7 @@ void func_DepthToSpace(T input[], T output[], T_UINT a, T_UINT b, T_UINT kernel_
             T_INT row = wi + ki;
             T_INT col = wj + kj;
 
-            output[row * (out_width * out_depth) + col * (out_depth) + kz] = input[input_index++];
+            output(0, row, col, kz) = input.data()[input_index++];
           }
       }
 
