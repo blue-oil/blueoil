@@ -712,13 +712,10 @@ class View(object):
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape)
-
-            ia_size = input_ops['A'].size
 
             return self.format_string(
                 f"""
-                func_Matmul({inputs_string}, {op.name}, {ia_size}, {shape_string});
+                func_Matmul({inputs_string}, {op.name});
                 """
             )
 
