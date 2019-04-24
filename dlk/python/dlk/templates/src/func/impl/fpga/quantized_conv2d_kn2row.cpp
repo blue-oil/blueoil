@@ -35,9 +35,9 @@ namespace dlk
 namespace impl
 {
 
-void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[], const QUANTIZED_PACKED_KERNEL kernel[],
-                           const binary_convolution_parameters &p)
-{
+void QuantizedConv2DKn2Row(const kn2row_input_t& input,
+                                  const kernel_t& kernel,
+                                  const binary_convolution_parameters &p) {
   using namespace dlk;
 
   convolution_parameters cp = p.normal_conv_params;
@@ -93,10 +93,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[], const QUANTIZED_PACKED_
   assert(!ts_activated);
 #endif
 
-  Measurement::Start("Packing input for kn2row");
-  const T_UINT in_size_orig = in_h * in_w * in_c;
-  pack_input_to_qwords(input, p.device_input_buf, in_size_orig, 2);
-  Measurement::Stop();
+  std::copy(input.data(), input.data() + input.size(), p.device_input_buf);
 
   if (out_c_less_than_num_pe)
   {
@@ -120,7 +117,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[], const QUANTIZED_PACKED_
 
     Measurement::Start("QConv2D kn2row tiling");
     de10_nano::qconv_kn2row_tiling(
-        p.device_input_phys_addr, p.device_output_phys_addr, kernel,
+        p.device_input_phys_addr, p.device_output_phys_addr, kernel.data(),
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
         out_c_aligend_with_num_pe, k_w, k_h, cp.padding,
         cp.stride_along_height);
@@ -160,7 +157,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[], const QUANTIZED_PACKED_
 
     Measurement::Start("QConv2D kn2row tiling");
     de10_nano::qconv_kn2row_tiling(
-        p.device_input_phys_addr, p.device_output_phys_addr, kernel,
+        p.device_input_phys_addr, p.device_output_phys_addr, kernel.data(),
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
         out_c, k_w, k_h, cp.padding, cp.stride_along_height);
     Measurement::Stop();

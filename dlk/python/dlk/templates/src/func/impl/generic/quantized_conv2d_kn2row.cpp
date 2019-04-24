@@ -26,9 +26,11 @@ limitations under the License.
 
 namespace {
 
+using kn2row_kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWNC>;
+
 // kernel format converter
 // ohwi : oc kh kw ic, hwoi: kh kw oc ic
-void quantized_ohwi_to_hwoi(const QUANTIZED_PACKED_KERNEL ohwi[], QUANTIZED_PACKED_KERNEL hwoi[], const struct binary_convolution_parameters& p) {
+void quantized_ohwi_to_hwoi(const kernel_t& ohwi, const kn2row_kernel_t& hwoi, const struct binary_convolution_parameters& p) {
    Measurement::Start("quantized_ohwi_to_hwoi");
 
    int ic = p.normal_conv_params.kernel_depth / 32;
@@ -36,10 +38,12 @@ void quantized_ohwi_to_hwoi(const QUANTIZED_PACKED_KERNEL ohwi[], QUANTIZED_PACK
    int kh = p.normal_conv_params.kernel_height;
    int kw = p.normal_conv_params.kernel_width;
 
-   for (unsigned int i = 0; i < kh*kw; ++i) {
-     for (unsigned int j = 0; j < oc; ++j) {
-       for (unsigned int k = 0; k < ic; ++k) {
-         hwoi[i*oc*ic + j*ic + k] = ohwi[i*ic + j*ic*kh*kw + k];
+   for (unsigned int i = 0; i < kh; ++i) {
+     for (unsigned int j = 0; j < kw; ++j) {
+       for (unsigned int k = 0; k < oc; ++k) {
+         for (unsigned int l = 0; l < ic; ++l) {
+           hwoi(i, j, k, l) = ohwi(k, i, j, l);
+         }
        }
      }
    }
@@ -96,8 +100,8 @@ namespace dlk {
 
 namespace impl {
 
-void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
-                                  const QUANTIZED_PACKED_KERNEL kernel[],
+void QuantizedConv2DKn2Row(const kn2row_input_t& input,
+                                  const kernel_t& kernel,
                                   const binary_convolution_parameters &p) {
   using namespace dlk;
 
@@ -116,14 +120,17 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
   Measurement::Start("quantized-kn2row");
 
   int kernel_buf_size = kh * kw * ic * oc / 32;
-  auto kernel_hwoi = new QUANTIZED_PACKED_KERNEL[kernel_buf_size]();
+  auto kernel_hwoi_raw = new QUANTIZED_PACKED_KERNEL[kernel_buf_size]();
+  kn2row_kernel_t::tensor_info_t<std::size_t> shape = {
+    kh, kw, oc, ic
+  };
+  kn2row_kernel_t kernel_hwoi(kernel_hwoi_raw, shape);
   quantized_ohwi_to_hwoi(kernel, kernel_hwoi, p);
 
-  pack_input_to_qwords(input, p.device_input_buf, ih * iw * ic, 2);
   auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
-      kernel_hwoi, oc * kh * kw, ic / 32);
+      kernel_hwoi.data(), oc * kh * kw, ic / 32);
   auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
-      p.device_input_buf, ic / 16, ih * iw);
+      input.data(), ic / 16, ih * iw);
   auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
       p.device_output_buf, oc, ih * iw);
 
@@ -144,7 +151,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
     assert(false);
   }
 
-  delete[] kernel_hwoi;
+  delete[] kernel_hwoi_raw;
 
   if (p.thresholds != nullptr) {
     ApplyThresholds(output_, p);
