@@ -52,6 +52,9 @@ inline void matrix_multiplication_col3(
       vst1q_f32(C.data(j, i), r);
     }
   }
+  // FIXME: hacky way to prevent memory leak
+  delete [] A_colm.data();
+
 #endif
 }
 

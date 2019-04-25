@@ -260,3 +260,23 @@ class QUANTIZED_NOT_PACKED(Primitive, int):
     @classmethod
     def nptype(cls):
         return np.int8
+
+
+class QUANTIZED_PACKED(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QUANTIZED_PACKED'
+
+    @classmethod
+    def nptype(cls):
+        return np.int32
+
+class QUANTIZED_PACKED_KERNEL(Primitive, int):
+    @classmethod
+    def cpptype(cls):
+        return 'QUANTIZED_PACKED_KERNEL'
+
+    @classmethod
+    def nptype(cls):
+        return np.int32
+

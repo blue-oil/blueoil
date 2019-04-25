@@ -68,6 +68,21 @@ limitations under the License.
 #include <unistd.h>
 #endif
 
+namespace {
+
+uint8_t* mapPhysicalMemory(size_t base, size_t size) {
+    int fd = open("/dev/mem", O_RDWR | O_SYNC, 0);
+    if (fd == -1)
+        throw std::system_error(errno, std::generic_category());
+    int rw = PROT_READ | PROT_WRITE;
+    auto* mapped_base = reinterpret_cast<uint8_t*>(mmap(nullptr, size, rw, MAP_SHARED, fd, base));
+    if (mapped_base == MAP_FAILED)
+        throw std::system_error(errno, std::generic_category());
+    return mapped_base;
+}
+
+} // namespace
+
 {% if config.debug -%}
 #include "c2numpy.h"
 
@@ -241,6 +256,14 @@ bool Network::init()
   {% endif %}
   {%- endfor %}
   {{ '\n' -}}
+
+#if defined RUN_ON_FPGA
+  auto* kernel_buffer = mapPhysicalMemory(KERNEL_ADDR, total_kernel_size); 
+  {% for qconv in graph.convs(quantized_only=True) -%}
+  {%    set kernel = qconv.input_nodes[1] -%}
+  std::memcpy(kernel_buffer + {{qconv.name}}_kernel_offset, {{kernel.name}}, {{qconv.name}}_kernel_size);
+  {% endfor -%}
+#endif // RUN_ON_FPGA
 
   return true;
 }
