@@ -1259,21 +1259,29 @@ class YoloV2Loss:
             if self.seen < self.seen_threshold:
                 if self.is_debug:
                     print("current seen: {}. To calculate coordinate loss for early training step.".format(self.seen))
-                for cell_x_index in range(0, num_cell_x):
-                    for cell_y_index in range(0, num_cell_y):
-                        for anchor_index, (anchor_w, anchor_h) in enumerate(self.anchors):
-                            anchor_box = [
-                                (0.5 + cell_x_index) / num_cell_x * image_size[1],
-                                (0.5 + cell_y_index) / num_cell_y * image_size[0],
-                                anchor_w / num_cell_x * image_size[1],
-                                anchor_h / num_cell_y * image_size[0],
-                                -1,
-                            ]
 
-                            cell_gt_boxes[batch_index, cell_y_index, cell_x_index, anchor_index, :] = anchor_box
-                            coordinate_maskes[batch_index, cell_y_index, cell_x_index, anchor_index, :] = 1  # Ture
+                stride_x = image_size[1] / num_cell_x
+                stride_y = image_size[0] / num_cell_y
+                offset_x = np.arange(0, image_size[0], stride_x)
+                offset_y = np.arange(0, image_size[1], stride_y)
+                offset_x, offset_y = np.meshgrid(offset_x, offset_y)
+                offset_x += 0.5 * stride_x
+                offset_y += 0.5 * stride_y
+                offset_x = np.reshape(offset_x, (num_cell_y, num_cell_x, 1))
+                offset_y = np.reshape(offset_y, (num_cell_y, num_cell_x, 1))
+                w_anchors = [anchor_w for anchor_w, _ in self.anchors]
+                h_anchors = [anchor_h for _, anchor_h in self.anchors]
+                w_anchors = stride_x * np.reshape(w_anchors, (1, 1, self.boxes_per_cell))
+                h_anchors = stride_y * np.reshape(h_anchors, (1, 1, self.boxes_per_cell))
+                cell_gt_boxes[batch_index, :, :, :, 0] = offset_x
+                cell_gt_boxes[batch_index, :, :, :, 1] = offset_y
+                cell_gt_boxes[batch_index, :, :, :, 2] = w_anchors
+                cell_gt_boxes[batch_index, :, :, :, 3] = h_anchors
+                cell_gt_boxes[batch_index, :, :, :, 4] = -1
 
-            # calcurate iou anchor and gt box
+                coordinate_maskes[batch_index] = 1  # True
+
+            # calculate iou anchor and gt box
             gt_boxes = gt_boxes_list[batch_index, :, :]
 
             for box_index in range(gt_boxes.shape[0]):
