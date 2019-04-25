@@ -85,12 +85,6 @@ class TensorView {
   static constexpr auto dim = get_dim(layout);
   template <typename U>
   using tensor_info_t = std::array<U, dim>;
-  TensorView()
-    : ptr(nullptr) {
-    for (std::size_t i = 0; i < dim; ++i) {
-      shape[i] = 0;
-    }
-  }
   TensorView(base_t* const ptr,
     const tensor_info_t<std::size_t>& shape)
     : ptr(ptr), shape(shape) {}
