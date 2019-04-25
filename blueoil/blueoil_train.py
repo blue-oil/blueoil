@@ -43,7 +43,8 @@ def save_config_file(config_file, dest_dir):
 
     return gfile.Copy(
         config_file,
-        os.path.join(dest_dir, 'blueoil_config.yaml')
+        os.path.join(dest_dir, 'blueoil_config.yaml'),
+        overwrite=True
     )
 
 
