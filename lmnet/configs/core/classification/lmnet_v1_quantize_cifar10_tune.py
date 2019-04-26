@@ -53,6 +53,9 @@ TEST_STEPS = 1000
 SUMMARISE_STEPS = 100
 # pretrain
 IS_PRETRAIN = False
+PRETRAIN_VARS = []
+PRETRAIN_DIR = ""
+PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
