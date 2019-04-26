@@ -269,7 +269,7 @@ class QUANTIZED_PACKED(Primitive, int):
 
     @classmethod
     def nptype(cls):
-        return np.int32
+        return np.uint32
 
 class QUANTIZED_PACKED_KERNEL(Primitive, int):
     @classmethod
@@ -278,5 +278,5 @@ class QUANTIZED_PACKED_KERNEL(Primitive, int):
 
     @classmethod
     def nptype(cls):
-        return np.int32
+        return np.uint32
 
