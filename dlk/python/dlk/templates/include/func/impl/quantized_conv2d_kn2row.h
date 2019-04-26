@@ -26,9 +26,12 @@ namespace impl {
 
 using kn2row_input_elem_t = QUANTIZED_PACKED;
 using kn2row_input_t = TensorView<kn2row_input_elem_t, MemoryLayout::HWChBCl>;
+using kn2row_kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWNC>;
+
+void quantized_ohwi_to_hwoi(const kernel_t& ohwi, const kn2row_kernel_t& hwoi, const binary_convolution_parameters& p);
 
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
-                                  const kernel_t& kernel,
+                                  const kn2row_kernel_t& kernel,
                                   const binary_convolution_parameters &p);
 
 } // namespace impl

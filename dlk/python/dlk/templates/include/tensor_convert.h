@@ -39,4 +39,10 @@ inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::
   dlk::impl::im2col(before, after, p);
 }
 
+inline void convert_tensor(const kernel_t& before,
+    const dlk::impl::kn2row_kernel_t& after,
+    const binary_convolution_parameters& p) {
+  dlk::impl::quantized_ohwi_to_hwoi(before, after, p);
+}
+
 #endif

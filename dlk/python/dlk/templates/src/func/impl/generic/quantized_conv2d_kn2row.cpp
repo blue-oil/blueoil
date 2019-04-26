@@ -24,32 +24,38 @@ limitations under the License.
 #include "pack_input_to_qwords.h"
 #include "time_measurement.h"
 
-namespace {
+namespace dlk {
 
-using kn2row_kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWNC>;
+namespace impl {
 
 // kernel format converter
 // ohwi : oc kh kw ic, hwoi: kh kw oc ic
-void quantized_ohwi_to_hwoi(const kernel_t& ohwi, const kn2row_kernel_t& hwoi, const struct binary_convolution_parameters& p) {
-   Measurement::Start("quantized_ohwi_to_hwoi");
+void quantized_ohwi_to_hwoi(const kernel_t& ohwi, const kn2row_kernel_t& hwoi, const binary_convolution_parameters& p) {
+  Measurement::Start("quantized_ohwi_to_hwoi");
 
-   int ic = p.normal_conv_params.kernel_depth / 32;
-   int oc = p.normal_conv_params.output_channels;
-   int kh = p.normal_conv_params.kernel_height;
-   int kw = p.normal_conv_params.kernel_width;
+  int ic = p.normal_conv_params.kernel_depth / 32;
+  int oc = p.normal_conv_params.output_channels;
+  int kh = p.normal_conv_params.kernel_height;
+  int kw = p.normal_conv_params.kernel_width;
 
-   for (unsigned int i = 0; i < kh; ++i) {
-     for (unsigned int j = 0; j < kw; ++j) {
-       for (unsigned int k = 0; k < oc; ++k) {
-         for (unsigned int l = 0; l < ic; ++l) {
-           hwoi(i, j, k, l) = ohwi(k, i, j, l);
-         }
-       }
-     }
-   }
+  for (unsigned int i = 0; i < kh; ++i) {
+    for (unsigned int j = 0; j < kw; ++j) {
+      for (unsigned int k = 0; k < oc; ++k) {
+        for (unsigned int l = 0; l < ic; ++l) {
+          hwoi(i, j, k, l) = ohwi(k, i, j, l);
+        }
+      }
+    }
+  }
 
-   Measurement::Stop();
- }
+  Measurement::Stop();
+}
+
+} // namespace impl
+
+} // namespace dlk
+
+namespace {
 
 void ApplyThresholds(
     dlk::MatrixView<BIN_CONV_OUTPUT, dlk::MatrixOrder::ColMajor> &result,
@@ -101,7 +107,7 @@ namespace dlk {
 namespace impl {
 
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
-                                  const kernel_t& kernel,
+                                  const kn2row_kernel_t& kernel,
                                   const binary_convolution_parameters &p) {
   using namespace dlk;
 
@@ -119,16 +125,8 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
 
   Measurement::Start("quantized-kn2row");
 
-  int kernel_buf_size = kh * kw * ic * oc / 32;
-  auto kernel_hwoi_raw = new QUANTIZED_PACKED_KERNEL[kernel_buf_size]();
-  kn2row_kernel_t::tensor_info_t<std::size_t> shape = {
-    kh, kw, oc, ic
-  };
-  kn2row_kernel_t kernel_hwoi(kernel_hwoi_raw, shape);
-  quantized_ohwi_to_hwoi(kernel, kernel_hwoi, p);
-
   auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
-      kernel_hwoi.data(), oc * kh * kw, ic / 32);
+      kernel.data(), oc * kh * kw, ic / 32);
   auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
       input.data(), ic / 16, ih * iw);
   auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
@@ -150,8 +148,6 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
     std::cerr << "Only 1x1 or 3x3 convolutions are supported." << std::endl;
     assert(false);
   }
-
-  delete[] kernel_hwoi_raw;
 
   if (p.thresholds != nullptr) {
     ApplyThresholds(output_, p);
