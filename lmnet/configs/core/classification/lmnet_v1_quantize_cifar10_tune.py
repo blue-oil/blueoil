@@ -51,6 +51,10 @@ MAX_STEPS = 100000
 SAVE_STEPS = 5000
 TEST_STEPS = 1000
 SUMMARISE_STEPS = 100
+
+# distributed training
+IS_DISTRIBUTION = False
+
 # pretrain
 IS_PRETRAIN = False
 PRETRAIN_VARS = []
