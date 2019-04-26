@@ -91,6 +91,11 @@ def get_best_trial(trial_list, metric):
     return max(trial_list, key=lambda trial: trial.last_result.get(metric, 0))
 
 
+def trial_str_creator(trial):
+    """Rename trial to shorter string"""
+    return "{}_{}".format(trial.trainable_name, trial.trial_id)
+
+
 def get_best_result(trial_list, metric, param):
     """Retrieve the last result from the best trial."""
     return {metric: get_best_trial(trial_list, metric).last_result[metric],
@@ -259,12 +264,15 @@ def run(config_file, tunable_id, local_dir):
     tune_spec['run'] = tunable_id
     tune_spec['config'] = {'lm_config': os.path.join(os.getcwd(), config_file)}
     tune_spec['local_dir'] = local_dir
+    tune_spec['trial_name_creator'] = ray.tune.function(trial_str_creator)
 
     # Expecting use of gpus to do parameter search
     ray.init(num_cpus=multiprocessing.cpu_count() // 2, num_gpus=max(get_num_gpu(), 1))
     algo = HyperOptSearch(tune_space, max_concurrent=4, reward_attr="mean_accuracy")
     scheduler = AsyncHyperBandScheduler(time_attr="training_iteration", reward_attr="mean_accuracy", max_t=200)
-    trials = run_experiments(experiments={'exp_tune': tune_spec}, search_alg=algo, scheduler=scheduler)
+    trials = run_experiments(experiments={'exp_tune': tune_spec},
+                             search_alg=algo,
+                             scheduler=scheduler)
     print("The best result is", get_best_result(trials, metric="mean_accuracy", param='config'))
 
 
