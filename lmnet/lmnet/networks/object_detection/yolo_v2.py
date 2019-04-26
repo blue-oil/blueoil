@@ -1281,7 +1281,7 @@ class YoloV2Loss:
             cell_gt_boxes[:, :, :, :, 3] = stride_y * offset_h
             cell_gt_boxes[:, :, :, :, 4] = -1
 
-            coordinate_maskes += 1  # True
+            coordinate_maskes[:] = 1  # True
 
         for batch_index in range(self.batch_size):
 
