@@ -34,9 +34,9 @@ void func_ExtractImagePatches(QUANTIZED_PACKED input[], QUANTIZED_PACKED output[
   T_UINT packed_input_depth = full_words_in_depth * bits_per_input + (remainder_bits_in_depth ? bits_per_input : 0);
   T_UINT packed_output_size = packed_input_depth * kernel_size * kernel_size * out_width * out_height;
 
-  QUANTIZED_PACKED* output_buffer = new QUANTIZED_PACKED[packed_output_size];
+  auto output_buffer = std::make_unique<QUANTIZED_PACKED[]>(packed_output_size);
 
-  auto* out = (input_depth < 32) ? output_buffer : output;
+  auto* out = (input_depth < 32) ? output_buffer.get() : output;
   T_UINT output_index = 0;
   for(T_UINT wi = 0; wi < out_height; wi++)
     for(T_UINT wj = 0; wj < out_width; wj++)
@@ -72,7 +72,6 @@ void func_ExtractImagePatches(QUANTIZED_PACKED input[], QUANTIZED_PACKED output[
     }
   }
 
-  delete [] output_buffer;
   Measurement::Stop();
 }
 

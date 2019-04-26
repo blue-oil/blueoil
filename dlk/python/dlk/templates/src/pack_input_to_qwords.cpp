@@ -43,7 +43,7 @@ int pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_w
               output[current_word + 1] = QUANTIZED_PACKED(0);
               for (int d = 0; d < bits_per_word; ++d) {
                 for(int b = 0; b < bits_per_input; ++b)
-                  output[current_word + b] = QUANTIZED_PACKED(output[current_word + b].Raw() | ((input[input_index] & (1 << b)) >> b) << d);
+                  output[current_word + b] = QUANTIZED_PACKED(output[current_word + b].Raw() | ((input[input_index] >> b) & 1) << d);
                 input_index++;
               }
               current_word += bits_per_input;
@@ -56,7 +56,7 @@ int pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_w
           output[current_word + 1] = QUANTIZED_PACKED(0);
           for (int d = 0; d < remainder_bits_in_depth; ++d) {
              for(int b = 0; b < bits_per_input; ++b)
-               output[current_word + b] = QUANTIZED_PACKED(output[current_word + b].Raw() | ((input[input_index] & (1 << b)) >> b) << d);
+               output[current_word + b] = QUANTIZED_PACKED(output[current_word + b].Raw() | ((input[input_index] >> b) & 1) << d);
              input_index++;
           }
           current_word += bits_per_input;
