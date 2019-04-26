@@ -157,8 +157,5 @@ constexpr size_t HPS_TO_FPGA_LW_BASE = 0xFF200000;
 // Half part of phys memory
 constexpr size_t HW_BUFFERS_PHYS_ADDR_BASE = 0x20000000;
 
-void func_Lookup(float *input, QUANTIZED_PACKED_KERNEL *lsb, QUANTIZED_PACKED_KERNEL *msb, QUANTIZED_PACKED* output, int h, int w, int c);
-
-
 #endif
 

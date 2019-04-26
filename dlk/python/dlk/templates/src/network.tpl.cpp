@@ -46,6 +46,7 @@ limitations under the License.
 #include "func/sqrt.h"
 #include "func/sub.h"
 #include "func/unpooling.h"
+#include "func/lookup.h"
 #include "operators.h"
 #include "quantizer.h"
 #include "network.h"

@@ -303,30 +303,3 @@ void func_QuantizedConv2DWithThreshold(QUANTIZED_PACKED input[],
                                     p);
 }
 
-
-void func_Lookup(float *input, QUANTIZED_PACKED_KERNEL *lsb, QUANTIZED_PACKED_KERNEL *msb, QUANTIZED_PACKED* output, int h, int w, int c) {
-
-  int b = 32;
-  int packed_depth = 2;
-  Measurement::Start("Lookup");
-
-  int out_idx = 0;
-  for(int ih = 0; ih < h; ih++)
-  for(int iw = 0; iw < w; iw++) {
-    int r = int(input[ih * w * 3 + iw * 3 + 0] * 255.0);
-    int g = int(input[ih * w * 3 + iw * 3 + 1] * 255.0);
-    int b = int(input[ih * w * 3 + iw * 3 + 2] * 255.0);
-
-    auto r_lsb = lsb[r];
-    auto g_lsb = lsb[g];
-    auto b_lsb = lsb[b];
-    auto r_msb = msb[r];
-    auto g_msb = msb[g];
-    auto b_msb = msb[b];
-
-    output[out_idx++] = QUANTIZED_PACKED((b_lsb.Raw() << 20) | (g_lsb.Raw() << 10) | r_lsb.Raw());
-    output[out_idx++] = QUANTIZED_PACKED((b_msb.Raw() << 20) | (g_msb.Raw() << 10) | r_msb.Raw());
-  }
-
-  Measurement::Stop();
-}
