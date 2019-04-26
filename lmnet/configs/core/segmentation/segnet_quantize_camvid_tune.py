@@ -17,7 +17,7 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
+from lmnet.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
 from lmnet.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
@@ -39,7 +39,7 @@ from hyperopt import hp
 
 IS_DEBUG = False
 
-NETWORK_CLASS = LmSegnetQuantize
+NETWORK_CLASS = LmSegnetV1Quantize
 DATASET_CLASS = Camvid
 
 IMAGE_SIZE = [360, 480]
@@ -115,4 +115,6 @@ DATASET.AUGMENTOR = Sequence([
     FlipLeftRight(),
     Hue((-10, 10)),
 ])
-DATASET.ENABLE_PREFETCH = True
+
+# TODO(Neil): dataset pre-fectch is not supported at the moment
+DATASET.ENABLE_PREFETCH = False
