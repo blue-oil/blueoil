@@ -135,7 +135,7 @@ def setup_dataset(config, subset, rank):
     dataset_class = config.DATASET_CLASS
     dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
     dataset = dataset_class(subset=subset, **dataset_kwargs)
-    enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
+    enable_prefetch = dataset_kwargs.pop("enable_prefetch", False) if subset == 'train' else False
     return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
 
 
