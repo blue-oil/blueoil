@@ -27,6 +27,10 @@ void func_ConcatOnDepth(T *inputs[], T_UINT *depths, T_UINT n_inputs, T output[]
   T_UINT output_index = 0;
   T_UINT input_index[32] = {0};
 
+  // expects quantized and packed inputs
+  for(T_UINT i = 0; i < n_inputs; i++)
+    depths[i] /= 16;
+
   for(T_UINT i = 0; i < out_height * out_width; i++)
     for(T_UINT n = 0; n < n_inputs; n++)
       for(T_UINT d = 0; d < depths[n]; d++)
