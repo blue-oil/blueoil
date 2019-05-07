@@ -1,7 +1,7 @@
 click==6.7
 easydict==1.6
 numpy==1.14.0
-Pillow==3.1.2
+Pillow==6.0.0
 PyYAML==4.2b4
 
 # for python2
