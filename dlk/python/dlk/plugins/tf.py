@@ -487,14 +487,14 @@ class Importer(object):
         _default_format = 'NHWC'
         _default_w_format = 'HWCN'
 
-        rank_to_format = {1: 'C', 2: 'WC', 3: 'HWC', 4: 'NHWC'}
+        rank_to_format = {1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC'}
 
         def guess_node_format(input_node: Any) -> str:
             """Provide the node format from references
             By means of guessing, the rank decides the input layout format of current node.
             For instance, if the input has same rank as the output of the current node,
             then the input is assumed to have same layout format as the output, otherwise,
-            the format follows 'C', 'WC', and 'HWC' respectively of rank 1, 2, 3.
+            the format follows 'C', 'HW', and 'HWC' respectively of rank 1, 2, 3.
             Note: Ensure the tf node always has valid value of attribute _output_shape defined.
             """
             assert len(input_node.get_shape()) != 0, \
