@@ -72,6 +72,19 @@ private:
     DMA_Buffer dma_input_buffer;
     DMA_Buffer dma_output_buffer;
 
+#if defined RUN_ON_FPGA
+  {% set offset = namespace(o=0) -%}
+  {% for qconv in graph.convs(quantized_only=True) -%}
+  {%    set kernel = qconv.input_nodes[1] -%}
+  {%    set n, h, w, c = kernel.shape -%}
+  {%    set b = 32 -%}
+  {%    set size = (((n + b - 1) // b) * b) * h * w * (((c + b - 1) // b) * b) // 32 * 4 -%}
+  const uint32_t {{qconv.name}}_kernel_size = {{size}};
+  const uint32_t {{qconv.name}}_kernel_offset = {{offset.o}};
+  {%    set offset.o = offset.o + size -%}
+  {% endfor -%}
+  const uint32_t total_kernel_size = {{offset.o}};
+#endif // RUN_ON_FPGA
 };
 
 #endif // NETWORK_H_INCLUDED

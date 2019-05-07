@@ -13,24 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef DLK_FUNC_IMPL_QUANTIZED_CONV2D_KN2ROW_H_INCLUDED
-#define DLK_FUNC_IMPL_QUANTIZED_CONV2D_KN2ROW_H_INCLUDED
+#ifndef DLK_FUNC_LOOKUP_H_INCLUDED
+#define DLK_FUNC_LOOKUP_H_INCLUDED
 
 #include "global.h"
-#include "operators.h" // FIXME(nikolay): for convolution_parameters definition, rid of it later
 
-namespace dlk {
+void func_Lookup(float *input, QUANTIZED_PACKED_KERNEL *lsb, QUANTIZED_PACKED_KERNEL *msb, QUANTIZED_PACKED* output, int h, int w, int c);
 
-namespace impl {
-
-void QuantizedConv2DKn2Row(QUANTIZED_PACKED input[],
-                                  const QUANTIZED_PACKED_KERNEL kernel[],
-                                  const binary_convolution_parameters &p);
-
-void TCAConv2d(QUANTIZED_PACKED input[], const QUANTIZED_PACKED_KERNEL kernel[], const binary_convolution_parameters &p);
-
-} // namespace impl
-
-} // namespace dlk
-
-#endif // DLK_FUNC_IMPL_QUANTIZED_CONV2D_KN2ROW_H_INCLUDED
+#endif // DLK_FUNC_LOOKUP_H_INCLUDED

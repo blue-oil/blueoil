@@ -201,9 +201,8 @@ void QuantizedConv2DIm2Col(QUANTIZED_NOT_PACKED input[], QUANTIZED_PACKED_KERNEL
   int kw = p.normal_conv_params.kernel_width;
 
   unsigned im2col_input_elems = oh * ow * kh * kw * ic;
-  // pack_input_to_qwords(im2col_input_buf, p.device_input_buf, p);
-  pack_input_to_qwords(im2col_input_buf, p.device_input_buf, im2col_input_elems,
-                       2);
+  pack_input_to_qwords(im2col_input_buf, p.device_input_buf, p);
+  //pack_input_to_qwords(im2col_input_buf, p.device_input_buf, im2col_input_elems,2);
   Measurement::Stop();
 
   Measurement::Start("QConv2D with im2col");

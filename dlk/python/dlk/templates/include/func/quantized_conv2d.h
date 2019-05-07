@@ -22,7 +22,7 @@ limitations under the License.
 
 
 void func_QuantizedConv2D(
-  QUANTIZED_NOT_PACKED input[],
+  QUANTIZED_PACKED input[],
   QUANTIZED_PACKED_KERNEL kernel[],
   T_FLOAT output[],
   T_FLOAT scaling_factor,
@@ -30,7 +30,7 @@ void func_QuantizedConv2D(
 );
 
 void func_QuantizedConv2D(
-  QUANTIZED_NOT_PACKED input[],
+  QUANTIZED_PACKED input[],
   QUANTIZED_PACKED_KERNEL kernel[],
   T_FLOAT output[],
   T_FLOAT scaling_factor[],
@@ -38,23 +38,23 @@ void func_QuantizedConv2D(
 );
 
 void func_QuantizedConv2DWithThreshold(
-  QUANTIZED_NOT_PACKED input[],
+  QUANTIZED_PACKED input[],
   QUANTIZED_PACKED_KERNEL kernel[],
-  QUANTIZED_NOT_PACKED output[],
+  QUANTIZED_PACKED output[],
   T_FLOAT scaling_factor,
   binary_convolution_parameters p
 );
 
 void func_QuantizedConv2DWithThreshold(
-  QUANTIZED_NOT_PACKED input[],
+  QUANTIZED_PACKED input[],
   QUANTIZED_PACKED_KERNEL kernel[],
-  QUANTIZED_NOT_PACKED output[],
+  QUANTIZED_PACKED output[],
   T_FLOAT scaling_factor[],
   binary_convolution_parameters p
 );
 
 void func_QuantizedConv2DWithThreshold(
-  QUANTIZED_NOT_PACKED input[],
+  QUANTIZED_PACKED input[],
   QUANTIZED_PACKED_KERNEL kernel[],
   T_FLOAT output[],
   T_FLOAT scaling_factor,
@@ -62,7 +62,7 @@ void func_QuantizedConv2DWithThreshold(
 );
 
 void func_QuantizedConv2DWithThreshold(
-  QUANTIZED_NOT_PACKED input[],
+  QUANTIZED_PACKED input[],
   QUANTIZED_PACKED_KERNEL kernel[],
   T_FLOAT output[],
   T_FLOAT scaling_factor[],

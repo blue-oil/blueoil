@@ -38,11 +38,13 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/sqrt.cpp \
     $(SRC_DIR)/func/sub.cpp \
     $(SRC_DIR)/func/unpooling.cpp \
+    $(SRC_DIR)/func/lookup.cpp \
     $(SRC_DIR)/matrix/shift_add.cpp \
     $(SRC_DIR)/network_c_interface.cpp \
     $(SRC_DIR)/network.cpp \
     $(SRC_DIR)/pack_input_to_qwords.cpp \
-    $(SRC_DIR)/time_measurement.cpp
+    $(SRC_DIR)/time_measurement.cpp \
+    $(SRC_DIR)/write_to_file.cpp
 
 SRC := $(LIB_SRC) $(wildcard $(DLK_TEST_SRC_DIR)/*.cpp) mains/main.cpp
 SRC := $(filter-out ./src/network_c_interface.cpp, $(SRC))
@@ -153,7 +155,7 @@ lm_arm:           FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -mcpu
 lm_arm:           CXXFLAGS +=
 
 lm_fpga:          CXX = arm-linux-gnueabihf-g++
-lm_fpga:          FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_fpga:          FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -pthread -g -fopenmp -DFUNC_TIME_MEASUREMENT
 lm_fpga:          CXXFLAGS +=
 
 lib_x86:           CXX = g++
