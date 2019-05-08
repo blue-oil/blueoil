@@ -3,6 +3,6 @@ easydict==1.6
 matplotlib==2.2.2
 numpy==1.14.0
 pandas==0.19.2
-Pillow==3.1.2
+Pillow==6.0.0
 pytablewriter==0.35
 PyYAML==4.2b4
