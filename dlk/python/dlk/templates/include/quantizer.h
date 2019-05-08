@@ -29,7 +29,7 @@ limitations under the License.
 #include <vector>
 
 #include "global.h"
-
+#include "pack_input_to_qwords.h"
 #ifdef USE_NEON
   #include <arm_neon.h>
 #endif
@@ -145,7 +145,7 @@ void func_QTZ_linear_mid_tread_half(
   T_FLOAT input[],
   T_INT nbit,
   T_FLOAT max_value,
-  QUANTIZED_NOT_PACKED output[],
+  QUANTIZED_PACKED output[],
   T_UINT in_height,
   T_UINT in_width,
   T_UINT in_depth,
@@ -154,6 +154,7 @@ void func_QTZ_linear_mid_tread_half(
   Measurement::Start("QTZ_linear_mid_tread_half");
 
   unsigned num_elems = in_height * in_width * in_depth * in_channel;
+  QUANTIZED_NOT_PACKED* output_not_packed = new QUANTIZED_NOT_PACKED[num_elems];
 
   unsigned int chunk_size = num_elems / std::thread::hardware_concurrency();
   if (chunk_size == 0) {
@@ -162,8 +163,8 @@ void func_QTZ_linear_mid_tread_half(
 
   std::vector<std::thread> threads;
   for (unsigned int i = 0; i < num_elems; i += chunk_size) {
-    threads.emplace_back(std::thread([input, nbit, max_value, &output, in_height, in_width, in_depth, in_channel, i, chunk_size, num_elems] {
-          func_QTZ_linear_mid_tread_half_body(input, nbit, max_value, output, in_height, in_width, in_depth, in_channel, i,
+    threads.emplace_back(std::thread([input, nbit, max_value, &output_not_packed, in_height, in_width, in_depth, in_channel, i, chunk_size, num_elems] {
+          func_QTZ_linear_mid_tread_half_body(input, nbit, max_value, output_not_packed, in_height, in_width, in_depth, in_channel, i,
                                               std::min(i + chunk_size, static_cast<unsigned int>(num_elems)));
     }));
   }
@@ -171,6 +172,12 @@ void func_QTZ_linear_mid_tread_half(
   for (auto& th: threads) {
     th.join();
   }
+
+  //static T_UINT counter = 0;
+  //write_to_file("out/qconv_input_quantized_not_packed", counter++, output_not_packed, in_height * in_width * in_depth);
+
+  pack_input(output_not_packed, in_height, in_width, in_depth, nbit, output);
+  delete [] output_not_packed;
 
   Measurement::Stop();
 }

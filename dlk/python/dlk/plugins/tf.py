@@ -32,11 +32,11 @@ from core.operators import Operator, Conv, Identity, QTZ_binary_mean_scaling, \
     BatchNormalization, QTZ_linear_mid_tread_half, Add, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
     Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, DepthToSpace, \
-    Split, Pad, MatMul, LeakyRelu
+    Split, Pad, MatMul, Gather, Unique, Cast, Minimum, StridedSlice, Prod, Shape, LeakyRelu
 
 DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
     # any
-    'DT_INVALID': None,
+    'DT_INVALID': Float32,
     # primitives
     'DT_FLOAT': Float32(),
     'DT_INT32': Int32(),
@@ -610,7 +610,6 @@ class Importer(object):
 
         # Create new op accordingly for the tf ops
         new_op: Operator
-
         def get_inputs(cdef: Type[Operator], current_node: Any) -> Dict[str, Operator]:
             input_names = cdef.input_names
             in_ops: Dict[str, Operator] = {}
@@ -635,6 +634,9 @@ class Importer(object):
 
         shape: List[int] = list(map(int, node.get_shape()))
         dtype = infer_dtype()
+
+        if True in (d < 0 for d in shape):
+            shape = [1]
 
         # debug msgs
         # print(node.op_type, ' name:', node.name, ' shape:', shape, ' inputs:', node.inputs)
@@ -1054,6 +1056,90 @@ class Importer(object):
                 shape = infer_shape(attributes)
 
             new_op = MatMul(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
+            )
+        elif op_type == 'Gather':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = Gather(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
+            )
+        elif op_type == 'Unique':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = Unique(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
+            )
+        elif op_type == 'Cast':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = Cast(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
+            )
+        elif op_type == 'Minimum':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = Minimum(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
+            )
+        elif op_type == 'StridedSlice':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = StridedSlice(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
+            )
+        elif op_type == 'Prod':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = Prod(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
+            )
+        elif op_type == 'Shape':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = Shape(
                 node.name,
                 shape,
                 dtype,
