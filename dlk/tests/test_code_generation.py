@@ -410,7 +410,7 @@ class TestCodeGeneration(TestCaseDLKBase):
         run_and_check(
             [ "ssh",
              f"root@{host}",
-             f"cd ~/automated_testing/; python3 {testing_code_name}"
+             f"cd ~/automated_testing/; python {testing_code_name}"
             ],
             output_path,
             remote_output_file,
