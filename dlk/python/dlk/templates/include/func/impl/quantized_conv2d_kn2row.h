@@ -27,12 +27,19 @@ namespace impl {
 using kn2row_input_elem_t = QUANTIZED_PACKED;
 using kn2row_input_t = TensorView<kn2row_input_elem_t, MemoryLayout::HWChBCl>;
 using kn2row_kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWNC>;
+using kn2row_fpga_kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::NHWC>;
 
 void quantized_ohwi_to_hwoi(const kernel_t& ohwi, const kn2row_kernel_t& hwoi, const binary_convolution_parameters& p);
 
+#ifndef RUN_ON_FPGA
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
                                   const kn2row_kernel_t& kernel,
                                   const binary_convolution_parameters &p);
+#else
+void QuantizedConv2DKn2Row(const kn2row_input_t& input,
+                                  const kn2row_fpga_kernel_t& kernel,
+                                  const binary_convolution_parameters &p);
+#endif
 
 } // namespace impl
 

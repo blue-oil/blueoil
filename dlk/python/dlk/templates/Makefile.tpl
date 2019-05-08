@@ -19,6 +19,7 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/conv2d.cpp \
     $(SRC_DIR)/func/impl/apply_thresholds.cpp \
     $(SRC_DIR)/func/impl/quantized_conv2d_dim2col.cpp \
+    $(SRC_DIR)/func/impl/ohwi_to_hwoi.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
     $(SRC_DIR)/func/pad.cpp \
     $(SRC_DIR)/func/matmul.cpp \

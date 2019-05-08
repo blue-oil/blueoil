@@ -76,6 +76,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       convert_tensor(input, tmp);
       dlk::impl::QuantizedConv2DTiling(tmp, kernel, p);
 #else
+#ifndef RUN_ON_FPGA
       const auto kernel_buf_size = kh * kw * ic * oc / 32;
       const auto kernel_hwoi_raw = std::make_unique<QUANTIZED_PACKED_KERNEL[]>(kernel_buf_size);
       dlk::impl::kn2row_kernel_t::tensor_info_t<std::size_t> kernel_shape = {
@@ -83,6 +84,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       };
       dlk::impl::kn2row_kernel_t kernel_hwoi(kernel_hwoi_raw.get(), kernel_shape);
       convert_tensor(kernel, kernel_hwoi, p);
+#endif
       dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
         ih,
         iw,
@@ -92,9 +94,14 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       };
       dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
       convert_tensor(input, tmp);
+#ifdef RUN_ON_FPGA
+      dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
+#else
       dlk::impl::QuantizedConv2DKn2Row(tmp, kernel_hwoi, p);
 #endif
+#endif
     } else {
+#ifndef RUN_ON_FPGA
       const auto kernel_buf_size = kh * kw * ic * oc / 32;
       const auto kernel_hwoi_raw = std::make_unique<QUANTIZED_PACKED_KERNEL[]>(kernel_buf_size);
       dlk::impl::kn2row_kernel_t::tensor_info_t<std::size_t> kernel_shape = {
@@ -102,6 +109,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       };
       dlk::impl::kn2row_kernel_t kernel_hwoi(kernel_hwoi_raw.get(), kernel_shape);
       convert_tensor(kernel, kernel_hwoi, p);
+#endif
       dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
         ih,
         iw,
@@ -111,7 +119,11 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       };
       dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
       convert_tensor(input, tmp);
+#ifdef RUN_ON_FPGA
+      dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
+#else
       dlk::impl::QuantizedConv2DKn2Row(tmp, kernel_hwoi, p);
+#endif
     }
   } else {
     dlk::impl::dim2col_input_t::tensor_info_t<std::size_t> shape = {
