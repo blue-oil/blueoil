@@ -335,7 +335,7 @@ class TestCodeGeneration(TestCaseDLKBase):
             raise unittest.SkipTest(
                 f'test level of this test: {this_test_level}, current test level: {CURRENT_TEST_LEVEL}')
 
-    def run_library(self, library: str, input_npy: str, expected_output_npy: str) -> float:
+    def run_library(self, library, input_npy, expected_output_npy):
 
         proc_input = np.load(input_npy)
         expected_output = np.load(expected_output_npy)
