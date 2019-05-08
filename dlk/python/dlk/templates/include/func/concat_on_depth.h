@@ -31,6 +31,12 @@ void func_ConcatOnDepth(const TensorView<T, MemoryLayout::NHWC> inputs[],
   T_UINT output_index = 0;
   T_UINT input_index[32] = {0};
 
+  if (!std::is_same<T, typename Base<T>::type>::value) {
+    // quantized and packed inputs
+    for(T_UINT i = 0; i < n_inputs; i++)
+      depths[i] /= 16;
+  }
+
   for(T_UINT h = 0; h < out_height; h++)
     for(T_UINT w = 0; w < out_width; w++) {
       T_UINT index = 0;

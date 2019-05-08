@@ -1829,7 +1829,7 @@ class Reshape(Operator):
 
     """
 
-    _input_names = ['data']
+    _input_names = ['data', 'shape']
     _output_names = ['reshaped']
 
     def __init__(self, name: str, shape: List[int], dtype: DataType, input_ops: Ops) -> None:
@@ -2764,4 +2764,240 @@ class MatMul(Operator):
                      
     @property
     def preserve_quantization(self) -> bool:
+        return False
+
+
+class Gather(Operator):
+    r"""Gather operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['x', 'out_idx']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
+
+class Unique(Operator):
+    r"""Unique operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['x']
+    _output_names = ['y', 'idx']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
+
+class Cast(Operator):
+    r"""Cast operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['x']
+    _output_names = ['y']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
+class Minimum(Operator):
+    r"""Minimum operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['x', 'y']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
+
+class StridedSlice(Operator):
+    r"""StridedSlice operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['input', 'begin', 'end', 'strides']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
+class Lookup(Quantizer):
+    r"""Lookup operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['input', 'lsb', 'msb']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return True
+
+    @property
+    def nbit(self) -> int:
+        return 2
+
+    @property
+    def max_v(self) -> float:
+        return 2.0
+
+
+class Prod(Operator):
+    r"""Prod operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['input', 'indices']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+
+class Shape(Operator):
+    r"""Shape operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['input']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
         return False

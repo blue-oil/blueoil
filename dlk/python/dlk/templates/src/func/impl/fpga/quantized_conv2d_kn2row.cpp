@@ -170,6 +170,77 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
   }
 }
 
+
+void TCAConv2d(const kn2row_input_t& input,
+    const kn2row_fpga_kernel_t& kernel,
+    const binary_convolution_parameters &p) {
+
+  using namespace dlk;
+
+  convolution_parameters cp = p.normal_conv_params;
+  const T_UINT b = 32;
+  const T_UINT out_c = ((cp.output_channels + b - 1) / b) * b;
+
+  const T_UINT num_qkernel_per_qword = (NBIT_QDYPE / MAX_NBIT_KERNEL);
+
+  const T_UINT k_h = cp.kernel_height;
+  const T_UINT k_w = cp.kernel_width;
+  const T_UINT k_c = cp.kernel_depth;
+
+  const T_UINT in_h = cp.input_height;
+  const T_UINT in_w = cp.input_width;
+
+  const T_UINT out_h = cp.output_height;
+  const T_UINT out_w = cp.output_width;
+
+  const auto effective_kernel_depth = ((cp.kernel_depth + b - 1) / b) * b;
+
+  Measurement::Start("QuantizedConv2D_ChangeInputLayout");
+
+  int packed_input_depth = (effective_kernel_depth / 32) * 2;
+  int packed_b = (b / 32) * 2;
+
+  if(effective_kernel_depth > b) {
+      int out_index = 0;
+      for (int s = 0; s < packed_input_depth / packed_b; s++)
+      for (int h = 0; h < cp.input_height; h++)
+      for (int w = 0; w < cp.input_width; w++)
+      for (int d = 0; d < packed_b; d++)
+        p.device_input_buf[out_index++] = input(h, w, s, d, 0);
+  }
+  else {
+      for (int i = 0; i < cp.input_height * cp.input_width * 2; i++)
+        p.device_input_buf[i] = input.data()[i];
+  }
+
+  Measurement::Stop();
+
+    T_UINT input_byte_size =
+        (cp.input_height * cp.input_width * effective_kernel_depth * in_nbits) /
+        byte_nbits;
+
+    T_UINT output_byte_size = out_h * out_w * out_c * sizeof(BIN_CONV_OUTPUT);
+    if (p.thresholds != NULL) {
+      output_byte_size /= 8;
+    }
+
+    Measurement::Start("Sync UDMABuf Input");
+    p.dma_input_buffer->sync_size(input_byte_size);
+    p.dma_input_buffer->sync_for_device();
+    Measurement::Stop();
+
+    Measurement::Start("Conv2D TCA");
+    de10_nano::RunTCA(p.device_input_phys_addr, p.device_output_phys_addr, p.device_kernel_phys_addr, p.thresholds, in_w, in_h,
+      k_c, MAX_NBIT_QINPUT, out_w, out_h, out_c, k_w, k_h, cp.padding, cp.stride_along_height);
+    Measurement::Stop();
+
+    Measurement::Start("Sync UDMABuf Output");
+    p.dma_output_buffer->sync_size(output_byte_size);
+    p.dma_output_buffer->sync_for_cpu();
+    Measurement::Stop();
+}
+
+
 } // namespace impl
 
 } // namespace dlk

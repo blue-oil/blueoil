@@ -45,4 +45,11 @@ inline void convert_tensor(const kernel_t& before,
   dlk::impl::quantized_ohwi_to_hwoi(before, after, p);
 }
 
+template <typename T, MemoryLayout layout>
+void convert_tensor(const TensorView<T, layout>& before,
+    const TensorView<T, layout>& after) {
+  auto num_elems = before.size();
+  std::copy(before.data(), before.data() + num_elems, after.data());
+}
+
 #endif

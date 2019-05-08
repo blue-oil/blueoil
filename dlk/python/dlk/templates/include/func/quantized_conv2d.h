@@ -95,7 +95,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
       convert_tensor(input, tmp);
 #ifdef RUN_ON_FPGA
-      dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
+      dlk::impl::TCAConv2d(tmp, kernel, p);
 #else
       dlk::impl::QuantizedConv2DKn2Row(tmp, kernel_hwoi, p);
 #endif
@@ -120,7 +120,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
       convert_tensor(input, tmp);
 #ifdef RUN_ON_FPGA
-      dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
+      dlk::impl::TCAConv2d(tmp, kernel, p);
 #else
       dlk::impl::QuantizedConv2DKn2Row(tmp, kernel_hwoi, p);
 #endif
@@ -204,7 +204,7 @@ template<typename T, MemoryLayout layout>
 void func_QuantizedConv2DWithThreshold(
     const TensorView<T, layout>& input,
     const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::NHWC>& kernel,
-    const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& output,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
     const T_FLOAT scaling_factor,
     const binary_convolution_parameters& p) {
   QuantizedConv2D(input, kernel, p);
@@ -213,9 +213,8 @@ void func_QuantizedConv2DWithThreshold(
                        p.normal_conv_params.output_width *
                        p.normal_conv_params.output_channels;
 
-  for (unsigned i = 0; i < out_elems; ++i) {
-    output.data()[i] = p.device_output_buf[i];
-  }
+  const auto bytes = out_elems / 8 * p.n_bit;
+  memcpy(output.data(), p.device_output_buf, bytes);
 }
 
 template <typename T, MemoryLayout layout>
@@ -238,7 +237,7 @@ template <typename T, MemoryLayout layout>
 void func_QuantizedConv2DWithThreshold(
     const TensorView<T, layout>& input,
     const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::NHWC>& kernel,
-    const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& output,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
     const T_FLOAT scaling_factor[],
     const binary_convolution_parameters& p) {
   func_QuantizedConv2DWithThreshold(input, kernel, output, scaling_factor[0],

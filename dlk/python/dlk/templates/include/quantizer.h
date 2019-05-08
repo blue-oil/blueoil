@@ -30,7 +30,7 @@ limitations under the License.
 
 #include "global.h"
 #include "tensor_view.h"
-
+#include "pack_input_to_qwords.h"
 #ifdef USE_NEON
   #include <arm_neon.h>
 #endif
@@ -137,10 +137,11 @@ inline void func_QTZ_linear_mid_tread_half(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_INT, MemoryLayout::Atom>& nbit,
     const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
-    const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& output) {
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output) {
   Measurement::Start("QTZ_linear_mid_tread_half");
 
   unsigned num_elems = input.size();
+  QUANTIZED_NOT_PACKED* output_not_packed = new QUANTIZED_NOT_PACKED[num_elems];
 
   unsigned int chunk_size = num_elems / std::thread::hardware_concurrency();
   if (chunk_size == 0) {
@@ -149,8 +150,8 @@ inline void func_QTZ_linear_mid_tread_half(
 
   std::vector<std::thread> threads;
   for (unsigned int i = 0; i < num_elems; i += chunk_size) {
-    threads.emplace_back(std::thread([&input, &nbit, &max_value, &output, i, chunk_size, num_elems] {
-          func_QTZ_linear_mid_tread_half_body(input.data(), nbit(), max_value(), output.data(), i,
+    threads.emplace_back(std::thread([&input, &nbit, &max_value, &output_not_packed, i, chunk_size, num_elems] {
+          func_QTZ_linear_mid_tread_half_body(input.data(), nbit(), max_value(), output_not_packed, i,
                                               std::min(i + chunk_size, static_cast<unsigned int>(num_elems)));
     }));
   }
@@ -158,6 +159,16 @@ inline void func_QTZ_linear_mid_tread_half(
   for (auto& th: threads) {
     th.join();
   }
+
+  //static T_UINT counter = 0;
+  //write_to_file("out/qconv_input_quantized_not_packed", counter++, output_not_packed, in_height * in_width * in_depth);
+
+  const auto in_shape = input.get_shape();
+  const auto in_height = in_shape[1];
+  const auto in_width = in_shape[2];
+  const auto in_depth = in_shape[3];
+  pack_input(output_not_packed, in_height, in_width, in_depth, nbit(), output.data());
+  delete [] output_not_packed;
 
   Measurement::Stop();
 }
