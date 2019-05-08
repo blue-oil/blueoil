@@ -474,10 +474,33 @@ class Importer(object):
             graph.remove_op(node)
 
     def _get_format(self, node: Any, output_format: str) -> Tuple[str, List[str]]:
-        """Get the dimension format, like 'NCHW', 'HWCN', 'NHWC', etc."""
+        """Get the dimension format, like 'NCHW', 'HWCN', 'NHWC', etc for operators.
+        Always use the format from tensorflow, if the layout format is not defined,
+        then propagate the format from the output. Special case such as:
+        - 'Conv': by default of tensorflow, input is 'NHWC', and kernel 'HWCN'
+        https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
+        - 'QTZ_binary_mean_scaling', 'QTZ_binary_channel_wise_mean_scaling':
+        kernel quantizer is also in HWCN
+        - 'Transpose': depending on the permutation attribute
+        """
 
-        _default_format = 'NHWC'  # TF standard for input
-        _default_w_format = 'HWCN'  # TF standard for weight
+        _default_format = 'NHWC'
+        _default_w_format = 'HWCN'
+
+        rank_to_format = {1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC'}
+
+        def guess_node_format(input_node: Any) -> str:
+            """Provide the node format from references
+            By means of guessing, the rank decides the input layout format of current node.
+            For instance, if the input has same rank as the output of the current node,
+            then the input is assumed to have same layout format as the output, otherwise,
+            the format follows 'C', 'HW', and 'HWC' respectively of rank 1, 2, 3.
+            Note: Ensure the tf node always has valid value of attribute _output_shape defined.
+            """
+            assert len(input_node.get_shape()) != 0, \
+                f'output shape of {input_node.name} of {input_node.op_type} is not properly defined in .pb file'
+            node_rank = len(input_node.get_shape())
+            return out_format if node_rank == len(out_format) else rank_to_format[node_rank]
 
         if isinstance(node, Node):
             if node.get_format() is None:
@@ -485,54 +508,31 @@ class Importer(object):
             else:
                 out_format = node.get_format()
 
-            in_format = out_format
-            in_w_format = _default_w_format
-
             op_type = self.convert_operator(node.op_type)
-            # op_type = node.op_type
             if op_type == 'Conv':
-                # the TF standard for input and weight
-                return out_format, [in_format, in_w_format, 'N']
-
-            elif op_type == 'BatchNormalization':
-                # the TF standard and vector values
-                return out_format, [in_format, 'C', 'C', 'C', 'C']
-
-            elif op_type in {'MaxPool', 'AveragePool'}:
-                return out_format, [in_format]  # the TF standard
-
+                return out_format, [out_format, _default_w_format, 'C']
+            elif op_type in ['QTZ_binary_mean_scaling', 'QTZ_binary_channel_wise_mean_scaling']:
+                return _default_w_format, [_default_w_format]
+            elif op_type in ['QTZ_linear_mid_tread_half']:
+                return out_format, [out_format, 'C', 'C']
             elif op_type == 'Transpose':
                 perm = list(node.attribute("perm"))
                 inv_perm = [perm.index(i) for i in range(len(perm))]  # inverse permutation
                 input_format = functools.reduce(
                     lambda x, y: x + y, [output_format[i] for i in inv_perm])
                 return output_format, [input_format]
-
-            elif op_type == 'QTZ_linear_mid_tread_half':
-                return out_format, [in_format, '1', '1']  # two scalar constants
-
-            elif op_type in ['QTZ_binary_mean_scaling', 'QTZ_binary_channel_wise_mean_scaling']:
-                return _default_w_format, [_default_w_format]  # two scalar constants
-
-            elif op_type == 'Gemm':
-                return out_format, ['', '', '']  # three inputs
-
-            elif op_type in ['Add', 'Mul', 'Maximum', 'MatMul', 'Gather', 'Minimum', 'Reshape', 'Prod']:
-                return out_format, ['', '']  # two inputs
-
-            elif op_type in ['Split', 'Pad']:
-                return out_format, [in_format, '']
-
-            elif op_type == 'ConcatOnDepth':
-                return out_format, [in_format, in_format, in_format, in_format, in_format, '']
-
-            elif op_type == 'StridedSlice':
-                return out_format, ['', '', '', '']  # four inputs
-
             else:
-                return out_format, [out_format]
-
-        else:  # Input or Output
+                input_format_list = []
+                for node_name in node.inputs:
+                    node_object = self.node_dic[node_name]
+                    if not isinstance(node_object, Input):
+                        node_object_format = node_object.get_format() if node_object.get_format() is not None else \
+                            guess_node_format(node_object)
+                    else:
+                        node_object_format = guess_node_format(node_object)
+                    input_format_list.append(node_object_format)
+                return out_format, input_format_list
+        else:
             return output_format, [output_format]
 
     def add_node_to_graph_recursive(self, current: Any, graph: Graph, visited: Set[Any], added: Dict[str, Operator],
