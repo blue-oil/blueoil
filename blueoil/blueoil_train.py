@@ -42,13 +42,16 @@ def save_config_file(config_file, dest_dir):
         gfile.MkDir(dest_dir)
 
     config_file_dest = os.path.join(dest_dir, 'blueoil_config.yaml')
+
+    # HACK: This is for tensorflow bug workaround.
+    # We can remove lines 49-50 once it's been resolved in tensorflow
+    # issue link: https://github.com/tensorflow/tensorflow/issues/28508
     if gfile.Exists(config_file_dest):
         gfile.Remove(config_file_dest)
 
     return gfile.Copy(
         config_file,
-        config_file_dest,
-        overwrite=True
+        config_file_dest
     )
 
 
