@@ -276,7 +276,7 @@ def copy_to_experiment_dir(config_file):
     saved_config_file_path = _config_file_path_to_copy(config_file)
 
     # HACK: This is for tensorflow bug workaround.
-    # We can remove lines 281-282 once it's been resolved in tensorflow
+    # We can remove following 2 lines once it's been resolved in tensorflow
     # issue link: https://github.com/tensorflow/tensorflow/issues/28508
     if gfile.Exists(saved_config_file_path):
         gfile.Remove(saved_config_file_path)
