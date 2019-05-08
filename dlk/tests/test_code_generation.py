@@ -31,7 +31,7 @@ import run_test as inference  # PEP8:ignore
 
 from testcase_dlk_base import TestCaseDLKBase
 from tstconf import CURRENT_TEST_LEVEL
-from tstutils import updated_dict, run_and_check, TEST_LEVEL_FUTURE_TARGET
+from tstutils import updated_dict, run_and_check, TEST_LEVEL_FUTURE_TARGET, FPGA_HOST
 
 
 def dict_codegen_classification_x86() -> dict:
@@ -443,8 +443,7 @@ class TestCodeGeneration(TestCaseDLKBase):
                     from_npy=False,
                     need_arm_compiler=False,
                     cache_dma=False,
-                    test_id=0,
-                    host='192.168.1.5'
+                    test_id=0
                     ) -> None:
 
         """Test code for testing code generation for CPU"""
@@ -530,7 +529,7 @@ class TestCodeGeneration(TestCaseDLKBase):
                 percent_failed = self.run_library(generated_lib, input_path, expected_output_path)
             else:
                 percent_failed = \
-                    self.run_library_on_remote(host, output_path, generated_lib, input_path, expected_output_path)
+                    self.run_library_on_remote(FPGA_HOST, output_path, generated_lib, input_path, expected_output_path)
         else:
             percent_failed = self.run_library_using_script(generated_lib, input_path, expected_output_path,
                                                            from_npy)
