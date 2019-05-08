@@ -26,7 +26,7 @@ test-lmnet: build
 
 .PHONY: test-dlk
 test-dlk: build
-	# Run dlk test (only available on Jenkins)
+	# Run dlk test
 	docker run --rm -t -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
 
 .PHONY: pep8-dlk
