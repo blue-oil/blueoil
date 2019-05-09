@@ -19,7 +19,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from itertools import product as itr_prod
-from Queue import Queue
+
+# HACK: cross py2-py3 compatible version
+try:
+    import queue
+except ImportError:
+    import Queue as queue
+
 from threading import Thread
 
 import cv2
