@@ -257,7 +257,7 @@ class RDmaTestModule(rmemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
 class DdrAddress(val addr: Int, val startOfTile: Boolean, val endOfTile: Boolean) {
 }
 
-class RDmaTestRMemReading(dut: RDmaTestModule, rmemSize: Int, tileHeight: Int, tileWidth: Int, outputHeight: Int, outputWidth: Int, outputChannels: Int, maxBurst: Int, avalonDelay: Int) extends PeekPokeTester(dut) {
+class RDmaTestRMemReading(dut: RDmaTestModule, rmemSize: Int, tileHeight: Int, tileWidth: Int, outputHeight: Int, outputWidth: Int, outputChannels: Int, maxBurst: Int, avalonDelays: List[Int]) extends PeekPokeTester(dut) {
   val expectedOutputMemory = Seq.fill(outputHeight * outputWidth * outputChannels * 2)(scala.util.Random.nextLong() & ((BigInt(0x1L) << 32) - 1))
   val avalonDataWidth = 32 * 2 // assume that bus width matches data size nicely
   val bytesPerElement = avalonDataWidth / 8
@@ -347,12 +347,21 @@ class RDmaTestRMemReading(dut: RDmaTestModule, rmemSize: Int, tileHeight: Int, t
   poke(dut.io.rowDistance, param.rowDistance)
 
   poke(dut.io.outputSpace, param.outputSpace)
-  poke(dut.io.avalonMasterWaitRequest, false)
+  poke(dut.io.avalonMasterWaitRequest, true)
 
   object AvalonChecker {
     var lastAddressIdx = 0
     var burstCountLeft = 0
-    var acceptDelay = avalonDelay
+
+    val avalonDelayQueue = mutable.Queue[Int]()
+    avalonDelayQueue ++= avalonDelays
+    def nextDelay() = {
+      val first = avalonDelayQueue.dequeue
+      avalonDelayQueue.enqueue(first)
+      first
+    }
+    var acceptDelay = nextDelay()
+
     def done = (lastAddressIdx == dataAddresses.size)
 
     def tryNext(): Unit = {
@@ -377,7 +386,7 @@ class RDmaTestRMemReading(dut: RDmaTestModule, rmemSize: Int, tileHeight: Int, t
       }
       else {
         poke(dut.io.avalonMasterWaitRequest, false)
-        acceptDelay = avalonDelay
+        acceptDelay = nextDelay()
       }
       if (burstCountLeft == 0) {
         expect(dut.io.avalonMasterAddress, currentAddr.addr)
@@ -423,7 +432,7 @@ object RDmaTests {
             dut => new RDmaTestRRawZero(dut, b, avalonAddrWidth, avalonDataWidth, tileHeight, tileWidth, outputHeight, outputWidth, outputChannels, maxBurst))
           for (delay <- 0 until 4) {
             ok &= Driver.execute(driverArgs, () => new RDmaTestModule(amemSize, avalonAddrWidth, maxBurst))(
-              dut => new RDmaTestRMemReading(dut, amemSize, tileHeight, tileWidth, outputHeight, outputWidth, outputChannels, maxBurst, delay))
+              dut => new RDmaTestRMemReading(dut, amemSize, tileHeight, tileWidth, outputHeight, outputWidth, outputChannels, maxBurst, List(delay, 0, 0)))
             if (!ok) {
               println(f"Failed for maxBurst:${maxBurst} tileHeight:${tileHeight} tileWidth:${tileWidth} delay ${delay}")
               break

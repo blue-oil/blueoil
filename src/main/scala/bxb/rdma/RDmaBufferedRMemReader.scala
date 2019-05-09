@@ -49,9 +49,9 @@ class RDmaBufferedRMemReader(b: Int, avalonDataWidth: Int, rAddrWidth: Int, tile
   val lastRead = (state === State.lastRead)
   val acknowledge = (state === State.acknowledge)
 
-  val incrementAddress = (askFirst | running | waiting)
+  val incrementAddress = (askFirst | ((running | waiting) & ~io.waitRequest))
 
-  val updateAddress = (idle | (incrementAddress & ~io.waitRequest))
+  val updateAddress = (idle | incrementAddress)
 
   // tile loops
   val tileXCountLeft = Reg(UInt(tileCountWidth.W))
