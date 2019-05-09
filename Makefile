@@ -27,7 +27,7 @@ test-lmnet: build
 .PHONY: test-dlk
 test-dlk: build
 	# Run dlk test
-	docker run --rm -t -v $(HOME)/.ssh:/root/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
+	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
 
 .PHONY: pep8-dlk
 pep8-dlk:
