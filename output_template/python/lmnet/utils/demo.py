@@ -22,7 +22,7 @@ from itertools import product as itr_prod
 
 # HACK: cross py2-py3 compatible version
 try:
-    import queue as Queue
+    from queue import Queue
 except ImportError:
     from Queue import Queue
 
