@@ -195,25 +195,8 @@ void TCAConv2d(const kn2row_input_t& input,
 
   const auto effective_kernel_depth = ((cp.kernel_depth + b - 1) / b) * b;
 
-  Measurement::Start("QuantizedConv2D_ChangeInputLayout");
-
-  int packed_input_depth = (effective_kernel_depth / 32) * 2;
-  int packed_b = (b / 32) * 2;
-
-  if(effective_kernel_depth > b) {
-      int out_index = 0;
-      for (int s = 0; s < packed_input_depth / packed_b; s++)
-      for (int h = 0; h < cp.input_height; h++)
-      for (int w = 0; w < cp.input_width; w++)
-      for (int d = 0; d < packed_b; d++)
-        p.device_input_buf[out_index++] = input(h, w, s, d, 0);
-  }
-  else {
-      for (int i = 0; i < cp.input_height * cp.input_width * 2; i++)
-        p.device_input_buf[i] = input.data()[i];
-  }
-
-  Measurement::Stop();
+    for (int i = 0; i < input.size(); i++)
+      p.device_input_buf[i] = input.data()[i];
 
     T_UINT input_byte_size =
         (cp.input_height * cp.input_width * effective_kernel_depth * in_nbits) /
