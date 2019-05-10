@@ -639,7 +639,7 @@ class View(object):
 
             return self.format_string(
                 f"""
-                const TensorView<{op.dtype.cpptype()}, MemoryLayout::NHWC> {input_list_name}[] = {{ {inputs_string} }};
+                const TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {input_list_name}[] = {{ {inputs_string} }};
                 T_UINT {depth_list_name}[] = {{ {depth_list} }};
                 func_ConcatOnDepth({input_list_name}, {depth_list_name}, {number_of_inputs}, {op.name});
                 """
