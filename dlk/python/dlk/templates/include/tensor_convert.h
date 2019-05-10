@@ -23,9 +23,18 @@ limitations under the License.
 #include "func/impl/quantized_conv2d_tiling.h"
 #include "func/impl/quantized_conv2d_dim2col.h"
 
-inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& before,
+inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& before,
     const dlk::impl::kn2row_input_t& after) {
-  pack_input_to_qwords(before.data(), after.data(), before.size(), after.get_shape()[3]);
+  const auto in_shape = before.get_shape();
+  const auto height = in_shape[0];
+  const auto width = in_shape[1];
+  const auto channel = in_shape[2];
+  const auto bits = in_shape[3];
+  for (std::size_t i = 0; i < height; ++i)
+    for (std::size_t j = 0; j < width; ++j)
+      for (std::size_t k = 0; k < channel; ++k)
+        for (std::size_t d = 0; d < bits; ++d)
+          after(k, i, j, d, 0) = before(i, j, k, d, 0);
 }
 
 inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& before,
