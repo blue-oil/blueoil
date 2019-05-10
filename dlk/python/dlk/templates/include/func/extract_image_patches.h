@@ -53,7 +53,7 @@ inline void func_ExtractImagePatches(
             T_UINT ch_high = ch / QUANTIZED_PACKED::BitCount;
             T_UINT ch_low = ch % QUANTIZED_PACKED::BitCount;
             for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
-              output(ch_high, wi, wj, digit, 0) |= T((mask & input(0, row, col, digit, 0).Raw()) << ch_low);
+              output(ch_high, wi, wj, digit, 0) |= QUANTIZED_PACKED((mask & input(0, row, col, digit, 0).Raw()) << ch_low);
             }
           }
   } else {
