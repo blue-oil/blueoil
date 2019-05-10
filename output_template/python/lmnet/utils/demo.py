@@ -146,6 +146,7 @@ def run_inference(image, nn, pre_process, post_process):
     start = time.clock()
 
     data = pre_process(image=image)["image"]
+    data = np.expand_dims(data, axis=0)
 
     network_only_start = time.clock()
     result = nn.run(data)
