@@ -22,9 +22,9 @@ from itertools import product as itr_prod
 
 # HACK: cross py2-py3 compatible version
 try:
-    import queue
+    import queue as Queue
 except ImportError:
-    import Queue as queue
+    from Queue import Queue
 
 from threading import Thread
 
