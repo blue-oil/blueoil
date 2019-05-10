@@ -25,7 +25,7 @@ namespace dlk {
 namespace impl {
 
 using kn2row_input_elem_t = QUANTIZED_PACKED;
-using kn2row_input_t = TensorView<kn2row_input_elem_t, MemoryLayout::HWChBCl>;
+using kn2row_input_t = TensorView<kn2row_input_elem_t, MemoryLayout::ChHWBCl>;
 using kn2row_kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWNC>;
 using kn2row_fpga_kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlBIl>;
 
@@ -37,7 +37,7 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
                                   const binary_convolution_parameters &p);
 #else
 void TCAConv2d(const kn2row_input_t& input,
-    const kn2row_fpga_kernel_t kernel,
+    const kn2row_fpga_kernel_t& kernel,
     const binary_convolution_parameters &p);
 #endif
 
