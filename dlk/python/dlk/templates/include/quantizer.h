@@ -137,7 +137,7 @@ inline void func_QTZ_linear_mid_tread_half(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_INT, MemoryLayout::Atom>& nbit,
     const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
-    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output) {
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& output) {
   Measurement::Start("QTZ_linear_mid_tread_half");
 
   unsigned num_elems = input.size();
