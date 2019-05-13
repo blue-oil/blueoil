@@ -232,6 +232,8 @@ class TrainTunable(Trainable):
             metric_accuracy = self.sess.run(self.metrics_ops_dict["mean_iou"])
         elif self.lm_config.NETWORK_CLASS.__module__.startswith("lmnet.networks.object_detection"):
             metric_accuracy = self.sess.run(self.metrics_ops_dict["MeanAveragePrecision_0.5"])
+            metrics_keys = self.sess.run(list(self.metrics_ops_dict.keys()))
+            print(metrics_keys)
         else:
             metric_accuracy = self.sess.run(self.metrics_ops_dict["accuracy"])
 

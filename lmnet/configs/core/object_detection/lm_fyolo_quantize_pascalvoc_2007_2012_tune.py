@@ -118,6 +118,7 @@ TUNE_SPACE = {
         'optimizer_class', [
             {
                 'optimizer': tf.train.MomentumOptimizer,
+                'momentum': 0.9,
             },
         ]
     ),
