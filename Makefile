@@ -30,7 +30,7 @@ test-dlk: build
 	docker run --rm -t -v /root/.ssh:/root/.ssh --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
 
 .PHONY: pep8-dlk
-pep8-dlk:
+pep8-dlk: build
 	# Check dlk PEP8
 	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pycodestyle --ignore=W --max-line-length=120 --exclude='*static/pb*','*docs/*','*.eggs*','*tvm/*','*tests/*','backends/*' ."
 
