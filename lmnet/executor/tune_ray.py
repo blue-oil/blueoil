@@ -230,6 +230,8 @@ class TrainTunable(Trainable):
 
         if self.lm_config.NETWORK_CLASS.__module__.startswith("lmnet.networks.segmentation"):
             metric_accuracy = self.sess.run(self.metrics_ops_dict["mean_iou"])
+        elif self.lm_config.NETWORK_CLASS.__module__.startswith("lmnet.networks.object_detection"):
+            metric_accuracy = self.sess.run(self.metrics_ops_dict["MeanAveragePrecision_0.5"])
         else:
             metric_accuracy = self.sess.run(self.metrics_ops_dict["accuracy"])
 
