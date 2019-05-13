@@ -46,7 +46,7 @@ inline void func_linear_to_float(
 
 template <typename T, MemoryLayout layout>
 void QuantizedConv2D(const TensorView<T, layout>& input,
-    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlBIl>& kernel,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& kernel,
     binary_convolution_parameters p) {
   constexpr T_UINT TilingInTypeBitWidth = dlk::impl::tiling_input_elem_t::BitCount;
   int kh = p.normal_conv_params.kernel_height;
@@ -144,7 +144,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
 template <typename T, MemoryLayout layout>
 void func_QuantizedConv2D(
     const TensorView<T, layout>& input,
-    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlBIl>& kernel,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& kernel,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     const T_FLOAT scaling_factor,
     const binary_convolution_parameters& p) {
@@ -189,7 +189,7 @@ void func_QuantizedConv2D(
 template <typename T, MemoryLayout layout>
 void func_QuantizedConv2D(
     const TensorView<T, layout>& input,
-    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlBIl>& kernel,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& kernel,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     T_FLOAT scaling_factor[],
     binary_convolution_parameters p) {
@@ -252,7 +252,7 @@ void func_QuantizedConv2D(
 template<typename T, MemoryLayout layout>
 void func_QuantizedConv2DWithThreshold(
     const TensorView<T, layout>& input,
-    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlBIl>& kernel,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& kernel,
     const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
     const T_FLOAT scaling_factor,
     const binary_convolution_parameters& p) {
@@ -269,7 +269,7 @@ void func_QuantizedConv2DWithThreshold(
 template <typename T, MemoryLayout layout>
 void func_QuantizedConv2DWithThreshold(
     const TensorView<T, layout>& input,
-    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlBIl>& kernel,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& kernel,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     const T_FLOAT scaling_factor,
     const binary_convolution_parameters& p) {
@@ -285,7 +285,7 @@ void func_QuantizedConv2DWithThreshold(
 template <typename T, MemoryLayout layout>
 void func_QuantizedConv2DWithThreshold(
     const TensorView<T, layout>& input,
-    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlBIl>& kernel,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& kernel,
     const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
     const T_FLOAT scaling_factor[],
     const binary_convolution_parameters& p) {
@@ -296,7 +296,7 @@ void func_QuantizedConv2DWithThreshold(
 template <typename T, MemoryLayout layout>
 void func_QuantizedConv2DWithThreshold(
     const TensorView<T, layout>& input,
-    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlBIl>& kernel,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& kernel,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     T_FLOAT scaling_factor[],
     binary_convolution_parameters p) {
