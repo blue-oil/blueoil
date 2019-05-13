@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef DLK_FUNC_EXTRACT_IMAGE_PATCHES
 #define DLK_FUNC_EXTRACT_IMAGE_PATCHES
 
+#include <algorithm>
 #include "global.h"
 #include "tensor_view.h"
 #include "time_measurement.h"
@@ -42,6 +43,7 @@ inline void func_ExtractImagePatches(
   if (out_depth < kernel_size * kernel_size) {
     int bit_shift = out_depth * QUANTIZED_PACKED::BitCount / (kernel_size * kernel_size);
     const QUANTIZED_PACKED::base_t mask((QUANTIZED_PACKED::base_t(1) << bit_shift) - 1);
+    std::fill(output.data(), output.data() + output.size(), QUANTIZED_PACKED(0));
     for(T_UINT wi = 0; wi < out_height; wi++)
       for(T_UINT wj = 0; wj < out_width; wj++)
         for(T_UINT ki = 0; ki < kernel_size; ki++)

@@ -27,8 +27,8 @@ void func_Max(const TensorView<T, layout_l>& lhs,
     const TensorView<T, dlk::impl::output_layout(layout_l, layout_r)>& output) {
   Measurement::Start("Max");
 
-  dlk::impl::binary_op<T, layout_l, layout_r, decltype(std::max<T>)> bin_op;
-  bin_op(lhs, rhs, output, std::max<T>);
+  dlk::impl::binary_op<T, layout_l, layout_r, const T& (*)(const T&, const T&)> bin_op;
+  bin_op(lhs, rhs, output, static_cast<const T& (*)(const T&, const T&)>(std::max<T>));
 
   Measurement::Stop();
 }
