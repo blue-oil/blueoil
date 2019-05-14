@@ -199,8 +199,6 @@ void func_QuantizedConv2D(
 
   Measurement::Stop();
 
-  Measurement::Start("QuantizedConv2D_ApplyScalingFactor");
-
   unsigned out_elems =
       p.normal_conv_params.output_height * p.normal_conv_params.output_width;
   unsigned out_channels = p.normal_conv_params.output_channels;
@@ -245,8 +243,6 @@ void func_QuantizedConv2D(
           output.data()[out_index++] = (scaling_factor[d] * post_qtz_factor) * p.device_output_buf[h * (tca_channels * ncp.input_width) + w * tca_channels + d];
     Measurement::Stop();
   }
-
-  Measurement::Stop();
 }
 
 template<typename T, MemoryLayout layout>
