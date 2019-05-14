@@ -12,6 +12,9 @@ quartus: quartus.done_stamp
 .PHONY: bitstream
 bitstream: output_files/soc_system.rbf
 
+.PHONY: preloader
+preloader: software/spl_bsp/preloader-mkpimage.bin
+
 bxb_ip/Bxb.v: $(CHISEL_FILES)
 	cd ../../ && sbt "runMain bxb.Bxb --output-file $(abspath $@)"
 
@@ -28,3 +31,7 @@ output_files/DE10_NANO_SoC_GHRD.sof quartus.done_stamp: DE10_NANO_SoC_GHRD.qpf D
 
 output_files/soc_system.rbf: output_files/DE10_NANO_SoC_GHRD.sof
 	quartus_cpf -c -o bitstream_compression=on $< $@
+
+software/spl_bsp/preloader-mkpimage.bin: quartus.done_stamp
+	bsp-create-settings --type spl --bsp-dir $(dir $@) --settings settings.bsp --preloader-settings-dir hps_isw_handoff/soc_system_hps_0
+	$(MAKE) -j -C $(dir $@)
