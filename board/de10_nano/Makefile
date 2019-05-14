@@ -1,5 +1,8 @@
 CHISEL_FILES := $(wildcard ../../src/main/scala/**/*.scala)
 
+.PHONY: all
+all: bxb_ip soc_system quartus bitstream preloader
+
 .PHONY: bxb_ip
 bxb_ip: bxb_ip/Bxb.v
 
