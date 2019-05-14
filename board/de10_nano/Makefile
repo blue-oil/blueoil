@@ -38,3 +38,13 @@ output_files/soc_system.rbf: output_files/DE10_NANO_SoC_GHRD.sof
 software/spl_bsp/preloader-mkpimage.bin: quartus.done_stamp
 	bsp-create-settings --type spl --bsp-dir $(dir $@) --settings settings.bsp --preloader-settings-dir hps_isw_handoff/soc_system_hps_0
 	$(MAKE) -j -C $(dir $@)
+
+.PHONY: clean
+clean:
+	rm -rf bxb_ip/Bxb.v
+	rm -rf c5_pin_model_dump.txt
+	rm -rf db incremental_db/
+	rm -rf output_files
+	rm -rf *.done_stamp
+	rm -rf soc_system.qsys soc_system.sopcinfo hps_sdram_p0_summary.csv soc_system/
+	rm -rf settings.bsp hps_isw_handoff/ software/
