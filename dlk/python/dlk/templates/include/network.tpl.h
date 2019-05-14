@@ -78,7 +78,7 @@ private:
   {%    set kernel = qconv.input_nodes[1] -%}
   {%    set oh, ih, kh, kw, ol, il = kernel.shape -%}
   {%    set b = 32 -%}
-  {%    set size = oh * ih * kh * kw * ol -%}
+  {%    set size = oh * ih * kh * kw * ol * 32 // 8 -%}
   const uint32_t {{qconv.name}}_kernel_size = {{size}};
   const uint32_t {{qconv.name}}_kernel_offset = {{offset.o}};
   {%    set offset.o = offset.o + size -%}
