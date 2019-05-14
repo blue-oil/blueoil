@@ -68,8 +68,8 @@ inline void func_ExtractImagePatches(
               T_INT row = (wi * stride) + ki;
               T_INT col = (wj * stride) + kj;
               for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
-                output(ih * kernel_size * kernel_size
-                  + ki * kernel_size + kj, wi, wj,
+                output(ih + (ki * kernel_size + kj) * input_depth,
+                  wi, wj,
                   digit, 0) = input(ih, row, col, digit, 0);
               }
             }
