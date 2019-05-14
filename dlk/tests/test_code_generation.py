@@ -31,7 +31,7 @@ import run_test as inference  # PEP8:ignore
 
 from testcase_dlk_base import TestCaseDLKBase
 from tstconf import CURRENT_TEST_LEVEL
-from tstutils import updated_dict, run_and_check, TEST_LEVEL_FUTURE_TARGET
+from tstutils import updated_dict, run_and_check, TEST_LEVEL_FUTURE_TARGET, FPGA_HOST
 
 
 def dict_codegen_classification_x86() -> dict:
@@ -335,7 +335,7 @@ class TestCodeGeneration(TestCaseDLKBase):
             raise unittest.SkipTest(
                 f'test level of this test: {this_test_level}, current test level: {CURRENT_TEST_LEVEL}')
 
-    def run_library(self, library: str, input_npy: str, expected_output_npy: str) -> float:
+    def run_library(self, library, input_npy, expected_output_npy):
 
         proc_input = np.load(input_npy)
         expected_output = np.load(expected_output_npy)
@@ -410,7 +410,7 @@ class TestCodeGeneration(TestCaseDLKBase):
         run_and_check(
             [ "ssh",
              f"root@{host}",
-             f"cd ~/automated_testing/; python3 {testing_code_name}"
+             f"cd ~/automated_testing/; python {testing_code_name}"
             ],
             output_path,
             remote_output_file,
@@ -443,8 +443,7 @@ class TestCodeGeneration(TestCaseDLKBase):
                     from_npy=False,
                     need_arm_compiler=False,
                     cache_dma=False,
-                    test_id=0,
-                    host='192.168.1.5'
+                    test_id=0
                     ) -> None:
 
         """Test code for testing code generation for CPU"""
@@ -530,7 +529,7 @@ class TestCodeGeneration(TestCaseDLKBase):
                 percent_failed = self.run_library(generated_lib, input_path, expected_output_path)
             else:
                 percent_failed = \
-                    self.run_library_on_remote(host, output_path, generated_lib, input_path, expected_output_path)
+                    self.run_library_on_remote(FPGA_HOST, output_path, generated_lib, input_path, expected_output_path)
         else:
             percent_failed = self.run_library_using_script(generated_lib, input_path, expected_output_path,
                                                            from_npy)
