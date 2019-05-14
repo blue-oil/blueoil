@@ -514,6 +514,10 @@ def pass_propagate_format(graph) -> None:
                 b = 32
                 shape = [(m.channel + b - 1) // b, m.height, m.width, 2, b]
                 m.update_shape(shape, m.input_nodes[0].dimension)
+            elif m.input_nodes[0].dimension == 'HWChBCl':
+                b = 32
+                shape = [m.height, m.width, (m.channel + b - 1) // b, 2, b]
+                m.update_shape(shape, m.input_nodes[0].dimension)
 
 
 def pass_propagate_output_type_backward(graph: Graph) -> None:
