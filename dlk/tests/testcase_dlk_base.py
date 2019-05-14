@@ -45,13 +45,12 @@ class TestCaseDLKBase(TestCase):
     @classmethod
     def setUpClass(TestCaseDLKBase):
         # Setup the board. For now, DE10 Nano board
-        host = '192.168.1.5'
         output_path = '/tmp'
         hw_path = os.path.abspath(
                       os.path.join(os.getcwd(),
                       os.path.join('hw', 'intel', 'de10_nano', 'qconv_kn2row_tiling')))
 
-        board_available = setup_de10nano(host, hw_path, output_path)
+        board_available = setup_de10nano(hw_path, output_path)
 
         if not board_available:
             raise Exception('Not FPGA found: cannot test')
