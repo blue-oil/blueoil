@@ -24,7 +24,7 @@ Check out the [Installation](https://docs.blue-oil.org/install/install.html) and
 
 ## Prerequisites
 - GNU/Linux x86_64 with kernel version > 3.10
-- NVIDIA GPU with Architecture > 3.0 (Kepler)
+- NVIDIA GPU with Architecture >= 3.0 (Kepler)
 - NVIDIA drivers >= 410.48
 - Docker >=1.12 (or >=17.03.0)
 - nvidia-docker >= 2.0

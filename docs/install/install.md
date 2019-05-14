@@ -4,7 +4,7 @@ You need the following devices.
 
 - **Training server**
     - Ubuntu Linux 16.04 (x86_64)
-    - NVIDIA GPU with Architecture > 3.0 (Kepler)
+    - NVIDIA GPU with Architecture >= 3.0 (Kepler)
     - NVIDIA drivers >= 410.48
     - Docker >=1.12 (or >=17.03.0)
     - nvidia-docker >= 2.0
