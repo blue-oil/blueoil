@@ -128,6 +128,7 @@ TUNE_SPACE = {
             {
                 'scheduler': tf.train.piecewise_constant,
                 'scheduler_factor': 0.1,
+                'soft_start': 5e-4,
                 'scheduler_steps': [step_per_epoch, step_per_epoch * 80, step_per_epoch * 120],
             },
         ]
