@@ -51,7 +51,7 @@ NETWORK_CLASS = LMFYoloQuantize
 DATASET_CLASS = Pascalvoc20072012
 
 IMAGE_SIZE = [320, 320]
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 DATA_FORMAT = "NHWC"
 TASK = Tasks.OBJECT_DETECTION
 CLASSES = DATASET_CLASS.classes
@@ -104,7 +104,7 @@ TUNE_SPEC = {
         'resources_per_trial': {"cpu": 2, "gpu": 1},
         'stop': {
             'mean_accuracy': 1.0,
-            'training_iteration': 200,
+            'training_iteration': 777,
         },
         'config': {
             'lm_config': {},

@@ -114,11 +114,11 @@ def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
         lr_factor = chosen_kwargs['learning_rate_func']['scheduler_factor']
 
         if 'soft_start' in chosen_kwargs['learning_rate_func']:
-            num_decay_stage = len(chosen_kwargs['learning_rate_func']['scheduler_steps']) - 1
+            num_decay_stage = len(chosen_kwargs['learning_rate_func']['scheduler_steps'])
             lr_values = [base_lr * lr_factor ** n for n in range(num_decay_stage)]
             lr_values.insert(0, chosen_kwargs['learning_rate_func']['soft_start'])
         else:
-            num_decay_stage = len(chosen_kwargs['learning_rate_func']['scheduler_steps'])
+            num_decay_stage = len(chosen_kwargs['learning_rate_func']['scheduler_steps']) + 1
             lr_values = [base_lr * lr_factor ** n for n in range(num_decay_stage)]
 
         network_kwargs['learning_rate_kwargs']['values'] = lr_values
