@@ -21,22 +21,22 @@ limitations under the License.
 #include "global.h"
 
 enum class MemoryLayout {
-  Atom,
-  C,
-  N,
-  NC,
-  WC,
-  HWC,
-  NHWC,
-  OHWC,
-  WNC,
-  HWNC,
-  HWChBCl,
-  ChHWBCl,
-  OhIhHWOlIl,
-  Im2col,
-  Padding,
-  Invalid,
+  Atom, // Scalar object
+  C, // Channel
+  N, // Batch size (or Output Channel)
+  NC, // Batch, Channel
+  WC, // Width, Channel
+  HWC, // Height, Width, Channel
+  NHWC, // Batch, Height, Width, Channel
+  OHWC, // Output Channel, Height, Width, Input Channel
+  WNC, // Width, Batch, Channel
+  HWNC, // Height, Width, Batch, Channel
+  HWChBCl, // Height, Width, Channel (Higher dimension), Bit digit, Channel (Lower dimension)
+  ChHWBCl, // Channel (Higher dimension), Height, Width, Bit digit, Channel (Lower dimension)
+  OhIhHWOlIl, // Output Channel (Higher dimension), Input Channel (Higher dimension), Height, Width, Output Channel (Lower dimension), Input Channel (Lower dimension)
+  Im2col, // im2col layout
+  Padding, // for Padding. This is workaround, should be removed.
+  Invalid, // Invalid Layout
 };
 
 constexpr std::size_t get_dim(const MemoryLayout& layout) {
