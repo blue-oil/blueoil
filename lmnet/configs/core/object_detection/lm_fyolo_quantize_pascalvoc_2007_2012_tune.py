@@ -103,7 +103,7 @@ TUNE_SPEC = {
         'run': 'tunable_det',
         'resources_per_trial': {"cpu": 2, "gpu": 1},
         'stop': {
-            'mean_accuracy': 1.0,
+            'mean_accuracy': 0.77,
             'training_iteration': 777,
         },
         'config': {
