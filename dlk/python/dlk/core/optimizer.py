@@ -412,13 +412,16 @@ def pass_pack_weights(graph: Graph) -> None:
         tca_binarized_data = weight_quantizer.binarizer(tca_output)
         tca_packed_data = packer.run(tca_binarized_data.astype(np.float32), weight_quantizer.dimension)
 
+        shape = [oc // b, kd // b, kh, kw, b, b]
+
         # Create the new constant with the quantized weights
         quantized_constant = Constant(
             weight_quantizer.name + '_new',
             PackedUint32(),
             data,
+            dimension_format="OhIhHWOlIl",
             packed=True,
-            actual_shape=weight_quantizer.shape,
+            actual_shape=shape,
             transposed_data=[(~k) & ((0x1 << 32) - 1) for k in tca_packed_data.flatten()]
         )
 
@@ -449,6 +452,8 @@ def pass_quantize_convolutions(graph: Graph) -> None:
     graph : Graph
         The input graph. It will be modified in-place.
     """
+    b = 32
+
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
     for m in exec_list:
         conv_node = m
@@ -463,11 +468,21 @@ def pass_quantize_convolutions(graph: Graph) -> None:
         # change the output data type of the convolution if thresholds are available
         if conv_node.has_thresholds:
             conv_node.dtype = QUANTIZED_PACKED()
+            height = conv_node.height
+            width = conv_node.width
+            depth = conv_node.channel
+            depth_upper = (depth + b - 1) // b
+            conv_node.update_shape([depth_upper, height, width, 2, b],"ChHWBCl")
 
         # change the output data type of the quantizers
         conv_node.quantizer.dtype = PackedUint32()
         for qtz in conv_node.a_quantizer:
             qtz.dtype = QUANTIZED_PACKED()
+            height = qtz.height
+            width = qtz.width
+            depth = qtz.channel
+            depth_upper = (depth + b - 1) // b
+            qtz.update_shape([height, width, depth_upper, 2, b], "HWChBCl")
 
 
 def pass_propagate_datatypes(graph) -> None:
@@ -482,6 +497,23 @@ def pass_propagate_datatypes(graph) -> None:
     for m in exec_list:
         if m.op_type != 'Conv' and m.preserve_quantization:
             m.dtype = m.input_nodes[0].dtype
+
+
+def pass_propagate_format(graph) -> None:
+    """Further propagate output data types.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
+    exec_list = sort_graph(graph)
+    for m in exec_list:
+        if m.op_type != 'Conv' and m.preserve_quantization:
+            if m.input_nodes[0].dimension == 'ChHWBCl':
+                b = 32
+                shape = [(m.channel + b - 1) // b, m.height, m.width, 2, b]
+                m.update_shape(shape, m.input_nodes[0].dimension)
 
 
 def pass_propagate_output_type_backward(graph: Graph) -> None:
@@ -575,7 +607,7 @@ def pass_lookup(graph: Graph) -> None:
         pe_msb = Constant('pe_msb_new', QUANTIZED_PACKED_KERNEL(), msb)
 
         pe = Lookup('Lookup', quantizer.shape, QUANTIZED_PACKED(),
-                            {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb})
+                            {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb}, dimension_format='ChHWBCl')
 
         get_nodes_in_branch(quantizer, placeholder[0], to_be_removed)
         placeholder[0].remove_output('output')

@@ -31,26 +31,22 @@ namespace dlk {
 
 namespace impl {
 
-void pack_input_for_tiling(QUANTIZED_NOT_PACKED input[],
-    QUANTIZED_PACKED output[],
-    const int in_channels,
-    const int in_height,
-    const int in_width,
-    const int in_bitwidth) {
+void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
+    const tiling_input_t& output) {
   Measurement::Start("Pack_input_for_tiling");
+  const T_UINT in_channels = input.get_shape()[3];
+  const T_UINT in_height = input.get_shape()[1];
+  const T_UINT in_width = input.get_shape()[2];
+  const T_UINT in_bitwidth = output.get_shape()[3];
   
-  constexpr T_UINT InTypeBitWidth = CHAR_BIT * sizeof(QUANTIZED_PACKED);
+  constexpr T_UINT InTypeBitWidth = CHAR_BIT * sizeof(uint32_t);
   const T_UINT in_stride = (in_channels + InTypeBitWidth - 1) / InTypeBitWidth;
 #pragma omp parallel for schedule(dynamic)
   for (unsigned int in_ch_high = 0; in_ch_high < in_stride; ++in_ch_high) {
     for (unsigned int row = 0; row < in_height; ++row) {
       for (unsigned int col = 0; col < in_width; ++col) {
         for (unsigned int in_bit_ch = 0; in_bit_ch < in_bitwidth; ++in_bit_ch) {
-          unsigned int index = row * in_width * in_stride * in_bitwidth
-            + col * in_stride * in_bitwidth
-            + in_ch_high * in_bitwidth
-            + in_bit_ch;
-          output[index] = QUANTIZED_PACKED(0);
+          output(in_ch_high, row, col, in_bit_ch, 0) = tiling_input_elem_t(0);
         }
       }
     }
@@ -59,17 +55,13 @@ void pack_input_for_tiling(QUANTIZED_NOT_PACKED input[],
   for (unsigned int row = 0; row < in_height; ++row) {
     for (unsigned int col = 0; col < in_width; ++col) {
       for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
-	for (unsigned int in_ch_low = 0; in_ch_low < InTypeBitWidth; ++in_ch_low) {
-	  unsigned int in_ch = in_ch_high + in_ch_low;
-	  if (in_ch >= in_channels) break;
-          QUANTIZED_NOT_PACKED val = input[row * in_width * in_channels + col * in_channels + in_ch];
+        for (unsigned int in_ch_low = 0; in_ch_low < InTypeBitWidth; ++in_ch_low) {
+          unsigned int in_ch = in_ch_high + in_ch_low;
+          if (in_ch >= in_channels) break;
+          QUANTIZED_NOT_PACKED val = input(0, row, col, in_ch);
           for (unsigned int in_bit_ch = 0; in_bit_ch < in_bitwidth; ++in_bit_ch) {
-            QUANTIZED_PACKED::T bit = (val >> in_bit_ch) & 1;
-            unsigned int index = (in_ch_high / InTypeBitWidth) * in_height * in_width * in_bitwidth
-              + row * in_width * in_bitwidth
-              + col * in_bitwidth
-              + in_bit_ch;
-            output[index] |= QUANTIZED_PACKED(bit << in_ch_low);
+            tiling_input_elem_base_t bit = (val >> in_bit_ch) & 1;
+            output(in_ch_high / InTypeBitWidth, row, col, in_bit_ch, 0) |= tiling_input_elem_t(bit << in_ch_low);
           }
         }
       }
@@ -79,10 +71,10 @@ void pack_input_for_tiling(QUANTIZED_NOT_PACKED input[],
   Measurement::Stop();
 }
 
-void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
-                                  const QUANTIZED_PACKED_KERNEL kernel[],
+void QuantizedConv2DTiling(const tiling_input_t& input,
+                                  const kernel_t& kernel,
                                   const binary_convolution_parameters &p) {
-  constexpr T_UINT InTypeBitWidth = CHAR_BIT * sizeof(QUANTIZED_PACKED);
+  constexpr T_UINT InTypeBitWidth = tiling_input_elem_t::BitCount;
   convolution_parameters cp = p.normal_conv_params;
   const T_UINT out_channels = cp.output_channels;
   const T_UINT kh = cp.kernel_height;
@@ -100,8 +92,6 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
   assert(kh * kw < 32);
   assert(in_height * in_width == out_height * out_width);
   assert((in_channels % InTypeBitWidth) == 0);
-
-  pack_input_for_tiling(input, p.device_input_buf, in_channels, in_height, in_width, in_bitwidth);
 
   const T_UINT TileHeight = std::min(in_height, T_UINT(32)); // configurable
   const T_UINT TileWidth = std::min(in_width, T_UINT(32)); // configurable
@@ -131,17 +121,13 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
             notsum[out_ch] = 0;
             for (unsigned int kr = 0; kr < kh; ++kr) {
               for (unsigned int kc = 0; kc < kw; ++kc) {
-                unsigned int index = (out_ch_high + out_ch) * kh * kw * in_stride
-                    + kr * kw * in_stride
-                    + kc * in_stride
-                    + in_ch_high / InTypeBitWidth;
-                notk[kr][kc][out_ch] = ~kernel[index];
+                notk[kr][kc][out_ch] = ~kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
                 notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
               }
             }
           }
           for (unsigned int in_bit_ch_high = 0; in_bit_ch_high < in_bitwidth; in_bit_ch_high += InBitChUnroll) {
-            QUANTIZED_PACKED in_tile[TileHeight + kh - 1][TileWidth + kw - 1][InBitChUnroll];
+            tiling_input_elem_t in_tile[TileHeight + kh - 1][TileWidth + kw - 1][InBitChUnroll];
             for (unsigned int row = 0; row < TileHeight + kh - 1; ++row) {
               if (row_high + row >= in_height + 2*padding) break;
               for (unsigned int col = 0; col < TileWidth + kw - 1; ++col) {
@@ -149,14 +135,10 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
                 for (unsigned int in_bit_ch = 0; in_bit_ch < InBitChUnroll; ++in_bit_ch) {
                   if (row_high + row < padding || row_high + row >= in_height + padding
                       || col_high + col < padding || col_high + col >= in_width + padding) {
-                    in_tile[row][col][in_bit_ch] = QUANTIZED_PACKED(0);
+                    in_tile[row][col][in_bit_ch] = tiling_input_elem_t(0);
                   } else {
-                    unsigned int index =
-                      + (in_ch_high / InTypeBitWidth) * in_height * in_width * in_bitwidth
-                      + (row_high + row - padding) * in_width * in_bitwidth
-                      + (col_high + col - padding) * in_bitwidth
-                      + (in_bit_ch_high + in_bit_ch);
-                    in_tile[row][col][in_bit_ch] = p.device_input_buf[index];
+                    in_tile[row][col][in_bit_ch] = input(in_ch_high / InTypeBitWidth, row_high + row - padding,
+                        col_high + col - padding, in_bit_ch_high + in_bit_ch, 0);
                   }
                 }
               }
@@ -264,17 +246,13 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
             notsum[out_ch] = 0;
             for (unsigned int kr = 0; kr < kh; ++kr) {
               for (unsigned int kc = 0; kc < kw; ++kc) {
-                unsigned int index = (out_ch_high + out_ch) * kh * kw * in_stride
-                    + kr * kw * in_stride
-                    + kc * in_stride
-                    + in_ch_high / InTypeBitWidth;
-                notk[kr][kc][out_ch] = ~kernel[index];
+                notk[kr][kc][out_ch] = ~kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
                 notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
               }
             }
           }
           for (unsigned int in_bit_ch_high = 0; in_bit_ch_high < in_bitwidth; in_bit_ch_high += InBitChUnroll) {
-            QUANTIZED_PACKED in_tile[TileHeight + kh - 1][TileWidth + kw - 1][InBitChUnroll];
+            tiling_input_elem_t in_tile[TileHeight + kh - 1][TileWidth + kw - 1][InBitChUnroll];
             for (unsigned int row = 0; row < TileHeight + kh - 1; ++row) {
               if (row_high + row >= in_height + 2*padding) break;
               for (unsigned int col = 0; col < TileWidth + kw - 1; ++col) {
@@ -282,14 +260,10 @@ void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
                 for (unsigned int in_bit_ch = 0; in_bit_ch < InBitChUnroll; ++in_bit_ch) {
                   if (row_high + row < padding || row_high + row >= in_height + padding
                       || col_high + col < padding || col_high + col >= in_width + padding) {
-                    in_tile[row][col][in_bit_ch] = QUANTIZED_PACKED(0);
+                    in_tile[row][col][in_bit_ch] = tiling_input_elem_t(0);
                   } else {
-                    unsigned int index =
-                      + (in_ch_high / InTypeBitWidth) * in_height * in_width * in_bitwidth
-                      + (row_high + row - padding) * in_width * in_bitwidth
-                      + (col_high + col - padding) * in_bitwidth
-                      + (in_bit_ch_high + in_bit_ch);
-                    in_tile[row][col][in_bit_ch] = p.device_input_buf[index];
+                    in_tile[row][col][in_bit_ch] = input(in_ch_high / InTypeBitWidth, row_high + row - padding,
+                        col_high + col - padding, in_bit_ch_high + in_bit_ch, 0);
                   }
                 }
               }

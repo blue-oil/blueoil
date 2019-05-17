@@ -25,7 +25,6 @@ limitations under the License.
 #include "func/concat_on_depth.h"
 #include "func/concat_v2.h"
 #include "func/conv2d.h"
-#include "func/bias_add.h"
 #include "func/depth_to_space.h"
 #include "func/extract_image_patches.h"
 #include "func/max.h"
@@ -164,15 +163,15 @@ Network::~Network()
   {% if node.available_buffer == '' -%}
   {% for out_k in node.output_ops.keys() -%}
   {% if node.output_ops.keys()|length > 1 %}
-  delete []{{ node.name + '_' + out_k }};
+  delete []{{ node.name + '_' + out_k }}_raw;
   {% else %}
-  delete []{{ node.name }};
+  delete []{{ node.name }}_raw;
   {% endif %}
   {%- endfor %}
   {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 %}
   {% for out_k in node.output_ops.keys() -%}
   {% if out_k != node.output_ops.keys()|list|first %}
-  delete []{{ node.name + '_' + out_k }};
+  delete []{{ node.name + '_' + out_k }}_raw;
   {% endif %}
   {%- endfor %}
   {% endif %}
@@ -243,15 +242,15 @@ bool Network::init()
   {% if node.available_buffer == '' %}
   {% for out_k in node.output_ops.keys() -%}
   {% if node.output_ops.keys()|length > 1 %}
-  {{ node.name + '_' + out_k }} = new {{ node.dtype.cpptype() }}[{{ node.view.shape }}]();
+  {{ node.name + '_' + out_k }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.shape }}]();
   {% else %}
-  {{ node.name }} = new {{ node.dtype.cpptype() }}[{{ node.view.shape }}]();
+  {{ node.name }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.shape }}]();
   {% endif %}
   {%- endfor %}
   {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 %}
   {% for out_k in node.output_ops.keys() -%}
   {% if out_k != node.output_ops.keys()|list|first %}
-  {{ node.name + '_' + out_k }} = new {{ node.dtype.cpptype() }}[{{ node.view.shape }}]();
+  {{ node.name + '_' + out_k }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.shape }}]();
   {% endif %}
   {%- endfor %}
   {% endif %}
@@ -262,7 +261,7 @@ bool Network::init()
   auto* kernel_buffer = mapPhysicalMemory(KERNEL_ADDR, total_kernel_size); 
   {% for qconv in graph.convs(quantized_only=True) -%}
   {%    set kernel = qconv.input_nodes[1] -%}
-  std::memcpy(kernel_buffer + {{qconv.name}}_kernel_offset, {{kernel.name}}, {{qconv.name}}_kernel_size);
+  std::memcpy(kernel_buffer + {{qconv.name}}_kernel_offset, {{kernel.name}}.data(), {{qconv.name}}_kernel_size);
   {% endfor -%}
 #endif // RUN_ON_FPGA
 
@@ -305,7 +304,49 @@ bool Network::run(float *network_input, float *network_output)
   binConv2D_struct.dma_output_buffer = &dma_output_buffer;
   #endif
 
-  {{ graph_input.dtype.cpptype() }}* {{ graph_input.name }} = network_input;
+  TensorView<{{ graph_input.dtype.cpptype() }}, MemoryLayout::{{ graph_input.dimension }}>::tensor_info_t<std::size_t> {{ graph_input.name }}_shape = {
+    {% for len in graph_input.shape -%}
+    {{- len -}},
+    {%- endfor %}
+  };
+  TensorView<{{ graph_input.dtype.cpptype() }}, MemoryLayout::{{ graph_input.dimension }}> {{ graph_input.name }}(network_input, {{ graph_input.name }}_shape);
+  {{ '\n' -}}
+
+  {% for node in graph.non_variables -%}
+  {% if node.available_buffer == '' %}
+  {% for out_k in node.output_ops.keys() -%}
+  {% if node.output_ops.keys()|length > 1 %}
+  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>::tensor_info_t<std::size_t> {{ node.name + '_' + out_k }}_shape = {
+    {% for len in node.shape -%}
+    {{- len -}},
+    {%- endfor %}
+  };
+  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>
+    {{ node.name + '_' + out_k }}({{ node.name + '_' + out_k }}_raw, {{ node.name + '_' + out_k }}_shape);
+  {% else %}
+  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>::tensor_info_t<std::size_t> {{ node.name }}_shape = {
+    {% for len in node.shape -%}
+    {{- len -}},
+    {%- endfor %}
+  };
+  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>
+    {{ node.name }}({{ node.name }}_raw, {{ node.name }}_shape);
+  {% endif %}
+  {%- endfor %}
+  {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 %}
+  {% for out_k in node.output_ops.keys() -%}
+  {% if out_k != node.output_ops.keys()|list|first %}
+  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>::tensor_info_t<std::size_t> {{ node.name + '_' + out_k }}_shape = {
+    {% for len in node.shape -%}
+    {{- len -}},
+    {%- endfor %}
+  };
+  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>
+    {{ node.name + '_' + out_k }}({{ node.name + '_' + out_k }}_raw, {{ node.name + '_' + out_k }}_shape);
+  {% endif %}
+  {%- endfor %}
+  {% endif %}
+  {%- endfor %}
   {{ '\n' -}}
 
   {%- for node in graph.non_variables %}
@@ -325,7 +366,7 @@ bool Network::run(float *network_input, float *network_output)
 
   {% endfor -%}
 
-  std::copy({{ graph_output.name }}, {{ graph_output.name }} + {{ graph_output.view.shape }}, network_output);
+  std::copy({{ graph_output.name }}.data(), {{ graph_output.name }}.data() + {{ graph_output.view.shape }}, network_output);
 
   return true;
 }

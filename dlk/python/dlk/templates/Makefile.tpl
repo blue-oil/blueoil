@@ -15,28 +15,16 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
 {%- if config.threshold_skipping %}
     $(SRC_DIR)/thresholds.cpp \
 {%- endif %}
-    $(SRC_DIR)/func/add.cpp \
     $(SRC_DIR)/func/average_pool.cpp \
-    $(SRC_DIR)/func/bias_add.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
     $(SRC_DIR)/func/impl/apply_thresholds.cpp \
     $(SRC_DIR)/func/impl/quantized_conv2d_dim2col.cpp \
-    $(SRC_DIR)/func/max.cpp \
+    $(SRC_DIR)/func/impl/ohwi_to_hwoi.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
-    $(SRC_DIR)/func/minimum.cpp \
     $(SRC_DIR)/func/pad.cpp \
-    $(SRC_DIR)/func/mul.cpp \
     $(SRC_DIR)/func/matmul.cpp \
     $(SRC_DIR)/func/quantize.cpp \
-    $(SRC_DIR)/func/quantized_conv2d.cpp \
-    $(SRC_DIR)/func/real_div.cpp \
-    $(SRC_DIR)/func/relu.cpp \
-    $(SRC_DIR)/func/leaky_relu.cpp \
-    $(SRC_DIR)/func/round.cpp \
-    $(SRC_DIR)/func/scale.cpp \
     $(SRC_DIR)/func/softmax.cpp \
-    $(SRC_DIR)/func/sqrt.cpp \
-    $(SRC_DIR)/func/sub.cpp \
     $(SRC_DIR)/func/unpooling.cpp \
     $(SRC_DIR)/func/lookup.cpp \
     $(SRC_DIR)/matrix/shift_add.cpp \

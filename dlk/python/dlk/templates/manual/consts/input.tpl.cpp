@@ -14,11 +14,15 @@ limitations under the License.
 ==============================================================================*/
 
 #include "global.h"
+#include "tensor_view.h"
 #include "inputs/{{ node.name }}.h"
 
 {% if node.is_scalar -%}
 
-{{ node.dtype.cpptype() }} {{ node.name }} = {{ node.data[0] }};
+static {{ node.dtype.cpptype() }} {{ node.name }}_data = {{ node.data[0] }};
+static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape;
+const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom>
+  {{ node.name }}(&{{ node.name }}_data, {{ node.name }}_shape);
 
 {% else -%}
 
@@ -48,6 +52,13 @@ static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
 
 {% endif %}
 
-{{ node.dtype.cpptype() }}* {{ node.name }} = reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw);
+static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape = {
+  {% for l in node.shape -%}
+  {{- l -}},
+  {%- endfor %}
+};
+const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}(
+    reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
+    {{ node.name }}_shape);
 
 {%- endif %}

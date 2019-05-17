@@ -17,13 +17,14 @@ limitations under the License.
 #include "func/unpooling.h"
 #include "time_measurement.h"
 
-void func_Unpooling(T_UINT indices[], Quantized_t input[],
-                    T_UINT input_elements, Quantized_t output[],
-                    T_UINT out_height, T_UINT out_width, T_UINT out_depth) {
+void func_Unpooling(const TensorView<T_UINT, MemoryLayout::NHWC>& indices,
+    const TensorView<Quantized_t, MemoryLayout::NHWC>& input,
+    const TensorView<Quantized_t, MemoryLayout::NHWC>& output) {
   Measurement::Start("Unpooling");
 
+  const auto input_elements = input.size();
   for (T_UINT i = 0; i < input_elements; i++)
-    output[indices[i]] = input[i];
+    output.data()[indices.data()[i]] = input.data()[i];
 
   Measurement::Stop();
 }

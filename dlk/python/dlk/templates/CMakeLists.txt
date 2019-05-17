@@ -30,28 +30,16 @@ set(CMAKE_CXX_EXTENSIONS YES)
 #
 file(GLOB SRC_LIB_ALL "src/inputs/*.cpp")
 list(APPEND SRC_LIB_ALL
-    src/func/add.cpp
     src/func/average_pool.cpp
-    src/func/bias_add.cpp
     src/func/conv2d.cpp
     src/func/impl/apply_thresholds.cpp
     src/func/impl/quantized_conv2d_dim2col.cpp
-    src/func/max.cpp
+    src/func/impl/ohwi_to_hwoi.cpp
     src/func/max_pool.cpp
-    src/func/minimum.cpp
     src/func/pad.cpp
-    src/func/mul.cpp
     src/func/matmul.cpp
     src/func/quantize.cpp
-    src/func/quantized_conv2d.cpp
-    src/func/real_div.cpp
-    src/func/relu.cpp
-    src/func/leaky_relu.cpp
-    src/func/round.cpp
-    src/func/scale.cpp
     src/func/softmax.cpp
-    src/func/sqrt.cpp
-    src/func/sub.cpp
     src/func/unpooling.cpp
     src/matrix/shift_add.cpp
     src/network_c_interface.cpp

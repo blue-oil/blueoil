@@ -17,7 +17,10 @@ limitations under the License.
 #define DLK_FUNC_UNPOOLING_H_INCLUDED
 
 #include "global.h"
+#include "tensor_view.h"
 
-void func_Unpooling(T_UINT indices[], Quantized_t input[], T_UINT input_elements, Quantized_t output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+void func_Unpooling(const TensorView<T_UINT, MemoryLayout::NHWC>& indices,
+    const TensorView<Quantized_t, MemoryLayout::NHWC>& input,
+    const TensorView<Quantized_t, MemoryLayout::NHWC>& output);
 
 #endif // DLK_FUNC_UNPOOLING_H_INCLUDED

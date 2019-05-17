@@ -48,22 +48,32 @@ class Operator(object):
         self._output_ops: OutOps = {}
         self._dtype = dtype
         self._data = np.zeros(shape, dtype=dtype.nptype())
-        self.__update_shape(shape, dimension_format)
+        self.update_shape(shape, dimension_format)
         self.view: View = View(self)
         self.__connect_to_outputs()
         self._check_consistency()
         self._rank = len(shape)
         self._available_buffer = ''
 
-    def __update_shape(self, shape: List[int], dimension_format: str) -> None:
+    def update_shape(self, shape: List[int], dimension_format: str) -> None:
         self._shape: List[int] = shape
         self._dimension_format = dimension_format
-        self.index_H = self._dimension_format.index('H') if 'H' in self._dimension_format else None
-        self.index_W = self._dimension_format.index('W') if 'W' in self._dimension_format else None
-        self.index_N = self._dimension_format.index('N') if 'N' in self._dimension_format \
-            else self._dimension_format.index('O') if 'O' in self._dimension_format else None
-        self.index_C = self._dimension_format.index('C') if 'C' in self._dimension_format \
-            else self._dimension_format.index('I') if 'I' in self._dimension_format else None
+        dimension_format_list = []
+        for ch in dimension_format:
+            if ch.isupper():
+                dimension_format_list.append(ch)
+            else:
+                dimension_format_list[-1] += ch
+        self.index_H = dimension_format_list.index('H') if 'H' in dimension_format_list else None
+        self.index_W = dimension_format_list.index('W') if 'W' in dimension_format_list else None
+        self.index_N = dimension_format_list.index('N') if 'N' in dimension_format_list \
+            else dimension_format_list.index('Oh') if 'Oh' in dimension_format_list \
+            else dimension_format_list.index('O') if 'O' in dimension_format_list else None
+        self.index_C = dimension_format_list.index('C') if 'C' in dimension_format_list \
+            else dimension_format_list.index('Ch') if 'Ch' in dimension_format_list \
+            else dimension_format_list.index('I') if 'I' in dimension_format_list \
+            else dimension_format_list.index('Ih') if 'Ih' in dimension_format_list else None
+        self.index_C_low = dimension_format_list.index('Cl') if 'Cl' in dimension_format_list else None
 
     def __connect_to_outputs(self) -> None:
         """Connect input operators' outputs to this object."""
@@ -403,7 +413,10 @@ class Operator(object):
     def channel(self) -> int:
         """Get the number of channels in the shape."""
         if self.index_C is not None:
-            return self.shape[self.index_C]
+            if self.index_C_low is not None:
+                return self.shape[self.index_C] * self.shape[self.index_C_low]
+            else:
+                return self.shape[self.index_C]
         else:
             raise ValueError(f'Operator {self.name} does not have the channel property.')
 
@@ -441,7 +454,7 @@ class Operator(object):
             lambda x, y: x + y, [self._dimension_format[i] for i in perm])
 
         # update
-        self.__update_shape(new_shape, new_format)
+        self.update_shape(new_shape, new_format)
 
     @property
     def data(self) -> np.ndarray:
@@ -1015,7 +1028,7 @@ class Conv(Operator):
         self._assert(len(self.dilations) == self._num_dimensions)
         self._assert(len(self.pads) == self._num_dimensions + 2)
         self._assert(len(self.strides) == self._num_dimensions)
-        self._assert(len(self.dimension) == len(self.shape))
+        # self._assert(len(self.dimension) == len(self.shape))
 
         # check the shape consistency
         if not self._is_quantized:

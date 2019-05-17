@@ -20,9 +20,9 @@ limitations under the License.
 #include "func/average_pool.h"
 #include "time_measurement.h"
 
-void func_AveragePool(T_FLOAT input[], T_FLOAT output[],
-                      struct avg_pooling_parameters app, T_UINT out_height,
-                      T_UINT out_width, T_UINT out_depth) {
+void func_AveragePool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
+    struct avg_pooling_parameters app) {
   Measurement::Start("AveragePool");
 
   assert (app.kernel_depth == 1 && "kernel depth 1 is not supported.");
@@ -32,29 +32,28 @@ void func_AveragePool(T_FLOAT input[], T_FLOAT output[],
   int idx_out = 0;
   const T_FLOAT num_k_elems = app.kernel_height * app.kernel_width * app.kernel_depth;
 
-  std::memset(output, 0.0f, app.output_channels * app.output_height * app.output_width * sizeof(T_FLOAT));
+  std::memset(output.data(), 0.0f, app.output_channels * app.output_height * app.output_width * sizeof(T_FLOAT));
 
   for(T_UINT oc = 0; oc < app.output_channels; oc++) {
     for(T_UINT wi = 0; wi < app.output_height; wi++) {
-      for(T_UINT wj = 0; wj < app.output_width; wj++)
-      {
+      for(T_UINT wj = 0; wj < app.output_width; wj++) {
         T_FLOAT out = 0;
         for(T_UINT ki = 0; ki < app.kernel_height; ki++) {
           for(T_UINT kj = 0; kj < app.kernel_width; kj++) {
-	    T_INT row = (wi * app.stride) - app.padding + ki;
-	    T_INT col = (wj * app.stride) - app.padding + kj;
+            T_INT row = (wi * app.stride) - app.padding + ki;
+            T_INT col = (wj * app.stride) - app.padding + kj;
 
-	    T_INT inside = (row >= 0 && col >= 0 && row < (T_INT) app.input_height && col < (T_INT)app.input_width);
-	    if (!inside) continue;
+            T_INT inside = (row >= 0 && col >= 0 && row < (T_INT) app.input_height && col < (T_INT)app.input_width);
+            if (!inside) continue;
             for(T_UINT kz = 0; kz < app.kernel_depth; kz++) {
               int idx_in = oc * app.kernel_depth
-                         + row * (app.input_width * app.input_depth)
-                         + col * (app.input_depth) + kz;
-              out += input[idx_in];
+                + row * (app.input_width * app.input_depth)
+                + col * (app.input_depth) + kz;
+              out += input(0, row, col, oc * app.kernel_depth + kz);
             }
           }
         }
-        output[(app.output_channels * app.output_width) * wi + app.output_channels * wj + oc] += T_FLOAT(out) / num_k_elems;
+        output(0, wi, wj, oc) += T_FLOAT(out) / num_k_elems;
       }
     }
   }

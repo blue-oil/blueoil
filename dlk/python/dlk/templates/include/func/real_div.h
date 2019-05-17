@@ -17,9 +17,20 @@ limitations under the License.
 #define DLK_FUNC_REAL_DIV_H
 
 #include "global.h"
+#include "tensor_view.h"
+#include "func/impl/binary_op.h"
+#include "time_measurement.h"
 
-void func_RealDiv(T_FLOAT input[], T_FLOAT factor, T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+template <typename T, MemoryLayout layout_l, MemoryLayout layout_r>
+void func_RealDiv(const TensorView<T, layout_l>& lhs,
+    const TensorView<T, layout_r>& rhs,
+    const TensorView<T, dlk::impl::output_layout(layout_l, layout_r)>& output) {
+  Measurement::Start("RealDiv");
 
-void func_RealDiv_depthwise(T_FLOAT input[], T_FLOAT factor[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+  dlk::impl::binary_op<T, layout_l, layout_r, std::divides<T>> bin_op;
+  bin_op(lhs, rhs, output, std::divides<T>());
+
+  Measurement::Stop();
+}
 
 #endif // DLK_FUNC_REAL_DIV_H
