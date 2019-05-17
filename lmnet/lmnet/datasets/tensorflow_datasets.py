@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from lmnet.datasets.base import Base, ObjectDetectionBase
+from lmnet.datasets.base import Base
 from lmnet import data_processor
 
 
@@ -132,7 +132,7 @@ class TensorFlowDatasetsClassification(TensorFlowDatasetsBase):
                     self.labels.append(label)
 
                 except tf.errors.OutOfRangeError:
-                    break;
+                    break
 
     def __getitem__(self, i, type=None):
         return (self.images[i], self.labels[i])
