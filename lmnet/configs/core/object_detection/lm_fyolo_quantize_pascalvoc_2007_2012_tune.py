@@ -122,7 +122,7 @@ TUNE_SPACE = {
             },
         ]
     ),
-    'learning_rate': hp.uniform('learning_rate', 0, 0.01),
+    'learning_rate': hp.uniform('learning_rate', 0, 0.05),
     'learning_rate_func': hp.choice(
         'learning_rate_func', [
             {
