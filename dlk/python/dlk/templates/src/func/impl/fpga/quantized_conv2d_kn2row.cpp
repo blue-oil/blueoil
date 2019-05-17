@@ -35,9 +35,9 @@ namespace dlk
 namespace impl
 {
 
-void QuantizedConv2DKn2Row(QUANTIZED_PACKED input[], const QUANTIZED_PACKED_KERNEL kernel[],
-                           const binary_convolution_parameters &p)
-{
+void QuantizedConv2DKn2Row(const kn2row_input_t& input,
+                                  const kn2row_fpga_kernel_t& kernel,
+                                  const binary_convolution_parameters &p) {
   using namespace dlk;
 
   convolution_parameters cp = p.normal_conv_params;
@@ -93,11 +93,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_PACKED input[], const QUANTIZED_PACKED_KERN
   assert(!ts_activated);
 #endif
 
-  Measurement::Start("Packing input for kn2row");
-  const T_UINT in_size_orig = in_h * in_w * (in_c / 16);
-  for(int i = 0; i < in_size_orig; i++)
-    p.device_input_buf[i] = input[i];
-  Measurement::Stop();
+  std::copy(input.data(), input.data() + input.size(), p.device_input_buf);
 
   if (out_c_less_than_num_pe)
   {
@@ -121,7 +117,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_PACKED input[], const QUANTIZED_PACKED_KERN
 
     Measurement::Start("QConv2D kn2row tiling");
     de10_nano::qconv_kn2row_tiling(
-        p.device_input_phys_addr, p.device_output_phys_addr, kernel,
+        p.device_input_phys_addr, p.device_output_phys_addr, kernel.data(),
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
         out_c_aligend_with_num_pe, k_w, k_h, cp.padding,
         cp.stride_along_height);
@@ -161,7 +157,7 @@ void QuantizedConv2DKn2Row(QUANTIZED_PACKED input[], const QUANTIZED_PACKED_KERN
 
     Measurement::Start("QConv2D kn2row tiling");
     de10_nano::qconv_kn2row_tiling(
-        p.device_input_phys_addr, p.device_output_phys_addr, kernel,
+        p.device_input_phys_addr, p.device_output_phys_addr, kernel.data(),
         p.thresholds, in_w, in_h, in_c_by_word, MAX_NBIT_QINPUT, out_w, out_h,
         out_c, k_w, k_h, cp.padding, cp.stride_along_height);
     Measurement::Stop();
@@ -175,7 +171,9 @@ void QuantizedConv2DKn2Row(QUANTIZED_PACKED input[], const QUANTIZED_PACKED_KERN
 }
 
 
-void TCAConv2d(QUANTIZED_PACKED input[], const QUANTIZED_PACKED_KERNEL kernel[], const binary_convolution_parameters &p) {
+void TCAConv2d(const kn2row_input_t& input,
+    const kn2row_fpga_kernel_t& kernel,
+    const binary_convolution_parameters &p) {
 
   using namespace dlk;
 
@@ -197,25 +195,8 @@ void TCAConv2d(QUANTIZED_PACKED input[], const QUANTIZED_PACKED_KERNEL kernel[],
 
   const auto effective_kernel_depth = ((cp.kernel_depth + b - 1) / b) * b;
 
-  Measurement::Start("QuantizedConv2D_ChangeInputLayout");
-
-  int packed_input_depth = (effective_kernel_depth / 32) * 2;
-  int packed_b = (b / 32) * 2;
-
-  if(effective_kernel_depth > b) {
-      int out_index = 0;
-      for (int s = 0; s < packed_input_depth / packed_b; s++)
-      for (int h = 0; h < cp.input_height; h++)
-      for (int w = 0; w < cp.input_width; w++)
-      for (int d = 0; d < packed_b; d++)
-        p.device_input_buf[out_index++] = input[s * packed_b + h * (cp.input_width * packed_input_depth) + w * (packed_input_depth) + d];
-  }
-  else {
-      for (int i = 0; i < cp.input_height * cp.input_width * 2; i++)
-        p.device_input_buf[i] = input[i];
-  }
-
-  Measurement::Stop();
+    for (int i = 0; i < input.size(); i++)
+      p.device_input_buf[i] = input.data()[i];
 
     T_UINT input_byte_size =
         (cp.input_height * cp.input_width * effective_kernel_depth * in_nbits) /

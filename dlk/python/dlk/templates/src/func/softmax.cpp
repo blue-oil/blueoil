@@ -19,15 +19,18 @@ limitations under the License.
 #include "func/softmax.h"
 #include "time_measurement.h"
 
-void func_Softmax(T_FLOAT input[], T_FLOAT output[], T_UINT out_width) {
+void func_Softmax(const TensorView<T_FLOAT, MemoryLayout::C>& input,
+    const TensorView<T_FLOAT, MemoryLayout::C>& output) {
   Measurement::Start("SoftMax");
+
+  T_UINT out_width = output.size();
 
   T_FLOAT sum = 0.f;
   for(T_UINT d = 0; d < out_width; d++)
-    sum += std::exp(input[d]);
+    sum += std::exp(input(d));
 
   for(T_UINT d = 0; d < out_width; d++)
-    output[d] = std::exp(input[d]) / sum;
+    output(d) = std::exp(input(d)) / sum;
 
   Measurement::Stop();
 }

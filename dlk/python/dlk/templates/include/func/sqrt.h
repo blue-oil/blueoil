@@ -16,8 +16,21 @@ limitations under the License.
 #ifndef DLK_FUNC_SQRT_H_INCLUDED
 #define DLK_FUNC_SQRT_H_INCLUDED
 
-#include "global.h"
+#include <cmath>
 
-void func_Sqrt(T_FLOAT input[], T_FLOAT output[], T_UINT out_depth);
+#include "global.h"
+#include "tensor_view.h"
+#include "func/impl/unary_op.h"
+#include "time_measurement.h"
+
+template <typename T, MemoryLayout layout>
+void func_Sqrt(const TensorView<T, layout>& input,
+    const TensorView<T, layout>& output) {
+  Measurement::Start("sqrt");
+
+  dlk::impl::unary_op(input, output, std::sqrt);
+
+  Measurement::Stop();
+}
 
 #endif // DLK_FUNC_SQRT_H_INCLUDED

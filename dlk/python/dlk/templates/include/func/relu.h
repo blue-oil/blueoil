@@ -17,7 +17,19 @@ limitations under the License.
 #define DLK_FUNC_RELU_H_INCLUDED
 
 #include "global.h"
+#include "tensor_view.h"
 
-void func_Relu(T_FLOAT input[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+template <typename T>
+T relu(const T& x) { return std::max(x, T(0)); }
+
+template <typename T, MemoryLayout layout>
+void func_Relu(const TensorView<T, layout>& input,
+    const TensorView<T, layout>& output) {
+  Measurement::Start("ReLu");
+
+  unary_op(input, output, relu<T>);
+
+  Measurement::Stop();
+}
 
 #endif // DLK_FUNC_RELU_H_INCLUDED

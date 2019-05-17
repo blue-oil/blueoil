@@ -26,27 +26,6 @@ limitations under the License.
 
 namespace {
 
-// kernel format converter
-// ohwi : oc kh kw ic, hwoi: kh kw oc ic
-void quantized_ohwi_to_hwoi(const QUANTIZED_PACKED_KERNEL ohwi[], QUANTIZED_PACKED_KERNEL hwoi[], const struct binary_convolution_parameters& p) {
-   Measurement::Start("quantized_ohwi_to_hwoi");
-
-   int ic = p.normal_conv_params.kernel_depth / 32;
-   int oc = p.normal_conv_params.output_channels;
-   int kh = p.normal_conv_params.kernel_height;
-   int kw = p.normal_conv_params.kernel_width;
-
-   for (unsigned int i = 0; i < kh*kw; ++i) {
-     for (unsigned int j = 0; j < oc; ++j) {
-       for (unsigned int k = 0; k < ic; ++k) {
-         hwoi[i*oc*ic + j*ic + k] = ohwi[i*ic + j*ic*kh*kw + k];
-       }
-     }
-   }
-
-   Measurement::Stop();
- }
-
 void ApplyThresholds(
     dlk::MatrixView<BIN_CONV_OUTPUT, dlk::MatrixOrder::ColMajor> &result,
     const binary_convolution_parameters &p) {
@@ -96,8 +75,8 @@ namespace dlk {
 
 namespace impl {
 
-void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
-                                  const QUANTIZED_PACKED_KERNEL kernel[],
+void QuantizedConv2DKn2Row(const kn2row_input_t& input,
+                                  const kn2row_kernel_t& kernel,
                                   const binary_convolution_parameters &p) {
   using namespace dlk;
 
@@ -115,15 +94,10 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
 
   Measurement::Start("quantized-kn2row");
 
-  int kernel_buf_size = kh * kw * ic * oc / 32;
-  auto kernel_hwoi = new QUANTIZED_PACKED_KERNEL[kernel_buf_size]();
-  quantized_ohwi_to_hwoi(kernel, kernel_hwoi, p);
-
-  pack_input_to_qwords(input, p.device_input_buf, ih * iw * ic, 2);
   auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
-      kernel_hwoi, oc * kh * kw, ic / 32);
+      kernel.data(), oc * kh * kw, ic / 32);
   auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
-      p.device_input_buf, ic / 16, ih * iw);
+      input.data(), ic / 16, ih * iw);
   auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
       p.device_output_buf, oc, ih * iw);
 
@@ -143,8 +117,6 @@ void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
     std::cerr << "Only 1x1 or 3x3 convolutions are supported." << std::endl;
     assert(false);
   }
-
-  delete[] kernel_hwoi;
 
   if (p.thresholds != nullptr) {
     ApplyThresholds(output_, p);

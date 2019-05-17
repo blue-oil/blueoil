@@ -15,48 +15,65 @@ limitations under the License.
 
 #include <cassert>
 
+#include "func/impl/quantized_conv2d_dim2col.h"
 #include "global.h"
 #include "operators.h" // FIXME(nikolay): for convolution_parameters definition, rid of it later
 #include "pack_input_to_qwords.h"
 #include "time_measurement.h"
 
-namespace {
+namespace dlk {
 
-template<typename T>
+namespace impl {
+
 void im2col(
-  QUANTIZED_NOT_PACKED input[],
-  volatile T output[],
-  struct convolution_parameters p)
+  const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
+  const dlk::impl::dim2col_input_t& output,
+  const binary_convolution_parameters& p)
 {
   Measurement::Start("im2col");
 
-  unsigned idx_out = 0;
-  T tmp_input = 0;
+  const auto n = p.normal_conv_params;
 
-  int input_height = int(p.input_height);
-  int input_width = int(p.input_width);
+  int input_height = int(n.input_height);
+  int input_width = int(n.input_width);
 
-  unsigned ih_offset = p.input_width * p.kernel_depth;
-  unsigned iw_offset = p.kernel_depth;
-  unsigned in_padding = p.padding;
+  unsigned ih_offset = n.input_width * n.kernel_depth;
+  unsigned iw_offset = n.kernel_depth;
+  unsigned in_padding = n.padding;
 
-  for (unsigned oh = 0; oh < p.output_height; oh++) {
-    for (unsigned ow = 0; ow < p.output_width; ow++) {
-      for (unsigned kh = 0; kh < p.kernel_height; kh++) {
-        for (unsigned kw = 0; kw < p.kernel_width; kw++) {
-          for (unsigned kd = 0; kd < p.kernel_depth; kd++)
+  QUANTIZED_NOT_PACKED tmp[QUANTIZED_PACKED::BitCount];
+  std::size_t index = 0;
+  for (unsigned oh = 0; oh < n.output_height; oh++) {
+    for (unsigned ow = 0; ow < n.output_width; ow++) {
+      for (unsigned kh = 0; kh < n.kernel_height; kh++) {
+        for (unsigned kw = 0; kw < n.kernel_width; kw++) {
+          for (unsigned kd = 0; kd < n.kernel_depth; kd++)
           {
             int ih = oh + kh - in_padding;
             int iw = ow + kw - in_padding;
+            QUANTIZED_NOT_PACKED tmp_input = 0;
 
             if (ih < 0 || ih >= input_height)
               tmp_input = 0;
             else if (iw < 0 || iw >= input_width)
               tmp_input = 0;
             else
-              tmp_input = input[ih * ih_offset + iw * iw_offset + kd];
+              tmp_input = input(0, ih, iw, kd);
 
-            output[idx_out++] = tmp_input;
+            tmp[index++] = tmp_input;
+            if (index == QUANTIZED_PACKED::BitCount) {
+              for (unsigned bit_ch = 0; bit_ch < p.bin_input_bitwidth; ++bit_ch) {
+                QUANTIZED_PACKED x(0);
+                for (unsigned i = 0; i < QUANTIZED_PACKED::BitCount; ++i) {
+                  x |= QUANTIZED_PACKED(((tmp[i] >> bit_ch) & QUANTIZED_PACKED::base_t(1)) << i);
+                }
+                output(oh * n.output_width + ow,
+                    (kh * n.kernel_width * n.kernel_depth + kw * n.kernel_depth + kd) / QUANTIZED_PACKED::BitCount, 
+                    bit_ch,
+                    0) = x;
+              }
+              index = 0;
+            }
           }
         }
       } // for (unsigned kh = 0; kh < kernel_height; kh++)
@@ -66,14 +83,20 @@ void im2col(
   Measurement::Stop();
 }
 
+} // namespace impl
+
+} // namespace dlk
+
+namespace {
+
 int pop_count(T_UINT i) {
   i = i - ((i >> 1) & 0x55555555);
   i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
   return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }
 
-void binary_convolution_cpu(QUANTIZED_PACKED input_channels[],
-                            BIN_CONV_OUTPUT result[], QUANTIZED_PACKED_KERNEL *kernel,
+void binary_convolution_cpu(const dlk::impl::dim2col_input_t& input_channels,
+                            BIN_CONV_OUTPUT result[], const QUANTIZED_PACKED_KERNEL *kernel,
                             T_UINT output_channel_index,
                             struct binary_convolution_parameters bcp) {
   const T_UINT num_in_channels = bcp.bin_input_bitwidth;
@@ -94,14 +117,12 @@ void binary_convolution_cpu(QUANTIZED_PACKED input_channels[],
     thresholds = nullptr;
   }
 
-  unsigned idx_in = 0;
-
   for (T_UINT p = 0; p < patches; p++) {
     T_INT out[NUM_PE] = {};
 
     for (T_UINT idx_k = 0; idx_k < bin_kernel_nwords; idx_k++) {
       for (T_UINT in_channel = 0; in_channel < num_in_channels; in_channel++) {
-        QUANTIZED_PACKED in_data = input_channels[idx_in];
+        QUANTIZED_PACKED in_data = input_channels(p, idx_k, in_channel, 0);
 
         for (T_UINT k_pe = 0; k_pe < num_kernels; k_pe++) {
           const auto kernel_buf = kernel[k_pe * bin_kernel_nwords + idx_k];
@@ -113,8 +134,6 @@ void binary_convolution_cpu(QUANTIZED_PACKED input_channels[],
 
           out[k_pe] += conv_result;
         }
-
-        idx_in++;
       }
     }
 
@@ -167,7 +186,7 @@ void binary_convolution_cpu(QUANTIZED_PACKED input_channels[],
   }
 }
 
-void binary_convolution(QUANTIZED_PACKED input_channels[],
+void binary_convolution(const dlk::impl::dim2col_input_t& input_channels,
                         BIN_CONV_OUTPUT result[],
                         QUANTIZED_PACKED_KERNEL kernel[MAX_SIZE_QKERNELS_PER_PE],
                         T_UINT output_channel_index,
@@ -182,33 +201,21 @@ namespace dlk {
 
 namespace impl {
 
-void QuantizedConv2DIm2Col(QUANTIZED_NOT_PACKED input[], QUANTIZED_PACKED_KERNEL kernel[],
+void QuantizedConv2DIm2Col(const dim2col_input_t& input, const kernel_t& kernel,
                                   const binary_convolution_parameters &p) {
   convolution_parameters cp = p.normal_conv_params;
-  static QUANTIZED_NOT_PACKED
-      im2col_input_buf[MAX_SIZE_IM2COL_INPUTS_PER_LAYER] = {};
   const T_UINT out_c = cp.output_channels;
 
-  Measurement::Start("Im2col");
-  im2col(input, im2col_input_buf, p.normal_conv_params);
-  Measurement::Stop();
-
-  Measurement::Start("Packing input for im2col");
   int ic = p.normal_conv_params.kernel_depth;
   int oh = p.normal_conv_params.output_height;
   int ow = p.normal_conv_params.output_width;
   int kh = p.normal_conv_params.kernel_height;
   int kw = p.normal_conv_params.kernel_width;
 
-  unsigned im2col_input_elems = oh * ow * kh * kw * ic;
-  pack_input_to_qwords(im2col_input_buf, p.device_input_buf, p);
-  //pack_input_to_qwords(im2col_input_buf, p.device_input_buf, im2col_input_elems,2);
-  Measurement::Stop();
-
   Measurement::Start("QConv2D with im2col");
   for (T_UINT oc = 0; oc < out_c; oc += NUM_PE) {
-    binary_convolution(p.device_input_buf, p.device_output_buf,
-                       &kernel[oc * p.bin_kernel_ndata], oc, p);
+    binary_convolution(input, p.device_output_buf,
+                       kernel.data(oc, 0, 0, 0), oc, p);
   } // for (unsigned od = 0; od < output_depth; od++)
   Measurement::Stop();
 }
