@@ -47,6 +47,7 @@ class TensorFlowDatasetsBase(Base):
 
         self.info = builder.info
         self._init_available_splits()
+        self._validate_feature_structure()
 
         self.dataset = builder.as_dataset(split=self.available_splits[self.subset])
         self._init_features()
@@ -78,6 +79,13 @@ class TensorFlowDatasetsBase(Base):
             self.available_splits["train"] = train
             self.available_splits["validation"] = validation
 
+    def _validate_feature_structure(self):
+        """
+        Checking if the given dataset has a valid feature structure.
+        This method will raise a ValueError if the structure is invalid.
+        """
+        raise NotImplementedError()
+
     def _init_features(self):
         """
         Initializing feature variables by using tf.Tensor from datasets.
@@ -94,6 +102,7 @@ class TensorFlowDatasetsBase(Base):
 class TensorFlowDatasetsClassification(TensorFlowDatasetsBase):
     """
     A dataset class for loading TensorFlow Datasets for classification.
+    TensorFlow Datasets which have "label" and "image" features can be loaded by this class.
     """
     @property
     def classes(self):
@@ -102,6 +111,16 @@ class TensorFlowDatasetsClassification(TensorFlowDatasetsBase):
     @property
     def num_classes(self):
         return self.info.features["label"].num_classes
+
+    def _validate_feature_structure(self):
+        is_valid = \
+            "label" in self.info.features and \
+            "image" in self.info.features and \
+            isinstance(self.info.features["label"], tfds.features.ClassLabel) and \
+            isinstance(self.info.features["image"], tfds.features.Image)
+
+        if not is_valid:
+            raise ValueError("TensorFlow Datasets should have \"label\" and \"image\" features.")
 
     def _init_features(self):
         self.images = []
