@@ -14,8 +14,6 @@ import bxb.wqdma.{WDma, QDma}
 import bxb.sync.{SemaphorePair, ConsumerSyncMux}
 import bxb.memory.{MemArray, PackedBlockRam, TwoBlockMemArray}
 
-import bxb.util.{Util}
-
 // FIXME: not the best way of it
 object BxbCsrField {
   // parameter registers
@@ -641,6 +639,6 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
 
 object Bxb {
   def main(args: Array[String]): Unit = {
-    println(Util.getVerilog(new Bxb(4 * 1024, 1024, 32)))
+    chisel3.Driver.execute(args, () => new Bxb(4 * 1024, 1024, 32))
   }
 }
