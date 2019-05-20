@@ -172,14 +172,14 @@ void func_QuantizedConv2D(
       for (int w = 0; w < ncp.output_width; ++w)
         for (int s = 0; s < ncp.output_channels / b; ++s)
           for (int d = 0; d < b; ++d)
-            output.data()[out_index++] = (scaling_factor * post_qtz_factor) * p.device_output_buf[h * (b * ncp.input_width) + w * b + s * (ncp.input_height * ncp.input_width * b) + d];
+            output.data()[out_index++] = (scaling_factor * post_qtz_factor) * p.device_output_buf[h * (b * ncp.output_width) + w * b + s * (ncp.output_height * ncp.output_width * b) + d];
   } else {
     int tca_channels = ((ncp.output_channels + b - 1) / b) * b;
     int out_index = 0;
     for (int h = 0; h < ncp.output_height; ++h)
       for (int w = 0; w < ncp.output_width; ++w)
         for (int d = 0; d < ncp.output_channels; ++d)
-          output.data()[out_index++] = (scaling_factor * post_qtz_factor) * p.device_output_buf[h * (tca_channels * ncp.input_width) + w * tca_channels + d];
+          output.data()[out_index++] = (scaling_factor * post_qtz_factor) * p.device_output_buf[h * (tca_channels * ncp.output_width) + w * tca_channels + d];
   }
 
   Measurement::Stop();
@@ -232,7 +232,7 @@ void func_QuantizedConv2D(
     for (int h = 0; h < ncp.output_height; ++h)
       for (int w = 0; w < ncp.output_width; ++w)
         for (int d = 0; d < ncp.output_channels; ++d)
-          tmp_output[tmp_index++] = p.device_output_buf[h * (tca_channels * ncp.input_width) + w * tca_channels + d];
+          tmp_output[tmp_index++] = p.device_output_buf[h * (tca_channels * ncp.output_width) + w * tca_channels + d];
     Measurement::Stop();
 
     Measurement::Start("QuantizedConv2D_ApplyScalingFactor");
@@ -240,7 +240,7 @@ void func_QuantizedConv2D(
     for (int h = 0; h < ncp.output_height; ++h)
       for (int w = 0; w < ncp.output_width; ++w)
         for (int d = 0; d < ncp.output_channels; ++d)
-          output.data()[out_index++] = (scaling_factor[d] * post_qtz_factor) * p.device_output_buf[h * (tca_channels * ncp.input_width) + w * tca_channels + d];
+          output.data()[out_index++] = (scaling_factor[d] * post_qtz_factor) * p.device_output_buf[h * (tca_channels * ncp.output_width) + w * tca_channels + d];
     Measurement::Stop();
   }
 }
