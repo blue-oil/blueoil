@@ -275,7 +275,9 @@ def run(config_file, tunable_id, local_dir):
     # Expecting use of gpus to do parameter search
     ray.init(num_cpus=multiprocessing.cpu_count() // 2, num_gpus=max(get_num_gpu(), 1))
     algo = HyperOptSearch(tune_space, max_concurrent=4, reward_attr="mean_accuracy")
-    scheduler = AsyncHyperBandScheduler(time_attr="training_iteration", reward_attr="mean_accuracy", max_t=200)
+    scheduler = AsyncHyperBandScheduler(time_attr="training_iteration",
+                                        reward_attr="mean_accuracy",
+                                        max_t=tune_spec['stop']['training_iteration'])
     trials = run_experiments(experiments={'exp_tune': tune_spec},
                              search_alg=algo,
                              scheduler=scheduler)
