@@ -27,7 +27,7 @@ class TensorFlowDatasetsBase(Base):
     The parameter "extend_dir" should be a path to the prepared data of tfds.
     "extend_dir" can be a path either in local or in Google Cloud Storage.
     """
-    available_subsets = ["train", "train_validation_saving", "validation"]
+    available_subsets = ["train", "validation"]
 
     def __init__(
             self,
@@ -39,6 +39,8 @@ class TensorFlowDatasetsBase(Base):
             **kwargs,
         )
 
+        self.session = tf.Session()
+
         # The last directory name of extend_dir is the dataset name
         splitted_path = self.extend_dir.rstrip('/').split('/')
         data_dir = '/'.join(splitted_path[:-1])
@@ -49,8 +51,28 @@ class TensorFlowDatasetsBase(Base):
         self._init_available_splits()
         self._validate_feature_structure()
 
-        self.dataset = builder.as_dataset(split=self.available_splits[self.subset])
-        self._init_features()
+        dataset = builder.as_dataset(split=self.available_splits[self.subset])
+        dataset = dataset.repeat()
+        if self.subset == "train":
+            dataset = dataset.shuffle(1024)
+
+        iterator = dataset.make_one_shot_iterator()
+        self.next_element_op = iterator.get_next()
+
+    def __getitem__(self, i, type=None):
+        # This method ignore the index "i" and returns shuffled element.
+        # Currently the this method is used only for shuffling elements
+        # but elements from TensorFlow Datasets are already shuffled.
+        element = self.session.run(self.next_element_op)
+        return self._reshape_element(element)
+
+    def __len__(self):
+        return self.num_per_epoch
+
+    @property
+    def num_per_epoch(self):
+        split = self.available_splits[self.subset]
+        return self.info.splits[split].num_examples
 
     def _init_available_splits(self):
         """
@@ -64,7 +86,7 @@ class TensorFlowDatasetsBase(Base):
         if tfds.Split.VALIDATION in self.info.splits and tfds.Split.TEST in self.info.splits:
             self.available_splits["train"] = tfds.Split.TRAIN
             self.available_splits["validation"] = tfds.Split.VALIDATION
-            self.available_splits["train_validation_saving"] = tfds.Split.TEST
+            self.available_splits["test"] = tfds.Split.TEST
 
         elif tfds.Split.VALIDATION in self.info.splits:
             self.available_splits["train"] = tfds.Split.TRAIN
@@ -75,9 +97,7 @@ class TensorFlowDatasetsBase(Base):
             self.available_splits["validation"] = tfds.Split.TEST
 
         else:
-            train, validation = tfds.Split.TRAIN.subsplit([9, 1])
-            self.available_splits["train"] = train
-            self.available_splits["validation"] = validation
+            raise ValueError("Datasets need to have a split \"VALIDATION\" or \"TEST\".")
 
     def _validate_feature_structure(self):
         """
@@ -86,17 +106,11 @@ class TensorFlowDatasetsBase(Base):
         """
         raise NotImplementedError()
 
-    def _init_features(self):
+    def _reshape_element(self, element):
         """
-        Initializing feature variables by using tf.Tensor from datasets.
-        For classification, "images" and "labels" should be initialized.
-        For object detection, "images" and "gt_boxes" should be initialized.
+        Reshaping a raw element from TensorFlow Datasets into internal format.
         """
         raise NotImplementedError()
-
-    @property
-    def num_per_epoch(self):
-        return len(self.images)
 
 
 class TensorFlowDatasetsClassification(TensorFlowDatasetsBase):
@@ -120,41 +134,20 @@ class TensorFlowDatasetsClassification(TensorFlowDatasetsBase):
             isinstance(self.info.features["image"], tfds.features.Image)
 
         if not is_valid:
-            raise ValueError("TensorFlow Datasets should have \"label\" and \"image\" features.")
+            raise ValueError("Datasets should have \"label\" and \"image\" features.")
 
-    def _init_features(self):
-        self.images = []
-        self.labels = []
+    def _reshape_element(self, element):
+        image = element["image"]
+        label = element["label"]
 
-        iterator = self.dataset.make_one_shot_iterator()
-        next_element = iterator.get_next()
+        # Converting grayscale images into RGB images.
+        # This workaround is needed because the method PIL.Image.fromarray()
+        # in pre_prpcessor requires images array to have a shape of (h, w, 3).
+        if image.shape[2] == 1:
+            image = np.stack([image] * 3, 3)
+            image = image.reshape(image.shape[:2] + (3,))
 
-        # tf.Session is needed because "next_element" returns a tf.Tensor.
-        with tf.Session() as sess:
-            while True:
-                try:
-                    element = sess.run(next_element)
-                    image = element["image"]
-                    label = element["label"]
+        label = data_processor.binarize(label, self.num_classes)
+        label = np.reshape(label, (self.num_classes))
 
-                    # Converting grayscale images into RGB images.
-                    # This workaround is needed because the method PIL.Image.fromarray()
-                    # in pre_prpcessor requires images array to have a shape of (h, w, 3).
-                    if image.shape[2] == 1:
-                        image = np.stack([image] * 3, 3)
-                        image = image.reshape(image.shape[:2] + (3,))
-
-                    label = data_processor.binarize(label, self.num_classes)
-                    label = np.reshape(label, (self.num_classes))
-
-                    self.images.append(image)
-                    self.labels.append(label)
-
-                except tf.errors.OutOfRangeError:
-                    break
-
-    def __getitem__(self, i, type=None):
-        return (self.images[i], self.labels[i])
-
-    def __len__(self):
-        return self.num_per_epoch
+        return (image, label)
