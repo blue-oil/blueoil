@@ -561,7 +561,7 @@ class View(object):
             )
 
         elif self.op.op_type == 'Reshape':
-            if len(input_ops) != 1:
+            if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
             in_shape = input_ops['data'].shape
             out_shape = op.shape
