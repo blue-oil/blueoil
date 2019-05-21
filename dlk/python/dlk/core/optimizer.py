@@ -316,7 +316,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
                 if np.all(threshold_table[c, 1:-1] > threshold_table[c, :-2], axis=0) else -1
             if np.all(threshold_table[c, 1:-1] == threshold_table[c, :-2], axis=0):
                 threshold_table[c, -1] = 1
-                threshold_table[c, 1:-1] = max_th_value
+                threshold_table[c, 0:-1] = max_th_value
 
         # Put the thresholds into list
         conv_node.thresholds = threshold_table.flatten().tolist()
@@ -513,6 +513,10 @@ def pass_propagate_format(graph) -> None:
             if m.input_nodes[0].dimension == 'ChHWBCl':
                 b = 32
                 shape = [(m.channel + b - 1) // b, m.height, m.width, 2, b]
+                m.update_shape(shape, m.input_nodes[0].dimension)
+            elif m.input_nodes[0].dimension == 'HWChBCl':
+                b = 32
+                shape = [m.height, m.width, (m.channel + b - 1) // b, 2, b]
                 m.update_shape(shape, m.input_nodes[0].dimension)
 
 
