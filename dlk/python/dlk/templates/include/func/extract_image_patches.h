@@ -68,9 +68,9 @@ inline void func_ExtractImagePatches(
               T_INT row = (wi * stride) + ki;
               T_INT col = (wj * stride) + kj;
               for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
-                output(wi, wj,
-                  ih + (ki * kernel_size + kj) * input_depth,
-                  digit, 0) = input(row, col, ih, digit, 0);
+                const auto ch_high = ih + (ki * kernel_size + kj) * input_depth;
+                output(wi, wj, ch_high, digit, 0)
+                  = input(row, col, ih, digit, 0);
               }
             }
   }
@@ -123,9 +123,9 @@ inline void func_ExtractImagePatches(
               T_INT row = (wi * stride) + ki;
               T_INT col = (wj * stride) + kj;
               for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
-                output(ih + (ki * kernel_size + kj) * input_depth,
-                  wi, wj,
-                  digit, 0) = input(ih, row, col, digit, 0);
+                const auto ch_high = ih + (ki * kernel_size + kj) * input_depth;
+                output(ch_high, wi, wj, digit, 0)
+                  = input(ih, row, col, digit, 0);
               }
             }
   }
