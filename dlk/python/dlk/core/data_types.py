@@ -16,8 +16,10 @@
 from typing import List
 import numpy as np
 
+
 def quantized_packed_type(t):
     return f"QuantizedPacked<{t}>"
+
 
 class DataType(object):
 

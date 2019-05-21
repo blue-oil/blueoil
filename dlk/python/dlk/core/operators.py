@@ -1755,9 +1755,11 @@ class MaxPool(Pool):
     @property
     def is_monotonic(self) -> bool:
         return False
+
     @property
     def preserve_quantization(self) -> bool:
         return True
+
 
 class AveragePool(Pool):
     """Average pooling operator.
