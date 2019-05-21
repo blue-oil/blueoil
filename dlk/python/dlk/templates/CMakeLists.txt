@@ -35,6 +35,7 @@ list(APPEND SRC_LIB_ALL
     src/func/impl/apply_thresholds.cpp
     src/func/impl/quantized_conv2d_dim2col.cpp
     src/func/impl/ohwi_to_hwoi.cpp
+    src/func/impl/pack_16bit.cpp
     src/func/max_pool.cpp
     src/func/pad.cpp
     src/func/matmul.cpp
@@ -59,7 +60,6 @@ endif()
 if(RUN_ON_FPGA)
     list(APPEND SRC_LIB_ALL src/pack2b_neonv7.S)
     list(APPEND SRC_LIB_ALL src/func/arm_neon/batch_normalization.cpp)
-    list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/quantized_conv2d_tiling.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/fpga/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pop_count.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arm_neon/quantized_multiplication.cpp)
