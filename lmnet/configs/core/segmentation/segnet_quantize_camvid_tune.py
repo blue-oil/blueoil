@@ -130,5 +130,4 @@ DATASET.AUGMENTOR = Sequence([
     Hue((-10, 10)),
 ])
 
-# TODO(Neil): dataset pre-fectch is not supported at the moment
 DATASET.ENABLE_PREFETCH = False
