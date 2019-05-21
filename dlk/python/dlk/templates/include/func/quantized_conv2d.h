@@ -65,7 +65,6 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
 #ifdef RUN_ON_FPGA
   if ((kh == 3 && kw == 3 && padding == 1) ||
       (kh == 1 && kw == 1 && padding == 0)) {
-    dlk::impl::TCAConv2d(tmp, kernel, p);
     dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
       (ic + QUANTIZED_PACKED::BitCount - 1) / QUANTIZED_PACKED::BitCount,
       ih,
@@ -75,6 +74,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
     };
     dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
     convert_tensor(input, tmp);
+    dlk::impl::TCAConv2d(tmp, kernel, p);
   } else {
     throw std::invalid_argument("Unsupported convolution parameter");
   }

@@ -19,7 +19,9 @@ limitations under the License.
 #include "global.h"
 #include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_tiling.h"
+#include "func/impl/pack_16bit.h"
 #include "time_measurement.h"
+#include "tensor_convert.h"
 
 #include <arm_neon.h>
 
@@ -324,6 +326,35 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
 
   if (p.thresholds != nullptr) {
     ApplyThresholds(output_, p);
+    const auto buf = std::make_unique<QUANTIZED_PACKED[]>(out_size * p.n_bit / CHAR_BIT);
+    pack_16bit(p.device_output_buf, buf.get(), out_size);
+    const std::size_t b = 32;
+    TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>::tensor_info_t<std::size_t> buf_shape = {
+      out_height, out_width, (out_channels + b - 1) / b, p.n_bit, b
+    };
+    TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl> buf_tensor(buf.get(), buf_shape);
+    TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>::tensor_info_t<std::size_t> out_shape = {
+      (out_channels + b - 1) / b,
+      out_height,
+      out_width,
+      p.n_bit,
+      b
+    };
+    TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl> out((QUANTIZED_PACKED*)p.device_output_buf, out_shape);
+    convert_tensor(buf_tensor, out);
+  } else {
+    const std::size_t b = 32;
+    const auto buf = std::make_unique<BIN_CONV_OUTPUT[]>(out_size);
+    std::copy(p.device_output_buf, p.device_output_buf + out_size, buf.get());
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>::tensor_info_t<std::size_t> buf_shape = {
+      out_height, out_width, out_channels
+    };
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC> buf_tensor(buf.get(), buf_shape);
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl>::tensor_info_t<std::size_t> out_shape = {
+      (out_channels + b - 1) / b, out_height, out_width, b
+    };
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl> out(p.device_output_buf, out_shape);
+    convert_tensor(buf_tensor, out);
   }
 }
 
