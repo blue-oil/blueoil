@@ -24,6 +24,36 @@ limitations under the License.
 #include "func/impl/quantized_conv2d_dim2col.h"
 
 inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& before,
+    const dlk::impl::dim2col_input_t& after,
+    const binary_convolution_parameters& p) {
+  const auto& np = p.normal_conv_params;
+  const auto in_shape = before.get_shape();
+  const auto in_height = in_shape[0];
+  const auto in_width = in_shape[1];
+  const auto in_channel = in_shape[2];
+  const auto bits = in_shape[3];
+  const auto out_height = np.out_height;
+  const auto out_width = np.out_width;
+  const auto kh = np.kernel_height;
+  const auto kw = np.kernel_width;
+  const auto pad = np.padding;
+  for (T_INT i = 0; i < out_height; ++i)
+    for (T_INT j = 0; j < out_width; ++j)
+      for (T_INT k = 0; k < in_channel; ++k)
+        for (T_INT d = 0; d < bits; ++d)
+          for (T_INT kr = 0; kr < kh; ++kr)
+            for (T_INT kc = 0; kc < kw; ++kc) {
+              const auto r = i + kr - pad;
+              const auto c = j + kc - pad;
+              if (r >= 0 && r < height && c >= 0 && c < width) {
+                after(i * out_width + j, k, id, 0) = before(r, c, k, d);
+              } else {
+                after(i * out_width + j, k, id, 0) = QUANTIZED_PACKED(0);
+              }
+            }
+}
+
+inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& before,
     const dlk::impl::kn2row_input_t& after) {
   const auto in_shape = before.get_shape();
   const auto height = in_shape[0];
@@ -35,6 +65,36 @@ inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWCh
       for (std::size_t k = 0; k < channel; ++k)
         for (std::size_t d = 0; d < bits; ++d)
           after(k, i, j, d, 0) = before(i, j, k, d, 0);
+}
+
+inline void convert_tensor(const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& before,
+    const kernel_t& after) {
+  const auto in_shape = before.get_shape();
+  const auto oc = in_shape[0] * in_shape[4];
+  const auto icb = in_shape[1];
+  const auto height = in_shape[2];
+  const auto width = in_shape[3];
+  for (std::size_t nh = 0; nh < in_shape[0]; ++nh)
+    for (std::size_t nl = 0; nl < in_shape[4]; ++nl)
+      for (std::size_t h = 0; h < height; ++h)
+        for (std::size_t w = 0; w < width; ++w)
+          for (std::size_t c = 0; c < icb; ++c)
+            after(nh * in_shape[4] + nl, h, w, c) = before(nh, c, h, w, nl, 0);
+}
+
+inline void convert_tensor(const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& before,
+    const dlk::impl::kn2row_kernel_t& after) {
+  const auto in_shape = before.get_shape();
+  const auto oc = in_shape[0] * in_shape[4];
+  const auto icb = in_shape[1];
+  const auto height = in_shape[2];
+  const auto width = in_shape[3];
+  for (std::size_t h = 0; h < height; ++h)
+    for (std::size_t w = 0; w < width; ++w)
+      for (std::size_t nh = 0; nh < in_shape[0]; ++nh)
+        for (std::size_t nl = 0; nl < in_shape[4]; ++nl)
+          for (std::size_t c = 0; c < icb; ++c)
+            after(h, w, nh * in_shape[4] + nl, c) = before(nh, c, h, w, nl, 0);
 }
 
 inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& before,
