@@ -570,8 +570,7 @@ class View(object):
 
             return f"""
                     // Reshape from {in_shape} to {out_shape}'
-                    TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}>::tensor_info_t<std::size_t> {op.name}_shape = {{ {shape_string} }};
-                    const TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}({input_ops["data"].name}.data(), {op.name}_shape);
+                    std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data() + {input_ops["data"].name}.size(), {op.name}.data());
                     """
 
         elif self.op.op_type == 'BatchNormalization':
