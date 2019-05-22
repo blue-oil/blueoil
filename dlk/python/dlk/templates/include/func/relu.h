@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "global.h"
 #include "tensor_view.h"
+#include "func/impl/unary_op.h"
 
 template <typename T>
 T relu(const T& x) { return std::max(x, T(0)); }
@@ -27,7 +28,7 @@ void func_Relu(const TensorView<T, layout>& input,
     const TensorView<T, layout>& output) {
   Measurement::Start("ReLu");
 
-  unary_op(input, output, relu<T>);
+  dlk::impl::unary_op(input, output, relu<T>);
 
   Measurement::Stop();
 }
