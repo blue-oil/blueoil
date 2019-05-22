@@ -28,19 +28,11 @@ const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom>
 
 {% if node.transposed_data %}
 
-#if defined(RUN_ON_FPGA)
 static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {% for d in node.transposed_data -%}
   {{- d -}},
   {%- endfor %}
 };
-#else
-static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
-  {% for d in node.data.flatten() -%}
-  {{- d -}},
-  {%- endfor %}
-};
-#endif
 
 {% else -%}
 
