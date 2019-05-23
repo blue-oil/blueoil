@@ -51,20 +51,11 @@ class TensorFlowDatasetsBase(Base):
         self._init_available_splits()
         self._validate_feature_structure()
 
-        dataset = builder.as_dataset(split=self.available_splits[self.subset])
-        dataset = dataset.repeat()
-        if self.subset == "train":
-            dataset = dataset.shuffle(1024)
-
-        iterator = dataset.make_one_shot_iterator()
-        self.next_element_op = iterator.get_next()
+        self.dataset = builder.as_dataset(split=self.available_splits[self.subset])
+        self._init_features()
 
     def __getitem__(self, i, type=None):
-        # This method ignore the index "i" and returns shuffled element.
-        # Currently the this method is used only for shuffling elements
-        # but elements from TensorFlow Datasets are already shuffled.
-        element = self.session.run(self.next_element_op)
-        return self._reshape_element(element)
+        return self.features[i]
 
     def __len__(self):
         return self.num_per_epoch
@@ -106,9 +97,11 @@ class TensorFlowDatasetsBase(Base):
         """
         raise NotImplementedError()
 
-    def _reshape_element(self, element):
+    def _init_features(self):
         """
-        Reshaping a raw element from TensorFlow Datasets into internal format.
+        Initializing feature variables by using tf.Tensor from datasets.
+        For classification, self.features should be an array of tuple (image, label).
+        For object detection, self.features should be an array of tuple (images, gt_boxes).
         """
         raise NotImplementedError()
 
@@ -136,18 +129,25 @@ class TensorFlowDatasetsClassification(TensorFlowDatasetsBase):
         if not is_valid:
             raise ValueError("Datasets should have \"label\" and \"image\" features.")
 
-    def _reshape_element(self, element):
-        image = element["image"]
-        label = element["label"]
+    def _init_features(self):
+        iterator = self.dataset.make_one_shot_iterator()
+        next_element = iterator.get_next()
+        self.features = []
 
-        # Converting grayscale images into RGB images.
-        # This workaround is needed because the method PIL.Image.fromarray()
-        # in pre_prpcessor requires images array to have a shape of (h, w, 3).
-        if image.shape[2] == 1:
-            image = np.stack([image] * 3, 3)
-            image = image.reshape(image.shape[:2] + (3,))
+        with tf.Session() as sess:
+            for _ in range(self.num_per_epoch):
+                element = sess.run(next_element)
+                image = element["image"]
+                label = element["label"]
 
-        label = data_processor.binarize(label, self.num_classes)
-        label = np.reshape(label, (self.num_classes))
+                # Converting grayscale images into RGB images.
+                # This workaround is needed because the method PIL.Image.fromarray()
+                # in pre_prpcessor requires images array to have a shape of (h, w, 3).
+                if image.shape[2] == 1:
+                    image = np.stack([image] * 3, 3)
+                    image = image.reshape(image.shape[:2] + (3,))
 
-        return (image, label)
+                label = data_processor.binarize(label, self.num_classes)
+                label = np.reshape(label, (self.num_classes))
+
+                self.features.append((image, label))
