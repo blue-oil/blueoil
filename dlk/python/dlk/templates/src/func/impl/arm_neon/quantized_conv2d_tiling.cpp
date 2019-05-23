@@ -123,7 +123,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
             notsum[out_ch] = 0;
             for (unsigned int kr = 0; kr < kh; ++kr) {
               for (unsigned int kc = 0; kc < kw; ++kc) {
-                notk[kr][kc][out_ch] = ~kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
+                notk[kr][kc][out_ch] = kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
                 notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
               }
             }
@@ -248,7 +248,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
             notsum[out_ch] = 0;
             for (unsigned int kr = 0; kr < kh; ++kr) {
               for (unsigned int kc = 0; kc < kw; ++kc) {
-                notk[kr][kc][out_ch] = ~kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
+                notk[kr][kc][out_ch] = kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
                 notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
               }
             }
