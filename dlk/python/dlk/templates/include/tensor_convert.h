@@ -112,36 +112,6 @@ inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWCh
           after(k, i, j, d, 0) = before(i, j, k, d, 0);
 }
 
-inline void convert_tensor(const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& before,
-    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::NHWC>& after) {
-  const auto in_shape = before.get_shape();
-  const auto oc = in_shape[0] * in_shape[4];
-  const auto icb = in_shape[1];
-  const auto height = in_shape[2];
-  const auto width = in_shape[3];
-  for (std::size_t nh = 0; nh < in_shape[0]; ++nh)
-    for (std::size_t nl = 0; nl < in_shape[4]; ++nl)
-      for (std::size_t h = 0; h < height; ++h)
-        for (std::size_t w = 0; w < width; ++w)
-          for (std::size_t c = 0; c < icb; ++c)
-            after(nh * in_shape[4] + nl, h, w, c) = before(nh, c, h, w, nl, 0);
-}
-
-inline void convert_tensor(const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& before,
-    const dlk::impl::kn2row_kernel_t& after) {
-  const auto in_shape = before.get_shape();
-  const auto oc = in_shape[0] * in_shape[4];
-  const auto icb = in_shape[1];
-  const auto height = in_shape[2];
-  const auto width = in_shape[3];
-  for (std::size_t h = 0; h < height; ++h)
-    for (std::size_t w = 0; w < width; ++w)
-      for (std::size_t nh = 0; nh < in_shape[0]; ++nh)
-        for (std::size_t nl = 0; nl < in_shape[4]; ++nl)
-          for (std::size_t c = 0; c < icb; ++c)
-            after(h, w, nh * in_shape[4] + nl, c) = before(nh, c, h, w, nl, 0);
-}
-
 inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& before,
     const dlk::impl::tiling_input_t& after) {
   dlk::impl::pack_input_for_tiling(before, after);
