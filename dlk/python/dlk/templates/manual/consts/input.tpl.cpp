@@ -28,22 +28,26 @@ const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom>
 
 {% if node.transposed_data %}
 
+#ifdef RUN_ON_FPGA
 static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {% for d in node.transposed_data -%}
   {{- d -}},
   {%- endfor %}
 };
-
-{% else -%}
-
+static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape = {
+  {% for l in node.transposed_shape -%}
+  {{- l -}},
+  {%- endfor %}
+};
+const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }}(
+    reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
+    {{ node.name }}_shape);
+#else
 static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {% for d in node.data.flatten() -%}
   {{- d -}},
   {%- endfor %}
 };
-
-{% endif %}
-
 static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape = {
   {% for l in node.shape -%}
   {{- l -}},
@@ -52,5 +56,24 @@ static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.n
 const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}(
     reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
     {{ node.name }}_shape);
+#endif
+
+{% else -%}
+
+static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
+  {% for d in node.data.flatten() -%}
+  {{- d -}},
+  {%- endfor %}
+};
+static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape = {
+  {% for l in node.shape -%}
+  {{- l -}},
+  {%- endfor %}
+};
+const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}(
+    reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
+    {{ node.name }}_shape);
+
+{% endif %}
 
 {%- endif %}

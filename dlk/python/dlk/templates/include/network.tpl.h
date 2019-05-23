@@ -76,7 +76,7 @@ private:
   {% set offset = namespace(o=0) -%}
   {% for qconv in graph.convs(quantized_only=True) -%}
   {%    set kernel = qconv.input_nodes[1] -%}
-  {%    set oh, ih, kh, kw, ol, il = kernel.shape -%}
+  {%    set oh, ih, kh, kw, ol, il = kernel.transposed_shape -%}
   {%    set b = 32 -%}
   {%    set size = oh * ih * kh * kw * ol * 32 // 8 -%}
   const uint32_t {{qconv.name}}_kernel_size = {{size}};

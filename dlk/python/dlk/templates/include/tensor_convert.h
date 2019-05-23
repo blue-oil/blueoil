@@ -113,7 +113,7 @@ inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWCh
 }
 
 inline void convert_tensor(const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>& before,
-    const kernel_t& after) {
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::NHWC>& after) {
   const auto in_shape = before.get_shape();
   const auto oc = in_shape[0] * in_shape[4];
   const auto icb = in_shape[1];

@@ -241,6 +241,10 @@ class TensorView<QuantizedPacked<T>, memory_layout> {
   tensor_info_t<std::size_t> shape;
 };
 
+#ifdef RUN_ON_FPGA
+using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>;
+#else
 using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::NHWC>;
+#endif
 
 #endif
