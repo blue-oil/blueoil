@@ -412,16 +412,19 @@ def pass_pack_weights(graph: Graph) -> None:
         tca_binarized_data = weight_quantizer.binarizer(tca_output)
         tca_packed_data = packer.run(tca_binarized_data.astype(np.float32), weight_quantizer.dimension)
 
-        shape = [oc // b, kd // b, kh, kw, b, b]
+        shape = [oc, kh, kw, kd]
+        tca_shape = [oc // b, kd // b, kh, kw, b, b]
 
         # Create the new constant with the quantized weights
         quantized_constant = Constant(
             weight_quantizer.name + '_new',
             PackedUint32(),
-            data,
-            dimension_format="OhIhHWOlIl",
+            data=np.vectorize(lambda k: (~k) & ((0x1 << 32) - 1))(data),
+            dimension_format="NHWC",
+            transposed_dimension_format="OhIhHWOlIl",
             packed=True,
             actual_shape=shape,
+            transposed_shape=tca_shape,
             transposed_data=[(~k) & ((0x1 << 32) - 1) for k in tca_packed_data.flatten()]
         )
 

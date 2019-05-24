@@ -18,8 +18,8 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/average_pool.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
     $(SRC_DIR)/func/impl/apply_thresholds.cpp \
-    $(SRC_DIR)/func/impl/quantized_conv2d_dim2col.cpp \
     $(SRC_DIR)/func/impl/ohwi_to_hwoi.cpp \
+    $(SRC_DIR)/func/impl/pack_16bit.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
     $(SRC_DIR)/func/pad.cpp \
     $(SRC_DIR)/func/matmul.cpp \
@@ -48,7 +48,6 @@ LIB_ARM_OBJ := $(patsubst %.cpp, %.o, $(LIB_ARM_OBJ))
 
 LIB_FPGA_SRC := $(wildcard $(SRC_DIR)/*.S) \
     $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
-    $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/func/impl/fpga/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp

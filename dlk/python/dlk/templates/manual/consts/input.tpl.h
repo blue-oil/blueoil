@@ -22,6 +22,14 @@ limitations under the License.
 
 extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom> {{ node.name }};
 
+{% elif node.transposed_data -%}
+
+#ifdef RUN_ON_FPGA
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }};
+#else
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension}}> {{ node.name }};
+#endif
+
 {% else -%}
 
 extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension}}> {{ node.name }};
