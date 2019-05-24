@@ -22,7 +22,7 @@ namespace impl {
 
 // kernel format converter
 // ohwi : oc kh kw ic, hwoi: kh kw oc ic
-void quantized_ohwi_to_hwoi(const kernel_t& ohwi, const kn2row_kernel_t& hwoi, const binary_convolution_parameters& p) {
+void quantized_ohwi_to_hwoi(const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::NHWC>& ohwi, const kn2row_kernel_t& hwoi, const binary_convolution_parameters& p) {
   Measurement::Start("quantized_ohwi_to_hwoi");
 
   int ic = p.normal_conv_params.kernel_depth / 32;
