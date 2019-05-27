@@ -405,6 +405,16 @@ def pass_pack_weights(graph: Graph) -> None:
                                 idx = g * (kw * kh * kd * b) + p * b + h * (kw * kd) + w * kd + o * (kw * kh * kd) + d
                                 tca_output[out_index] = padded_data[idx]
                                 out_index += 1
+                                
+        kn2row_output = np.zeros(oc * kh * kw * kd)
+        out_index = 0
+        for h in range(kh):
+            for w in range(kw):
+                for o in range(oc):
+                    for i in range(kd):
+                        idx = o * kh * kw * kd + h * kw * kd + w * kd + i
+                        kn2row_output[out_index] = padded_data[idx]
+                        out_index += 1
 
         op_data = weight_quantizer.binarizer(weight_quantizer.data)
         data = packer.run(op_data.astype(np.float32), weight_quantizer.dimension)
@@ -412,8 +422,12 @@ def pass_pack_weights(graph: Graph) -> None:
         tca_binarized_data = weight_quantizer.binarizer(tca_output)
         tca_packed_data = packer.run(tca_binarized_data.astype(np.float32), weight_quantizer.dimension)
 
+        kn2row_binarized_data = weight_quantizer.binarizer(kn2row_output)
+        kn2row_data = packer.run(kn2row_binarized_data.astype(np.float32), weight_quantizer.dimension)
+
         shape = [oc, kh, kw, kd]
         tca_shape = [oc // b, kd // b, kh, kw, b, b]
+        kn2row_shape = [kh, kw, oc, kd]
 
         # Create the new constant with the quantized weights
         quantized_constant = Constant(
@@ -425,7 +439,10 @@ def pass_pack_weights(graph: Graph) -> None:
             packed=True,
             actual_shape=shape,
             transposed_shape=tca_shape,
-            transposed_data=[(~k) & ((0x1 << 32) - 1) for k in tca_packed_data.flatten()]
+            transposed_data=[(~k) & ((0x1 << 32) - 1) for k in tca_packed_data.flatten()],
+            kn2row_data=[k for k in kn2row_data.flatten()],
+            kn2row_shape=kn2row_shape,
+            kn2row_dimension_format="HWNC"
         )
 
         # get nodes to be removed after being disconnected
