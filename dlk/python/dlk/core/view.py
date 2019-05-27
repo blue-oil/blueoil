@@ -721,9 +721,8 @@ class View(object):
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(input_ops)
-            shape_string = self.shape_to_string(op.shape)
 
-            return self.format_string(f"""func_Lookup({inputs_string}, {op.name}, {shape_string});""")
+            return self.format_string(f"""func_Lookup({inputs_string}, {op.name});""")
 
     def render_alias(self, op, input_ops, output_ops):
         if len(input_ops) != 1:
