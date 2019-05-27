@@ -102,7 +102,7 @@ def _load_yaml(blueoil_config_filename):
         FileNotFoundError("File not found: {}".format(blueoil_config_filename))
 
     with gfile.GFile(blueoil_config_filename, "r") as f:
-        blueoil_config = yaml.load(f, Loader=yaml.Loader)
+        blueoil_config = yaml.load(f, Loader=yaml.SafeLoader)
 
     model_name, _ = os.path.splitext(os.path.basename(blueoil_config_filename))
 
