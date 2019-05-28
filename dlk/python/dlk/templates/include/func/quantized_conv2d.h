@@ -71,7 +71,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
     dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
     convert_tensor(input, tmp);
     dlk::impl::TCAConv2d(tmp, kernel, p);
-#else
+#elif defined USE_NEON
     dlk::impl::tiling_input_t::tensor_info_t<std::size_t> shape = {
       ic / TilingInTypeBitWidth,
       ih,
@@ -82,6 +82,17 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
     dlk::impl::tiling_input_t tmp(p.device_input_buf, shape);
     convert_tensor(input, tmp);
     dlk::impl::QuantizedConv2DTiling(tmp, kernel, p);
+#else
+    dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
+      ih,
+      iw,
+      ic / QUANTIZED_PACKED::BitCount,
+      p.bin_input_bitwidth,
+      QUANTIZED_PACKED::BitCount
+    };
+    dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
+    convert_tensor(input, tmp);
+    dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
 #endif
   } else {
     throw std::invalid_argument("Unsupported convolution parameter");

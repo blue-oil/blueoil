@@ -18,7 +18,6 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/average_pool.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
     $(SRC_DIR)/func/impl/apply_thresholds.cpp \
-    $(SRC_DIR)/func/impl/ohwi_to_hwoi.cpp \
     $(SRC_DIR)/func/impl/pack_16bit.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
     $(SRC_DIR)/func/pad.cpp \

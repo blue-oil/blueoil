@@ -243,8 +243,10 @@ class TensorView<QuantizedPacked<T>, memory_layout> {
 
 #ifdef RUN_ON_FPGA
 using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>;
-#else
+#elif defined USE_NEON
 using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::NHWC>;
+#else
+using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWNC>;
 #endif
 
 #endif

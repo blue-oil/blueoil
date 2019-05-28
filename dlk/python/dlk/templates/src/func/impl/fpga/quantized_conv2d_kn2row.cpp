@@ -36,7 +36,7 @@ namespace impl
 {
 
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
-                                  const kn2row_fpga_kernel_t& kernel,
+                                  const kernel_t& kernel,
                                   const binary_convolution_parameters &p) {
   using namespace dlk;
 
@@ -172,7 +172,7 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
 
 
 void TCAConv2d(const kn2row_input_t& input,
-    const kn2row_fpga_kernel_t& kernel,
+    const kernel_t& kernel,
     const binary_convolution_parameters &p) {
 
   using namespace dlk;

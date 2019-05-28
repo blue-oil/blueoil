@@ -18,7 +18,6 @@ limitations under the License.
 
 #include "global.h"
 #include "tensor_view.h"
-#include "pack_input_to_qwords.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
 #include "func/impl/quantized_conv2d_tiling.h"
 #include "func/impl/quantized_conv2d_dim2col.h"
@@ -99,7 +98,7 @@ inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWCh
 }
 
 inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& before,
-    const dlk::impl::kn2row_input_t& after) {
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& after) {
   const auto in_shape = before.get_shape();
   const auto height = in_shape[0];
   const auto width = in_shape[1];
@@ -112,6 +111,20 @@ inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWCh
           after(k, i, j, d, 0) = before(i, j, k, d, 0);
 }
 
+inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& before,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& after) {
+  const auto in_shape = before.get_shape();
+  const auto height = in_shape[1];
+  const auto width = in_shape[2];
+  const auto channel = in_shape[0];
+  const auto bits = in_shape[3];
+  for (std::size_t i = 0; i < height; ++i)
+    for (std::size_t j = 0; j < width; ++j)
+      for (std::size_t k = 0; k < channel; ++k)
+        for (std::size_t d = 0; d < bits; ++d)
+          after(i, j, k, d, 0) = before(k, i, j, d, 0);
+}
+
 inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& before,
     const dlk::impl::tiling_input_t& after) {
   dlk::impl::pack_input_for_tiling(before, after);
@@ -121,12 +134,6 @@ inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::
     const dlk::impl::dim2col_input_t& after,
     const binary_convolution_parameters& p) {
   dlk::impl::im2col(before, after, p);
-}
-
-inline void convert_tensor(const kernel_t& before,
-    const dlk::impl::kn2row_kernel_t& after,
-    const binary_convolution_parameters& p) {
-  dlk::impl::quantized_ohwi_to_hwoi(before, after, p);
 }
 
 template <typename T, MemoryLayout layout>
