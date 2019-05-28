@@ -195,9 +195,6 @@ void TCAConv2d(const kn2row_input_t& input,
 
   const auto effective_kernel_depth = ((cp.kernel_depth + b - 1) / b) * b;
 
-    for (int i = 0; i < input.size(); i++)
-      p.device_input_buf[i] = input.data()[i];
-
     T_UINT input_byte_size =
         (cp.input_height * cp.input_width * effective_kernel_depth * in_nbits) /
         byte_nbits;

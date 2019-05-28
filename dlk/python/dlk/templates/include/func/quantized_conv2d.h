@@ -57,8 +57,6 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
   auto size = oc * ih * iw;
   if (p.device_output_buf == nullptr)
     p.device_output_buf = new BIN_CONV_OUTPUT[size]();
-  else
-    std::memset((void *)p.device_output_buf, 0, size * sizeof(BIN_CONV_OUTPUT));
 
   if ((kh == 3 && kw == 3 && padding == 1) ||
       (kh == 1 && kw == 1 && padding == 0)) {
