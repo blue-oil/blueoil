@@ -497,6 +497,8 @@ def pass_quantize_convolutions(graph: Graph) -> None:
         # change the output data type of the quantizers
         conv_node.quantizer.dtype = PackedUint32()
         for qtz in conv_node.a_quantizer:
+            if isinstance(qtz, Lookup):
+                continue
             qtz.dtype = QUANTIZED_PACKED()
             height = qtz.height
             width = qtz.width
@@ -627,10 +629,12 @@ def pass_lookup(graph: Graph) -> None:
 
             idx += 1
 
-        pe_lsb = Constant('pe_lsb_new', QUANTIZED_PACKED_KERNEL(), lsb)
-        pe_msb = Constant('pe_msb_new', QUANTIZED_PACKED_KERNEL(), msb)
+        pe_lsb = Constant('pe_lsb_new', QUANTIZED_PACKED_KERNEL(), lsb, dimension_format='TC', packed=True, actual_shape=[256, word_size])
+        pe_msb = Constant('pe_msb_new', QUANTIZED_PACKED_KERNEL(), msb, dimension_format='TC', packed=True, actual_shape=[256, word_size])
 
-        pe = Lookup('Lookup', quantizer.shape, QUANTIZED_PACKED(),
+        n, h, w, c = quantizer.shape
+        shape = [1, h, w, 2, word_size]
+        pe = Lookup('Lookup', shape, QUANTIZED_PACKED(),
                             {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb}, dimension_format='ChHWBCl')
 
         get_nodes_in_branch(quantizer, placeholder[0], to_be_removed)

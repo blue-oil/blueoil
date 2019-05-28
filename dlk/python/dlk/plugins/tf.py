@@ -487,7 +487,7 @@ class Importer(object):
         _default_format = 'NHWC'
         _default_w_format = 'HWCN'
 
-        rank_to_format = {1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC'}
+        rank_to_format = {1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC', 5: 'NHWCT'}
 
         def guess_node_format(input_node: Any) -> str:
             """Provide the node format from references

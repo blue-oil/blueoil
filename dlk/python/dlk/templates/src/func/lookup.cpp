@@ -17,28 +17,34 @@ limitations under the License.
 #include "func/lookup.h"
 #include "time_measurement.h"
 
-void func_Lookup(float *input, QUANTIZED_PACKED_KERNEL *lsb, QUANTIZED_PACKED_KERNEL *msb, QUANTIZED_PACKED* output, int h, int w, int c) {
+void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::TC>& lsb,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::TC>& msb,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output) {
+  const auto in_shape = input.get_shape();
+  const auto h = in_shape[1];
+  const auto w = in_shape[2];
+  const auto c = in_shape[3];
 
   int b = 32;
   int packed_depth = 2;
   Measurement::Start("Lookup");
 
-  int out_idx = 0;
   for(int ih = 0; ih < h; ih++)
   for(int iw = 0; iw < w; iw++) {
-    int r = int(input[ih * w * 3 + iw * 3 + 0] * 255.0);
-    int g = int(input[ih * w * 3 + iw * 3 + 1] * 255.0);
-    int b = int(input[ih * w * 3 + iw * 3 + 2] * 255.0);
+    int r = int(input(0, ih, iw, 0) * 255.0);
+    int g = int(input(0, ih, iw, 1) * 255.0);
+    int b = int(input(0, ih, iw, 2) * 255.0);
 
-    auto r_lsb = lsb[r];
-    auto g_lsb = lsb[g];
-    auto b_lsb = lsb[b];
-    auto r_msb = msb[r];
-    auto g_msb = msb[g];
-    auto b_msb = msb[b];
+    auto r_lsb = lsb(r, 0);
+    auto g_lsb = lsb(g, 0);
+    auto b_lsb = lsb(b, 0);
+    auto r_msb = msb(r, 0);
+    auto g_msb = msb(g, 0);
+    auto b_msb = msb(b, 0);
 
-    output[out_idx++] = QUANTIZED_PACKED((b_lsb.Raw() << 20) | (g_lsb.Raw() << 10) | r_lsb.Raw());
-    output[out_idx++] = QUANTIZED_PACKED((b_msb.Raw() << 20) | (g_msb.Raw() << 10) | r_msb.Raw());
+    output(0, ih, iw, 0, 0) = QUANTIZED_PACKED((b_lsb.Raw() << 20) | (g_lsb.Raw() << 10) | r_lsb.Raw());
+    output(0, ih, iw, 1, 0) = QUANTIZED_PACKED((b_msb.Raw() << 20) | (g_msb.Raw() << 10) | r_msb.Raw());
   }
 
   Measurement::Stop();
