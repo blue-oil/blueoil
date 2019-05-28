@@ -18,65 +18,20 @@ limitations under the License.
 
 #include "global.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
+#include "func/impl/apply_thresholds.h"
 #include "matrix_view.h"
 #include "matrix/quantized_multiplication.h"
 #include "matrix/shift_add.h"
-#include "pack_input_to_qwords.h"
 #include "time_measurement.h"
-
-namespace {
-
-void ApplyThresholds(
-    dlk::MatrixView<BIN_CONV_OUTPUT, dlk::MatrixOrder::ColMajor> &result,
-    const binary_convolution_parameters &p) {
-  Measurement::Start("ApplyThresholds");
-
-  for (unsigned int i = 0; i < result.rows(); ++i) {
-    for (unsigned int j = 0; j < result.cols(); ++j) {
-      BIN_CONV_OUTPUT d = *result.data(i, j);
-      T_INT ts0 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i];
-      T_INT ts1 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 1];
-      T_INT ts2 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 2];
-      T_INT flag = p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 3];
-      BIN_CONV_OUTPUT new_d;
-
-      if (flag == 1) { // increasing function
-        if (d < ts0)
-          new_d = 0;
-        else if (d < ts1)
-          new_d = 1;
-        else if (d < ts2)
-          new_d = 2;
-        else
-          new_d = 3;
-      } else if (flag == -1) { // decreasing function
-        if (d > ts2)
-          new_d = 0;
-        else if (d > ts1)
-          new_d = 1;
-        else if (d > ts0)
-          new_d = 2;
-        else
-          new_d = 3;
-      } else {                            // constant function
-        new_d = flag - 2;                 // note: 2 is a magic number!
-        assert(0 <= new_d && new_d <= 3); // unsinged 2bits
-      }
-      *result.data(i, j) = new_d;
-    }
-  }
-
-  Measurement::Stop();
-}
-
-} // namespace
+#include "tensor_convert.h"
+#include "func/impl/pack_16bit.h"
 
 namespace dlk {
 
 namespace impl {
 
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
-                                  const kn2row_kernel_t& kernel,
+                                  const kernel_t& kernel,
                                   const binary_convolution_parameters &p) {
   using namespace dlk;
 
@@ -118,8 +73,38 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
     assert(false);
   }
 
+  const auto out_size = oc * oh * ow;
   if (p.thresholds != nullptr) {
     ApplyThresholds(output_, p);
+    const auto buf = std::make_unique<QUANTIZED_PACKED[]>(out_size * p.n_bit / CHAR_BIT);
+    pack_16bit(p.device_output_buf, buf.get(), out_size);
+    const std::size_t b = 32;
+    TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>::tensor_info_t<std::size_t> buf_shape = {
+      oh, ow, (oc + b - 1) / b, p.n_bit, b
+    };
+    TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl> buf_tensor(buf.get(), buf_shape);
+    TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>::tensor_info_t<std::size_t> out_shape = {
+      (oc + b - 1) / b,
+      oh,
+      ow,
+      p.n_bit,
+      b
+    };
+    TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl> out((QUANTIZED_PACKED*)p.device_output_buf, out_shape);
+    convert_tensor(buf_tensor, out);
+  } else {
+    const std::size_t b = 32;
+    const auto buf = std::make_unique<BIN_CONV_OUTPUT[]>(out_size);
+    std::copy(p.device_output_buf, p.device_output_buf + out_size, buf.get());
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>::tensor_info_t<std::size_t> buf_shape = {
+      oh, ow, oc 
+    };
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC> buf_tensor(buf.get(), buf_shape);
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl>::tensor_info_t<std::size_t> out_shape = {
+      (oc + b - 1) / b, oh, ow, b
+    };
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl> out(p.device_output_buf, out_shape);
+    convert_tensor(buf_tensor, out);
   }
 
   Measurement::Stop();

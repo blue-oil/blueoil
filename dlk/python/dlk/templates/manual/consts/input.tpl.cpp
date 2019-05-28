@@ -42,7 +42,7 @@ static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.n
 const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }}(
     reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
     {{ node.name }}_shape);
-#else
+#elif defined USE_NEON
 static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {% for d in node.data.flatten() -%}
   {{- d -}},
@@ -54,6 +54,20 @@ static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.n
   {%- endfor %}
 };
 const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}(
+    reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
+    {{ node.name }}_shape);
+#else
+static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
+  {% for d in node.kn2row_data -%}
+  {{- d -}},
+  {%- endfor %}
+};
+static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape = {
+  {% for l in node.kn2row_shape -%}
+  {{- l -}},
+  {%- endfor %}
+};
+const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.kn2row_dimension_format }}> {{ node.name }}(
     reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
     {{ node.name }}_shape);
 #endif
