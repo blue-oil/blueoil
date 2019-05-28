@@ -26,6 +26,7 @@ enum class MemoryLayout {
   N, // Batch size (or Output Channel)
   NC, // Batch, Channel
   WC, // Width, Channel
+  TC, // Table, Channel
   HWC, // Height, Width, Channel
   NHWC, // Batch, Height, Width, Channel
   OHWC, // Output Channel, Height, Width, Input Channel
@@ -47,6 +48,7 @@ constexpr std::size_t get_dim(const MemoryLayout& layout) {
     case MemoryLayout::N: return 1;
     case MemoryLayout::NC: return 2;
     case MemoryLayout::WC: return 2;
+    case MemoryLayout::TC: return 2;
     case MemoryLayout::HWC: return 3;
     case MemoryLayout::NHWC: return 4;
     case MemoryLayout::OHWC: return 4;

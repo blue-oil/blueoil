@@ -17,7 +17,11 @@ limitations under the License.
 #define DLK_FUNC_LOOKUP_H_INCLUDED
 
 #include "global.h"
+#include "tensor_view.h"
 
-void func_Lookup(float *input, QUANTIZED_PACKED_KERNEL *lsb, QUANTIZED_PACKED_KERNEL *msb, QUANTIZED_PACKED* output, int h, int w, int c);
+void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::TC>& lsb,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::TC>& msb,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output);
 
 #endif // DLK_FUNC_LOOKUP_H_INCLUDED
