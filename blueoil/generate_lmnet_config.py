@@ -64,6 +64,10 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
         "dataset_module": "delta_mark",
         "dataset_class": "ClassificationBase",
     },
+    "TensorFlow Datasets for Classification": {
+        "dataset_module": "tensorflow_datasets",
+        "dataset_class": "TensorFlowDatasetsClassification",
+    },
     "OpenImagesV4": {
         "dataset_module": "open_images_v4",
         "dataset_class": "OpenImagesV4BoundingBoxBase",
