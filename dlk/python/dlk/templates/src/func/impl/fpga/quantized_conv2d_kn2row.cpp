@@ -36,7 +36,7 @@ namespace impl
 {
 
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
-                                  const kn2row_fpga_kernel_t& kernel,
+                                  const kernel_t& kernel,
                                   const binary_convolution_parameters &p) {
   using namespace dlk;
 
@@ -172,7 +172,7 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
 
 
 void TCAConv2d(const kn2row_input_t& input,
-    const kn2row_fpga_kernel_t& kernel,
+    const kernel_t& kernel,
     const binary_convolution_parameters &p) {
 
   using namespace dlk;
@@ -194,9 +194,6 @@ void TCAConv2d(const kn2row_input_t& input,
   const T_UINT out_w = cp.output_width;
 
   const auto effective_kernel_depth = ((cp.kernel_depth + b - 1) / b) * b;
-
-    for (int i = 0; i < input.size(); i++)
-      p.device_input_buf[i] = input.data()[i];
 
     T_UINT input_byte_size =
         (cp.input_height * cp.input_width * effective_kernel_depth * in_nbits) /

@@ -1,4 +1,4 @@
-/* Copyright 2018 The Blueoil Authors. All Rights Reserved.
+/* Copyright 2019 The Blueoil Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,24 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef DLK_FUNC_RELU_H_INCLUDED
-#define DLK_FUNC_RELU_H_INCLUDED
-
 #include "global.h"
-#include "tensor_view.h"
-#include "func/impl/unary_op.h"
 
-template <typename T>
-T relu(const T& x) { return std::max(x, T(0)); }
+namespace dlk {
 
-template <typename T, MemoryLayout layout>
-void func_Relu(const TensorView<T, layout>& input,
-    const TensorView<T, layout>& output) {
-  Measurement::Start("ReLu");
+namespace impl {
 
-  dlk::impl::unary_op(input, output, relu<T>);
+void pack_16bit(const BIN_CONV_OUTPUT input[], QUANTIZED_PACKED output[], const std::size_t length);
 
-  Measurement::Stop();
-}
+} // namespace impl
 
-#endif // DLK_FUNC_RELU_H_INCLUDED
+} // namespace dlk
