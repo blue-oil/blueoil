@@ -469,7 +469,8 @@ class Importer(object):
         visited: Set[Any] = set()
         added: Dict[str, Operator] = {}
         nodes_to_remove = []
-        self.add_node_to_graph_recursive(self.out_lst[0], graph, visited, added, 'NHWC', nodes_to_remove)
+# fixme: default output format is NC (workaround for classification tasks)
+        self.add_node_to_graph_recursive(self.out_lst[0], graph, visited, added, 'NC', nodes_to_remove)
         for node in nodes_to_remove:
             graph.remove_op(node)
 
@@ -504,7 +505,7 @@ class Importer(object):
 
         if isinstance(node, Node):
             if node.get_format() is None:
-                out_format = output_format or _default_format
+                out_format = output_format or guess_node_format(node)
             else:
                 out_format = node.get_format()
 
@@ -769,6 +770,7 @@ class Importer(object):
                 shape,
                 dtype,
                 input_ops,
+                dimension_format=current_format
             )
         elif op_type == 'Softmax':
             if not shape:
@@ -780,6 +782,7 @@ class Importer(object):
                 shape,
                 dtype,
                 input_ops,
+                dimension_format=current_format
             )
         elif op_type == 'MaxPool':
 
