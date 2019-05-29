@@ -516,6 +516,8 @@ class Importer(object):
                 return _default_w_format, [_default_w_format]
             elif op_type in ['QTZ_linear_mid_tread_half']:
                 return out_format, [out_format, 'C', 'C']
+            elif op_type == 'Pad':
+                return out_format, [out_format, 'Padding']
             elif op_type == 'Transpose':
                 perm = list(node.attribute("perm"))
                 inv_perm = [perm.index(i) for i in range(len(perm))]  # inverse permutation
