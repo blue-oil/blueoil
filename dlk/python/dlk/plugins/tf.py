@@ -725,6 +725,7 @@ class Importer(object):
                 shape,
                 dtype,
                 input_ops,
+                dimension_format=current_format
             )
         elif op_type == 'Identity':
             if not shape:
