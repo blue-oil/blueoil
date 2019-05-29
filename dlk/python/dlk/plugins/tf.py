@@ -179,7 +179,7 @@ class Node(object):
 
     def get_format(self):  # type: ignore
         """Get the output data format info."""
-        if self.nd_.attr.get('data_format'):
+        if self.nd_.attr.get('data_format') and self.op_type != 'BiasAdd':
             return self.nd_.attr.get('data_format').s.decode(encoding='utf-8')
         else:
             return None
