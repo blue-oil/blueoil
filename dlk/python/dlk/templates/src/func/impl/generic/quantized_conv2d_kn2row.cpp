@@ -15,6 +15,7 @@ limitations under the License.
 
 #include <cassert>
 #include <cstring>
+#include <algorithm>
 
 #include "global.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
@@ -64,6 +65,7 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
         kn2row_buf, oc * kh * kw, ih * iw);
 
     quantized_matrix_multiplication(kernel_, input_, buf_);
+    std::fill(p.device_output_buf, p.device_output_buf + oc * oh * ow, 0);
     matrix_shift_add(buf_, output_, p.normal_conv_params);
     delete[] kn2row_buf;
   } else if (kh == kw && kw == 1) {
