@@ -19,7 +19,7 @@ limitations under the License.
 #include "global.h"
 #include "tensor_view.h"
 
-void func_Softmax(const TensorView<T_FLOAT, MemoryLayout::C>& input,
-    const TensorView<T_FLOAT, MemoryLayout::C>& output);
+void func_Softmax(const TensorView<T_FLOAT, MemoryLayout::NC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::NC>& output);
 
 #endif // DLK_FUNC_SOFTMAX_H_INCLUDED

@@ -563,7 +563,7 @@ class View(object):
             )
 
         elif self.op.op_type == 'Reshape':
-            if len(input_ops) != 1:
+            if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
             in_shape = input_ops['data'].shape
             out_shape = op.shape
@@ -572,8 +572,7 @@ class View(object):
 
             return f"""
                     // Reshape from {in_shape} to {out_shape}'
-                    TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}>::tensor_info_t<std::size_t> {op.name}_shape = {{ {shape_string} }};
-                    const TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}({input_ops["data"].name}.data(), {op.name}_shape);
+                    std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data() + {input_ops["data"].name}.size(), {op.name}.data());
                     """
 
         elif self.op.op_type == 'BatchNormalization':
