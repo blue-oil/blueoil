@@ -17,9 +17,9 @@ limitations under the License.
 #include "func/matmul.h"
 #include "time_measurement.h"
 
-void func_Matmul(const TensorView<T_FLOAT, MemoryLayout::N>& input,
+void func_Matmul(const TensorView<T_FLOAT, MemoryLayout::NC>& input,
     const TensorView<T_FLOAT, MemoryLayout::NC>& factor,
-    const TensorView<T_FLOAT, MemoryLayout::C>& output) {
+    const TensorView<T_FLOAT, MemoryLayout::NC>& output) {
 #ifndef RUN_AS_HLS
   Measurement::Start("MatMul");
 #endif
@@ -29,7 +29,7 @@ void func_Matmul(const TensorView<T_FLOAT, MemoryLayout::N>& input,
   T_UINT index = 0;
   for (T_UINT d = 0; d < in_size; d++){
     for (T_UINT kz = 0; kz < out_depth; kz++){
-      output(kz) += input(d) * factor.data()[index];
+      output(0, kz) += input(0, d) * factor.data()[index];
       index++;
     }
   }
