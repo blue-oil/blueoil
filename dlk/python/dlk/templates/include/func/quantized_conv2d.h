@@ -32,6 +32,8 @@ inline void func_linear_to_float(
     T_INT nbit,
     T_FLOAT max_value,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output) {
+  Measurement::Start("linear_to_float");
+
   T_FLOAT n = (1 << nbit) - 1;
   unsigned num_elems = output.size();
 
@@ -40,12 +42,16 @@ inline void func_linear_to_float(
     tmp = tmp / n;
     output.data()[i] = tmp * max_value;
   }
+
+  Measurement::Stop();
 }
 
 template <typename T, MemoryLayout layout>
 void QuantizedConv2D(const TensorView<T, layout>& input,
     const kernel_t& kernel,
     binary_convolution_parameters p) {
+  Measurement::Start("QuantizedConv2D");
+
   constexpr T_UINT TilingInTypeBitWidth = dlk::impl::tiling_input_elem_t::BitCount;
   int kh = p.normal_conv_params.kernel_height;
   int kw = p.normal_conv_params.kernel_width;
@@ -69,7 +75,9 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       QUANTIZED_PACKED::BitCount
     };
     dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
+    Measurement::Start("Tensor convert");
     convert_tensor(input, tmp);
+    Measurement::Stop();
     dlk::impl::TCAConv2d(tmp, kernel, p);
 #elif defined USE_NEON
     dlk::impl::tiling_input_t::tensor_info_t<std::size_t> shape = {
@@ -80,7 +88,9 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       TilingInTypeBitWidth
     };
     dlk::impl::tiling_input_t tmp(p.device_input_buf, shape);
+    Measurement::Start("Tensor convert");
     convert_tensor(input, tmp);
+    Measurement::Stop();
     dlk::impl::QuantizedConv2DTiling(tmp, kernel, p);
 #else
     dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
@@ -91,12 +101,16 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       QUANTIZED_PACKED::BitCount
     };
     dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
+    Measurement::Start("Tensor convert");
     convert_tensor(input, tmp);
+    Measurement::Stop();
     dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
 #endif
   } else {
     throw std::invalid_argument("Unsupported convolution parameter");
   }
+
+  Measurement::Stop();
 }
 
 template <typename T, MemoryLayout layout>
@@ -106,11 +120,7 @@ void func_QuantizedConv2D(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     const T_FLOAT scaling_factor,
     const binary_convolution_parameters& p) {
-  Measurement::Start("QuantizedConv2D");
-
   QuantizedConv2D(input, kernel, p);
-
-  Measurement::Stop();
 
   Measurement::Start("QuantizedConv2D_ApplyScalingFactor");
 
@@ -151,11 +161,7 @@ void func_QuantizedConv2D(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     T_FLOAT scaling_factor[],
     binary_convolution_parameters p) {
-  Measurement::Start("QuantizedConv2D");
-
   QuantizedConv2D(input, kernel, p);
-
-  Measurement::Stop();
 
   unsigned out_elems =
       p.normal_conv_params.output_height * p.normal_conv_params.output_width;
@@ -217,7 +223,12 @@ void func_QuantizedConv2DWithThreshold(
                        p.normal_conv_params.output_channels;
 
   const auto bytes = out_elems / 8 * p.n_bit;
+
+  Measurement::Start("Memcpy");
+
   memcpy(output.data(), (void*)p.device_output_buf, bytes);
+
+  Measurement::Stop();
 }
 
 template <typename T, MemoryLayout layout>
