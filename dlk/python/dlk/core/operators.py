@@ -57,6 +57,7 @@ class Operator(object):
 
     def update_shape(self, shape: List[int], dimension_format: str) -> None:
         self._shape: List[int] = shape
+        self._rank = len(shape)
         self._dimension_format = dimension_format
         dimension_format_list = []
         for ch in dimension_format:
