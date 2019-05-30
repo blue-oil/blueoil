@@ -432,7 +432,7 @@ class View(object):
 
             return self.format_string(
                 f"""
-                func_LeakyRelu({inputs_string}, {op.name}, {alpha});
+                func_LeakyRelu({inputs_string}, {op.name}, {alpha}f);
                 """
             )
 
