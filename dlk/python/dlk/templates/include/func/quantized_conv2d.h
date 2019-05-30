@@ -236,7 +236,7 @@ void func_QuantizedConv2DWithThreshold(
       for (unsigned d = 0; d < true_out_channels; ++d) {
         const auto i = r * out_width * p.n_bit + c * p.n_bit;
         QUANTIZED_PACKED::base_t bits = 0;
-        for (unsigned digit = 0; digit = p.n_bit; ++digit) {
+        for (unsigned digit = 0; digit < p.n_bit; ++digit) {
           bits |= ((ptr[i + digit] >> d) & 1) << digit;
         }
         T_FLOAT tmp = (T_FLOAT)bits;
