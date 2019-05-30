@@ -179,7 +179,7 @@ class Node(object):
 
     def get_format(self):  # type: ignore
         """Get the output data format info."""
-        if self.nd_.attr.get('data_format'):
+        if self.nd_.attr.get('data_format') and self.op_type != 'BiasAdd':
             return self.nd_.attr.get('data_format').s.decode(encoding='utf-8')
         else:
             return None
@@ -516,6 +516,8 @@ class Importer(object):
                 return _default_w_format, [_default_w_format]
             elif op_type in ['QTZ_linear_mid_tread_half']:
                 return out_format, [out_format, 'C', 'C']
+            elif op_type == 'Pad':
+                return out_format, [out_format, 'Padding']
             elif op_type == 'Transpose':
                 perm = list(node.attribute("perm"))
                 inv_perm = [perm.index(i) for i in range(len(perm))]  # inverse permutation
@@ -723,6 +725,7 @@ class Importer(object):
                 shape,
                 dtype,
                 input_ops,
+                dimension_format=current_format
             )
         elif op_type == 'Identity':
             if not shape:

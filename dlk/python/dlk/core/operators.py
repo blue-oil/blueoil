@@ -1521,9 +1521,10 @@ class Add(Operator):
                  name: str,
                  shape: List[int],
                  dtype: DataType,
-                 input_ops: Ops) -> None:
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
         """Init add operator."""
-        super().__init__(name, shape, dtype, input_ops)
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
         super()._check_consistency()

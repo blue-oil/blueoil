@@ -19,8 +19,8 @@ limitations under the License.
 #include "global.h"
 #include "tensor_view.h"
 
-void func_Matmul(const TensorView<T_FLOAT, MemoryLayout::N>& input,
+void func_Matmul(const TensorView<T_FLOAT, MemoryLayout::NC>& input,
     const TensorView<T_FLOAT, MemoryLayout::NC>& factor,
-    const TensorView<T_FLOAT, MemoryLayout::C>& output);
+    const TensorView<T_FLOAT, MemoryLayout::NC>& output);
 
 #endif // DLK_FUNC_MATMUL_H_INCLUDED
