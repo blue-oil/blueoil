@@ -23,6 +23,35 @@ limitations under the License.
 #include "pack_input_to_qwords.h"
 #include <limits.h>
 
+template <typename T>
+void func_ExtractImagePatches(
+    const TensorView<T, MemoryLayout::NHWC>& input,
+    const TensorView<T, MemoryLayout::NHWC>& output,
+    T_UINT kernel_size, T_UINT stride) {
+  Measurement::Start("ExtractImagePatches");
+
+  const auto in_shape = input.get_shape();
+  const T_UINT input_depth = in_shape[3];
+  const auto out_shape = output.get_shape();
+  const T_UINT out_height = out_shape[1];
+  const T_UINT out_width = out_shape[2];
+
+  for(T_UINT kz = 0; kz < input_depth; ++kz)
+    for(T_UINT wi = 0; wi < out_height; wi++)
+      for(T_UINT wj = 0; wj < out_width; wj++)
+        for(T_UINT ki = 0; ki < kernel_size; ki++)
+          for(T_UINT kj = 0; kj < kernel_size; kj++)
+          {
+            T_INT row = (wi * stride) + ki;
+            T_INT col = (wj * stride) + kj;
+              const auto ch = kz + (ki * kernel_size + kj) * input_depth;
+              output(0, wi, wj, ch)
+                = input(0, row, col, kz);
+          }
+
+  Measurement::Stop();
+}
+
 inline void func_ExtractImagePatches(
     const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& input,
     const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& output,
