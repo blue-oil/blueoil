@@ -416,7 +416,7 @@ def pass_pack_weights(graph: Graph) -> None:
                         kn2row_output[out_index] = padded_data[idx]
                         out_index += 1
 
-        op_data = weight_quantizer.binarizer(weight_quantizer.data)
+        op_data = weight_quantizer.binarizer(padded_data)
         data = packer.run(op_data.astype(np.float32), weight_quantizer.dimension)
 
         tca_binarized_data = weight_quantizer.binarizer(tca_output)
