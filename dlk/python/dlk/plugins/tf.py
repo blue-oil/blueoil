@@ -469,8 +469,9 @@ class Importer(object):
         visited: Set[Any] = set()
         added: Dict[str, Operator] = {}
         nodes_to_remove = []
-# fixme: default output format is NC (workaround for classification tasks)
-        self.add_node_to_graph_recursive(self.out_lst[0], graph, visited, added, 'NC', nodes_to_remove)
+# fixme: default output format is NC/NHWC (ad-hoc workaround)
+        rank_to_format = {2: 'NC', 4: 'NHWC'}
+        self.add_node_to_graph_recursive(self.out_lst[0], graph, visited, added, rank_to_format[len(self.out_lst[0].get_shape())], nodes_to_remove)
         for node in nodes_to_remove:
             graph.remove_op(node)
 
