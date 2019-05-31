@@ -1,0 +1,4 @@
+all:
+{
+    [destination_device = pl] bin/ipv2.bit
+}
