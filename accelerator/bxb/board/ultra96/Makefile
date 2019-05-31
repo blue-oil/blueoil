@@ -9,13 +9,14 @@ rtl/Bxb.v: $(CHISEL_FILES)
 	cd ../../ && sbt "runMain bxb.Bxb --output-file $(abspath $@)"
 
 .PHONY: vivado
-vivado: 
+vivado: vivado.done_stamp
+
+vivado.done_stamp: rtl/Bxb.v
 	vivado -mode tcl -source bxb.tcl
-#	rm -rf project_1/
-#	rm -rf vivado*
+	touch vivado.done_stamp
 
 .PHONY: vivado_gen
-vivado_gen:
+vivado_gen: vivado.done_stamp
 	vivado -mode tcl -source ipv2.tcl
 	bootgen -image bin/ipv2.bif -arch zynqmp -w -o bin/ipv2.bin
 
