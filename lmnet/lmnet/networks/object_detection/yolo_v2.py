@@ -335,29 +335,33 @@ class YoloV2(BaseNetwork):
 
         return result
 
-    def _offset_boxes(self, num_cell_y, num_cell_x):
+    @staticmethod
+    def py_offset_boxes(num_cell_y, num_cell_x, batch_size, boxes_per_cell, anchors):
         """Numpy implementing of offset_boxes.
         Return yolo space offset of x and y and w and h.
 
         Args:
             num_cell_y: Number of cell y. The spatial dimension of the final convolutional features.
             num_cell_x: Number of cell x. The spatial dimension of the final convolutional features.
+            batch_size: int, Batch size.
+            boxes_per_cell: int, number of boxes per cell.
+            anchors: list of tuples.
         """
 
         offset_y = np.arange(num_cell_y)
         offset_y = np.reshape(offset_y, (1, num_cell_y, 1, 1))
-        offset_y = np.broadcast_to(offset_y, [self.batch_size, num_cell_y, num_cell_x, self.boxes_per_cell])
+        offset_y = np.broadcast_to(offset_y, [batch_size, num_cell_y, num_cell_x, boxes_per_cell])
 
         offset_x = np.arange(num_cell_x)
         offset_x = np.reshape(offset_x, (1, 1, num_cell_x, 1))
-        offset_x = np.broadcast_to(offset_x, [self.batch_size, num_cell_y, num_cell_x, self.boxes_per_cell])
+        offset_x = np.broadcast_to(offset_x, [batch_size, num_cell_y, num_cell_x, boxes_per_cell])
 
-        w_anchors = [anchor_w for anchor_w, anchor_h in self.anchors]
-        offset_w = np.broadcast_to(w_anchors, (self.batch_size, num_cell_y, num_cell_x, self.boxes_per_cell))
+        w_anchors = [anchor_w for anchor_w, anchor_h in anchors]
+        offset_w = np.broadcast_to(w_anchors, (batch_size, num_cell_y, num_cell_x, boxes_per_cell))
         offset_w = offset_w.astype(np.float32)
 
-        h_anchors = [anchor_h for anchor_w, anchor_h in self.anchors]
-        offset_h = np.broadcast_to(h_anchors, (self.batch_size, num_cell_y, num_cell_x, self.boxes_per_cell))
+        h_anchors = [anchor_h for anchor_w, anchor_h in anchors]
+        offset_h = np.broadcast_to(h_anchors, (batch_size, num_cell_y, num_cell_x, boxes_per_cell))
         offset_h = offset_h.astype(np.float32)
 
         return offset_x, offset_y, offset_w, offset_h
@@ -373,11 +377,16 @@ class YoloV2(BaseNetwork):
         """
 
         if self.is_dynamic_image_size:
-            result = tf.py_func(self._offset_boxes, self.num_cell, [tf.int64, tf.int64, tf.float32, tf.float32])
+            result = tf.py_func(self.py_offset_boxes,
+                                (self.num_cell[0], self.num_cell[1],
+                                 self.batch_size, self.boxes_per_cell, self.anchors),
+                                [tf.int64, tf.int64, tf.float32, tf.float32])
             offset_x, offset_y, offset_w, offset_h = result
 
         else:
-            offset_x, offset_y, offset_w, offset_h = self._offset_boxes(self.num_cell[0], self.num_cell[1])
+            offset_x, offset_y, offset_w, offset_h = self.py_offset_boxes(self.num_cell[0], self.num_cell[1],
+                                                                          self.batch_size, self.boxes_per_cell,
+                                                                          self.anchors)
         return offset_x, offset_y, offset_w, offset_h
 
     def convert_boxes_space_from_real_to_yolo(self, boxes):
@@ -1253,27 +1262,30 @@ class YoloV2Loss:
         sum_conf = 0.0
         sum_diff_conf = 0.0
 
+        # extra coordinate loss for early training steps to encourage predictions to match anchor.
+        # https://github.com/pjreddie/darknet/blob/2f212a47425b2e1002c7c8a20e139fe0da7489b5/src/region_layer.c#L248
+        if self.seen < self.seen_threshold:
+            if self.is_debug:
+                print("current seen: {}. To calculate coordinate loss for early training step.".format(self.seen))
+
+            offset_x, offset_y, offset_w, offset_h = YoloV2.py_offset_boxes(num_cell_y, num_cell_x,
+                                                                            self.batch_size, self.boxes_per_cell,
+                                                                            self.anchors)
+
+            stride_x = image_size[1] / num_cell_x
+            stride_y = image_size[0] / num_cell_y
+
+            cell_gt_boxes[:, :, :, :, 0] = (offset_x + 0.5) * stride_x
+            cell_gt_boxes[:, :, :, :, 1] = (offset_y + 0.5) * stride_y
+            cell_gt_boxes[:, :, :, :, 2] = stride_x * offset_w
+            cell_gt_boxes[:, :, :, :, 3] = stride_y * offset_h
+            cell_gt_boxes[:, :, :, :, 4] = -1
+
+            coordinate_maskes[:] = 1  # True
+
         for batch_index in range(self.batch_size):
-            # extra coordinate loss for early training steps to encourage predictions to match anchor.
-            # https://github.com/pjreddie/darknet/blob/2f212a47425b2e1002c7c8a20e139fe0da7489b5/src/region_layer.c#L248
-            if self.seen < self.seen_threshold:
-                if self.is_debug:
-                    print("current seen: {}. To calculate coordinate loss for early training step.".format(self.seen))
-                for cell_x_index in range(0, num_cell_x):
-                    for cell_y_index in range(0, num_cell_y):
-                        for anchor_index, (anchor_w, anchor_h) in enumerate(self.anchors):
-                            anchor_box = [
-                                (0.5 + cell_x_index) / num_cell_x * image_size[1],
-                                (0.5 + cell_y_index) / num_cell_y * image_size[0],
-                                anchor_w / num_cell_x * image_size[1],
-                                anchor_h / num_cell_y * image_size[0],
-                                -1,
-                            ]
 
-                            cell_gt_boxes[batch_index, cell_y_index, cell_x_index, anchor_index, :] = anchor_box
-                            coordinate_maskes[batch_index, cell_y_index, cell_x_index, anchor_index, :] = 1  # Ture
-
-            # calcurate iou anchor and gt box
+            # calculate iou anchor and gt box
             gt_boxes = gt_boxes_list[batch_index, :, :]
 
             for box_index in range(gt_boxes.shape[0]):
