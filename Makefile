@@ -26,11 +26,11 @@ test-lmnet: build
 
 .PHONY: test-dlk
 test-dlk: build
-	# Run dlk test (only available on Jenkins)
-	docker run --rm -t -v /root/.ssh:/root/.ssh --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
+	# Run dlk test
+	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
 
 .PHONY: pep8-dlk
-pep8-dlk:
+pep8-dlk: build
 	# Check dlk PEP8
 	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pycodestyle --ignore=W --max-line-length=120 --exclude='*static/pb*','*docs/*','*.eggs*','*tvm/*','*tests/*','backends/*' ."
 
