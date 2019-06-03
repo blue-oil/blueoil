@@ -112,6 +112,10 @@ def resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
     height = size[0]
 
     resized_image = resize(image, (height, width))
+
+    if gt_boxes is None:
+        return resized_image, None
+
     resized_gt_boxes = gt_boxes.copy()
 
     scale = [height / origin_height, width / origin_width]
