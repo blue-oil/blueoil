@@ -39,7 +39,13 @@ from lmnet.utils.config import (
 from lmnet.utils.demo import (
     add_rectangle,
     add_fps,
+    run_inference,
 )
+
+from lmnet.visualize import (
+    label_to_color_image,
+)
+
 
 nn = None
 pre_process = None
@@ -81,47 +87,10 @@ def add_class_label(canvas,
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
-def label_to_color_image(results, colormap):
-    """Adds color defined by the colormap to the label.
-
-    Args:
-        results: A 2D array with float type, storing the segmentation label.
-        colormap: An ndarray with integer type. The number of classes with
-        respective colour label.
-
-    Returns:
-        A 2D array with integer type. The element of the array
-        is the color indexed by the corresponding element in the input label
-        to the CamVid color map.
-
-    Raises:
-        ValueError: If label is not of rank 2 or its value is larger than color
-            map maximum entry.
-    """
-    if results.ndim != 4:
-        raise ValueError('Expect 4-D input results (1, height, width, classes).')
-
-    label = np.argmax(results, axis=3)
-    if np.max(label) >= len(colormap):
-        raise ValueError('label value too large.')
-
-    return np.squeeze(colormap[label])
-
-
-def run_inference(img):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+def _run_inference(img):
     global nn, pre_process, post_process
-    start = time.time()
-
-    data = pre_process(image=img)["image"]
-    data = np.asarray(data, dtype=np.float32)
-    data = np.expand_dims(data, axis=0)
-
-    result = nn.run(data)
-
-    result = post_process(outputs=result)['outputs']
-
-    fps = 1.0/(time.time() - start)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    result, fps, _ = run_inference(img, nn, pre_process, post_process)
     return result, fps
 
 
@@ -161,7 +130,7 @@ def run_object_detection(config):
     #  ----------- Beginning of Main Loop ---------------
     while True:
         m1 = MyTime("1 loop of while(1) of main()")
-        pool_result = pool.apply_async(run_inference, (input_img, ))
+        pool_result = pool.apply_async(_run_inference, (input_img, ))
         is_first = True
         while True:
             grabbed, camera_img = vc.read()
@@ -212,7 +181,7 @@ def run_classification(config):
 
     grabbed, camera_img = vc.read()
 
-    pool_result = pool.apply_async(run_inference, (camera_img, ))
+    pool_result = pool.apply_async(_run_inference, (camera_img, ))
     result = None
     fps = 1.0
     loop_count = 0
@@ -230,7 +199,7 @@ def run_classification(config):
 
         if pool_result.ready():
             result, fps = pool_result.get()
-            pool_result = pool.apply_async(run_inference, (camera_img, ))
+            pool_result = pool.apply_async(_run_inference, (camera_img, ))
 
         if (window_width == camera_width) and (window_height == camera_height):
             window_img = camera_img
@@ -281,7 +250,7 @@ def run_sementic_segmentation(config):
 
     while True:
         m1 = MyTime("1 loop of while(1) of main()")
-        pool_result = pool.apply_async(run_inference, (input_img,))
+        pool_result = pool.apply_async(_run_inference, (input_img,))
         is_first = True
         while True:
             grabbed, camera_img = vc.read()
