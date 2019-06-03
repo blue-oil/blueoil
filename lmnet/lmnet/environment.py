@@ -19,7 +19,8 @@ TMP_DIR = "tmp"
 LOG_DIR = os.path.join(TMP_DIR, "log")
 
 default_data_dir = "dataset"
-DATA_DIR = os.getenv("DATA_DIR", default_data_dir)
+# DATA_DIR = os.getenv("DATA_DIR", default_data_dir)
+DATA_DIR = os.getenv("DATA_DIR", os.path.join(os.getcwd(), default_data_dir))
 
 default_output_dir = "saved"
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", default_output_dir)

@@ -16,11 +16,13 @@
 import unittest
 import subprocess
 import time
+import os
 from os.path import join
 
 from tstconf import DO_CLEANUP
 
 TEST_LEVEL_FUTURE_TARGET=512
+FPGA_HOST = os.environ['FPGA_HOST']
 
 
 def updated_dict(src_dict, updation) -> dict:
@@ -116,8 +118,9 @@ def wait_for_device(host: str, tries: int, seconds: int, log_path: str, testcase
 
     return board_found
 
-def setup_de10nano(host: str, hw_path: str, output_path: str, testcase=None):
+def setup_de10nano(hw_path: str, output_path: str, testcase=None):
 
+    host = FPGA_HOST
     available = wait_for_device(host, 15, 10, output_path, testcase)
     if not available:
         return False
@@ -125,12 +128,14 @@ def setup_de10nano(host: str, hw_path: str, output_path: str, testcase=None):
     try:
         run_and_check(
             [ "ssh",
+             "-o",
+             "StrictHostKeyChecking no",
              f"root@{host}",
-             f"mkdir -p ~/boot; if grep -qs '/root/boot' /proc/mounts ;" \
+             f"mkdir -p ~/automated_testing; mkdir -p ~/boot; if grep -qs '/root/boot' /proc/mounts ;" \
              + "then echo 0 ; else mount /dev/mmcblk0p1 /root/boot ; fi"
              ],
             output_path,
-            join(output_path, "mount.err"),
+            join(output_path, "mount.out"),
             join(output_path, "mount.err"),
             testcase
         )
