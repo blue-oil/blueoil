@@ -8,7 +8,8 @@ import numpy as np
 
 from PIL import Image
 
-from lmnet.datasets.base import SegmentationBase, StoragePathCustomizable
+from lmnet.datasets.base import SegmentationBase
+
 
 class Cityscapes(SegmentationBase):
     available_subsets = ["train", "validation", "test"]
@@ -110,7 +111,10 @@ class Cityscapes(SegmentationBase):
         polygons_json.sort()
 
         labelIds = [i.replace("_polygons.json", "_labelIds.png") for i in polygons_json]
-        leftImg8bit = [i.replace(os.path.join(self.data_dir, "gtFine"), os.path.join(self.data_dir, "leftImg8bit")).replace("_gtFine_polygons.json", "_leftImg8bit.png") for i in polygons_json]
+        leftImg8bit = [i.replace(
+            os.path.join(self.data_dir, "gtFine"),
+            os.path.join(self.data_dir, "leftImg8bit")
+        ).replace("_gtFine_polygons.json", "_leftImg8bit.png") for i in polygons_json]
 
         return leftImg8bit, labelIds
 
@@ -120,7 +124,7 @@ class Cityscapes(SegmentationBase):
         label = Image.open(labels[i]).resize((320, 160))
 
         return np.array(img), np.array(label)
-        
+
     def __len__(self):
         return len(self.files_and_annotations()[0])
 
