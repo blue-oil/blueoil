@@ -29,6 +29,7 @@ import click
 import cv2
 import numpy as np
 
+from lmnet.common import get_color_map
 from lmnet.nnlib import NNLib
 from lmnet.utils.config import (
     load_yaml,
@@ -38,7 +39,13 @@ from lmnet.utils.config import (
 from lmnet.utils.demo import (
     add_rectangle,
     add_fps,
+    run_inference,
 )
+
+from lmnet.visualize import (
+    label_to_color_image,
+)
+
 
 nn = None
 pre_process = None
@@ -80,20 +87,10 @@ def add_class_label(canvas,
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
-def run_inference(img):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+def _run_inference(img):
     global nn, pre_process, post_process
-    start = time.time()
-
-    data = pre_process(image=img)["image"]
-    data = np.asarray(data, dtype=np.float32)
-    data = np.expand_dims(data, axis=0)
-
-    result = nn.run(data)
-
-    result = post_process(outputs=result)['outputs']
-
-    fps = 1.0/(time.time() - start)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    result, fps, _ = run_inference(img, nn, pre_process, post_process)
     return result, fps
 
 
@@ -133,7 +130,7 @@ def run_object_detection(config):
     #  ----------- Beginning of Main Loop ---------------
     while True:
         m1 = MyTime("1 loop of while(1) of main()")
-        pool_result = pool.apply_async(run_inference, (input_img, ))
+        pool_result = pool.apply_async(_run_inference, (input_img, ))
         is_first = True
         while True:
             grabbed, camera_img = vc.read()
@@ -184,7 +181,7 @@ def run_classification(config):
 
     grabbed, camera_img = vc.read()
 
-    pool_result = pool.apply_async(run_inference, (camera_img, ))
+    pool_result = pool.apply_async(_run_inference, (camera_img, ))
     result = None
     fps = 1.0
     loop_count = 0
@@ -202,7 +199,7 @@ def run_classification(config):
 
         if pool_result.ready():
             result, fps = pool_result.get()
-            pool_result = pool.apply_async(run_inference, (camera_img, ))
+            pool_result = pool.apply_async(_run_inference, (camera_img, ))
 
         if (window_width == camera_width) and (window_height == camera_height):
             window_img = camera_img
@@ -225,6 +222,61 @@ def run_classification(config):
         sleep(0.05)
 
     cv2.destroyAllWindows()
+
+    
+def run_sementic_segmentation(config):
+    global nn
+    camera_width = 320
+    camera_height = 240
+    window_name = "Segmentation Demo"
+
+    vc = init_camera(camera_width, camera_height)
+
+    pool = Pool(processes=1, initializer=nn.init)
+    result = None
+    fps = 1.0
+
+    q_save = Queue()
+    q_show = Queue()
+
+    grabbed, camera_img = vc.read()
+    if not grabbed:
+        print("Frame is empty")
+
+    q_show.put(camera_img.copy())
+    input_img = camera_img.copy()
+
+    colormap = np.array(get_color_map(len(config['CLASSES'])), dtype=np.uint8)
+
+    while True:
+        m1 = MyTime("1 loop of while(1) of main()")
+        pool_result = pool.apply_async(_run_inference, (input_img,))
+        is_first = True
+        while True:
+            grabbed, camera_img = vc.read()
+            if is_first:
+                input_img = camera_img.copy()
+                is_first = False
+            q_save.put(camera_img.copy())
+            if not q_show.empty():
+                window_img = q_show.get()
+                overlay_img = window_img
+                if result is not None:
+                    seg_img = label_to_color_image(result, colormap)
+                    seg_img = cv2.resize(seg_img, dsize=(camera_width, camera_height))
+                    overlay_img = cv2.addWeighted(window_img, 1, seg_img, 0.8, 0)
+                    overlay_img = add_fps(overlay_img, fps)
+
+                cv2.imshow(window_name, overlay_img)
+                key = cv2.waitKey(2)    # Wait for 2ms
+                if key == 27:           # ESC to quit
+                    return
+            if pool_result.ready():
+                break
+        q_show = clear_queue(q_show)
+        q_save, q_show = swap_queue(q_save, q_show)
+        result, fps = pool_result.get()
+        m1.show()
 
 
 def run(model, config_file):
@@ -258,6 +310,9 @@ def run(model, config_file):
     if config.TASK == "IMAGE.OBJECT_DETECTION":
         run_object_detection(config)
 
+    if config.TASK == "IMAGE.SEMANTIC_SEGMENTATION":
+        run_sementic_segmentation(config)
+
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option(
@@ -269,7 +324,7 @@ def run(model, config_file):
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
-    default="../models/minimal_graph_with_shape.pb",
+    default="../models/lib/lib_fpga.so",
 )
 @click.option(
     "-c",

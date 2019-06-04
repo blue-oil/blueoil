@@ -193,6 +193,9 @@ function additional_test(){
     @ 0 ${RUN_SCRIPT} train ${YML_CONFIG_FILE} ${OUTPUT_DIR} test_experiment
     @ 0 ls -td ${OUTPUT_DIR}/test_experiment
 
+    echo "## Specify existing EXPERIMENT_ID for re-training"
+    @ 0 ${RUN_SCRIPT} train ${YML_CONFIG_FILE} ${OUTPUT_DIR} test_experiment
+
     echo "## Specify CHECKPOINT_NO"
     @ 0 ${RUN_SCRIPT} convert ${YML_CONFIG_FILE} ${EXPERIMENT_DIR} 1
 

@@ -4,12 +4,12 @@ You need the following devices.
 
 - **Training server**
     - Ubuntu Linux 16.04 (x86_64)
-    - NVIDIA GPU with Architecture > Fermi (2.1)
-    - NVIDIA drivers >= 367.48
+    - NVIDIA GPU with Architecture >= 3.0 (Kepler)
+    - NVIDIA drivers >= 410.48
     - Docker >=1.12 (or >=17.03.0)
     - nvidia-docker >= 2.0
 
-    <br>Training by Blueoil is run on docker container with original docker image based on NVIDIA's [CUDA images](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA#requirements) (cuda:8.0-cudnn6-devel).
+    <br>Training by Blueoil is run on docker container with original docker image based on NVIDIA's [CUDA images](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA#requirements) (cuda:10.0-cudnn7-devel).
 
     The machine running the CUDA container only requires the NVIDIA driver, the CUDA toolkit doesn't have to be installed.
 
@@ -32,7 +32,7 @@ You need the following devices.
 ---
 
 ## Install / Uninstall Blueoil
-This section describes how to setup an environment to train a neural network and convert to FPGA ready format by Blueoil. 
+This section describes how to setup an environment to train a neural network and convert to FPGA ready format by Blueoil.
 
 ### Install (On server)
 
@@ -46,14 +46,14 @@ Clone the Blueoil repository with recursive option.
 
 You should run below to update some submodules if cloned without recursive option.
 
-    $ git submodule update --init --recursive
+    $ make deps
 
 #### Build the docker image including Blueoil libraries
 
     $ cd blueoil
-    $ ./docker_build.sh
+    $ make build
 
-After the build has succeeded, you can use the docker image named `[User ID]_blueoil:local_build`
+After the build has succeeded, you can use the docker image named `blueoil_[User ID]:[TAG based on commit tag]`
 
 ### Uninstall (On server)
 
@@ -77,7 +77,7 @@ Please set the empty microSD card (8GB+) into your PC and write the downloaded i
     $ cat de10nano_ubuntu.img.gz | gunzip | sudo dd of=/dev/mmcblk0 bs=4M
 
 Caution & Note:
-- In Linux 
+- In Linux
     - Please unmount the microSD with umount command before writing
     - /dev/xxx might have a different name, so please confirm the name in the target microSD
 - In macOS
@@ -142,7 +142,7 @@ Please unset the microSD from your host system after dd && sync operation has be
 
 ### Update some files for Blueoil (On your PC)
 
-We need to update some files on the microSD. 
+We need to update some files on the microSD.
 To update it, we need to perform some copy operations.
 
 REQUIRED_FILES are shown in the following list. These files are necessary in later step.
@@ -206,7 +206,7 @@ Third, update kernel modules with:
 
 ## Install required packages
 
-Login to FPGA board and update required packages. 
+Login to FPGA board and update required packages.
 
     $ apt-get update
     $ apt-get install python-dev python-setuptools python-pip unzip
@@ -215,4 +215,4 @@ Login to FPGA board and update required packages.
 
 ## Other Information
 
-- Network of the FPGA board is initially set up as DHCP network. 
+- Network of the FPGA board is initially set up as DHCP network.

@@ -32,7 +32,7 @@ from core.operators import Operator, Conv, Identity, QTZ_binary_mean_scaling, \
     BatchNormalization, QTZ_linear_mid_tread_half, Add, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
     Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, DepthToSpace, \
-    Split, Pad, MatMul
+    Split, Pad, MatMul, LeakyRelu
 
 DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
     # any
@@ -200,7 +200,7 @@ class Node(object):
             attrs_data.append(self.nd_.attr[attr_name].s)
         elif attr_name in ['strides', 'ksize']:
             attrs_data.append(self.nd_.attr[attr_name].list.i)
-        elif attr_name == 'epsilon':
+        elif attr_name in ['epsilon', 'alpha']:
             attrs_data.append(self.nd_.attr[attr_name].f)
         elif attr_name == 'is_training' or attr_name == 'use_cudnn_on_gpu':
             attrs_data.append(self.nd_.attr[attr_name].b)
@@ -903,6 +903,22 @@ class Importer(object):
                 shape,
                 dtype,
                 input_ops
+            )
+        elif op_type == 'LeakyRelu':
+
+            alpha = node.attribute("alpha")[0]
+
+            if not shape:
+                attributes = {'alpha': alpha}
+                shape = infer_shape(attributes)
+
+            new_op = LeakyRelu(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
+                alpha=alpha,
             )
         elif op_type == 'SpaceToDepth':
             bs = node.attribute('block_size')

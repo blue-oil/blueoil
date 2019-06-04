@@ -1,4 +1,4 @@
-FROM nvidia/cuda:8.0-cudnn6-devel
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu16.04
 
 MAINTAINER masuda@leapmind.io
 
@@ -90,21 +90,18 @@ RUN pip install -U pip setuptools
 RUN apt-get update && apt-get install -y g++-5-arm-linux-gnueabihf && \
     ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
 
-# Copy lmnet sources to docker image
-COPY lmnet /home/blueoil/lmnet
-WORKDIR /home/blueoil/lmnet
-
 # Install requirements
-RUN pip install -r gpu.requirements.txt
+COPY lmnet/*requirements.txt /tmp/requirements/
+RUN pip install -r /tmp/requirements/gpu.requirements.txt && rm -rf /tmp/requirements
 # In order to install blueoil requirements `prompt_toolkit==1.0.15`, uninstall prompt-toolkit v2.0 that depends on `pdb==0.10.2`.
 RUN pip uninstall -y prompt-toolkit
 
 # Build coco. It needs numpy.
-COPY lmnet/third_party third_party
+COPY lmnet/third_party /home/blueoil/lmnet/third_party
 # https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
-RUN cd third_party/coco/PythonAPI && pip install -e .
+RUN cd /home/blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
 
-# For development 
+# For development
 RUN apt-get update && apt-get install -y \
     x11-apps \
     imagemagick \
@@ -112,25 +109,24 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Copy blueoil sources to docker image
+COPY blueoil /home/blueoil/blueoil
+COPY setup.* /home/blueoil/
+COPY output_template /home/blueoil/output_template
+# Install blueoil
+WORKDIR /home/blueoil
+RUN python setup.py install
+RUN chmod 777 /home/blueoil
+
 # Copy dlk sources to docker image
 COPY dlk /home/blueoil/dlk
 # Install dlk
 WORKDIR /home/blueoil/dlk
 RUN PYTHONPATH=python/dlk python setup.py install
-
-# Copy blueoil sources to docker image
-COPY blueoil /home/blueoil/blueoil
-COPY setup.py /home/blueoil/setup.py
-COPY setup.cfg /home/blueoil/setup.cfg
-# Install blueoil
-WORKDIR /home/blueoil
-RUN python setup.py install
-# Enable to be written by all user
-RUN chmod 777 /home/blueoil
 RUN chmod 777 /home/blueoil/dlk
 
-# Copy output template
-COPY output_template /home/blueoil/output_template
+# Copy lmnet sources to docker image
+COPY lmnet /home/blueoil/lmnet
 
-# Set __init__.py for python modules
-RUN touch lmnet/lmnet/__init__.py
+ENV PYTHONPATH $PYTHONPATH:/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk
+WORKDIR /home/blueoil

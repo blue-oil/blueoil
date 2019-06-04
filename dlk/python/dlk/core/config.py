@@ -16,7 +16,7 @@
 """Configuration module."""
 import os
 import env
-from core.data_types import Int32
+from core.data_types import Uint32
 
 
 class Config(object):
@@ -32,7 +32,7 @@ class Config(object):
                  pll_frequency='50MHz',
                  quartus_path='blueoil_de10-nano.prj',
                  placeholder_dtype=float,
-                 default_qword_dtype=Int32,
+                 default_qword_dtype=Uint32,
                  tvm_path=None,
                  test_dir=None,
                  use_onnx=False,

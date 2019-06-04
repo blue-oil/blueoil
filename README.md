@@ -24,12 +24,12 @@ Check out the [Installation](https://docs.blue-oil.org/install/install.html) and
 
 ## Prerequisites
 - GNU/Linux x86_64 with kernel version > 3.10
-- NVIDIA GPU with Architecture > Fermi (2.1)
-- NVIDIA drivers >= 367.48
+- NVIDIA GPU with Architecture >= 3.0 (Kepler)
+- NVIDIA drivers >= 410.48
 - Docker >=1.12 (or >=17.03.0)
 - nvidia-docker >= 2.0
 
-The blueoil is run on docker container with original docker image based on NVIDIA's [CUDA images](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA#requirements) (cuda:8.0-cudnn6-devel).
+The blueoil is run on docker container with original docker image based on NVIDIA's [CUDA images](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA#requirements) (cuda:10.0-cudnn7-devel).
 
 The machine running the CUDA container only requires the NVIDIA driver, the CUDA toolkit doesn't have to be installed.
 
@@ -38,7 +38,7 @@ Please see the detail in the nvidia-docker's [prerequisites](https://github.com/
 ## Set up
 There are some submodules in this repositry, so you should run `git submodule update --init --recursive` after cloning or `git clone --recursive [this repository]`.
 ```
-./docker_build.sh
+make build
 ```
 Note: The private repository submodules are set to connect by ssh, if you want to use HTTPS, you should edit URLs in `.gitmodules` and run `git submodule sync` before `git submodule update --init --recursive` command. ([see how to edit](https://stackoverflow.com/a/30885128))
 
@@ -46,7 +46,6 @@ Note: The private repository submodules are set to connect by ssh, if you want t
 ## How to make document
 
 ```
-pip install -r doc.requirements.txt
 cd docs
 make html
 ```
@@ -72,4 +71,4 @@ Arguments:
 ```
 
 ### Tests for CI
-* [Jenkins settings for CI](./.jenkins/README.md)
+* [Jenkins settings for CI](./tests/README.md)

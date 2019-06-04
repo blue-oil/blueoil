@@ -17,9 +17,11 @@ import argparse
 import os
 import re
 import importlib
+from tempfile import NamedTemporaryFile
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
+from tensorflow import gfile
 
 from lmnet.utils.module_loader import load_class
 from blueoil.vars import TEMPLATE_DIR
@@ -63,6 +65,10 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
         "dataset_module": "delta_mark",
         "dataset_class": "ClassificationBase",
     },
+    "TensorFlow Datasets for Classification": {
+        "dataset_module": "tensorflow_datasets",
+        "dataset_class": "TensorFlowDatasetsClassification",
+    },
     "OpenImagesV4": {
         "dataset_module": "open_images_v4",
         "dataset_class": "OpenImagesV4BoundingBoxBase",
@@ -96,11 +102,11 @@ def _load_yaml(blueoil_config_filename):
     Returns:
         blueoil_config(dict): dict of blueoil config.
     """
-    if not os.path.exists(blueoil_config_filename):
+    if not gfile.Exists(blueoil_config_filename):
         FileNotFoundError("File not found: {}".format(blueoil_config_filename))
 
-    with open(blueoil_config_filename, "r") as f:
-        blueoil_config = yaml.load(f)
+    with gfile.GFile(blueoil_config_filename, "r") as f:
+        blueoil_config = yaml.load(f, Loader=yaml.SafeLoader)
 
     model_name, _ = os.path.splitext(os.path.basename(blueoil_config_filename))
 
@@ -296,10 +302,11 @@ def _save(lmnet_config):
     tpl = env.get_template(template_file)
 
     applied = tpl.render(lmnet_config)
-    config_file = "{}.py".format(lmnet_config['model_name'])
-    with open(config_file, 'w') as fp:
+    with NamedTemporaryFile(
+            prefix="blueoil_config_{}".format(lmnet_config['model_name']),
+            suffix=".py", delete=False, mode="w") as fp:
         fp.write(applied)
-    return config_file
+        return fp.name
 
 
 def main():

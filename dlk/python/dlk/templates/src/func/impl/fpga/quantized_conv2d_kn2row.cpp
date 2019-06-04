@@ -35,7 +35,7 @@ namespace dlk
 namespace impl
 {
 
-void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[], const T_UINT kernel[],
+void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[], const QUANTIZED_PACKED_KERNEL kernel[],
                            const binary_convolution_parameters &p)
 {
   using namespace dlk;

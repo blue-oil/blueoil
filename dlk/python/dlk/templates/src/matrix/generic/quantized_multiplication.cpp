@@ -34,7 +34,7 @@ static int pop_count(T_UINT i) {
 #define CONV(i, k) r##i##k += pop_count(~(a ^ b##k##0)) + 2 * pop_count(~(a ^ b##k##1)) - 3 * (pop_count(~a));
 
 void quantized_matrix_multiplication_body(
-  const dlk::MatrixView<T_UINT, dlk::MatrixOrder::RowMajor>& A,
+  const dlk::MatrixView<QUANTIZED_PACKED_KERNEL, dlk::MatrixOrder::RowMajor>& A,
   const dlk::MatrixView<QUANTIZED_PACKED, dlk::MatrixOrder::ColMajor>& B,
   unsigned int begin,
   unsigned int end,
@@ -67,14 +67,14 @@ void quantized_matrix_multiplication_body(
           A.rows() - i < block_size_i ||
           A.cols() - j < block_size_j) {
           for (unsigned int j2 = 0; j2 < std::min(block_size_j, A.cols() - j); ++j2) {
-            T_UINT b00;
-            T_UINT b01;
-            T_UINT b10;
-            T_UINT b11;
-            T_UINT b20;
-            T_UINT b21;
-            T_UINT b30;
-            T_UINT b31;
+            QUANTIZED_PACKED b00;
+            QUANTIZED_PACKED b01;
+            QUANTIZED_PACKED b10;
+            QUANTIZED_PACKED b11;
+            QUANTIZED_PACKED b20;
+            QUANTIZED_PACKED b21;
+            QUANTIZED_PACKED b30;
+            QUANTIZED_PACKED b31;
             if (end - k > 0) {
               b00 = *B.data(2*(j+j2)  , k+0);
               b01 = *B.data(2*(j+j2)+1, k+0);
@@ -92,28 +92,28 @@ void quantized_matrix_multiplication_body(
               b31 = *B.data(2*(j+j2)+1, k+3);
             }
             if (A.rows() - i > 0) {
-              T_UINT a = *A.data(i+0, j+j2);
+              const auto a = A(i+0, j+j2);
               if (end - k > 0) CONV(0, 0)
               if (end - k > 1) CONV(0, 1)
               if (end - k > 2) CONV(0, 2)
               if (end - k > 3) CONV(0, 3)
             }
-            if (A.rows() - i > 0) {
-              T_UINT a = *A.data(i+1, j+j2);
+            if (A.rows() - i > 1) {
+              const auto a = A(i+1, j+j2);
               if (end - k > 0) CONV(1, 0)
               if (end - k > 1) CONV(1, 1)
               if (end - k > 2) CONV(1, 2)
               if (end - k > 3) CONV(1, 3)
             }
-            if (A.rows() - i > 0) {
-              T_UINT a = *A.data(i+2, j+j2);
+            if (A.rows() - i > 2) {
+              const auto a = A(i+2, j+j2);
               if (end - k > 0) CONV(2, 0)
               if (end - k > 1) CONV(2, 1)
               if (end - k > 2) CONV(2, 2)
               if (end - k > 3) CONV(2, 3)
             }
-            if (A.rows() - i > 0) {
-              T_UINT a = *A.data(i+3, j+j2);
+            if (A.rows() - i > 3) {
+              const auto a = A(i+3, j+j2);
               if (end - k > 0) CONV(3, 0)
               if (end - k > 1) CONV(3, 1)
               if (end - k > 2) CONV(3, 2)
@@ -122,30 +122,30 @@ void quantized_matrix_multiplication_body(
           }
         } else {
           for (unsigned int j2 = 0; j2 < block_size_j; ++j2) {
-            T_UINT b00 = *B.data(2*(j+j2)  , k+0);
-            T_UINT b01 = *B.data(2*(j+j2)+1, k+0);
-            T_UINT b10 = *B.data(2*(j+j2)  , k+1);
-            T_UINT b11 = *B.data(2*(j+j2)+1, k+1);
-            T_UINT b20 = *B.data(2*(j+j2)  , k+2);
-            T_UINT b21 = *B.data(2*(j+j2)+1, k+2);
-            T_UINT b30 = *B.data(2*(j+j2)  , k+3);
-            T_UINT b31 = *B.data(2*(j+j2)+1, k+3);
-            T_UINT a = *A.data(i+0, j+j2);
+            QUANTIZED_PACKED b00 = *B.data(2*(j+j2)  , k+0);
+            QUANTIZED_PACKED b01 = *B.data(2*(j+j2)+1, k+0);
+            QUANTIZED_PACKED b10 = *B.data(2*(j+j2)  , k+1);
+            QUANTIZED_PACKED b11 = *B.data(2*(j+j2)+1, k+1);
+            QUANTIZED_PACKED b20 = *B.data(2*(j+j2)  , k+2);
+            QUANTIZED_PACKED b21 = *B.data(2*(j+j2)+1, k+2);
+            QUANTIZED_PACKED b30 = *B.data(2*(j+j2)  , k+3);
+            QUANTIZED_PACKED b31 = *B.data(2*(j+j2)+1, k+3);
+            auto a = A(i+0, j+j2);
             CONV(0, 0)
             CONV(0, 1)
             CONV(0, 2)
             CONV(0, 3)
-            a = *A.data(i+1, j+j2);
+            a = A(i+1, j+j2);
             CONV(1, 0)
             CONV(1, 1)
             CONV(1, 2)
             CONV(1, 3)
-            a = *A.data(i+2, j+j2);
+            a = A(i+2, j+j2);
             CONV(2, 0)
             CONV(2, 1)
             CONV(2, 2)
             CONV(2, 3)
-            a = *A.data(i+3, j+j2);
+            a = A(i+3, j+j2);
             CONV(3, 0)
             CONV(3, 1)
             CONV(3, 2)
@@ -188,7 +188,7 @@ void quantized_matrix_multiplication_body(
 namespace dlk {
 
 void quantized_matrix_multiplication(
-  const MatrixView<T_UINT, MatrixOrder::RowMajor>& A,
+  const MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>& A,
   const MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>& B,
   MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>& C) {
   Measurement::Start("quantized_matrix_multiplication");

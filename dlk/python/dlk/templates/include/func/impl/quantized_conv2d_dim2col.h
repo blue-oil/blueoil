@@ -23,7 +23,7 @@ namespace dlk {
 
 namespace impl {
 
-void QuantizedConv2DIm2Col(QUANTIZED_NOT_PACKED input[], T_UINT kernel[],
+void QuantizedConv2DIm2Col(QUANTIZED_NOT_PACKED input[], QUANTIZED_PACKED_KERNEL kernel[],
                                   const binary_convolution_parameters &p);
 
 } // namespace impl

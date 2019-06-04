@@ -20,9 +20,17 @@ from __future__ import unicode_literals
 
 from itertools import product as itr_prod
 
+# HACK: cross py2-py3 compatible version
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
+
+from threading import Thread
+
 import cv2
 import numpy as np
-
+import time
 
 COLORS = [tuple(p) for p in itr_prod([0, 180, 255], repeat=3)]
 COLORS = COLORS[1:]
@@ -87,3 +95,70 @@ def add_rectangle(classes, orig, preds, pred_shape):
         cv2.putText(orig, label_text, (le, t + label_size[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color)
 
     return orig
+
+
+class VideoStream:
+    def __init__(self, video_source, video_width, video_height, video_fps, queue_size=1):
+        self.video_fps = video_fps
+
+        vc = cv2.VideoCapture(video_source)
+
+        if hasattr(cv2, 'cv'):
+            vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, video_width)
+            vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, video_height)
+            vc.set(cv2.cv.CV_CAP_PROP_FPS, video_fps)
+        else:
+            vc.set(cv2.CAP_PROP_FRAME_WIDTH, video_width)
+            vc.set(cv2.CAP_PROP_FRAME_HEIGHT, video_height)
+            vc.set(cv2.CAP_PROP_FPS, video_fps)
+
+        self.stream = vc
+        self.stopped = False
+        self.queue = Queue(maxsize=queue_size)
+        self.thread = Thread(target=self.update, args=())
+        self.thread.daemon = True
+        self.thread.start()
+
+    def update(self):
+        while True:
+            if self.stopped:
+                break
+
+            (flg, frame) = self.stream.read()
+            if not flg:
+                Exception("Video capture is wrong")
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            if self.queue.full():
+                time.sleep(1/float(self.video_fps))
+            else:
+                if not self.queue.empty():
+                    self.queue.get()
+                    self.queue.put(frame)
+                else:
+                    self.queue.put(frame)
+
+        self.stream.release()
+
+    def read(self):
+        return self.queue.get()
+
+    def release(self):
+        self.stopped = True
+        self.thread.join()
+
+
+def run_inference(image, nn, pre_process, post_process):
+    start = time.clock()
+
+    data = pre_process(image=image)["image"]
+    data = np.expand_dims(data, axis=0)
+
+    network_only_start = time.clock()
+    result = nn.run(data)
+    fps_only_network = 1.0/(time.clock() - network_only_start)
+
+    output = post_process(outputs=result)['outputs']
+
+    fps = 1.0/(time.clock() - start)
+    return output, fps, fps_only_network
