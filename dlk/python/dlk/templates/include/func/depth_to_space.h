@@ -20,18 +20,16 @@ limitations under the License.
 #include "time_measurement.h"
 #include "tensor_view.h"
 
-template<class T>
-void func_DepthToSpace(const TensorView<T, MemoryLayout::NHWC>& input,
-    const TensorView<T, MemoryLayout::NHWC>& output,
+inline void func_DepthToSpace(const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& input,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
     T_UINT a, T_UINT b, T_UINT kernel_size, T_UINT stride) {
-  Measurement::Start("ExtractImagePatches");
+  Measurement::Start("DepthToSpace");
 
   const auto out_shape = output.get_shape();
   const auto out_height = out_shape[1];
   const auto out_width = out_shape[2];
-  const auto out_depth = out_shape[3];
-
-  T_UINT input_index = 0;
+  const auto bits = out_shape[3];
+  const auto out_depth = out_shape[0];
 
   for(T_UINT wi = 0; wi < out_height; wi += stride)
     for(T_UINT wj = 0; wj < out_width; wj += stride)
@@ -43,7 +41,10 @@ void func_DepthToSpace(const TensorView<T, MemoryLayout::NHWC>& input,
             T_INT row = wi + ki;
             T_INT col = wj + kj;
 
-            output(0, row, col, kz) = input.data()[input_index++];
+            T_INT idx = kz + ki * kernel_size * out_depth + kj * out_depth;
+            for (T_INT digit = 0; digit < bits; ++digit) {
+              output(kz, row, col, digit, 0) = input(idx, wi/stride, wj/stride, digit, 0);
+            }
           }
       }
 

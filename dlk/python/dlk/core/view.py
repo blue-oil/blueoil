@@ -103,6 +103,7 @@ class View(object):
             iw = x_op.width
             oh = op.height
             ow = op.width
+            b = 32
             od = op.channel
             pad = op.pads[0]
             stride = op.strides[0]
@@ -115,6 +116,7 @@ class View(object):
                 kw = self.op.kernel_width
                 kd = x_op.channel
                 k_elems = kh * kw * kd
+                od = ((od + b - 1) // b) * b
 
                 if input_ops['X'].op_type == 'Split':
                     for k, v in input_ops['X'].output_ops.items():
