@@ -57,6 +57,7 @@ class Operator(object):
 
     def update_shape(self, shape: List[int], dimension_format: str) -> None:
         self._shape: List[int] = shape
+        self._rank = len(shape)
         self._dimension_format = dimension_format
         dimension_format_list = []
         for ch in dimension_format:
@@ -1045,6 +1046,7 @@ class Conv(Operator):
         self._a_quantizer: List['Quantizer'] = []
         self._quantizer: Optional['Quantizer'] = None
         self._thresholds = thresholds
+        self._original_shape = shape
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
         # if kernel shape is not assigned, estimate kernel shape from input W's shape
 
@@ -1269,6 +1271,9 @@ class Conv(Operator):
     @property
     def preserve_quantization(self) -> bool:
         return True
+
+    def restore_shape(self):
+        self.update_shape(self._original_shape, 'NHWC')
 
 
 class BatchNormalization(Operator):

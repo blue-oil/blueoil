@@ -561,6 +561,7 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
     def output_dtype_changer(node, otype):
         for n in node.input_nodes:
             if n.op_type == 'Conv' and n.is_quantized:
+                n.restore_shape()
                 n.dtype = otype
                 return
             output_dtype_changer(n, otype)

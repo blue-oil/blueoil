@@ -27,25 +27,6 @@ limitations under the License.
 #include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_tiling.h"
 
-inline void func_linear_to_float(
-    const BIN_CONV_OUTPUT input[],
-    T_INT nbit,
-    T_FLOAT max_value,
-    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output) {
-  Measurement::Start("linear_to_float");
-
-  T_FLOAT n = (1 << nbit) - 1;
-  unsigned num_elems = output.size();
-
-  for (unsigned i = 0; i < num_elems; i++) {
-    T_FLOAT tmp = (T_FLOAT)input[i];
-    tmp = tmp / n;
-    output.data()[i] = tmp * max_value;
-  }
-
-  Measurement::Stop();
-}
-
 template <typename T, MemoryLayout layout>
 void QuantizedConv2D(const TensorView<T, layout>& input,
     const kernel_t& kernel,
@@ -240,11 +221,32 @@ void func_QuantizedConv2DWithThreshold(
     const binary_convolution_parameters& p) {
   QuantizedConv2D(input, kernel, p);
 
-  unsigned out_elems = p.normal_conv_params.output_height *
-                       p.normal_conv_params.output_width *
-                       p.normal_conv_params.output_channels;
+  Measurement::Start("linear_to_float");
 
-  func_linear_to_float(p.device_output_buf, p.n_bit, p.max_value, output);
+  T_FLOAT n = (1 << p.n_bit) - 1;
+  const auto& np = p.normal_conv_params;
+  const auto out_height = np.output_height;
+  const auto out_width = np.output_width;
+  const auto out_channels = np.output_channels;
+  const auto true_out_channels = output.get_shape()[3];
+
+  QUANTIZED_PACKED::base_t* ptr = (QUANTIZED_PACKED::base_t*)p.device_output_buf;
+  for (unsigned r = 0; r < out_height; ++r) {
+    for (unsigned c = 0; c < out_width; ++c) {
+      for (unsigned d = 0; d < true_out_channels; ++d) {
+        const auto i = r * out_width * p.n_bit + c * p.n_bit;
+        QUANTIZED_PACKED::base_t bits = 0;
+        for (unsigned digit = 0; digit < p.n_bit; ++digit) {
+          bits |= ((ptr[i + digit] >> d) & 1) << digit;
+        }
+        T_FLOAT tmp = (T_FLOAT)bits;
+        tmp = tmp / n;
+        output(0, r, c, d) = tmp * p.max_value;
+      }
+    }
+  }
+
+  Measurement::Stop();
 }
 
 template <typename T, MemoryLayout layout>
