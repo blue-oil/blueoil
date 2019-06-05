@@ -21,16 +21,12 @@ from lmnet.datasets.dataset_iterator import DatasetIterator
 pytestmark = pytest.mark.usefixtures("set_test_environment")
 
 
-class DummyCityscapes(Cityscapes):
-    extend_dir = "cityscapes"
-
-
 def test_cityscapes():
     batch_size = 1
-    train_dataset = DummyCityscapes(subset="train", batch_size=batch_size)
+    train_dataset = Cityscapes(subset="train", batch_size=batch_size)
     train_dataset = DatasetIterator(train_dataset)
 
-    test_dataset = DummyCityscapes(subset="validation", batch_size=batch_size)
+    test_dataset = Cityscapes(subset="validation", batch_size=batch_size)
     test_dataset = DatasetIterator(test_dataset)
 
     assert train_dataset.num_classes == 34
