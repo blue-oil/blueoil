@@ -24,19 +24,6 @@ from lmnet.metrics.mean_average_precision import average_precision
 from lmnet.networks.base import BaseNetwork
 
 
-# TODO(wakisaka): When update tensorflow version, remove it.
-# For tensorflow v1.4 bug, I have to override space to depth grad func.
-# The bug fixed at v1.5. When update tensorflow version, remove ovrride map.
-# Ref:
-# https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/python/ops/array_grad.py#L625
-# https://github.com/tensorflow/tensorflow/blob/r1.5/tensorflow/python/ops/array_grad.py#L654
-@tf.RegisterGradient("CustomSpaceToDepth")
-def _SpaceToDepthGrad(op, grad):
-    block_size = op.get_attr("block_size")
-    data_format = op.get_attr("data_format")
-    return tf.depth_to_space(grad, block_size, data_format=data_format)
-
-
 # TODO(wakisaka): there are so many duplicates with yolo_v1.py .
 # TODO(wakisaka): dynamic image size change.
 class YoloV2(BaseNetwork):
@@ -708,10 +695,7 @@ class YoloV2(BaseNetwork):
                 # Currently, I didn't try to space_to_depth with images_placehodler `None` shape as dynamic image.
                 if use_space_to_depth:
 
-                    # TODO(wakisaka): When update tensorflow version, remove it.
-                    g = tf.get_default_graph()
-                    with g.gradient_override_map({"SpaceToDepth": "CustomSpaceToDepth"}):
-                        outputs = tf.space_to_depth(inputs, stride, data_format=data_format)
+                    outputs = tf.space_to_depth(inputs, stride, data_format=data_format)
                     return outputs
 
                 else:
