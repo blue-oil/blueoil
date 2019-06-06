@@ -67,8 +67,8 @@ PRETRAIN_FILE = ""
 # IS_DEBUG = True
 
 PRE_PROCESSOR = Sequence([
-    DivideBy255(),
-    resize(160, 320)
+    resize(size=IMAGE_SIZE),
+    DivideBy255()
 ])
 POST_PROCESSOR = None
 
