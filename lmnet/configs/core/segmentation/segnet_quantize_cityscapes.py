@@ -22,7 +22,7 @@ from lmnet.datasets.cityscapes import Cityscapes
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     DivideBy255,
-    resize
+    Resize
 )
 from lmnet.data_augmentor import (
     Brightness,
@@ -67,7 +67,7 @@ PRETRAIN_FILE = ""
 # IS_DEBUG = True
 
 PRE_PROCESSOR = Sequence([
-    resize(size=IMAGE_SIZE),
+    Resize(size=IMAGE_SIZE),
     DivideBy255()
 ])
 POST_PROCESSOR = None
