@@ -22,6 +22,7 @@ from lmnet.datasets.cityscapes import Cityscapes
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     DivideBy255,
+    resize
 )
 from lmnet.data_augmentor import (
     Brightness,
@@ -40,7 +41,7 @@ IS_DEBUG = False
 NETWORK_CLASS = LmSegnetQuantize
 DATASET_CLASS = Cityscapes
 
-IMAGE_SIZE = [1024, 2048]
+IMAGE_SIZE = [160, 320]
 BATCH_SIZE = 8
 DATA_FORMAT = "NHWC"
 TASK = Tasks.SEMANTIC_SEGMENTATION
@@ -67,6 +68,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     DivideBy255(),
+    resize(160, 320)
 ])
 POST_PROCESSOR = None
 
