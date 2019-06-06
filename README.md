@@ -4,8 +4,8 @@
 
 ---
 
-[![Build Status](https://jenkins.blue-oil.org/job/blueoil_main/badge/icon)](https://jenkins.blue-oil.org/job/blueoil_main/)
-[![Build Status](https://jenkins.blue-oil.org/job/blueoil_lmnet/badge/icon)](https://jenkins.blue-oil.org/job/blueoil_lmnet/)
+[![Build Status](https://jenkins.blueoil.org/job/blueoil_main/badge/icon)](https://jenkins.blueoil.org/job/blueoil_main/)
+[![Build Status](https://jenkins.blueoil.org/job/blueoil_lmnet/badge/icon)](https://jenkins.blueoil.org/job/blueoil_lmnet/)
 [![CircleCI](https://circleci.com/gh/blue-oil/blueoil.svg?style=svg)](https://circleci.com/gh/blue-oil/blueoil)
 
 Blueoil provides two features.
@@ -14,9 +14,9 @@ Blueoil provides two features.
 
 ## Documentation
 
-You can see **[online documentation](https://docs.blue-oil.org)** with enter.
+You can see **[online documentation](https://docs.blueoil.org)** with enter.
 
-Check out the [Installation](https://docs.blue-oil.org/install/install.html) and [Usage Guide](https://docs.blue-oil.org/usage/index.html) page for getting started.
+Check out the [Installation](https://docs.blueoil.org/install/install.html) and [Usage Guide](https://docs.blueoil.org/usage/index.html) page for getting started.
 
 
 **Note**: Currently, Installation page is just in to be written, Please see [Setup](#set-up) section to build docker on your development environment.
