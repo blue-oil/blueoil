@@ -50,8 +50,10 @@ class View(object):
 
             shape_string = self.shape_to_string(op.shape, channel_active=True)
 
-            self.reuse_buffer_str = f"""TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}>::tensor_info_t<std::size_t> {op_name}_shape = {{ {shape_string} }};
-            TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op_name}({op.available_buffer}_raw, {op_name}_shape);"""
+            self.reuse_buffer_str = f"""TensorView<{op.dtype.cpptype()}, \
+            MemoryLayout::{op.dimension}>::tensor_info_t<std::size_t> {op_name}_shape = {{ {shape_string} }};
+            TensorView<{op.dtype.cpptype()}, \
+            MemoryLayout::{op.dimension}> {op_name}({op.available_buffer}_raw, {op_name}_shape);"""
 
         if self.op.op_type == 'QTZ_binary_mean_scaling':
             if len(input_ops) != 1:
@@ -574,7 +576,8 @@ class View(object):
 
             return f"""
                     // Reshape from {in_shape} to {out_shape}'
-                    std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data() + {input_ops["data"].name}.size(), {op.name}.data());
+                    std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data() + \
+                    {input_ops["data"].name}.size(), {op.name}.data());
                     """
 
         elif self.op.op_type == 'BatchNormalization':
@@ -642,7 +645,8 @@ class View(object):
 
             return self.format_string(
                 f"""
-                const TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {input_list_name}[] = {{ {inputs_string} }};
+                const TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {input_list_name}[] = \
+                {{ {inputs_string} }};
                 T_UINT {depth_list_name}[] = {{ {depth_list} }};
                 func_ConcatOnDepth({input_list_name}, {depth_list_name}, {number_of_inputs}, {op.name});
                 """

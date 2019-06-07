@@ -492,7 +492,7 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             width = conv_node.width
             depth = conv_node.channel
             depth_upper = (depth + b - 1) // b
-            conv_node.update_shape([depth_upper, height, width, 2, b],"ChHWBCl")
+            conv_node.update_shape([depth_upper, height, width, 2, b], "ChHWBCl")
 
         # change the output data type of the quantizers
         conv_node.quantizer.dtype = PackedUint32()
@@ -630,13 +630,15 @@ def pass_lookup(graph: Graph) -> None:
 
             idx += 1
 
-        pe_lsb = Constant('pe_lsb_new', QUANTIZED_PACKED_KERNEL(), lsb, dimension_format='TC', packed=True, actual_shape=[256, word_size])
-        pe_msb = Constant('pe_msb_new', QUANTIZED_PACKED_KERNEL(), msb, dimension_format='TC', packed=True, actual_shape=[256, word_size])
+        pe_lsb = Constant('pe_lsb_new', QUANTIZED_PACKED_KERNEL(), lsb,
+                          dimension_format='TC', packed=True, actual_shape=[256, word_size])
+        pe_msb = Constant('pe_msb_new', QUANTIZED_PACKED_KERNEL(), msb,
+                          dimension_format='TC', packed=True, actual_shape=[256, word_size])
 
         n, h, w, c = quantizer.shape
         shape = [1, h, w, 2, word_size]
         pe = Lookup('Lookup', shape, QUANTIZED_PACKED(),
-                            {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb}, dimension_format='ChHWBCl')
+                    {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb}, dimension_format='ChHWBCl')
 
         get_nodes_in_branch(quantizer, placeholder[0], to_be_removed)
         placeholder[0].remove_output('output')

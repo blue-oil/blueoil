@@ -471,7 +471,8 @@ class Importer(object):
         nodes_to_remove = []
 # fixme: default output format is NC/NHWC (ad-hoc workaround)
         rank_to_format = {2: 'NC', 4: 'NHWC'}
-        self.add_node_to_graph_recursive(self.out_lst[0], graph, visited, added, rank_to_format[len(self.out_lst[0].get_shape())], nodes_to_remove)
+        self.add_node_to_graph_recursive(self.out_lst[0], graph, visited, added,
+                                         rank_to_format[len(self.out_lst[0].get_shape())], nodes_to_remove)
         for node in nodes_to_remove:
             graph.remove_op(node)
 
@@ -614,6 +615,7 @@ class Importer(object):
 
         # Create new op accordingly for the tf ops
         new_op: Operator
+
         def get_inputs(cdef: Type[Operator], current_node: Any) -> Dict[str, Operator]:
             input_names = cdef.input_names
             in_ops: Dict[str, Operator] = {}
