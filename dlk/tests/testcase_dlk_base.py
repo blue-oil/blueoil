@@ -23,7 +23,7 @@ import tempfile
 import shutil
 
 from tstutils import setup_de10nano
-from tstconf import PROJECT_TAG, DO_CLEANUP, DO_CLEANUP_OLDBUILD, HOURS_ELAPSED_TO_ERASE
+from tstconf import PROJECT_TAG, DO_CLEANUP, DO_CLEANUP_OLDBUILD, HOURS_ELAPSED_TO_ERASE, FPGA_FILES
 
 
 SECOND_PER_HOUR = 3600
@@ -46,9 +46,7 @@ class TestCaseDLKBase(TestCase):
     def setUpClass(TestCaseDLKBase):
         # Setup the board. For now, DE10 Nano board
         output_path = '/tmp'
-        hw_path = os.path.abspath(
-                      os.path.join(os.getcwd(),
-                      os.path.join('hw', 'intel', 'de10_nano', 'qconv_kn2row_tiling')))
+        hw_path = os.path.abspath(os.path.join('..', FPGA_FILES))
 
         board_available = setup_de10nano(hw_path, output_path)
 
