@@ -114,22 +114,15 @@ void func_QuantizedConv2D(
 
   int b = 32;
   auto &ncp(p.normal_conv_params);
+  auto true_out_channels = output.get_shape()[3];
+  auto channel_blocks = (true_out_channels + b - 1) / b;
 
-  if (ncp.output_channels > b) {
-    int out_index = 0;
-    for (int h = 0; h < ncp.output_height; ++h)
-      for (int w = 0; w < ncp.output_width; ++w)
-        for (int s = 0; s < ncp.output_channels / b; ++s)
-          for (int d = 0; d < b; ++d)
-            output.data()[out_index++] = (scaling_factor * post_qtz_factor) * p.device_output_buf[h * (b * ncp.output_width) + w * b + s * (ncp.output_height * ncp.output_width * b) + d];
-  } else {
-    int tca_channels = ((ncp.output_channels + b - 1) / b) * b;
-    int out_index = 0;
-    for (int h = 0; h < ncp.output_height; ++h)
-      for (int w = 0; w < ncp.output_width; ++w)
-        for (int d = 0; d < ncp.output_channels; ++d)
-          output.data()[out_index++] = (scaling_factor * post_qtz_factor) * p.device_output_buf[h * (tca_channels * ncp.output_width) + w * tca_channels + d];
-  }
+  int out_index = 0;
+  for (int h = 0; h < ncp.output_height; ++h)
+    for (int w = 0; w < ncp.output_width; ++w)
+      for (int s = 0; s < channel_blocks; ++s)
+        for (int d = 0; d < std::min(b, (int)true_out_channels - s*b); ++d)
+          output.data()[out_index++] = (scaling_factor * post_qtz_factor) * p.device_output_buf[h * (b * ncp.output_width) + w * b + s * (ncp.output_height * ncp.output_width * b) + d];
 
   Measurement::Stop();
 
@@ -150,44 +143,22 @@ void func_QuantizedConv2D(
 
   int b = 32;
   auto& ncp(p.normal_conv_params);
-  int tca_channels = ((ncp.output_channels + b - 1) / b) * b;
+  auto true_out_channels = output.get_shape()[3];
+  auto channel_blocks = (true_out_channels + b - 1) / b;
 
   // temporary: (2^n - 1) * (max - min)
   T_FLOAT post_qtz_factor = 2.0 / 3.0;
 
-  if (ncp.output_channels > b) {
-    Measurement::Start("QuantizedConv2D_ChangeOutputLayout");
-    int out_index = 0;
-    for (int h = 0; h < ncp.output_height; ++h)
-      for (int w = 0; w < ncp.output_width; ++w)
-        for (int s = 0; s < ncp.output_channels / b; ++s)
-          for (int d = 0; d < b; ++d)
-            output.data()[out_index++] = p.device_output_buf[h * (b * ncp.output_width) + w * b + s * (ncp.output_height * ncp.output_width * b) + d];
-    Measurement::Stop();
+  Measurement::Start("QuantizedConv2D_ApplyScalingFactor");
 
-    Measurement::Start("QuantizedConv2D_ApplyScalingFactor");
-    for (int i = 0; i < out_elems; ++i)
-      for (int c = 0; c < out_channels; ++c)
-        output.data()[i * out_channels + c] *= (scaling_factor[c] * post_qtz_factor);
-    Measurement::Stop();
-  } else {
-    Measurement::Start("QuantizedConv2D_RemoveChannels");
-    int tmp_index = 0;
-    auto tmp_output = std::make_unique<T_FLOAT[]>(out_elems * ncp.output_channels);
-    for (int h = 0; h < ncp.output_height; ++h)
-      for (int w = 0; w < ncp.output_width; ++w)
-        for (int d = 0; d < ncp.output_channels; ++d)
-          tmp_output[tmp_index++] = p.device_output_buf[h * (tca_channels * ncp.output_width) + w * tca_channels + d];
-    Measurement::Stop();
+  int out_index = 0;
+  for (int h = 0; h < ncp.output_height; ++h)
+    for (int w = 0; w < ncp.output_width; ++w)
+      for (int s = 0; s < channel_blocks; ++s)
+        for (int d = 0; d < std::min(b, (int)true_out_channels - s*b); ++d)
+          output.data()[out_index++] = (scaling_factor[s*b + d] * post_qtz_factor) * p.device_output_buf[h * (b * ncp.output_width) + w * b + s * (ncp.output_height * ncp.output_width * b) + d];
 
-    Measurement::Start("QuantizedConv2D_ApplyScalingFactor");
-    int out_index = 0;
-    for (int h = 0; h < ncp.output_height; ++h)
-      for (int w = 0; w < ncp.output_width; ++w)
-        for (int d = 0; d < ncp.output_channels; ++d)
-          output.data()[out_index++] = (scaling_factor[d] * post_qtz_factor) * p.device_output_buf[h * (tca_channels * ncp.output_width) + w * tca_channels + d];
-    Measurement::Stop();
-  }
+  Measurement::Stop();
 }
 
 template<typename T, MemoryLayout layout>
