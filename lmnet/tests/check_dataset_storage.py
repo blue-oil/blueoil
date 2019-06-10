@@ -37,6 +37,7 @@ from lmnet.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
 from lmnet.datasets.caltech101 import Caltech101
 from lmnet.datasets.cifar10 import Cifar10
 from lmnet.datasets.camvid import Camvid
+from lmnet.datasets.cityscapes import Cityscapes
 from lmnet.datasets.ilsvrc_2012 import Ilsvrc2012
 from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
 from lmnet.datasets.mscoco import (
@@ -541,6 +542,38 @@ def test_camvid():
     val_dataset = DatasetIterator(val_dataset)
 
     assert dataset.num_classes == 11
+    assert dataset.num_per_epoch == 367
+    assert val_dataset.num_per_epoch == 101
+
+    for _ in range(STEP_SIZE):
+        images, labels = dataset.feed()
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == batch_size
+        assert images.shape[1] == image_size[0]
+        assert images.shape[2] == image_size[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == batch_size
+        assert labels.shape[1] == image_size[0]
+        assert labels.shape[2] == image_size[1]
+
+
+def test_cityscapes():
+    batch_size = 3
+    image_size = [256, 512]
+    dataset = Cityscapes(
+        batch_size=batch_size,
+        pre_processor=Resize(image_size))
+    dataset = DatasetIterator(dataset)
+
+    val_dataset = Cityscapes(
+        subset="validation",
+        batch_size=batch_size,
+        pre_precessor=Resize(image_size)
+    )
+
+    assert dataset.num_classes == 30
     assert dataset.num_per_epoch == 367
     assert val_dataset.num_per_epoch == 101
 
