@@ -573,7 +573,7 @@ def test_cityscapes():
         pre_precessor=Resize(image_size)
     )
 
-    assert dataset.num_classes == 30
+    assert dataset.num_classes == 34
     assert dataset.num_per_epoch == 367
     assert val_dataset.num_per_epoch == 101
 
