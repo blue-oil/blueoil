@@ -121,7 +121,8 @@ If conversion is successful, output files are generated under `./saved/{Mode nam
 output
  ├── fpga (include preloader and FPGA configuration file)
  │   ├── preloader-mkpimage.bin
- │   └── soc_system.rbf
+ │   ├── soc_system.rbf
+ │   └── soc_system.dtb
  ├── models
  │   ├── lib (include trained model library)
  │   │   ├── lib_arm.so

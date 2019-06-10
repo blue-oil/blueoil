@@ -151,16 +151,20 @@ REQUIRED_FILES are shown in the following list. These files are necessary in lat
 {Blueoil directory}/dlk/hw/intel/de10_nano/
  ├── linux_kernel/zImage
  ├── linux_kernel/kernel_modules.tar.gz
- ├── qconv_with_kn2row/soc_system.dtb
- ├── qconv_with_kn2row/soc_system.rbf
- ├── qconv_with_kn2row/preloader-mkpimage.bin
- └── qconv_with_kn2row/dma/terasic_ubuntu_arm32/udmabuf.ko
+ └── dma/terasic_ubuntu_arm32/udmabuf.ko
+
+{Blueoil directory}/output_files/fpga/
+ ├── preloader-mkpimage.bin
+ ├── soc_system.rbf
+ └── soc_system.dtb
 ```
 
 Copy the required files to the `REQUIRED_FILES` directory.
 
     $ cd {Blueoil directory}/hw/intel/de10_nano/
-    $ cp linux_kernel/zImage linux_kernel/kernel_modules.tar.gz qconv_with_kn2row/soc_system.dtb qconv_with_kn2row/soc_system.rbf qconv_with_kn2row/preloader-mkpimage.bin qconv_with_kn2row/dma/terasic_ubuntu_arm32/udmabuf.ko REQUIRED_FILES/
+    $ cp linux_kernel/zImage linux_kernel/kernel_modules.tar.gz dma/terasic_ubuntu_arm32/udmabuf.ko REQUIRED_FILES/
+    $ cd {Blueoil directory}/output_files/fpga/
+    $ cp soc_system.dtb soc_system.rbf preloader-mkpimage.bin REQUIRED_FILES/
 
 Note: u-boot.scr does not need updating.
 
