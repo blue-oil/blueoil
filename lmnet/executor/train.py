@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 The Blueoil Authors. All Rights Reserved.
+# Copyright 2019 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 
 from lmnet.utils import executor, module_loader, config as config_util
+from lmnet.utils.terminate_protected import TerminateProtected
 from lmnet import environment
 from lmnet.datasets.dataset_iterator import DatasetIterator
 
@@ -350,6 +351,10 @@ def start_training(config):
             )
             if rank == 0:
                 val_writer.add_summary(metrics_summary, step + 1)
+
+        # Save checkpoint when terminate signal detected.
+        with TerminateProtected():
+            _save_checkpoint(saver, sess, global_step, step)
 
     # training loop end.
     print("reach max step")
