@@ -15,7 +15,7 @@
 # =============================================================================
 """Test file for Optimizer."""
 import unittest
-from core.data_types import Float32, PackedUint32, Int32, QUANTIZED_NOT_PACKED
+from core.data_types import Float32, PackedUint32, Int32, QUANTIZED_PACKED
 from core.optimizer import pass_remove_identities, pass_transpose, pass_constant_folding, \
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
     pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
@@ -374,7 +374,7 @@ class TestPassPropagateDatatypes(unittest.TestCase):
 
         pass_propagate_datatypes(graph1)
 
-        self.assertEqual(graph1.get_op('s2d').dtype, QUANTIZED_NOT_PACKED(),
+        self.assertEqual(graph1.get_op('s2d').dtype, QUANTIZED_PACKED(),
                          '[Failed] Found dtype of SpaceToDepth not propagate correctly')
 
         print("Test pass #6 propagate data types passed!")
@@ -388,7 +388,7 @@ class TestPassPropagateDatatypes(unittest.TestCase):
 
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], QUANTIZED_NOT_PACKED(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+        conv1 = Conv('conv1', [1, 4, 4, 3], QUANTIZED_PACKED(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
 
         pool1 = SpaceToDepth('s2d', [1, 2, 2, 12], Float32(), {'input': conv1})
 
@@ -424,7 +424,7 @@ class TestPassPropagateOutputTypeBackward(unittest.TestCase):
 
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], QUANTIZED_NOT_PACKED(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+        conv1 = Conv('conv1', [1, 4, 4, 3], QUANTIZED_PACKED(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
         conv1.is_quantized = True
 
         pool1 = SpaceToDepth('s2d', [1, 2, 2, 12], Float32(), {'input': conv1})
