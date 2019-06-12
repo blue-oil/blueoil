@@ -574,11 +574,13 @@ class View(object):
 
             shape_string = self.shape_to_string(op.shape)
 
-            return f"""
-                    // Reshape from {in_shape} to {out_shape}'
-                    std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data() + \
-                    {input_ops["data"].name}.size(), {op.name}.data());
-                    """
+            return self.format_string(
+                f"""
+                // Reshape from {in_shape} to {out_shape}'
+                std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data() + \
+                {input_ops["data"].name}.size(), {op.name}.data());
+                """
+            )
 
         elif self.op.op_type == 'BatchNormalization':
             if len(input_ops) != 5:
