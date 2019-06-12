@@ -323,7 +323,7 @@ class TestPassQuantizeConvolutions(unittest.TestCase):
 
         pass_quantize_convolutions(graph1)
 
-        self.assertEqual(graph1.get_op('aqtz1').dtype, QUANTIZED_NOT_PACKED(),
+        self.assertEqual(graph1.get_op('aqtz1').dtype, QUANTIZED_PACKED(),
                          '[Failed] Found output dtype of activation quantizer not proper')
         self.assertEqual(graph1.get_op('kqtz1').dtype, PackedUint32(),
                          '[Failed] Found output dtype of kernel quantizer not proper')
