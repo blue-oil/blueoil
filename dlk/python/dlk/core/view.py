@@ -689,14 +689,13 @@ class View(object):
 
             inputs_string = self.inputs_to_string(input_ops)
             outputs_string = self.outputs_to_string(op, output_ops)
-            shape_string = self.shape_to_string(op.shape)
 
             ns = op.num_splits
 
             return self.format_string(
                 f"""
-                {op.dtype.cpptype()} *{op.name}[] = {{ {outputs_string} }};
-                func_Split({inputs_string}, {op.name}, {ns}, {shape_string});
+                TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}[] = {{ {outputs_string} }};
+                func_Split({inputs_string}, {op.name}, {ns});
                 """
             )
         elif self.op.op_type == 'Pad':
