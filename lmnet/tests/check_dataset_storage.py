@@ -895,6 +895,7 @@ if __name__ == '__main__':
     test_caltech101()
     test_cifar10()
     test_camvid()
+    test_cityscapes()
     test_pascalvoc_2007()
     test_pascalvoc_2007_not_skip_difficult()
     test_pascalvoc_2007_with_target_classes()
