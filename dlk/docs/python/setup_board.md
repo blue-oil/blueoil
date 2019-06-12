@@ -39,14 +39,15 @@ To update it, we need to perform some copy operations.
 
 Required files are shown in the following list. These files are necessary in later step.
 
-    dlk/hw/intel/de10_nano/
-    |
-    |- linux_kernel/zImage
-    |- linux_kernel/kernel_modules.tar.gz
-    |- qconv_with_kn2row/soc_system.dtb
-    |- qconv_with_kn2row/soc_system.rbf
-    |- qconv_with_kn2row/preloader-mkpimage.bin
-    |- qconv_with_kn2row/dma/terasic_ubuntu_arm32/udmabuf.ko
+    {Blueoil directory}/dlk/hw/intel/de10_nano/
+     ├── linux_kernel/zImage
+     ├── linux_kernel/kernel_modules.tar.gz
+     └── dma/terasic_ubuntu_arm32/udmabuf.ko
+
+    {Blueoil directory}/output_files/fpga/
+     ├── preloader-mkpimage.bin
+     ├── soc_system.rbf
+     └── soc_system.dtb
 
 Note: u-boot.scr is no need to update.
 
