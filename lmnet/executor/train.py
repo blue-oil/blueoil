@@ -15,6 +15,8 @@
 # =============================================================================
 import os
 import math
+import signal
+import sys
 
 import click
 import tensorflow as tf
@@ -352,9 +354,10 @@ def start_training(config):
             if rank == 0:
                 val_writer.add_summary(metrics_summary, step + 1)
 
-        # Save checkpoint when terminate signal detected.
-        with TerminateProtected():
+        # Save checkpoint when signal killed.
+        if TerminateProtected.killed:
             _save_checkpoint(saver, sess, global_step, step)
+            sys.exit(0)
 
     # training loop end.
     print("reach max step")

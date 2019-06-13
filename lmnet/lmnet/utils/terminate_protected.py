@@ -16,7 +16,6 @@
 # =============================================================================
 import logging
 import signal
-import sys
 
 
 class TerminateProtected:
@@ -41,7 +40,5 @@ class TerminateProtected:
         self.old_sigterm = signal.signal(signal.SIGTERM, self._handler)
 
     def __exit__(self, type, value, traceback):
-        if self.killed:
-            sys.exit(0)
         signal.signal(signal.SIGINT, self.old_sigint)
         signal.signal(signal.SIGTERM, self.old_sigterm)
