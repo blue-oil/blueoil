@@ -15,7 +15,7 @@
 # =============================================================================
 """Test file for Optimizer."""
 import unittest
-from core.data_types import Float32, PackedUint32, Int32, QUANTIZED_NOT_PACKED
+from core.data_types import Float32, PackedUint32, Int32, QUANTIZED_NOT_PACKED, QUANTIZED_PACKED
 from core.optimizer import pass_remove_identities, pass_transpose, pass_constant_folding, \
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
     pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
@@ -323,7 +323,7 @@ class TestPassQuantizeConvolutions(unittest.TestCase):
 
         pass_quantize_convolutions(graph1)
 
-        self.assertEqual(graph1.get_op('aqtz1').dtype, QUANTIZED_NOT_PACKED(),
+        self.assertEqual(graph1.get_op('aqtz1').dtype, QUANTIZED_PACKED(),
                          '[Failed] Found output dtype of activation quantizer not proper')
         self.assertEqual(graph1.get_op('kqtz1').dtype, PackedUint32(),
                          '[Failed] Found output dtype of kernel quantizer not proper')
