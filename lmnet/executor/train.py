@@ -15,7 +15,6 @@
 # =============================================================================
 import os
 import math
-import signal
 import sys
 
 import click
@@ -23,7 +22,7 @@ import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 
 from lmnet.utils import executor, module_loader, config as config_util
-from lmnet.utils.terminate_protected import TerminateProtected
+from lmnet.utils.signal_handler import SignalHandler
 from lmnet import environment
 from lmnet.datasets.dataset_iterator import DatasetIterator
 
@@ -354,8 +353,8 @@ def start_training(config):
             if rank == 0:
                 val_writer.add_summary(metrics_summary, step + 1)
 
-        # Save checkpoint when signal killed.
-        if TerminateProtected.killed:
+        # Save checkpoint when terminate signal recieved.
+        if signalhandler.receivedTermSignal:
             _save_checkpoint(saver, sess, global_step, step)
             sys.exit(0)
 
@@ -417,6 +416,8 @@ def run(network, dataset, config_file, experiment_id, recreate):
     help="dataset name which is the source of this training. override config.NETWORK_CLASS",
 )
 def main(network, dataset, config_file, experiment_id, recreate):
+    global signalhandler
+    signalhandler = SignalHandler()
     run(network, dataset, config_file, experiment_id, recreate)
 
 
