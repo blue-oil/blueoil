@@ -1883,7 +1883,11 @@ class Reshape(Operator):
     _input_names = ['data', 'shape']
     _output_names = ['reshaped']
 
-    def __init__(self, name: str, shape: List[int], dtype: DataType, input_ops: Ops, dimension_format: str) -> None:
+    def __init__(self, name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = '') -> None:
         """Init the reshape operator."""
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 

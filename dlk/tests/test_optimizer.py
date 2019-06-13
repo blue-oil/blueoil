@@ -36,7 +36,7 @@ class TestPassTranspose(unittest.TestCase):
         graph2 = self.create_expected_graph(data)
 
         pass_transpose(graph1)
-
+        
         self.assertEqual(graph1, graph2, 'transpose to NHWC failed.')
 
         print("Test pass #1 transpose passed!")
@@ -57,8 +57,8 @@ class TestPassTranspose(unittest.TestCase):
         conv = Conv('conv', [3, 4, 4, 1], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2], dimension_format='CWHN')
 
         # One output
-        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
-        y = Output('output', [1, 48], Float32(), {'input': rs},)
+        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv}, dimension_format='')
+        y = Output('output', [1, 48], Float32(), {'input': rs}, dimension_format='')
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -83,8 +83,8 @@ class TestPassTranspose(unittest.TestCase):
         conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2], dimension_format='NHWC')
 
         # One output
-        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
-        y = Output('output', [1, 48], Float32(), {'input': rs},)
+        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv}, dimension_format='')
+        y = Output('output', [1, 48], Float32(), {'input': rs}, dimension_format='')
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -123,8 +123,8 @@ class TestPassRemoveIdentities(unittest.TestCase):
 
         # One output
         i2 = Identity('identity2', [1, 4, 4, 3], Float32(), {'input': conv})
-        rs = Reshape('reshape', [1, 48], Float32(), {'data': i2})
-        y = Output('output', [1, 48], Float32(), {'input': rs},)
+        rs = Reshape('reshape', [1, 48], Float32(), {'data': i2}, dimension_format='NHWC')
+        y = Output('output', [1, 48], Float32(), {'input': rs}, dimension_format='NC')
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -146,8 +146,8 @@ class TestPassRemoveIdentities(unittest.TestCase):
         conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2])
 
         # One output
-        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
-        y = Output('output', [1, 48], Float32(), {'input': rs},)
+        rs = Reshape('reshape', [1, 48], Float32(), {'data': conv}, dimension_format='NHWC')
+        y = Output('output', [1, 48], Float32(), {'input': rs}, dimension_format='NC')
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
