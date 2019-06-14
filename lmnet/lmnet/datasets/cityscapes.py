@@ -145,4 +145,4 @@ class Cityscapes(SegmentationBase):
 
     @property
     def num_per_epoch(self):
-        return len(self.files_and_annotations())
+        return len(self.files_and_annotations()[0])

@@ -574,8 +574,8 @@ def test_cityscapes():
     )
 
     assert dataset.num_classes == 34
-    assert dataset.num_per_epoch == 2
-    assert val_dataset.num_per_epoch == 2
+    assert dataset.num_per_epoch == 2975
+    assert val_dataset.num_per_epoch == 500
 
     for _ in range(STEP_SIZE):
         images, labels = dataset.feed()
