@@ -363,6 +363,9 @@ def start_training(config):
 
 
 def run(network, dataset, config_file, experiment_id, recreate):
+    global signalhandler
+    signalhandler = SignalHandler()
+
     environment.init(experiment_id)
 
     config = config_util.load(config_file)
@@ -416,8 +419,6 @@ def run(network, dataset, config_file, experiment_id, recreate):
     help="dataset name which is the source of this training. override config.NETWORK_CLASS",
 )
 def main(network, dataset, config_file, experiment_id, recreate):
-    global signalhandler
-    signalhandler = SignalHandler()
     run(network, dataset, config_file, experiment_id, recreate)
 
 
