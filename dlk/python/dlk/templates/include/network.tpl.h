@@ -83,7 +83,7 @@ private:
   const uint32_t {{qconv.name}}_kernel_offset = {{offset.o}};
   {%    set offset.o = offset.o + size -%}
   {% endfor -%}
-  const uint32_t total_kernel_size = {{offset.o}};
+  const uint32_t total_kernel_size = std::max(1, {{offset.o}});
 #endif // RUN_ON_FPGA
 };
 
