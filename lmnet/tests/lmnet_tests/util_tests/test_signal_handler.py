@@ -32,4 +32,3 @@ def test_signal_handler():
 def _trigger_signal(pid):
     time.sleep(1)
     os.kill(pid, SIGTERM)
-
