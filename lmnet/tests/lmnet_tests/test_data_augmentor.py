@@ -91,6 +91,14 @@ def _image():
     return np.array(image)
 
 
+def _gt_boxes():
+    box1 = [0, 0, 100, 100, 1]
+    box2 = [430, 430, 49, 49, 2]
+    box3 = [100, 100, 100, 100, 3]
+
+    return np.array([box1, box2, box3])
+
+
 def test_sequence():
     batch_size = 3
     image_size = [256, 512]
@@ -169,9 +177,10 @@ def test_contrast():
 
 def test_crop():
     img = _image()
+    gt_boxes = _gt_boxes()
     augmentor = Crop(size=(100, 200), resize=(200, 200))
 
-    result = augmentor(**{'image': img})
+    result = augmentor(**{'image': img, 'gt_boxes': gt_boxes})
     image = result['image']
 
     _show_image(image)
@@ -179,6 +188,13 @@ def test_crop():
     assert image.shape[0] == 100
     assert image.shape[1] == 200
     assert image.shape[2] == 3
+
+    new_gt_boxes = result['gt_boxes']
+
+    assert np.sum((new_gt_boxes[:, 0] < 0).astype(int)) == 0
+    assert np.sum((new_gt_boxes[:, 1] < 0).astype(int)) == 0
+    assert np.sum((new_gt_boxes[:, 0] + new_gt_boxes[:, 2] > 100).astype(int)) == 0
+    assert np.sum((new_gt_boxes[:, 1] + new_gt_boxes[:, 3] > 200).astype(int)) == 0
 
 
 def test_filp_left_right():
@@ -229,9 +245,11 @@ def test_pad():
     assert img.shape[1] == 480
     assert img.shape[2] == 3
 
+    gt_boxes = _gt_boxes()
+
     augmentor = Pad(100)
 
-    result = augmentor(**{'image': img})
+    result = augmentor(**{'image': img, 'gt_boxes': gt_boxes})
     image = result['image']
 
     _show_image(image)
@@ -240,9 +258,16 @@ def test_pad():
     assert image.shape[1] == 680
     assert image.shape[2] == 3
 
+    gt_boxes = _gt_boxes()
+    new_gt_boxes = result['gt_boxes']
+
+    assert np.all(new_gt_boxes[:, 0] == gt_boxes[:, 0] + 100)
+    assert np.all(new_gt_boxes[:, 1] == gt_boxes[:, 1] + 100)
+    assert np.all(new_gt_boxes[:, 2:5] == gt_boxes[:, 2:5])
+
     augmentor = Pad((40, 30))
 
-    result = augmentor(**{'image': img})
+    result = augmentor(**{'image': img, 'gt_boxes': gt_boxes})
     image = result['image']
 
     _show_image(image)
@@ -250,6 +275,13 @@ def test_pad():
     assert image.shape[0] == 480 + 30 * 2
     assert image.shape[1] == 480 + 40 * 2
     assert image.shape[2] == 3
+
+    gt_boxes = _gt_boxes()
+    new_gt_boxes = result['gt_boxes']
+
+    assert np.all(new_gt_boxes[:, 0] == gt_boxes[:, 0] + 40)
+    assert np.all(new_gt_boxes[:, 1] == gt_boxes[:, 1] + 30)
+    assert np.all(new_gt_boxes[:, 2:5] == gt_boxes[:, 2:5])
 
 
 def test_random_patch_cut():
