@@ -449,10 +449,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
 
   val wdma = Module(new WDma(b, avalonAddrWidth, b * wWidth, wAddrWidth))
   wdma.io.start := csr.io.start
-  // FIXME: refactor sync interface
-  wdma.io.wWarZero := wsema.io.producer.warZero
-  wsema.io.producer.warDec := wdma.io.wWarDec
-  wsema.io.producer.rawInc := wdma.io.wRawInc
+  wsema.io.producer <> wdma.io.wSync
 
   // FIXME: refactor avalon interface
   io.wdmaAvalonAddress := wdma.io.avalonMasterAddress
