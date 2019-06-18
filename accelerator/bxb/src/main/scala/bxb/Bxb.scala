@@ -340,12 +340,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
     val admaAvalon = ReadMasterIO(avalonAddrWidth, b * aWidth)
 
     // WDMA Avalon Interface
-    val wdmaAvalonAddress = Output(UInt(avalonAddrWidth.W))
-    val wdmaAvalonRead = Output(Bool())
-    val wdmaAvalonBurstCount = Output(UInt(10.W))
-    val wdmaAvalonWaitRequest = Input(Bool())
-    val wdmaAvalonReadDataValid = Input(Bool())
-    val wdmaAvalonReadData = Input(UInt((b * wWidth).W))
+    val wdmaAvalon = ReadMasterIO(avalonAddrWidth, b * wWidth)
 
     // QDMA Avalon Interface
     val qdmaAvalonAddress = Output(UInt(avalonAddrWidth.W))
@@ -438,14 +433,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   val wdma = Module(new WDma(b, avalonAddrWidth, b * wWidth, wAddrWidth))
   wdma.io.start := csr.io.start
   wsema.io.producer <> wdma.io.wSync
-
-  // FIXME: refactor avalon interface
-  io.wdmaAvalonAddress := wdma.io.avalonMasterAddress
-  io.wdmaAvalonRead := wdma.io.avalonMasterRead
-  io.wdmaAvalonBurstCount := wdma.io.avalonMasterBurstCount
-  wdma.io.avalonMasterWaitRequest := io.wdmaAvalonWaitRequest
-  wdma.io.avalonMasterReadDataValid := io.wdmaAvalonReadDataValid
-  wdma.io.avalonMasterReadData := io.wdmaAvalonReadData
+  io.wdmaAvalon <> wdma.io.avalonMaster
 
   // FIXME: refactor parameters
   wdma.io.startAddress := csr.io.wdmaStartAddress

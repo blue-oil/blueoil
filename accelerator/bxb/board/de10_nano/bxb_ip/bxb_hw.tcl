@@ -180,12 +180,12 @@ set_interface_property wdma PORT_NAME_MAP ""
 set_interface_property wdma CMSIS_SVD_VARIABLES ""
 set_interface_property wdma SVD_ADDRESS_GROUP ""
 
-add_interface_port wdma io_wdmaAvalonAddress address Output 32
-add_interface_port wdma io_wdmaAvalonBurstCount burstcount Output 10
-add_interface_port wdma io_wdmaAvalonRead read Output 1
-add_interface_port wdma io_wdmaAvalonReadData readdata Input 32
-add_interface_port wdma io_wdmaAvalonReadDataValid readdatavalid Input 1
-add_interface_port wdma io_wdmaAvalonWaitRequest waitrequest Input 1
+add_interface_port wdma io_wdmaAvalon_address address Output 32
+add_interface_port wdma io_wdmaAvalon_burstCount burstcount Output 10
+add_interface_port wdma io_wdmaAvalon_read read Output 1
+add_interface_port wdma io_wdmaAvalon_readData readdata Input 32
+add_interface_port wdma io_wdmaAvalon_readDataValid readdatavalid Input 1
+add_interface_port wdma io_wdmaAvalon_waitRequest waitrequest Input 1
 
 
 # 
