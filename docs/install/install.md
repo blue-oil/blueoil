@@ -69,7 +69,7 @@ All example commands are in case you use Linux or macOS. If you use other system
 ### Download Linux system image (On your PC)
 You can download the Linux system image updated for Blueoil from the following.
 
-    $ wget https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/os_images/de10nano_ubuntu.img.gz
+    $ wget https://leapmind-public-storage.s3-ap-northeast-1.amazonaws.com/os_images/de10nano_ubuntu_TCAv2.img.gz
 
 Downloaded file contains the "de10nano_ubuntu.img".
 Please set the empty microSD card (8GB+) into your PC and write the downloaded image to microSD card as below.
