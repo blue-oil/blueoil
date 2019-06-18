@@ -7,6 +7,7 @@ import util.control.Breaks._
 import chisel3._
 import chisel3.iotesters.{PeekPokeTester, Driver}
 
+import bxb.avalon.{ReadMasterIO}
 import bxb.memory.{PackedBlockRam, ReadPort}
 import bxb.sync.{SemaphorePair}
 
@@ -31,13 +32,7 @@ class WDmaTestModule(b: Int, avalonDataWidth: Int, wmemSize: Int) extends Module
     val kernelBlockCount = Input(UInt(blockCountWidth.W))
 
     // Avalon test interface
-    val avalonMasterAddress = Output(UInt(avalonAddrWidth.W))
-    val avalonMasterRead = Output(Bool())
-    val avalonMasterBurstCount = Output(UInt(10.W))
-    val avalonMasterWaitRequest = Input(Bool())
-
-    val avalonMasterReadDataValid = Input(Bool())
-    val avalonMasterReadData = Input(UInt(avalonDataWidth.W))
+    val avalonMaster = ReadMasterIO(avalonAddrWidth, avalonDataWidth)
 
     // WMem test interface
     val wmemRead = Input(ReadPort(wAddrWidth))
@@ -70,12 +65,7 @@ class WDmaTestModule(b: Int, avalonDataWidth: Int, wmemSize: Int) extends Module
 
   wmem.io.write := wdma.io.wmemWrite
 
-  io.avalonMasterAddress := wdma.io.avalonMasterAddress
-  io.avalonMasterRead := wdma.io.avalonMasterRead
-  io.avalonMasterBurstCount := wdma.io.avalonMasterBurstCount
-  wdma.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
-  wdma.io.avalonMasterReadDataValid := io.avalonMasterReadDataValid
-  wdma.io.avalonMasterReadData := io.avalonMasterReadData
+  io.avalonMaster <> wdma.io.avalonMaster
 }
 
 class WDmaTestWMemWriting(dut: WDmaTestModule, b: Int, avalonDataWidth: Int, wmemSize: Int, hCount: Int, wCount: Int, blockCount: Int, avalonAcceptLatency: Int, avalonResponseLatency: Int) extends PeekPokeTester(dut) {
@@ -97,16 +87,16 @@ class WDmaTestWMemWriting(dut: WDmaTestModule, b: Int, avalonDataWidth: Int, wme
     def next() {
       // serve pending requests
       if (requests.isEmpty) {
-        poke(dut.io.avalonMasterReadDataValid, false)
+        poke(dut.io.avalonMaster.readDataValid, false)
       }
       else if (leftUntilResponse > 0) {
-        poke(dut.io.avalonMasterReadDataValid, false)
+        poke(dut.io.avalonMaster.readDataValid, false)
         leftUntilResponse -= 1
       }
       else {
         val req = requests.front
-        poke(dut.io.avalonMasterReadDataValid, true)
-        poke(dut.io.avalonMasterReadData, inputMemory(req.addr / avalonDataByteWidth))
+        poke(dut.io.avalonMaster.readDataValid, true)
+        poke(dut.io.avalonMaster.readData, inputMemory(req.addr / avalonDataByteWidth))
         req.burst -= 1
         req.addr += avalonDataByteWidth
         if (req.burst == 0)
@@ -114,14 +104,14 @@ class WDmaTestWMemWriting(dut: WDmaTestModule, b: Int, avalonDataWidth: Int, wme
         leftUntilResponse = avalonResponseLatency
       }
       // queue new requests if any and latency exceeded
-      poke(dut.io.avalonMasterWaitRequest, false)
-      if (peek(dut.io.avalonMasterRead).toInt == 1) {
+      poke(dut.io.avalonMaster.waitRequest, false)
+      if (peek(dut.io.avalonMaster.read).toInt == 1) {
         if (leftUntilAccept > 0) {
-          poke(dut.io.avalonMasterWaitRequest, true)
+          poke(dut.io.avalonMaster.waitRequest, true)
           leftUntilAccept -= 1
         }
         else {
-          requests.enqueue(new Request(peek(dut.io.avalonMasterAddress).toInt, peek(dut.io.avalonMasterBurstCount).toInt))
+          requests.enqueue(new Request(peek(dut.io.avalonMaster.address).toInt, peek(dut.io.avalonMaster.burstCount).toInt))
           leftUntilAccept = avalonAcceptLatency
         }
       }

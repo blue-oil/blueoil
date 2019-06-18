@@ -179,21 +179,21 @@ class BxbTestWithoutBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inp
   object WDmaAvalonStub {
     val requests = mutable.Queue[Request]()
     def tryNext(): Unit = {
-      poke(dut.io.wdmaAvalonWaitRequest, false)
+      poke(dut.io.wdmaAvalon.waitRequest, false)
       if (requests.isEmpty) {
-        poke(dut.io.wdmaAvalonReadDataValid, false)
+        poke(dut.io.wdmaAvalon.readDataValid, false)
       }
       else {
         val req = requests.front
-        poke(dut.io.wdmaAvalonReadDataValid, true)
+        poke(dut.io.wdmaAvalon.readDataValid, true)
         // TODO: feed the data
         req.burst -= 1
         req.addr += ref.wdmaAvalonDataWidth / 8
         if (req.burst == 0)
           requests.dequeue()
       }
-      if (peek(dut.io.wdmaAvalonRead).toInt == 1) {
-        requests.enqueue(new Request(peek(dut.io.wdmaAvalonAddress).toInt, peek(dut.io.wdmaAvalonBurstCount).toInt))
+      if (peek(dut.io.wdmaAvalon.read).toInt == 1) {
+        requests.enqueue(new Request(peek(dut.io.wdmaAvalon.address).toInt, peek(dut.io.wdmaAvalon.burstCount).toInt))
       }
     }
   }
@@ -358,21 +358,21 @@ class BxbTestWithBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputC
   object WDmaAvalonStub {
     val requests = mutable.Queue[Request]()
     def tryNext(): Unit = {
-      poke(dut.io.wdmaAvalonWaitRequest, false)
+      poke(dut.io.wdmaAvalon.waitRequest, false)
       if (requests.isEmpty) {
-        poke(dut.io.wdmaAvalonReadDataValid, false)
+        poke(dut.io.wdmaAvalon.readDataValid, false)
       }
       else {
         val req = requests.front
-        poke(dut.io.wdmaAvalonReadDataValid, true)
+        poke(dut.io.wdmaAvalon.readDataValid, true)
         // TODO: feed the data
         req.burst -= 1
         req.addr += ref.wdmaAvalonDataWidth / 8
         if (req.burst == 0)
           requests.dequeue()
       }
-      if (peek(dut.io.wdmaAvalonRead).toInt == 1) {
-        requests.enqueue(new Request(peek(dut.io.wdmaAvalonAddress).toInt, peek(dut.io.wdmaAvalonBurstCount).toInt))
+      if (peek(dut.io.wdmaAvalon.read).toInt == 1) {
+        requests.enqueue(new Request(peek(dut.io.wdmaAvalon.address).toInt, peek(dut.io.wdmaAvalon.burstCount).toInt))
       }
     }
   }
