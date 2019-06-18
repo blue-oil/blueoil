@@ -51,7 +51,7 @@ class FDmaTestRequestSequence(dut: FDma, b: Int, avalonAddrWidth: Int, avalonDat
   poke(dut.io.outputSpace, param.outputSpace)
 
   poke(dut.io.avalonMasterWaitRequest, false)
-  poke(dut.io.fRawZero, false)
+  poke(dut.io.fSync.rawZero, false)
 
   val timeout = t + 3 * param.hCount * param.wCount * param.cCount * b / maxBurst
 
@@ -101,7 +101,7 @@ class FDmaTestWaitRequest(dut: FDma, b: Int, avalonAddrWidth: Int, avalonDataWid
   poke(dut.io.outputSpace, param.outputSpace)
 
   poke(dut.io.avalonMasterWaitRequest, false)
-  poke(dut.io.fRawZero, false)
+  poke(dut.io.fSync.rawZero, false)
 
   var acceptDelay = 1
   var pendingReads = 0
@@ -154,7 +154,7 @@ class FDmaTestFRawZero(dut: FDma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
   poke(dut.io.outputSpace, param.outputSpace)
 
   poke(dut.io.avalonMasterWaitRequest, false)
-  poke(dut.io.fRawZero, false)
+  poke(dut.io.fSync.rawZero, false)
 
   var acceptDelay = 1
   var pendingReads = 0
@@ -162,13 +162,13 @@ class FDmaTestFRawZero(dut: FDma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
     for (req <- ref.requestSeq) {
       if (req.startOfTile) {
         expect(dut.io.avalonMasterWrite, false)
-        poke(dut.io.fRawZero, true)
+        poke(dut.io.fSync.rawZero, true)
         for (_ <- 0 until acceptDelay) {
           step(1)
           expect(dut.io.avalonMasterWrite, false)
         }
         acceptDelay = (acceptDelay + 2) % 5
-        poke(dut.io.fRawZero, false)
+        poke(dut.io.fSync.rawZero, false)
       }
       while (peek(dut.io.avalonMasterWrite) == 0) {
         step(1)
@@ -251,9 +251,7 @@ class FDmaTestModule(fmemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   io.avalonMasterWriteData := fdma.io.avalonMasterWriteData
   fmem.io.readB := fdma.io.fmemRead
   fdma.io.fmemQ := fmem.io.qB
-  fdma.io.fRawZero := fSemaPair.io.consumer.rawZero
-  fSemaPair.io.consumer.rawDec := fdma.io.fRawDec
-  fSemaPair.io.consumer.warInc := fdma.io.fWarInc
+  fSemaPair.io.consumer <> fdma.io.fSync
 }
 
 class FDmaTestFMemReading(dut: FDmaTestModule, fmemSize: Int, tileHeight: Int, tileWidth: Int, outputHeight: Int, outputWidth: Int, outputChannels: Int, maxBurst: Int, avalonDelay: Int) extends PeekPokeTester(dut) {
