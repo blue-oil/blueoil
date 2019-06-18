@@ -17,6 +17,7 @@ limitations under the License.
 #define DLK_FUNC_MAX_POOLING_H_INCLUDED
 
 #include "global.h"
+#include "tensor_view.h"
 
 struct max_pooling_parameters {
   T_UINT input_height;
@@ -47,10 +48,17 @@ struct MaxPoolWithArgmax_parameters {
   T_UINT padding;
 };
 
-void func_MaxPool(T_FLOAT input[], T_FLOAT output[], struct max_pooling_parameters mpp, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+void func_MaxPool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
+    struct max_pooling_parameters mpp);
 
-void func_MaxPool(QUANTIZED_NOT_PACKED input[], QUANTIZED_NOT_PACKED output[], struct max_pooling_parameters mpp, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+void func_MaxPool(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
+    const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& output,
+    struct max_pooling_parameters mpp);
 
-void func_MaxPoolWithArgmax(Quantized_t input[], Quantized_t output[], T_UINT indices[], struct MaxPoolWithArgmax_parameters mpp, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+void func_MaxPoolWithArgmax(const TensorView<Quantized_t, MemoryLayout::NHWC>& input,
+    const TensorView<Quantized_t, MemoryLayout::NHWC>& output,
+    const TensorView<T_UINT, MemoryLayout::NHWC>& indices,
+    struct MaxPoolWithArgmax_parameters mpp);
 
 #endif // DLK_FUNC_MAX_POOLING_H_INCLUDED

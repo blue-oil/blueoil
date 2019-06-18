@@ -18,13 +18,21 @@ limitations under the License.
 
 #include "global.h"
 #include "operators.h" // FIXME(nikolay): for binary_convolution_parameters definition, rid of it later
+#include "tensor_view.h"
 
 namespace dlk {
 
 namespace impl {
 
-void QuantizedConv2DTiling(QUANTIZED_NOT_PACKED input[],
-                                  const QUANTIZED_PACKED_KERNEL kernel[],
+using tiling_input_elem_base_t = uint32_t; // hardcoded, not configurable
+using tiling_input_elem_t = QuantizedPacked<tiling_input_elem_base_t>;
+using tiling_input_t = TensorView<tiling_input_elem_t, MemoryLayout::ChHWBCl>;
+
+void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
+    const tiling_input_t& output);
+
+void QuantizedConv2DTiling(const tiling_input_t& input,
+                                  const kernel_t& kernel,
                                   const binary_convolution_parameters &p);
 
 } // namespace impl

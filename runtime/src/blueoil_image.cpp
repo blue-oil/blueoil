@@ -38,7 +38,7 @@ Tensor ResizeHorizontal_NearestNeighbor(const Tensor &tensor, const int width) {
   float *srcRGBline = const_cast<float *>(srcImageData);
   float *dstRGB = dstTensor.dataAsArray();
   for (int dstY = 0 ; dstY < height ; dstY++) {
-    float srcRGBindexF = 0;
+    float srcRGBindexF = 0.5 / xScale;
     for (int dstX = 0 ; dstX < width ; dstX++) {
       float *srcRGB = srcRGBline + (static_cast<int>(srcRGBindexF) * channels);
       for (int c = 0 ; c < channels ; c++) {
@@ -64,7 +64,7 @@ Tensor ResizeVertical_NearestNeighbor(const Tensor &tensor, const int height) {
   const float *srcImageData = tensor.dataAsArray();
   float *srcRGBbase = const_cast<float *>(srcImageData);
   float *dstRGB = dstTensor.dataAsArray();
-  float srcRGBindexF = 0;
+  float srcRGBindexF = 0.5 / yScale;
   for (int dstY = 0 ; dstY < height ; dstY++) {
     float *srcRGB = srcRGBbase + (static_cast<int>(srcRGBindexF) * srcScanLineSize);
     for (int i = 0 ; i < srcScanLineSize ; i++) {
