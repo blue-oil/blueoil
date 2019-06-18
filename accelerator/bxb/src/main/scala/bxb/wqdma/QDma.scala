@@ -3,6 +3,7 @@ package bxb.wqdma
 import chisel3._
 import chisel3.util._
 
+import bxb.avalon.{ReadMasterIO}
 import bxb.memory.{PackedWritePort}
 import bxb.sync.{ProducerSyncIO}
 import bxb.util.{Util}
@@ -38,13 +39,7 @@ class QDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
     val qSync = ProducerSyncIO()
 
     // Avalon interface
-    val avalonMasterAddress = Output(UInt(avalonAddrWidth.W))
-    val avalonMasterRead = Output(Bool())
-    val avalonMasterBurstCount = Output(requester.io.avalonMasterBurstCount.cloneType)
-    val avalonMasterWaitRequest = Input(Bool())
-
-    val avalonMasterReadDataValid = Input(Bool())
-    val avalonMasterReadData = Input(UInt(avalonDataWidth.W))
+    val avalonMaster = ReadMasterIO(avalonAddrWidth, avalonDataWidth)
 
     // QMem interface
     val qmemWrite = Output(PackedWritePort(wAddrWidth, b, thresholdsTripleWidth))
@@ -68,10 +63,10 @@ class QDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   requester.io.warZero := io.qSync.warZero
   io.qSync.warDec := requester.io.warDec
 
-  io.avalonMasterAddress := requester.io.avalonMasterAddress
-  io.avalonMasterRead := requester.io.avalonMasterRead
-  io.avalonMasterBurstCount := requester.io.avalonMasterBurstCount
-  requester.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
+  io.avalonMaster.address := requester.io.avalonMasterAddress
+  io.avalonMaster.read := requester.io.avalonMasterRead
+  io.avalonMaster.burstCount := requester.io.avalonMasterBurstCount
+  requester.io.avalonMasterWaitRequest := io.avalonMaster.waitRequest
 
   io.statusReady := requester.io.statusReady
 
@@ -92,8 +87,8 @@ class QDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   writer.io.requesterNext := requesterNext
   writerDone := writer.io.writerDone
 
-  writer.io.avalonMasterReadDataValid := io.avalonMasterReadDataValid
-  writer.io.avalonMasterReadData := io.avalonMasterReadData
+  writer.io.avalonMasterReadDataValid := io.avalonMaster.readDataValid
+  writer.io.avalonMasterReadData := io.avalonMaster.readData
 
   io.qSync.rawInc := writer.io.rawInc
 

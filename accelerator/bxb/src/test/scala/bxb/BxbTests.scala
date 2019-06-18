@@ -380,22 +380,22 @@ class BxbTestWithBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputC
   object QDmaAvalonStub {
     val requests = mutable.Queue[Request]()
     def tryNext(): Unit = {
-      poke(dut.io.qdmaAvalonWaitRequest, false)
+      poke(dut.io.qdmaAvalon.waitRequest, false)
       if (requests.isEmpty) {
-        poke(dut.io.qdmaAvalonReadDataValid, false)
+        poke(dut.io.qdmaAvalon.readDataValid, false)
       }
       else {
         val req = requests.front
-        poke(dut.io.qdmaAvalonReadDataValid, true)
+        poke(dut.io.qdmaAvalon.readDataValid, true)
         // TODO: feed the data
         req.burst -= 1
         req.addr += ref.qdmaAvalonDataWidth / 8
         if (req.burst == 0)
           requests.dequeue()
-        poke(dut.io.qdmaAvalonReadData, scala.util.Random.nextLong())
+        poke(dut.io.qdmaAvalon.readData, scala.util.Random.nextLong())
       }
-      if (peek(dut.io.qdmaAvalonRead).toInt == 1) {
-        requests.enqueue(new Request(peek(dut.io.qdmaAvalonAddress).toInt, peek(dut.io.qdmaAvalonBurstCount).toInt))
+      if (peek(dut.io.qdmaAvalon.read).toInt == 1) {
+        requests.enqueue(new Request(peek(dut.io.qdmaAvalon.address).toInt, peek(dut.io.qdmaAvalon.burstCount).toInt))
       }
     }
   }

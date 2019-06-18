@@ -250,12 +250,12 @@ set_interface_property qdma PORT_NAME_MAP ""
 set_interface_property qdma CMSIS_SVD_VARIABLES ""
 set_interface_property qdma SVD_ADDRESS_GROUP ""
 
-add_interface_port qdma io_qdmaAvalonAddress address Output 32
-add_interface_port qdma io_qdmaAvalonBurstCount burstcount Output 10
-add_interface_port qdma io_qdmaAvalonRead read Output 1
-add_interface_port qdma io_qdmaAvalonReadData readdata Input 64
-add_interface_port qdma io_qdmaAvalonReadDataValid readdatavalid Input 1
-add_interface_port qdma io_qdmaAvalonWaitRequest waitrequest Input 1
+add_interface_port qdma io_qdmaAvalon_address address Output 32
+add_interface_port qdma io_qdmaAvalon_burstCount burstcount Output 10
+add_interface_port qdma io_qdmaAvalon_read read Output 1
+add_interface_port qdma io_qdmaAvalon_readData readdata Input 64
+add_interface_port qdma io_qdmaAvalon_readDataValid readdatavalid Input 1
+add_interface_port qdma io_qdmaAvalon_waitRequest waitrequest Input 1
 
 
 # 
