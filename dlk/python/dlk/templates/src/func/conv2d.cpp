@@ -16,6 +16,8 @@ limitations under the License.
 #include <cassert>
 #include <cstring>
 
+#include <memory>
+
 #include "global.h"
 #include "func/conv2d.h"
 #include "matrix_view.h"
@@ -27,10 +29,10 @@ limitations under the License.
 namespace {
 
 template<typename T, typename U>
-void conv3x3_kn2row(T input[],
-                    T kernels[],
-                    U output[],
-                    struct convolution_parameters& p) {
+void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
+    const TensorView<T, MemoryLayout::HWNC>& kernels,
+    const TensorView<U, MemoryLayout::NHWC>& output,
+    struct convolution_parameters& p) {
   const int ic = p.kernel_depth;
   const int oc = p.output_channels;
   const int kh = p.kernel_height;
@@ -46,7 +48,7 @@ void conv3x3_kn2row(T input[],
   assert(MAX_SIZE_KN2ROW_BUFFER_PER_LAYER >= oc * kh * kw * ih * iw);
 
   // need to initialize output
-  std::memset(output, 0, oc * ih * iw * sizeof(U));
+  std::memset(output.data(), 0, oc * ih * iw * sizeof(U));
 
   Measurement::Start("kn2row");
   Measurement::Start("kn2row-buf");
@@ -58,10 +60,10 @@ void conv3x3_kn2row(T input[],
 
   Measurement::Stop();
 
-  auto kernels_ = dlk::MatrixView<T, dlk::MatrixOrder::RowMajor>(kernels, oc * kh * kw, ic);
-  auto input_ = dlk::MatrixView<T, dlk::MatrixOrder::ColMajor>(input, ic, p.input_height * p.input_width);
+  auto kernels_ = dlk::MatrixView<T, dlk::MatrixOrder::RowMajor>(kernels.data(), oc * kh * kw, ic);
+  auto input_ = dlk::MatrixView<T, dlk::MatrixOrder::ColMajor>(input.data(), ic, p.input_height * p.input_width);
   auto buf_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(buf, oc * kh * kw, p.input_height * p.input_width);
-  auto output_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(output, oc, p.input_height * p.input_width);
+  auto output_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(output.data(), oc, p.input_height * p.input_width);
 
   dlk::matrix_multiplication(kernels_, input_, buf_);
   dlk::matrix_shift_add(buf_, output_, p);
@@ -72,25 +74,29 @@ void conv3x3_kn2row(T input[],
 // kernel format converter
 // ohwi : oc kh kw ic, hwoi: kh kw oc ic
 template<typename T>
-void ohwi_to_hwoi(const T ohwi[], T hwoi[], const struct convolution_parameters& p) {
+void ohwi_to_hwoi(const TensorView<T, MemoryLayout::NHWC>& ohwi,
+    const TensorView<T, MemoryLayout::HWNC>& hwoi,
+    const struct convolution_parameters& p) {
   int ic = p.kernel_depth;
   int oc = p.output_channels;
   int kh = p.kernel_height;
   int kw = p.kernel_width;
 
-  for (unsigned int i = 0; i < kh*kw; ++i) {
-    for (unsigned int j = 0; j < oc; ++j) {
-      for (unsigned int k = 0; k < ic; ++k) {
-        hwoi[i*oc*ic + j*ic + k] = ohwi[i*ic + j*ic*kh*kw + k];
+  for (unsigned int r = 0; r < kh; ++r) {
+    for (unsigned int c = 0; c < kw; ++c) {
+      for (unsigned int j = 0; j < oc; ++j) {
+        for (unsigned int k = 0; k < ic; ++k) {
+          hwoi(r, c, j, k) = ohwi(j, r, c, k);
+        }
       }
     }
   }
  }
 
 template<typename T, typename U>
-void conv1x1_kn2row(T input[],
-                    T kernels[],
-                    U output[],
+void conv1x1_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
+                    const TensorView<T, MemoryLayout::NHWC>& kernels,
+                    const TensorView<U, MemoryLayout::NHWC>& output,
                     struct convolution_parameters& p) {
   int ic = p.kernel_depth;
   int oc = p.output_channels;
@@ -103,9 +109,9 @@ void conv1x1_kn2row(T input[],
    assert(p.input_height > 0);
    assert(p.input_width > 0);
 
-   auto kernels_ = dlk::MatrixView<T, dlk::MatrixOrder::RowMajor>(kernels, oc * kh * kw, ic);
-   auto input_ = dlk::MatrixView<T, dlk::MatrixOrder::ColMajor>(input, ic, p.input_height * p.input_width);
-   auto output_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(output, oc, p.input_height * p.input_width);
+   auto kernels_ = dlk::MatrixView<T, dlk::MatrixOrder::RowMajor>(kernels.data(), oc * kh * kw, ic);
+   auto input_ = dlk::MatrixView<T, dlk::MatrixOrder::ColMajor>(input.data(), ic, p.input_height * p.input_width);
+   auto output_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(output.data(), oc, p.input_height * p.input_width);
 
    dlk::matrix_multiplication(kernels_, input_, output_);
 
@@ -114,9 +120,9 @@ void conv1x1_kn2row(T input[],
 
 template<typename T>
 void conv_general(
-  T input[],
-  T kernels[],
-  T output[],
+  const TensorView<T, MemoryLayout::NHWC>& input,
+  const TensorView<T, MemoryLayout::NHWC>& kernels,
+  const TensorView<T, MemoryLayout::NHWC>& output,
   struct convolution_parameters p)
 {
   for(T_UINT wi = 0; wi < p.output_height; wi++)
@@ -144,11 +150,10 @@ void conv_general(
           for(T_UINT kz = 0; kz < p.kernel_depth; kz++)
           {
             if (inside_row && inside_col) {
-              unsigned in_idx = row * (p.input_width * p.kernel_depth) + col * (p.kernel_depth) + kz;
               unsigned k_idx = current_kernel_index + kernel_offset;
 
-              T in_data = input[in_idx];
-              T k_data = kernels[k_idx];
+              T in_data = input(0, row, col, kz);;
+              T k_data = kernels(kernel_id, ki, kj, kz);
 
               out += in_data * k_data;
             }
@@ -157,17 +162,16 @@ void conv_general(
         }
       }
 
-      unsigned out_idx = wi * (p.output_channels * p.output_width) + wj * (p.output_channels) + kernel_id;
-      output[out_idx] = out;
+      output(0, wi, wj, kernel_id) = out;
     }
   }
 }
 
 template<typename T>
 void convolution(
-  T input[],
-  T kernels[],
-  T output[],
+  const TensorView<T, MemoryLayout::NHWC>& input,
+  const TensorView<T, MemoryLayout::NHWC>& kernels,
+  const TensorView<T, MemoryLayout::NHWC>& output,
   struct convolution_parameters p)
 {
   // use special implementation for 1x1 conv
@@ -177,10 +181,17 @@ void convolution(
     return;
   } else if (p.kernel_height == 3 && p.kernel_width == 3 && p.padding == 1) {
     int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
-    T* kernels_hwoi = new T[kernels_size]();
+    const auto kernels_hwoi_buf = std::make_unique<T[]>(kernels_size);
+    using hwoi_t = TensorView<T, MemoryLayout::HWNC>;
+    typename hwoi_t::template tensor_info_t<std::size_t> hwoi_shape = {
+      p.kernel_height,
+      p.kernel_width,
+      p.output_channels,
+      p.kernel_depth
+    };
+    hwoi_t kernels_hwoi(kernels_hwoi_buf.get(), hwoi_shape);
     ohwi_to_hwoi(kernels, kernels_hwoi, p);
     conv3x3_kn2row(input, kernels_hwoi, output, p);
-    delete[] kernels_hwoi;
     return;
   }
 
@@ -190,11 +201,15 @@ void convolution(
 
 } // namespace
 
-void func_Conv2D(T_FLOAT input[], T_FLOAT weights[], T_FLOAT output[],
-                 struct convolution_parameters p, T_UINT out_height,
-                 T_UINT out_width, T_UINT out_depth) {
+void func_Conv2D(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& weights,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
+    struct convolution_parameters p) {
   Measurement::Start("Convolution");
 
+  unsigned out_height = output.get_shape()[1];
+  unsigned out_width = output.get_shape()[2];
+  unsigned out_depth = output.get_shape()[3];
   unsigned k_elems = p.kernel_height * p.kernel_width * p.kernel_depth;
   unsigned in_elems = out_height * out_width * k_elems;
 

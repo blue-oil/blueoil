@@ -17,11 +17,20 @@ limitations under the License.
 #define DLK_FUNC_MAX_H_INCLUDED
 
 #include "global.h"
+#include "tensor_view.h"
+#include "func/impl/binary_op.h"
+#include "time_measurement.h"
 
-void func_Max(T_FLOAT input1, T_FLOAT input2[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+template <typename T, MemoryLayout layout_l, MemoryLayout layout_r>
+void func_Max(const TensorView<T, layout_l>& lhs,
+    const TensorView<T, layout_r>& rhs,
+    const TensorView<T, dlk::impl::output_layout(layout_l, layout_r)>& output) {
+  Measurement::Start("Max");
 
-void func_Max(T_FLOAT input1[], T_FLOAT input2, T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+  dlk::impl::binary_op<T, layout_l, layout_r, const T& (*)(const T&, const T&)> bin_op;
+  bin_op(lhs, rhs, output, static_cast<const T& (*)(const T&, const T&)>(std::max<T>));
 
-void func_Max(T_FLOAT input1[], T_FLOAT input2[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+  Measurement::Stop();
+}
 
 #endif // DLK_FUNC_MAX_H_INCLUDED
