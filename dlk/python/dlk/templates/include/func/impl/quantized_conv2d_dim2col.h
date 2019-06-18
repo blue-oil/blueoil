@@ -18,13 +18,22 @@ limitations under the License.
 
 #include "global.h"
 #include "operators.h" // FIXME(nikolay): for convolution_parameters definition, rid of it later
+#include "tensor_view.h"
 
 namespace dlk {
 
 namespace impl {
 
-void QuantizedConv2DIm2Col(QUANTIZED_NOT_PACKED input[], QUANTIZED_PACKED_KERNEL kernel[],
-                                  const binary_convolution_parameters &p);
+using dim2col_input_elem_t = QUANTIZED_PACKED;
+using dim2col_input_t = TensorView<dim2col_input_elem_t, MemoryLayout::Im2col>;
+
+void im2col(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>&,
+    const dim2col_input_t&,
+    const binary_convolution_parameters& p);
+
+void QuantizedConv2DIm2Col(const dim2col_input_t& input,
+    const kernel_t& kernel,
+    const binary_convolution_parameters& p);
 
 } // namespace impl
 

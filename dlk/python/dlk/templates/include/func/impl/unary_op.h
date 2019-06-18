@@ -1,5 +1,4 @@
-/* Copyright 2018 The Blueoil Authors. All Rights Reserved.
-
+/* Copyright 2019 The Blueoil Authors. All Rights Reserved.  
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -13,22 +12,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef DLK_FUNC_ROUND_H_INCLUDED
-#define DLK_FUNC_ROUND_H_INCLUDED
+#ifndef DLK_FUNC_IMPL_UNARY_OP_H_INCLUDED
+#define DLK_FUNC_IMPL_UNARY_OP_H_INCLUDED
 
-#include <cmath>
+#include <cassert>
+#include <cstddef>
 
 #include "tensor_view.h"
-#include "func/impl/unary_op.h"
 
-template <typename T, MemoryLayout layout>
-void func_Round(const TensorView<T, layout>& input,
-    const TensorView<T, layout>& output) {
-  Measurement::Start("Round");
+namespace dlk {
 
-  dlk::impl::unary_op(input, output, std::round);
+namespace impl {
 
-  Measurement::Stop();
+template <typename T, MemoryLayout layout, typename F>
+void unary_op(const TensorView<T, layout>& input,
+    const TensorView<T, layout>& output,
+    F f) {
+  assert(input.get_shape() == output.get_shape());
+  for (std::size_t i = 0; i < input.size(); ++i) {
+    output.data()[i] = f(input.data()[i]);
+  }
 }
 
-#endif // DLK_FUNC_ROUND_H_INCLUDED
+} // namespace impl
+
+} // namespace dlk
+
+#endif // DLK_FUNC_IMPL_UNARY_OP_H_INCLUDED

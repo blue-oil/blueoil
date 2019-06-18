@@ -14,17 +14,13 @@ limitations under the License.
 ==============================================================================*/
 
 #include "global.h"
-#include "func/leaky_relu.h"
-#include "time_measurement.h"
 
-void func_LeakyRelu(T_FLOAT input[], T_FLOAT output[], T_FLOAT alpha, T_UINT out_height,
-               T_UINT out_width, T_UINT out_depth) {
-  Measurement::Start("LeakyReLu");
+namespace dlk {
 
-  T_UINT elements = out_height * out_width * out_depth;
+namespace impl {
 
-  for (T_UINT i = 0; i < elements; i++)
-    output[i] = (input[i] * alpha > input[i] ? input[i] * alpha : input[i]);
+void pack_16bit(const BIN_CONV_OUTPUT input[], QUANTIZED_PACKED output[], const std::size_t length);
 
-  Measurement::Stop();
-}
+} // namespace impl
+
+} // namespace dlk

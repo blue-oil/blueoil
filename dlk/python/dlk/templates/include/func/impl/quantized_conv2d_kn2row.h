@@ -18,14 +18,26 @@ limitations under the License.
 
 #include "global.h"
 #include "operators.h" // FIXME(nikolay): for convolution_parameters definition, rid of it later
+#include "tensor_view.h"
 
 namespace dlk {
 
 namespace impl {
 
-void QuantizedConv2DKn2Row(QUANTIZED_NOT_PACKED input[],
-                                  const QUANTIZED_PACKED_KERNEL kernel[],
+using kn2row_input_elem_t = QUANTIZED_PACKED;
+
+#ifndef RUN_ON_FPGA
+using kn2row_input_t = TensorView<kn2row_input_elem_t, MemoryLayout::HWChBCl>;
+void QuantizedConv2DKn2Row(const kn2row_input_t& input,
+                                  const kernel_t& kernel,
                                   const binary_convolution_parameters &p);
+#else
+using kn2row_input_t = TensorView<kn2row_input_elem_t, MemoryLayout::ChHWBCl>;
+void TCAConv2d(const kn2row_input_t& input,
+    const kernel_t& kernel,
+    const binary_convolution_parameters &p);
+#endif
+
 
 } // namespace impl
 
