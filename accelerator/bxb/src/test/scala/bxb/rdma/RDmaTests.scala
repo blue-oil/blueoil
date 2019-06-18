@@ -51,7 +51,7 @@ class RDmaTestRequestSequence(dut: RDma, b: Int, avalonAddrWidth: Int, avalonDat
   poke(dut.io.outputSpace, param.outputSpace)
 
   poke(dut.io.avalonMasterWaitRequest, false)
-  poke(dut.io.rRawZero, false)
+  poke(dut.io.rSync.rawZero, false)
 
   val timeout = t + 3 * param.hCount * param.wCount * param.cCount * b / maxBurst
 
@@ -101,7 +101,7 @@ class RDmaTestWaitRequest(dut: RDma, b: Int, avalonAddrWidth: Int, avalonDataWid
   poke(dut.io.outputSpace, param.outputSpace)
 
   poke(dut.io.avalonMasterWaitRequest, false)
-  poke(dut.io.rRawZero, false)
+  poke(dut.io.rSync.rawZero, false)
 
   var acceptDelay = 1
   var pendingReads = 0
@@ -154,7 +154,7 @@ class RDmaTestRRawZero(dut: RDma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
   poke(dut.io.outputSpace, param.outputSpace)
 
   poke(dut.io.avalonMasterWaitRequest, false)
-  poke(dut.io.rRawZero, false)
+  poke(dut.io.rSync.rawZero, false)
 
   var acceptDelay = 1
   var pendingReads = 0
@@ -162,13 +162,13 @@ class RDmaTestRRawZero(dut: RDma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
     for (req <- ref.requestSeq) {
       if (req.startOfTile) {
         expect(dut.io.avalonMasterWrite, false)
-        poke(dut.io.rRawZero, true)
+        poke(dut.io.rSync.rawZero, true)
         for (_ <- 0 until acceptDelay) {
           step(1)
           expect(dut.io.avalonMasterWrite, false)
         }
         acceptDelay = (acceptDelay + 2) % 5
-        poke(dut.io.rRawZero, false)
+        poke(dut.io.rSync.rawZero, false)
       }
       while (peek(dut.io.avalonMasterWrite) == 0) {
         step(1)
@@ -249,9 +249,7 @@ class RDmaTestModule(rmemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   io.avalonMasterWriteData := rdma.io.avalonMasterWriteData
   rmem.io.read := rdma.io.rmemRead
   rdma.io.rmemQ := rmem.io.q
-  rdma.io.rRawZero := rSemaPair.io.consumer.rawZero
-  rSemaPair.io.consumer.rawDec := rdma.io.rRawDec
-  rSemaPair.io.consumer.warInc := rdma.io.rWarInc
+  rSemaPair.io.consumer <> rdma.io.rSync
 }
 
 class DdrAddress(val addr: Int, val startOfTile: Boolean, val endOfTile: Boolean) {
