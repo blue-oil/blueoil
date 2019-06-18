@@ -537,10 +537,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
 
   val qdma = Module(new QDma(b, avalonAddrWidth, 64, qAddrWidth))
   qdma.io.start := csr.io.bnqEnable & csr.io.start
-  // FIXME: refactor sync interface
-  qdma.io.qWarZero := qsema.io.producer.warZero
-  qsema.io.producer.warDec := qdma.io.qWarDec
-  qsema.io.producer.rawInc := qdma.io.qRawInc
+  qsema.io.producer <> qdma.io.qSync
 
   // FIXME: refactor avalon interface
   io.qdmaAvalonAddress := qdma.io.avalonMasterAddress
