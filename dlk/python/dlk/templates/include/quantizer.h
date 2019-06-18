@@ -29,7 +29,8 @@ limitations under the License.
 #include <vector>
 
 #include "global.h"
-
+#include "tensor_view.h"
+#include "pack_input_to_qwords.h"
 #ifdef USE_NEON
   #include <arm_neon.h>
 #endif
@@ -39,41 +40,36 @@ limitations under the License.
 /***************************************
  wrappers
 ***************************************/
-void func_QTZ_binary_channel_wise_mean_scaling(
-  T_FLOAT input[],
-  T_FLOAT output[],
-  T_UINT in_height,
-  T_UINT in_width,
-  T_UINT in_depth,
-  T_UINT in_channel)
-{
+inline void func_QTZ_binary_channel_wise_mean_scaling(
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output) {
+  const auto shape = input.get_shape();
+  T_UINT in_height = shape[1];
+  T_UINT in_width = shape[2];
+  T_UINT in_depth = shape[3];
+  T_UINT in_channel = shape[0];
   unsigned num_elems_in_channel = in_height * in_width * in_depth;
   T_FLOAT sum, mean;
 
   for(unsigned i = 0; i < in_channel; i++) {
     sum = 0;
     for(unsigned j = 0; j < num_elems_in_channel; j++) {
-      sum += std::abs(input[i * num_elems_in_channel + j]);
+      sum += std::abs(input.data()[i * num_elems_in_channel + j]);
     }
     mean = sum / num_elems_in_channel;
     for(unsigned j = 0; j < num_elems_in_channel; j++) {
       unsigned in_index = i * num_elems_in_channel + j;
-      output[in_index] = (input[in_index] >= 0) ? mean : -1 * mean;
+      output.data()[in_index] = (input.data()[in_index] >= 0) ? mean : -1 * mean;
     }
   }
 }
 
-
+template <MemoryLayout layout>
 void func_QTZ_binary_mean_scaling(
-  T_FLOAT input[],
-  T_FLOAT output[],
-  T_UINT in_height,
-  T_UINT in_width,
-  T_UINT in_depth,
-  T_UINT in_channel)
-{
+    const TensorView<T_FLOAT, layout>& input,
+    const TensorView<T_FLOAT, layout>& output) {
   T_FLOAT sum = 0.f;
-  unsigned num_elems = in_height * in_width * in_depth * in_channel;
+  unsigned num_elems = input.size();
 
   for(unsigned i = 0; i < num_elems; i++)
   {
@@ -85,20 +81,16 @@ void func_QTZ_binary_mean_scaling(
 
   for(unsigned i = 0; i < num_elems; i++)
   {
-    output[i] = (input[i] >= 0) ? mean : mean_minus;
+    output.data()[i] = (input.data()[i] >= 0) ? mean : mean_minus;
   }
 }
 
 
-void func_QTZ_linear_mid_tread_half_body(
+inline void func_QTZ_linear_mid_tread_half_body(
   T_FLOAT input[],
   T_INT nbit,
   T_FLOAT max_value,
   QUANTIZED_NOT_PACKED output[],
-  T_UINT in_height,
-  T_UINT in_width,
-  T_UINT in_depth,
-  T_UINT in_channel,
   T_UINT begin,
   T_UINT end)
 
@@ -141,19 +133,15 @@ void func_QTZ_linear_mid_tread_half_body(
   }
 }
 
-void func_QTZ_linear_mid_tread_half(
-  T_FLOAT input[],
-  T_INT nbit,
-  T_FLOAT max_value,
-  QUANTIZED_NOT_PACKED output[],
-  T_UINT in_height,
-  T_UINT in_width,
-  T_UINT in_depth,
-  T_UINT in_channel=1)
-{
+inline void func_QTZ_linear_mid_tread_half(
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_INT, MemoryLayout::Atom>& nbit,
+    const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& output) {
   Measurement::Start("QTZ_linear_mid_tread_half");
 
-  unsigned num_elems = in_height * in_width * in_depth * in_channel;
+  unsigned num_elems = input.size();
+  QUANTIZED_NOT_PACKED* output_not_packed = new QUANTIZED_NOT_PACKED[num_elems];
 
   unsigned int chunk_size = num_elems / std::thread::hardware_concurrency();
   if (chunk_size == 0) {
@@ -162,8 +150,8 @@ void func_QTZ_linear_mid_tread_half(
 
   std::vector<std::thread> threads;
   for (unsigned int i = 0; i < num_elems; i += chunk_size) {
-    threads.emplace_back(std::thread([input, nbit, max_value, &output, in_height, in_width, in_depth, in_channel, i, chunk_size, num_elems] {
-          func_QTZ_linear_mid_tread_half_body(input, nbit, max_value, output, in_height, in_width, in_depth, in_channel, i,
+    threads.emplace_back(std::thread([&input, &nbit, &max_value, &output_not_packed, i, chunk_size, num_elems] {
+          func_QTZ_linear_mid_tread_half_body(input.data(), nbit(), max_value(), output_not_packed, i,
                                               std::min(i + chunk_size, static_cast<unsigned int>(num_elems)));
     }));
   }
@@ -172,33 +160,38 @@ void func_QTZ_linear_mid_tread_half(
     th.join();
   }
 
+  //static T_UINT counter = 0;
+  //write_to_file("out/qconv_input_quantized_not_packed", counter++, output_not_packed, in_height * in_width * in_depth);
+
+  const auto in_shape = input.get_shape();
+  const auto in_height = in_shape[1];
+  const auto in_width = in_shape[2];
+  const auto in_depth = in_shape[3];
+  pack_input(output_not_packed, in_height, in_width, in_depth, nbit(), output.data());
+  delete [] output_not_packed;
+
   Measurement::Stop();
 }
 
 
-void func_QTZ_linear_mid_tread_half(
-  T_FLOAT input[],
-  T_INT nbit,
-  T_FLOAT max_value,
-  T_FLOAT output[],
-  T_UINT in_height,
-  T_UINT in_width,
-  T_UINT in_depth,
-  T_UINT in_channel=1)
-{
+inline void func_QTZ_linear_mid_tread_half(
+  const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+  const TensorView<T_INT, MemoryLayout::Atom>& nbit,
+  const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
+  const TensorView<T_FLOAT, MemoryLayout::NHWC>& output) {
   Measurement::Start("func_QTZ_linear_mid_tread_half");
 
   T_FLOAT min_value = 0.f;
-  T_FLOAT n = (1 << nbit) - 1.f;
-  unsigned num_elems = in_height * in_width * in_depth * in_channel;
+  T_FLOAT n = (1 << nbit()) - 1.f;
+  unsigned num_elems = input.size();
 
   for (unsigned i = 0; i < num_elems; i++)
   {
-    T_FLOAT tmp = std::max(input[i], min_value);
-    tmp = std::min(tmp, max_value);
-    tmp = tmp / max_value;
+    T_FLOAT tmp = std::max(input.data()[i], min_value);
+    tmp = std::min(tmp, max_value());
+    tmp = tmp / max_value();
     tmp = roundf(tmp * n) / n;
-    output[i] = tmp * max_value;
+    output.data()[i] = tmp * max_value();
   }
 
   Measurement::Stop();

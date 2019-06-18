@@ -17,23 +17,20 @@ limitations under the License.
 #define DLK_FUNC_MUL_H_INCLUDED
 
 #include "global.h"
+#include "tensor_view.h"
+#include "func/impl/binary_op.h"
+#include "time_measurement.h"
 
-void func_Mul(T_FLOAT input[], T_UINT factor[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+template <typename T, MemoryLayout layout_l, MemoryLayout layout_r>
+void func_Mul(const TensorView<T, layout_l>& lhs,
+    const TensorView<T, layout_r>& rhs,
+    const TensorView<T, dlk::impl::output_layout(layout_l, layout_r)>& output) {
+  Measurement::Start("Add");
 
-void func_Mul(T_FLOAT input[], T_FLOAT factor[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+  dlk::impl::binary_op<T, layout_l, layout_r, std::multiplies<T>> bin_op;
+  bin_op(lhs, rhs, output, std::multiplies<T>());
 
-void func_Mul(T_FLOAT input[], T_FLOAT factor, T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
-
-void func_Mul(T_FLOAT factor, T_FLOAT input[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
-
-void func_Mul(T_FLOAT input[], T_UINT factor[], T_FLOAT output[], T_UINT out_depth);
-
-void func_Mul_broadcast(T_FLOAT input[], T_FLOAT factor[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
-
-void func_Mul_broadcast(T_FLOAT input[], T_FLOAT factor, T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
-
-void func_Mul_broadcast(T_FLOAT factor, T_FLOAT input[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
-
-void func_Mul(T_FLOAT input[], T_FLOAT factor[], T_FLOAT output[], T_UINT out_depth);
+  Measurement::Stop();
+}
 
 #endif // DLK_FUNC_MUL_H_INCLUDED

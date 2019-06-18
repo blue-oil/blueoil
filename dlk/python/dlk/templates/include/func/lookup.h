@@ -13,22 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#ifndef DLK_FUNC_LOOKUP_H_INCLUDED
+#define DLK_FUNC_LOOKUP_H_INCLUDED
+
 #include "global.h"
-#include "func/bias_add.h"
-#include "time_measurement.h"
+#include "tensor_view.h"
 
-void func_BiasAdd(T_FLOAT input[], T_FLOAT biases[], T_FLOAT output[],
-                  T_UINT out_height, T_UINT out_width, T_UINT out_depth) {
-  Measurement::Start("Bias");
+void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::TC>& lsb,
+    const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::TC>& msb,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output);
 
-  T_UINT index = 0;
-  for(T_UINT h = 0; h < out_height; h++)
-  for(T_UINT w = 0; w < out_width; w++)
-  for(T_UINT kz = 0; kz < out_depth; kz++)
-    {
-      output[index] = input[index] + biases[kz];
-      index++;
-    }
-
-  Measurement::Stop();
-}
+#endif // DLK_FUNC_LOOKUP_H_INCLUDED

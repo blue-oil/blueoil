@@ -18,19 +18,26 @@ limitations under the License.
 
 #include "global.h"
 #include "time_measurement.h"
+#include "tensor_view.h"
 
 template<class T>
-void func_Split(T input[], T *outputs[], T_UINT num_split, T_UINT out_height, T_UINT out_width, T_UINT out_depth)
+void func_Split(const TensorView<T, MemoryLayout::NHWC>& input, const TensorView<T, MemoryLayout::NHWC> * const outputs, T_UINT num_split)
 {
-  Measurement::Start("func_SpliT");
+  Measurement::Start("func_Split");
+
+  const auto in_shape = input.get_shape();
+  const auto in_height = in_shape[1];
+  const auto in_width = in_shape[2];
+  const auto in_depth = in_shape[3];
+  const auto out_depth = in_depth / num_split;
 
   T_UINT output_index[32] = {0};
   T_UINT input_index = 0;
 
-  for(T_UINT i = 0; i < out_height * out_width; i++){
+  for(T_UINT i = 0; i < in_height * in_width; i++){
     for(T_UINT n = 0; n < num_split; n++){
       for(T_UINT d = 0; d < out_depth; d++){
-        outputs[n][output_index[n]++] = input[input_index++];
+        outputs[n].data()[output_index[n]++] = input.data()[input_index++];
       }
     }
   }
