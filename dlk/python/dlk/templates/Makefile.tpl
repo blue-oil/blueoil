@@ -15,34 +15,23 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
 {%- if config.threshold_skipping %}
     $(SRC_DIR)/thresholds.cpp \
 {%- endif %}
-    $(SRC_DIR)/func/add.cpp \
     $(SRC_DIR)/func/average_pool.cpp \
-    $(SRC_DIR)/func/bias_add.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
     $(SRC_DIR)/func/impl/apply_thresholds.cpp \
-    $(SRC_DIR)/func/impl/quantized_conv2d_dim2col.cpp \
-    $(SRC_DIR)/func/max.cpp \
+    $(SRC_DIR)/func/impl/pack_16bit.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
-    $(SRC_DIR)/func/minimum.cpp \
     $(SRC_DIR)/func/pad.cpp \
-    $(SRC_DIR)/func/mul.cpp \
     $(SRC_DIR)/func/matmul.cpp \
     $(SRC_DIR)/func/quantize.cpp \
-    $(SRC_DIR)/func/quantized_conv2d.cpp \
-    $(SRC_DIR)/func/real_div.cpp \
-    $(SRC_DIR)/func/relu.cpp \
-    $(SRC_DIR)/func/leaky_relu.cpp \
-    $(SRC_DIR)/func/round.cpp \
-    $(SRC_DIR)/func/scale.cpp \
     $(SRC_DIR)/func/softmax.cpp \
-    $(SRC_DIR)/func/sqrt.cpp \
-    $(SRC_DIR)/func/sub.cpp \
     $(SRC_DIR)/func/unpooling.cpp \
+    $(SRC_DIR)/func/lookup.cpp \
     $(SRC_DIR)/matrix/shift_add.cpp \
     $(SRC_DIR)/network_c_interface.cpp \
     $(SRC_DIR)/network.cpp \
     $(SRC_DIR)/pack_input_to_qwords.cpp \
-    $(SRC_DIR)/time_measurement.cpp
+    $(SRC_DIR)/time_measurement.cpp \
+    $(SRC_DIR)/write_to_file.cpp
 
 SRC := $(LIB_SRC) $(wildcard $(DLK_TEST_SRC_DIR)/*.cpp) mains/main.cpp
 SRC := $(filter-out ./src/network_c_interface.cpp, $(SRC))
@@ -58,7 +47,6 @@ LIB_ARM_OBJ := $(patsubst %.cpp, %.o, $(LIB_ARM_OBJ))
 
 LIB_FPGA_SRC := $(wildcard $(SRC_DIR)/*.S) \
     $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
-    $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/func/impl/fpga/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
@@ -153,7 +141,7 @@ lm_arm:           FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -mcpu
 lm_arm:           CXXFLAGS +=
 
 lm_fpga:          CXX = arm-linux-gnueabihf-g++
-lm_fpga:          FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_fpga:          FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -pthread -g -fopenmp -DFUNC_TIME_MEASUREMENT
 lm_fpga:          CXXFLAGS +=
 
 lib_x86:           CXX = g++

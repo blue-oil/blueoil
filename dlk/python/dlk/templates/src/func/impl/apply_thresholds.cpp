@@ -54,6 +54,8 @@ void ApplyThresholds(
           new_d = 2;
         else
           new_d = 3;
+      } else if (flag == 0) { // ignore
+        new_d = 0;
       } else {                            // constant function
         new_d = flag - 2;                 // note: 2 is a magic number!
         assert(0 <= new_d && new_d <= 3); // unsinged 2bits
