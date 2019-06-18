@@ -22,11 +22,6 @@ class SignalHandler:
     """ Protect a piece of code from being killed by SIGINT or SIGTERM.
     It can still be killed by a force kill.
 
-    Example:
-        with SignalHandler():
-            run_func_1()
-            run_func_2()
-
     Both functions will be executed even if a sigterm or sigkill has been received.
     """
 
@@ -36,6 +31,5 @@ class SignalHandler:
         signal.signal(signal.SIGINT, self.handler)
 
     def handler(self, signum, frame):
-        logging.error("Received SIGINT or SIGTERM! Finishing this block, then exiting.")
         self.lastSignal = signum
         self.receivedTermSignal = True

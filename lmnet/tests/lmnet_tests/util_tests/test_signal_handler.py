@@ -13,22 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
-import time
-
+import signal
 from lmnet.utils.signal_handler import SignalHandler
-from signal import SIGTERM
 
 
 def test_signal_handler():
     signalhandler = SignalHandler()
-    pid = os.getppid()
+    assert not signalhandler.receivedTermSignal
 
-    _trigger_signal(pid)
+    signum = 15
 
+    signalhandler.handler(signal.SIGTERM, signum)
+    assert signalhandler.lastSignal == signum
     assert signalhandler.receivedTermSignal
 
 
-def _trigger_signal(pid):
-    time.sleep(1)
-    os.kill(pid, SIGTERM)
+if __name__ == '__main__':
+    test_signal_handler()
