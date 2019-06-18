@@ -6,6 +6,7 @@ import chisel3.util._
 import bxb.a2f.{A2f}
 import bxb.adma.{ADma}
 import bxb.array.{MacArray}
+import bxb.avalon.{ReadMasterIO}
 import bxb.f2a.{F2a}
 import bxb.fdma.{FDma}
 import bxb.rdma.{RDma}
@@ -336,13 +337,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
     val csrSlaveReadData = Output(UInt(32.W))
 
     // ADMA Avalon Interface
-    // FIXME: refactor avalon interface
-    val admaAvalonAddress = Output(UInt(avalonAddrWidth.W))
-    val admaAvalonRead = Output(Bool())
-    val admaAvalonBurstCount = Output(UInt(10.W)) // FIXME: select size based on maxBurst
-    val admaAvalonWaitRequest = Input(Bool())
-    val admaAvalonReadDataValid = Input(Bool())
-    val admaAvalonReadData = Input(UInt((b * aWidth).W))
+    val admaAvalon = ReadMasterIO(avalonAddrWidth, b * aWidth)
 
     // WDMA Avalon Interface
     val wdmaAvalonAddress = Output(UInt(avalonAddrWidth.W))
@@ -410,14 +405,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   val adma = Module(new ADma(b, dataAddrWidth, avalonAddrWidth, maxBurst))
   adma.io.start := csr.io.start
   asema.io.producer <> adma.io.aSync
-
-  // FIXME: refactor avalon interface
-  io.admaAvalonAddress := adma.io.avalonMasterAddress
-  io.admaAvalonRead := adma.io.avalonMasterRead
-  io.admaAvalonBurstCount := adma.io.avalonMasterBurstCount
-  adma.io.avalonMasterWaitRequest := io.admaAvalonWaitRequest
-  adma.io.avalonMasterReadDataValid := io.admaAvalonReadDataValid
-  adma.io.avalonMasterReadData := io.admaAvalonReadData
+  io.admaAvalon <> adma.io.avalonMaster
 
   amem.io.write := adma.io.amemWrite
 
