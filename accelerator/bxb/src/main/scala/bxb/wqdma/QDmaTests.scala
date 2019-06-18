@@ -66,9 +66,7 @@ class QDmaTestModule(b: Int, qmemSize: Int) extends Module {
   qdma.io.outputWCount := io.outputWCount
   qdma.io.kernelBlockCount := io.kernelBlockCount
 
-  qdma.io.qWarZero := qSemaPair.io.producer.warZero
-  qSemaPair.io.producer.warDec := qdma.io.qWarDec
-  qSemaPair.io.producer.rawInc := qdma.io.qRawInc
+  qSemaPair.io.producer <> qdma.io.qSync
 
   qmem.io.write := qdma.io.qmemWrite
 
