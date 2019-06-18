@@ -3,6 +3,7 @@ package bxb.adma
 import chisel3._
 import chisel3.util._
 
+import bxb.avalon.{ReadMasterIO}
 import bxb.memory.{WritePort}
 import bxb.sync.{ProducerSyncIO}
 import bxb.util.{Util}
@@ -75,13 +76,7 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val sidePad = Input(UInt(tileCountWidth.W))
     // Input geometry parameters --- end
 
-    val avalonMasterAddress = Output(UInt(avalonAddrWidth.W))
-    val avalonMasterRead = Output(Bool())
-    val avalonMasterBurstCount = Output(UInt(10.W))
-    val avalonMasterWaitRequest = Input(Bool())
-
-    val avalonMasterReadDataValid = Input(Bool())
-    val avalonMasterReadData = Input(UInt(avalonDataWidth.W))
+    val avalonMaster = ReadMasterIO(avalonAddrWidth, avalonDataWidth)
 
     val amemWrite = Output(Vec(b, WritePort(aAddrWidth, aSz)))
 
@@ -137,8 +132,8 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   amemWriter.io.tileValid := tileGenerator.io.tileValid
   amemWriter.io.tileFirst := tileGenerator.io.tileFirst
   tileAcceptedByWriter := amemWriter.io.tileAccepted
-  amemWriter.io.avalonMasterReadDataValid := io.avalonMasterReadDataValid
-  amemWriter.io.avalonMasterReadData := io.avalonMasterReadData
+  amemWriter.io.avalonMasterReadDataValid := io.avalonMaster.readDataValid
+  amemWriter.io.avalonMasterReadData := io.avalonMaster.readData
   io.amemWrite := amemWriter.io.amemWrite
 
   // Read Request Generator
@@ -150,10 +145,10 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   avalonRequester.io.tileValid := tileGenerator.io.tileValid
   tileAcceptedByRequester := avalonRequester.io.tileAccepted
   avalonRequester.io.writerDone := amemWriter.io.writerDone
-  io.avalonMasterAddress := avalonRequester.io.avalonMasterAddress
-  io.avalonMasterRead := avalonRequester.io.avalonMasterRead
-  io.avalonMasterBurstCount := avalonRequester.io.avalonMasterBurstCount
-  avalonRequester.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
+  io.avalonMaster.address := avalonRequester.io.avalonMasterAddress
+  io.avalonMaster.read := avalonRequester.io.avalonMasterRead
+  io.avalonMaster.burstCount := avalonRequester.io.avalonMasterBurstCount
+  avalonRequester.io.avalonMasterWaitRequest := io.avalonMaster.waitRequest
 }
 
 object ADma {

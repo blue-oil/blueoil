@@ -150,17 +150,17 @@ class BxbTestWithoutBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inp
     var nextAddrIdx = 0
     def done = (lastAddrIdx == ref.inputAddresses.size)
     def tryNext(): Unit = {
-      poke(dut.io.admaAvalonWaitRequest, false)
+      poke(dut.io.admaAvalon.waitRequest, false)
       if (done) {
-        poke(dut.io.admaAvalonReadDataValid, false)
+        poke(dut.io.admaAvalon.readDataValid, false)
         return
       }
       if (requests.isEmpty) {
-        poke(dut.io.admaAvalonReadDataValid, false)
+        poke(dut.io.admaAvalon.readDataValid, false)
       }
       else {
         val req = requests.front
-        poke(dut.io.admaAvalonReadDataValid, true)
+        poke(dut.io.admaAvalon.readDataValid, true)
         // TODO: feed the data
         req.burst -= 1
         req.addr += ref.admaAvalonDataWidth / 8
@@ -168,10 +168,10 @@ class BxbTestWithoutBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inp
           requests.dequeue()
         lastAddrIdx += 1
       }
-      if (peek(dut.io.admaAvalonRead).toInt == 1) {
-        expect(dut.io.admaAvalonAddress, ref.inputAddresses(nextAddrIdx))
-        requests.enqueue(new Request(peek(dut.io.admaAvalonAddress).toInt, peek(dut.io.admaAvalonBurstCount).toInt))
-        nextAddrIdx += peek(dut.io.admaAvalonBurstCount).toInt
+      if (peek(dut.io.admaAvalon.read).toInt == 1) {
+        expect(dut.io.admaAvalon.address, ref.inputAddresses(nextAddrIdx))
+        requests.enqueue(new Request(peek(dut.io.admaAvalon.address).toInt, peek(dut.io.admaAvalon.burstCount).toInt))
+        nextAddrIdx += peek(dut.io.admaAvalon.burstCount).toInt
       }
     }
   }
@@ -328,29 +328,29 @@ class BxbTestWithBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputC
     var nextAddrIdx = 0
     def done = (lastAddrIdx == ref.inputAddresses.size)
     def tryNext(): Unit = {
-      poke(dut.io.admaAvalonWaitRequest, false)
+      poke(dut.io.admaAvalon.waitRequest, false)
       if (done) {
-        poke(dut.io.admaAvalonReadDataValid, false)
+        poke(dut.io.admaAvalon.readDataValid, false)
         return
       }
       if (requests.isEmpty) {
-        poke(dut.io.admaAvalonReadDataValid, false)
+        poke(dut.io.admaAvalon.readDataValid, false)
       }
       else {
         val req = requests.front
-        poke(dut.io.admaAvalonReadDataValid, true)
+        poke(dut.io.admaAvalon.readDataValid, true)
         // TODO: feed the data
         req.burst -= 1
         req.addr += ref.admaAvalonDataWidth / 8
         if (req.burst == 0)
           requests.dequeue()
         lastAddrIdx += 1
-        poke(dut.io.admaAvalonReadData, scala.util.Random.nextLong() & ((0x1L << 32) - 1))
+        poke(dut.io.admaAvalon.readData, scala.util.Random.nextLong() & ((0x1L << 32) - 1))
       }
-      if (peek(dut.io.admaAvalonRead).toInt == 1) {
-        expect(dut.io.admaAvalonAddress, ref.inputAddresses(nextAddrIdx))
-        requests.enqueue(new Request(peek(dut.io.admaAvalonAddress).toInt, peek(dut.io.admaAvalonBurstCount).toInt))
-        nextAddrIdx += peek(dut.io.admaAvalonBurstCount).toInt
+      if (peek(dut.io.admaAvalon.read).toInt == 1) {
+        expect(dut.io.admaAvalon.address, ref.inputAddresses(nextAddrIdx))
+        requests.enqueue(new Request(peek(dut.io.admaAvalon.address).toInt, peek(dut.io.admaAvalon.burstCount).toInt))
+        nextAddrIdx += peek(dut.io.admaAvalon.burstCount).toInt
       }
     }
   }

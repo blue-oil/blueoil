@@ -7,6 +7,7 @@ import util.control.Breaks._
 import chisel3._
 import chisel3.iotesters.{PeekPokeTester, Driver}
 
+import bxb.avalon.{ReadMasterIO}
 import bxb.memory.{MemArray, ReadPort}
 import bxb.sync.{SemaphorePair}
 
@@ -63,7 +64,7 @@ class ADmaTestRequestSequence(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDat
   poke(dut.io.sidePad, param.sidePad)
 
 
-  poke(dut.io.avalonMasterWaitRequest, false)
+  poke(dut.io.avalonMaster.waitRequest, false)
   poke(dut.io.aSync.warZero, false)
 
   val timeout = t + 3 * param.hCount * param.wCount * param.cInCount * b * param.cOutCount / maxBurst
@@ -71,23 +72,23 @@ class ADmaTestRequestSequence(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDat
   var pendingReads = 0
   breakable {
     for (req <- ref.requestSeq) {
-      while (peek(dut.io.avalonMasterRead) == 0 && t < timeout) {
-        poke(dut.io.avalonMasterReadDataValid, pendingReads > 0)
+      while (peek(dut.io.avalonMaster.read) == 0 && t < timeout) {
+        poke(dut.io.avalonMaster.readDataValid, pendingReads > 0)
         if (pendingReads > 0) {
           pendingReads -= 1
         }
         step(1)
       }
-      poke(dut.io.avalonMasterReadDataValid, pendingReads > 0)
+      poke(dut.io.avalonMaster.readDataValid, pendingReads > 0)
       if (pendingReads > 0) {
         pendingReads -= 1
       }
       if (t == timeout) {
         break
       }
-      expect(dut.io.avalonMasterAddress, req.addr)
-      expect(dut.io.avalonMasterBurstCount, req.burst)
-      pendingReads += peek(dut.io.avalonMasterBurstCount).toInt
+      expect(dut.io.avalonMaster.address, req.addr)
+      expect(dut.io.avalonMaster.burstCount, req.burst)
+      pendingReads += peek(dut.io.avalonMaster.burstCount).toInt
       step(1)
     }
   }
@@ -134,34 +135,34 @@ class ADmaTestWaitRequest(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWid
   var acceptDelay = 1
   var pendingReads = 0
   for (req <- ref.requestSeq) {
-    poke(dut.io.avalonMasterWaitRequest, true)
-    while (peek(dut.io.avalonMasterRead) == 0) {
-      poke(dut.io.avalonMasterReadDataValid, pendingReads > 0)
+    poke(dut.io.avalonMaster.waitRequest, true)
+    while (peek(dut.io.avalonMaster.read) == 0) {
+      poke(dut.io.avalonMaster.readDataValid, pendingReads > 0)
       if (pendingReads > 0) {
         println(f"${t}: pendingReads X ${pendingReads}")
         pendingReads -= 1
       }
       step(1)
     }
-    poke(dut.io.avalonMasterReadDataValid, pendingReads > 0)
+    poke(dut.io.avalonMaster.readDataValid, pendingReads > 0)
     if (pendingReads > 0) {
       println(f"${t}: pendingReads Y ${pendingReads}")
       pendingReads -= 1
     }
     for (_ <- 0 until acceptDelay) {
       step(1)
-      poke(dut.io.avalonMasterReadDataValid, pendingReads > 0)
+      poke(dut.io.avalonMaster.readDataValid, pendingReads > 0)
       if (pendingReads > 0) {
         println(f"${t}: pendingReads Z ${pendingReads}")
         pendingReads -= 1
       }
-      expect(dut.io.avalonMasterAddress, req.addr)
-      expect(dut.io.avalonMasterRead, true)
-      expect(dut.io.avalonMasterBurstCount, req.burst)
+      expect(dut.io.avalonMaster.address, req.addr)
+      expect(dut.io.avalonMaster.read, true)
+      expect(dut.io.avalonMaster.burstCount, req.burst)
     }
     acceptDelay = (acceptDelay + 2) % 5
-    poke(dut.io.avalonMasterWaitRequest, false)
-    pendingReads += peek(dut.io.avalonMasterBurstCount).toInt
+    poke(dut.io.avalonMaster.waitRequest, false)
+    pendingReads += peek(dut.io.avalonMaster.burstCount).toInt
     step(1)
   }
 }
@@ -202,7 +203,7 @@ class ADmaTestAWarZero(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
   poke(dut.io.topBottomRightPad, param.topBottomRightPad)
   poke(dut.io.sidePad, param.sidePad)
 
-  poke(dut.io.avalonMasterWaitRequest, false)
+  poke(dut.io.avalonMaster.waitRequest, false)
 
   var acceptDelay = 1
   var pendingReads = 0
@@ -210,29 +211,29 @@ class ADmaTestAWarZero(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
     if (req.startOfTile) {
       poke(dut.io.aSync.warZero, true)
       for (_ <- 0 until acceptDelay) {
-        poke(dut.io.avalonMasterReadDataValid, pendingReads > 0)
+        poke(dut.io.avalonMaster.readDataValid, pendingReads > 0)
         if (pendingReads > 0) {
           pendingReads -= 1
         }
         step(1)
-        expect(dut.io.avalonMasterRead, false)
+        expect(dut.io.avalonMaster.read, false)
       }
       poke(dut.io.aSync.warZero, false)
     }
-    while (peek(dut.io.avalonMasterRead) == 0) {
-      poke(dut.io.avalonMasterReadDataValid, pendingReads > 0)
+    while (peek(dut.io.avalonMaster.read) == 0) {
+      poke(dut.io.avalonMaster.readDataValid, pendingReads > 0)
       if (pendingReads > 0) {
         pendingReads -= 1
       }
       step(1)
     }
-    poke(dut.io.avalonMasterReadDataValid, pendingReads > 0)
+    poke(dut.io.avalonMaster.readDataValid, pendingReads > 0)
     if (pendingReads > 0) {
       pendingReads -= 1
     }
-    expect(dut.io.avalonMasterAddress, req.addr)
-    expect(dut.io.avalonMasterBurstCount, req.burst)
-    pendingReads += peek(dut.io.avalonMasterBurstCount).toInt
+    expect(dut.io.avalonMaster.address, req.addr)
+    expect(dut.io.avalonMaster.burstCount, req.burst)
+    pendingReads += peek(dut.io.avalonMaster.burstCount).toInt
     step(1)
   }
 }
@@ -278,13 +279,7 @@ class ADmaTestModule(amemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val sidePad = Input(UInt(tileCountWidth.W))
 
     // Avalon test interface
-    val avalonMasterAddress = Output(UInt(avalonAddrWidth.W))
-    val avalonMasterRead = Output(Bool())
-    val avalonMasterBurstCount = Output(UInt(10.W))
-    val avalonMasterWaitRequest = Input(Bool())
-
-    val avalonMasterReadDataValid = Input(Bool())
-    val avalonMasterReadData = Input(UInt(avalonDataWidth.W))
+    val avalonMaster = ReadMasterIO(avalonAddrWidth, avalonDataWidth)
 
     // AMem test interface
     val amemRead = Input(Vec(b, ReadPort(aAddrWidth)))
@@ -327,12 +322,7 @@ class ADmaTestModule(amemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   adma.io.topBottomMiddlePad := io.topBottomMiddlePad
   adma.io.topBottomRightPad := io.topBottomRightPad
   adma.io.sidePad := io.sidePad
-  io.avalonMasterAddress := adma.io.avalonMasterAddress
-  io.avalonMasterRead := adma.io.avalonMasterRead
-  io.avalonMasterBurstCount := adma.io.avalonMasterBurstCount
-  adma.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
-  adma.io.avalonMasterReadDataValid := io.avalonMasterReadDataValid
-  adma.io.avalonMasterReadData := io.avalonMasterReadData
+  io.avalonMaster <> adma.io.avalonMaster
   amem.io.write := adma.io.amemWrite
   aSemaPair.io.producer <> adma.io.aSync
 }
@@ -355,22 +345,22 @@ class ADmaTestAMemWriting(dut: ADmaTestModule, amemSize: Int, tileHeight: Int, t
 
     def next() {
       // serve pending requests
-      poke(dut.io.avalonMasterWaitRequest, false)
+      poke(dut.io.avalonMaster.waitRequest, false)
       if (requests.isEmpty) {
-        poke(dut.io.avalonMasterReadDataValid, false)
+        poke(dut.io.avalonMaster.readDataValid, false)
       }
       else {
         val req = requests.front
-        poke(dut.io.avalonMasterReadDataValid, true)
-        poke(dut.io.avalonMasterReadData, input64(req.addr))
+        poke(dut.io.avalonMaster.readDataValid, true)
+        poke(dut.io.avalonMaster.readData, input64(req.addr))
         req.burst -= 1
         req.addr += avalonDataWidth
         if (req.burst == 0)
           requests.dequeue()
       }
       // queue new requests if any
-      if (peek(dut.io.avalonMasterRead).toInt == 1) {
-        requests.enqueue(new DummyRequest(peek(dut.io.avalonMasterAddress).toInt, peek(dut.io.avalonMasterBurstCount).toInt))
+      if (peek(dut.io.avalonMaster.read).toInt == 1) {
+        requests.enqueue(new DummyRequest(peek(dut.io.avalonMaster.address).toInt, peek(dut.io.avalonMaster.burstCount).toInt))
       }
     }
   }
@@ -415,7 +405,7 @@ class ADmaTestAMemWriting(dut: ADmaTestModule, amemSize: Int, tileHeight: Int, t
   poke(dut.io.topBottomRightPad, param.topBottomRightPad)
   poke(dut.io.sidePad, param.sidePad)
 
-  poke(dut.io.avalonMasterWaitRequest, false)
+  poke(dut.io.avalonMaster.waitRequest, false)
 
   poke(dut.io.aWarInc, false)
   poke(dut.io.aRawDec, false)

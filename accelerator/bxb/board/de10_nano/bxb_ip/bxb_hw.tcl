@@ -215,12 +215,12 @@ set_interface_property adma PORT_NAME_MAP ""
 set_interface_property adma CMSIS_SVD_VARIABLES ""
 set_interface_property adma SVD_ADDRESS_GROUP ""
 
-add_interface_port adma io_admaAvalonAddress address Output 32
-add_interface_port adma io_admaAvalonBurstCount burstcount Output 10
-add_interface_port adma io_admaAvalonRead read Output 1
-add_interface_port adma io_admaAvalonReadData readdata Input 64
-add_interface_port adma io_admaAvalonReadDataValid readdatavalid Input 1
-add_interface_port adma io_admaAvalonWaitRequest waitrequest Input 1
+add_interface_port adma io_admaAvalon_address address Output 32
+add_interface_port adma io_admaAvalon_burstCount burstcount Output 10
+add_interface_port adma io_admaAvalon_read read Output 1
+add_interface_port adma io_admaAvalon_readData readdata Input 64
+add_interface_port adma io_admaAvalon_readDataValid readdatavalid Input 1
+add_interface_port adma io_admaAvalon_waitRequest waitrequest Input 1
 
 
 # 
