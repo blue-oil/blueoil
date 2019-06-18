@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 
 import bxb.memory.{PackedWritePort}
+import bxb.sync.{ProducerSyncIO}
 import bxb.util.{Util}
 
 class QDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) extends Module {
@@ -34,9 +35,7 @@ class QDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
     val kernelBlockCount = Input(UInt(blockCountWidth.W))
 
     // Sync interface
-    val qWarZero = Input(Bool())
-    val qWarDec = Output(Bool())
-    val qRawInc = Output(Bool())
+    val qSync = ProducerSyncIO()
 
     // Avalon interface
     val avalonMasterAddress = Output(UInt(avalonAddrWidth.W))
@@ -66,8 +65,8 @@ class QDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   requesterNext := requester.io.requesterNext
   requester.io.writerDone := writerDone
 
-  requester.io.warZero := io.qWarZero
-  io.qWarDec := requester.io.warDec
+  requester.io.warZero := io.qSync.warZero
+  io.qSync.warDec := requester.io.warDec
 
   io.avalonMasterAddress := requester.io.avalonMasterAddress
   io.avalonMasterRead := requester.io.avalonMasterRead
@@ -96,7 +95,7 @@ class QDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   writer.io.avalonMasterReadDataValid := io.avalonMasterReadDataValid
   writer.io.avalonMasterReadData := io.avalonMasterReadData
 
-  io.qRawInc := writer.io.rawInc
+  io.qSync.rawInc := writer.io.rawInc
 
   io.qmemWrite := writer.io.memWrite
 }
