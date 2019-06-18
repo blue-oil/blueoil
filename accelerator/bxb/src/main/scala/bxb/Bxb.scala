@@ -471,10 +471,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
 
   val fdma = Module(new FDma(b, dataAddrWidth, avalonAddrWidth, 128, maxBurst))
   fdma.io.start := ~csr.io.bnqEnable & csr.io.start
-  // FIXME: refactor sync interface
-  fdma.io.fRawZero := fsemaConsumerMux.io.b.rawZero
-  fsemaConsumerMux.io.b.rawDec := fdma.io.fRawDec
-  fsemaConsumerMux.io.b.warInc := fdma.io.fWarInc
+  fsemaConsumerMux.io.b <> fdma.io.fSync
 
   // FIXME: refactor avalon interface
   io.fdmaAvalonAddress := fdma.io.avalonMasterAddress

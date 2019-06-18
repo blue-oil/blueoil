@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 
 import bxb.memory.{ReadPort}
+import bxb.sync.{ConsumerSyncIO}
 import bxb.util.{Util}
 
 class FDma(b: Int, fAddrWidth: Int, avalonAddrWidth: Int, avalonDataWidth: Int, maxBurst: Int) extends Module {
@@ -59,9 +60,7 @@ class FDma(b: Int, fAddrWidth: Int, avalonAddrWidth: Int, avalonDataWidth: Int, 
     val fmemQ = Input(Vec(b, UInt(fSz.W)))
 
     // Synchronization interface
-    val fRawDec = Output(Bool())
-    val fRawZero = Input(Bool())
-    val fWarInc = Output(Bool())
+    val fSync = ConsumerSyncIO()
 
     // Status
     val statusReady = Output(Bool())
@@ -91,9 +90,9 @@ class FDma(b: Int, fAddrWidth: Int, avalonAddrWidth: Int, avalonDataWidth: Int, 
 
   tileGenerator.io.tileAccepted := tileAccepted
 
-  io.fRawDec := tileGenerator.io.fRawDec
-  tileGenerator.io.fRawZero := io.fRawZero
-  io.fWarInc := tileAccepted
+  io.fSync.rawDec := tileGenerator.io.fRawDec
+  tileGenerator.io.fRawZero := io.fSync.rawZero
+  io.fSync.warInc := tileAccepted
 
   io.statusReady := tileGenerator.io.statusReady
 
