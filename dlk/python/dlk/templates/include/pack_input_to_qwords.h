@@ -29,4 +29,8 @@ void pack_input_to_qwords(
   QUANTIZED_PACKED output[],
   struct binary_convolution_parameters bcp);
 
+
+int pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_width, size_t input_depth,
+  size_t bits_per_input, QUANTIZED_PACKED output[]);
+
 #endif // DLK_PACK_INPUT_TO_QWORDS_H_INCLUDED

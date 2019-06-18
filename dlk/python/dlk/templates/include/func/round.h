@@ -16,6 +16,19 @@ limitations under the License.
 #ifndef DLK_FUNC_ROUND_H_INCLUDED
 #define DLK_FUNC_ROUND_H_INCLUDED
 
-void func_Round(T_FLOAT input[], T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+#include <cmath>
+
+#include "tensor_view.h"
+#include "func/impl/unary_op.h"
+
+template <typename T, MemoryLayout layout>
+void func_Round(const TensorView<T, layout>& input,
+    const TensorView<T, layout>& output) {
+  Measurement::Start("Round");
+
+  dlk::impl::unary_op(input, output, std::round);
+
+  Measurement::Stop();
+}
 
 #endif // DLK_FUNC_ROUND_H_INCLUDED

@@ -18,8 +18,12 @@ limitations under the License.
 
 #include "global.h"
 #include "operators.h" // FIXME(nikolay): for convolution_parameters definition, rid of it later
+#include "tensor_view.h"
 
-void func_Conv2D(T_FLOAT input[], T_FLOAT weights[], T_FLOAT output[], struct convolution_parameters p, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+void func_Conv2D(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& weights,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
+    struct convolution_parameters p);
 
 
 #endif // DLK_FUNC_CONV2D_H_INCLUDED

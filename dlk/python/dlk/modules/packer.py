@@ -128,10 +128,10 @@ class Packer(BaseModule):
         output_tensor : np.ndarray
             Quantized tensor.
         """
-        nk = data_format.index('N') if 'N' in data_format \
-            else data_format.index('O')
+        # nk = data_format.index('N') if 'N' in data_format \
+        #     else data_format.index('O')
 
-        number_of_kernels = tensor.shape[nk]
+        number_of_kernels = 1  # tensor.shape[nk]
         output_size = self.lib.packer_get_output_size(self.packer,
                                                       tensor.size,
                                                       number_of_kernels)
