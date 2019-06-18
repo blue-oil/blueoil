@@ -64,7 +64,7 @@ class ADmaTestRequestSequence(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDat
 
 
   poke(dut.io.avalonMasterWaitRequest, false)
-  poke(dut.io.aWarZero, false)
+  poke(dut.io.aSync.warZero, false)
 
   val timeout = t + 3 * param.hCount * param.wCount * param.cInCount * b * param.cOutCount / maxBurst
 
@@ -129,7 +129,7 @@ class ADmaTestWaitRequest(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWid
   poke(dut.io.topBottomRightPad, param.topBottomRightPad)
   poke(dut.io.sidePad, param.sidePad)
 
-  poke(dut.io.aWarZero, false)
+  poke(dut.io.aSync.warZero, false)
 
   var acceptDelay = 1
   var pendingReads = 0
@@ -208,7 +208,7 @@ class ADmaTestAWarZero(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
   var pendingReads = 0
   for (req <- ref.requestSeq) {
     if (req.startOfTile) {
-      poke(dut.io.aWarZero, true)
+      poke(dut.io.aSync.warZero, true)
       for (_ <- 0 until acceptDelay) {
         poke(dut.io.avalonMasterReadDataValid, pendingReads > 0)
         if (pendingReads > 0) {
@@ -217,7 +217,7 @@ class ADmaTestAWarZero(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
         step(1)
         expect(dut.io.avalonMasterRead, false)
       }
-      poke(dut.io.aWarZero, false)
+      poke(dut.io.aSync.warZero, false)
     }
     while (peek(dut.io.avalonMasterRead) == 0) {
       poke(dut.io.avalonMasterReadDataValid, pendingReads > 0)
@@ -334,9 +334,7 @@ class ADmaTestModule(amemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   adma.io.avalonMasterReadDataValid := io.avalonMasterReadDataValid
   adma.io.avalonMasterReadData := io.avalonMasterReadData
   amem.io.write := adma.io.amemWrite
-  adma.io.aWarZero := aSemaPair.io.producer.warZero
-  aSemaPair.io.producer.warDec := adma.io.aWarDec
-  aSemaPair.io.producer.rawInc := adma.io.aRawInc
+  aSemaPair.io.producer <> adma.io.aSync
 }
 
 class ADmaTestAMemWriting(dut: ADmaTestModule, amemSize: Int, tileHeight: Int, tileWidth: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, maxBurst: Int) extends PeekPokeTester(dut) {

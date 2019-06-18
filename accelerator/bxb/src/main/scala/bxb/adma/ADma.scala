@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 
 import bxb.memory.{WritePort}
+import bxb.sync.{ProducerSyncIO}
 import bxb.util.{Util}
 
 class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends Module {
@@ -84,9 +85,7 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
 
     val amemWrite = Output(Vec(b, WritePort(aAddrWidth, aSz)))
 
-    val aWarDec = Output(Bool())
-    val aWarZero = Input(Bool())
-    val aRawInc = Output(Bool())
+    val aSync = ProducerSyncIO()
 
     // Status
     val statusReady = Output(Bool())
@@ -96,7 +95,7 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   val tileAcceptedByWriter = Wire(Bool())
   val tileDone = tileAcceptedByRequester & tileAcceptedByWriter
 
-  io.aRawInc := tileDone
+  io.aSync.rawInc := tileDone
 
   val tileGenerator = Module(new ADmaTileGenerator(avalonAddrWidth, avalonDataWidth, tileCountWidth))
   tileGenerator.io.start := io.start
@@ -124,8 +123,8 @@ class ADma(b: Int, aAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   tileGenerator.io.topBottomRightPad := io.topBottomRightPad
   tileGenerator.io.sidePad := io.sidePad
   tileGenerator.io.tileAccepted := tileDone
-  tileGenerator.io.aWarZero := io.aWarZero
-  io.aWarDec := tileGenerator.io.aWarDec
+  tileGenerator.io.aWarZero := io.aSync.warZero
+  io.aSync.warDec := tileGenerator.io.aWarDec
   io.statusReady := tileGenerator.io.statusReady
 
   // Destination Address Generator

@@ -409,10 +409,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
 
   val adma = Module(new ADma(b, dataAddrWidth, avalonAddrWidth, maxBurst))
   adma.io.start := csr.io.start
-  // FIXME: refactor sync interface
-  adma.io.aWarZero := asema.io.producer.warZero
-  asema.io.producer.warDec := adma.io.aWarDec
-  asema.io.producer.rawInc := adma.io.aRawInc
+  asema.io.producer <> adma.io.aSync
 
   // FIXME: refactor avalon interface
   io.admaAvalonAddress := adma.io.avalonMasterAddress
