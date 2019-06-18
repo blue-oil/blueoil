@@ -48,22 +48,33 @@ class Operator(object):
         self._output_ops: OutOps = {}
         self._dtype = dtype
         self._data = np.zeros(shape, dtype=dtype.nptype())
-        self.__update_shape(shape, dimension_format)
+        self.update_shape(shape, dimension_format)
         self.view: View = View(self)
         self.__connect_to_outputs()
         self._check_consistency()
         self._rank = len(shape)
         self._available_buffer = ''
 
-    def __update_shape(self, shape: List[int], dimension_format: str) -> None:
+    def update_shape(self, shape: List[int], dimension_format: str) -> None:
         self._shape: List[int] = shape
+        self._rank = len(shape)
         self._dimension_format = dimension_format
-        self.index_H = self._dimension_format.index('H') if 'H' in self._dimension_format else None
-        self.index_W = self._dimension_format.index('W') if 'W' in self._dimension_format else None
-        self.index_N = self._dimension_format.index('N') if 'N' in self._dimension_format \
-            else self._dimension_format.index('O') if 'O' in self._dimension_format else None
-        self.index_C = self._dimension_format.index('C') if 'C' in self._dimension_format \
-            else self._dimension_format.index('I') if 'I' in self._dimension_format else None
+        dimension_format_list = []
+        for ch in dimension_format:
+            if ch.isupper():
+                dimension_format_list.append(ch)
+            else:
+                dimension_format_list[-1] += ch
+        self.index_H = dimension_format_list.index('H') if 'H' in dimension_format_list else None
+        self.index_W = dimension_format_list.index('W') if 'W' in dimension_format_list else None
+        self.index_N = dimension_format_list.index('N') if 'N' in dimension_format_list \
+            else dimension_format_list.index('Oh') if 'Oh' in dimension_format_list \
+            else dimension_format_list.index('O') if 'O' in dimension_format_list else None
+        self.index_C = dimension_format_list.index('C') if 'C' in dimension_format_list \
+            else dimension_format_list.index('Ch') if 'Ch' in dimension_format_list \
+            else dimension_format_list.index('I') if 'I' in dimension_format_list \
+            else dimension_format_list.index('Ih') if 'Ih' in dimension_format_list else None
+        self.index_C_low = dimension_format_list.index('Cl') if 'Cl' in dimension_format_list else None
 
     def __connect_to_outputs(self) -> None:
         """Connect input operators' outputs to this object."""
@@ -403,7 +414,10 @@ class Operator(object):
     def channel(self) -> int:
         """Get the number of channels in the shape."""
         if self.index_C is not None:
-            return self.shape[self.index_C]
+            if self.index_C_low is not None:
+                return self.shape[self.index_C] * self.shape[self.index_C_low]
+            else:
+                return self.shape[self.index_C]
         else:
             raise ValueError(f'Operator {self.name} does not have the channel property.')
 
@@ -441,7 +455,7 @@ class Operator(object):
             lambda x, y: x + y, [self._dimension_format[i] for i in perm])
 
         # update
-        self.__update_shape(new_shape, new_format)
+        self.update_shape(new_shape, new_format)
 
     @property
     def data(self) -> np.ndarray:
@@ -559,9 +573,14 @@ class Constant(Variable):
                  dtype: DataType,
                  data: np.ndarray,
                  dimension_format: str = 'NHWC',
+                 transposed_dimension_format: str = 'NHWC',
                  packed: bool = False,
                  actual_shape: List[int] = [],
-                 transposed_data: List[int] = None) -> None:
+                 transposed_data: List[int] = None,
+                 transposed_shape: List[int] = None,
+                 kn2row_data: List[int] = None,
+                 kn2row_dimension_format: str = 'HWNC',
+                 kn2row_shape: List[int] = None,) -> None:
         """Init the variable.
 
         If the constant is hard quantized, data is packed and the actual shape
@@ -570,6 +589,11 @@ class Constant(Variable):
         shape = list(data.shape) if not packed else actual_shape
         self._packed = packed
         self._transposed_data = transposed_data
+        self._transposed_shape = transposed_shape
+        self._transposed_dimension_format = transposed_dimension_format
+        self._kn2row_data = kn2row_data
+        self._kn2row_dimension_format = kn2row_dimension_format
+        self._kn2row_shape = kn2row_shape
         super().__init__(name, shape, dtype, {}, data, dimension_format=dimension_format)
 
     def run_forward(self) -> np.ndarray:
@@ -583,6 +607,26 @@ class Constant(Variable):
     def transposed_data(self) -> List[int]:
         """Return transposed data."""
         return self._transposed_data
+
+    @property
+    def transposed_dimension_format(self) -> str:
+        return self._transposed_dimension_format
+
+    @property
+    def transposed_shape(self) -> List[int]:
+        return self._transposed_shape
+
+    @property
+    def kn2row_data(self) -> List[int]:
+        return self._kn2row_data
+
+    @property
+    def kn2row_dimension_format(self) -> str:
+        return self._kn2row_dimension_format
+
+    @property
+    def kn2row_shape(self) -> List[int]:
+        return self._kn2row_shape
 
 
 class Output(Variable):
@@ -1002,6 +1046,7 @@ class Conv(Operator):
         self._a_quantizer: List['Quantizer'] = []
         self._quantizer: Optional['Quantizer'] = None
         self._thresholds = thresholds
+        self._original_shape = shape
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
         # if kernel shape is not assigned, estimate kernel shape from input W's shape
 
@@ -1015,7 +1060,7 @@ class Conv(Operator):
         self._assert(len(self.dilations) == self._num_dimensions)
         self._assert(len(self.pads) == self._num_dimensions + 2)
         self._assert(len(self.strides) == self._num_dimensions)
-        self._assert(len(self.dimension) == len(self.shape))
+        # self._assert(len(self.dimension) == len(self.shape))
 
         # check the shape consistency
         if not self._is_quantized:
@@ -1226,6 +1271,9 @@ class Conv(Operator):
     @property
     def preserve_quantization(self) -> bool:
         return True
+
+    def restore_shape(self):
+        self.update_shape(self._original_shape, 'NHWC')
 
 
 class BatchNormalization(Operator):
@@ -1478,9 +1526,10 @@ class Add(Operator):
                  name: str,
                  shape: List[int],
                  dtype: DataType,
-                 input_ops: Ops) -> None:
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
         """Init add operator."""
-        super().__init__(name, shape, dtype, input_ops)
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
         super()._check_consistency()
@@ -1831,12 +1880,17 @@ class Reshape(Operator):
 
     """
 
-    _input_names = ['data']
+    _input_names = ['data', 'shape']
     _output_names = ['reshaped']
 
-    def __init__(self, name: str, shape: List[int], dtype: DataType, input_ops: Ops) -> None:
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
         """Init the reshape operator."""
-        super().__init__(name, shape, dtype, input_ops)
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
         super()._check_consistency()
@@ -2766,4 +2820,240 @@ class MatMul(Operator):
                      
     @property
     def preserve_quantization(self) -> bool:
+        return False
+
+
+class Gather(Operator):
+    r"""Gather operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['x', 'out_idx']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
+
+class Unique(Operator):
+    r"""Unique operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['x']
+    _output_names = ['y', 'idx']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
+
+class Cast(Operator):
+    r"""Cast operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['x']
+    _output_names = ['y']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
+class Minimum(Operator):
+    r"""Minimum operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['x', 'y']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
+
+class StridedSlice(Operator):
+    r"""StridedSlice operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['input', 'begin', 'end', 'strides']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
+class Lookup(Quantizer):
+    r"""Lookup operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['input', 'lsb', 'msb']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return True
+
+    @property
+    def nbit(self) -> int:
+        return 2
+
+    @property
+    def max_v(self) -> float:
+        return 2.0
+
+
+class Prod(Operator):
+    r"""Prod operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['input', 'indices']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+
+class Shape(Operator):
+    r"""Shape operator.
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    output
+        The output.
+
+    """
+
+    _input_names = ['input']
+    _output_names = ['output']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
         return False

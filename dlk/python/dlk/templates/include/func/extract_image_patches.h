@@ -16,29 +16,148 @@ limitations under the License.
 #ifndef DLK_FUNC_EXTRACT_IMAGE_PATCHES
 #define DLK_FUNC_EXTRACT_IMAGE_PATCHES
 
+#include <algorithm>
 #include "global.h"
+#include "tensor_view.h"
 #include "time_measurement.h"
+#include "pack_input_to_qwords.h"
+#include <limits.h>
 
-template<class T>
-void func_ExtractImagePatches(T input[], T output[], T_UINT input_width, T_UINT input_depth, T_UINT kernel_size, T_UINT stride, T_UINT out_height, T_UINT out_width, T_UINT out_depth)
-{
+template <typename T>
+void func_ExtractImagePatches(
+    const TensorView<T, MemoryLayout::NHWC>& input,
+    const TensorView<T, MemoryLayout::NHWC>& output,
+    T_UINT kernel_size, T_UINT stride) {
   Measurement::Start("ExtractImagePatches");
 
-  T_UINT output_index = 0;
+  const auto in_shape = input.get_shape();
+  const T_UINT input_depth = in_shape[3];
+  const auto out_shape = output.get_shape();
+  const T_UINT out_height = out_shape[1];
+  const T_UINT out_width = out_shape[2];
 
-  for(T_UINT wi = 0; wi < out_height; wi++)
-    for(T_UINT wj = 0; wj < out_width; wj++)
-    {
-      for(T_UINT ki = 0; ki < kernel_size; ki++)
-        for(T_UINT kj = 0; kj < kernel_size; kj++)
-          for(T_UINT kz = 0; kz < input_depth; kz++)
+  for(T_UINT kz = 0; kz < input_depth; ++kz)
+    for(T_UINT wi = 0; wi < out_height; wi++)
+      for(T_UINT wj = 0; wj < out_width; wj++)
+        for(T_UINT ki = 0; ki < kernel_size; ki++)
+          for(T_UINT kj = 0; kj < kernel_size; kj++)
           {
             T_INT row = (wi * stride) + ki;
             T_INT col = (wj * stride) + kj;
-
-            output[output_index++] = input[row * (input_width * input_depth) + col * (input_depth) + kz];
+              const auto ch = kz + (ki * kernel_size + kj) * input_depth;
+              output(0, wi, wj, ch)
+                = input(0, row, col, kz);
           }
-      }
+
+  Measurement::Stop();
+}
+
+inline void func_ExtractImagePatches(
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& input,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& output,
+    T_UINT kernel_size, T_UINT stride) {
+  Measurement::Start("ExtractImagePatches");
+
+  const auto in_shape = input.get_shape();
+  const T_UINT input_width = in_shape[1];
+  const T_UINT input_depth = in_shape[2];
+  const T_UINT bits_per_input = in_shape[3];
+  const auto out_shape = output.get_shape();
+  const T_UINT out_height = out_shape[0];
+  const T_UINT out_width = out_shape[1];
+  const T_UINT out_depth = out_shape[2];
+
+  T_UINT output_index = 0;
+
+  if (out_depth < kernel_size * kernel_size) {
+    int bit_shift = out_depth * QUANTIZED_PACKED::BitCount / (kernel_size * kernel_size);
+    const QUANTIZED_PACKED::base_t mask((QUANTIZED_PACKED::base_t(1) << bit_shift) - 1);
+    std::fill(output.data(), output.data() + output.size(), QUANTIZED_PACKED(0));
+    for(T_UINT wi = 0; wi < out_height; wi++)
+      for(T_UINT wj = 0; wj < out_width; wj++)
+        for(T_UINT ki = 0; ki < kernel_size; ki++)
+          for(T_UINT kj = 0; kj < kernel_size; kj++)
+          {
+            T_INT row = (wi * stride) + ki;
+            T_INT col = (wj * stride) + kj;
+            T_UINT ch = (ki * kernel_size + kj) * bit_shift;
+            T_UINT ch_high = ch / QUANTIZED_PACKED::BitCount;
+            T_UINT ch_low = ch % QUANTIZED_PACKED::BitCount;
+            for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
+              output(wi, wj, ch_high, digit, 0) |= QUANTIZED_PACKED((mask & input(row, col, 0, digit, 0).Raw()) << ch_low);
+            }
+          }
+  } else {
+    for(T_UINT ih = 0; ih < input_depth; ++ih)
+      for(T_UINT wi = 0; wi < out_height; wi++)
+        for(T_UINT wj = 0; wj < out_width; wj++)
+          for(T_UINT ki = 0; ki < kernel_size; ki++)
+            for(T_UINT kj = 0; kj < kernel_size; kj++)
+            {
+              T_INT row = (wi * stride) + ki;
+              T_INT col = (wj * stride) + kj;
+              for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
+                const auto ch_high = ih + (ki * kernel_size + kj) * input_depth;
+                output(wi, wj, ch_high, digit, 0)
+                  = input(row, col, ih, digit, 0);
+              }
+            }
+  }
+
+  Measurement::Stop();
+}
+
+inline void func_ExtractImagePatches(
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& input,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
+    T_UINT kernel_size, T_UINT stride)
+{
+  Measurement::Start("ExtractImagePatches");
+  const auto in_shape = input.get_shape();
+  const T_UINT input_width = in_shape[2];
+  const T_UINT input_depth = in_shape[0];
+  const T_UINT bits_per_input = in_shape[3];
+  const auto out_shape = output.get_shape();
+  const T_UINT out_height = out_shape[1];
+  const T_UINT out_width = out_shape[2];
+  const T_UINT out_depth = out_shape[0];
+
+  T_UINT output_index = 0;
+
+  if (out_depth < kernel_size * kernel_size) {
+    int bit_shift = out_depth * QUANTIZED_PACKED::BitCount / (kernel_size * kernel_size);
+    const QUANTIZED_PACKED::base_t mask((QUANTIZED_PACKED::base_t(1) << bit_shift) - 1);
+    std::fill(output.data(), output.data() + output.size(), QUANTIZED_PACKED(0));
+    for(T_UINT wi = 0; wi < out_height; wi++)
+      for(T_UINT wj = 0; wj < out_width; wj++)
+        for(T_UINT ki = 0; ki < kernel_size; ki++)
+          for(T_UINT kj = 0; kj < kernel_size; kj++)
+          {
+            T_INT row = (wi * stride) + ki;
+            T_INT col = (wj * stride) + kj;
+            T_UINT ch = (ki * kernel_size + kj) * bit_shift;
+            T_UINT ch_high = ch / QUANTIZED_PACKED::BitCount;
+            T_UINT ch_low = ch % QUANTIZED_PACKED::BitCount;
+            for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
+              output(ch_high, wi, wj, digit, 0) |= QUANTIZED_PACKED((mask & input(0, row, col, digit, 0).Raw()) << ch_low);
+            }
+          }
+  } else {
+    for(T_UINT ih = 0; ih < input_depth; ++ih)
+      for(T_UINT wi = 0; wi < out_height; wi++)
+        for(T_UINT wj = 0; wj < out_width; wj++)
+          for(T_UINT ki = 0; ki < kernel_size; ki++)
+            for(T_UINT kj = 0; kj < kernel_size; kj++)
+            {
+              T_INT row = (wi * stride) + ki;
+              T_INT col = (wj * stride) + kj;
+              for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
+                const auto ch_high = ih + (ki * kernel_size + kj) * input_depth;
+                output(ch_high, wi, wj, digit, 0)
+                  = input(ih, row, col, digit, 0);
+              }
+            }
+  }
 
   Measurement::Stop();
 }

@@ -21,6 +21,8 @@ limitations under the License.
 #include <vector>
 #include <chrono>
 #include <iostream>
+#include <memory>
+#include <unordered_map>
 
 #define TIME_ORDER std::chrono::microseconds
 
@@ -35,8 +37,24 @@ private:
     std::chrono::system_clock::time_point end;
   };
 
+  struct Node {
+    Node(const std::string& name, size_t position)
+        : name(name), position(position) {
+    }
+
+    std::string name;
+    size_t position;
+    std::vector<measure> measurements;
+    std::unordered_map<std::string, std::unique_ptr<Node>> children;
+  };
+
   static std::map<std::string, std::vector<Measurement::measure> > times;
   static std::vector<std::string> current_context;
+
+  static std::vector<Node*> stack;
+  static std::vector<std::unique_ptr<Node>> roots;
+
+  static void DumpTimeTree(const Node&, int level);
 
 public:
   static void Start(const std::string &measure_name);

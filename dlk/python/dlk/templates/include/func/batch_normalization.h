@@ -17,7 +17,14 @@ limitations under the License.
 #define DLK_FUNC_BATCH_NORMALIZATION_H_INCLUDED
 
 #include "global.h"
+#include "tensor_view.h"
 
-void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[], T_FLOAT mean[], T_FLOAT variance[], T_FLOAT epsilon, T_FLOAT output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::C>& gamma,
+    const TensorView<T_FLOAT, MemoryLayout::C>& beta,
+    const TensorView<T_FLOAT, MemoryLayout::C>& mean,
+    const TensorView<T_FLOAT, MemoryLayout::C>& variance,
+    T_FLOAT epsilon,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output);
 
 #endif // DLK_FUNC_BATCH_NORMALIZATION_H_INCLUDED
