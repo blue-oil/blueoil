@@ -504,10 +504,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
 
   val rdma = Module(new RDma(b, dataAddrWidth, avalonAddrWidth, maxBurst))
   rdma.io.start := csr.io.bnqEnable & csr.io.start
-  // FIXME: refactor sync interface
-  rdma.io.rRawZero := rsema.io.consumer.rawZero
-  rsema.io.consumer.rawDec := rdma.io.rRawDec
-  rsema.io.consumer.warInc := rdma.io.rWarInc
+  rsema.io.consumer <> rdma.io.rSync
 
   // FIXME: refactor avalon interface
   io.rdmaAvalonAddress := rdma.io.avalonMasterAddress
