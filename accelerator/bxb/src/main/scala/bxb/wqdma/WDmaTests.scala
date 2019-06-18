@@ -66,9 +66,7 @@ class WDmaTestModule(b: Int, avalonDataWidth: Int, wmemSize: Int) extends Module
   wdma.io.outputWCount := io.outputWCount
   wdma.io.kernelBlockCount := io.kernelBlockCount
 
-  wdma.io.wWarZero := wSemaPair.io.producer.warZero
-  wSemaPair.io.producer.warDec := wdma.io.wWarDec
-  wSemaPair.io.producer.rawInc := wdma.io.wRawInc
+  wSemaPair.io.producer <> wdma.io.wSync
 
   wmem.io.write := wdma.io.wmemWrite
 
