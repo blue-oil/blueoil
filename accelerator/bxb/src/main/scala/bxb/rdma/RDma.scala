@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 
 import bxb.memory.{ReadPort}
+import bxb.sync.{ConsumerSyncIO}
 import bxb.util.{Util}
 
 class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends Module {
@@ -59,9 +60,7 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val rmemQ = Input(Vec(b, UInt(rSz.W)))
 
     // Synchronization interface
-    val rRawDec = Output(Bool())
-    val rRawZero = Input(Bool())
-    val rWarInc = Output(Bool())
+    val rSync = ConsumerSyncIO()
 
     // Status
     val statusReady = Output(Bool())
@@ -91,9 +90,9 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
 
   tileGenerator.io.tileAccepted := tileAccepted
 
-  io.rRawDec := tileGenerator.io.rRawDec
-  tileGenerator.io.rRawZero := io.rRawZero
-  io.rWarInc := tileAccepted
+  io.rSync.rawDec := tileGenerator.io.rRawDec
+  tileGenerator.io.rRawZero := io.rSync.rawZero
+  io.rSync.warInc := tileAccepted
 
   io.statusReady := tileGenerator.io.statusReady
 
