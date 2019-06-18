@@ -63,7 +63,7 @@ class CodeGenerater(object):
                 # if the file's dir not exist, make it
                 utils.make_dirs([dest_file_dir_path])
 
-                if 'tpl' in path.basename(src_file_path):
+                if 'tpl' in path.basename(src_file_path) and path.basename(src_file_path)[0] != '.':
                     relative_src_file_path = str(src_file.relative_to(self.template.root_dir))
                     self.template.generate(relative_src_file_path,
                                            dest_file_dir_path)

@@ -22,8 +22,8 @@ namespace {
 
 template<typename TYPE>
 void max_pooling(
-    TYPE input[],
-    TYPE output[],
+    const TensorView<TYPE, MemoryLayout::NHWC>& input,
+    const TensorView<TYPE, MemoryLayout::NHWC>& output,
     struct max_pooling_parameters p)
 {
 
@@ -34,7 +34,7 @@ void max_pooling(
   int idx_out = 0;
   const T_FLOAT num_k_elems = p.kernel_height * p.kernel_width * p.kernel_depth;
 
-  std::memset(output, 0, p.output_channels * p.output_height * p.output_width * sizeof(output[0]));
+  std::memset(output.data(), 0, output.size() * sizeof(TYPE));
 
   for(T_UINT oc = 0; oc < p.output_channels; oc++) {
     for(T_UINT wi = 0; wi < p.output_height; wi++) {
@@ -47,18 +47,15 @@ void max_pooling(
 	          T_INT inside = (row >= 0 && col >= 0 && row < (T_INT) p.input_height && col < (T_INT)p.input_width);
 	          if (!inside) continue;
               for(T_UINT kz = 0; kz < p.kernel_depth; kz++) {
-                int idx_in = oc * p.kernel_depth
-                         + row * (p.input_width * p.input_depth)
-                         + col * (p.input_depth) + kz;
                 if(ki == 0 && kj == 0){
-                  out = input[idx_in];
-                }else if (input[idx_in] > out){
-                  out = input[idx_in];
+                  out = input(0, row, col, oc * p.kernel_depth + kz);
+                }else if (input(0, row, col, oc * p.kernel_depth + kz) > out){
+                  out = input(0, row, col, oc * p.kernel_depth + kz);
                 }
               }
           }
         }
-        output[(p.output_channels * p.output_width) * wi + p.output_channels * wj + oc] += TYPE(out);
+        output(0, wi, wj, oc) += TYPE(out);
       }
     }
   }
@@ -66,15 +63,15 @@ void max_pooling(
 
 template<typename TYPE>
 void max_pooling_with_argmax(
-    TYPE input[],
-    TYPE output[],
-    T_UINT indices[],
+    const TensorView<TYPE, MemoryLayout::NHWC>& input,
+    const TensorView<TYPE, MemoryLayout::NHWC>& output,
+    const TensorView<T_UINT, MemoryLayout::NHWC>& indices,
     struct MaxPoolWithArgmax_parameters p)
 {
   const TYPE lowest = -10000000;
 
   // important to be zero (minimum value for T_UINT)
-  for(T_UINT i = 0; i < p.output_elements; i++) { output[i] = lowest; }
+  for(T_UINT i = 0; i < p.output_elements; i++) { output.data()[i] = lowest; }
 
   for(T_UINT wi = 0; wi < p.output_height; wi++)
     for(T_UINT wj = 0; wj < p.output_width; wj++)
@@ -89,14 +86,13 @@ void max_pooling_with_argmax(
 	    if (!inside) continue;
 
             T_UINT input_index = height_index * (p.input_width * p.kernel_depth) + width_index * (p.kernel_depth) + kz;
-            TYPE e = input[input_index];
+            TYPE e = input(0, height_index, width_index, kz);
 
             // update the current maximum value found so far
-            T_UINT index_current_maximum_value = wi * (p.kernel_depth * p.output_width) + wj * (p.kernel_depth) + kz;
-            if(e > output[index_current_maximum_value])
+            if(e > output(0, wi, wj, kz))
             {
-              output[index_current_maximum_value] = e;
-              indices[index_current_maximum_value] = input_index;
+              output(0, wi, wj, kz) = e;
+              indices(0, wi, wj, kz) = input_index;
             }
           }
     }
@@ -104,9 +100,9 @@ void max_pooling_with_argmax(
 
 } // namespace
 
-void func_MaxPool(T_FLOAT input[], T_FLOAT output[],
-                  struct max_pooling_parameters mpp, T_UINT out_height,
-                  T_UINT out_width, T_UINT out_depth) {
+void func_MaxPool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
+    struct max_pooling_parameters mpp) {
   Measurement::Start("MaxPooling");
 
   max_pooling(input, output, mpp);
@@ -114,9 +110,9 @@ void func_MaxPool(T_FLOAT input[], T_FLOAT output[],
   Measurement::Stop();
 }
 
-void func_MaxPool(QUANTIZED_NOT_PACKED input[], QUANTIZED_NOT_PACKED output[],
-                  struct max_pooling_parameters mpp, T_UINT out_height,
-                  T_UINT out_width, T_UINT out_depth) {
+void func_MaxPool(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
+    const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& output,
+    struct max_pooling_parameters mpp) {
   Measurement::Start("MaxPooling");
 
   max_pooling(input, output, mpp);
@@ -124,11 +120,10 @@ void func_MaxPool(QUANTIZED_NOT_PACKED input[], QUANTIZED_NOT_PACKED output[],
   Measurement::Stop();
 }
 
-void func_MaxPoolWithArgmax(Quantized_t input[], Quantized_t output[],
-                            T_UINT indices[],
-                            struct MaxPoolWithArgmax_parameters mpp,
-                            T_UINT out_height, T_UINT out_width,
-                            T_UINT out_depth) {
+void func_MaxPoolWithArgmax(const TensorView<Quantized_t, MemoryLayout::NHWC>& input,
+    const TensorView<Quantized_t, MemoryLayout::NHWC>& output,
+    const TensorView<T_UINT, MemoryLayout::NHWC>& indices,
+    struct MaxPoolWithArgmax_parameters mpp) {
   Measurement::Start("MaxPoolingWithArgmax");
 
   max_pooling_with_argmax(input, output, indices, mpp);

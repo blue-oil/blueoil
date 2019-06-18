@@ -20,83 +20,11 @@ import numpy as np
 
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from core.operators import Constant, Operator, Conv
-from core.data_types import PackedUint32, QUANTIZED_NOT_PACKED
+from core.operators import Constant, Operator, Conv, Lookup
+from core.data_types import Uint32, Int32, QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, PackedUint32, QUANTIZED_PACKED_KERNEL
 from typing import cast, List, Any
 from collections import defaultdict
 from modules.packer import Packer
-
-
-def _transpose_kernels(kernel_data: np.ndarray,
-                       oh: int,
-                       ow: int,
-                       od: int,
-                       kh: int,
-                       kw: int,
-                       kd: int) -> List[int]:
-    """Calculates and prepares the transposed kernel data in advance.
-
-    Parameters
-    ----------
-    kernel_data : np.ndarray
-        The input data.
-    oh : int
-        output height
-    ow : int
-        output width
-    od : int
-        output depth
-    kh : int
-        kernel height
-    kw : int
-        kernel width
-    kd : int
-        kernel depth
-    """
-    NUM_PE = 16
-    NBIT_QDYPE = 32
-    MAX_NBIT_QINPUT = 2
-    MAX_NBIT_KERNEL = 1
-    num_qinput_per_qword = int(NBIT_QDYPE / MAX_NBIT_QINPUT)
-    num_qkernel_per_qword = int(NBIT_QDYPE / MAX_NBIT_KERNEL)
-    k_c_by_word = int((kd + (num_qkernel_per_qword - 1)) / num_qkernel_per_qword)
-    k_n_aligned_with_num_pe = int(((od + (NUM_PE - 1)) / NUM_PE) * NUM_PE)
-    if od < NUM_PE:
-        k_size = k_n_aligned_with_num_pe * kh * kw * k_c_by_word
-    else:
-        k_size = od * kh * kw * k_c_by_word
-
-    flatten_value = []
-    for elem in kernel_data:
-        flatten_value.extend(elem)
-    while len(flatten_value) != k_size:
-        flatten_value.extend("0")
-
-    copy_value = [0] * k_size
-    for i in range(od * kh * kw * k_c_by_word):
-        copy_value[i] = flatten_value[i]
-
-    transposed_values = [0] * k_size
-    if (od < NUM_PE):
-        kn_out = int(k_n_aligned_with_num_pe / NUM_PE)
-    else:
-        kn_out = int(od / NUM_PE)
-    idx_src = 0
-
-    for no in range(kn_out):
-        for ni in range(NUM_PE):
-            for h in range(kh):
-                for w in range(kw):
-                    for c in range(k_c_by_word):
-                        idx_dst = no * (kh * kw * k_c_by_word * NUM_PE)
-                        idx_dst += h * (kw * k_c_by_word * NUM_PE)
-                        idx_dst += w * (k_c_by_word * NUM_PE)
-                        idx_dst += c * (NUM_PE)
-                        idx_dst += ni
-                        transposed_values[idx_dst] = copy_value[idx_src]
-                        idx_src += 1
-
-    return transposed_values
 
 
 def pass_remove_identities(graph: Graph) -> None:
@@ -251,7 +179,8 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
     qtypes = [
         'QTZ_binary_mean_scaling',
         'QTZ_linear_mid_tread_half',
-        'QTZ_binary_channel_wise_mean_scaling'
+        'QTZ_binary_channel_wise_mean_scaling',
+        'Lookup'
     ]
 
     quant_details = defaultdict(list)
@@ -385,9 +314,9 @@ def pass_compute_thresholds(graph: Graph) -> None:
         for c in range(ch):
             threshold_table[c, -1] = 1 \
                 if np.all(threshold_table[c, 1:-1] > threshold_table[c, :-2], axis=0) else -1
-            # Applying the magic number
             if np.all(threshold_table[c, 1:-1] == threshold_table[c, :-2], axis=0):
-                threshold_table[c, -1] = 2
+                threshold_table[c, -1] = 1
+                threshold_table[c, 0:-1] = max_th_value
 
         # Put the thresholds into list
         conv_node.thresholds = threshold_table.flatten().tolist()
@@ -431,6 +360,7 @@ def pass_pack_weights(graph: Graph) -> None:
     weight_bitwidth = 1
     packer = Packer(weight_bitwidth, word_size)
     to_be_removed = []
+    b = 32
 
     for m in exec_list:
         conv_node = m
@@ -446,23 +376,73 @@ def pass_pack_weights(graph: Graph) -> None:
 
         # Quantize the weights
         weight_quantizer.run_forward()
-        op_data = weight_quantizer.binarizer(weight_quantizer.data)
+
+        def pad_to_multiple_of_b(tensor, axis, b):
+            shape = list(tensor.shape)
+            pad = (((shape[axis] + b - 1) // b) * b) - shape[axis]
+            shape[axis] = pad
+            return np.zeros(shape) if pad else None
+
+        padded_data = np.copy(weight_quantizer.data)
+
+        for axis in [0, 3]:
+            pad_tensor = pad_to_multiple_of_b(padded_data, axis, b)
+            if pad_tensor is not None:
+                padded_data = np.append(padded_data, pad_tensor, axis=axis)
+
+        tca_output = np.copy(padded_data)
+        oc, kh, kw, kd = padded_data.shape[:]
+        padded_data = padded_data.flatten()
+        tca_output = tca_output.flatten()
+
+        out_index = 0
+        for g in range(oc // b):
+            for p in range(kd // b):
+                for h in range(kh):
+                    for w in range(kw):
+                        for o in range(b):
+                            for d in range(b):
+                                idx = g * (kw * kh * kd * b) + p * b + h * (kw * kd) + w * kd + o * (kw * kh * kd) + d
+                                tca_output[out_index] = padded_data[idx]
+                                out_index += 1
+                                
+        kn2row_output = np.zeros(oc * kh * kw * kd)
+        out_index = 0
+        for h in range(kh):
+            for w in range(kw):
+                for o in range(oc):
+                    for i in range(kd):
+                        idx = o * kh * kw * kd + h * kw * kd + w * kd + i
+                        kn2row_output[out_index] = padded_data[idx]
+                        out_index += 1
+
+        op_data = weight_quantizer.binarizer(padded_data)
         data = packer.run(op_data.astype(np.float32), weight_quantizer.dimension)
 
+        tca_binarized_data = weight_quantizer.binarizer(tca_output)
+        tca_packed_data = packer.run(tca_binarized_data.astype(np.float32), weight_quantizer.dimension)
+
+        kn2row_binarized_data = weight_quantizer.binarizer(kn2row_output)
+        kn2row_data = packer.run(kn2row_binarized_data.astype(np.float32), weight_quantizer.dimension)
+
+        shape = [oc, kh, kw, kd]
+        tca_shape = [oc // b, kd // b, kh, kw, b, b]
+        kn2row_shape = [kh, kw, oc, kd]
+
         # Create the new constant with the quantized weights
-        oh = conv_node.height
-        ow = conv_node.width
-        od = conv_node.channel
-        kh = conv_node.kernel_height
-        kw = conv_node.kernel_width
-        kd = conv_node.input_ops['X'].channel
         quantized_constant = Constant(
             weight_quantizer.name + '_new',
             PackedUint32(),
-            data,
+            data=np.vectorize(lambda k: (~k) & ((0x1 << 32) - 1))(data),
+            dimension_format="NHWC",
+            transposed_dimension_format="OhIhHWOlIl",
             packed=True,
-            actual_shape=weight_quantizer.shape,
-            transposed_data=_transpose_kernels(data, oh, ow, od, kh, kw, kd)
+            actual_shape=shape,
+            transposed_shape=tca_shape,
+            transposed_data=[(~k) & ((0x1 << 32) - 1) for k in tca_packed_data.flatten()],
+            kn2row_data=[k for k in kn2row_data.flatten()],
+            kn2row_shape=kn2row_shape,
+            kn2row_dimension_format="HWNC"
         )
 
         # get nodes to be removed after being disconnected
@@ -492,6 +472,8 @@ def pass_quantize_convolutions(graph: Graph) -> None:
     graph : Graph
         The input graph. It will be modified in-place.
     """
+    b = 32
+
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
     for m in exec_list:
         conv_node = m
@@ -505,12 +487,24 @@ def pass_quantize_convolutions(graph: Graph) -> None:
 
         # change the output data type of the convolution if thresholds are available
         if conv_node.has_thresholds:
-            conv_node.dtype = QUANTIZED_NOT_PACKED()
+            conv_node.dtype = QUANTIZED_PACKED()
+            height = conv_node.height
+            width = conv_node.width
+            depth = conv_node.channel
+            depth_upper = (depth + b - 1) // b
+            conv_node.update_shape([depth_upper, height, width, 2, b], "ChHWBCl")
 
         # change the output data type of the quantizers
         conv_node.quantizer.dtype = PackedUint32()
         for qtz in conv_node.a_quantizer:
-            qtz.dtype = QUANTIZED_NOT_PACKED()
+            if isinstance(qtz, Lookup):
+                continue
+            qtz.dtype = QUANTIZED_PACKED()
+            height = qtz.height
+            width = qtz.width
+            depth = qtz.channel
+            depth_upper = (depth + b - 1) // b
+            qtz.update_shape([height, width, depth_upper, 2, b], "HWChBCl")
 
 
 def pass_propagate_datatypes(graph) -> None:
@@ -525,6 +519,27 @@ def pass_propagate_datatypes(graph) -> None:
     for m in exec_list:
         if m.op_type != 'Conv' and m.preserve_quantization:
             m.dtype = m.input_nodes[0].dtype
+
+
+def pass_propagate_format(graph) -> None:
+    """Further propagate output data types.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
+    exec_list = sort_graph(graph)
+    for m in exec_list:
+        if m.op_type != 'Conv' and m.preserve_quantization:
+            if m.input_nodes[0].dimension == 'ChHWBCl':
+                b = 32
+                shape = [(m.channel + b - 1) // b, m.height, m.width, 2, b]
+                m.update_shape(shape, m.input_nodes[0].dimension)
+            elif m.input_nodes[0].dimension == 'HWChBCl':
+                b = 32
+                shape = [m.height, m.width, (m.channel + b - 1) // b, 2, b]
+                m.update_shape(shape, m.input_nodes[0].dimension)
 
 
 def pass_propagate_output_type_backward(graph: Graph) -> None:
@@ -546,6 +561,7 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
     def output_dtype_changer(node, otype):
         for n in node.input_nodes:
             if n.op_type == 'Conv' and n.is_quantized:
+                n.restore_shape()
                 n.dtype = otype
                 return
             output_dtype_changer(n, otype)
@@ -554,3 +570,86 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
     output_node = exec_list[-1]
     output_type = output_node.dtype
     output_dtype_changer(output_node, output_type)
+
+
+def pass_lookup(graph: Graph) -> None:
+    """Lookup.
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
+    quantization_types = [
+        'QTZ_binary_mean_scaling',
+        'QTZ_linear_mid_tread_half',
+        'QTZ_binary_channel_wise_mean_scaling'
+    ]
+
+    to_be_removed = []
+    exec_list = [n for n in sort_graph(graph) if n.op_type in quantization_types]
+    placeholder = [n for n in sort_graph(graph) if n.op_type in 'Input']
+
+    for m in exec_list:
+        quantizer = m
+
+        p1 = quantizer.input_nodes[0]
+        if p1.op_type != 'Reshape':
+            continue
+        p2 = p1.input_nodes[0]
+        if p2.op_type != 'Reshape':
+            continue
+        p3 = p2.input_nodes[0]
+        if p3.op_type != 'Gather':
+            continue
+        p4 = p3.input_nodes[0]
+        if p4.op_type != 'Gather':
+            continue
+        gather_params = p4.input_nodes[0]
+        if gather_params.rank != 2 or gather_params.shape[0] != 256:
+            continue
+
+        params = gather_params.data
+        data = {'data': params}
+        qtz_data = quantizer.run(**data)['data']
+
+        word_size = 32
+        lu_bitwidth = quantizer.nbit
+        packer = Packer(lu_bitwidth, word_size)
+
+        lsb = np.zeros((256,), np.uint32)
+        msb = np.zeros((256,), np.uint32)
+
+        idx = 0
+        for p in qtz_data:
+            data = packer.run(p.astype(np.float32), p.shape).flatten()
+            # lsb[idx] = data[0] & 0x0000FFFF
+            # msb[idx] = data[1] & 0x0000FFFF
+            lsb[idx] = data[0] & 0x000003FF
+            msb[idx] = data[1] & 0x000003FF
+
+            idx += 1
+
+        pe_lsb = Constant('pe_lsb_new', QUANTIZED_PACKED_KERNEL(), lsb,
+                          dimension_format='TC', packed=True, actual_shape=[256, word_size])
+        pe_msb = Constant('pe_msb_new', QUANTIZED_PACKED_KERNEL(), msb,
+                          dimension_format='TC', packed=True, actual_shape=[256, word_size])
+
+        n, h, w, c = quantizer.shape
+        shape = [1, h, w, 2, word_size]
+        pe = Lookup('Lookup', shape, QUANTIZED_PACKED(),
+                    {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb}, dimension_format='ChHWBCl')
+
+        get_nodes_in_branch(quantizer, placeholder[0], to_be_removed)
+        placeholder[0].remove_output('output')
+        placeholder[0].add_output('output', pe)
+        pe.add_outputs(quantizer.output_ops)
+
+        conv = quantizer.output_op_list[0]
+        conv.add_input('X', pe)
+        graph.add_op(pe_lsb)
+        graph.add_op(pe_msb)
+        graph.add_op(pe)
+
+    for op in to_be_removed:
+        graph.remove_op(op)
