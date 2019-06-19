@@ -6,7 +6,7 @@ import chisel3.util._
 import bxb.a2f.{A2f}
 import bxb.adma.{ADma}
 import bxb.array.{MacArray}
-import bxb.avalon.{ReadMasterIO}
+import bxb.avalon.{ReadMasterIO, WriteMasterIO}
 import bxb.f2a.{F2a}
 import bxb.fdma.{FDma}
 import bxb.rdma.{RDma}
@@ -346,11 +346,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
     val qdmaAvalon = ReadMasterIO(avalonAddrWidth, 64)
 
     // FDMA Avalon Interface
-    val fdmaAvalonAddress = Output(UInt(avalonAddrWidth.W))
-    val fdmaAvalonBurstCount = Output(UInt(10.W))
-    val fdmaAvalonWaitRequest = Input(Bool())
-    val fdmaAvalonWrite = Output(Bool())
-    val fdmaAvalonWriteData = Output(UInt(128.W))
+    val fdmaAvalon = WriteMasterIO(avalonAddrWidth, 128)
 
     // RDMA Avalon Interface
     val rdmaAvalonAddress = Output(UInt(avalonAddrWidth.W))
@@ -443,13 +439,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   val fdma = Module(new FDma(b, dataAddrWidth, avalonAddrWidth, 128, maxBurst))
   fdma.io.start := ~csr.io.bnqEnable & csr.io.start
   fsemaConsumerMux.io.b <> fdma.io.fSync
-
-  // FIXME: refactor avalon interface
-  io.fdmaAvalonAddress := fdma.io.avalonMasterAddress
-  io.fdmaAvalonBurstCount := fdma.io.avalonMasterBurstCount
-  fdma.io.avalonMasterWaitRequest := io.fdmaAvalonWaitRequest
-  io.fdmaAvalonWrite := fdma.io.avalonMasterWrite
-  io.fdmaAvalonWriteData := fdma.io.avalonMasterWriteData
+  io.fdmaAvalon <> fdma.io.avalonMaster
 
   // FIXME: refactor parameters
   fdma.io.outputAddress := csr.io.fdmaOutputAddress

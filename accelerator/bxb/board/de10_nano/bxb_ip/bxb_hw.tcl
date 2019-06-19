@@ -146,11 +146,11 @@ set_interface_property fdma PORT_NAME_MAP ""
 set_interface_property fdma CMSIS_SVD_VARIABLES ""
 set_interface_property fdma SVD_ADDRESS_GROUP ""
 
-add_interface_port fdma io_fdmaAvalonAddress address Output 32
-add_interface_port fdma io_fdmaAvalonBurstCount burstcount Output 10
-add_interface_port fdma io_fdmaAvalonWaitRequest waitrequest Input 1
-add_interface_port fdma io_fdmaAvalonWrite write Output 1
-add_interface_port fdma io_fdmaAvalonWriteData writedata Output 128
+add_interface_port fdma io_fdmaAvalon_address address Output 32
+add_interface_port fdma io_fdmaAvalon_burstCount burstcount Output 10
+add_interface_port fdma io_fdmaAvalon_waitRequest waitrequest Input 1
+add_interface_port fdma io_fdmaAvalon_write write Output 1
+add_interface_port fdma io_fdmaAvalon_writeData writedata Output 128
 
 
 # 
