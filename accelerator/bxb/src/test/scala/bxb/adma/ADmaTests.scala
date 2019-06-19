@@ -33,35 +33,35 @@ class ADmaTestRequestSequence(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDat
 
   poke(dut.io.start, true)
 
-  poke(dut.io.inputAddress, 0)
-  poke(dut.io.inputHCount, param.hCount)
-  poke(dut.io.inputWCount, param.wCount)
-  poke(dut.io.inputCCount, param.cInCount)
-  poke(dut.io.outputCCount, param.cOutCount)
+  poke(dut.io.parameters.inputAddress, 0)
+  poke(dut.io.parameters.inputHCount, param.hCount)
+  poke(dut.io.parameters.inputWCount, param.wCount)
+  poke(dut.io.parameters.inputCCount, param.cInCount)
+  poke(dut.io.parameters.outputCCount, param.cOutCount)
 
-  poke(dut.io.topTileH, param.topTileH)
-  poke(dut.io.middleTileH, param.middleTileH)
-  poke(dut.io.bottomTileH, param.bottomTileH)
+  poke(dut.io.parameters.topTileH, param.topTileH)
+  poke(dut.io.parameters.middleTileH, param.middleTileH)
+  poke(dut.io.parameters.bottomTileH, param.bottomTileH)
 
-  poke(dut.io.leftTileW, param.leftTileW)
-  poke(dut.io.middleTileW, param.middleTileW)
-  poke(dut.io.rightTileW, param.rightTileW)
+  poke(dut.io.parameters.leftTileW, param.leftTileW)
+  poke(dut.io.parameters.middleTileW, param.middleTileW)
+  poke(dut.io.parameters.rightTileW, param.rightTileW)
 
-  poke(dut.io.leftRowToRowDistance, param.leftRowToRowDistance)
-  poke(dut.io.middleRowToRowDistance, param.middleRowToRowDistance)
-  poke(dut.io.rightRowToRowDistance, param.rightRowToRowDistance)
+  poke(dut.io.parameters.leftRowToRowDistance, param.leftRowToRowDistance)
+  poke(dut.io.parameters.middleRowToRowDistance, param.middleRowToRowDistance)
+  poke(dut.io.parameters.rightRowToRowDistance, param.rightRowToRowDistance)
 
-  poke(dut.io.leftStep, param.leftStep)
-  poke(dut.io.middleStep, param.middleStep)
-  poke(dut.io.topRowDistance, param.topRowDistance)
-  poke(dut.io.midRowDistance, param.midRowDistance)
+  poke(dut.io.parameters.leftStep, param.leftStep)
+  poke(dut.io.parameters.middleStep, param.middleStep)
+  poke(dut.io.parameters.topRowDistance, param.topRowDistance)
+  poke(dut.io.parameters.midRowDistance, param.midRowDistance)
 
-  poke(dut.io.inputSpace, param.inputSpace)
+  poke(dut.io.parameters.inputSpace, param.inputSpace)
 
-  poke(dut.io.topBottomLeftPad, param.topBottomLeftPad)
-  poke(dut.io.topBottomMiddlePad, param.topBottomMiddlePad)
-  poke(dut.io.topBottomRightPad, param.topBottomRightPad)
-  poke(dut.io.sidePad, param.sidePad)
+  poke(dut.io.parameters.topBottomLeftPad, param.topBottomLeftPad)
+  poke(dut.io.parameters.topBottomMiddlePad, param.topBottomMiddlePad)
+  poke(dut.io.parameters.topBottomRightPad, param.topBottomRightPad)
+  poke(dut.io.parameters.sidePad, param.sidePad)
 
 
   poke(dut.io.avalonMaster.waitRequest, false)
@@ -100,35 +100,35 @@ class ADmaTestWaitRequest(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWid
 
   poke(dut.io.start, true)
 
-  poke(dut.io.inputAddress, 0)
-  poke(dut.io.inputHCount, param.hCount)
-  poke(dut.io.inputWCount, param.wCount)
-  poke(dut.io.inputCCount, param.cInCount)
-  poke(dut.io.outputCCount, param.cOutCount)
+  poke(dut.io.parameters.inputAddress, 0)
+  poke(dut.io.parameters.inputHCount, param.hCount)
+  poke(dut.io.parameters.inputWCount, param.wCount)
+  poke(dut.io.parameters.inputCCount, param.cInCount)
+  poke(dut.io.parameters.outputCCount, param.cOutCount)
 
-  poke(dut.io.topTileH, param.topTileH)
-  poke(dut.io.middleTileH, param.middleTileH)
-  poke(dut.io.bottomTileH, param.bottomTileH)
+  poke(dut.io.parameters.topTileH, param.topTileH)
+  poke(dut.io.parameters.middleTileH, param.middleTileH)
+  poke(dut.io.parameters.bottomTileH, param.bottomTileH)
 
-  poke(dut.io.leftTileW, param.leftTileW)
-  poke(dut.io.middleTileW, param.middleTileW)
-  poke(dut.io.rightTileW, param.rightTileW)
+  poke(dut.io.parameters.leftTileW, param.leftTileW)
+  poke(dut.io.parameters.middleTileW, param.middleTileW)
+  poke(dut.io.parameters.rightTileW, param.rightTileW)
 
-  poke(dut.io.leftRowToRowDistance, param.leftRowToRowDistance)
-  poke(dut.io.middleRowToRowDistance, param.middleRowToRowDistance)
-  poke(dut.io.rightRowToRowDistance, param.rightRowToRowDistance)
+  poke(dut.io.parameters.leftRowToRowDistance, param.leftRowToRowDistance)
+  poke(dut.io.parameters.middleRowToRowDistance, param.middleRowToRowDistance)
+  poke(dut.io.parameters.rightRowToRowDistance, param.rightRowToRowDistance)
 
-  poke(dut.io.leftStep, param.leftStep)
-  poke(dut.io.middleStep, param.middleStep)
-  poke(dut.io.topRowDistance, param.topRowDistance)
-  poke(dut.io.midRowDistance, param.midRowDistance)
+  poke(dut.io.parameters.leftStep, param.leftStep)
+  poke(dut.io.parameters.middleStep, param.middleStep)
+  poke(dut.io.parameters.topRowDistance, param.topRowDistance)
+  poke(dut.io.parameters.midRowDistance, param.midRowDistance)
 
-  poke(dut.io.inputSpace, param.inputSpace)
+  poke(dut.io.parameters.inputSpace, param.inputSpace)
 
-  poke(dut.io.topBottomLeftPad, param.topBottomLeftPad)
-  poke(dut.io.topBottomMiddlePad, param.topBottomMiddlePad)
-  poke(dut.io.topBottomRightPad, param.topBottomRightPad)
-  poke(dut.io.sidePad, param.sidePad)
+  poke(dut.io.parameters.topBottomLeftPad, param.topBottomLeftPad)
+  poke(dut.io.parameters.topBottomMiddlePad, param.topBottomMiddlePad)
+  poke(dut.io.parameters.topBottomRightPad, param.topBottomRightPad)
+  poke(dut.io.parameters.sidePad, param.sidePad)
 
   poke(dut.io.aSync.warZero, false)
 
@@ -173,35 +173,35 @@ class ADmaTestAWarZero(dut: ADma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
 
   poke(dut.io.start, true)
 
-  poke(dut.io.inputAddress, 0)
-  poke(dut.io.inputHCount, param.hCount)
-  poke(dut.io.inputWCount, param.wCount)
-  poke(dut.io.inputCCount, param.cInCount)
-  poke(dut.io.outputCCount, param.cOutCount)
+  poke(dut.io.parameters.inputAddress, 0)
+  poke(dut.io.parameters.inputHCount, param.hCount)
+  poke(dut.io.parameters.inputWCount, param.wCount)
+  poke(dut.io.parameters.inputCCount, param.cInCount)
+  poke(dut.io.parameters.outputCCount, param.cOutCount)
 
-  poke(dut.io.topTileH, param.topTileH)
-  poke(dut.io.middleTileH, param.middleTileH)
-  poke(dut.io.bottomTileH, param.bottomTileH)
+  poke(dut.io.parameters.topTileH, param.topTileH)
+  poke(dut.io.parameters.middleTileH, param.middleTileH)
+  poke(dut.io.parameters.bottomTileH, param.bottomTileH)
 
-  poke(dut.io.leftTileW, param.leftTileW)
-  poke(dut.io.middleTileW, param.middleTileW)
-  poke(dut.io.rightTileW, param.rightTileW)
+  poke(dut.io.parameters.leftTileW, param.leftTileW)
+  poke(dut.io.parameters.middleTileW, param.middleTileW)
+  poke(dut.io.parameters.rightTileW, param.rightTileW)
 
-  poke(dut.io.leftRowToRowDistance, param.leftRowToRowDistance)
-  poke(dut.io.middleRowToRowDistance, param.middleRowToRowDistance)
-  poke(dut.io.rightRowToRowDistance, param.rightRowToRowDistance)
+  poke(dut.io.parameters.leftRowToRowDistance, param.leftRowToRowDistance)
+  poke(dut.io.parameters.middleRowToRowDistance, param.middleRowToRowDistance)
+  poke(dut.io.parameters.rightRowToRowDistance, param.rightRowToRowDistance)
 
-  poke(dut.io.leftStep, param.leftStep)
-  poke(dut.io.middleStep, param.middleStep)
-  poke(dut.io.topRowDistance, param.topRowDistance)
-  poke(dut.io.midRowDistance, param.midRowDistance)
+  poke(dut.io.parameters.leftStep, param.leftStep)
+  poke(dut.io.parameters.middleStep, param.middleStep)
+  poke(dut.io.parameters.topRowDistance, param.topRowDistance)
+  poke(dut.io.parameters.midRowDistance, param.midRowDistance)
 
-  poke(dut.io.inputSpace, param.inputSpace)
+  poke(dut.io.parameters.inputSpace, param.inputSpace)
 
-  poke(dut.io.topBottomLeftPad, param.topBottomLeftPad)
-  poke(dut.io.topBottomMiddlePad, param.topBottomMiddlePad)
-  poke(dut.io.topBottomRightPad, param.topBottomRightPad)
-  poke(dut.io.sidePad, param.sidePad)
+  poke(dut.io.parameters.topBottomLeftPad, param.topBottomLeftPad)
+  poke(dut.io.parameters.topBottomMiddlePad, param.topBottomMiddlePad)
+  poke(dut.io.parameters.topBottomRightPad, param.topBottomRightPad)
+  poke(dut.io.parameters.sidePad, param.sidePad)
 
   poke(dut.io.avalonMaster.waitRequest, false)
 
@@ -247,36 +247,7 @@ class ADmaTestModule(amemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val start = Input(Bool())
 
     // Tile generation parameters
-    val inputAddress = Input(UInt(avalonAddrWidth.W))
-    val inputHCount = Input(UInt(6.W))
-    val inputWCount = Input(UInt(6.W))
-    val inputCCount = Input(UInt(6.W))
-    val outputCCount = Input(UInt(6.W))
-
-    val topTileH = Input(UInt(tileCountWidth.W))
-    val middleTileH = Input(UInt(tileCountWidth.W))
-    val bottomTileH = Input(UInt(tileCountWidth.W))
-
-    val leftTileW = Input(UInt(tileCountWidth.W))
-    val middleTileW = Input(UInt(tileCountWidth.W))
-    val rightTileW = Input(UInt(tileCountWidth.W))
-
-    val leftRowToRowDistance = Input(UInt(tileCountWidth.W))
-    val middleRowToRowDistance = Input(UInt(tileCountWidth.W))
-    val rightRowToRowDistance = Input(UInt(tileCountWidth.W))
-
-    val leftStep = Input(UInt(avalonAddrWidth.W))
-    val middleStep = Input(UInt(avalonAddrWidth.W))
-
-    val topRowDistance = Input(UInt(avalonAddrWidth.W))
-    val midRowDistance = Input(UInt(avalonAddrWidth.W))
-
-    val inputSpace = Input(UInt(avalonAddrWidth.W))
-
-    val topBottomLeftPad = Input(UInt(tileCountWidth.W))
-    val topBottomMiddlePad = Input(UInt(tileCountWidth.W))
-    val topBottomRightPad = Input(UInt(tileCountWidth.W))
-    val sidePad = Input(UInt(tileCountWidth.W))
+    val parameters = Input(ADmaParameters(avalonAddrWidth, tileCountWidth))
 
     // Avalon test interface
     val avalonMaster = ReadMasterIO(avalonAddrWidth, avalonDataWidth)
@@ -299,29 +270,7 @@ class ADmaTestModule(amemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   aSemaPair.io.consumer.warInc := io.aWarInc
   val adma = Module(new ADma(b, aAddrWidth, avalonAddrWidth, maxBurst))
   adma.io.start := io.start
-  adma.io.inputAddress := io.inputAddress
-  adma.io.inputHCount := io.inputHCount
-  adma.io.inputWCount := io.inputWCount
-  adma.io.inputCCount := io.inputCCount
-  adma.io.outputCCount := io.outputCCount
-  adma.io.topTileH := io.topTileH
-  adma.io.middleTileH := io.middleTileH
-  adma.io.bottomTileH := io.bottomTileH
-  adma.io.leftTileW := io.leftTileW
-  adma.io.middleTileW := io.middleTileW
-  adma.io.rightTileW := io.rightTileW
-  adma.io.leftRowToRowDistance := io.leftRowToRowDistance
-  adma.io.middleRowToRowDistance := io.middleRowToRowDistance
-  adma.io.rightRowToRowDistance := io.rightRowToRowDistance
-  adma.io.leftStep := io.leftStep
-  adma.io.middleStep := io.middleStep
-  adma.io.topRowDistance := io.topRowDistance
-  adma.io.midRowDistance := io.midRowDistance
-  adma.io.inputSpace := io.inputSpace
-  adma.io.topBottomLeftPad := io.topBottomLeftPad
-  adma.io.topBottomMiddlePad := io.topBottomMiddlePad
-  adma.io.topBottomRightPad := io.topBottomRightPad
-  adma.io.sidePad := io.sidePad
+  adma.io.parameters := io.parameters
   io.avalonMaster <> adma.io.avalonMaster
   amem.io.write := adma.io.amemWrite
   aSemaPair.io.producer <> adma.io.aSync
@@ -375,35 +324,35 @@ class ADmaTestAMemWriting(dut: ADmaTestModule, amemSize: Int, tileHeight: Int, t
 
   poke(dut.io.start, true)
 
-  poke(dut.io.inputAddress, 0)
-  poke(dut.io.inputHCount, param.hCount)
-  poke(dut.io.inputWCount, param.wCount)
-  poke(dut.io.inputCCount, param.cInCount)
-  poke(dut.io.outputCCount, param.cOutCount)
+  poke(dut.io.parameters.inputAddress, 0)
+  poke(dut.io.parameters.inputHCount, param.hCount)
+  poke(dut.io.parameters.inputWCount, param.wCount)
+  poke(dut.io.parameters.inputCCount, param.cInCount)
+  poke(dut.io.parameters.outputCCount, param.cOutCount)
 
-  poke(dut.io.topTileH, param.topTileH)
-  poke(dut.io.middleTileH, param.middleTileH)
-  poke(dut.io.bottomTileH, param.bottomTileH)
+  poke(dut.io.parameters.topTileH, param.topTileH)
+  poke(dut.io.parameters.middleTileH, param.middleTileH)
+  poke(dut.io.parameters.bottomTileH, param.bottomTileH)
 
-  poke(dut.io.leftTileW, param.leftTileW)
-  poke(dut.io.middleTileW, param.middleTileW)
-  poke(dut.io.rightTileW, param.rightTileW)
+  poke(dut.io.parameters.leftTileW, param.leftTileW)
+  poke(dut.io.parameters.middleTileW, param.middleTileW)
+  poke(dut.io.parameters.rightTileW, param.rightTileW)
 
-  poke(dut.io.leftRowToRowDistance, param.leftRowToRowDistance)
-  poke(dut.io.middleRowToRowDistance, param.middleRowToRowDistance)
-  poke(dut.io.rightRowToRowDistance, param.rightRowToRowDistance)
+  poke(dut.io.parameters.leftRowToRowDistance, param.leftRowToRowDistance)
+  poke(dut.io.parameters.middleRowToRowDistance, param.middleRowToRowDistance)
+  poke(dut.io.parameters.rightRowToRowDistance, param.rightRowToRowDistance)
 
-  poke(dut.io.leftStep, param.leftStep)
-  poke(dut.io.middleStep, param.middleStep)
-  poke(dut.io.topRowDistance, param.topRowDistance)
-  poke(dut.io.midRowDistance, param.midRowDistance)
+  poke(dut.io.parameters.leftStep, param.leftStep)
+  poke(dut.io.parameters.middleStep, param.middleStep)
+  poke(dut.io.parameters.topRowDistance, param.topRowDistance)
+  poke(dut.io.parameters.midRowDistance, param.midRowDistance)
 
-  poke(dut.io.inputSpace, param.inputSpace)
+  poke(dut.io.parameters.inputSpace, param.inputSpace)
 
-  poke(dut.io.topBottomLeftPad, param.topBottomLeftPad)
-  poke(dut.io.topBottomMiddlePad, param.topBottomMiddlePad)
-  poke(dut.io.topBottomRightPad, param.topBottomRightPad)
-  poke(dut.io.sidePad, param.sidePad)
+  poke(dut.io.parameters.topBottomLeftPad, param.topBottomLeftPad)
+  poke(dut.io.parameters.topBottomMiddlePad, param.topBottomMiddlePad)
+  poke(dut.io.parameters.topBottomRightPad, param.topBottomRightPad)
+  poke(dut.io.parameters.sidePad, param.sidePad)
 
   poke(dut.io.avalonMaster.waitRequest, false)
 

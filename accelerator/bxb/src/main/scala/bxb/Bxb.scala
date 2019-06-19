@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 import bxb.a2f.{A2f, A2fParameters}
-import bxb.adma.{ADma}
+import bxb.adma.{ADma, ADmaParameters}
 import bxb.array.{MacArray}
 import bxb.avalon.{ReadMasterIO, WriteMasterIO, SlaveIO}
 import bxb.f2a.{F2a, F2aParameters}
@@ -90,29 +90,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
     val start = Output(Bool())
 
     // ADMA parameters
-    val admaInputAddress = Output(UInt(avalonAddrWidth.W))
-    val admaInputHCount = Output(UInt(6.W))
-    val admaInputWCount = Output(UInt(6.W))
-    val admaInputCCount = Output(UInt(6.W))
-    val admaOutputCCount = Output(UInt(6.W))
-    val admaTopTileH = Output(UInt(tileCountWidth.W))
-    val admaMiddleTileH = Output(UInt(tileCountWidth.W))
-    val admaBottomTileH = Output(UInt(tileCountWidth.W))
-    val admaLeftTileW = Output(UInt(tileCountWidth.W))
-    val admaMiddleTileW = Output(UInt(tileCountWidth.W))
-    val admaRightTileW = Output(UInt(tileCountWidth.W))
-    val admaLeftRowToRowDistance = Output(UInt(tileCountWidth.W))
-    val admaMiddleRowToRowDistance = Output(UInt(tileCountWidth.W))
-    val admaRightRowToRowDistance = Output(UInt(tileCountWidth.W))
-    val admaLeftStep = Output(UInt(avalonAddrWidth.W))
-    val admaMiddleStep = Output(UInt(avalonAddrWidth.W))
-    val admaTopRowDistance = Output(UInt(avalonAddrWidth.W))
-    val admaMidRowDistance = Output(UInt(avalonAddrWidth.W))
-    val admaInputSpace = Output(UInt(avalonAddrWidth.W))
-    val admaTopBottomLeftPad = Output(UInt(tileCountWidth.W))
-    val admaTopBottomMiddlePad = Output(UInt(tileCountWidth.W))
-    val admaTopBottomRightPad = Output(UInt(tileCountWidth.W))
-    val admaSidePad = Output(UInt(tileCountWidth.W))
+    val admaParameters = Output(ADmaParameters(avalonAddrWidth, tileCountWidth))
 
     // WDMA parameters
     val wdmaStartAddress = Output(UInt(avalonAddrWidth.W))
@@ -195,29 +173,29 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
 
   io.start := RegNext(io.avalonSlave.write & (io.avalonSlave.address === BxbCsrField.start.U))
   // ADMA
-  io.admaInputAddress := field(BxbCsrField.admaInputAddress.U)
-  io.admaInputHCount := field(BxbCsrField.admaInputHCount.U)
-  io.admaInputWCount := field(BxbCsrField.admaInputWCount.U)
-  io.admaInputCCount := field(BxbCsrField.admaInputCCount.U)
-  io.admaOutputCCount := field(BxbCsrField.fdmaOutputCCount.U)
-  io.admaTopTileH := field(BxbCsrField.admaTopTileH.U)
-  io.admaMiddleTileH := field(BxbCsrField.admaMiddleTileH.U)
-  io.admaBottomTileH := field(BxbCsrField.admaBottomTileH.U)
-  io.admaLeftTileW := field(BxbCsrField.admaLeftTileW.U)
-  io.admaMiddleTileW := field(BxbCsrField.admaMiddleTileW.U)
-  io.admaRightTileW := field(BxbCsrField.admaRightTileW.U)
-  io.admaLeftRowToRowDistance := field(BxbCsrField.admaLeftRowToRowDistance.U)
-  io.admaMiddleRowToRowDistance := field(BxbCsrField.admaMiddleRowToRowDistance.U)
-  io.admaRightRowToRowDistance := field(BxbCsrField.admaRightRowToRowDistance.U)
-  io.admaLeftStep := field(BxbCsrField.admaLeftStep.U)
-  io.admaMiddleStep := field(BxbCsrField.admaMiddleStep.U)
-  io.admaTopRowDistance := field(BxbCsrField.admaTopRowDistance.U)
-  io.admaMidRowDistance := field(BxbCsrField.admaMidRowDistance.U)
-  io.admaInputSpace := field(BxbCsrField.admaInputSpace.U)
-  io.admaTopBottomLeftPad := field(BxbCsrField.admaTopBottomLeftPad.U)
-  io.admaTopBottomMiddlePad := field(BxbCsrField.admaTopBottomMiddlePad.U)
-  io.admaTopBottomRightPad := field(BxbCsrField.admaTopBottomRightPad.U)
-  io.admaSidePad := field(BxbCsrField.admaSidePad.U)
+  io.admaParameters.inputAddress := field(BxbCsrField.admaInputAddress.U)
+  io.admaParameters.inputHCount := field(BxbCsrField.admaInputHCount.U)
+  io.admaParameters.inputWCount := field(BxbCsrField.admaInputWCount.U)
+  io.admaParameters.inputCCount := field(BxbCsrField.admaInputCCount.U)
+  io.admaParameters.outputCCount := field(BxbCsrField.fdmaOutputCCount.U)
+  io.admaParameters.topTileH := field(BxbCsrField.admaTopTileH.U)
+  io.admaParameters.middleTileH := field(BxbCsrField.admaMiddleTileH.U)
+  io.admaParameters.bottomTileH := field(BxbCsrField.admaBottomTileH.U)
+  io.admaParameters.leftTileW := field(BxbCsrField.admaLeftTileW.U)
+  io.admaParameters.middleTileW := field(BxbCsrField.admaMiddleTileW.U)
+  io.admaParameters.rightTileW := field(BxbCsrField.admaRightTileW.U)
+  io.admaParameters.leftRowToRowDistance := field(BxbCsrField.admaLeftRowToRowDistance.U)
+  io.admaParameters.middleRowToRowDistance := field(BxbCsrField.admaMiddleRowToRowDistance.U)
+  io.admaParameters.rightRowToRowDistance := field(BxbCsrField.admaRightRowToRowDistance.U)
+  io.admaParameters.leftStep := field(BxbCsrField.admaLeftStep.U)
+  io.admaParameters.middleStep := field(BxbCsrField.admaMiddleStep.U)
+  io.admaParameters.topRowDistance := field(BxbCsrField.admaTopRowDistance.U)
+  io.admaParameters.midRowDistance := field(BxbCsrField.admaMidRowDistance.U)
+  io.admaParameters.inputSpace := field(BxbCsrField.admaInputSpace.U)
+  io.admaParameters.topBottomLeftPad := field(BxbCsrField.admaTopBottomLeftPad.U)
+  io.admaParameters.topBottomMiddlePad := field(BxbCsrField.admaTopBottomMiddlePad.U)
+  io.admaParameters.topBottomRightPad := field(BxbCsrField.admaTopBottomRightPad.U)
+  io.admaParameters.sidePad := field(BxbCsrField.admaSidePad.U)
   // WDMA
   io.wdmaStartAddress := field(BxbCsrField.wdmaStartAddress.U)
   io.wdmaOutputHCount := field(BxbCsrField.wdmaOutputHCount.U)
@@ -362,30 +340,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
 
   amem.io.write := adma.io.amemWrite
 
-  // FIXME: refactor parameters
-  adma.io.inputAddress := csr.io.admaInputAddress
-  adma.io.inputHCount := csr.io.admaInputHCount
-  adma.io.inputWCount := csr.io.admaInputWCount
-  adma.io.inputCCount := csr.io.admaInputCCount
-  adma.io.outputCCount := csr.io.admaOutputCCount
-  adma.io.topTileH := csr.io.admaTopTileH
-  adma.io.middleTileH := csr.io.admaMiddleTileH
-  adma.io.bottomTileH := csr.io.admaBottomTileH
-  adma.io.leftTileW := csr.io.admaLeftTileW
-  adma.io.middleTileW := csr.io.admaMiddleTileW
-  adma.io.rightTileW := csr.io.admaRightTileW
-  adma.io.leftRowToRowDistance := csr.io.admaLeftRowToRowDistance
-  adma.io.middleRowToRowDistance := csr.io.admaMiddleRowToRowDistance
-  adma.io.rightRowToRowDistance := csr.io.admaRightRowToRowDistance
-  adma.io.leftStep := csr.io.admaLeftStep
-  adma.io.middleStep := csr.io.admaMiddleStep
-  adma.io.topRowDistance := csr.io.admaTopRowDistance
-  adma.io.midRowDistance := csr.io.admaMidRowDistance
-  adma.io.inputSpace := csr.io.admaInputSpace
-  adma.io.topBottomLeftPad := csr.io.admaTopBottomLeftPad
-  adma.io.topBottomMiddlePad := csr.io.admaTopBottomMiddlePad
-  adma.io.topBottomRightPad := csr.io.admaTopBottomRightPad
-  adma.io.sidePad := csr.io.admaSidePad
+  adma.io.parameters := csr.io.admaParameters
   csr.io.admaStatusReady := adma.io.statusReady
 
   val wdma = Module(new WDma(b, avalonAddrWidth, b * wWidth, wAddrWidth))

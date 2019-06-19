@@ -5,6 +5,68 @@ import chisel3.util._
 
 import bxb.util.{Util}
 
+class ADmaParameters(private val avalonAddrWidth: Int, private val tileCountWidth: Int) extends Bundle {
+  // Tile generation parameters
+  val inputAddress = UInt(avalonAddrWidth.W)
+  // - should be equal to roundUp(inputHeight / (tileHeight - pad))
+  val inputHCount = UInt(6.W)
+  // - should be equal to roundUp(inputWidth / (tileWidth - pad))
+  val inputWCount = UInt(6.W)
+  // - should be equal to roundUp(inputChannels / B)
+  val inputCCount = UInt(6.W)
+  // - should be equal to roundUp(outputChannels / B)
+  val outputCCount = UInt(6.W)
+
+  // - tileHeight - pad
+  val topTileH = UInt(tileCountWidth.W)
+  // - tileHeight
+  val middleTileH = UInt(tileCountWidth.W)
+  // - inputHeight + pad - (hCount - 1)  * (tileHeight - pad)
+  val bottomTileH = UInt(tileCountWidth.W)
+
+  // - tileWidth - pad
+  val leftTileW = UInt(tileCountWidth.W)
+  // - tileWidth
+  val middleTileW = UInt(tileCountWidth.W)
+  // - inputWidth + pad - (wCount - 1) * (tileWidth - pad)
+  val rightTileW = UInt(tileCountWidth.W)
+
+  // (inputWidth - leftTileW + (leftTileW % maxBurst == 0) ? maxBurst : leftTileW % maxBurst)
+  val leftRowToRowDistance = UInt(tileCountWidth.W)
+  // (inputWidth - middleTileW + (middleTileW % maxBurst == 0) ? maxBurst : middleTileW % maxBurst)
+  val middleRowToRowDistance = UInt(tileCountWidth.W)
+  // (inputWidth - rightTileW + (rightTileW % maxBurst == 0) ? maxBurst : rightTileW % maxBurst)
+  val rightRowToRowDistance = UInt(tileCountWidth.W)
+
+  // leftTileW - pad
+  val leftStep = UInt(avalonAddrWidth.W)
+  // middleTileW - pad
+  val middleStep = UInt(avalonAddrWidth.W)
+
+  // inputWidth * (topTileH - pad) - inputWidth + rightTileW
+  val topRowDistance = UInt(avalonAddrWidth.W)
+  // inputWidth * (middleTileH - pad) - inputWidth + rightTileW
+  val midRowDistance = UInt(avalonAddrWidth.W)
+
+  // inputWidth * inputHeight
+  val inputSpace = UInt(avalonAddrWidth.W)
+
+  // (leftTileW + pad) * pad
+  val topBottomLeftPad = UInt(tileCountWidth.W)
+  // middleTileW * pad
+  val topBottomMiddlePad = UInt(tileCountWidth.W)
+  // (rightTileW + pad) * pad
+  val topBottomRightPad = UInt(tileCountWidth.W)
+  // pad
+  val sidePad = UInt(tileCountWidth.W)
+}
+
+object ADmaParameters {
+  def apply(avalonAddrWidth: Int, tileCountWidth: Int) = {
+    new ADmaParameters(avalonAddrWidth, tileCountWidth)
+  }
+}
+
 class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWidth: Int) extends Module {
   require(isPow2(avalonDataWidth) && avalonDataWidth >= 8)
   val avalonDataByteWidth = avalonDataWidth / 8
@@ -13,58 +75,7 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     val start = Input(Bool())
 
     // Tile generation parameters
-    val inputAddress = Input(UInt(avalonAddrWidth.W))
-    // - should be equal to roundUp(inputHeight / (tileHeight - pad))
-    val inputHCount = Input(UInt(6.W))
-    // - should be equal to roundUp(inputWidth / (tileWidth - pad))
-    val inputWCount = Input(UInt(6.W))
-    // - should be equal to roundUp(inputChannels / B)
-    val inputCCount = Input(UInt(6.W))
-    // - should be equal to roundUp(outputChannels / B)
-    val outputCCount = Input(UInt(6.W))
-
-    // - tileHeight - pad
-    val topTileH = Input(UInt(tileCountWidth.W))
-    // - tileHeight
-    val middleTileH = Input(UInt(tileCountWidth.W))
-    // - inputHeight + pad - (hCount - 1)  * (tileHeight - pad)
-    val bottomTileH = Input(UInt(tileCountWidth.W))
-
-    // - tileWidth - pad
-    val leftTileW = Input(UInt(tileCountWidth.W))
-    // - tileWidth
-    val middleTileW = Input(UInt(tileCountWidth.W))
-    // - inputWidth + pad - (wCount - 1) * (tileWidth - pad)
-    val rightTileW = Input(UInt(tileCountWidth.W))
-
-    // (inputWidth - leftTileW + (leftTileW % maxBurst == 0) ? maxBurst : leftTileW % maxBurst)
-    val leftRowToRowDistance = Input(UInt(tileCountWidth.W))
-    // (inputWidth - middleTileW + (middleTileW % maxBurst == 0) ? maxBurst : middleTileW % maxBurst)
-    val middleRowToRowDistance = Input(UInt(tileCountWidth.W))
-    // (inputWidth - rightTileW + (rightTileW % maxBurst == 0) ? maxBurst : rightTileW % maxBurst)
-    val rightRowToRowDistance = Input(UInt(tileCountWidth.W))
-
-    // leftTileW - pad
-    val leftStep = Input(UInt(avalonAddrWidth.W))
-    // middleTileW - pad
-    val middleStep = Input(UInt(avalonAddrWidth.W))
-
-    // inputWidth * (topTileH - pad) - inputWidth + rightTileW
-    val topRowDistance = Input(UInt(avalonAddrWidth.W))
-    // inputWidth * (middleTileH - pad) - inputWidth + rightTileW
-    val midRowDistance = Input(UInt(avalonAddrWidth.W))
-
-    // inputWidth * inputHeight
-    val inputSpace = Input(UInt(avalonAddrWidth.W))
-
-    // (leftTileW + pad) * pad
-    val topBottomLeftPad = Input(UInt(tileCountWidth.W))
-    // middleTileW * pad
-    val topBottomMiddlePad = Input(UInt(tileCountWidth.W))
-    // (rightTileW + pad) * pad
-    val topBottomRightPad = Input(UInt(tileCountWidth.W))
-    // pad
-    val sidePad = Input(UInt(tileCountWidth.W))
+    val parameters = Input(ADmaParameters(avalonAddrWidth, tileCountWidth))
 
     // Tile output interface with handshaking
     val tileStartAddress = Output(UInt(avalonAddrWidth.W))
@@ -114,10 +125,10 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val inputCCountLeft = Reg(UInt(tileCountWidth.W))
   val inputCCountLast = (inputCCountLeft === 1.U)
   when(resetCounters) {
-    inputCCountLeft := io.inputCCount
+    inputCCountLeft := io.parameters.inputCCount
   }.elsewhen(updateCounters) {
     when(inputCCountLast) {
-      inputCCountLeft := io.inputCCount
+      inputCCountLeft := io.parameters.inputCCount
     }.otherwise {
       inputCCountLeft := inputCCountLeft - 1.U
     }
@@ -142,10 +153,10 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val outputCCountLeft = Reg(UInt(tileCountWidth.W))
   val outputCCountLast = (outputCCountLeft === 1.U) & inputCCountLast
   when(resetCounters) {
-    outputCCountLeft := io.outputCCount
+    outputCCountLeft := io.parameters.outputCCount
   }.elsewhen(updateCounters & inputCCountLast) {
     when(outputCCountLast) {
-      outputCCountLeft := io.outputCCount
+      outputCCountLeft := io.parameters.outputCCount
     }.otherwise {
       outputCCountLeft := outputCCountLeft - 1.U
     }
@@ -155,10 +166,10 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val inputWCountOne = (inputWCountLeft === 1.U)
   val inputWCountLast = inputWCountOne & outputCCountLast
   when(resetCounters) {
-    inputWCountLeft := io.inputWCount
+    inputWCountLeft := io.parameters.inputWCount
   }.elsewhen(updateCounters & outputCCountLast) {
     when(inputWCountLast) {
-      inputWCountLeft := io.inputWCount
+      inputWCountLeft := io.parameters.inputWCount
     }.otherwise {
       inputWCountLeft := inputWCountLeft - 1.U
     }
@@ -187,10 +198,10 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val inputHCountOne = (inputHCountLeft === 1.U)
   val inputHCountLast = inputHCountOne & inputWCountLast
   when(resetCounters) {
-    inputHCountLeft := io.inputHCount
+    inputHCountLeft := io.parameters.inputHCount
   }.elsewhen(updateCounters & inputWCountLast) {
     when(inputHCountLast) {
-      inputHCountLeft := io.inputHCount
+      inputHCountLeft := io.parameters.inputHCount
     }.otherwise {
       inputHCountLeft := inputHCountLeft - 1.U
     }
@@ -217,17 +228,17 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
 
   val tileFirstChannelAddress = Reg(UInt(avalonAddrWidth.W))
   when(resetCounters) {
-    tileFirstChannelAddress := io.inputAddress
+    tileFirstChannelAddress := io.parameters.inputAddress
   }.elsewhen(updateCounters & outputCCountLast) {
     when(horizontalLeft) {
-      tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.leftStep)
+      tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.parameters.leftStep)
     }.elsewhen(horizontalMiddle) {
-      tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.middleStep)
+      tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.parameters.middleStep)
     }.otherwise {
       when(verticalTop) {
-        tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.topRowDistance)
+        tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.parameters.topRowDistance)
       }.otherwise {
-        tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.midRowDistance)
+        tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.parameters.midRowDistance)
       }
     }
   }
@@ -239,40 +250,40 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
       tileAddress := tileFirstChannelAddress
     }.otherwise {
       // printf(p"tileAddress := ${tileAddress} + ${toBytes(io.inputSpace)}\n")
-      tileAddress := tileAddress + toBytes(io.inputSpace)
+      tileAddress := tileAddress + toBytes(io.parameters.inputSpace)
     }
   }
 
   val tileWidth = Reg(UInt(tileCountWidth.W))
   when(setupTile) {
     when(horizontalLeft) {
-      tileWidth := io.leftTileW
+      tileWidth := io.parameters.leftTileW
     }.elsewhen(horizontalMiddle) {
-      tileWidth := io.middleTileW
+      tileWidth := io.parameters.middleTileW
     }.otherwise {
-      tileWidth := io.rightTileW
+      tileWidth := io.parameters.rightTileW
     }
   }
 
   val tileHeight = Reg(UInt(tileCountWidth.W))
   when(setupTile) {
     when(verticalTop) {
-      tileHeight := io.topTileH
+      tileHeight := io.parameters.topTileH
     }.elsewhen(verticalMiddle) {
-      tileHeight := io.middleTileH
+      tileHeight := io.parameters.middleTileH
     }.otherwise {
-      tileHeight := io.bottomTileH
+      tileHeight := io.parameters.bottomTileH
     }
   }
 
   val tileRowToRowDistance = Reg(UInt(tileCountWidth.W))
   when(setupTile) {
     when(horizontalLeft) {
-      tileRowToRowDistance := io.leftRowToRowDistance
+      tileRowToRowDistance := io.parameters.leftRowToRowDistance
     }.elsewhen(horizontalMiddle) {
-      tileRowToRowDistance := io.middleRowToRowDistance
+      tileRowToRowDistance := io.parameters.middleRowToRowDistance
     }.otherwise {
-      tileRowToRowDistance := io.rightRowToRowDistance
+      tileRowToRowDistance := io.parameters.rightRowToRowDistance
     }
   }
 
@@ -280,14 +291,14 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   when(setupTile) {
     when(verticalTop) {
       when(horizontalLeft) {
-        tileStartPad := io.topBottomLeftPad + io.sidePad
+        tileStartPad := io.parameters.topBottomLeftPad + io.parameters.sidePad
       }.elsewhen(horizontalMiddle) {
-        tileStartPad := io.topBottomMiddlePad
+        tileStartPad := io.parameters.topBottomMiddlePad
       }.otherwise {
-        tileStartPad := io.topBottomRightPad
+        tileStartPad := io.parameters.topBottomRightPad
       }
     }.elsewhen(horizontalLeft) {
-      tileStartPad := io.sidePad
+      tileStartPad := io.parameters.sidePad
     }.otherwise {
       tileStartPad := 0.U
     }
@@ -295,21 +306,21 @@ class ADmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
 
   val tileSidePad = Reg(UInt(tileCountWidth.W))
   when(setupTile) {
-    tileSidePad := Mux(horizontalMiddle, 0.U, io.sidePad)
+    tileSidePad := Mux(horizontalMiddle, 0.U, io.parameters.sidePad)
   }
 
   val tileEndPad = Reg(UInt(tileCountWidth.W))
   when(setupTile) {
     when(verticalBottom) {
       when(horizontalRight) {
-        tileEndPad := io.topBottomRightPad + io.sidePad
+        tileEndPad := io.parameters.topBottomRightPad + io.parameters.sidePad
       }.elsewhen(horizontalMiddle) {
-        tileEndPad := io.topBottomMiddlePad
+        tileEndPad := io.parameters.topBottomMiddlePad
       }.otherwise {
-        tileEndPad := io.topBottomLeftPad
+        tileEndPad := io.parameters.topBottomLeftPad
       }
     }.elsewhen(horizontalRight) {
-      tileEndPad := io.sidePad
+      tileEndPad := io.parameters.sidePad
     }.otherwise {
       tileEndPad := 0.U
     }
