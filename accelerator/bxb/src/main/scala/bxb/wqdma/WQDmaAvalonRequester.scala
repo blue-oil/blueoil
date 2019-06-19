@@ -5,12 +5,31 @@ import chisel3.util._
 
 import bxb.util.{Util}
 
+class WQDmaParameters(private val avalonAddrWidth: Int) extends Bundle {
+  private val hCountWidth = 6
+  private val wCountWidth = 6
+  private val blockCountWidth = 14
+
+  val startAddress = UInt(avalonAddrWidth.W)
+  // - number of output tiles in Height direction
+  val outputHCount = UInt(hCountWidth.W)
+  // - number of output tiles in Width direction
+  val outputWCount = UInt(wCountWidth.W)
+  // - (outputC / B * inputC / B * kernelY * kernelX)
+  val blockCount = UInt(blockCountWidth.W)
+}
+
+object WQDmaParameters {
+  def apply(avalonAddrWidth: Int) = {
+    new WQDmaParameters(avalonAddrWidth)
+  }
+}
+
 class WQDmaAvalonRequester(avalonAddrWidth: Int, avalonDataWidth: Int, elementWidth: Int, elementsPerBlock: Int) extends Module {
 
   require(isPow2(avalonDataWidth) && avalonDataWidth >= 8)
   require(isPow2(elementWidth) && elementWidth % avalonDataWidth == 0)
 
-  val hCountWidth = 6
   val wCountWidth = 6
   val blockCountWidth = 14
 
@@ -23,13 +42,7 @@ class WQDmaAvalonRequester(avalonAddrWidth: Int, avalonDataWidth: Int, elementWi
   val io = IO(new Bundle {
     val start = Input(Bool())
 
-    val startAddress = Input(UInt(avalonAddrWidth.W))
-    // - number of output tiles in Height direction
-    val outputHCount = Input(UInt(hCountWidth.W))
-    // - number of output tiles in Width direction
-    val outputWCount = Input(UInt(wCountWidth.W))
-    // - number of input blocks to be fetched per tile
-    val blockCount = Input(UInt(blockCountWidth.W))
+    val parameters = Input(WQDmaParameters(avalonAddrWidth))
 
     // WMem writer interface
     val requesterNext = Output(Bool())
@@ -62,31 +75,31 @@ class WQDmaAvalonRequester(avalonAddrWidth: Int, avalonDataWidth: Int, elementWi
 
   val updateAddress = (idle | (waitingWriter & io.writerDone))
 
-  val blockCountLeft = Reg(UInt(blockCountWidth.W))
+  val blockCountLeft = Reg(io.parameters.blockCount.cloneType)
   val blockCountLast = (blockCountLeft === 1.U)
   when(updateAddress) {
     when(idle | blockCountLast) {
-      blockCountLeft := io.blockCount
+      blockCountLeft := io.parameters.blockCount
     }.otherwise {
       blockCountLeft := blockCountLeft - 1.U
     }
   }
 
-  val outputWCountLeft = Reg(UInt(wCountWidth.W))
+  val outputWCountLeft = Reg(io.parameters.outputWCount.cloneType)
   val outputWCountLast = (outputWCountLeft === 1.U) & blockCountLast
   when(updateAddress) {
     when(idle | outputWCountLast) {
-      outputWCountLeft := io.outputWCount
+      outputWCountLeft := io.parameters.outputWCount
     }.elsewhen(blockCountLast) {
       outputWCountLeft := outputWCountLeft - 1.U
     }
   }
 
-  val outputHCountLeft = Reg(UInt(hCountWidth.W))
+  val outputHCountLeft = Reg(io.parameters.outputHCount.cloneType)
   val outputHCountLast = (outputHCountLeft === 1.U) & outputWCountLast
   when(updateAddress) {
     when(idle | outputHCountLast) {
-      outputHCountLeft := io.outputHCount
+      outputHCountLeft := io.parameters.outputHCount
     }.elsewhen(outputWCountLast) {
       outputHCountLeft := outputHCountLeft - 1.U
     }
@@ -95,7 +108,7 @@ class WQDmaAvalonRequester(avalonAddrWidth: Int, avalonDataWidth: Int, elementWi
   val avalonAddress = Reg(UInt(avalonAddrWidth.W))
   when(updateAddress) {
     when(idle | blockCountLast) {
-      avalonAddress := io.startAddress
+      avalonAddress := io.parameters.startAddress
     }.otherwise {
       avalonAddress := avalonAddress + bytesPerBlock.U
     }

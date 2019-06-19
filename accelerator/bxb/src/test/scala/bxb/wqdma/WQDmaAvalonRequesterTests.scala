@@ -5,10 +5,10 @@ import chisel3.iotesters.{PeekPokeTester, Driver}
 
 class WQDmaAvalonRequesterTestSequence(dut: WQDmaAvalonRequester, b: Int, hCount: Int, wCount: Int, blockCount: Int) extends PeekPokeTester(dut) {
   poke(dut.io.start, true)
-  poke(dut.io.startAddress, 0)
-  poke(dut.io.outputHCount, hCount)
-  poke(dut.io.outputWCount, wCount)
-  poke(dut.io.blockCount, blockCount)
+  poke(dut.io.parameters.startAddress, 0)
+  poke(dut.io.parameters.outputHCount, hCount)
+  poke(dut.io.parameters.outputWCount, wCount)
+  poke(dut.io.parameters.blockCount, blockCount)
   poke(dut.io.writerDone, true)
   poke(dut.io.warZero, false)
   poke(dut.io.avalonMasterWaitRequest, false)
@@ -29,10 +29,10 @@ class WQDmaAvalonRequesterTestSequence(dut: WQDmaAvalonRequester, b: Int, hCount
 
 class WQDmaAvalonRequesterTestWriterDone(dut: WQDmaAvalonRequester, b: Int, hCount: Int, wCount: Int, blockCount: Int) extends PeekPokeTester(dut) {
   poke(dut.io.start, true)
-  poke(dut.io.startAddress, 0)
-  poke(dut.io.outputHCount, hCount)
-  poke(dut.io.outputWCount, wCount)
-  poke(dut.io.blockCount, blockCount)
+  poke(dut.io.parameters.startAddress, 0)
+  poke(dut.io.parameters.outputHCount, hCount)
+  poke(dut.io.parameters.outputWCount, wCount)
+  poke(dut.io.parameters.blockCount, blockCount)
   poke(dut.io.writerDone, false)
   poke(dut.io.warZero, false)
   poke(dut.io.avalonMasterWaitRequest, false)
@@ -61,10 +61,10 @@ class WQDmaAvalonRequesterTestWriterDone(dut: WQDmaAvalonRequester, b: Int, hCou
 
 class WQDmaAvalonRequesterTestWarZero(dut: WQDmaAvalonRequester, b: Int, hCount: Int, wCount: Int, blockCount: Int) extends PeekPokeTester(dut) {
   poke(dut.io.start, true)
-  poke(dut.io.startAddress, 0)
-  poke(dut.io.outputHCount, hCount)
-  poke(dut.io.outputWCount, wCount)
-  poke(dut.io.blockCount, blockCount)
+  poke(dut.io.parameters.startAddress, 0)
+  poke(dut.io.parameters.outputHCount, hCount)
+  poke(dut.io.parameters.outputWCount, wCount)
+  poke(dut.io.parameters.blockCount, blockCount)
   poke(dut.io.writerDone, true)
   poke(dut.io.warZero, true)
   poke(dut.io.avalonMasterWaitRequest, false)

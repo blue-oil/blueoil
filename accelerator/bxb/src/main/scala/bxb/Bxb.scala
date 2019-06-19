@@ -11,7 +11,7 @@ import bxb.f2a.{F2a, F2aParameters}
 import bxb.fdma.{FDma, FDmaParameters}
 import bxb.rdma.{RDma, RDmaParameters}
 import bxb.w2m.{W2m}
-import bxb.wqdma.{WDma, QDma}
+import bxb.wqdma.{WDma, QDma, WQDmaParameters}
 import bxb.sync.{SemaphorePair, ConsumerSyncMux}
 import bxb.memory.{MemArray, PackedBlockRam, TwoBlockMemArray}
 
@@ -78,10 +78,6 @@ object BxbCsrField {
 }
 
 class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
-  // FIXME: rid of copypaste
-  val hCountWidth = 6
-  val wCountWidth = 6
-  val blockCountWidth = 14
   val io = IO(new Bundle {
     // Avalon slave interface
     val avalonSlave = SlaveIO(Chisel.log2Up(50), 32) // FIXME:rid of log2Up(50)
@@ -93,16 +89,10 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
     val admaParameters = Output(ADmaParameters(avalonAddrWidth, tileCountWidth))
 
     // WDMA parameters
-    val wdmaStartAddress = Output(UInt(avalonAddrWidth.W))
-    val wdmaOutputHCount = Output(UInt(hCountWidth.W))
-    val wdmaOutputWCount = Output(UInt(wCountWidth.W))
-    val wdmaKernelBlockCount = Output(UInt(blockCountWidth.W))
+    val wdmaParameters = Output(WQDmaParameters(avalonAddrWidth))
 
-    // WDMA parameters
-    val qdmaStartAddress = Output(UInt(avalonAddrWidth.W))
-    val qdmaOutputHCount = Output(UInt(hCountWidth.W))
-    val qdmaOutputWCount = Output(UInt(wCountWidth.W))
-    val qdmaKernelBlockCount = Output(UInt(blockCountWidth.W))
+    // QDMA parameters
+    val qdmaParameters = Output(WQDmaParameters(avalonAddrWidth))
 
     // FDMA parameters
     val fdmaParameters = Output(FDmaParameters(avalonAddrWidth, tileCountWidth))
@@ -176,15 +166,15 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
   io.admaParameters.topBottomRightPad := field(BxbCsrField.admaTopBottomRightPad.U)
   io.admaParameters.sidePad := field(BxbCsrField.admaSidePad.U)
   // WDMA
-  io.wdmaStartAddress := field(BxbCsrField.wdmaStartAddress.U)
-  io.wdmaOutputHCount := field(BxbCsrField.wdmaOutputHCount.U)
-  io.wdmaOutputWCount := field(BxbCsrField.wdmaOutputWCount.U)
-  io.wdmaKernelBlockCount := field(BxbCsrField.wdmaKernelBlockCount.U)
+  io.wdmaParameters.startAddress := field(BxbCsrField.wdmaStartAddress.U)
+  io.wdmaParameters.outputHCount := field(BxbCsrField.wdmaOutputHCount.U)
+  io.wdmaParameters.outputWCount := field(BxbCsrField.wdmaOutputWCount.U)
+  io.wdmaParameters.blockCount := field(BxbCsrField.wdmaKernelBlockCount.U)
   // QDMA
-  io.qdmaStartAddress := field(BxbCsrField.qdmaStartAddress.U)
-  io.qdmaOutputHCount := field(BxbCsrField.wdmaOutputHCount.U)
-  io.qdmaOutputWCount := field(BxbCsrField.wdmaOutputWCount.U)
-  io.qdmaKernelBlockCount := field(BxbCsrField.fdmaOutputCCount.U)
+  io.qdmaParameters.startAddress := field(BxbCsrField.qdmaStartAddress.U)
+  io.qdmaParameters.outputHCount := field(BxbCsrField.wdmaOutputHCount.U)
+  io.qdmaParameters.outputWCount := field(BxbCsrField.wdmaOutputWCount.U)
+  io.qdmaParameters.blockCount := field(BxbCsrField.fdmaOutputCCount.U)
   // FDMA
   io.fdmaParameters.outputAddress := field(BxbCsrField.fdmaOutputAddress.U)
   io.fdmaParameters.outputHCount := field(BxbCsrField.fdmaOutputHCount.U)
@@ -259,11 +249,6 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   val qAddrWidth = Chisel.log2Ceil(qmemSize)
   val tileCountWidth = dataAddrWidth
 
-  // FIXME: rid of copypaste
-  val hCountWidth = 6
-  val wCountWidth = 6
-  val blockCountWidth = 14
-
   val io = IO(new Bundle {
     // Avalon slave interface
     val csrSlave = SlaveIO(Chisel.log2Up(50), 32) // FIXME:rid of log2Up(50)
@@ -327,14 +312,10 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   wsema.io.producer <> wdma.io.wSync
   io.wdmaAvalon <> wdma.io.avalonMaster
 
-  // FIXME: refactor parameters
-  wdma.io.startAddress := csr.io.wdmaStartAddress
-  wdma.io.outputHCount := csr.io.wdmaOutputHCount
-  wdma.io.outputWCount := csr.io.wdmaOutputWCount
-  wdma.io.kernelBlockCount := csr.io.wdmaKernelBlockCount
-
   // FIXME: refactor memory interface
   wmem.io.write := wdma.io.wmemWrite
+
+  wdma.io.parameters := csr.io.wdmaParameters
   csr.io.wdmaStatusReady := wdma.io.statusReady
 
   val fdma = Module(new FDma(b, dataAddrWidth, avalonAddrWidth, 128, maxBurst))
@@ -366,13 +347,9 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   qsema.io.producer <> qdma.io.qSync
   io.qdmaAvalon <> qdma.io.avalonMaster
 
-  // FIXME: refactor parameters
-  qdma.io.startAddress := csr.io.qdmaStartAddress
-  qdma.io.outputHCount := csr.io.qdmaOutputHCount
-  qdma.io.outputWCount := csr.io.qdmaOutputWCount
-  qdma.io.kernelBlockCount := csr.io.qdmaKernelBlockCount
-
   qmem.io.write := qdma.io.qmemWrite
+
+  qdma.io.parameters := csr.io.qdmaParameters
   csr.io.qdmaStatusReady := qdma.io.statusReady
 
   val w2m = Module(new W2m(b, wmemSize))

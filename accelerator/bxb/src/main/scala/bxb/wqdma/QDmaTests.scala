@@ -16,20 +16,10 @@ class QDmaTestModule(b: Int, qmemSize: Int) extends Module {
   val wAddrWidth = Chisel.log2Up(qmemSize)
   require(Chisel.isPow2(qmemSize))
   require(qmemSize % b == 0)
-  // FIXME: rid of copypaste
-  val hCountWidth = 6
-  val wCountWidth = 6
-  val blockCountWidth = 14
   val io = IO(new Bundle {
     val start = Input(Bool())
 
-    val startAddress = Input(UInt(avalonAddrWidth.W))
-    // - number of output tiles in Height direction
-    val outputHCount = Input(UInt(hCountWidth.W))
-    // - number of output tiles in Width direction
-    val outputWCount = Input(UInt(wCountWidth.W))
-    // - (outputC / B * inputC / B * kernelY * kernelX)
-    val kernelBlockCount = Input(UInt(blockCountWidth.W))
+    val parameters = Input(WQDmaParameters(avalonAddrWidth))
 
     // Avalon test interface
     val avalonMaster = ReadMasterIO(avalonAddrWidth, avalonDataWidth)
@@ -56,10 +46,7 @@ class QDmaTestModule(b: Int, qmemSize: Int) extends Module {
 
   val qdma = Module(new QDma(b, avalonAddrWidth, avalonDataWidth, wAddrWidth))
   qdma.io.start := io.start
-  qdma.io.startAddress := io.startAddress
-  qdma.io.outputHCount := io.outputHCount
-  qdma.io.outputWCount := io.outputWCount
-  qdma.io.kernelBlockCount := io.kernelBlockCount
+  qdma.io.parameters := io.parameters
 
   qSemaPair.io.producer <> qdma.io.qSync
 
@@ -141,10 +128,10 @@ class QDmaTestQMemWriting(dut: QDmaTestModule, b: Int, qmemSize: Int, hCount: In
   }
 
   poke(dut.io.start, true)
-  poke(dut.io.startAddress, 0)
-  poke(dut.io.outputHCount, hCount)
-  poke(dut.io.outputWCount, wCount)
-  poke(dut.io.kernelBlockCount, blockCount)
+  poke(dut.io.parameters.startAddress, 0)
+  poke(dut.io.parameters.outputHCount, hCount)
+  poke(dut.io.parameters.outputWCount, wCount)
+  poke(dut.io.parameters.blockCount, blockCount)
 
   poke(dut.io.qWarInc, false)
   poke(dut.io.qRawDec, false)

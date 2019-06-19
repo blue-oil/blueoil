@@ -16,20 +16,10 @@ class WDmaTestModule(b: Int, avalonDataWidth: Int, wmemSize: Int) extends Module
   val wAddrWidth = Chisel.log2Up(wmemSize)
   require(Chisel.isPow2(wmemSize))
   require(wmemSize % b == 0)
-  // FIXME: rid of copypaste
-  val hCountWidth = 6
-  val wCountWidth = 6
-  val blockCountWidth = 14
   val io = IO(new Bundle {
     val start = Input(Bool())
 
-    val startAddress = Input(UInt(avalonAddrWidth.W))
-    // - number of output tiles in Height direction
-    val outputHCount = Input(UInt(hCountWidth.W))
-    // - number of output tiles in Width direction
-    val outputWCount = Input(UInt(wCountWidth.W))
-    // - (outputC / B * inputC / B * kernelY * kernelX)
-    val kernelBlockCount = Input(UInt(blockCountWidth.W))
+    val parameters = Input(WQDmaParameters(avalonAddrWidth))
 
     // Avalon test interface
     val avalonMaster = ReadMasterIO(avalonAddrWidth, avalonDataWidth)
@@ -56,11 +46,7 @@ class WDmaTestModule(b: Int, avalonDataWidth: Int, wmemSize: Int) extends Module
 
   val wdma = Module(new WDma(b, avalonAddrWidth, avalonDataWidth, wAddrWidth))
   wdma.io.start := io.start
-  wdma.io.startAddress := io.startAddress
-  wdma.io.outputHCount := io.outputHCount
-  wdma.io.outputWCount := io.outputWCount
-  wdma.io.kernelBlockCount := io.kernelBlockCount
-
+  wdma.io.parameters := io.parameters
   wSemaPair.io.producer <> wdma.io.wSync
 
   wmem.io.write := wdma.io.wmemWrite
@@ -132,10 +118,10 @@ class WDmaTestWMemWriting(dut: WDmaTestModule, b: Int, avalonDataWidth: Int, wme
   }
 
   poke(dut.io.start, true)
-  poke(dut.io.startAddress, 0)
-  poke(dut.io.outputHCount, hCount)
-  poke(dut.io.outputWCount, wCount)
-  poke(dut.io.kernelBlockCount, blockCount)
+  poke(dut.io.parameters.startAddress, 0)
+  poke(dut.io.parameters.outputHCount, hCount)
+  poke(dut.io.parameters.outputWCount, wCount)
+  poke(dut.io.parameters.blockCount, blockCount)
 
   poke(dut.io.wWarInc, false)
   poke(dut.io.wRawDec, false)

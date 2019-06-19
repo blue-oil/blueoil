@@ -11,11 +11,6 @@ import bxb.util.{Util}
 class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) extends Module {
   require(avalonDataWidth <= b && b % avalonDataWidth == 0)
 
-  // FIXME: rid of copypaste
-  val hCountWidth = 6
-  val wCountWidth = 6
-  val blockCountWidth = 14
-
   val itemsPerPack = b
   val itemWidth = 1
   val packsPerBlock = b
@@ -23,13 +18,7 @@ class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
   val io = IO(new Bundle {
     val start = Input(Bool())
 
-    val startAddress = Input(UInt(avalonAddrWidth.W))
-    // - number of output tiles in Height direction
-    val outputHCount = Input(UInt(hCountWidth.W))
-    // - number of output tiles in Width direction
-    val outputWCount = Input(UInt(wCountWidth.W))
-    // - (outputC / B * inputC / B * kernelY * kernelX)
-    val kernelBlockCount = Input(UInt(blockCountWidth.W))
+    val parameters = Input(WQDmaParameters(avalonAddrWidth))
 
     // Sync interface
     val wSync = ProducerSyncIO()
@@ -49,10 +38,7 @@ class WDma(b: Int, avalonAddrWidth: Int, avalonDataWidth: Int, wAddrWidth: Int) 
 
   val requester = Module(new WQDmaAvalonRequester(avalonAddrWidth, avalonDataWidth, itemsPerPack * itemWidth, packsPerBlock))
   requester.io.start := io.start
-  requester.io.startAddress := io.startAddress
-  requester.io.outputHCount := io.outputHCount
-  requester.io.outputWCount := io.outputWCount
-  requester.io.blockCount := io.kernelBlockCount
+  requester.io.parameters := io.parameters
 
   requesterNext := requester.io.requesterNext
   requester.io.writerDone := writerDone
