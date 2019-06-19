@@ -7,7 +7,7 @@ import bxb.a2f.{A2f, A2fParameters}
 import bxb.adma.{ADma}
 import bxb.array.{MacArray}
 import bxb.avalon.{ReadMasterIO, WriteMasterIO, SlaveIO}
-import bxb.f2a.{F2a}
+import bxb.f2a.{F2a, F2aParameters}
 import bxb.fdma.{FDma}
 import bxb.rdma.{RDma}
 import bxb.w2m.{W2m}
@@ -157,13 +157,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
     val a2fParameters = Output(A2fParameters(tileCountWidth))
 
     // F2A parameters
-    val f2rOutputHCount = Output(UInt(6.W))
-    val f2rOutputWCount = Output(UInt(6.W))
-    val f2rOutputCCount = Output(UInt(6.W))
-    val f2rRegularTileH = Output(UInt(tileCountWidth.W))
-    val f2rLastTileH = Output(UInt(tileCountWidth.W))
-    val f2rRegularTileW = Output(UInt(tileCountWidth.W))
-    val f2rLastTileW = Output(UInt(tileCountWidth.W))
+    val f2rParameters = Output(F2aParameters(tileCountWidth))
 
     val bnqEnable = Output(Bool())
 
@@ -274,13 +268,13 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
   io.a2fParameters.regularTileW := field(BxbCsrField.a2fRegularTileW.U)
   io.a2fParameters.lastTileW := field(BxbCsrField.a2fLastTileW.U)
   // F2R
-  io.f2rOutputHCount := field(BxbCsrField.a2fOutputHCount.U)
-  io.f2rOutputWCount := field(BxbCsrField.a2fOutputWCount.U)
-  io.f2rOutputCCount := field(BxbCsrField.fdmaOutputCCount.U)
-  io.f2rRegularTileH := field(BxbCsrField.a2fRegularTileH.U)
-  io.f2rLastTileH := field(BxbCsrField.a2fLastTileH.U)
-  io.f2rRegularTileW := field(BxbCsrField.a2fRegularTileW.U)
-  io.f2rLastTileW := field(BxbCsrField.a2fLastTileW.U)
+  io.f2rParameters.outputHCount := field(BxbCsrField.a2fOutputHCount.U)
+  io.f2rParameters.outputWCount := field(BxbCsrField.a2fOutputWCount.U)
+  io.f2rParameters.outputCCount := field(BxbCsrField.fdmaOutputCCount.U)
+  io.f2rParameters.regularTileH := field(BxbCsrField.a2fRegularTileH.U)
+  io.f2rParameters.lastTileH := field(BxbCsrField.a2fLastTileH.U)
+  io.f2rParameters.regularTileW := field(BxbCsrField.a2fRegularTileW.U)
+  io.f2rParameters.lastTileW := field(BxbCsrField.a2fLastTileW.U)
   // BNQ Enable
   io.bnqEnable := field(BxbCsrField.bnqEnable)(0)
 }
@@ -508,14 +502,6 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   val f2r = Module(new F2a(b, dataMemSize, qmemSize, aWidth, fWidth))
   f2r.io.start := csr.io.bnqEnable & csr.io.start
 
-  f2r.io.outputHCount := csr.io.f2rOutputHCount
-  f2r.io.outputWCount := csr.io.f2rOutputWCount
-  f2r.io.outputCCount := csr.io.f2rOutputCCount
-  f2r.io.regularTileH := csr.io.f2rRegularTileH
-  f2r.io.lastTileH := csr.io.f2rLastTileH
-  f2r.io.regularTileW := csr.io.f2rRegularTileW
-  f2r.io.lastTileW := csr.io.f2rLastTileW
-
   rmem.io.write := f2r.io.amemWrite
 
   f2rRead := f2r.io.fmemRead
@@ -528,6 +514,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   qsema.io.consumer <> f2r.io.qSync
   fsemaConsumerMux.io.a <> f2r.io.fSync
 
+  f2r.io.parameters := csr.io.f2rParameters
   csr.io.f2rStatusReady := f2r.io.statusReady
 }
 
