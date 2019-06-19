@@ -3,7 +3,7 @@ package bxb
 import chisel3._
 import chisel3.util._
 
-import bxb.a2f.{A2f}
+import bxb.a2f.{A2f, A2fParameters}
 import bxb.adma.{ADma}
 import bxb.array.{MacArray}
 import bxb.avalon.{ReadMasterIO, WriteMasterIO, SlaveIO}
@@ -154,18 +154,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
     val rdmaRowDistance = Output(UInt(avalonAddrWidth.W))
 
     // A2F parameters
-    val a2fInputCCount = Output(UInt(6.W))
-    val a2fKernelVCount = Output(UInt(2.W))
-    val a2fKernelHCount = Output(UInt(2.W))
-    val a2fTileStep = Output(UInt(2.W))
-    val a2fTileGap = Output(UInt(2.W))
-    val a2fOutputHCount = Output(UInt(6.W))
-    val a2fOutputWCount = Output(UInt(6.W))
-    val a2fOutputCCount = Output(UInt(6.W))
-    val a2fRegularTileH = Output(UInt(tileCountWidth.W))
-    val a2fLastTileH = Output(UInt(tileCountWidth.W))
-    val a2fRegularTileW = Output(UInt(tileCountWidth.W))
-    val a2fLastTileW = Output(UInt(tileCountWidth.W))
+    val a2fParameters = Output(A2fParameters(tileCountWidth))
 
     // F2A parameters
     val f2rOutputHCount = Output(UInt(6.W))
@@ -272,18 +261,18 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
   io.rdmaOutputSpace := field(BxbCsrField.fdmaOutputSpace.U)
   io.rdmaRowDistance := field(BxbCsrField.fdmaRowDistance.U)
   // A2F
-  io.a2fInputCCount := field(BxbCsrField.a2fInputCCount.U)
-  io.a2fKernelVCount := field(BxbCsrField.a2fKernelVCount.U)
-  io.a2fKernelHCount := field(BxbCsrField.a2fKernelHCount.U)
-  io.a2fTileStep := field(BxbCsrField.a2fTileStep.U)
-  io.a2fTileGap := field(BxbCsrField.a2fTileGap.U)
-  io.a2fOutputHCount := field(BxbCsrField.a2fOutputHCount.U)
-  io.a2fOutputWCount := field(BxbCsrField.a2fOutputWCount.U)
-  io.a2fOutputCCount := field(BxbCsrField.fdmaOutputCCount.U)
-  io.a2fRegularTileH := field(BxbCsrField.a2fRegularTileH.U)
-  io.a2fLastTileH := field(BxbCsrField.a2fLastTileH.U)
-  io.a2fRegularTileW := field(BxbCsrField.a2fRegularTileW.U)
-  io.a2fLastTileW := field(BxbCsrField.a2fLastTileW.U)
+  io.a2fParameters.inputCCount := field(BxbCsrField.a2fInputCCount.U)
+  io.a2fParameters.kernelVCount := field(BxbCsrField.a2fKernelVCount.U)
+  io.a2fParameters.kernelHCount := field(BxbCsrField.a2fKernelHCount.U)
+  io.a2fParameters.tileStep := field(BxbCsrField.a2fTileStep.U)
+  io.a2fParameters.tileGap := field(BxbCsrField.a2fTileGap.U)
+  io.a2fParameters.outputHCount := field(BxbCsrField.a2fOutputHCount.U)
+  io.a2fParameters.outputWCount := field(BxbCsrField.a2fOutputWCount.U)
+  io.a2fParameters.outputCCount := field(BxbCsrField.fdmaOutputCCount.U)
+  io.a2fParameters.regularTileH := field(BxbCsrField.a2fRegularTileH.U)
+  io.a2fParameters.lastTileH := field(BxbCsrField.a2fLastTileH.U)
+  io.a2fParameters.regularTileW := field(BxbCsrField.a2fRegularTileW.U)
+  io.a2fParameters.lastTileW := field(BxbCsrField.a2fLastTileW.U)
   // F2R
   io.f2rOutputHCount := field(BxbCsrField.a2fOutputHCount.U)
   io.f2rOutputWCount := field(BxbCsrField.a2fOutputWCount.U)
@@ -513,19 +502,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   fmem.io.writeA := a2f.io.fmemWrite
   a2f.io.fmemQ := fmem.io.qA
 
-  // FIXME: refactor parameters
-  a2f.io.inputCCount := csr.io.a2fInputCCount
-  a2f.io.kernelVCount := csr.io.a2fKernelVCount
-  a2f.io.kernelHCount := csr.io.a2fKernelHCount
-  a2f.io.tileStep := csr.io.a2fTileStep
-  a2f.io.tileGap := csr.io.a2fTileGap
-  a2f.io.outputHCount := csr.io.a2fOutputHCount
-  a2f.io.outputWCount := csr.io.a2fOutputWCount
-  a2f.io.outputCCount := csr.io.a2fOutputCCount
-  a2f.io.regularTileH := csr.io.a2fRegularTileH
-  a2f.io.lastTileH := csr.io.a2fLastTileH
-  a2f.io.regularTileW := csr.io.a2fRegularTileW
-  a2f.io.lastTileW := csr.io.a2fLastTileW
+  a2f.io.parameters := csr.io.a2fParameters
   csr.io.a2fStatusReady := a2f.io.statusReady
 
   val f2r = Module(new F2a(b, dataMemSize, qmemSize, aWidth, fWidth))

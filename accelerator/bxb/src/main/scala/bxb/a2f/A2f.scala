@@ -7,39 +7,51 @@ import bxb.sync.{ConsumerSyncIO, ProducerSyncIO}
 
 import bxb.util.{Util}
 
+class A2fParameters(private val tileCountWidth: Int) extends Bundle {
+  // dimensions
+  val inputCCount = UInt(6.W)
+
+  // Kernel dimensions
+  val kernelVCount = UInt(2.W)
+  val kernelHCount = UInt(2.W)
+
+  // Algorithm parameters
+  val tileStep = UInt(2.W)
+  val tileGap = UInt(2.W)
+
+  // Tile generation parameters
+  // - should be equal to roundUp(outputHeight / tileHeight)
+  val outputHCount = UInt(6.W)
+  // - should be equal to roundUp(outputWidth / tileWidth)
+  val outputWCount = UInt(6.W)
+  // - should be equal to outputChannels / B
+  val outputCCount = UInt(6.W)
+
+  // tileHeight
+  val regularTileH = UInt(tileCountWidth.W)
+  // - outputHeight - (hCount - 1)  * tileHeight
+  val lastTileH = UInt(tileCountWidth.W)
+  // tileWidth
+  val regularTileW = UInt(tileCountWidth.W)
+  // - outputWidth - (wCount - 1)  * tileWidth
+  val lastTileW = UInt(tileCountWidth.W)
+}
+
+object A2fParameters {
+  def apply(tileCountWidth: Int) = {
+    new A2fParameters(tileCountWidth)
+  }
+}
+
 class A2f(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Module {
   val addrWidth = Chisel.log2Up(memSize)
   val tileCountWidth = addrWidth
   val io = IO(new Bundle {
     val start = Input(Bool())
 
-    // Input dimensions
-    val inputCCount = Input(UInt(6.W))
-
-    // Kernel dimensions
-    val kernelVCount = Input(UInt(2.W))
-    val kernelHCount = Input(UInt(2.W))
-
-    // Algorithm parameters
-    val tileStep = Input(UInt(2.W))
-    val tileGap = Input(UInt(2.W))
-
-    // Tile generation parameters
-    // - should be equal to roundUp(outputHeight / tileHeight)
-    val outputHCount = Input(UInt(6.W))
-    // - should be equal to roundUp(outputWidth / tileWidth)
-    val outputWCount = Input(UInt(6.W))
-    // - should be equal to outputChannels / B
-    val outputCCount = Input(UInt(6.W))
-
-    // tileHeight
-    val regularTileH = Input(UInt(tileCountWidth.W))
-    // - outputHeight - (hCount - 1)  * tileHeight
-    val lastTileH = Input(UInt(tileCountWidth.W))
-    // tileWidth
-    val regularTileW = Input(UInt(tileCountWidth.W))
-    // - outputWidth - (wCount - 1)  * tileWidth
-    val lastTileW = Input(UInt(tileCountWidth.W))
+    // External parameters
+    // - should be provided as stable signals
+    val parameters = Input(A2fParameters(tileCountWidth))
 
     // Systolic array interface
     val aOut = Output(Vec(b, UInt(aWidth.W)))
@@ -67,24 +79,24 @@ class A2f(b: Int, memSize: Int, aWidth: Int, fWidth: Int) extends Module {
   val tileAccepted = Wire(Bool())
   val tileGen = Module(new A2fTileGenerator(tileCountWidth))
   tileGen.io.start := io.start
-  tileGen.io.outputHCount := io.outputHCount
-  tileGen.io.outputWCount := io.outputWCount
-  tileGen.io.outputCCount := io.outputCCount
-  tileGen.io.regularTileH := io.regularTileH
-  tileGen.io.lastTileH := io.lastTileH
-  tileGen.io.regularTileW := io.regularTileW
-  tileGen.io.lastTileW := io.lastTileW
+  tileGen.io.outputHCount := io.parameters.outputHCount
+  tileGen.io.outputWCount := io.parameters.outputWCount
+  tileGen.io.outputCCount := io.parameters.outputCCount
+  tileGen.io.regularTileH := io.parameters.regularTileH
+  tileGen.io.lastTileH := io.parameters.lastTileH
+  tileGen.io.regularTileW := io.parameters.regularTileW
+  tileGen.io.lastTileW := io.parameters.lastTileW
   tileGen.io.tileAccepted := tileAccepted
   io.statusReady := tileGen.io.statusReady
 
   val sequencer = Module(new A2fSequencer(addrWidth))
-  sequencer.io.inputCCount := io.inputCCount
-  sequencer.io.kernelVCount := io.kernelVCount
-  sequencer.io.kernelHCount := io.kernelHCount
+  sequencer.io.inputCCount := io.parameters.inputCCount
+  sequencer.io.kernelVCount := io.parameters.kernelVCount
+  sequencer.io.kernelHCount := io.parameters.kernelHCount
   sequencer.io.tileVCount := tileGen.io.tileHeight
   sequencer.io.tileHCount := tileGen.io.tileWidth
-  sequencer.io.tileStep := io.tileStep
-  sequencer.io.tileGap := io.tileGap
+  sequencer.io.tileStep := io.parameters.tileStep
+  sequencer.io.tileGap := io.parameters.tileGap
   sequencer.io.tileFirst := tileGen.io.tileFirst
   sequencer.io.tileValid := tileGen.io.tileValid
   tileAccepted := sequencer.io.tileAccepted
