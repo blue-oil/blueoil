@@ -213,13 +213,13 @@ class BxbTestWithoutBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inp
         return
       }
       val currentAddr = dataAddresses(lastAddrIdx)
-      if (peek(dut.io.fdmaAvalonWrite) == 0) {
+      if (peek(dut.io.fdmaAvalon.write) == 0) {
         return
       }
-      poke(dut.io.fdmaAvalonWaitRequest, false)
+      poke(dut.io.fdmaAvalon.waitRequest, false)
       if (burstCountLeft == 0) {
-        expect(dut.io.fdmaAvalonAddress, ref.outputAddresses(lastAddrIdx))
-        burstCountLeft = peek(dut.io.fdmaAvalonBurstCount).toInt
+        expect(dut.io.fdmaAvalon.address, ref.outputAddresses(lastAddrIdx))
+        burstCountLeft = peek(dut.io.fdmaAvalon.burstCount).toInt
       }
       lastAddrIdx += 1
       burstCountLeft -= 1

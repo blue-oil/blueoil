@@ -3,6 +3,7 @@ package bxb.fdma
 import chisel3._
 import chisel3.util._
 
+import bxb.avalon.{WriteMasterIO}
 import bxb.memory.{ReadPort}
 import bxb.sync.{ConsumerSyncIO}
 import bxb.util.{Util}
@@ -49,11 +50,7 @@ class FDma(b: Int, fAddrWidth: Int, avalonAddrWidth: Int, avalonDataWidth: Int, 
     val rowDistance = Input(UInt(avalonAddrWidth.W))
 
     // Avalon interface
-    val avalonMasterAddress = Output(UInt(avalonAddrWidth.W))
-    val avalonMasterBurstCount = Output(UInt(10.W))
-    val avalonMasterWaitRequest = Input(Bool())
-    val avalonMasterWrite = Output(Bool())
-    val avalonMasterWriteData = Output(UInt(avalonDataWidth.W))
+    val avalonMaster = WriteMasterIO(avalonAddrWidth, avalonDataWidth)
 
     // FMem interface
     val fmemRead = Output(Vec(b, ReadPort(fAddrWidth)))
@@ -103,8 +100,8 @@ class FDma(b: Int, fAddrWidth: Int, avalonAddrWidth: Int, avalonDataWidth: Int, 
   fmemReader.io.tileValid := tileGenerator.io.tileValid
   io.fmemRead := fmemReader.io.fmemRead
   fmemReader.io.fmemQ := io.fmemQ
-  io.avalonMasterWriteData := fmemReader.io.data
-  fmemReader.io.waitRequest := io.avalonMasterWaitRequest
+  io.avalonMaster.writeData := fmemReader.io.data
+  fmemReader.io.waitRequest := io.avalonMaster.waitRequest
 
   val avalonWriter = Module(new FDmaAvalonWriter(avalonAddrWidth, avalonDataWidth, dataWidth, tileCountWidth, maxBurst))
   avalonWriter.io.tileStartAddress := tileGenerator.io.tileStartAddress
@@ -113,10 +110,10 @@ class FDma(b: Int, fAddrWidth: Int, avalonAddrWidth: Int, avalonDataWidth: Int, 
   avalonWriter.io.tileWordRowToRowDistance := tileGenerator.io.tileWordRowToRowDistance
   avalonWriter.io.tileValid := tileGenerator.io.tileValid
   tileAccepted := avalonWriter.io.tileAccepted
-  io.avalonMasterAddress := avalonWriter.io.avalonMasterAddress
-  io.avalonMasterBurstCount := avalonWriter.io.avalonMasterBurstCount
-  avalonWriter.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
-  io.avalonMasterWrite := avalonWriter.io.avalonMasterWrite
+  io.avalonMaster.address := avalonWriter.io.avalonMasterAddress
+  io.avalonMaster.burstCount := avalonWriter.io.avalonMasterBurstCount
+  avalonWriter.io.avalonMasterWaitRequest := io.avalonMaster.waitRequest
+  io.avalonMaster.write := avalonWriter.io.avalonMasterWrite
   avalonWriter.io.readerReady := fmemReader.io.ready
 }
 
