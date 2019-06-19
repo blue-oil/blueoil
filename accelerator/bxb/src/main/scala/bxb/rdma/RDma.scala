@@ -3,6 +3,7 @@ package bxb.rdma
 import chisel3._
 import chisel3.util._
 
+import bxb.avalon.{WriteMasterIO}
 import bxb.memory.{ReadPort}
 import bxb.sync.{ConsumerSyncIO}
 import bxb.util.{Util}
@@ -49,11 +50,7 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val rowDistance = Input(UInt(avalonAddrWidth.W))
 
     // Avalon interface
-    val avalonMasterAddress = Output(UInt(avalonAddrWidth.W))
-    val avalonMasterBurstCount = Output(UInt(10.W))
-    val avalonMasterWaitRequest = Input(Bool())
-    val avalonMasterWrite = Output(Bool())
-    val avalonMasterWriteData = Output(UInt(avalonDataWidth.W))
+    val avalonMaster = WriteMasterIO(avalonAddrWidth, avalonDataWidth)
 
     // RMem interface
     val rmemRead = Output(Vec(b, ReadPort(rAddrWidth)))
@@ -103,8 +100,8 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   rmemReader.io.tileValid := tileGenerator.io.tileValid
   io.rmemRead := rmemReader.io.rmemRead
   rmemReader.io.rmemQ := io.rmemQ
-  io.avalonMasterWriteData := rmemReader.io.data
-  rmemReader.io.waitRequest := io.avalonMasterWaitRequest
+  io.avalonMaster.writeData := rmemReader.io.data
+  rmemReader.io.waitRequest := io.avalonMaster.waitRequest
 
   val avalonWriter = Module(new RDmaAvalonWriter(avalonAddrWidth, avalonDataWidth, tileCountWidth, maxBurst))
   avalonWriter.io.tileStartAddress := tileGenerator.io.tileStartAddress
@@ -113,10 +110,10 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   avalonWriter.io.tileRowToRowDistance := tileGenerator.io.tileRowToRowDistance
   avalonWriter.io.tileValid := tileGenerator.io.tileValid
   tileAccepted := avalonWriter.io.tileAccepted
-  io.avalonMasterAddress := avalonWriter.io.avalonMasterAddress
-  io.avalonMasterBurstCount := avalonWriter.io.avalonMasterBurstCount
-  avalonWriter.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
-  io.avalonMasterWrite := avalonWriter.io.avalonMasterWrite
+  io.avalonMaster.address := avalonWriter.io.avalonMasterAddress
+  io.avalonMaster.burstCount := avalonWriter.io.avalonMasterBurstCount
+  avalonWriter.io.avalonMasterWaitRequest := io.avalonMaster.waitRequest
+  io.avalonMaster.write := avalonWriter.io.avalonMasterWrite
   avalonWriter.io.readerReady := rmemReader.io.ready
 }
 

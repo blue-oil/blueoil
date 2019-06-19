@@ -7,6 +7,7 @@ import util.control.Breaks._
 import chisel3._
 import chisel3.iotesters.{PeekPokeTester, Driver}
 
+import bxb.avalon.{WriteMasterIO}
 import bxb.memory.{MemArray, WritePort}
 import bxb.sync.{SemaphorePair}
 
@@ -50,7 +51,7 @@ class RDmaTestRequestSequence(dut: RDma, b: Int, avalonAddrWidth: Int, avalonDat
 
   poke(dut.io.outputSpace, param.outputSpace)
 
-  poke(dut.io.avalonMasterWaitRequest, false)
+  poke(dut.io.avalonMaster.waitRequest, false)
   poke(dut.io.rSync.rawZero, false)
 
   val timeout = t + 3 * param.hCount * param.wCount * param.cCount * b / maxBurst
@@ -58,7 +59,7 @@ class RDmaTestRequestSequence(dut: RDma, b: Int, avalonAddrWidth: Int, avalonDat
   var pendingReads = 0
   breakable {
     for (req <- ref.requestSeq) {
-      while (peek(dut.io.avalonMasterWrite) == 0) {
+      while (peek(dut.io.avalonMaster.write) == 0) {
         step(1)
         if (t >= timeout) {
           break
@@ -66,10 +67,10 @@ class RDmaTestRequestSequence(dut: RDma, b: Int, avalonAddrWidth: Int, avalonDat
       }
       for (i <- 0 until req.burst) {
         if (i == 0) {
-          expect(dut.io.avalonMasterAddress, req.addr)
+          expect(dut.io.avalonMaster.address, req.addr)
         }
-        expect(dut.io.avalonMasterWrite, true)
-        expect(dut.io.avalonMasterBurstCount, req.burst)
+        expect(dut.io.avalonMaster.write, true)
+        expect(dut.io.avalonMaster.burstCount, req.burst)
         step(1)
       }
     }
@@ -100,29 +101,29 @@ class RDmaTestWaitRequest(dut: RDma, b: Int, avalonAddrWidth: Int, avalonDataWid
 
   poke(dut.io.outputSpace, param.outputSpace)
 
-  poke(dut.io.avalonMasterWaitRequest, false)
+  poke(dut.io.avalonMaster.waitRequest, false)
   poke(dut.io.rSync.rawZero, false)
 
   var acceptDelay = 1
   var pendingReads = 0
   breakable {
     for (req <- ref.requestSeq) {
-      poke(dut.io.avalonMasterWaitRequest, true)
-      while (peek(dut.io.avalonMasterWrite) == 0) {
+      poke(dut.io.avalonMaster.waitRequest, true)
+      while (peek(dut.io.avalonMaster.write) == 0) {
         step(1)
       }
       for (i <- 0 until req.burst) {
-        poke(dut.io.avalonMasterWaitRequest, true)
+        poke(dut.io.avalonMaster.waitRequest, true)
         for (_ <- 0 until acceptDelay) {
           if (i == 0) {
-            expect(dut.io.avalonMasterAddress, req.addr)
+            expect(dut.io.avalonMaster.address, req.addr)
           }
-          expect(dut.io.avalonMasterWrite, true)
-          expect(dut.io.avalonMasterBurstCount, req.burst)
+          expect(dut.io.avalonMaster.write, true)
+          expect(dut.io.avalonMaster.burstCount, req.burst)
           step(1)
         }
         acceptDelay = (acceptDelay + 2) % 5
-        poke(dut.io.avalonMasterWaitRequest, false)
+        poke(dut.io.avalonMaster.waitRequest, false)
         step(1)
       }
     }
@@ -153,7 +154,7 @@ class RDmaTestRRawZero(dut: RDma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
 
   poke(dut.io.outputSpace, param.outputSpace)
 
-  poke(dut.io.avalonMasterWaitRequest, false)
+  poke(dut.io.avalonMaster.waitRequest, false)
   poke(dut.io.rSync.rawZero, false)
 
   var acceptDelay = 1
@@ -161,24 +162,24 @@ class RDmaTestRRawZero(dut: RDma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
   breakable {
     for (req <- ref.requestSeq) {
       if (req.startOfTile) {
-        expect(dut.io.avalonMasterWrite, false)
+        expect(dut.io.avalonMaster.write, false)
         poke(dut.io.rSync.rawZero, true)
         for (_ <- 0 until acceptDelay) {
           step(1)
-          expect(dut.io.avalonMasterWrite, false)
+          expect(dut.io.avalonMaster.write, false)
         }
         acceptDelay = (acceptDelay + 2) % 5
         poke(dut.io.rSync.rawZero, false)
       }
-      while (peek(dut.io.avalonMasterWrite) == 0) {
+      while (peek(dut.io.avalonMaster.write) == 0) {
         step(1)
       }
       for (i <- 0 until req.burst) {
         if (i == 0) {
-          expect(dut.io.avalonMasterAddress, req.addr)
+          expect(dut.io.avalonMaster.address, req.addr)
         }
-        expect(dut.io.avalonMasterWrite, true)
-        expect(dut.io.avalonMasterBurstCount, req.burst)
+        expect(dut.io.avalonMaster.write, true)
+        expect(dut.io.avalonMaster.burstCount, req.burst)
         step(1)
       }
     }
@@ -208,11 +209,7 @@ class RDmaTestModule(rmemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val rowDistance = Input(UInt(avalonAddrWidth.W))
 
     // Avalon interface
-    val avalonMasterAddress = Output(UInt(avalonAddrWidth.W))
-    val avalonMasterBurstCount = Output(UInt(10.W))
-    val avalonMasterWaitRequest = Input(Bool())
-    val avalonMasterWrite = Output(Bool())
-    val avalonMasterWriteData = Output(UInt(avalonDataWidth.W))
+    val avalonMaster = WriteMasterIO(avalonAddrWidth, avalonDataWidth)
 
     // RMem interface
     val rmemWrite = Input(Vec(b, WritePort(rAddrWidth, 2)))
@@ -242,11 +239,7 @@ class RDmaTestModule(rmemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   rdma.io.lastRowToRowDistance := io.lastRowToRowDistance
   rdma.io.outputSpace := io.outputSpace
   rdma.io.rowDistance := io.rowDistance
-  io.avalonMasterAddress := rdma.io.avalonMasterAddress
-  io.avalonMasterBurstCount := rdma.io.avalonMasterBurstCount
-  rdma.io.avalonMasterWaitRequest := io.avalonMasterWaitRequest
-  io.avalonMasterWrite := rdma.io.avalonMasterWrite
-  io.avalonMasterWriteData := rdma.io.avalonMasterWriteData
+  io.avalonMaster <> rdma.io.avalonMaster
   rmem.io.read := rdma.io.rmemRead
   rdma.io.rmemQ := rmem.io.q
   rSemaPair.io.consumer <> rdma.io.rSync
@@ -345,7 +338,7 @@ class RDmaTestRMemReading(dut: RDmaTestModule, rmemSize: Int, tileHeight: Int, t
   poke(dut.io.rowDistance, param.rowDistance)
 
   poke(dut.io.outputSpace, param.outputSpace)
-  poke(dut.io.avalonMasterWaitRequest, true)
+  poke(dut.io.avalonMaster.waitRequest, true)
 
   object AvalonChecker {
     var lastAddressIdx = 0
@@ -367,28 +360,28 @@ class RDmaTestRMemReading(dut: RDmaTestModule, rmemSize: Int, tileHeight: Int, t
         return
       }
       val currentAddr = dataAddresses(lastAddressIdx)
-      if (peek(dut.io.avalonMasterWrite) == 0) {
+      if (peek(dut.io.avalonMaster.write) == 0) {
         return
       }
       val addrLow = currentAddr.addr >> 2
       val addrHigh = addrLow + 1
       val expected = (expectedOutputMemory(addrHigh) << 32) | expectedOutputMemory(addrLow)
-      expect(dut.io.avalonMasterWriteData, expected)
+      expect(dut.io.avalonMaster.writeData, expected)
       if (acceptDelay != 0) {
-        poke(dut.io.avalonMasterWaitRequest, true)
+        poke(dut.io.avalonMaster.waitRequest, true)
         if (burstCountLeft == 0) {
-          expect(dut.io.avalonMasterAddress, currentAddr.addr)
+          expect(dut.io.avalonMaster.address, currentAddr.addr)
         }
         acceptDelay -= 1
         return
       }
       else {
-        poke(dut.io.avalonMasterWaitRequest, false)
+        poke(dut.io.avalonMaster.waitRequest, false)
         acceptDelay = nextDelay()
       }
       if (burstCountLeft == 0) {
-        expect(dut.io.avalonMasterAddress, currentAddr.addr)
-        burstCountLeft = peek(dut.io.avalonMasterBurstCount).toInt
+        expect(dut.io.avalonMaster.address, currentAddr.addr)
+        burstCountLeft = peek(dut.io.avalonMaster.burstCount).toInt
       }
       lastAddressIdx += 1
       burstCountLeft -= 1
