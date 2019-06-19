@@ -108,11 +108,11 @@ set_interface_property csr PORT_NAME_MAP ""
 set_interface_property csr CMSIS_SVD_VARIABLES ""
 set_interface_property csr SVD_ADDRESS_GROUP ""
 
-add_interface_port csr io_csrSlaveAddress address Input 6
-add_interface_port csr io_csrSlaveWriteData writedata Input 32
-add_interface_port csr io_csrSlaveWrite write Input 1
-add_interface_port csr io_csrSlaveRead read Input 1
-add_interface_port csr io_csrSlaveReadData readdata Output 32
+add_interface_port csr io_csrSlave_address address Input 6
+add_interface_port csr io_csrSlave_writeData writedata Input 32
+add_interface_port csr io_csrSlave_write write Input 1
+add_interface_port csr io_csrSlave_read read Input 1
+add_interface_port csr io_csrSlave_readData readdata Output 32
 set_interface_assignment csr embeddedsw.configuration.isFlash 0
 set_interface_assignment csr embeddedsw.configuration.isMemoryDevice 0
 set_interface_assignment csr embeddedsw.configuration.isNonVolatileStorage 0
