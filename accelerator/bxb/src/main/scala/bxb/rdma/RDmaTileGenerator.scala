@@ -5,6 +5,43 @@ import chisel3.util._
 
 import bxb.util.{Util}
 
+class RDmaParameters(private val avalonAddrWidth: Int, private val tileCountWidth: Int) extends Bundle {
+  val outputAddress = UInt(avalonAddrWidth.W)
+  // - should be equal to roundUp(outputHeight / tileHeight)
+  val outputHCount = UInt(6.W)
+  // - should be equal to roundUp(outputWidth / tileWidth)
+  val outputWCount = UInt(6.W)
+  // - should be equal to roundUp(outputChannels / B)
+  val outputCCount = UInt(6.W)
+
+  // tileHeight
+  val regularTileH = UInt(tileCountWidth.W)
+  // - outputHeight - (hCount - 1)  * tileHeight
+  val lastTileH = UInt(tileCountWidth.W)
+
+  // tileWidth
+  val regularTileW = UInt(tileCountWidth.W)
+  // - outputWidth - (wCount - 1)  * tileWidth
+  val lastTileW = UInt(tileCountWidth.W)
+
+  // (outputWidth - regularTileW + (regularTileW % maxBurst == 0) ? maxBurst : regularTileW % maxBurst)
+  val regularRowToRowDistance = UInt(tileCountWidth.W)
+  // (outputWidth - lastTileW + (lastTileW % maxBurst == 0) ? maxBurst : lastTileW % maxBurst)
+  val lastRowToRowDistance = UInt(tileCountWidth.W)
+
+  // outputHeight * outputWidth
+  val outputSpace = UInt(avalonAddrWidth.W)
+
+  // outputWidth * regularTileH - outputWidth + lastTileW
+  val rowDistance = UInt(avalonAddrWidth.W)
+}
+
+object RDmaParameters {
+  def apply(avalonAddrWidth: Int, tileCountWidth: Int) = {
+    new RDmaParameters(avalonAddrWidth, tileCountWidth)
+  }
+}
+
 class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWidth: Int) extends Module {
   require(isPow2(avalonDataWidth))
   val avalonDataByteWidth = avalonDataWidth / 8
@@ -13,34 +50,7 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     val start = Input(Bool())
 
     // Tile generation parameters
-    val outputAddress = Input(UInt(avalonAddrWidth.W))
-    // - should be equal to roundUp(outputHeight / tileHeight)
-    val outputHCount = Input(UInt(6.W))
-    // - should be equal to roundUp(outputWidth / tileWidth)
-    val outputWCount = Input(UInt(6.W))
-    // - should be equal to roundUp(outputChannels / B)
-    val outputCCount = Input(UInt(6.W))
-
-    // tileHeight
-    val regularTileH = Input(UInt(tileCountWidth.W))
-    // - outputHeight - (hCount - 1)  * tileHeight
-    val lastTileH = Input(UInt(tileCountWidth.W))
-
-    // tileWidth
-    val regularTileW = Input(UInt(tileCountWidth.W))
-    // - outputWidth - (wCount - 1)  * tileWidth
-    val lastTileW = Input(UInt(tileCountWidth.W))
-
-    // (outputWidth - regularTileW + (regularTileW % maxBurst == 0) ? maxBurst : regularTileW % maxBurst)
-    val regularRowToRowDistance = Input(UInt(tileCountWidth.W))
-    // (outputWidth - lastTileW + (lastTileW % maxBurst == 0) ? maxBurst : lastTileW % maxBurst)
-    val lastRowToRowDistance = Input(UInt(tileCountWidth.W))
-
-    // outputHeight * outputWidth
-    val outputSpace = Input(UInt(avalonAddrWidth.W))
-
-    // outputWidth * regularTileH - outputWidth + lastTileW
-    val rowDistance = Input(UInt(avalonAddrWidth.W))
+    val parameters = Input(RDmaParameters(avalonAddrWidth, tileCountWidth))
 
     // Tile output interface with handshaking
     val tileStartAddress = Output(UInt(avalonAddrWidth.W))
@@ -87,10 +97,10 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val outputCCountLeft = Reg(UInt(tileCountWidth.W))
   val outputCCountLast = (outputCCountLeft === 1.U)
   when(resetCounters) {
-    outputCCountLeft := io.outputCCount
+    outputCCountLeft := io.parameters.outputCCount
   }.elsewhen(updateCounters) {
     when(outputCCountLast) {
-      outputCCountLeft := io.outputCCount
+      outputCCountLeft := io.parameters.outputCCount
     }.otherwise {
       outputCCountLeft := outputCCountLeft - 1.U
     }
@@ -116,10 +126,10 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val outputWCountOne = (outputWCountLeft === 1.U)
   val outputWCountLast = outputWCountOne & outputCCountLast
   when(resetCounters) {
-    outputWCountLeft := io.outputWCount
+    outputWCountLeft := io.parameters.outputWCount
   }.elsewhen(updateCounters & outputCCountLast) {
     when(outputWCountLast) {
-      outputWCountLeft := io.outputWCount
+      outputWCountLeft := io.parameters.outputWCount
     }.otherwise {
       outputWCountLeft := outputWCountLeft - 1.U
     }
@@ -130,10 +140,10 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
   val outputHCountOne = (outputHCountLeft === 1.U)
   val outputHCountLast = outputHCountOne & outputWCountLast
   when(resetCounters) {
-    outputHCountLeft := io.outputHCount
+    outputHCountLeft := io.parameters.outputHCount
   }.elsewhen(updateCounters & outputWCountLast) {
     when(outputHCountLast) {
-      outputHCountLeft := io.outputHCount
+      outputHCountLeft := io.parameters.outputHCount
     }.otherwise {
       outputHCountLeft := outputHCountLeft - 1.U
     }
@@ -142,12 +152,12 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
 
   val tileFirstChannelAddress = Reg(UInt(avalonAddrWidth.W))
   when(resetCounters) {
-    tileFirstChannelAddress := io.outputAddress
+    tileFirstChannelAddress := io.parameters.outputAddress
   }.elsewhen(updateCounters & outputCCountLast) {
     when(~horizontalLast) {
       tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.tileWidth)
     }.otherwise {
-      tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.rowDistance)
+      tileFirstChannelAddress := tileFirstChannelAddress + toBytes(io.parameters.rowDistance)
     }
   }
 
@@ -156,34 +166,34 @@ class RDmaTileGenerator(avalonAddrWidth: Int, avalonDataWidth: Int, tileCountWid
     when(depthFirst) {
       tileAddress := tileFirstChannelAddress
     }.otherwise {
-      tileAddress := tileAddress + toBytes(io.outputSpace)
+      tileAddress := tileAddress + toBytes(io.parameters.outputSpace)
     }
   }
 
   val tileWidth = Reg(UInt(tileCountWidth.W))
   when(setupTile) {
     when(~horizontalLast) {
-      tileWidth := io.regularTileW
+      tileWidth := io.parameters.regularTileW
     }.otherwise {
-      tileWidth := io.lastTileW
+      tileWidth := io.parameters.lastTileW
     }
   }
 
   val tileHeight = Reg(UInt(tileCountWidth.W))
   when(setupTile) {
     when(~verticalLast) {
-      tileHeight := io.regularTileH
+      tileHeight := io.parameters.regularTileH
     }.otherwise {
-      tileHeight := io.lastTileH
+      tileHeight := io.parameters.lastTileH
     }
   }
 
   val tileRowToRowDistance = Reg(UInt(tileCountWidth.W))
   when(setupTile) {
     when(~horizontalLast) {
-      tileRowToRowDistance := io.regularRowToRowDistance
+      tileRowToRowDistance := io.parameters.regularRowToRowDistance
     }.otherwise {
-      tileRowToRowDistance := io.lastRowToRowDistance
+      tileRowToRowDistance := io.parameters.lastRowToRowDistance
     }
   }
 

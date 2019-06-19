@@ -19,35 +19,7 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   val io = IO(new Bundle {
     val start = Input(Bool())
 
-    // Tile generation parameters
-    val outputAddress = Input(UInt(avalonAddrWidth.W))
-    // - should be equal to roundUp(outputHeight / tileHeight)
-    val outputHCount = Input(UInt(6.W))
-    // - should be equal to roundUp(outputWidth / tileWidth)
-    val outputWCount = Input(UInt(6.W))
-    // - should be equal to roundUp(outputChannels / B)
-    val outputCCount = Input(UInt(6.W))
-
-    // tileHeight
-    val regularTileH = Input(UInt(tileCountWidth.W))
-    // - outputHeight - (hCount - 1)  * tileHeight
-    val lastTileH = Input(UInt(tileCountWidth.W))
-
-    // tileWidth
-    val regularTileW = Input(UInt(tileCountWidth.W))
-    // - outputWidth - (wCount - 1)  * tileWidth
-    val lastTileW = Input(UInt(tileCountWidth.W))
-
-    // (outputWidth - regularTileW + (regularTileW % maxBurst == 0) ? maxBurst : regularTileW % maxBurst)
-    val regularRowToRowDistance = Input(UInt(tileCountWidth.W))
-    // (outputWidth - lastTileW + (lastTileW % maxBurst == 0) ? maxBurst : lastTileW % maxBurst)
-    val lastRowToRowDistance = Input(UInt(tileCountWidth.W))
-
-    // outputHeight * outputWidth
-    val outputSpace = Input(UInt(avalonAddrWidth.W))
-
-    // outputWidth * regularTileH - outputWidth + lastTileW
-    val rowDistance = Input(UInt(avalonAddrWidth.W))
+    val parameters = Input(RDmaParameters(avalonAddrWidth, tileCountWidth))
 
     // Avalon interface
     val avalonMaster = WriteMasterIO(avalonAddrWidth, avalonDataWidth)
@@ -67,24 +39,7 @@ class RDma(b: Int, rAddrWidth: Int, avalonAddrWidth: Int, maxBurst: Int) extends
 
   val tileGenerator = Module(new RDmaTileGenerator(avalonAddrWidth, avalonDataWidth, tileCountWidth))
   tileGenerator.io.start := io.start
-
-  tileGenerator.io.outputAddress := io.outputAddress
-  tileGenerator.io.outputHCount := io.outputHCount
-  tileGenerator.io.outputWCount := io.outputWCount
-  tileGenerator.io.outputCCount := io.outputCCount
-
-  tileGenerator.io.regularTileH := io.regularTileH
-  tileGenerator.io.lastTileH := io.lastTileH
-
-  tileGenerator.io.regularTileW := io.regularTileW
-  tileGenerator.io.lastTileW := io.lastTileW
-
-  tileGenerator.io.regularRowToRowDistance := io.regularRowToRowDistance
-  tileGenerator.io.lastRowToRowDistance := io.lastRowToRowDistance
-
-  tileGenerator.io.outputSpace := io.outputSpace
-  tileGenerator.io.rowDistance := io.rowDistance
-
+  tileGenerator.io.parameters := io.parameters
   tileGenerator.io.tileAccepted := tileAccepted
 
   io.rSync.rawDec := tileGenerator.io.rRawDec
