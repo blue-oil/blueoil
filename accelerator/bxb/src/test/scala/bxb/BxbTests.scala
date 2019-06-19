@@ -228,9 +228,9 @@ class BxbTestWithoutBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inp
   }
 
   def writeCsr(field: Int, value: Int) = {
-    poke(dut.io.csrSlaveAddress, field)
-    poke(dut.io.csrSlaveWriteData, value)
-    poke(dut.io.csrSlaveWrite, true)
+    poke(dut.io.csrSlave.address, field)
+    poke(dut.io.csrSlave.writeData, value)
+    poke(dut.io.csrSlave.write, true)
   }
 
   val parameters = List(
@@ -305,15 +305,15 @@ class BxbTestWithoutBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inp
     FDmaAvalonStub.tryNext()
     step(1)
   }
-  poke(dut.io.csrSlaveWrite, false)
-  poke(dut.io.csrSlaveAddress, BxbCsrField.statusRegister)
+  poke(dut.io.csrSlave.write, false)
+  poke(dut.io.csrSlave.address, BxbCsrField.statusRegister)
   tryNext()
   while (!ADmaAvalonStub.done || !FDmaAvalonStub.done) {
     tryNext()
   }
   tryNext()
   tryNext()
-  expect(dut.io.csrSlaveReadData, 127)
+  expect(dut.io.csrSlave.readData, 127)
 }
 
 class BxbTestWithBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputChannels: Int, outputChannels: Int, tileHeight: Int, tileWidth: Int) extends PeekPokeTester(dut) {
@@ -430,9 +430,9 @@ class BxbTestWithBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputC
   }
 
   def writeCsr(field: Int, value: Int) = {
-    poke(dut.io.csrSlaveAddress, field)
-    poke(dut.io.csrSlaveWriteData, value)
-    poke(dut.io.csrSlaveWrite, true)
+    poke(dut.io.csrSlave.address, field)
+    poke(dut.io.csrSlave.writeData, value)
+    poke(dut.io.csrSlave.write, true)
   }
 
   val parameters = List(
@@ -509,15 +509,15 @@ class BxbTestWithBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputC
     RDmaAvalonStub.tryNext()
     step(1)
   }
-  poke(dut.io.csrSlaveWrite, false)
-  poke(dut.io.csrSlaveAddress, BxbCsrField.statusRegister)
+  poke(dut.io.csrSlave.write, false)
+  poke(dut.io.csrSlave.address, BxbCsrField.statusRegister)
   tryNext()
   while (!ADmaAvalonStub.done || !RDmaAvalonStub.done) {
     tryNext()
   }
   tryNext()
   tryNext()
-  expect(dut.io.csrSlaveReadData, 127)
+  expect(dut.io.csrSlave.readData, 127)
 }
 
 object BxbTests {

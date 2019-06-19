@@ -6,7 +6,7 @@ import chisel3.util._
 import bxb.a2f.{A2f}
 import bxb.adma.{ADma}
 import bxb.array.{MacArray}
-import bxb.avalon.{ReadMasterIO, WriteMasterIO}
+import bxb.avalon.{ReadMasterIO, WriteMasterIO, SlaveIO}
 import bxb.f2a.{F2a}
 import bxb.fdma.{FDma}
 import bxb.rdma.{RDma}
@@ -84,11 +84,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
   val blockCountWidth = 14
   val io = IO(new Bundle {
     // Avalon slave interface
-    val avalonSlaveAddress = Input(UInt(Chisel.log2Up(50).W)) // FIXME:
-    val avalonSlaveWriteData = Input(UInt(32.W))
-    val avalonSlaveWrite = Input(Bool())
-    val avalonSlaveRead = Input(Bool())
-    val avalonSlaveReadData = Output(UInt(32.W))
+    val avalonSlave = SlaveIO(Chisel.log2Up(50), 32) // FIXME:rid of log2Up(50)
 
     // TODO: parameter & start slave
     val start = Output(Bool())
@@ -193,8 +189,8 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
   })
 
   val field = RegInit(VecInit(Seq.fill(BxbCsrField.parameterCount){0.U(32.W)}))
-  when(io.avalonSlaveWrite & (io.avalonSlaveAddress =/= BxbCsrField.start.U)) {
-    field(io.avalonSlaveAddress) := io.avalonSlaveWriteData
+  when(io.avalonSlave.write & (io.avalonSlave.address =/= BxbCsrField.start.U)) {
+    field(io.avalonSlave.address) := io.avalonSlave.writeData
   }
 
   val readData = Reg(UInt(32.W))
@@ -207,14 +203,14 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
     /* 1 */ io.wdmaStatusReady,
     /* 0 */ io.fdmaStatusReady
   )
-  when(io.avalonSlaveRead & (io.avalonSlaveAddress =/= BxbCsrField.statusRegister.U)) {
-    readData := field(io.avalonSlaveAddress)
+  when(io.avalonSlave.read & (io.avalonSlave.address =/= BxbCsrField.statusRegister.U)) {
+    readData := field(io.avalonSlave.address)
   }.otherwise {
     readData := status
   }
-  io.avalonSlaveReadData := readData
+  io.avalonSlave.readData := readData
 
-  io.start := RegNext(io.avalonSlaveWrite & (io.avalonSlaveAddress === BxbCsrField.start.U))
+  io.start := RegNext(io.avalonSlave.write & (io.avalonSlave.address === BxbCsrField.start.U))
   // ADMA
   io.admaInputAddress := field(BxbCsrField.admaInputAddress.U)
   io.admaInputHCount := field(BxbCsrField.admaInputHCount.U)
@@ -330,11 +326,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
 
   val io = IO(new Bundle {
     // Avalon slave interface
-    val csrSlaveAddress = Input(UInt(Chisel.log2Up(50).W)) // FIXME:
-    val csrSlaveWriteData = Input(UInt(32.W))
-    val csrSlaveWrite = Input(Bool())
-    val csrSlaveRead = Input(Bool())
-    val csrSlaveReadData = Output(UInt(32.W))
+    val csrSlave = SlaveIO(Chisel.log2Up(50), 32) // FIXME:rid of log2Up(50)
 
     // ADMA Avalon Interface
     val admaAvalon = ReadMasterIO(avalonAddrWidth, b * aWidth)
@@ -353,11 +345,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   })
 
   val csr = Module(new BxbCsr(avalonAddrWidth, tileCountWidth))
-  csr.io.avalonSlaveAddress := io.csrSlaveAddress
-  csr.io.avalonSlaveWrite := io.csrSlaveWrite
-  csr.io.avalonSlaveWriteData := io.csrSlaveWriteData
-  csr.io.avalonSlaveRead := io.csrSlaveRead
-  io.csrSlaveReadData := csr.io.avalonSlaveReadData
+  io.csrSlave <> csr.io.avalonSlave
 
   val asema = Module(new SemaphorePair(2, 0, 2))
   val amem = Module(new MemArray(b, dataMemSize, aWidth))
