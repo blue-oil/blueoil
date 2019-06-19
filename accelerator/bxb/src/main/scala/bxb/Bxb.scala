@@ -349,11 +349,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
     val fdmaAvalon = WriteMasterIO(avalonAddrWidth, 128)
 
     // RDMA Avalon Interface
-    val rdmaAvalonAddress = Output(UInt(avalonAddrWidth.W))
-    val rdmaAvalonBurstCount = Output(UInt(10.W))
-    val rdmaAvalonWaitRequest = Input(Bool())
-    val rdmaAvalonWrite = Output(Bool())
-    val rdmaAvalonWriteData = Output(UInt((b * aWidth).W))
+    val rdmaAvalon = WriteMasterIO(avalonAddrWidth, (b * aWidth))
   })
 
   val csr = Module(new BxbCsr(avalonAddrWidth, tileCountWidth))
@@ -463,13 +459,7 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   val rdma = Module(new RDma(b, dataAddrWidth, avalonAddrWidth, maxBurst))
   rdma.io.start := csr.io.bnqEnable & csr.io.start
   rsema.io.consumer <> rdma.io.rSync
-
-  // FIXME: refactor avalon interface
-  io.rdmaAvalonAddress := rdma.io.avalonMasterAddress
-  io.rdmaAvalonBurstCount := rdma.io.avalonMasterBurstCount
-  rdma.io.avalonMasterWaitRequest := io.rdmaAvalonWaitRequest
-  io.rdmaAvalonWrite := rdma.io.avalonMasterWrite
-  io.rdmaAvalonWriteData := rdma.io.avalonMasterWriteData
+  io.rdmaAvalon <> rdma.io.avalonMaster
 
   // FIXME: refactor parameters
   rdma.io.outputAddress := csr.io.rdmaOutputAddress

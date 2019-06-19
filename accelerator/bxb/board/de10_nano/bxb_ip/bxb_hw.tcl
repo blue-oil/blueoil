@@ -285,9 +285,9 @@ set_interface_property rdma PORT_NAME_MAP ""
 set_interface_property rdma CMSIS_SVD_VARIABLES ""
 set_interface_property rdma SVD_ADDRESS_GROUP ""
 
-add_interface_port rdma io_rdmaAvalonAddress address Output 32
-add_interface_port rdma io_rdmaAvalonBurstCount burstcount Output 10
-add_interface_port rdma io_rdmaAvalonWaitRequest waitrequest Input 1
-add_interface_port rdma io_rdmaAvalonWrite write Output 1
-add_interface_port rdma io_rdmaAvalonWriteData writedata Output 64
+add_interface_port rdma io_rdmaAvalon_address address Output 32
+add_interface_port rdma io_rdmaAvalon_burstCount burstcount Output 10
+add_interface_port rdma io_rdmaAvalon_waitRequest waitrequest Input 1
+add_interface_port rdma io_rdmaAvalon_write write Output 1
+add_interface_port rdma io_rdmaAvalon_writeData writedata Output 64
 

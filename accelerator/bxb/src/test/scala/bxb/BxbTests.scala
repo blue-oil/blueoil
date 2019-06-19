@@ -415,13 +415,13 @@ class BxbTestWithBnq(dut: Bxb, b: Int, inputHeight: Int, inputWidth: Int, inputC
         return
       }
       val currentAddr = dataAddresses(lastAddrIdx)
-      if (peek(dut.io.rdmaAvalonWrite) == 0) {
+      if (peek(dut.io.rdmaAvalon.write) == 0) {
         return
       }
-      poke(dut.io.rdmaAvalonWaitRequest, false)
+      poke(dut.io.rdmaAvalon.waitRequest, false)
       if (burstCountLeft == 0) {
-        expect(dut.io.rdmaAvalonAddress, ref.outputAddresses(lastAddrIdx))
-        burstCountLeft = peek(dut.io.rdmaAvalonBurstCount).toInt
+        expect(dut.io.rdmaAvalon.address, ref.outputAddresses(lastAddrIdx))
+        burstCountLeft = peek(dut.io.rdmaAvalon.burstCount).toInt
       }
       lastAddrIdx += 1
       burstCountLeft -= 1
