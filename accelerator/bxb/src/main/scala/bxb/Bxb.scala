@@ -8,7 +8,7 @@ import bxb.adma.{ADma, ADmaParameters}
 import bxb.array.{MacArray}
 import bxb.avalon.{ReadMasterIO, WriteMasterIO, SlaveIO}
 import bxb.f2a.{F2a, F2aParameters}
-import bxb.fdma.{FDma}
+import bxb.fdma.{FDma, FDmaParameters}
 import bxb.rdma.{RDma}
 import bxb.w2m.{W2m}
 import bxb.wqdma.{WDma, QDma}
@@ -105,18 +105,7 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
     val qdmaKernelBlockCount = Output(UInt(blockCountWidth.W))
 
     // FDMA parameters
-    val fdmaOutputAddress = Output(UInt(avalonAddrWidth.W))
-    val fdmaOutputHCount = Output(UInt(6.W))
-    val fdmaOutputWCount = Output(UInt(6.W))
-    val fdmaOutputCCount = Output(UInt(6.W))
-    val fdmaRegularTileH = Output(UInt(tileCountWidth.W))
-    val fdmaLastTileH = Output(UInt(tileCountWidth.W))
-    val fdmaRegularTileW = Output(UInt(tileCountWidth.W))
-    val fdmaLastTileW = Output(UInt(tileCountWidth.W))
-    val fdmaRegularRowToRowDistance = Output(UInt(tileCountWidth.W))
-    val fdmaLastRowToRowDistance = Output(UInt(tileCountWidth.W))
-    val fdmaOutputSpace = Output(UInt(avalonAddrWidth.W))
-    val fdmaRowDistance = Output(UInt(avalonAddrWidth.W))
+    val fdmaParameters = Output(FDmaParameters(avalonAddrWidth, tileCountWidth))
 
     val rdmaOutputAddress = Output(UInt(avalonAddrWidth.W))
     val rdmaOutputHCount = Output(UInt(6.W))
@@ -207,18 +196,18 @@ class BxbCsr(avalonAddrWidth: Int, tileCountWidth: Int) extends Module {
   io.qdmaOutputWCount := field(BxbCsrField.wdmaOutputWCount.U)
   io.qdmaKernelBlockCount := field(BxbCsrField.fdmaOutputCCount.U)
   // FDMA
-  io.fdmaOutputAddress := field(BxbCsrField.fdmaOutputAddress.U)
-  io.fdmaOutputHCount := field(BxbCsrField.fdmaOutputHCount.U)
-  io.fdmaOutputWCount := field(BxbCsrField.fdmaOutputWCount.U)
-  io.fdmaOutputCCount := field(BxbCsrField.fdmaOutputCCount.U)
-  io.fdmaRegularTileH := field(BxbCsrField.fdmaRegularTileH.U)
-  io.fdmaLastTileH := field(BxbCsrField.fdmaLastTileH.U)
-  io.fdmaRegularTileW := field(BxbCsrField.fdmaRegularTileW.U)
-  io.fdmaLastTileW := field(BxbCsrField.fdmaLastTileW.U)
-  io.fdmaRegularRowToRowDistance := field(BxbCsrField.fdmaRegularRowToRowDistance.U)
-  io.fdmaLastRowToRowDistance := field(BxbCsrField.fdmaLastRowToRowDistance.U)
-  io.fdmaOutputSpace := field(BxbCsrField.fdmaOutputSpace.U)
-  io.fdmaRowDistance := field(BxbCsrField.fdmaRowDistance.U)
+  io.fdmaParameters.outputAddress := field(BxbCsrField.fdmaOutputAddress.U)
+  io.fdmaParameters.outputHCount := field(BxbCsrField.fdmaOutputHCount.U)
+  io.fdmaParameters.outputWCount := field(BxbCsrField.fdmaOutputWCount.U)
+  io.fdmaParameters.outputCCount := field(BxbCsrField.fdmaOutputCCount.U)
+  io.fdmaParameters.regularTileH := field(BxbCsrField.fdmaRegularTileH.U)
+  io.fdmaParameters.lastTileH := field(BxbCsrField.fdmaLastTileH.U)
+  io.fdmaParameters.regularTileW := field(BxbCsrField.fdmaRegularTileW.U)
+  io.fdmaParameters.lastTileW := field(BxbCsrField.fdmaLastTileW.U)
+  io.fdmaParameters.regularRowToRowDistance := field(BxbCsrField.fdmaRegularRowToRowDistance.U)
+  io.fdmaParameters.lastRowToRowDistance := field(BxbCsrField.fdmaLastRowToRowDistance.U)
+  io.fdmaParameters.outputSpace := field(BxbCsrField.fdmaOutputSpace.U)
+  io.fdmaParameters.rowDistance := field(BxbCsrField.fdmaRowDistance.U)
   // RDMA
   io.rdmaOutputAddress := field(BxbCsrField.fdmaOutputAddress.U)
   io.rdmaOutputHCount := field(BxbCsrField.fdmaOutputHCount.U)
@@ -363,23 +352,11 @@ class Bxb(dataMemSize: Int, wmemSize: Int, qmemSize: Int) extends Module {
   fsemaConsumerMux.io.b <> fdma.io.fSync
   io.fdmaAvalon <> fdma.io.avalonMaster
 
-  // FIXME: refactor parameters
-  fdma.io.outputAddress := csr.io.fdmaOutputAddress
-  fdma.io.outputHCount := csr.io.fdmaOutputHCount
-  fdma.io.outputWCount := csr.io.fdmaOutputWCount
-  fdma.io.outputCCount := csr.io.fdmaOutputCCount
-  fdma.io.regularTileH := csr.io.fdmaRegularTileH
-  fdma.io.lastTileH := csr.io.fdmaLastTileH
-  fdma.io.regularTileW := csr.io.fdmaRegularTileW
-  fdma.io.lastTileW := csr.io.fdmaLastTileW
-  fdma.io.regularRowToRowDistance := csr.io.fdmaRegularRowToRowDistance
-  fdma.io.lastRowToRowDistance := csr.io.fdmaLastRowToRowDistance
-  fdma.io.outputSpace := csr.io.fdmaOutputSpace
-  fdma.io.rowDistance := csr.io.fdmaRowDistance
-
   // FIXME: refactor memory interface
   fdmaRead := fdma.io.fmemRead
   fdma.io.fmemQ := fmem.io.qB
+
+  fdma.io.parameters := csr.io.fdmaParameters
   csr.io.fdmaStatusReady := fdma.io.statusReady
 
   val rdma = Module(new RDma(b, dataAddrWidth, avalonAddrWidth, maxBurst))

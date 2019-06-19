@@ -33,23 +33,23 @@ class FDmaTestRequestSequence(dut: FDma, b: Int, avalonAddrWidth: Int, avalonDat
 
   poke(dut.io.start, true)
 
-  poke(dut.io.outputAddress, 0)
-  poke(dut.io.outputHCount, param.hCount)
-  poke(dut.io.outputWCount, param.wCount)
-  poke(dut.io.outputCCount, param.cCount)
+  poke(dut.io.parameters.outputAddress, 0)
+  poke(dut.io.parameters.outputHCount, param.hCount)
+  poke(dut.io.parameters.outputWCount, param.wCount)
+  poke(dut.io.parameters.outputCCount, param.cCount)
 
-  poke(dut.io.regularTileH, param.regularTileH)
-  poke(dut.io.lastTileH, param.lastTileH)
+  poke(dut.io.parameters.regularTileH, param.regularTileH)
+  poke(dut.io.parameters.lastTileH, param.lastTileH)
 
-  poke(dut.io.regularTileW, param.regularTileW)
-  poke(dut.io.lastTileW, param.lastTileW)
+  poke(dut.io.parameters.regularTileW, param.regularTileW)
+  poke(dut.io.parameters.lastTileW, param.lastTileW)
 
-  poke(dut.io.regularRowToRowDistance, param.regularRowToRowDistance)
-  poke(dut.io.lastRowToRowDistance, param.lastRowToRowDistance)
+  poke(dut.io.parameters.regularRowToRowDistance, param.regularRowToRowDistance)
+  poke(dut.io.parameters.lastRowToRowDistance, param.lastRowToRowDistance)
 
-  poke(dut.io.rowDistance, param.rowDistance)
+  poke(dut.io.parameters.rowDistance, param.rowDistance)
 
-  poke(dut.io.outputSpace, param.outputSpace)
+  poke(dut.io.parameters.outputSpace, param.outputSpace)
 
   poke(dut.io.avalonMaster.waitRequest, false)
   poke(dut.io.fSync.rawZero, false)
@@ -83,23 +83,23 @@ class FDmaTestWaitRequest(dut: FDma, b: Int, avalonAddrWidth: Int, avalonDataWid
 
   poke(dut.io.start, true)
 
-  poke(dut.io.outputAddress, 0)
-  poke(dut.io.outputHCount, param.hCount)
-  poke(dut.io.outputWCount, param.wCount)
-  poke(dut.io.outputCCount, param.cCount)
+  poke(dut.io.parameters.outputAddress, 0)
+  poke(dut.io.parameters.outputHCount, param.hCount)
+  poke(dut.io.parameters.outputWCount, param.wCount)
+  poke(dut.io.parameters.outputCCount, param.cCount)
 
-  poke(dut.io.regularTileH, param.regularTileH)
-  poke(dut.io.lastTileH, param.lastTileH)
+  poke(dut.io.parameters.regularTileH, param.regularTileH)
+  poke(dut.io.parameters.lastTileH, param.lastTileH)
 
-  poke(dut.io.regularTileW, param.regularTileW)
-  poke(dut.io.lastTileW, param.lastTileW)
+  poke(dut.io.parameters.regularTileW, param.regularTileW)
+  poke(dut.io.parameters.lastTileW, param.lastTileW)
 
-  poke(dut.io.regularRowToRowDistance, param.regularRowToRowDistance)
-  poke(dut.io.lastRowToRowDistance, param.lastRowToRowDistance)
+  poke(dut.io.parameters.regularRowToRowDistance, param.regularRowToRowDistance)
+  poke(dut.io.parameters.lastRowToRowDistance, param.lastRowToRowDistance)
 
-  poke(dut.io.rowDistance, param.rowDistance)
+  poke(dut.io.parameters.rowDistance, param.rowDistance)
 
-  poke(dut.io.outputSpace, param.outputSpace)
+  poke(dut.io.parameters.outputSpace, param.outputSpace)
 
   poke(dut.io.avalonMaster.waitRequest, false)
   poke(dut.io.fSync.rawZero, false)
@@ -136,23 +136,23 @@ class FDmaTestFRawZero(dut: FDma, b: Int, avalonAddrWidth: Int, avalonDataWidth:
 
   poke(dut.io.start, true)
 
-  poke(dut.io.outputAddress, 0)
-  poke(dut.io.outputHCount, param.hCount)
-  poke(dut.io.outputWCount, param.wCount)
-  poke(dut.io.outputCCount, param.cCount)
+  poke(dut.io.parameters.outputAddress, 0)
+  poke(dut.io.parameters.outputHCount, param.hCount)
+  poke(dut.io.parameters.outputWCount, param.wCount)
+  poke(dut.io.parameters.outputCCount, param.cCount)
 
-  poke(dut.io.regularTileH, param.regularTileH)
-  poke(dut.io.lastTileH, param.lastTileH)
+  poke(dut.io.parameters.regularTileH, param.regularTileH)
+  poke(dut.io.parameters.lastTileH, param.lastTileH)
 
-  poke(dut.io.regularTileW, param.regularTileW)
-  poke(dut.io.lastTileW, param.lastTileW)
+  poke(dut.io.parameters.regularTileW, param.regularTileW)
+  poke(dut.io.parameters.lastTileW, param.lastTileW)
 
-  poke(dut.io.regularRowToRowDistance, param.regularRowToRowDistance)
-  poke(dut.io.lastRowToRowDistance, param.lastRowToRowDistance)
+  poke(dut.io.parameters.regularRowToRowDistance, param.regularRowToRowDistance)
+  poke(dut.io.parameters.lastRowToRowDistance, param.lastRowToRowDistance)
 
-  poke(dut.io.rowDistance, param.rowDistance)
+  poke(dut.io.parameters.rowDistance, param.rowDistance)
 
-  poke(dut.io.outputSpace, param.outputSpace)
+  poke(dut.io.parameters.outputSpace, param.outputSpace)
 
   poke(dut.io.avalonMaster.waitRequest, false)
   poke(dut.io.fSync.rawZero, false)
@@ -196,18 +196,7 @@ class FDmaTestModule(fmemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
     val start = Input(Bool())
 
     // Generator parameters
-    val outputAddress = Input(UInt(avalonAddrWidth.W))
-    val outputHCount = Input(UInt(6.W))
-    val outputWCount = Input(UInt(6.W))
-    val outputCCount = Input(UInt(6.W))
-    val regularTileH = Input(UInt(tileCountWidth.W))
-    val lastTileH = Input(UInt(tileCountWidth.W))
-    val regularTileW = Input(UInt(tileCountWidth.W))
-    val lastTileW = Input(UInt(tileCountWidth.W))
-    val regularRowToRowDistance = Input(UInt(tileCountWidth.W))
-    val lastRowToRowDistance = Input(UInt(tileCountWidth.W))
-    val outputSpace = Input(UInt(tileCountWidth.W))
-    val rowDistance = Input(UInt(avalonAddrWidth.W))
+    val parameters = Input(FDmaParameters(avalonAddrWidth, tileCountWidth))
 
     // Avalon interface
     val avalonMaster = WriteMasterIO(avalonAddrWidth, avalonDataWidth)
@@ -229,18 +218,7 @@ class FDmaTestModule(fmemSize: Int, avalonAddrWidth: Int, maxBurst: Int) extends
   fSemaPair.io.producer.rawInc := io.fRawInc
   val fdma = Module(new FDma(b, fAddrWidth, avalonAddrWidth, avalonDataWidth, maxBurst))
   fdma.io.start := io.start
-  fdma.io.outputAddress := io.outputAddress
-  fdma.io.outputHCount := io.outputHCount
-  fdma.io.outputWCount := io.outputWCount
-  fdma.io.outputCCount := io.outputCCount
-  fdma.io.regularTileH := io.regularTileH
-  fdma.io.lastTileH := io.lastTileH
-  fdma.io.regularTileW := io.regularTileW
-  fdma.io.lastTileW := io.lastTileW
-  fdma.io.regularRowToRowDistance := io.regularRowToRowDistance
-  fdma.io.lastRowToRowDistance := io.lastRowToRowDistance
-  fdma.io.outputSpace := io.outputSpace
-  fdma.io.rowDistance := io.rowDistance
+  fdma.io.parameters := io.parameters
   io.avalonMaster <> fdma.io.avalonMaster
   fmem.io.readB := fdma.io.fmemRead
   fdma.io.fmemQ := fmem.io.qB
@@ -352,23 +330,23 @@ class FDmaTestFMemReading(dut: FDmaTestModule, fmemSize: Int, tileHeight: Int, t
 
   poke(dut.io.start, true)
 
-  poke(dut.io.outputAddress, 0)
-  poke(dut.io.outputHCount, param.hCount)
-  poke(dut.io.outputWCount, param.wCount)
-  poke(dut.io.outputCCount, param.cCount)
+  poke(dut.io.parameters.outputAddress, 0)
+  poke(dut.io.parameters.outputHCount, param.hCount)
+  poke(dut.io.parameters.outputWCount, param.wCount)
+  poke(dut.io.parameters.outputCCount, param.cCount)
 
-  poke(dut.io.regularTileH, param.regularTileH)
-  poke(dut.io.lastTileH, param.lastTileH)
+  poke(dut.io.parameters.regularTileH, param.regularTileH)
+  poke(dut.io.parameters.lastTileH, param.lastTileH)
 
-  poke(dut.io.regularTileW, param.regularTileW)
-  poke(dut.io.lastTileW, param.lastTileW)
+  poke(dut.io.parameters.regularTileW, param.regularTileW)
+  poke(dut.io.parameters.lastTileW, param.lastTileW)
 
-  poke(dut.io.regularRowToRowDistance, param.regularRowToRowDistance)
-  poke(dut.io.lastRowToRowDistance, param.lastRowToRowDistance)
+  poke(dut.io.parameters.regularRowToRowDistance, param.regularRowToRowDistance)
+  poke(dut.io.parameters.lastRowToRowDistance, param.lastRowToRowDistance)
 
-  poke(dut.io.rowDistance, param.rowDistance)
+  poke(dut.io.parameters.rowDistance, param.rowDistance)
 
-  poke(dut.io.outputSpace, param.outputSpace)
+  poke(dut.io.parameters.outputSpace, param.outputSpace)
   poke(dut.io.avalonMaster.waitRequest, false)
 
   object AvalonChecker {

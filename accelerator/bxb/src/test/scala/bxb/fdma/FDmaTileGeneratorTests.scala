@@ -94,23 +94,23 @@ class FDmaTileGeneratorTestSequence(dut: FDmaTileGenerator, b: Int, avalonDataWi
   val param = new TileGeneratorParameters(b, avalonDataWidth, dataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
   poke(dut.io.start, true)
 
-  poke(dut.io.outputAddress, 0)
-  poke(dut.io.outputHCount, param.hCount)
-  poke(dut.io.outputWCount, param.wCount)
-  poke(dut.io.outputCCount, param.cCount)
+  poke(dut.io.parameters.outputAddress, 0)
+  poke(dut.io.parameters.outputHCount, param.hCount)
+  poke(dut.io.parameters.outputWCount, param.wCount)
+  poke(dut.io.parameters.outputCCount, param.cCount)
 
-  poke(dut.io.regularTileH, param.regularTileH)
-  poke(dut.io.lastTileH, param.lastTileH)
+  poke(dut.io.parameters.regularTileH, param.regularTileH)
+  poke(dut.io.parameters.lastTileH, param.lastTileH)
 
-  poke(dut.io.regularTileW, param.regularTileW)
-  poke(dut.io.lastTileW, param.lastTileW)
+  poke(dut.io.parameters.regularTileW, param.regularTileW)
+  poke(dut.io.parameters.lastTileW, param.lastTileW)
 
-  poke(dut.io.regularRowToRowDistance, param.regularRowToRowDistance)
-  poke(dut.io.lastRowToRowDistance, param.lastRowToRowDistance)
+  poke(dut.io.parameters.regularRowToRowDistance, param.regularRowToRowDistance)
+  poke(dut.io.parameters.lastRowToRowDistance, param.lastRowToRowDistance)
 
-  poke(dut.io.rowDistance, param.rowDistance)
+  poke(dut.io.parameters.rowDistance, param.rowDistance)
 
-  poke(dut.io.outputSpace, param.outputSpace)
+  poke(dut.io.parameters.outputSpace, param.outputSpace)
   poke(dut.io.fRawZero, false)
 
   poke(dut.io.tileAccepted, false)
@@ -134,23 +134,23 @@ class FDmaTileGeneratorTestRRawZero(dut: FDmaTileGenerator, b: Int, avalonDataWi
   val param = new TileGeneratorParameters(b, avalonDataWidth, dataWidth, tileHeight, tileWidth, inputHeight, inputWidth, inputChannels, maxBurst)
   poke(dut.io.start, true)
 
-  poke(dut.io.outputAddress, 0)
-  poke(dut.io.outputHCount, param.hCount)
-  poke(dut.io.outputWCount, param.wCount)
-  poke(dut.io.outputCCount, param.cCount)
+  poke(dut.io.parameters.outputAddress, 0)
+  poke(dut.io.parameters.outputHCount, param.hCount)
+  poke(dut.io.parameters.outputWCount, param.wCount)
+  poke(dut.io.parameters.outputCCount, param.cCount)
 
-  poke(dut.io.regularTileH, param.regularTileH)
-  poke(dut.io.lastTileH, param.lastTileH)
+  poke(dut.io.parameters.regularTileH, param.regularTileH)
+  poke(dut.io.parameters.lastTileH, param.lastTileH)
 
-  poke(dut.io.regularTileW, param.regularTileW)
-  poke(dut.io.lastTileW, param.lastTileW)
+  poke(dut.io.parameters.regularTileW, param.regularTileW)
+  poke(dut.io.parameters.lastTileW, param.lastTileW)
 
-  poke(dut.io.regularRowToRowDistance, param.regularRowToRowDistance)
-  poke(dut.io.lastRowToRowDistance, param.lastRowToRowDistance)
+  poke(dut.io.parameters.regularRowToRowDistance, param.regularRowToRowDistance)
+  poke(dut.io.parameters.lastRowToRowDistance, param.lastRowToRowDistance)
 
-  poke(dut.io.rowDistance, param.rowDistance)
+  poke(dut.io.parameters.rowDistance, param.rowDistance)
 
-  poke(dut.io.outputSpace, param.outputSpace)
+  poke(dut.io.parameters.outputSpace, param.outputSpace)
   poke(dut.io.fRawZero, false)
 
   var acceptDelay = 1
