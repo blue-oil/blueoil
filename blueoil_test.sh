@@ -89,6 +89,7 @@ echo ""
 echo "# Basic tests"
 
 function init_test(){
+    TEST_LOG_FILE=${TMP_TEST_DIR}/test_${TEST_LOG_NO}.log
     TEST_CASE=$1
     TASK_TYPE_NUMBER=$2
     NETWORK_NUMBER=$4
@@ -156,8 +157,8 @@ function init_test(){
         expect \"apply quantization at the first layer?:\"
         send \"\n\"
         expect \"Next step:\"
-    " > /dev/null
-    assert $? 0
+    " >> ${TEST_LOG_FILE} 2>&1
+    @ 0 ls config/${CONFIG_NAME}.yml
     # Wait for complete ${RUN_SCRIPT} init
     sleep 1
     mv config/${CONFIG_NAME}.yml ${TMP_TEST_DIR}/
@@ -168,15 +169,16 @@ function init_test(){
 function basic_test(){
     if [ ! -f "${YML_CONFIG_FILE}" ]; then
         echo "ERROR: No such file : ${YML_CONFIG_FILE}"
-        usage_exit
+        echo "ERROR: Skipping tests of ${YML_CONFIG_FILE}"
+        TEST_RESULT=1
+    else
+        @ 0 ${RUN_SCRIPT} train ${YML_CONFIG_FILE}
+
+        EXPERIMENT_DIR=$(ls -td ./saved/${CONFIG_NAME}* | head -1)
+        @ 0 ${RUN_SCRIPT} convert ${YML_CONFIG_FILE} ${EXPERIMENT_DIR}
+
+        @ 0 ${RUN_SCRIPT} predict ${YML_CONFIG_FILE} lmnet/tests/fixtures ${TMP_TEST_DIR} ${EXPERIMENT_DIR}
     fi
-
-    @ 0 ${RUN_SCRIPT} train ${YML_CONFIG_FILE}
-
-    EXPERIMENT_DIR=$(ls -td ./saved/${CONFIG_NAME}* | head -1)
-    @ 0 ${RUN_SCRIPT} convert ${YML_CONFIG_FILE} ${EXPERIMENT_DIR}
-
-    @ 0 ${RUN_SCRIPT} predict ${YML_CONFIG_FILE} lmnet/tests/fixtures ${TMP_TEST_DIR} ${EXPERIMENT_DIR}
 }
 
 function additional_test(){
@@ -275,4 +277,3 @@ else
     show_error_log
     clean_exit 1
 fi
-
