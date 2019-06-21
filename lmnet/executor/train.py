@@ -46,6 +46,9 @@ def setup_dataset(config, subset, rank):
 
 
 def start_training(config):
+    # Initialize Signal Handler At Start Training
+    signalhandler = SignalHandler()
+
     if config.IS_DISTRIBUTION:
         import horovod.tensorflow as hvd
         # initialize Horovod.
@@ -214,9 +217,6 @@ def start_training(config):
     else:
         max_steps = config.MAX_STEPS
     print("max_steps: {}".format(max_steps))
-
-    # Initialize Signal Handler At Start Training
-    signalhandler = SignalHandler()
 
     for step in range(last_step, max_steps):
         print("step", step)
