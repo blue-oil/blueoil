@@ -83,6 +83,9 @@ TARGETS_ARM  := lm_arm
 
 TARGETS_FPGA := lm_fpga
 
+TARGETS      := lm_x86 lm_aarch64 lm_arm lm_fpga
+
+
 LIBS_X86     := lib_x86
 
 LIBS_AARCH64 := lib_aarch64
@@ -112,14 +115,14 @@ HLS_INSTALL_DIR := $(shell which i++ | sed 's|/bin/i++||g')
 
 .PHONY: test
 test: $(TARGETS)
-	@$(foreach t,$(TARGETS),echo ./$(t); ./$(t); echo "";)
+	@$(foreach t,$(TARGETS),echo ./$(t).elf; ./$(t).elf; echo "";)
 
 .PHONY: all
 all: $(TARGETS)
 
 .PHONY: clean
 clean:
-	-$(RM) $(TARGETS) $(foreach t,$(RM_TARGETS_LIST),$(t).elf) transcript
+	-$(RM) $(foreach t,$(RM_TARGETS_LIST),$(t).elf) transcript
 	-$(RM) *.a
 	-$(RM) $(LIB_OBJ)
 	-$(RM) $(LIB_X86_OBJ)
