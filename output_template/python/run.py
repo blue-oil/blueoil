@@ -120,7 +120,7 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
     print('Output: (before post process)')
     print(output)
 
-    # pre process for output
+    # post process for output
     output = _post_process(output, config.POST_PROCESSOR)
 
     print('Output: ')
