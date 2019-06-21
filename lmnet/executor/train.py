@@ -215,6 +215,9 @@ def start_training(config):
         max_steps = config.MAX_STEPS
     print("max_steps: {}".format(max_steps))
 
+    # Initialize Signal Handler At Start Training
+    signalhandler = SignalHandler()
+
     for step in range(last_step, max_steps):
         print("step", step)
 
@@ -363,8 +366,6 @@ def start_training(config):
 
 
 def run(network, dataset, config_file, experiment_id, recreate):
-    global signalhandler
-    signalhandler = SignalHandler()
 
     environment.init(experiment_id)
 
