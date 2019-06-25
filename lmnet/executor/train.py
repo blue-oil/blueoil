@@ -19,6 +19,7 @@ import math
 import click
 import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
+from tensorflow.keras.utils import Progbar
 
 from lmnet.utils import executor, module_loader, config as config_util
 from lmnet import environment
@@ -32,7 +33,6 @@ def _save_checkpoint(saver, sess, global_step, step):
         os.path.join(environment.CHECKPOINTS_DIR, checkpoint_file),
         global_step=global_step,
     )
-    print("Save ckpt. step: {}.".format(step + 1))
 
 
 def setup_dataset(config, subset, rank):
@@ -211,10 +211,10 @@ def start_training(config):
         max_steps = int(train_dataset.num_per_epoch / config.BATCH_SIZE * config.MAX_EPOCHS)
     else:
         max_steps = config.MAX_STEPS
-    print("max_steps: {}".format(max_steps))
 
+    progbar = Progbar(max_steps)
     for step in range(last_step, max_steps):
-        print("step", step)
+        progbar.update(step)
 
         if config.IS_DISTRIBUTION:
             # scatter dataset
@@ -322,10 +322,8 @@ def start_training(config):
             # init metrics values
             sess.run(reset_metrics_op)
             test_step_size = int(math.ceil(validation_dataset.num_per_epoch / config.BATCH_SIZE))
-            print("test_step_size", test_step_size)
 
             for test_step in range(test_step_size):
-                print("test_step", test_step)
 
                 images, labels = validation_dataset.feed()
                 feed_dict = {
@@ -352,7 +350,7 @@ def start_training(config):
                 val_writer.add_summary(metrics_summary, step + 1)
 
     # training loop end.
-    print("reach max step")
+    print(" Done")
 
 
 def run(network, dataset, config_file, experiment_id, recreate):
