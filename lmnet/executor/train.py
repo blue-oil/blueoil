@@ -350,7 +350,7 @@ def start_training(config):
                 val_writer.add_summary(metrics_summary, step + 1)
 
     # training loop end.
-    print(" Done")
+    print("Done")
 
 
 def run(network, dataset, config_file, experiment_id, recreate):
