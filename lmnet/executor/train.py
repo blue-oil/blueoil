@@ -213,9 +213,8 @@ def start_training(config):
         max_steps = config.MAX_STEPS
 
     progbar = Progbar(max_steps)
+    progbar.update(last_step)
     for step in range(last_step, max_steps):
-        progbar.update(step)
-
         if config.IS_DISTRIBUTION:
             # scatter dataset
             if step % step_per_epoch == 0:
@@ -349,6 +348,7 @@ def start_training(config):
             if rank == 0:
                 val_writer.add_summary(metrics_summary, step + 1)
 
+        progbar.update(step + 1)
     # training loop end.
     print("Done")
 
