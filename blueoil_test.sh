@@ -138,7 +138,7 @@ function init_test(){
         send \"${DATASET_FORMAT_NUMBER}\n\"
         expect \"training dataset path:\"
         send \"${TRAINING_DATASET_PATH}\n\"
-        expect \"set validataion dataset?\"
+        expect \"set validation dataset?\"
         send \"${SET_VALIDATION_PATH}\n\"
         ${EXPECT_VALIDATION}
         expect \"batch size (integer):\"
@@ -151,10 +151,10 @@ function init_test(){
         send \"${OPTIMIZER_NUMBER}\n\"
         expect \"initial learning rate:\"
         send \"\n\"
-        expect \"choose learning rate setting(tune1 / tune2 / tune3 / fixed):\"
+        expect \"choose learning rate schedule ({epochs} is the number of training epochs you entered before)\"
         send \"\n\"
         ${QA_ENABLE_DATA_AUGMENTATION}
-        expect \"apply quantization at the first layer?:\"
+        expect \"apply quantization at the first layer?\"
         send \"\n\"
         expect \"Next step:\"
     " >> ${TEST_LOG_FILE} 2>&1
