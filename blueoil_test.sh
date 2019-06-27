@@ -126,7 +126,7 @@ function init_test(){
         "
     fi
     expect -c "
-        set timeout 5
+        set timeout 20
         spawn env LANG=C ${RUN_SCRIPT} init
         expect \"your model name ():\"
         send \"${CONFIG_NAME}\n\"
