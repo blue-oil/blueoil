@@ -70,26 +70,6 @@ class CodeGenerater(object):
                 else:
                     shutil.copy2(src_file_path, dest_file_path)
 
-    def generate_consts(self) -> None:
-        const_src_dir_path = path.join(self.src_dir, 'consts')
-        const_header_dir_path = path.join(self.header_dir, 'consts')
-        utils.make_dirs([const_src_dir_path, const_header_dir_path])
-
-        const_src_template_path = path.join('manual', 'input', 'const.tpl.cpp')
-        const_header_template_path = path.join('manual', 'input', 'const.tpl.h')
-
-        for const in self.graph.consts:
-
-            self.template.generate(const_src_template_path,
-                                   const_src_dir_path,
-                                   new_name=const.name,
-                                   const=const)
-
-            self.template.generate(const_header_template_path,
-                                   const_header_dir_path,
-                                   new_name=const.name,
-                                   const=const)
-
     def generate_inputs(self) -> None:
         input_src_dir_path = path.join(self.src_dir, 'inputs')
         input_header_dir_path = path.join(self.header_dir, 'inputs')
