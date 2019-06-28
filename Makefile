@@ -20,7 +20,7 @@ test: build
 	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh
 
 .PHONY: test-lmnet
-test-lmnet: test-lmnet-pep8 test-lmnet-main test-lmnet-dataset
+test-lmnet: test-lmnet-pep8 test-lmnet-main test-lmnet-check-dataset-storage
 
 .PHONY: test-lmnet-pep8
 test-lmnet-pep8: build
@@ -29,13 +29,13 @@ test-lmnet-pep8: build
 
 .PHONY: test-lmnet-main
 test-lmnet-main: build
-	# Run lmnet test with Python3.6 (only available on Jenkins)
-	docker run $(DOCKER_OPT) -v /storage/dataset:/storage/dataset -v lmnet_saved:/storage/lmnet/saved -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) -e DATA_DIR=/storage/dataset --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-pytest"
+	# Run lmnet test with Python3.6
+	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-pytest"
 
-.PHONY: test-lmnet-dataset
-test-lmnet-dataset: build
-	# Run lmnet dataset class test and check datasets with Python3.6 (only available on Jenkins)
-	docker run $(DOCKER_OPT) -v /storage/dataset:/storage/dataset -v lmnet_saved:/storage/lmnet/saved -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) -e DATA_DIR=/storage/dataset --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-check_dataset_storage"
+.PHONY: test-lmnet-check-dataset-storage
+test-lmnet-check-dataset-storage: build
+	# Check datasets storage with Python3.6 (only available on Jenkins)
+	docker run $(DOCKER_OPT) -v /storage/dataset:/storage/dataset -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) -e DATA_DIR=/storage/dataset --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-check_dataset_storage"
 
 .PHONY: test-dlk
 test-dlk: test-dlk-pep8 test-dlk-main
