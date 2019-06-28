@@ -82,7 +82,8 @@ DLK_OPERATOR_MAP: Dict[str, str] = {
     'FusedBatchNorm': 'BatchNormalization',
     'AvgPool': 'AveragePool',
     'BiasAdd': 'Add',
-    'ConcatV2': 'ConcatOnDepth'
+    'ConcatV2': 'ConcatOnDepth',
+    'GatherV2': 'Gather'
 }
 
 
