@@ -21,16 +21,25 @@ from lmnet.datasets.base import Base
 from lmnet import data_processor
 
 
-class TensorFlowDatasetsBase(Base):
+def _label_to_one_hot(record, depth):
+    return {
+        'image': record['image'],
+        'label': tf.one_hot(record['label'], depth)
+    }
+
+
+class TFDSBase(Base):
     """
     Abstract dataset class for loading TensorFlow Datasets.
-    The parameter "extend_dir" should be a path to the prepared data of tfds.
-    "extend_dir" can be a path either in local or in Google Cloud Storage.
     """
     available_subsets = ["train", "validation"]
+    extend_dir = None
 
     def __init__(
             self,
+            tfds_name,
+            tfds_data_dir,
+            tfds_download=False,
             *args,
             **kwargs
     ):
@@ -39,31 +48,39 @@ class TensorFlowDatasetsBase(Base):
             **kwargs,
         )
 
-        self.session = tf.Session()
-
-        # The last directory name of extend_dir is the dataset name
-        splitted_path = self.extend_dir.rstrip('/').split('/')
-        data_dir = '/'.join(splitted_path[:-1])
-        name = splitted_path[-1]
-        builder = tfds.builder(name, data_dir=data_dir)
+        builder = tfds.builder(tfds_name, data_dir=tfds_data_dir)
+        if tfds_download:
+            builder.download_and_prepare()
 
         self.info = builder.info
         self._init_available_splits()
         self._validate_feature_structure()
 
-        self.dataset = builder.as_dataset(split=self.available_splits[self.subset])
-        self._init_features()
-
-    def __getitem__(self, i, type=None):
-        return self.features[i]
-
-    def __len__(self):
-        return self.num_per_epoch
+        self.tf_dataset = builder.as_dataset(split=self.available_splits[self.subset])
+        self.tf_dataset = self.tf_dataset.map(
+            lambda record: _label_to_one_hot(record, self.num_classes),
+            num_parallel_calls=tf.data.experimental.AUTOTUNE
+        )
 
     @property
     def num_per_epoch(self):
         split = self.available_splits[self.subset]
         return self.info.splits[split].num_examples
+
+    @property
+    def classes(self):
+        return self.info.features["label"].names
+
+    @property
+    def num_classes(self):
+        return self.info.features["label"].num_classes
+
+    @property
+    def __getitem__(self, i):
+        raise NotImplementedError()
+
+    def __len__(self):
+        return self.num_per_epoch
 
     def _init_available_splits(self):
         """
@@ -97,28 +114,12 @@ class TensorFlowDatasetsBase(Base):
         """
         raise NotImplementedError()
 
-    def _init_features(self):
-        """
-        Initializing feature variables by using tf.Tensor from datasets.
-        For classification, self.features should be an array of tuple (image, label).
-        For object detection, self.features should be an array of tuple (images, gt_boxes).
-        """
-        raise NotImplementedError()
 
-
-class TensorFlowDatasetsClassification(TensorFlowDatasetsBase):
+class TFDSClassification(TFDSBase):
     """
     A dataset class for loading TensorFlow Datasets for classification.
     TensorFlow Datasets which have "label" and "image" features can be loaded by this class.
     """
-    @property
-    def classes(self):
-        return self.info.features["label"].names
-
-    @property
-    def num_classes(self):
-        return self.info.features["label"].num_classes
-
     def _validate_feature_structure(self):
         is_valid = \
             "label" in self.info.features and \
@@ -128,26 +129,3 @@ class TensorFlowDatasetsClassification(TensorFlowDatasetsBase):
 
         if not is_valid:
             raise ValueError("Datasets should have \"label\" and \"image\" features.")
-
-    def _init_features(self):
-        iterator = self.dataset.make_one_shot_iterator()
-        next_element = iterator.get_next()
-        self.features = []
-
-        with tf.Session() as sess:
-            for _ in range(self.num_per_epoch):
-                element = sess.run(next_element)
-                image = element["image"]
-                label = element["label"]
-
-                # Converting grayscale images into RGB images.
-                # This workaround is needed because the method PIL.Image.fromarray()
-                # in pre_prpcessor requires images array to have a shape of (h, w, 3).
-                if image.shape[2] == 1:
-                    image = np.stack([image] * 3, 3)
-                    image = image.reshape(image.shape[:2] + (3,))
-
-                label = data_processor.binarize(label, self.num_classes)
-                label = np.reshape(label, (self.num_classes))
-
-                self.features.append((image, label))
