@@ -646,7 +646,14 @@ def pass_lookup(graph: Graph) -> None:
         pe.add_outputs(quantizer.output_ops)
 
         output_op = quantizer.output_op_list[0]
-        output_op.add_input(output_op._input_names[0], pe)
+
+        target_input_name = 'X'
+        for input_name in output_op._input_names:
+            if quantizer.equals(output_op._input_ops[input_name]):
+                target_input_name = input_name
+                break
+
+        output_op.add_input(target_input_name, pe)
 
         graph.add_op(pe_lsb)
         graph.add_op(pe_msb)
