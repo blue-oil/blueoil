@@ -34,13 +34,13 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
   Measurement::Start("QuantizedConv2D");
 
   constexpr T_UINT TilingInTypeBitWidth = dlk::impl::tiling_input_elem_t::BitCount;
-  int kh = p.normal_conv_params.kernel_height;
-  int kw = p.normal_conv_params.kernel_width;
-  int padding = p.normal_conv_params.padding;
-  int ih = p.normal_conv_params.input_height;
-  int iw = p.normal_conv_params.input_width;
-  int ic = p.normal_conv_params.kernel_depth;
-  int oc = p.normal_conv_params.output_channels;
+  T_UINT kh = p.normal_conv_params.kernel_height;
+  T_UINT kw = p.normal_conv_params.kernel_width;
+  T_UINT padding = p.normal_conv_params.padding;
+  T_UINT ih = p.normal_conv_params.input_height;
+  T_UINT iw = p.normal_conv_params.input_width;
+  T_UINT ic = p.normal_conv_params.kernel_depth;
+  T_UINT oc = p.normal_conv_params.output_channels;
   auto size = oc * ih * iw;
   if (p.device_output_buf == nullptr)
     p.device_output_buf = new BIN_CONV_OUTPUT[size]();
