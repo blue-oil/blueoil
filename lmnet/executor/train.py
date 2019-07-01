@@ -15,12 +15,14 @@
 # =============================================================================
 import os
 import math
+import sys
 
 import click
 import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 
 from lmnet.utils import executor, module_loader, config as config_util
+from lmnet.utils.signal_handler import SignalHandler
 from lmnet import environment
 from lmnet.datasets.dataset_iterator import DatasetIterator
 
@@ -44,6 +46,9 @@ def setup_dataset(config, subset, rank):
 
 
 def start_training(config):
+    # Initialize Signal Handler At Start Training
+    signal_handler = SignalHandler()
+
     if config.IS_DISTRIBUTION:
         import horovod.tensorflow as hvd
         # initialize Horovod.
@@ -350,6 +355,11 @@ def start_training(config):
             )
             if rank == 0:
                 val_writer.add_summary(metrics_summary, step + 1)
+
+        # Save checkpoint when terminate signal recieved.
+        if signal_handler.receivedTermSignal:
+            _save_checkpoint(saver, sess, global_step, step)
+            sys.exit(0)
 
     # training loop end.
     print("reach max step")
