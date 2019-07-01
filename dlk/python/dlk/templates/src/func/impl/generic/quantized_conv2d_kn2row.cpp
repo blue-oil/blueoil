@@ -36,14 +36,14 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
                                   const binary_convolution_parameters &p) {
   using namespace dlk;
 
-  int ic = p.normal_conv_params.kernel_depth;
-  int ih = p.normal_conv_params.input_height;
-  int iw = p.normal_conv_params.input_width;
-  int oc = p.normal_conv_params.output_channels;
-  int oh = p.normal_conv_params.output_height;
-  int ow = p.normal_conv_params.output_width;
-  int kh = p.normal_conv_params.kernel_height;
-  int kw = p.normal_conv_params.kernel_width;
+  T_UINT ic = p.normal_conv_params.kernel_depth;
+  T_UINT ih = p.normal_conv_params.input_height;
+  T_UINT iw = p.normal_conv_params.input_width;
+  T_UINT oc = p.normal_conv_params.output_channels;
+  T_UINT oh = p.normal_conv_params.output_height;
+  T_UINT ow = p.normal_conv_params.output_width;
+  T_UINT kh = p.normal_conv_params.kernel_height;
+  T_UINT kw = p.normal_conv_params.kernel_width;
 
   assert(ih * iw == oh * ow);
   assert(MAX_SIZE_IM2COL_INPUTS_PER_LAYER >= ic * kh * kw * ih * iw);
