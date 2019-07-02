@@ -645,8 +645,16 @@ def pass_lookup(graph: Graph) -> None:
         placeholder[0].add_output('output', pe)
         pe.add_outputs(quantizer.output_ops)
 
-        conv = quantizer.output_op_list[0]
-        conv.add_input('X', pe)
+        output_op = quantizer.output_op_list[0]
+
+        target_input_name = 'X'
+        for input_name in output_op._input_names:
+            if quantizer.equals(output_op._input_ops[input_name]):
+                target_input_name = input_name
+                break
+
+        output_op.add_input(target_input_name, pe)
+
         graph.add_op(pe_lsb)
         graph.add_op(pe_msb)
         graph.add_op(pe)
