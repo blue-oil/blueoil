@@ -18,6 +18,8 @@ limitations under the License.
 
 #include <arm_neon.h>
 
+#include "time_measurement.h"
+
 namespace dlk {
 
 namespace impl {
@@ -26,6 +28,7 @@ void pack_16bit(const BIN_CONV_OUTPUT input[], QUANTIZED_PACKED output[], const 
   using base = QUANTIZED_PACKED::base_t;
   const auto bits = QUANTIZED_PACKED::BitCount;
   assert((length % bits) == 0);
+  Measurement::Start("pack bits");
   std::size_t i = 0, j = 0;
 #ifdef AARCH32
   constexpr std::size_t SIMD_WIDTH = 64; // hardcoded, not configurable
@@ -185,6 +188,7 @@ void pack_16bit(const BIN_CONV_OUTPUT input[], QUANTIZED_PACKED output[], const 
     msb = QUANTIZED_PACKED(0);
     j += 2;
   }
+  Measurement::Stop();
 }
 
 } // namespace impl
