@@ -99,14 +99,16 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   const T_UINT TileWidth = std::min(in_width, T_UINT(32)); // configurable
   constexpr T_UINT InChUnroll = InTypeBitWidth; // hardcoded, not configurable
   constexpr T_UINT OutChUnroll = 16; // hardcoded, not configurable
-  constexpr T_UINT OutChUnroll2 = 4; // hardcoded, not configurable
+  constexpr T_UINT OutChUnroll2 = 8; // hardcoded, not configurable
+  constexpr T_UINT OutChUnroll3 = 4; // hardcoded, not configurable
   constexpr T_UINT InBitChUnroll = 2; // hardcoded, not configurable
   const T_UINT th = omp_get_max_threads();
   const T_UINT out_channels_floor = out_channels - out_channels % (th * OutChUnroll);
+  const T_UINT out_channels_floor2 = out_channels - out_channels % (th * OutChUnroll2);
 
   for (unsigned int row_high = 0; row_high < in_height; row_high += TileHeight) {
     for (unsigned int col_high = 0; col_high < in_width; col_high += TileWidth) {
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for
       for (unsigned int out_ch_high = 0; out_ch_high < out_channels_floor; out_ch_high += OutChUnroll) {
         int16_t out_tile[TileHeight][TileWidth][OutChUnroll];
         for (unsigned int row = 0; row < TileHeight; ++row) {
@@ -230,8 +232,8 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
           }
         }
       }
-#pragma omp parallel for schedule(dynamic)
-      for (unsigned int out_ch_high = out_channels_floor; out_ch_high < out_channels; out_ch_high += OutChUnroll2) {
+#pragma omp parallel for
+      for (unsigned int out_ch_high = out_channels_floor; out_ch_high < out_channels_floor2; out_ch_high += OutChUnroll2) {
         int16_t out_tile[TileHeight][TileWidth][OutChUnroll2];
         for (unsigned int row = 0; row < TileHeight; ++row) {
           for (unsigned int col = 0; col < TileWidth; ++col) {
@@ -242,8 +244,103 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
         }
         for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
           QUANTIZED_PACKED_KERNEL notk[kh][kw][OutChUnroll2];
-          int16_t notsum[OutChUnroll2] = {};
+          int16_t notsum[OutChUnroll] = {};
           for (unsigned int out_ch = 0; out_ch < OutChUnroll2; ++out_ch) {
+            notsum[out_ch] = 0;
+            for (unsigned int kr = 0; kr < kh; ++kr) {
+              for (unsigned int kc = 0; kc < kw; ++kc) {
+                notk[kr][kc][out_ch] = kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
+                notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
+              }
+            }
+          }
+          for (unsigned int in_bit_ch_high = 0; in_bit_ch_high < in_bitwidth; in_bit_ch_high += InBitChUnroll) {
+            tiling_input_elem_t in_tile[TileHeight + kh - 1][TileWidth + kw - 1][InBitChUnroll];
+            for (unsigned int row = 0; row < TileHeight + kh - 1; ++row) {
+              if (row_high + row >= in_height + 2*padding) break;
+              for (unsigned int col = 0; col < TileWidth + kw - 1; ++col) {
+                if (col_high + col >= in_width + 2*padding) break;
+                for (unsigned int in_bit_ch = 0; in_bit_ch < InBitChUnroll; ++in_bit_ch) {
+                  if (row_high + row < padding || row_high + row >= in_height + padding
+                      || col_high + col < padding || col_high + col >= in_width + padding) {
+                    in_tile[row][col][in_bit_ch] = tiling_input_elem_t(0);
+                  } else {
+                    in_tile[row][col][in_bit_ch] = input(in_ch_high / InTypeBitWidth, row_high + row - padding,
+                        col_high + col - padding, in_bit_ch_high + in_bit_ch, 0);
+                  }
+                }
+              }
+            }
+            for (unsigned int row = 0; row < TileHeight; ++row) {
+              for (unsigned int col = 0; col < TileWidth; ++col) {
+                uint8x16_t xnorsum00 = vdupq_n_u8(0);
+                uint8x16_t xnorsum01 = vdupq_n_u8(0);
+                uint8x16_t xnorsum10 = vdupq_n_u8(0);
+                uint8x16_t xnorsum11 = vdupq_n_u8(0);
+                for (unsigned int kr = 0; kr < kh; ++kr) {
+                  for (unsigned int kc = 0; kc < kw; ++kc) {
+                    uint32x4_t nk0 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 0]));
+                    uint32x4_t nk1 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 4]));
+                    uint8x16_t nk08 = vreinterpretq_u8_u32(nk0);
+                    uint8x16_t nk18 = vreinterpretq_u8_u32(nk1);
+                    uint32x4_t in = vdupq_n_u32(in_tile[row + kr][col + kc][0].Raw());
+                    uint8x16_t in8 = vreinterpretq_u8_u32(in);
+                    xnorsum00 += vcntq_u8(in8 ^ nk08);
+                    xnorsum10 += vcntq_u8(in8 ^ nk18);
+                    in = vdupq_n_u32(in_tile[row + kr][col + kc][1].Raw());
+                    in8 = vreinterpretq_u8_u32(in);
+                    xnorsum01 += vcntq_u8(in8 ^ nk08);
+                    xnorsum11 += vcntq_u8(in8 ^ nk18);
+                  }
+                }
+                uint16x8_t psum000 = vpaddlq_u8(xnorsum00);
+                uint16x8_t psum010 = vpaddlq_u8(xnorsum10);
+                uint16x8_t psum001 = vpaddlq_u8(xnorsum01);
+                uint16x8_t psum011 = vpaddlq_u8(xnorsum11);
+                uint32x4_t psum100 = vpaddlq_u16(psum000);
+                uint32x4_t psum110 = vpaddlq_u16(psum010);
+                uint32x4_t psum101 = vpaddlq_u16(psum001);
+                uint32x4_t psum111 = vpaddlq_u16(psum011);
+                uint16x8_t usum010 = vcombine_u16(vmovn_u32(psum100), vmovn_u32(psum110));
+                uint16x8_t usum011 = vcombine_u16(vmovn_u32(psum101), vmovn_u32(psum111));
+                int16x8_t sum010 = vreinterpretq_s16_u16(usum010);
+                int16x8_t sum011 = vreinterpretq_s16_u16(usum011);
+                int16x8_t tmp0 = vld1q_s16(&out_tile[row][col][0]);
+                int16x8_t nsum0 = vld1q_s16(&notsum[0]);
+                tmp0 += vshlq_s16(sum010 - nsum0, vdupq_n_s16(in_bit_ch_high))
+                  + vshlq_s16(sum011 - nsum0, vdupq_n_s16(in_bit_ch_high + 1));
+                vst1q_s16(&out_tile[row][col][0], tmp0);
+              }
+            }
+          }
+        }
+        for (unsigned int row = 0; row < TileHeight; ++row) {
+          if (row_high + row >= out_height) break;
+          for (unsigned int col = 0; col < TileWidth; ++col) {
+            if (col_high + col >= out_width) break;
+            for (unsigned int out_ch = 0; out_ch < OutChUnroll2; ++out_ch) {
+              unsigned int index = (row_high + row) * out_width * out_channels
+                  + (col_high + col) * out_channels
+                  + (out_ch_high + out_ch);
+              p.device_output_buf[index] = out_tile[row][col][out_ch];
+            }
+          }
+        }
+      }
+#pragma omp parallel for
+      for (unsigned int out_ch_high = out_channels_floor2; out_ch_high < out_channels; out_ch_high += OutChUnroll3) {
+        int16_t out_tile[TileHeight][TileWidth][OutChUnroll3];
+        for (unsigned int row = 0; row < TileHeight; ++row) {
+          for (unsigned int col = 0; col < TileWidth; ++col) {
+            for (unsigned int out_ch = 0; out_ch < OutChUnroll3; ++out_ch) {
+              out_tile[row][col][out_ch] = 0;
+            }
+          }
+        }
+        for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
+          QUANTIZED_PACKED_KERNEL notk[kh][kw][OutChUnroll3];
+          int16_t notsum[OutChUnroll3] = {};
+          for (unsigned int out_ch = 0; out_ch < OutChUnroll3; ++out_ch) {
             if (out_ch_high + out_ch >= out_channels) break;
             notsum[out_ch] = 0;
             for (unsigned int kr = 0; kr < kh; ++kr) {
@@ -307,7 +404,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
           if (row_high + row >= out_height) break;
           for (unsigned int col = 0; col < TileWidth; ++col) {
             if (col_high + col >= out_width) break;
-            for (unsigned int out_ch = 0; out_ch < OutChUnroll2; ++out_ch) {
+            for (unsigned int out_ch = 0; out_ch < OutChUnroll3; ++out_ch) {
               if (out_ch_high + out_ch >= out_channels) break;
               unsigned int index = (row_high + row) * out_width * out_channels
                   + (col_high + col) * out_channels
