@@ -48,7 +48,7 @@ class YoloV2(BaseNetwork):
             nms_iou_threshold=0.5,
             nms_max_output_size=100,
             nms_per_class=True,
-            seen_threshold=12800,
+            loss_warmup_steps=100,
             is_dynamic_image_size=False,
             use_cross_entropy_loss=True,
             change_base_output=False,
@@ -70,7 +70,7 @@ class YoloV2(BaseNetwork):
             score_threshold: Exculde lower socre boxes than this threshold in post process.
             nms_iou_threshold: Non max suppression IOU threshold in post process.
             nms_max_output_size: Non max suppression's max output boxes number per class in post process.
-            seen_threshold: Threshold for encourage predictions to match anchor on training.
+            loss_warmup_steps: Step size for encourage predictions to match anchor on training.
             is_dynamic_image_size: Be able to dynamic change image size.
             use_cross_entropy_loss(bool): Use cross entropy loss instead of mean square error of class loss.
             change_base_output(bool): If it is ture, the output of network be activated with softmax and sigmoid.
@@ -123,7 +123,7 @@ class YoloV2(BaseNetwork):
             batch_size=self.batch_size,
             classes=self.classes,
             yolo=self,
-            seen_threshold=seen_threshold,
+            warmup_steps=loss_warmup_steps,
             use_cross_entropy_loss=use_cross_entropy_loss,
         )
 
@@ -644,7 +644,7 @@ class YoloV2(BaseNetwork):
 
         return results
 
-    def loss(self, output, gt_boxes, is_training):
+    def loss(self, output, gt_boxes, global_step):
         """Loss.
 
         Args:
@@ -659,7 +659,7 @@ class YoloV2(BaseNetwork):
             predict_boxes = self.convert_boxes_space_from_yolo_to_real(predict_boxes)
 
         gt_boxes = self.convert_gt_boxes_xywh_to_cxcywh(gt_boxes)
-        return self.loss_function(predict_classes, predict_confidence, predict_boxes, gt_boxes, is_training)
+        return self.loss_function(predict_classes, predict_confidence, predict_boxes, gt_boxes, global_step)
 
     def inference(self, images, is_training):
         tf.summary.histogram("images", images)
@@ -1023,7 +1023,7 @@ class YoloV2Loss:
             batch_size=64,
             classes=[],
             yolo=None,
-            seen_threshold=12800,
+            warmup_steps=100,
             use_cross_entropy_loss=True,
     ):
         self.is_debug = is_debug
@@ -1042,7 +1042,7 @@ class YoloV2Loss:
         self.num_classes = len(classes)
         # extra coordinate loss for early training steps to encourage predictions to match anchor priors.
         # https://github.com/pjreddie/darknet/blob/2f212a47425b2e1002c7c8a20e139fe0da7489b5/src/region_layer.c#L248
-        self.seen_threshold = seen_threshold
+        self.warmup_steps = warmup_steps
         self.seen = 0
 
         self.use_cross_entropy_loss = use_cross_entropy_loss
@@ -1194,12 +1194,12 @@ class YoloV2Loss:
         return iou
 
     def __calculate_truth_and_maskes(
-            self, gt_boxes_list, predict_boxes, num_cell, image_size, is_training,
+            self, gt_boxes_list, predict_boxes, num_cell, image_size, global_step,
             predict_classes=None, predict_confidence=None
     ):
         """Calculate truth and maskes for loss function from gt boxes and predict boxes.
 
-        1. When trained images is less than seen_threshold, set cell_gt_boxes and coordinate_maskes
+        1. When global steps is less than seen_threshold, set cell_gt_boxes and coordinate_maskes
         to manage coordinate loss for early training steps to encourage predictions to match anchor.
 
         2. About not dummy gt_boxes, calculate between gt boxes and anchor iou, and select best ahcnor.
@@ -1214,7 +1214,7 @@ class YoloV2Loss:
                 Shape is [batch_size, num_cell, num_cell, boxes_per_cell, 4(center_x, center_y, w, h)].
             num_cell: Number of cell. num_cell[0] is y axis, num_cell[1] is x axis.
             image_size: Image size(px). image_size[0] is height, image_size[1] is width.
-            is_training(np.ndarray): Boolean.
+            global_step(int): Number of current training step.
             predict_classes: Use only in debug. Shape is [batch_size, num_cell, num_cell, boxes_per_cell, num_classes]
             predict_confidence: Use only in debug. Shape is [batch_size, num_cell, num_cell, boxes_per_cell, 1]
 
@@ -1228,9 +1228,6 @@ class YoloV2Loss:
             coordinate_maskes: the cell anchor that has gt boxes is 1, none is 0.
                 Tensor [batch_size, num_cell, num_cell, box_per_cell, 1].
         """
-        if is_training:
-            self.seen += self.batch_size
-
         num_cell_y = num_cell[0]
         num_cell_x = num_cell[1]
 
@@ -1248,9 +1245,10 @@ class YoloV2Loss:
 
         # extra coordinate loss for early training steps to encourage predictions to match anchor.
         # https://github.com/pjreddie/darknet/blob/2f212a47425b2e1002c7c8a20e139fe0da7489b5/src/region_layer.c#L248
-        if self.seen < self.seen_threshold:
+        if global_step < self.warmup_steps:
             if self.is_debug:
-                print("current seen: {}. To calculate coordinate loss for early training step.".format(self.seen))
+                print("current seen: {}. warmup steps: {}. \
+                To calculate coordinate loss for early training step.".format(self.seen, self.warmup_steps))
 
             offset_x, offset_y, offset_w, offset_h = YoloV2.py_offset_boxes(num_cell_y, num_cell_x,
                                                                             self.batch_size, self.boxes_per_cell,
@@ -1349,7 +1347,7 @@ class YoloV2Loss:
 
         return cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes
 
-    def _calculate_truth_and_maskes(self, gt_boxes_list, predict_boxes, is_training,
+    def _calculate_truth_and_maskes(self, gt_boxes_list, predict_boxes, global_step,
                                     predict_classes=None, predict_confidence=None):
         """Calculate truth and maskes for loss function from gt boxes and predict boxes.
 
@@ -1358,7 +1356,7 @@ class YoloV2Loss:
                 [batch_size, max_num_boxes, 5(center_x, center_y, w, h, class_id)].
             predict_boxes: Predicted boxes.
                 Tensor shape is [batch_size, num_cell, num_cell, boxes_per_cell, 4(center_x, center_y, w, h)].
-            is_training: Boolean tensor.
+            global_step: Integer tensor.
             predict_classes: Use only in debug. Shape is [batch_size, num_cell, num_cell, boxes_per_cell, num_classes]
             predict_confidence: Use only in debug. Shape is [batch_size, num_cell, num_cell, boxes_per_cell, 1]
 
@@ -1375,14 +1373,14 @@ class YoloV2Loss:
         if self.is_debug:
             cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes = tf.py_func(
                 self.__calculate_truth_and_maskes,
-                [gt_boxes_list, predict_boxes, self.num_cell, self.image_size, is_training,
+                [gt_boxes_list, predict_boxes, self.num_cell, self.image_size, global_step,
                  predict_classes, predict_confidence],
                 [tf.float32, tf.float32, tf.int64, tf.int64]
             )
         else:
             cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes = tf.py_func(
                 self.__calculate_truth_and_maskes,
-                [gt_boxes_list, predict_boxes, self.num_cell, self.image_size, is_training],
+                [gt_boxes_list, predict_boxes, self.num_cell, self.image_size, global_step],
                 [tf.float32, tf.float32, tf.int64, tf.int64]
             )
 
@@ -1401,7 +1399,7 @@ class YoloV2Loss:
 
         return tf.add_n(losses) * self.weight_decay_rate
 
-    def __call__(self, predict_classes, predict_confidence, predict_boxes, gt_boxes, is_training):
+    def __call__(self, predict_classes, predict_confidence, predict_boxes, gt_boxes, global_step):
         """Loss function.
 
         Args:
@@ -1409,7 +1407,7 @@ class YoloV2Loss:
             predict_confidence: [batch_size, num_cell, num_cell, boxes_per_cell, 1]
             predict_boxes: [batch_size, num_cell, num_cell, boxes_per_cell, 4(center_x, center_y, w, h)]
             gt_boxes: ground truth boxes 3D tensor. [batch_size, max_num_boxes, 5(center_x, center_y, w, h, class_id)].
-            is_training: boolean tensor.
+            global_step: integer tensor.
 
         Returns:
             loss: loss value scalr tensor.
@@ -1449,7 +1447,7 @@ class YoloV2Loss:
             # object_mask: [batch_size, num_cell, num_cell, box_per_cell, 1]
             # coordinate_mask: [batch_size, num_cell, num_cell, box_per_cell, 1]
             cell_gt_boxes, truth_confidence, object_mask, coordinate_mask =\
-                self._calculate_truth_and_maskes(gt_boxes, predict_boxes, is_training,
+                self._calculate_truth_and_maskes(gt_boxes, predict_boxes, global_step,
                                                  predict_classes, predict_confidence)
 
             # for class loss
