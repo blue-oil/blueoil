@@ -115,7 +115,7 @@ def load(config_file):
     else:
         raise ValueError('Config file type is not supported.'
                          'Should be .py, .yaml or .yml. Received {}.'.format(file_extension))
-    config = loader(config_file)
+    config = loader(os.path.abspath(config_file))
 
     check_config(config)
 
