@@ -95,6 +95,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   assert(in_height * in_width == out_height * out_width);
   assert((in_channels % InTypeBitWidth) == 0);
 
+#ifdef AARCH32
   const T_UINT TileHeight = std::min(in_height, T_UINT(32)); // configurable
   const T_UINT TileWidth = std::min(in_width, T_UINT(32)); // configurable
   constexpr T_UINT InChUnroll = InTypeBitWidth; // hardcoded, not configurable
@@ -105,6 +106,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   const T_UINT col_tile_count = (in_width + TileWidth - 1) / TileWidth;
   const T_UINT out_tile_count = (out_channels + OutChUnroll - 1) / OutChUnroll;
   const T_UINT total_tile_count = row_tile_count * col_tile_count * out_tile_count;
+  Measurement::Start("Quantized Conv2D Tiling");
 #pragma omp parallel for
   for (T_UINT tile_index = 0; tile_index < total_tile_count; ++tile_index) {
     T_UINT out_ch_high = tile_index % out_tile_count * OutChUnroll;
@@ -232,6 +234,205 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       }
     }
   }
+#else
+  const T_UINT TileHeight = std::min(in_height, T_UINT(32)); // configurable
+  const T_UINT TileWidth = std::min(in_width, T_UINT(32)); // configurable
+  constexpr T_UINT InChUnroll = InTypeBitWidth; // hardcoded, not configurable
+  constexpr T_UINT OutChUnroll = 32; // hardcoded, not configurable
+  constexpr T_UINT InBitChUnroll = 2; // hardcoded, not configurable
+
+  const T_UINT row_tile_count = (in_height + TileHeight - 1) / TileHeight;
+  const T_UINT col_tile_count = (in_width + TileWidth - 1) / TileWidth;
+  const T_UINT out_tile_count = (out_channels + OutChUnroll - 1) / OutChUnroll;
+  const T_UINT total_tile_count = row_tile_count * col_tile_count * out_tile_count;
+  Measurement::Start("Quantized Conv2D Tiling");
+#pragma omp parallel for
+  for (T_UINT tile_index = 0; tile_index < total_tile_count; ++tile_index) {
+    T_UINT out_ch_high = tile_index % out_tile_count * OutChUnroll;
+    T_UINT col_high = (tile_index / out_tile_count) % col_tile_count * TileWidth;
+    T_UINT row_high = tile_index / (out_tile_count * col_tile_count) * TileHeight;
+    int16_t out_tile[TileHeight][TileWidth][OutChUnroll];
+    for (unsigned int row = 0; row < TileHeight; ++row) {
+      for (unsigned int col = 0; col < TileWidth; ++col) {
+        for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
+          out_tile[row][col][out_ch] = 0;
+        }
+      }
+    }
+    for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
+      QUANTIZED_PACKED_KERNEL notk[kh][kw][OutChUnroll];
+      int16_t notsum[OutChUnroll] = {};
+      for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
+        notsum[out_ch] = 0;
+        for (unsigned int kr = 0; kr < kh; ++kr) {
+          for (unsigned int kc = 0; kc < kw; ++kc) {
+            notk[kr][kc][out_ch] = kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
+            notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
+          }
+        }
+      }
+      for (unsigned int in_bit_ch_high = 0; in_bit_ch_high < in_bitwidth; in_bit_ch_high += InBitChUnroll) {
+        tiling_input_elem_t in_tile[TileHeight + kh - 1][TileWidth + kw - 1][InBitChUnroll];
+        for (unsigned int row = 0; row < TileHeight + kh - 1; ++row) {
+          if (row_high + row >= in_height + 2*padding) break;
+          for (unsigned int col = 0; col < TileWidth + kw - 1; ++col) {
+            if (col_high + col >= in_width + 2*padding) break;
+            for (unsigned int in_bit_ch = 0; in_bit_ch < InBitChUnroll; ++in_bit_ch) {
+              if (row_high + row < padding || row_high + row >= in_height + padding
+                  || col_high + col < padding || col_high + col >= in_width + padding) {
+                in_tile[row][col][in_bit_ch] = tiling_input_elem_t(0);
+              } else {
+                in_tile[row][col][in_bit_ch] = input(in_ch_high / InTypeBitWidth, row_high + row - padding,
+                    col_high + col - padding, in_bit_ch_high + in_bit_ch, 0);
+              }
+            }
+          }
+        }
+        for (unsigned int row = 0; row < TileHeight; ++row) {
+          for (unsigned int col = 0; col < TileWidth; ++col) {
+            uint8x16_t xnorsum00 = vdupq_n_u8(0);
+            uint8x16_t xnorsum01 = vdupq_n_u8(0);
+            uint8x16_t xnorsum10 = vdupq_n_u8(0);
+            uint8x16_t xnorsum11 = vdupq_n_u8(0);
+            uint8x16_t xnorsum20 = vdupq_n_u8(0);
+            uint8x16_t xnorsum21 = vdupq_n_u8(0);
+            uint8x16_t xnorsum30 = vdupq_n_u8(0);
+            uint8x16_t xnorsum31 = vdupq_n_u8(0);
+            uint8x16_t xnorsum40 = vdupq_n_u8(0);
+            uint8x16_t xnorsum41 = vdupq_n_u8(0);
+            uint8x16_t xnorsum50 = vdupq_n_u8(0);
+            uint8x16_t xnorsum51 = vdupq_n_u8(0);
+            uint8x16_t xnorsum60 = vdupq_n_u8(0);
+            uint8x16_t xnorsum61 = vdupq_n_u8(0);
+            uint8x16_t xnorsum70 = vdupq_n_u8(0);
+            uint8x16_t xnorsum71 = vdupq_n_u8(0);
+            for (unsigned int kr = 0; kr < kh; ++kr) {
+              for (unsigned int kc = 0; kc < kw; ++kc) {
+                uint32x4_t nk0 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 0]));
+                uint32x4_t nk1 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 4]));
+                uint32x4_t nk2 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 8]));
+                uint32x4_t nk3 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][12]));
+                uint32x4_t nk4 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][16]));
+                uint32x4_t nk5 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][20]));
+                uint32x4_t nk6 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][24]));
+                uint32x4_t nk7 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][28]));
+                uint8x16_t nk08 = vreinterpretq_u8_u32(nk0);
+                uint8x16_t nk18 = vreinterpretq_u8_u32(nk1);
+                uint8x16_t nk28 = vreinterpretq_u8_u32(nk2);
+                uint8x16_t nk38 = vreinterpretq_u8_u32(nk3);
+                uint8x16_t nk48 = vreinterpretq_u8_u32(nk4);
+                uint8x16_t nk58 = vreinterpretq_u8_u32(nk5);
+                uint8x16_t nk68 = vreinterpretq_u8_u32(nk6);
+                uint8x16_t nk78 = vreinterpretq_u8_u32(nk7);
+                uint32x4_t in = vdupq_n_u32(in_tile[row + kr][col + kc][0].Raw());
+                uint8x16_t in8 = vreinterpretq_u8_u32(in);
+                xnorsum00 += vcntq_u8(in8 ^ nk08);
+                xnorsum10 += vcntq_u8(in8 ^ nk18);
+                xnorsum20 += vcntq_u8(in8 ^ nk28);
+                xnorsum30 += vcntq_u8(in8 ^ nk38);
+                xnorsum40 += vcntq_u8(in8 ^ nk48);
+                xnorsum50 += vcntq_u8(in8 ^ nk58);
+                xnorsum60 += vcntq_u8(in8 ^ nk68);
+                xnorsum70 += vcntq_u8(in8 ^ nk78);
+                in = vdupq_n_u32(in_tile[row + kr][col + kc][1].Raw());
+                in8 = vreinterpretq_u8_u32(in);
+                xnorsum01 += vcntq_u8(in8 ^ nk08);
+                xnorsum11 += vcntq_u8(in8 ^ nk18);
+                xnorsum21 += vcntq_u8(in8 ^ nk28);
+                xnorsum31 += vcntq_u8(in8 ^ nk38);
+                xnorsum41 += vcntq_u8(in8 ^ nk48);
+                xnorsum51 += vcntq_u8(in8 ^ nk58);
+                xnorsum61 += vcntq_u8(in8 ^ nk68);
+                xnorsum71 += vcntq_u8(in8 ^ nk78);
+              }
+            }
+            uint16x8_t psum000 = vpaddlq_u8(xnorsum00);
+            uint16x8_t psum010 = vpaddlq_u8(xnorsum10);
+            uint16x8_t psum020 = vpaddlq_u8(xnorsum20);
+            uint16x8_t psum030 = vpaddlq_u8(xnorsum30);
+            uint16x8_t psum040 = vpaddlq_u8(xnorsum40);
+            uint16x8_t psum050 = vpaddlq_u8(xnorsum50);
+            uint16x8_t psum060 = vpaddlq_u8(xnorsum60);
+            uint16x8_t psum070 = vpaddlq_u8(xnorsum70);
+            uint16x8_t psum001 = vpaddlq_u8(xnorsum01);
+            uint16x8_t psum011 = vpaddlq_u8(xnorsum11);
+            uint16x8_t psum021 = vpaddlq_u8(xnorsum21);
+            uint16x8_t psum031 = vpaddlq_u8(xnorsum31);
+            uint16x8_t psum041 = vpaddlq_u8(xnorsum41);
+            uint16x8_t psum051 = vpaddlq_u8(xnorsum51);
+            uint16x8_t psum061 = vpaddlq_u8(xnorsum61);
+            uint16x8_t psum071 = vpaddlq_u8(xnorsum71);
+            uint32x4_t psum100 = vpaddlq_u16(psum000);
+            uint32x4_t psum110 = vpaddlq_u16(psum010);
+            uint32x4_t psum120 = vpaddlq_u16(psum020);
+            uint32x4_t psum130 = vpaddlq_u16(psum030);
+            uint32x4_t psum140 = vpaddlq_u16(psum040);
+            uint32x4_t psum150 = vpaddlq_u16(psum050);
+            uint32x4_t psum160 = vpaddlq_u16(psum060);
+            uint32x4_t psum170 = vpaddlq_u16(psum070);
+            uint32x4_t psum101 = vpaddlq_u16(psum001);
+            uint32x4_t psum111 = vpaddlq_u16(psum011);
+            uint32x4_t psum121 = vpaddlq_u16(psum021);
+            uint32x4_t psum131 = vpaddlq_u16(psum031);
+            uint32x4_t psum141 = vpaddlq_u16(psum041);
+            uint32x4_t psum151 = vpaddlq_u16(psum051);
+            uint32x4_t psum161 = vpaddlq_u16(psum061);
+            uint32x4_t psum171 = vpaddlq_u16(psum071);
+            uint16x8_t usum010 = vcombine_u16(vmovn_u32(psum100), vmovn_u32(psum110));
+            uint16x8_t usum230 = vcombine_u16(vmovn_u32(psum120), vmovn_u32(psum130));
+            uint16x8_t usum450 = vcombine_u16(vmovn_u32(psum140), vmovn_u32(psum150));
+            uint16x8_t usum670 = vcombine_u16(vmovn_u32(psum160), vmovn_u32(psum170));
+            uint16x8_t usum011 = vcombine_u16(vmovn_u32(psum101), vmovn_u32(psum111));
+            uint16x8_t usum231 = vcombine_u16(vmovn_u32(psum121), vmovn_u32(psum131));
+            uint16x8_t usum451 = vcombine_u16(vmovn_u32(psum141), vmovn_u32(psum151));
+            uint16x8_t usum671 = vcombine_u16(vmovn_u32(psum161), vmovn_u32(psum171));
+            int16x8_t sum010 = vreinterpretq_s16_u16(usum010);
+            int16x8_t sum230 = vreinterpretq_s16_u16(usum230);
+            int16x8_t sum450 = vreinterpretq_s16_u16(usum450);
+            int16x8_t sum670 = vreinterpretq_s16_u16(usum670);
+            int16x8_t sum011 = vreinterpretq_s16_u16(usum011);
+            int16x8_t sum231 = vreinterpretq_s16_u16(usum231);
+            int16x8_t sum451 = vreinterpretq_s16_u16(usum451);
+            int16x8_t sum671 = vreinterpretq_s16_u16(usum671);
+            int16x8_t tmp0 = vld1q_s16(&out_tile[row][col][ 0]);
+            int16x8_t tmp1 = vld1q_s16(&out_tile[row][col][ 8]);
+            int16x8_t tmp2 = vld1q_s16(&out_tile[row][col][16]);
+            int16x8_t tmp3 = vld1q_s16(&out_tile[row][col][24]);
+            int16x8_t nsum0 = vld1q_s16(&notsum[ 0]);
+            int16x8_t nsum1 = vld1q_s16(&notsum[ 8]);
+            int16x8_t nsum2 = vld1q_s16(&notsum[16]);
+            int16x8_t nsum3 = vld1q_s16(&notsum[24]);
+            tmp0 += vshlq_s16(sum010 - nsum0, vdupq_n_s16(in_bit_ch_high))
+              + vshlq_s16(sum011 - nsum0, vdupq_n_s16(in_bit_ch_high + 1));
+            tmp1 += vshlq_s16(sum230 - nsum1, vdupq_n_s16(in_bit_ch_high))
+              + vshlq_s16(sum231 - nsum1, vdupq_n_s16(in_bit_ch_high + 1));
+            tmp2 += vshlq_s16(sum450 - nsum2, vdupq_n_s16(in_bit_ch_high))
+              + vshlq_s16(sum451 - nsum2, vdupq_n_s16(in_bit_ch_high + 1));
+            tmp3 += vshlq_s16(sum670 - nsum3, vdupq_n_s16(in_bit_ch_high))
+              + vshlq_s16(sum671 - nsum3, vdupq_n_s16(in_bit_ch_high + 1));
+            vst1q_s16(&out_tile[row][col][ 0], tmp0);
+            vst1q_s16(&out_tile[row][col][ 8], tmp1);
+            vst1q_s16(&out_tile[row][col][16], tmp2);
+            vst1q_s16(&out_tile[row][col][24], tmp3);
+          }
+        }
+      }
+    }
+    for (unsigned int row = 0; row < TileHeight; ++row) {
+      if (row_high + row >= out_height) break;
+      for (unsigned int col = 0; col < TileWidth; ++col) {
+        if (col_high + col >= out_width) break;
+        for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
+          unsigned int index = (row_high + row) * out_width * out_channels
+              + (col_high + col) * out_channels
+              + (out_ch_high + out_ch);
+          p.device_output_buf[index] = out_tile[row][col][out_ch];
+        }
+      }
+    }
+  }
+#endif
+  Measurement::Stop();
 
   using namespace dlk;
   auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
