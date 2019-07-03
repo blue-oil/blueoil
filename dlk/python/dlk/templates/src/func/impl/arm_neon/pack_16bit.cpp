@@ -172,7 +172,7 @@ void pack_16bit(const BIN_CONV_OUTPUT input[], QUANTIZED_PACKED output[], const 
     uint32x4x2_t g;
     g.val[1] = vreinterpretq_u32_u8(vuzpq_u8(fm0123, fm4567).val[0]);
     g.val[0] = vreinterpretq_u32_u8(vuzpq_u8(fl0123, fl4567).val[0]);
-    vst2q_u32(output + j, g);
+    vst2q_u32(reinterpret_cast<uint32_t*>(output + j), g);
     j += 8;
   }
 #endif
