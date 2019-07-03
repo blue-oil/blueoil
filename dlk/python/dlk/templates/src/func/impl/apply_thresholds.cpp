@@ -27,8 +27,9 @@ void ApplyThresholds(
     const binary_convolution_parameters &p) {
   Measurement::Start("ApplyThresholds");
 
-  for (unsigned int i = 0; i < result.rows(); ++i) {
-    for (unsigned int j = 0; j < result.cols(); ++j) {
+#pragma omp parallel for
+  for (unsigned int j = 0; j < result.cols(); ++j) {
+    for (unsigned int i = 0; i < result.rows(); ++i) {
       BIN_CONV_OUTPUT d = *result.data(i, j);
       T_INT ts0 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i];
       T_INT ts1 = p.thresholds[NUM_OF_A2W1_THRESHOLD * i + 1];
