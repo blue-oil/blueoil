@@ -236,10 +236,11 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   }
 #else
   const T_UINT TileHeight = std::min(in_height, T_UINT(32)); // configurable
-  const T_UINT TileWidth = std::min(in_width, T_UINT(32)); // configurable
+  const T_UINT TileWidth = std::min(in_width + (in_width & 1), T_UINT(32)); // configurable
   constexpr T_UINT InChUnroll = InTypeBitWidth; // hardcoded, not configurable
-  constexpr T_UINT OutChUnroll = 32; // hardcoded, not configurable
+  constexpr T_UINT OutChUnroll = 16; // hardcoded, not configurable
   constexpr T_UINT InBitChUnroll = 2; // hardcoded, not configurable
+  constexpr T_UINT ColUnroll = 2; // hardcoded, not configurable
 
   const T_UINT row_tile_count = (in_height + TileHeight - 1) / TileHeight;
   const T_UINT col_tile_count = (in_width + TileWidth - 1) / TileWidth;
@@ -289,131 +290,127 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
           }
         }
         for (unsigned int row = 0; row < TileHeight; ++row) {
-          for (unsigned int col = 0; col < TileWidth; ++col) {
-            uint8x16_t xnorsum00 = vdupq_n_u8(0);
-            uint8x16_t xnorsum01 = vdupq_n_u8(0);
-            uint8x16_t xnorsum10 = vdupq_n_u8(0);
-            uint8x16_t xnorsum11 = vdupq_n_u8(0);
-            uint8x16_t xnorsum20 = vdupq_n_u8(0);
-            uint8x16_t xnorsum21 = vdupq_n_u8(0);
-            uint8x16_t xnorsum30 = vdupq_n_u8(0);
-            uint8x16_t xnorsum31 = vdupq_n_u8(0);
-            uint8x16_t xnorsum40 = vdupq_n_u8(0);
-            uint8x16_t xnorsum41 = vdupq_n_u8(0);
-            uint8x16_t xnorsum50 = vdupq_n_u8(0);
-            uint8x16_t xnorsum51 = vdupq_n_u8(0);
-            uint8x16_t xnorsum60 = vdupq_n_u8(0);
-            uint8x16_t xnorsum61 = vdupq_n_u8(0);
-            uint8x16_t xnorsum70 = vdupq_n_u8(0);
-            uint8x16_t xnorsum71 = vdupq_n_u8(0);
+          for (unsigned int col = 0; col < TileWidth; col += ColUnroll) {
+            uint8x16_t xnorsum000 = vdupq_n_u8(0);
+            uint8x16_t xnorsum001 = vdupq_n_u8(0);
+            uint8x16_t xnorsum010 = vdupq_n_u8(0);
+            uint8x16_t xnorsum011 = vdupq_n_u8(0);
+            uint8x16_t xnorsum020 = vdupq_n_u8(0);
+            uint8x16_t xnorsum021 = vdupq_n_u8(0);
+            uint8x16_t xnorsum030 = vdupq_n_u8(0);
+            uint8x16_t xnorsum031 = vdupq_n_u8(0);
+            uint8x16_t xnorsum100 = vdupq_n_u8(0);
+            uint8x16_t xnorsum101 = vdupq_n_u8(0);
+            uint8x16_t xnorsum110 = vdupq_n_u8(0);
+            uint8x16_t xnorsum111 = vdupq_n_u8(0);
+            uint8x16_t xnorsum120 = vdupq_n_u8(0);
+            uint8x16_t xnorsum121 = vdupq_n_u8(0);
+            uint8x16_t xnorsum130 = vdupq_n_u8(0);
+            uint8x16_t xnorsum131 = vdupq_n_u8(0);
             for (unsigned int kr = 0; kr < kh; ++kr) {
+              uint32x4_t inl0 = vdupq_n_u32(in_tile[row + kr][col][0].Raw());
+              uint32x4_t inh0 = vdupq_n_u32(in_tile[row + kr][col][1].Raw());
+              uint8x16_t inl08 = vreinterpretq_u8_u32(inl0);
+              uint8x16_t inh08 = vreinterpretq_u8_u32(inh0);
               for (unsigned int kc = 0; kc < kw; ++kc) {
                 uint32x4_t nk0 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 0]));
                 uint32x4_t nk1 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 4]));
                 uint32x4_t nk2 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 8]));
                 uint32x4_t nk3 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][12]));
-                uint32x4_t nk4 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][16]));
-                uint32x4_t nk5 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][20]));
-                uint32x4_t nk6 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][24]));
-                uint32x4_t nk7 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][28]));
                 uint8x16_t nk08 = vreinterpretq_u8_u32(nk0);
                 uint8x16_t nk18 = vreinterpretq_u8_u32(nk1);
                 uint8x16_t nk28 = vreinterpretq_u8_u32(nk2);
                 uint8x16_t nk38 = vreinterpretq_u8_u32(nk3);
-                uint8x16_t nk48 = vreinterpretq_u8_u32(nk4);
-                uint8x16_t nk58 = vreinterpretq_u8_u32(nk5);
-                uint8x16_t nk68 = vreinterpretq_u8_u32(nk6);
-                uint8x16_t nk78 = vreinterpretq_u8_u32(nk7);
-                uint32x4_t in = vdupq_n_u32(in_tile[row + kr][col + kc][0].Raw());
-                uint8x16_t in8 = vreinterpretq_u8_u32(in);
-                xnorsum00 += vcntq_u8(in8 ^ nk08);
-                xnorsum10 += vcntq_u8(in8 ^ nk18);
-                xnorsum20 += vcntq_u8(in8 ^ nk28);
-                xnorsum30 += vcntq_u8(in8 ^ nk38);
-                xnorsum40 += vcntq_u8(in8 ^ nk48);
-                xnorsum50 += vcntq_u8(in8 ^ nk58);
-                xnorsum60 += vcntq_u8(in8 ^ nk68);
-                xnorsum70 += vcntq_u8(in8 ^ nk78);
-                in = vdupq_n_u32(in_tile[row + kr][col + kc][1].Raw());
-                in8 = vreinterpretq_u8_u32(in);
-                xnorsum01 += vcntq_u8(in8 ^ nk08);
-                xnorsum11 += vcntq_u8(in8 ^ nk18);
-                xnorsum21 += vcntq_u8(in8 ^ nk28);
-                xnorsum31 += vcntq_u8(in8 ^ nk38);
-                xnorsum41 += vcntq_u8(in8 ^ nk48);
-                xnorsum51 += vcntq_u8(in8 ^ nk58);
-                xnorsum61 += vcntq_u8(in8 ^ nk68);
-                xnorsum71 += vcntq_u8(in8 ^ nk78);
+                uint32x4_t inl1 = vdupq_n_u32(in_tile[row + kr][col + kc + 1][0].Raw());
+                uint8x16_t inl18 = vreinterpretq_u8_u32(inl1);
+                xnorsum000 += vcntq_u8(inl08 ^ nk08);
+                xnorsum010 += vcntq_u8(inl08 ^ nk18);
+                xnorsum020 += vcntq_u8(inl08 ^ nk28);
+                xnorsum030 += vcntq_u8(inl08 ^ nk38);
+                xnorsum100 += vcntq_u8(inl18 ^ nk08);
+                xnorsum110 += vcntq_u8(inl18 ^ nk18);
+                xnorsum120 += vcntq_u8(inl18 ^ nk28);
+                xnorsum130 += vcntq_u8(inl18 ^ nk38);
+                inl08 = inl18;
+                uint32x4_t inh1 = vdupq_n_u32(in_tile[row + kr][col + kc + 1][1].Raw());
+                uint8x16_t inh18 = vreinterpretq_u8_u32(inh1);
+                xnorsum001 += vcntq_u8(inh08 ^ nk08);
+                xnorsum011 += vcntq_u8(inh08 ^ nk18);
+                xnorsum021 += vcntq_u8(inh08 ^ nk28);
+                xnorsum031 += vcntq_u8(inh08 ^ nk38);
+                xnorsum101 += vcntq_u8(inh18 ^ nk08);
+                xnorsum111 += vcntq_u8(inh18 ^ nk18);
+                xnorsum121 += vcntq_u8(inh18 ^ nk28);
+                xnorsum131 += vcntq_u8(inh18 ^ nk38);
+                inh08 = inh18;
               }
             }
-            uint16x8_t psum000 = vpaddlq_u8(xnorsum00);
-            uint16x8_t psum010 = vpaddlq_u8(xnorsum10);
-            uint16x8_t psum020 = vpaddlq_u8(xnorsum20);
-            uint16x8_t psum030 = vpaddlq_u8(xnorsum30);
-            uint16x8_t psum040 = vpaddlq_u8(xnorsum40);
-            uint16x8_t psum050 = vpaddlq_u8(xnorsum50);
-            uint16x8_t psum060 = vpaddlq_u8(xnorsum60);
-            uint16x8_t psum070 = vpaddlq_u8(xnorsum70);
-            uint16x8_t psum001 = vpaddlq_u8(xnorsum01);
-            uint16x8_t psum011 = vpaddlq_u8(xnorsum11);
-            uint16x8_t psum021 = vpaddlq_u8(xnorsum21);
-            uint16x8_t psum031 = vpaddlq_u8(xnorsum31);
-            uint16x8_t psum041 = vpaddlq_u8(xnorsum41);
-            uint16x8_t psum051 = vpaddlq_u8(xnorsum51);
-            uint16x8_t psum061 = vpaddlq_u8(xnorsum61);
-            uint16x8_t psum071 = vpaddlq_u8(xnorsum71);
-            uint32x4_t psum100 = vpaddlq_u16(psum000);
-            uint32x4_t psum110 = vpaddlq_u16(psum010);
-            uint32x4_t psum120 = vpaddlq_u16(psum020);
-            uint32x4_t psum130 = vpaddlq_u16(psum030);
-            uint32x4_t psum140 = vpaddlq_u16(psum040);
-            uint32x4_t psum150 = vpaddlq_u16(psum050);
-            uint32x4_t psum160 = vpaddlq_u16(psum060);
-            uint32x4_t psum170 = vpaddlq_u16(psum070);
-            uint32x4_t psum101 = vpaddlq_u16(psum001);
-            uint32x4_t psum111 = vpaddlq_u16(psum011);
-            uint32x4_t psum121 = vpaddlq_u16(psum021);
-            uint32x4_t psum131 = vpaddlq_u16(psum031);
-            uint32x4_t psum141 = vpaddlq_u16(psum041);
-            uint32x4_t psum151 = vpaddlq_u16(psum051);
-            uint32x4_t psum161 = vpaddlq_u16(psum061);
-            uint32x4_t psum171 = vpaddlq_u16(psum071);
-            uint16x8_t usum010 = vcombine_u16(vmovn_u32(psum100), vmovn_u32(psum110));
-            uint16x8_t usum230 = vcombine_u16(vmovn_u32(psum120), vmovn_u32(psum130));
-            uint16x8_t usum450 = vcombine_u16(vmovn_u32(psum140), vmovn_u32(psum150));
-            uint16x8_t usum670 = vcombine_u16(vmovn_u32(psum160), vmovn_u32(psum170));
-            uint16x8_t usum011 = vcombine_u16(vmovn_u32(psum101), vmovn_u32(psum111));
-            uint16x8_t usum231 = vcombine_u16(vmovn_u32(psum121), vmovn_u32(psum131));
-            uint16x8_t usum451 = vcombine_u16(vmovn_u32(psum141), vmovn_u32(psum151));
-            uint16x8_t usum671 = vcombine_u16(vmovn_u32(psum161), vmovn_u32(psum171));
-            int16x8_t sum010 = vreinterpretq_s16_u16(usum010);
-            int16x8_t sum230 = vreinterpretq_s16_u16(usum230);
-            int16x8_t sum450 = vreinterpretq_s16_u16(usum450);
-            int16x8_t sum670 = vreinterpretq_s16_u16(usum670);
-            int16x8_t sum011 = vreinterpretq_s16_u16(usum011);
-            int16x8_t sum231 = vreinterpretq_s16_u16(usum231);
-            int16x8_t sum451 = vreinterpretq_s16_u16(usum451);
-            int16x8_t sum671 = vreinterpretq_s16_u16(usum671);
-            int16x8_t tmp0 = vld1q_s16(&out_tile[row][col][ 0]);
-            int16x8_t tmp1 = vld1q_s16(&out_tile[row][col][ 8]);
-            int16x8_t tmp2 = vld1q_s16(&out_tile[row][col][16]);
-            int16x8_t tmp3 = vld1q_s16(&out_tile[row][col][24]);
+            uint16x8_t psum0000 = vpaddlq_u8(xnorsum000);
+            uint16x8_t psum0010 = vpaddlq_u8(xnorsum010);
+            uint16x8_t psum0020 = vpaddlq_u8(xnorsum020);
+            uint16x8_t psum0030 = vpaddlq_u8(xnorsum030);
+            uint16x8_t psum0001 = vpaddlq_u8(xnorsum001);
+            uint16x8_t psum0011 = vpaddlq_u8(xnorsum011);
+            uint16x8_t psum0021 = vpaddlq_u8(xnorsum021);
+            uint16x8_t psum0031 = vpaddlq_u8(xnorsum031);
+            uint16x8_t psum0100 = vpaddlq_u8(xnorsum100);
+            uint16x8_t psum0110 = vpaddlq_u8(xnorsum110);
+            uint16x8_t psum0120 = vpaddlq_u8(xnorsum120);
+            uint16x8_t psum0130 = vpaddlq_u8(xnorsum130);
+            uint16x8_t psum0101 = vpaddlq_u8(xnorsum101);
+            uint16x8_t psum0111 = vpaddlq_u8(xnorsum111);
+            uint16x8_t psum0121 = vpaddlq_u8(xnorsum121);
+            uint16x8_t psum0131 = vpaddlq_u8(xnorsum131);
+            uint16x8_t psum1000 = vreinterpretq_u16_u32(vpaddlq_u16(psum0000));
+            uint16x8_t psum1010 = vreinterpretq_u16_u32(vpaddlq_u16(psum0010));
+            uint16x8_t psum1020 = vreinterpretq_u16_u32(vpaddlq_u16(psum0020));
+            uint16x8_t psum1030 = vreinterpretq_u16_u32(vpaddlq_u16(psum0030));
+            uint16x8_t psum1001 = vreinterpretq_u16_u32(vpaddlq_u16(psum0001));
+            uint16x8_t psum1011 = vreinterpretq_u16_u32(vpaddlq_u16(psum0011));
+            uint16x8_t psum1021 = vreinterpretq_u16_u32(vpaddlq_u16(psum0021));
+            uint16x8_t psum1031 = vreinterpretq_u16_u32(vpaddlq_u16(psum0031));
+            uint16x8_t psum1100 = vreinterpretq_u16_u32(vpaddlq_u16(psum0100));
+            uint16x8_t psum1110 = vreinterpretq_u16_u32(vpaddlq_u16(psum0110));
+            uint16x8_t psum1120 = vreinterpretq_u16_u32(vpaddlq_u16(psum0120));
+            uint16x8_t psum1130 = vreinterpretq_u16_u32(vpaddlq_u16(psum0130));
+            uint16x8_t psum1101 = vreinterpretq_u16_u32(vpaddlq_u16(psum0101));
+            uint16x8_t psum1111 = vreinterpretq_u16_u32(vpaddlq_u16(psum0111));
+            uint16x8_t psum1121 = vreinterpretq_u16_u32(vpaddlq_u16(psum0121));
+            uint16x8_t psum1131 = vreinterpretq_u16_u32(vpaddlq_u16(psum0131));
+            uint16x8_t usum0010 = vuzpq_u16(psum1000, psum1010).val[0];
+            uint16x8_t usum0230 = vuzpq_u16(psum1020, psum1030).val[0];
+            uint16x8_t usum0011 = vuzpq_u16(psum1001, psum1011).val[0];
+            uint16x8_t usum0231 = vuzpq_u16(psum1021, psum1031).val[0];
+            uint16x8_t usum1010 = vuzpq_u16(psum1100, psum1110).val[0];
+            uint16x8_t usum1230 = vuzpq_u16(psum1120, psum1130).val[0];
+            uint16x8_t usum1011 = vuzpq_u16(psum1101, psum1111).val[0];
+            uint16x8_t usum1231 = vuzpq_u16(psum1121, psum1131).val[0];
+            int16x8_t sum0010 = vreinterpretq_s16_u16(usum0010);
+            int16x8_t sum0230 = vreinterpretq_s16_u16(usum0230);
+            int16x8_t sum0011 = vreinterpretq_s16_u16(usum0011);
+            int16x8_t sum0231 = vreinterpretq_s16_u16(usum0231);
+            int16x8_t sum1010 = vreinterpretq_s16_u16(usum1010);
+            int16x8_t sum1230 = vreinterpretq_s16_u16(usum1230);
+            int16x8_t sum1011 = vreinterpretq_s16_u16(usum1011);
+            int16x8_t sum1231 = vreinterpretq_s16_u16(usum1231);
+            int16x8_t tmp00 = vld1q_s16(&out_tile[row][col + 0][ 0]);
+            int16x8_t tmp01 = vld1q_s16(&out_tile[row][col + 0][ 8]);
+            int16x8_t tmp10 = vld1q_s16(&out_tile[row][col + 1][ 0]);
+            int16x8_t tmp11 = vld1q_s16(&out_tile[row][col + 1][ 8]);
             int16x8_t nsum0 = vld1q_s16(&notsum[ 0]);
             int16x8_t nsum1 = vld1q_s16(&notsum[ 8]);
-            int16x8_t nsum2 = vld1q_s16(&notsum[16]);
-            int16x8_t nsum3 = vld1q_s16(&notsum[24]);
-            tmp0 += vshlq_s16(sum010 - nsum0, vdupq_n_s16(in_bit_ch_high))
-              + vshlq_s16(sum011 - nsum0, vdupq_n_s16(in_bit_ch_high + 1));
-            tmp1 += vshlq_s16(sum230 - nsum1, vdupq_n_s16(in_bit_ch_high))
-              + vshlq_s16(sum231 - nsum1, vdupq_n_s16(in_bit_ch_high + 1));
-            tmp2 += vshlq_s16(sum450 - nsum2, vdupq_n_s16(in_bit_ch_high))
-              + vshlq_s16(sum451 - nsum2, vdupq_n_s16(in_bit_ch_high + 1));
-            tmp3 += vshlq_s16(sum670 - nsum3, vdupq_n_s16(in_bit_ch_high))
-              + vshlq_s16(sum671 - nsum3, vdupq_n_s16(in_bit_ch_high + 1));
-            vst1q_s16(&out_tile[row][col][ 0], tmp0);
-            vst1q_s16(&out_tile[row][col][ 8], tmp1);
-            vst1q_s16(&out_tile[row][col][16], tmp2);
-            vst1q_s16(&out_tile[row][col][24], tmp3);
+            tmp00 += vshlq_s16(sum0010 - nsum0, vdupq_n_s16(in_bit_ch_high))
+              + vshlq_s16(sum0011 - nsum0, vdupq_n_s16(in_bit_ch_high + 1));
+            tmp01 += vshlq_s16(sum0230 - nsum1, vdupq_n_s16(in_bit_ch_high))
+              + vshlq_s16(sum0231 - nsum1, vdupq_n_s16(in_bit_ch_high + 1));
+            tmp10 += vshlq_s16(sum1010 - nsum0, vdupq_n_s16(in_bit_ch_high))
+              + vshlq_s16(sum1011 - nsum0, vdupq_n_s16(in_bit_ch_high + 1));
+            tmp11 += vshlq_s16(sum1230 - nsum1, vdupq_n_s16(in_bit_ch_high))
+              + vshlq_s16(sum1231 - nsum1, vdupq_n_s16(in_bit_ch_high + 1));
+            vst1q_s16(&out_tile[row][col + 0][ 0], tmp00);
+            vst1q_s16(&out_tile[row][col + 0][ 8], tmp01);
+            vst1q_s16(&out_tile[row][col + 1][ 0], tmp10);
+            vst1q_s16(&out_tile[row][col + 1][ 8], tmp11);
           }
         }
       }
