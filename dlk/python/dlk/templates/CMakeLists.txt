@@ -32,7 +32,6 @@ file(GLOB SRC_LIB_ALL "src/inputs/*.cpp")
 list(APPEND SRC_LIB_ALL
     src/func/average_pool.cpp
     src/func/conv2d.cpp
-    src/func/impl/apply_thresholds.cpp
     src/func/max_pool.cpp
     src/func/pad.cpp
     src/func/matmul.cpp
@@ -67,12 +66,14 @@ elseif(USE_NEON)
     list(APPEND SRC_LIB_ALL src/func/impl/generic/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pop_count.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pack_16bit.cpp)
+    list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/apply_thresholds.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arm_neon/quantized_multiplication.cpp)
 else()
     list(APPEND SRC_LIB_ALL src/func/generic/batch_normalization.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/generic/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/generic/pop_count.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/generic/pack_16bit.cpp)
+    list(APPEND SRC_LIB_ALL src/func/impl/generic/apply_thresholds.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/generic/quantized_multiplication.cpp)
 endif()
 

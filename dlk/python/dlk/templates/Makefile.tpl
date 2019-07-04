@@ -17,7 +17,6 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
 {%- endif %}
     $(SRC_DIR)/func/average_pool.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
-    $(SRC_DIR)/func/impl/apply_thresholds.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
     $(SRC_DIR)/func/pad.cpp \
     $(SRC_DIR)/func/matmul.cpp \
@@ -41,6 +40,7 @@ LIB_ARM_SRC := $(wildcard $(SRC_DIR)/*.S) \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp \
     $(SRC_DIR)/func/impl/arm_neon/pack_16bit.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/apply_thresholds.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
 LIB_ARM_OBJ := $(patsubst %.S, %.o, $(LIB_ARM_SRC))
 LIB_ARM_OBJ := $(patsubst %.cpp, %.o, $(LIB_ARM_OBJ))
@@ -58,6 +58,7 @@ LIB_AARCH64_SRC := \
     $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp \
     $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/apply_thresholds.cpp \
     $(SRC_DIR)/func/impl/arm_neon/pack_16bit.cpp
 LIB_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_SRC))
 LIB_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_OBJ))
@@ -67,6 +68,7 @@ LIB_X86_SRC := \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/matrix/generic/quantized_multiplication.cpp \
     $(SRC_DIR)/func/impl/generic/pop_count.cpp \
+    $(SRC_DIR)/func/impl/generic/apply_thresholds.cpp \
     $(SRC_DIR)/func/impl/generic/pack_16bit.cpp
 LIB_X86_OBJ := $(patsubst %.cpp, %.o, $(LIB_X86_SRC))
 
