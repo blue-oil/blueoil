@@ -274,7 +274,7 @@ def test_calculate_truth_and_maskes():
         image_size=[128, 256],
         batch_size=2,
         num_max_boxes=5,
-        seen_threshold=0,
+        loss_warmup_steps=0,
     )
 
     gt_boxes_list = [
@@ -681,7 +681,7 @@ def test_reorg():
         image_size=[128, 256],
         batch_size=2,
         num_max_boxes=5,
-        seen_threshold=0,
+        loss_warmup_steps=0,
     )
 
     outputs = model._reorg("reorg", inputs, stride=2, data_format="NHWC", use_space_to_depth=False)
