@@ -600,7 +600,7 @@ def test_calculate_truth_and_maskes():
     # TODO(wakisaka): prepare numpy predict_boxes.
     predict_boxes = tf.convert_to_tensor(expected_cell_gt_boxes, dtype=tf.float32)
     cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes =\
-        model.loss_function._calculate_truth_and_maskes(gt_boxes_list, predict_boxes, is_training=False)
+        model.loss_function._calculate_truth_and_maskes(gt_boxes_list, predict_boxes, global_step=0)
 
     tf.InteractiveSession()
     cell_gt_boxes_val = cell_gt_boxes.eval()
