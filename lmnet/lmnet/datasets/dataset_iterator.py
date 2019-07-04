@@ -19,6 +19,8 @@ import threading
 import numpy as np
 import os
 import queue
+import tensorflow as tf
+from lmnet.datasets.tfds import TFDSBase
 from lmnet.datasets.base import SegmentationBase, ObjectDetectionBase
 
 
@@ -197,6 +199,31 @@ class _SimpleDatasetReader:
         return _concat_data(result)
 
 
+class _TFDSReader:
+
+    def __init__(self, dataset):
+        tf_dataset = dataset.tf_dataset.shuffle(1024) \
+                                       .repeat() \
+                                       .batch(dataset.batch_size) \
+                                       .prefetch(tf.data.experimental.AUTOTUNE)
+
+        iterator = tf.data.make_initializable_iterator(tf_dataset)
+
+        self.dataset = dataset
+        self.session = tf.Session()
+        self.session.run(iterator.initializer)
+        self.next_batch = iterator.get_next()
+
+    def read(self):
+        """Return batch size data."""
+        result = []
+        batch = self.session.run(self.next_batch)
+        for image, label in zip(batch['image'], batch['label']):
+            image, label = _apply_augmentations(self.dataset, image, label)
+            result.append((image, label))
+        return _concat_data(result)
+
+
 class DatasetIterator:
 
     available_subsets = ["train", "train_validation_saving", "validation"]
@@ -207,14 +234,18 @@ class DatasetIterator:
         self.enable_prefetch = enable_prefetch
         self.seed = seed
 
-        if self.enable_prefetch:
-            self.prefetch_result_queue = queue.Queue(maxsize=200)
-            self.prefetcher = _MultiProcessDatasetPrefetchThread(self.dataset, self.prefetch_result_queue, seed)
-            self.prefetcher.start()
-            print("ENABLE prefetch")
+        if issubclass(dataset.__class__, TFDSBase):
+            self.enable_prefetch = False
+            self.reader = _TFDSReader(self.dataset)
         else:
-            self.reader = _SimpleDatasetReader(self.dataset, seed)
-            print("DISABLE prefetch")
+            if self.enable_prefetch:
+                self.prefetch_result_queue = queue.Queue(maxsize=200)
+                self.prefetcher = _MultiProcessDatasetPrefetchThread(self.dataset, self.prefetch_result_queue, seed)
+                self.prefetcher.start()
+                print("ENABLE prefetch")
+            else:
+                self.reader = _SimpleDatasetReader(self.dataset, seed)
+                print("DISABLE prefetch")
 
     @property
     def num_per_epoch(self):
