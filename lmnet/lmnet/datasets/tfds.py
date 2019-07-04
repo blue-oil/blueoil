@@ -29,6 +29,8 @@ def _label_to_one_hot(record, depth):
 class TFDSBase(Base):
     """
     Abstract dataset class for loading TensorFlow Datasets.
+    Only images which has 3 channels (RGB) can be loaded for now.
+    TODO(fujiwara): Convert grayscale images into RGB images.
     """
     available_subsets = ["train", "validation"]
     extend_dir = None
