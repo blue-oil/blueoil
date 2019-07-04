@@ -22,7 +22,6 @@ import queue
 import tensorflow as tf
 from lmnet.datasets.tfds import TFDSBase
 from lmnet.datasets.base import SegmentationBase, ObjectDetectionBase
-from lmnet import data_processor
 
 
 _dataset = None
