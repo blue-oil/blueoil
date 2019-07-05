@@ -127,7 +127,11 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
         notsum[out_ch] = 0;
         for (unsigned int kr = 0; kr < kh; ++kr) {
           for (unsigned int kc = 0; kc < kw; ++kc) {
-            notk[kr][kc][out_ch] = kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
+            const auto index = (out_ch_high + out_ch) * kh * kw * (in_channels / InTypeBitWidth)
+              + kr * kw * (in_channels / InTypeBitWidth)
+              + kc * (in_channels / InTypeBitWidth)
+              + in_ch_high / InTypeBitWidth;
+            notk[kr][kc][out_ch] = kernel.data()[index];
             notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
           }
         }
@@ -143,8 +147,11 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                   || col_high + col < padding || col_high + col >= in_width + padding) {
                 in_tile[row][col][in_bit_ch] = tiling_input_elem_t(0);
               } else {
-                in_tile[row][col][in_bit_ch] = input(in_ch_high / InTypeBitWidth, row_high + row - padding,
-                    col_high + col - padding, in_bit_ch_high + in_bit_ch, 0);
+                const auto index = (in_ch_high / InTypeBitWidth) * in_height * in_width * in_bitwidth
+                  + (row_high + row - padding) * in_width * in_bitwidth
+                  + (col_high + col - padding) * in_bitwidth
+                  + (in_bit_ch_high + in_bit_ch);
+                in_tile[row][col][in_bit_ch] = input.data()[index];
               }
             }
           }
@@ -267,7 +274,11 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
         notsum[out_ch] = 0;
         for (unsigned int kr = 0; kr < kh; ++kr) {
           for (unsigned int kc = 0; kc < kw; ++kc) {
-            notk[kr][kc][out_ch] = kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
+            const auto index = (out_ch_high + out_ch) * kh * kw * (in_channels / InTypeBitWidth)
+              + kr * kw * (in_channels / InTypeBitWidth)
+              + kc * (in_channels / InTypeBitWidth)
+              + in_ch_high / InTypeBitWidth;
+            notk[kr][kc][out_ch] = kernel.data()[index];
             notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
           }
         }
@@ -283,8 +294,11 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                   || col_high + col < padding || col_high + col >= in_width + padding) {
                 in_tile[row][col][in_bit_ch] = tiling_input_elem_t(0);
               } else {
-                in_tile[row][col][in_bit_ch] = input(in_ch_high / InTypeBitWidth, row_high + row - padding,
-                    col_high + col - padding, in_bit_ch_high + in_bit_ch, 0);
+                const auto index = (in_ch_high / InTypeBitWidth) * in_height * in_width * in_bitwidth
+                  + (row_high + row - padding) * in_width * in_bitwidth
+                  + (col_high + col - padding) * in_bitwidth
+                  + (in_bit_ch_high + in_bit_ch);
+                in_tile[row][col][in_bit_ch] = input.data()[index];
               }
             }
           }
@@ -452,7 +466,9 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       b
     };
     TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl> out((QUANTIZED_PACKED*)p.device_output_buf, out_shape);
+    Measurement::Start("Output tensor convert");
     convert_tensor(buf_tensor, out);
+    Measurement::Stop();
   } else {
     const std::size_t b = 32;
     const auto buf = std::make_unique<BIN_CONV_OUTPUT[]>(out_size);
@@ -465,7 +481,9 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       (out_channels + b - 1) / b, out_height, out_width, b
     };
     TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl> out(p.device_output_buf, out_shape);
+    Measurement::Start("Output tensor convert");
     convert_tensor(buf_tensor, out);
+    Measurement::Stop();
   }
 }
 

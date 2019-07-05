@@ -31,10 +31,12 @@ void func_ExtractImagePatches(
   Measurement::Start("ExtractImagePatches");
 
   const auto in_shape = input.get_shape();
+  const T_UINT input_width = in_shape[2];
   const T_UINT input_depth = in_shape[3];
   const auto out_shape = output.get_shape();
   const T_UINT out_height = out_shape[1];
   const T_UINT out_width = out_shape[2];
+  const T_UINT out_depth = out_shape[3];
 
   for(T_UINT kz = 0; kz < input_depth; ++kz)
     for(T_UINT wi = 0; wi < out_height; wi++)
@@ -44,9 +46,15 @@ void func_ExtractImagePatches(
           {
             T_INT row = (wi * stride) + ki;
             T_INT col = (wj * stride) + kj;
-              const auto ch = kz + (ki * kernel_size + kj) * input_depth;
-              output(0, wi, wj, ch)
-                = input(0, row, col, kz);
+            const auto ch = kz + (ki * kernel_size + kj) * input_depth;
+            const auto out_idx = wi * out_width * out_depth
+              + wj * out_depth
+              + ch;
+            const auto in_idx = row * input_width * input_depth
+              + col * input_depth
+              + kz;
+            output.data()[out_idx]
+                = input.data()[in_idx];
           }
 
   Measurement::Stop();
@@ -84,7 +92,14 @@ inline void func_ExtractImagePatches(
             T_UINT ch_high = ch / QUANTIZED_PACKED::BitCount;
             T_UINT ch_low = ch % QUANTIZED_PACKED::BitCount;
             for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
-              output(wi, wj, ch_high, digit, 0) |= QUANTIZED_PACKED((mask & input(row, col, 0, digit, 0).Raw()) << ch_low);
+              const auto out_idx = wi * out_width * out_depth * bits_per_input
+                + wj * out_depth * bits_per_input
+                + ch_high * bits_per_input
+                + digit;
+              const auto in_idx = row * input_width * input_depth * bits_per_input
+                + col * input_depth * bits_per_input
+                + digit;
+              output.data()[out_idx] |= QUANTIZED_PACKED((mask & input.data()[in_idx].Raw()) << ch_low);
             }
           }
   } else {
@@ -98,8 +113,16 @@ inline void func_ExtractImagePatches(
               T_INT col = (wj * stride) + kj;
               for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
                 const auto ch_high = ih + (ki * kernel_size + kj) * input_depth;
-                output(wi, wj, ch_high, digit, 0)
-                  = input(row, col, ih, digit, 0);
+                const auto out_idx = wi * out_width * out_depth * bits_per_input
+                  + wj * out_depth * bits_per_input
+                  + ch_high * bits_per_input
+                  + digit;
+                const auto in_idx = row * input_width * input_depth * bits_per_input
+                  + col * input_depth * bits_per_input
+                  + ih * bits_per_input
+                  + digit;
+                output.data()[out_idx]
+                  = input.data()[in_idx];
               }
             }
   }
@@ -114,6 +137,7 @@ inline void func_ExtractImagePatches(
 {
   Measurement::Start("ExtractImagePatches");
   const auto in_shape = input.get_shape();
+  const T_UINT input_height = in_shape[1];
   const T_UINT input_width = in_shape[2];
   const T_UINT input_depth = in_shape[0];
   const T_UINT bits_per_input = in_shape[3];
@@ -139,7 +163,14 @@ inline void func_ExtractImagePatches(
             T_UINT ch_high = ch / QUANTIZED_PACKED::BitCount;
             T_UINT ch_low = ch % QUANTIZED_PACKED::BitCount;
             for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
-              output(ch_high, wi, wj, digit, 0) |= QUANTIZED_PACKED((mask & input(0, row, col, digit, 0).Raw()) << ch_low);
+              const auto out_idx = ch_high * out_height * out_width * bits_per_input
+                + wi * out_width * bits_per_input
+                + wj * bits_per_input
+                + digit;
+              const auto in_idx = row * input_width * bits_per_input
+                + col * bits_per_input
+                + digit;
+              output.data()[out_idx] |= QUANTIZED_PACKED((mask & input.data()[in_idx].Raw()) << ch_low);
             }
           }
   } else {
@@ -153,8 +184,16 @@ inline void func_ExtractImagePatches(
               T_INT col = (wj * stride) + kj;
               for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
                 const auto ch_high = ih + (ki * kernel_size + kj) * input_depth;
-                output(ch_high, wi, wj, digit, 0)
-                  = input(ih, row, col, digit, 0);
+                const auto out_idx = ch_high * out_height * out_width * bits_per_input
+                  + wi * out_width * bits_per_input
+                  + wj * bits_per_input
+                  + digit;
+                const auto in_idx = ih * input_height * input_width * bits_per_input
+                  + row * input_width * bits_per_input
+                  + col * bits_per_input
+                  + digit;
+                output.data()[out_idx]
+                  = input.data()[in_idx];
               }
             }
   }
