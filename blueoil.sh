@@ -126,7 +126,7 @@ function set_variables_from_config(){
 	elif [ "${DATASET_DIR}" != "${DATASET_ABS_DIR}" ] && [ "${VALIDATION_DATASET_DIR}" != "${VALIDATION_DATASET_ABS_DIR}" ]; then
 		GUEST_DATA_DIR=$(get_abs_path .)
 	else
-		error_exit 1 "Training and validataion dataset are different type of path (one is Abusolute, another is Relative)"
+		error_exit 1 "Training and validation dataset are different type of path (one is Abusolute, another is Relative)"
 	fi
 }
 
