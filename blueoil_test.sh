@@ -5,7 +5,17 @@ BASE_DIR=$(dirname $0)
 RUN_SCRIPT=${BASE_DIR}/blueoil.sh
 TEST_RESULT=0
 TEST_CONFIG_PREFIX=created_by_test_script
-YML_CONFIG_FILE=$1
+ADDITIONAL_TEST_FLAG="true"
+if [ "$1" == "--task" ]; then
+    TASK_TYPES=$2
+    if [ "$3" != "--additional_test" ]; then
+        ADDITIONAL_TEST_FLAG="false"
+    fi
+
+else
+    YML_CONFIG_FILE=$1
+    TASK_TYPES="classification object_detection semantic_segmentation"
+fi
 TIME_STAMP=$(date +%Y%m%d%H%M%S)
 TMP_TEST_DIR=./tmp/tests/${TIME_STAMP}
 if [ ! -d ${TMP_TEST_DIR} ]; then
@@ -22,6 +32,9 @@ function usage_exit(){
 	echo ""
 	echo "Usage"
 	echo "${NAME} <YML_CONFIG_FILE(optional)>"
+	echo "${NAME} --task classification <--additional_test(option)>"
+	echo "${NAME} --task object_detection <--additional_test(option)>"
+	echo "${NAME} --task semantic_segmentation <--additional_test(option)>"
 	exit 1
 }
 
@@ -61,6 +74,17 @@ function get_dataset_format_by_task(){
             echo "openimagesv4 delta_mark";;
         "semantic_segmentation" )
             echo "camvid_custom";;
+    esac
+}
+
+function get_task_type_number(){
+    case "$1" in
+        "classification" )
+            echo "1";;
+        "object_detection" )
+            echo "2";;
+        "semantic_segmentation" )
+            echo "3";;
     esac
 }
 
@@ -232,11 +256,14 @@ function additional_test(){
 trap 'show_error_log; clean_exit 1' 1 2 3 15
 
 if [ "${YML_CONFIG_FILE}" == "" ]; then
-    ADDITIONAL_TEST_FLAG=0
-    TASK_TYPE_NUMBER=1
     ENABLE_DATA_AUGMENTATION="y"
-    for TASK_TYPE in "classification" "object_detection" "semantic_segmentation"
+    for TASK_TYPE in ${TASK_TYPES}
     do
+        TASK_TYPE_NUMBER=$(get_task_type_number ${TASK_TYPE})
+        if [ "${TASK_TYPE_NUMBER}" == "" ]; then
+            echo "ERROR: Unsupported Task Type."
+            usage_exit
+        fi
         DATASET_FORMAT_NUMBER=1
         for DATASET_FORMAT in $(get_dataset_format_by_task ${TASK_TYPE})
         do
@@ -247,15 +274,14 @@ if [ "${YML_CONFIG_FILE}" == "" ]; then
                 OPTIMIZER_NUMBER=$(($((${TASK_TYPE_NUMBER} % ${#OPTIMIZSERS[@]}))+1))
                 init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${ENABLE_DATA_AUGMENTATION} ${OPTIMIZER_NUMBER} ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH}
                 basic_test
-                if [ ${ADDITIONAL_TEST_FLAG} -eq 0 ]; then
+                if [ ${ADDITIONAL_TEST_FLAG} == "true" ]; then
                     # Run additional test only once
                     additional_test
-                    ADDITIONAL_TEST_FLAG=1
+                    ADDITIONAL_TEST_FLAG="false"
                 fi
             done
             DATASET_FORMAT_NUMBER=$((DATASET_FORMAT_NUMBER+1))
         done
-        TASK_TYPE_NUMBER=$((TASK_TYPE_NUMBER+1))
     done
 else
     CONFIG_NAME=$(echo $(basename ${YML_CONFIG_FILE}) | sed 's/\..*$//')
