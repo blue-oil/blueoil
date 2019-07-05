@@ -89,6 +89,7 @@ echo ""
 echo "# Basic tests"
 
 function init_test(){
+    TEST_LOG_FILE=${TMP_TEST_DIR}/test_${TEST_LOG_NO}.log
     TEST_CASE=$1
     TASK_TYPE_NUMBER=$2
     NETWORK_NUMBER=$4
@@ -125,7 +126,7 @@ function init_test(){
         "
     fi
     expect -c "
-        set timeout 5
+        set timeout 20
         spawn env LANG=C ${RUN_SCRIPT} init
         expect \"your model name ():\"
         send \"${CONFIG_NAME}\n\"
@@ -137,7 +138,7 @@ function init_test(){
         send \"${DATASET_FORMAT_NUMBER}\n\"
         expect \"training dataset path:\"
         send \"${TRAINING_DATASET_PATH}\n\"
-        expect \"set validataion dataset?\"
+        expect \"set validation dataset?\"
         send \"${SET_VALIDATION_PATH}\n\"
         ${EXPECT_VALIDATION}
         expect \"batch size (integer):\"
@@ -150,14 +151,14 @@ function init_test(){
         send \"${OPTIMIZER_NUMBER}\n\"
         expect \"initial learning rate:\"
         send \"\n\"
-        expect \"choose learning rate setting(tune1 / tune2 / tune3 / fixed):\"
+        expect \"choose learning rate schedule ({epochs} is the number of training epochs you entered before)\"
         send \"\n\"
         ${QA_ENABLE_DATA_AUGMENTATION}
-        expect \"apply quantization at the first layer?:\"
+        expect \"apply quantization at the first layer?\"
         send \"\n\"
         expect \"Next step:\"
-    " > /dev/null
-    assert $? 0
+    " >> ${TEST_LOG_FILE} 2>&1
+    @ 0 ls config/${CONFIG_NAME}.yml
     # Wait for complete ${RUN_SCRIPT} init
     sleep 1
     mv config/${CONFIG_NAME}.yml ${TMP_TEST_DIR}/
@@ -168,15 +169,16 @@ function init_test(){
 function basic_test(){
     if [ ! -f "${YML_CONFIG_FILE}" ]; then
         echo "ERROR: No such file : ${YML_CONFIG_FILE}"
-        usage_exit
+        echo "ERROR: Skipping tests of ${YML_CONFIG_FILE}"
+        TEST_RESULT=1
+    else
+        @ 0 ${RUN_SCRIPT} train ${YML_CONFIG_FILE}
+
+        EXPERIMENT_DIR=$(ls -td ./saved/${CONFIG_NAME}* | head -1)
+        @ 0 ${RUN_SCRIPT} convert ${YML_CONFIG_FILE} ${EXPERIMENT_DIR}
+
+        @ 0 ${RUN_SCRIPT} predict ${YML_CONFIG_FILE} lmnet/tests/fixtures ${TMP_TEST_DIR} ${EXPERIMENT_DIR}
     fi
-
-    @ 0 ${RUN_SCRIPT} train ${YML_CONFIG_FILE}
-
-    EXPERIMENT_DIR=$(ls -td ./saved/${CONFIG_NAME}* | head -1)
-    @ 0 ${RUN_SCRIPT} convert ${YML_CONFIG_FILE} ${EXPERIMENT_DIR}
-
-    @ 0 ${RUN_SCRIPT} predict ${YML_CONFIG_FILE} lmnet/tests/fixtures ${TMP_TEST_DIR} ${EXPERIMENT_DIR}
 }
 
 function additional_test(){
@@ -275,4 +277,3 @@ else
     show_error_log
     clean_exit 1
 fi
-
