@@ -19,7 +19,11 @@ namespace dlk {
 
 namespace impl {
 
+#ifndef RUN_ON_FPGA
+
 void pack_16bit(const BIN_CONV_OUTPUT input[], QUANTIZED_PACKED output[], const std::size_t length);
+
+#endif
 
 } // namespace impl
 
