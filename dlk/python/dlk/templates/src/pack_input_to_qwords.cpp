@@ -30,7 +30,7 @@ int pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_w
   int current_word = 0;
 
   auto len = input_height * input_width * input_depth;
-#ifdef USE_NEON
+#ifdef AARCH32
   if (input_depth % 32 == 0) {
       pack2bits(input, output, (int)len);
       Measurement::Stop();
