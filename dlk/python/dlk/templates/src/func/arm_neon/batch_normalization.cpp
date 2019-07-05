@@ -75,6 +75,7 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
 
     T_UINT d = 0;
     for (; d + 3 < out_depth; d += 4) {
+#ifdef AARCH32
       asm volatile("vldmia %0, {d16,d17}    \t\n" // q8(d16,d17) scale
                    "vldmia %1, {d18,d19}    \t\n" // q9(d18,d19) shift
                    "vldmia %2, {d20,d21}    \t\n" // q10(d20,d21) input
@@ -83,6 +84,12 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
                    :
                    : "r"(&scale[d]), "r"(&shift[d]), "r"(in_temp), "r"(out_temp)
                    : "memory", "q8", "q9", "q10");
+#else
+      const auto scale_v = vld1q_f32(scale + d);
+      const auto shift_v = vld1q_f32(shift + d);
+      const auto in_v = vld1q_f32(in_temp);
+      vst1q_f32(out_temp, vmlaq_f32(shift_v, in_v, scale_v));
+#endif
       in_temp += 4;
       out_temp += 4;
     }
