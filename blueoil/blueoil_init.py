@@ -252,7 +252,7 @@ def ask_questions():
     enable_test_dataset_path_question = {
         'type': 'rawlist',
         'name': 'value',
-        'message': 'set validataion dataset? \
+        'message': 'set validation dataset? \
 (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)',
         'choices': ['yes', 'no']
     }
@@ -261,7 +261,7 @@ def ask_questions():
     test_dataset_path_question = {
         'type': 'input',
         'name': 'value',
-        'message': 'validataion dataset path:',
+        'message': 'validation dataset path:',
     }
     if enable_test_dataset_path == 'yes':
         test_path = prompt(test_dataset_path_question)
