@@ -48,7 +48,7 @@ class YoloV2(BaseNetwork):
             nms_iou_threshold=0.5,
             nms_max_output_size=100,
             nms_per_class=True,
-            loss_warmup_steps=100,
+            loss_warmup_steps=200,
             is_dynamic_image_size=False,
             use_cross_entropy_loss=True,
             change_base_output=False,
@@ -1199,7 +1199,7 @@ class YoloV2Loss:
     ):
         """Calculate truth and maskes for loss function from gt boxes and predict boxes.
 
-        1. When global steps is less than seen_threshold, set cell_gt_boxes and coordinate_maskes
+        1. When global steps is less than warmup_steps, set cell_gt_boxes and coordinate_maskes
         to manage coordinate loss for early training steps to encourage predictions to match anchor.
 
         2. About not dummy gt_boxes, calculate between gt boxes and anchor iou, and select best ahcnor.
@@ -1247,8 +1247,8 @@ class YoloV2Loss:
         # https://github.com/pjreddie/darknet/blob/2f212a47425b2e1002c7c8a20e139fe0da7489b5/src/region_layer.c#L248
         if global_step < self.warmup_steps:
             if self.is_debug:
-                print("current seen: {}. warmup steps: {}. \
-                To calculate coordinate loss for early training step.".format(self.seen, self.warmup_steps))
+                print("current step: {}. warmup steps: {}. \
+                To calculate coordinate loss for early training step.".format(global_step, self.warmup_steps))
 
             offset_x, offset_y, offset_w, offset_h = YoloV2.py_offset_boxes(num_cell_y, num_cell_x,
                                                                             self.batch_size, self.boxes_per_cell,
