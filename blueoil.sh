@@ -87,7 +87,8 @@ USER_ID=$(id -u)
 GROUP_ID=$(id -g)
 # Shared docker options
 PYTHONPATHS="-e PYTHONPATH=/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk"
-SHARED_DOCKER_OPTIONS="--rm -t -u ${USER_ID}:${GROUP_ID} ${PYTHONPATHS}"
+DOCKER_TTY_OPTION=$(tty > /dev/null 2>&1 && echo "-it" || echo "-t")
+SHARED_DOCKER_OPTIONS="--rm ${DOCKER_TTY_OPTION} -u ${USER_ID}:${GROUP_ID} ${PYTHONPATHS}"
 
 function blueoil_init(){
 	CONFIG_DIR=${ABS_BASE_DIR}/config
@@ -125,7 +126,7 @@ function set_variables_from_config(){
 	elif [ "${DATASET_DIR}" != "${DATASET_ABS_DIR}" ] && [ "${VALIDATION_DATASET_DIR}" != "${VALIDATION_DATASET_ABS_DIR}" ]; then
 		GUEST_DATA_DIR=$(get_abs_path .)
 	else
-		error_exit 1 "Training and validataion dataset are different type of path (one is Abusolute, another is Relative)"
+		error_exit 1 "Training and validation dataset are different type of path (one is Abusolute, another is Relative)"
 	fi
 }
 

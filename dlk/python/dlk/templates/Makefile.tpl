@@ -17,8 +17,6 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
 {%- endif %}
     $(SRC_DIR)/func/average_pool.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
-    $(SRC_DIR)/func/impl/apply_thresholds.cpp \
-    $(SRC_DIR)/func/impl/pack_16bit.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
     $(SRC_DIR)/func/pad.cpp \
     $(SRC_DIR)/func/matmul.cpp \
@@ -41,6 +39,8 @@ LIB_ARM_SRC := $(wildcard $(SRC_DIR)/*.S) \
     $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/pack_16bit.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/apply_thresholds.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
 LIB_ARM_OBJ := $(patsubst %.S, %.o, $(LIB_ARM_SRC))
 LIB_ARM_OBJ := $(patsubst %.cpp, %.o, $(LIB_ARM_OBJ))
@@ -54,10 +54,12 @@ LIB_FPGA_OBJ := $(patsubst %.S, %.o, $(LIB_FPGA_SRC))
 LIB_FPGA_OBJ := $(patsubst %.cpp, %.o, $(LIB_FPGA_OBJ))
 
 LIB_AARCH64_SRC := \
-    $(SRC_DIR)/func/generic/batch_normalization.cpp \
-    $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
+    $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp \
-    $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp
+    $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/apply_thresholds.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/pack_16bit.cpp
 LIB_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_SRC))
 LIB_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_OBJ))
 
@@ -65,7 +67,9 @@ LIB_X86_SRC := \
     $(SRC_DIR)/func/generic/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
     $(SRC_DIR)/matrix/generic/quantized_multiplication.cpp \
-    $(SRC_DIR)/func/impl/generic/pop_count.cpp
+    $(SRC_DIR)/func/impl/generic/pop_count.cpp \
+    $(SRC_DIR)/func/impl/generic/apply_thresholds.cpp \
+    $(SRC_DIR)/func/impl/generic/pack_16bit.cpp
 LIB_X86_OBJ := $(patsubst %.cpp, %.o, $(LIB_X86_SRC))
 
 LIB_OBJ := $(patsubst %.cpp, %.o, $(LIB_SRC))
@@ -133,15 +137,15 @@ lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -DUSE_PNG -pthread -g
 lm_x86:           CXXFLAGS +=
 
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
-lm_aarch64:       FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_PNG -pthread -g -fopenmp
+lm_aarch64:       FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -pthread -g -fopenmp
 lm_aarch64:       CXXFLAGS +=
 
 lm_arm:           CXX = arm-linux-gnueabihf-g++
-lm_arm:           FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_arm:           FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
 lm_arm:           CXXFLAGS +=
 
 lm_fpga:          CXX = arm-linux-gnueabihf-g++
-lm_fpga:          FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -mcpu=cortex-a9 -mfpu=neon -mthumb -pthread -g -fopenmp -DFUNC_TIME_MEASUREMENT
+lm_fpga:          FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -pthread -g -fopenmp -DFUNC_TIME_MEASUREMENT
 lm_fpga:          CXXFLAGS +=
 
 lib_x86:           CXX = g++
@@ -149,15 +153,15 @@ lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden
 lib_x86:           CXXFLAGS +=
 
 lib_aarch64:       CXX = aarch64-linux-gnu-g++
-lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -pthread -g
+lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_NEON -pthread -g
 lib_aarch64:       CXXFLAGS +=
 
 lib_arm:           CXX = arm-linux-gnueabihf-g++
-lib_arm:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
+lib_arm:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
 lib_arm:           CXXFLAGS +=
 
 lib_fpga:          CXX = arm-linux-gnueabihf-g++
-lib_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -DRUN_ON_FPGA -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
+lib_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -DRUN_ON_FPGA -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
 lib_fpga:          CXXFLAGS +=
 
 ar_x86:           AR = ar
@@ -168,19 +172,19 @@ ar_x86:           NAME = x86
 
 ar_aarch64:       AR = aarch64-linux-gnu-ar
 ar_aarch64:       CXX = aarch64-linux-gnu-g++
-ar_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -pthread -g
+ar_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_NEON -pthread -g
 ar_aarch64:       LDFLAGS += -rcs
 ar_aarch64:       NAME = aarch64
 
 ar_arm:           AR = arm-linux-gnueabihf-ar
 ar_arm:           CXX = arm-linux-gnueabihf-g++
-ar_arm:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
+ar_arm:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
 ar_arm:           LDFLAGS += -rcs
 ar_arm:           NAME = arm
 
 ar_fpga:          AR = arm-linux-gnueabihf-ar
 ar_fpga:          CXX = arm-linux-gnueabihf-g++
-ar_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -DRUN_ON_FPGA -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
+ar_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -DRUN_ON_FPGA -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
 ar_fpga:          LDFLAGS += -rcs
 ar_fpga:          NAME = fpga
 
