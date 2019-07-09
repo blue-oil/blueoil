@@ -15,21 +15,21 @@ build: deps
 	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
 
 .PHONY: test
-test: build test-classification test-object_detection test-semantic_segmentation
+test: build test-classification test-object-detection test-semantic-segmentation
 
 .PHONY: test-classification
 test-classification: build
 	# Run Blueoil test of classification
 	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task classification
 
-.PHONY: test-object_detection
-test-object_detection: build
-	# Run Blueoil test of object_detection
+.PHONY: test-object-detection
+test-object-detection: build
+	# Run Blueoil test of object-detection
 	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task object_detection
 
-.PHONY: test-semantic_segmentation
-test-semantic_segmentation: build
-	# Run Blueoil test of semantic_segmentation
+.PHONY: test-semantic-segmentation
+test-semantic-segmentation: build
+	# Run Blueoil test of semantic-segmentation
 	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task semantic_segmentation --additional_test
 
 .PHONY: test-lmnet
