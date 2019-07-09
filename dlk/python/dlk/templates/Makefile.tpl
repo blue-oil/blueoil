@@ -77,7 +77,7 @@ LIB_X86_AVX_SRC := \
     $(SRC_DIR)/func/impl/x86_avx/quantized_conv2d_tiling.cpp \
     $(SRC_DIR)/matrix/generic/quantized_multiplication.cpp \
     $(SRC_DIR)/func/impl/generic/pop_count.cpp \
-    $(SRC_DIR)/func/impl/generic/apply_thresholds.cpp \
+    $(SRC_DIR)/func/impl/x86_avx/apply_thresholds.cpp \
     $(SRC_DIR)/func/impl/generic/pack_16bit.cpp
 LIB_X86_AVX_OBJ := $(patsubst %.cpp, %.o, $(LIB_X86_AVX_SRC))
 
