@@ -42,7 +42,7 @@ static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.n
 const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }}(
     reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
     {{ node.name }}_shape);
-#elif defined USE_NEON
+#elif defined USE_NEON || defined USE_AVX
 static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {% for d in node.data.flatten() -%}
   {{- d -}},
