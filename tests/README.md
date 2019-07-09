@@ -13,20 +13,17 @@ The triggers to run tests are below.
 * Comment in PR
     * Run all tests
         * Comment `run test`
-    * Run the specified test individually (Jenkins)
+    * Run the specified test individually
         * blueoil test : `run blueoil test`
         * lmnet test : `run lmnet test`
         * dlk test : `run dlk test`
-    * Run the specified test individually (Buildkite)
-        * blueoil/lmnet test: `run gpu test`
-        * dlk test : `run fpga test`
 * Add label in PR (Only available for Buildkite)
     * Run all tests
-        * Add `CI: force-run`
+        * Add `CI: test-all`
     * Run the specified test individually
-        * blueoil/lmnet test: Add `CI: force-run-gpu`
-        * dlk test : Add `CI: force-run-fpga`
-
+        * blueoil test : Add `CI: test-blueoil`
+        * lmnet test : Add `CI: test-lmnet`
+        * dlk test : Add `CI: test-dlk`
 
 ## Test Jobs
 All `make` tasks should be made in repository root dir.
