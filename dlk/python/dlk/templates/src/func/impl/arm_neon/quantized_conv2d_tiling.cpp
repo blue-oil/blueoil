@@ -450,9 +450,8 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       p.device_output_buf, out_channels, in_height * in_width);
 
   if (p.thresholds != nullptr) {
-    ApplyThresholds(output_, p);
     const auto buf = std::make_unique<QUANTIZED_PACKED[]>(out_size * p.n_bit / CHAR_BIT);
-    pack_16bit(p.device_output_buf, buf.get(), out_size);
+    ApplyThresholdsAndPack(output_, p, buf.get());
     const std::size_t b = 32;
     TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>::tensor_info_t<std::size_t> buf_shape = {
       out_height, out_width, (out_channels + b - 1) / b, p.n_bit, b
