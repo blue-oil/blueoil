@@ -117,7 +117,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   );
   const auto vone = _mm256_set1_epi8(0x01);
   const auto vone_16 = _mm256_set1_epi16(0x0001);
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
   for (T_UINT tile_index = 0; tile_index < total_tile_count; ++tile_index) {
     T_UINT out_ch_high = tile_index % out_tile_count * OutChUnroll;
     T_UINT col_high = (tile_index / out_tile_count) % col_tile_count * TileWidth;
