@@ -7,16 +7,16 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-  - command: "make test-object_detection"
-    label: "object_detection"
+  - command: "make test-object-detection"
+    label: "object-detection"
     agents:
     - "agent-type=gpu"
     - "env=production"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-  - command: "make test-semantic_segmentation"
-    label: "semantic_segmentation"
+  - command: "make test-semantic-segmentation"
+    label: "semantic-segmentation"
     agents:
     - "agent-type=gpu"
     - "env=production"
