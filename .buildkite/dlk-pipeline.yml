@@ -3,7 +3,7 @@
     agents:
     - "agent-type=fpga"
     - "env=production"
-    timeout_in_minutes: "30"
+    timeout_in_minutes: "40"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: "make test-dlk-pep8"
