@@ -33,6 +33,9 @@ namespace dlk {
 
 namespace impl {
 
+static auto buf_th = std::make_unique<QUANTIZED_PACKED[]>(MAX_SIZE_QOUTPUTS_PER_LAYER);
+static auto buf_non_th = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_SIZE_OUTPUTS_PER_LAYER);
+
 void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
     const tiling_input_t& output) {
   Measurement::Start("Pack_input_for_tiling");
@@ -96,11 +99,15 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   assert((in_channels % InTypeBitWidth) == 0);
 
 #ifdef AARCH32
-  const T_UINT TileHeight = std::min(in_height, T_UINT(32)); // configurable
-  const T_UINT TileWidth = std::min(in_width, T_UINT(32)); // configurable
+  const T_UINT TileHeightMax = 32; // configurable
+  const T_UINT TileWidthMax = 32; // configurable
+  const T_UINT TileHeight = std::min(in_height, TileHeightMax);
+  const T_UINT TileWidth = std::min(in_width, TileWidthMax);
   constexpr T_UINT InChUnroll = InTypeBitWidth; // hardcoded, not configurable
   constexpr T_UINT OutChUnroll = 16; // hardcoded, not configurable
   constexpr T_UINT InBitChUnroll = 2; // hardcoded, not configurable
+  constexpr T_UINT khMax = 5; // hardcoded, not configurable
+  constexpr T_UINT kwMax = 5; // hardcoded, not configurable
 
   const T_UINT row_tile_count = (in_height + TileHeight - 1) / TileHeight;
   const T_UINT col_tile_count = (in_width + TileWidth - 1) / TileWidth;
@@ -112,39 +119,55 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
     T_UINT out_ch_high = tile_index % out_tile_count * OutChUnroll;
     T_UINT col_high = (tile_index / out_tile_count) % col_tile_count * TileWidth;
     T_UINT row_high = tile_index / (out_tile_count * col_tile_count) * TileHeight;
-    int16_t out_tile[TileHeight][TileWidth][OutChUnroll];
+    int16_t out_tile[TileHeightMax*TileWidthMax*OutChUnroll];
     for (unsigned int row = 0; row < TileHeight; ++row) {
       for (unsigned int col = 0; col < TileWidth; ++col) {
         for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
-          out_tile[row][col][out_ch] = 0;
+          const auto index = row * TileWidth * OutChUnroll
+            + col * OutChUnroll
+            + out_ch;
+          out_tile[index] = 0;
         }
       }
     }
     for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
-      QUANTIZED_PACKED_KERNEL notk[kh][kw][OutChUnroll];
+      QUANTIZED_PACKED_KERNEL notk[khMax*kwMax*OutChUnroll];
       int16_t notsum[OutChUnroll] = {};
       for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
         notsum[out_ch] = 0;
         for (unsigned int kr = 0; kr < kh; ++kr) {
           for (unsigned int kc = 0; kc < kw; ++kc) {
-            notk[kr][kc][out_ch] = kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
-            notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
+            const auto notk_index = kr * kw * OutChUnroll
+              + kc * OutChUnroll
+              + out_ch;
+            const auto index = (out_ch_high + out_ch) * kh * kw * (in_channels / InTypeBitWidth)
+              + kr * kw * (in_channels / InTypeBitWidth)
+              + kc * (in_channels / InTypeBitWidth)
+              + in_ch_high / InTypeBitWidth;
+            notk[notk_index] = kernel.data()[index];
+            notsum[out_ch] += pop_count(notk[notk_index]);
           }
         }
       }
       for (unsigned int in_bit_ch_high = 0; in_bit_ch_high < in_bitwidth; in_bit_ch_high += InBitChUnroll) {
-        tiling_input_elem_t in_tile[TileHeight + kh - 1][TileWidth + kw - 1][InBitChUnroll];
+        tiling_input_elem_t in_tile[(TileHeightMax + khMax - 1)*(TileWidthMax + kwMax - 1)*InBitChUnroll];
         for (unsigned int row = 0; row < TileHeight + kh - 1; ++row) {
           if (row_high + row >= in_height + 2*padding) break;
           for (unsigned int col = 0; col < TileWidth + kw - 1; ++col) {
             if (col_high + col >= in_width + 2*padding) break;
             for (unsigned int in_bit_ch = 0; in_bit_ch < InBitChUnroll; ++in_bit_ch) {
+              const auto buf_index = row * (TileWidth + kw - 1) * InBitChUnroll
+                + col * InBitChUnroll
+                + in_bit_ch;
               if (row_high + row < padding || row_high + row >= in_height + padding
                   || col_high + col < padding || col_high + col >= in_width + padding) {
-                in_tile[row][col][in_bit_ch] = tiling_input_elem_t(0);
+                in_tile[buf_index] = tiling_input_elem_t(0);
               } else {
-                in_tile[row][col][in_bit_ch] = input(in_ch_high / InTypeBitWidth, row_high + row - padding,
-                    col_high + col - padding, in_bit_ch_high + in_bit_ch, 0);
+                const auto index = (in_ch_high / InTypeBitWidth) * in_height * in_width * in_bitwidth
+                  + (row_high + row - padding) * in_width * in_bitwidth
+                  + (col_high + col - padding) * in_bitwidth
+                  + (in_bit_ch_high + in_bit_ch);
+                in_tile[buf_index] = input.data()[index];
               }
             }
           }
@@ -161,21 +184,25 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
             uint8x16_t xnorsum31 = vdupq_n_u8(0);
             for (unsigned int kr = 0; kr < kh; ++kr) {
               for (unsigned int kc = 0; kc < kw; ++kc) {
-                uint32x4_t nk0 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 0]));
-                uint32x4_t nk1 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 4]));
-                uint32x4_t nk2 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][ 8]));
-                uint32x4_t nk3 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[kr][kc][12]));
+                const auto notk_index = kr * kw * OutChUnroll
+                  + kc * OutChUnroll;
+                uint32x4_t nk0 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[notk_index +  0]));
+                uint32x4_t nk1 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[notk_index +  4]));
+                uint32x4_t nk2 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[notk_index +  8]));
+                uint32x4_t nk3 = vld1q_u32(reinterpret_cast<uint32_t*>(&notk[notk_index + 12]));
                 uint8x16_t nk08 = vreinterpretq_u8_u32(nk0);
                 uint8x16_t nk18 = vreinterpretq_u8_u32(nk1);
                 uint8x16_t nk28 = vreinterpretq_u8_u32(nk2);
                 uint8x16_t nk38 = vreinterpretq_u8_u32(nk3);
-                uint32x4_t in = vdupq_n_u32(in_tile[row + kr][col + kc][0].Raw());
+                const auto in_index = (row + kr) * (TileWidth + kw - 1) * InBitChUnroll
+                  + (col + kc) * InBitChUnroll;
+                uint32x4_t in = vdupq_n_u32(in_tile[in_index + 0].Raw());
                 uint8x16_t in8 = vreinterpretq_u8_u32(in);
                 xnorsum00 += vcntq_u8(in8 ^ nk08);
                 xnorsum10 += vcntq_u8(in8 ^ nk18);
                 xnorsum20 += vcntq_u8(in8 ^ nk28);
                 xnorsum30 += vcntq_u8(in8 ^ nk38);
-                in = vdupq_n_u32(in_tile[row + kr][col + kc][1].Raw());
+                in = vdupq_n_u32(in_tile[in_index + 1].Raw());
                 in8 = vreinterpretq_u8_u32(in);
                 xnorsum01 += vcntq_u8(in8 ^ nk08);
                 xnorsum11 += vcntq_u8(in8 ^ nk18);
@@ -207,16 +234,18 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
             int16x8_t sum230 = vreinterpretq_s16_u16(usum230);
             int16x8_t sum011 = vreinterpretq_s16_u16(usum011);
             int16x8_t sum231 = vreinterpretq_s16_u16(usum231);
-            int16x8_t tmp0 = vld1q_s16(&out_tile[row][col][0]);
-            int16x8_t tmp1 = vld1q_s16(&out_tile[row][col][8]);
+            const auto out_index = row * TileWidth * OutChUnroll
+              + col * OutChUnroll;
+            int16x8_t tmp0 = vld1q_s16(&out_tile[out_index + 0]);
+            int16x8_t tmp1 = vld1q_s16(&out_tile[out_index + 8]);
             int16x8_t nsum0 = vld1q_s16(&notsum[0]);
             int16x8_t nsum1 = vld1q_s16(&notsum[8]);
             tmp0 += vshlq_s16(sum010 - nsum0, vdupq_n_s16(in_bit_ch_high))
               + vshlq_s16(sum011 - nsum0, vdupq_n_s16(in_bit_ch_high + 1));
             tmp1 += vshlq_s16(sum230 - nsum1, vdupq_n_s16(in_bit_ch_high))
               + vshlq_s16(sum231 - nsum1, vdupq_n_s16(in_bit_ch_high + 1));
-            vst1q_s16(&out_tile[row][col][0], tmp0);
-            vst1q_s16(&out_tile[row][col][8], tmp1);
+            vst1q_s16(&out_tile[out_index + 0], tmp0);
+            vst1q_s16(&out_tile[out_index + 8], tmp1);
           }
         }
       }
@@ -229,7 +258,10 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
           unsigned int index = (row_high + row) * out_width * out_channels
               + (col_high + col) * out_channels
               + (out_ch_high + out_ch);
-          p.device_output_buf[index] = out_tile[row][col][out_ch];
+          const auto buf_index = row * TileWidth * OutChUnroll
+            + col * OutChUnroll
+            + out_ch;
+          p.device_output_buf[index] = out_tile[buf_index];
         }
       }
     }
@@ -267,7 +299,11 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
         notsum[out_ch] = 0;
         for (unsigned int kr = 0; kr < kh; ++kr) {
           for (unsigned int kc = 0; kc < kw; ++kc) {
-            notk[kr][kc][out_ch] = kernel(out_ch_high + out_ch, kr, kc, in_ch_high / InTypeBitWidth);
+            const auto index = (out_ch_high + out_ch) * kh * kw * (in_channels / InTypeBitWidth)
+              + kr * kw * (in_channels / InTypeBitWidth)
+              + kc * (in_channels / InTypeBitWidth)
+              + in_ch_high / InTypeBitWidth;
+            notk[kr][kc][out_ch] = kernel.data()[index];
             notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
           }
         }
@@ -283,8 +319,11 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                   || col_high + col < padding || col_high + col >= in_width + padding) {
                 in_tile[row][col][in_bit_ch] = tiling_input_elem_t(0);
               } else {
-                in_tile[row][col][in_bit_ch] = input(in_ch_high / InTypeBitWidth, row_high + row - padding,
-                    col_high + col - padding, in_bit_ch_high + in_bit_ch, 0);
+                const auto index = (in_ch_high / InTypeBitWidth) * in_height * in_width * in_bitwidth
+                  + (row_high + row - padding) * in_width * in_bitwidth
+                  + (col_high + col - padding) * in_bitwidth
+                  + (in_bit_ch_high + in_bit_ch);
+                in_tile[row][col][in_bit_ch] = input.data()[index];
               }
             }
           }
@@ -436,14 +475,12 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       p.device_output_buf, out_channels, in_height * in_width);
 
   if (p.thresholds != nullptr) {
-    ApplyThresholds(output_, p);
-    const auto buf = std::make_unique<QUANTIZED_PACKED[]>(out_size * p.n_bit / CHAR_BIT);
-    pack_16bit(p.device_output_buf, buf.get(), out_size);
+    ApplyThresholdsAndPack(output_, p, buf_th.get());
     const std::size_t b = 32;
     TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>::tensor_info_t<std::size_t> buf_shape = {
       out_height, out_width, (out_channels + b - 1) / b, p.n_bit, b
     };
-    TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl> buf_tensor(buf.get(), buf_shape);
+    TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl> buf_tensor(buf_th.get(), buf_shape);
     TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>::tensor_info_t<std::size_t> out_shape = {
       (out_channels + b - 1) / b,
       out_height,
@@ -452,20 +489,23 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       b
     };
     TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl> out((QUANTIZED_PACKED*)p.device_output_buf, out_shape);
+    Measurement::Start("Output tensor convert");
     convert_tensor(buf_tensor, out);
+    Measurement::Stop();
   } else {
     const std::size_t b = 32;
-    const auto buf = std::make_unique<BIN_CONV_OUTPUT[]>(out_size);
-    std::copy(p.device_output_buf, p.device_output_buf + out_size, buf.get());
+    std::copy(p.device_output_buf, p.device_output_buf + out_size, buf_non_th.get());
     TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>::tensor_info_t<std::size_t> buf_shape = {
       out_height, out_width, out_channels
     };
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC> buf_tensor(buf.get(), buf_shape);
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC> buf_tensor(buf_non_th.get(), buf_shape);
     TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl>::tensor_info_t<std::size_t> out_shape = {
       (out_channels + b - 1) / b, out_height, out_width, b
     };
     TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl> out(p.device_output_buf, out_shape);
+    Measurement::Start("Output tensor convert");
     convert_tensor(buf_tensor, out);
+    Measurement::Stop();
   }
 }
 
