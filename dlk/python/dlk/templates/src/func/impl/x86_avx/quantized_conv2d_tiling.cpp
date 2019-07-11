@@ -269,25 +269,15 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       p.device_output_buf, out_channels, in_height * in_width);
 
   if (p.thresholds != nullptr) {
-    ApplyThresholds(output_, p);
-    pack_16bit(p.device_output_buf, buf_th.get(), out_size);
-    const std::size_t b = 32;
-    TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>::tensor_info_t<std::size_t> buf_shape = {
-      out_height, out_width, (out_channels + b - 1) / b, p.n_bit, b
-    };
-    TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl> buf_tensor(buf_th.get(), buf_shape);
-    TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>::tensor_info_t<std::size_t> out_shape = {
-      (out_channels + b - 1) / b,
-      out_height,
-      out_width,
-      p.n_bit,
-      b
-    };
-    TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl> out((QUANTIZED_PACKED*)p.device_output_buf, out_shape);
-    convert_tensor(buf_tensor, out);
+    ApplyThresholdsAndPack(output_, p, buf_th.get());
+    Measurement::Start("copy");
+    std::copy(buf_th.get(), buf_th.get() + out_size / 32 * 2, (QUANTIZED_PACKED*)p.device_output_buf);
+    Measurement::Stop();
   } else {
     const std::size_t b = 32;
+    Measurement::Start("copy");
     std::copy(p.device_output_buf, p.device_output_buf + out_size, buf_non_th.get());
+    Measurement::Stop();
     TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>::tensor_info_t<std::size_t> buf_shape = {
       out_height, out_width, out_channels
     };
@@ -296,7 +286,9 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       (out_channels + b - 1) / b, out_height, out_width, b
     };
     TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl> out(p.device_output_buf, out_shape);
+    Measurement::Start("Output tensor convert");
     convert_tensor(buf_tensor, out);
+    Measurement::Stop();
   }
 }
 
