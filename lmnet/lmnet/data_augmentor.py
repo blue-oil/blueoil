@@ -901,7 +901,7 @@ class Scale(data_processor.Processor):
         fill_color (str): 'black' or 'white'.
     """
 
-    def __init__(self, scale_range=(0.7, 1.35), fill_color='black'):
+    def __init__(self, scale_range=(0.7, 1.25), fill_color='black'):
 
         min_scale, max_scale = scale_range
 
@@ -942,19 +942,39 @@ class Scale(data_processor.Processor):
         if gt_boxes is not None:
             center_x = original_width / 2
             center_y = original_height / 2
-            new_gt_boxes = gt_boxes.copy()
+
+            retain_boxes = []
+
             for i in range(gt_boxes.shape[0]):
+
+                current_box = gt_boxes[i]
+
                 offset_x = gt_boxes[i, 0] - center_x
                 offset_y = gt_boxes[i, 1] - center_y
                 offset_x *= scale
                 offset_y *= scale
 
-                new_gt_boxes[i, 0] = max(0, center_x + offset_x)
-                new_gt_boxes[i, 1] = max(0, center_y + offset_y)
-                new_gt_boxes[i, 2] = min(gt_boxes[i, 2] * scale,
-                                         original_width - new_gt_boxes[i, 0])
-                new_gt_boxes[i, 3] = min(gt_boxes[i, 3] * scale,
-                                         original_height - new_gt_boxes[i, 1])
+                current_box[0] = center_x + offset_x
+                current_box[1] = center_y + offset_y
+                current_box[2] = gt_boxes[i, 2] * scale
+                current_box[3] = gt_boxes[i, 3] * scale
+
+                if current_box[0] < 0:
+                    continue
+
+                if current_box[1] < 0:
+                    continue
+
+                if (current_box[0] + current_box[2]) > original_width:
+                    continue
+
+                if (current_box[1] + current_box[3]) > original_height:
+                    continue
+
+                retain_boxes.append(current_box)
+
+            assert len(retain_boxes) > 0
+            new_gt_boxes = np.stack(retain_boxes, axis=0)
 
             return np.array(new_image), new_gt_boxes
 
