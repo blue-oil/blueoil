@@ -30,21 +30,25 @@ void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
   int packed_depth = 2;
   Measurement::Start("Lookup");
 
+  const float * in_ptr = input.data();
+  const QUANTIZED_PACKED_KERNEL * lsb_ptr = lsb.data();
+  const QUANTIZED_PACKED_KERNEL * msb_ptr = msb.data();
+  QUANTIZED_PACKED * out_ptr = output.data();
   for(int ih = 0; ih < h; ih++)
   for(int iw = 0; iw < w; iw++) {
-    int r = int(input(0, ih, iw, 0) * 255.0);
-    int g = int(input(0, ih, iw, 1) * 255.0);
-    int b = int(input(0, ih, iw, 2) * 255.0);
+    int r = int(*in_ptr++ * 255.0);
+    int g = int(*in_ptr++ * 255.0);
+    int b = int(*in_ptr++ * 255.0);
 
-    auto r_lsb = lsb(r, 0);
-    auto g_lsb = lsb(g, 0);
-    auto b_lsb = lsb(b, 0);
-    auto r_msb = msb(r, 0);
-    auto g_msb = msb(g, 0);
-    auto b_msb = msb(b, 0);
+    auto r_lsb = lsb_ptr[r];
+    auto g_lsb = lsb_ptr[g];
+    auto b_lsb = lsb_ptr[b];
+    auto r_msb = msb_ptr[r];
+    auto g_msb = msb_ptr[g];
+    auto b_msb = msb_ptr[b];
 
-    output(0, ih, iw, 0, 0) = QUANTIZED_PACKED((b_lsb.Raw() << 20) | (g_lsb.Raw() << 10) | r_lsb.Raw());
-    output(0, ih, iw, 1, 0) = QUANTIZED_PACKED((b_msb.Raw() << 20) | (g_msb.Raw() << 10) | r_msb.Raw());
+    *out_ptr++ = QUANTIZED_PACKED((b_lsb.Raw() << 20) | (g_lsb.Raw() << 10) | r_lsb.Raw());
+    *out_ptr++ = QUANTIZED_PACKED((b_msb.Raw() << 20) | (g_msb.Raw() << 10) | r_msb.Raw());
   }
 
   Measurement::Stop();

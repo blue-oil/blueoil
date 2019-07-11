@@ -28,6 +28,11 @@ void ApplyThresholds(
     dlk::MatrixView<BIN_CONV_OUTPUT, dlk::MatrixOrder::ColMajor> &result,
     const binary_convolution_parameters &p);
 
+void ApplyThresholdsAndPack(
+    dlk::MatrixView<BIN_CONV_OUTPUT, dlk::MatrixOrder::ColMajor> &result,
+    const binary_convolution_parameters &p,
+    QUANTIZED_PACKED output[]);
+
 } // namespace impl
 
 } // namespace dlk
