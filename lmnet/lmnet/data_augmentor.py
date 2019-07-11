@@ -893,22 +893,69 @@ def color_filter(img):
     return new_image
 
 
-# TODO(wakisaka): implement class
-def affine_scale(img, scale, fill_color="white"):
-    """Resize image to scale size keeping the aspect ratio and place it in center of fill color image."""
-    image = Image.fromarray(np.uint8(img))
-    original_width = image.size[0]
-    original_height = image.size[1]
+class Scale(data_processor.Processor):
+    """Scale.
 
-    outer_width = original_width - (original_width * scale)
-    outer_height = original_height - (original_height * scale)
-    new_image = Image.new(
-        'RGB',
-        (original_width, original_height),
-        fill_color,
-    )
+    Args:
+        scale_range (tuple): Scale range.
+        fill_color (str): 'black' or 'white'.
+    """
 
-    scaled = image.resize((int(original_width * scale), int(original_height * scale)))
-    new_image.paste(scaled, (int(outer_width / 2), int(outer_height / 2)))
+    def __init__(self, scale_range=(0.7, 1.35), fill_color='black'):
 
-    return np.array(new_image)
+        min_scale, max_scale = scale_range
+
+        assert min_scale >= 0.5
+        assert max_scale <= 1.5
+
+        self.min_scale = min_scale
+        self.max_scale = max_scale
+        self.fill_color = fill_color
+
+    def __call__(self, image, mask=None, gt_boxes=None, *args, **kwargs):
+
+        scale = random.uniform(self.min_scale, self.max_scale)
+
+        image = Image.fromarray(np.uint8(image))
+        original_width = image.size[0]
+        original_height = image.size[1]
+
+        outer_width = original_width - (original_width * scale)
+        outer_height = original_height - (original_height * scale)
+        new_image = Image.new('RGB',
+                              (original_width, original_height),
+                              self.fill_color)
+
+        scaled = image.resize((int(original_width * scale), int(original_height * scale)))
+        new_image.paste(scaled, (int(outer_width / 2), int(outer_height / 2)))
+
+        if mask is not None:
+            mask = Image.fromarray(np.uint8(mask))
+            new_mask = Image.new('L',
+                                 (original_width, original_height),
+                                 self.fill_color)
+
+            scaled_mask = mask.resize((int(original_width * scale), int(original_height * scale)))
+            new_mask.paste(scaled_mask, (int(outer_width / 2), int(outer_height / 2)))
+            return np.array(new_image), new_mask
+
+        if gt_boxes is not None:
+            center_x = original_width / 2
+            center_y = original_height / 2
+            new_gt_boxes = gt_boxes.copy()
+            for i in range(gt_boxes.shape[0]):
+                offset_x = gt_boxes[i, 0] - center_x
+                offset_y = gt_boxes[i, 1] - center_y
+                offset_x *= scale
+                offset_y *= scale
+
+                new_gt_boxes[i, 0] = max(0, center_x + offset_x)
+                new_gt_boxes[i, 1] = max(0, center_y + offset_y)
+                new_gt_boxes[i, 2] = min(gt_boxes[i, 2] * scale,
+                                         original_width - new_gt_boxes[i, 0])
+                new_gt_boxes[i, 3] = min(gt_boxes[i, 3] * scale,
+                                         original_height - new_gt_boxes[i, 1])
+
+            return np.array(new_image), new_gt_boxes
+
+        return np.array(new_image)
