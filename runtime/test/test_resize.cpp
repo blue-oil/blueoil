@@ -3,7 +3,9 @@
 
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
+#ifdef USE_OPENCV
 #include "blueoil_opencv.hpp"
+#endif
 #include "test_util.hpp"
 
 float test_input[3][8][8] =
@@ -77,6 +79,7 @@ int test_resize() {
 }
 
 int command_resize(int argc, char **argv) {
+#ifdef USE_OPENCV
   char *infile = argv[1];
   int width = atoi(argv[2]);
   int height = atoi(argv[3]);
@@ -107,6 +110,7 @@ int command_resize(int argc, char **argv) {
 						  filter);
   cv::Mat img2 = blueoil::opencv::Tensor_toCVMat(output);
   cv::imwrite(outfile, img2);
+#endif // USE_OPENCV
   return EXIT_SUCCESS;
 }
 
