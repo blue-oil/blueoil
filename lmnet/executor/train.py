@@ -108,7 +108,7 @@ def start_training(config):
 
         output = model.inference(images_placeholder, is_training_placeholder)
         if ModelClass.__module__.startswith("lmnet.networks.object_detection"):
-            loss = model.loss(output, labels_placeholder, is_training_placeholder)
+            loss = model.loss(output, labels_placeholder, global_step)
         else:
             loss = model.loss(output, labels_placeholder)
         opt = model.optimizer(global_step)
