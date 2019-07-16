@@ -1,6 +1,6 @@
 #include "blueoil.hpp"
 
-extern "C" { // dummy functions
+extern "C" {  // dummy functions
   Network *network_create() { return NULL; }
   bool network_init(Network *) { return true; }
   int network_get_input_rank(const Network *) { return 0; }

@@ -23,13 +23,14 @@ extern "C" {
 
 namespace blueoil {
 class Tensor {
-private:
+ private:
   std::vector<int> shape_;
   std::vector<float> data_;
   int shapeVolume();
   int offsetVolume(const std::vector<int>& indices) const;
-public:
-  Tensor(std::vector<int> shape);
+
+ public:
+  explicit Tensor(std::vector<int> shape);
   Tensor(std::vector<int> shape, std::vector<float> data);
   Tensor(std::vector<int> shape, float *data);
   Tensor(const Tensor &tensor);
@@ -99,7 +100,6 @@ struct Box {
   Box(float x_, float y_, float w_, float h_):
     x(x_), y(y_), w(w_), h(h_) {
   }
-
 };
 
 struct DetectedBox:Box {

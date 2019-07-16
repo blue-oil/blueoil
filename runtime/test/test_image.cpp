@@ -5,12 +5,12 @@
 
 float test_chw_data[3][2][2] =  // planar RGB format
   { {  // Red
-     {255,255},
-     {  0,  0},
+     {255, 255},
+     {  0,   0},
      },
     {  // Green
-     {  0,255},
-     {  0,255},
+     {  0, 255},
+     {  0, 255},
     },
     {  // Blue
      {  0,  0},
@@ -18,15 +18,14 @@ float test_chw_data[3][2][2] =  // planar RGB format
     } };
 
 
-float test_hwc_data[2][2][3] =  // packed RGB format
-  {
-   { {255,  0,  0}, {255,255,  0} },  // R Y
-   { {  0,  0,255}, {  0,255,  0} },  // B G
-  };
+float test_hwc_data[2][2][3] = {  // packed RGB format
+  { {255,  0,   0}, {255, 255,  0} },  // R Y
+  { {  0,  0, 255}, {  0, 255,  0} },  // B G
+};
 
 int test_image() {
-  blueoil::Tensor test_chw({3, 2, 2}, (float *) test_chw_data);
-  blueoil::Tensor test_hwc({2, 2, 3}, (float *) test_hwc_data);
+  blueoil::Tensor test_chw({3, 2, 2}, reinterpret_cast<float *>(test_chw_data));
+  blueoil::Tensor test_hwc({2, 2, 3}, reinterpret_cast<float *>(test_hwc_data));
   blueoil::Tensor test_chw_hwc = blueoil::util::Tensor_CHW_to_HWC(test_chw);
   blueoil::Tensor test_hwc_chw = blueoil::util::Tensor_HWC_to_CHW(test_hwc);
 

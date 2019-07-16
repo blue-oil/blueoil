@@ -1,12 +1,12 @@
 #include <cassert>
 #include <cmath>
-#include <dlfcn.h>
 #include <string>
 #include <vector>
 #include <iostream>
 #include <numeric>
 #include <algorithm>
 #include <cstring>
+#include <utility>
 
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
@@ -139,7 +139,7 @@ Tensor FormatYoloV2(const Tensor& input,
                     const std::string& data_format,
                     const std::pair<int, int>& image_size,
                     const int& num_classes) {
-  //input shape must be NHWC, N == 1
+  // input shape must be NHWC, N == 1
 
   auto shape = input.shape();
   int num_cell_y = shape[1];
@@ -210,7 +210,7 @@ Tensor ExcludeLowScoreBox(const Tensor& input, const float& threshold) {
     float* predictions = result.dataAsArray({0, i, 0});
     float score = predictions[5];
     if (score < threshold) {
-      ; // delete entry
+      // delete entry
     } else {
       // remain entry
       float* compacted_predictions = result.dataAsArray({0, compacted_num_predictions, 0});
@@ -238,8 +238,7 @@ Tensor NMS(const Tensor& input,
 
   // sort index by class_id & score.
   std::sort(ids.begin(), ids.end(),
-            [input](const int& a, const int& b) -> bool
-            {
+            [input](const int& a, const int& b) -> bool {
               const float* prediction_a = input.dataAsArray({0, a, 0});
               float class_id_a = prediction_a[4];
               float score_a = prediction_a[5];
@@ -288,7 +287,7 @@ Tensor NMS(const Tensor& input,
             continue;
           }
           if (max_output_size <= num_remain) {
-            prediction_b[5] = 0.0; // marked for deletion
+            prediction_b[5] = 0.0;  // marked for deletion
             continue;
           }
           box_util::Box box_b = box_util::Box(prediction_b[0], prediction_b[1], prediction_b[2], prediction_b[3]);
@@ -297,7 +296,7 @@ Tensor NMS(const Tensor& input,
           if (iou < iou_threshold) {
             num_remain++;
           } else {
-            prediction_b[5] = 0.0; // marked for deletion
+            prediction_b[5] = 0.0;  // marked for deletion
           }
         }
       }
@@ -317,7 +316,7 @@ Tensor NMS(const Tensor& input,
       for (int j = i+1; j < num_predictions; j++) {
         float* prediction_b = result.dataAsArray({0, j, 0});
          if (max_output_size <= num_remain) {
-           prediction_b[5] = 0.0; // marked for deletion
+           prediction_b[5] = 0.0;  // marked for deletion
            continue;
          }
         box_util::Box box_b = box_util::Box(prediction_b[0], prediction_b[1], prediction_b[2], prediction_b[3]);
@@ -326,7 +325,7 @@ Tensor NMS(const Tensor& input,
         if (iou < iou_threshold) {
           num_remain++;
         } else {
-          prediction_b[5] = 0.0; // marked for deletion
+          prediction_b[5] = 0.0;  // marked for deletion
         }
       }
     }

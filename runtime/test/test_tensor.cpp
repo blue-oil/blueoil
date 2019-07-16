@@ -4,17 +4,17 @@
 
 int test_tensor() {
   float tensor_data[][3] = {
-			    {1, 2, 3},
-			    {7, 8, 9}
+                            {1, 2, 3},
+                            {7, 8, 9}
   };
   float tensor_data2[][2] = {  // equals data, different shape.
-			     {1, 2},
-			     {3, 7},
-			     {8, 9}
+                             {1, 2},
+                             {3, 7},
+                             {8, 9}
   };
   float tensor_data3[][3] = {  // equals shape, different data.
-			     {1, 2, 3},
-			     {7, 0, 9}
+                             {1, 2, 3},
+                             {7, 0, 9}
   };
   blueoil::Tensor tensor0({2, 3}, reinterpret_cast<float*>(tensor_data));
   blueoil::Tensor tensor1({2, 3}, reinterpret_cast<float*>(tensor_data));
@@ -28,7 +28,7 @@ int test_tensor() {
     return EXIT_FAILURE;
   }
   // equal
-  if ((! tensor0.allequal(tensor1)) || (! tensor0.allclose(tensor1))) {
+  if ((!tensor0.allequal(tensor1)) || (!tensor0.allclose(tensor1))) {
     std::cerr << "tensor_test: tensor0 != tensor1" << std::endl;
     tensor0.dump();
     tensor1.dump();

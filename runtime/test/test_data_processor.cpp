@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <utility>
 
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
@@ -8,7 +9,7 @@
 #include "test_util.hpp"
 
 float test_input[3][8][8] =
-  { { // Red
+  { {  // Red
      {255, 0, 0, 0, 0, 0, 0, 0},
      {0, 255, 0, 0, 0, 0, 0, 0},
      {0, 0, 100, 0, 0, 0, 0, 0},
@@ -18,7 +19,7 @@ float test_input[3][8][8] =
      {0, 0, 0, 0, 0, 0, 255, 0},
      {0, 0, 0, 0, 0, 0, 0, 255}
      },
-    { // Green
+    {  // Green
      {0, 0, 0, 0, 0, 0, 0, 255},
      {0, 0, 0, 0, 0, 0, 255, 0},
      {0, 0, 0, 0, 0, 100, 0, 0},
@@ -28,36 +29,36 @@ float test_input[3][8][8] =
      {0, 255, 0, 0, 0, 0, 0, 0},
      {255, 0, 0, 0, 0, 0, 0, 0}
     },
-    { // Blue
-     {  0,  0,  0,255,255,  0,  0,  0},
-     {  0,  0,  0,255,255,  0,  0,  0},
-     {  0,  0,  0,255,255,  0,  0,  0},
-     {255,255,255,100,100,255,255,255},
-     {255,255,255,100,100,255,255,255},
-     {  0,  0,  0,255,255,  0,  0,  0},
-     {  0,  0,  0,255,255,  0,  0,  0},
-     {  0,  0,  0,255,255,  0,  0,  0}
+    {  // Blue
+     {  0,   0,   0, 255, 255,   0,   0,   0},
+     {  0,   0,   0, 255, 255,   0,   0,   0},
+     {  0,   0,   0, 255, 255,   0,   0,   0},
+     {255, 255, 255, 100, 100, 255, 255, 255},
+     {255, 255, 255, 100, 100, 255, 255, 255},
+     {  0,   0,   0, 255, 255,   0,   0,   0},
+     {  0,   0,   0, 255, 255,   0,   0,   0},
+     {  0,   0,   0, 255, 255,   0,   0,   0}
     } };
 
 // python pillow(PIL) NN-resize output array
 float test_expect[3][4][4] =
-  { { // Red
-     {255,  0, 0,   0},
-     {  0,100, 0,   0},
-     {  0,  0,100,  0},
-     {  0,  0,  0,255}
+  { {  // Red
+     {255,   0,   0,   0},
+     {  0, 100,   0,   0},
+     {  0,   0, 100,   0},
+     {  0,   0,   0, 255}
      },
-    { // Green
+    {  // Green
      {  0,  0,  0,  0},
      {  0,  0,  0,  0},
      {  0,  0,  0,  0},
      {  0,  0,  0,  0}
     },
-    { // Blue
-     {  0,255,  0,  0},
-     {255,100,255,255},
-     {  0,255,  0,  0},
-     {  0,255,  0,  0}
+    {  // Blue
+     {  0, 255,   0,   0},
+     {255, 100, 255, 255},
+     {  0, 255,   0,   0},
+     {  0, 255,   0,   0}
     } };
 
 // python lmnet post processor output array
@@ -126,13 +127,13 @@ int test_data_processor_resize() {
   // CHW (3-channel, height, width)
   int width = 4, height = 4;
   const std::pair<int, int>& image_size = std::make_pair(width, height);
-  blueoil::Tensor input({3, 8, 8}, (float *)test_input);
-  blueoil::Tensor expect({3, 4, 4}, (float *)test_expect);
+  blueoil::Tensor input({3, 8, 8}, reinterpret_cast<float *>(test_input));
+  blueoil::Tensor expect({3, 4, 4}, reinterpret_cast<float *>(test_expect));
   input = blueoil::util::Tensor_CHW_to_HWC(input);
   expect = blueoil::util::Tensor_CHW_to_HWC(expect);
   blueoil::Tensor output = blueoil::data_processor::Resize(input,
                                                            image_size);
-  if (! output.allclose(expect)) {
+  if (!output.allclose(expect)) {
     std::cerr << "test_data_processor_resize: output != expect" << std::endl;
     output = blueoil::util::Tensor_HWC_to_CHW(output);
     expect = blueoil::util::Tensor_HWC_to_CHW(expect);
@@ -145,12 +146,12 @@ int test_data_processor_resize() {
 
 int test_data_processor_formatyolov2() {
   int width = 64, height = 64;
-  int batch_size = 1; // support 1 only
+  int batch_size = 1;  // support 1 only
   int num_cell_y = 2, num_cell_x = 2;
 
   blueoil::data_processor::FormatYoloV2Parameters params;
   params.anchors = {{0.2, 0.2}, {0.7, 0.7}};
-  params.boxes_per_cell = 2; // len(anchors)
+  params.boxes_per_cell = 2;  // len(anchors)
   params.data_format = "NHWC";
   params.image_size = std::make_pair(width, height);
   params.num_classes = 2;
@@ -161,8 +162,8 @@ int test_data_processor_formatyolov2() {
   }
   blueoil::Tensor output = blueoil::data_processor::FormatYoloV2(input,
                                                                  params);
-  blueoil::Tensor expect({1, 16, 6}, (float *)yolov2test_expect);
-  if (! output.allclose(expect, 0, 0.0001)) {
+  blueoil::Tensor expect({1, 16, 6}, reinterpret_cast<float *>(yolov2test_expect));
+  if (!output.allclose(expect, 0, 0.0001)) {
     std::cerr << "test_data_processor_formatyolov2: output != expect" << std::endl;
     output.dump();
     expect.dump();
@@ -173,13 +174,13 @@ int test_data_processor_formatyolov2() {
 }
 
 int test_data_processor_excludelowscorebox() {
-  int batch_size = 1; // support 1 only
+  int batch_size = 1;  // support 1 only
   float threshold = 0.5;
-  blueoil::Tensor input({batch_size, 8, 6}, (float *)excludelowscorebox_input);
+  blueoil::Tensor input({batch_size, 8, 6}, reinterpret_cast<float *>(excludelowscorebox_input));
   blueoil::Tensor output = blueoil::data_processor::ExcludeLowScoreBox(input,
                                                                        threshold);
-  blueoil::Tensor expect({1, 4, 6}, (float *)excludelowscorebox_expect);
-  if (! output.allclose(expect, 0, 0.0001)) {
+  blueoil::Tensor expect({1, 4, 6}, reinterpret_cast<float *>(excludelowscorebox_expect));
+  if (!output.allclose(expect, 0, 0.0001)) {
     std::cerr << "test_data_processor_formatyolov2: output != expect" << std::endl;
     output.dump();
     expect.dump();
@@ -189,18 +190,17 @@ int test_data_processor_excludelowscorebox() {
 }
 
 int test_data_processor_nms() {
-  int batch_size = 1; // support 1 only
+  int batch_size = 1;  // support 1 only
   blueoil::data_processor::NMSParameters params;
   params.classes = {"orange", "apple", "grape"};
   params.iou_threshold = 0.7;
-  //params.max_output_size = 100;
   params.max_output_size = 2;
   params.per_class = true;
-  blueoil::Tensor input({batch_size, 8, 6}, (float *)nms_input);
+  blueoil::Tensor input({batch_size, 8, 6}, reinterpret_cast<float *>(nms_input));
   blueoil::Tensor output = blueoil::data_processor::NMS(input,
                                                         params);
-  blueoil::Tensor expect({batch_size, 4, 6}, (float *)nms_expect);
-  if (! output.allclose(expect)) {
+  blueoil::Tensor expect({batch_size, 4, 6}, reinterpret_cast<float *>(nms_expect));
+  if (!output.allclose(expect)) {
     std::cerr << "test_data_nms: output != expect" << std::endl;
     output.dump();
     expect.dump();

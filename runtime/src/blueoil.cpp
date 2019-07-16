@@ -7,6 +7,8 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#include <utility>
+#include <functional>
 
 #include "blueoil.hpp"
 #include "blueoil_data_processor.hpp"
@@ -19,7 +21,7 @@ namespace blueoil {
 
 int calcVolume(const std::vector<int>& shape) {
   return std::accumulate(shape.begin(), shape.end(),
-			 1, std::multiplies<int>());
+                         1, std::multiplies<int>());
 }
 
 Tensor::Tensor(std::vector<int> shape)
@@ -35,7 +37,7 @@ Tensor::Tensor(std::vector<int> shape, std::vector<float> data)
 Tensor::Tensor(std::vector<int> shape, float *arr)
   : shape_(shape),
     data_(std::vector<float>(arr,
-			      arr + calcVolume(std::move(shape)))) {
+                              arr + calcVolume(std::move(shape)))) {
 }
 
 Tensor::Tensor(const Tensor &tensor)
@@ -77,7 +79,7 @@ const float *Tensor::dataAsArray() const {
 }
 
 const float *Tensor::dataAsArray(std::vector<int> indices) const {
-  if (shape_.size() != indices.size() ) {
+  if (shape_.size() != indices.size()) {
     throw std::invalid_argument("shape.size != indices.size");
   }
   int i = 0;
@@ -97,7 +99,7 @@ float *Tensor::dataAsArray() {
 }
 
 float *Tensor::dataAsArray(std::vector<int> indices) {
-  if (shape_.size() != indices.size() ) {
+  if (shape_.size() != indices.size()) {
     throw std::invalid_argument("shape.size != indices.size");
   }
   int i = 0;
@@ -109,9 +111,8 @@ float *Tensor::dataAsArray(std::vector<int> indices) {
   return data_.data() + offsetVolume(indices);
 }
 
-void Tensor::erase(std::vector<int> indices_first, std::vector<int> indices_last)
-{
-  if (indices_first.size() != indices_last.size() ) {
+void Tensor::erase(std::vector<int> indices_first, std::vector<int> indices_last) {
+  if (indices_first.size() != indices_last.size()) {
     throw std::invalid_argument("indice_first.size != indices_last.size");
   }
   auto offset_first = offsetVolume(indices_first);
@@ -139,25 +140,25 @@ static void Tensor_shape_dump(const std::vector<int>& shape) {
   std::cout << std::endl;
 }
 
-static void Tensor_data_dump(const float *data, const std::vector<int>& shape){
-  if (shape.size() == 1) { // 1-D array
+static void Tensor_data_dump(const float *data, const std::vector<int>& shape) {
+  if (shape.size() == 1) {  // 1-D array
     auto itr = shape.begin();
     int n = *itr;
     for (int i = 0 ; i < n ;  i++) {
       std::cout << data[i] << " ";
     }
     std::cout << std::endl;
-  } else if (shape.size() == 2) { // 2-D arra
+  } else if (shape.size() == 2) {  // 2-D arra
     auto itr = shape.begin();
     int w = *itr;
     int c = *(itr+1);
     for (int x = 0 ; x < w ; x++) {
       for (int i = 0 ; i < c ; i++) {
-	std::cout << data[c*x + i] << " ";
+        std::cout << data[c*x + i] << " ";
       }
       std::cout << std::endl;
     }
-  } else { // 3-D over to recursive
+  } else {  // 3-D over to recursive
     auto itr = shape.begin();
     int n  = *itr;
     int stride = 1;
@@ -207,7 +208,7 @@ bool Tensor::allequal(const Tensor &tensor) const {
 
 // all elements nealy equals check.
 bool Tensor::allclose(const Tensor &tensor) const {
-  float rtol=1.e-5, atol=1.e-8; // same as numpy isclose
+  float rtol = 1.e-5, atol = 1.e-8;  // same as numpy isclose
   return allclose(tensor, rtol, atol);
 }
 

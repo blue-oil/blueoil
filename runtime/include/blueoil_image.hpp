@@ -14,7 +14,7 @@ enum ResizeFilter {
 Tensor Resize(const Tensor& image, const int width, const int height,
               const enum ResizeFilter filter);
 
-} // namespace image
-} // namespace blueoil
+}  // namespace image
+}  // namespace blueoil
 
 #endif  // RUNTIME_INCLUDE_BLUEOIL_IMAGE_HPP_
