@@ -47,8 +47,22 @@ int Tensor::shapeVolume() {
   return calcVolume(shape_);
 }
 
+int Tensor::offsetVolume(const std::vector<int>& indices) const {
+  int offset = 0, size = data_.size();
+  int i = 0;
+  for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
+    size /= shape_[i];
+    offset += (*itr) * size;
+  }
+  return offset;
+}
+
 std::vector<int> Tensor::shape() const {
   return shape_;
+}
+
+int Tensor::size() const {
+  return data_.size();
 }
 
 std::vector<float> &Tensor::data() {
@@ -72,13 +86,7 @@ const float *Tensor::dataAsArray(std::vector<int> indices) const {
       throw std::invalid_argument("indices out of shape range");
     }
   }
-  int offset = 0, size = data_.size();
-  i = 0;
-  for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-    size /= shape_[i];
-    offset += (*itr) * size;
-  }
-  return data_.data() + offset;
+  return data_.data() + offsetVolume(indices);
 }
 
 float *Tensor::dataAsArray() {
@@ -98,15 +106,30 @@ float *Tensor::dataAsArray(std::vector<int> indices) {
       throw std::invalid_argument("indices out of shape range");
     }
   }
-  int offset = 0, size = data_.size();
-  i = 0;
-  for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-    size /= shape_[i];
-    offset += (*itr) * size;
-  }
-  return data_.data() + offset;
+  return data_.data() + offsetVolume(indices);
 }
 
+void Tensor::erase(std::vector<int> indices_first, std::vector<int> indices_last)
+{
+  if (indices_first.size() != indices_last.size() ) {
+    throw std::invalid_argument("indice_first.size != indices_last.size");
+  }
+  auto offset_first = offsetVolume(indices_first);
+  auto offset_last = offsetVolume(indices_last);
+  auto offset_diff = offset_last - offset_first;
+
+  int i = 0, size = data_.size();
+  // shape changing
+  for (auto itr = indices_first.begin(); itr != indices_first.end(); ++itr, ++i) {
+    size /= shape_[i];
+    if (offset_diff > size) {
+      int index_diff = offset_diff / size;
+      shape_[i] -= index_diff;
+      offset_diff -= index_diff * size;
+    }
+  }
+  data_.erase(data_.begin() + offset_first, data_.begin() + offset_last);
+}
 
 static void Tensor_shape_dump(const std::vector<int>& shape) {
   std::cout << "shape:";

@@ -10,6 +10,7 @@ blueoil_unittest(tensor)
 blueoil_unittest(image)
 blueoil_unittest(opencv)
 blueoil_unittest(resize)
+blueoil_unittest(data_processor)
 
 # test images for opencv
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/images

@@ -94,8 +94,10 @@ Test project <repos_dir>/blueoil/runtime/build
 3/4 Test #3: blueoil-test-opencv ..............   Passed    0.04 sec
     Start 4: blueoil-test-resize
 4/4 Test #4: blueoil-test-resize ..............   Passed    0.04 sec
+    Start 5: blueoil-test-data_processor
+5/5 Test #5: blueoil-test-data_processor ......   Passed    0.00 sec
 
-100% tests passed, 0 tests failed out of 4
+100% tests passed, 0 tests failed out of 5
 
 Total Test time (real) =   0.08 sec
 ```

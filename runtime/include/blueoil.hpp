@@ -27,16 +27,19 @@ private:
   std::vector<int> shape_;
   std::vector<float> data_;
   int shapeVolume();
+  int offsetVolume(const std::vector<int>& indices) const;
 public:
   Tensor(std::vector<int> shape);
   Tensor(std::vector<int> shape, std::vector<float> data);
   Tensor(std::vector<int> shape, float *data);
   Tensor(const Tensor &tensor);
   std::vector<int> shape() const;
+  int size() const;
   std::vector<float> & data();
   const float *dataAsArray() const;
   const float *dataAsArray(std::vector<int> indices) const;
   float *dataAsArray();
+  void erase(std::vector<int> indices_first, std::vector<int> indices_last);
   float *dataAsArray(std::vector<int> indices);
   void dump() const;
   std::vector<float>::const_iterator begin() const;
@@ -90,6 +93,13 @@ struct Box {
   float y;  // top
   float w;
   float h;
+
+  Box() {}
+
+  Box(float x_, float y_, float w_, float h_):
+    x(x_), y(y_), w(w_), h(h_) {
+  }
+
 };
 
 struct DetectedBox:Box {

@@ -83,7 +83,7 @@ struct convert<blueoil::data_processor::NMSParameters> {
   static bool decode(const Node& node,
                      blueoil::data_processor::NMSParameters& params) {  // NOLINT
     params.classes = node["classes"].as<std::vector<std::string>>();
-    params.iou_threshold = node["iou_threshold"].as<int>();
+    params.iou_threshold = node["iou_threshold"].as<float>();
     params.max_output_size = node["max_output_size"].as<int>();
     params.per_class = node["per_class"].as<bool>();
 
