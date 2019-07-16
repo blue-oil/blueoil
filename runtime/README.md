@@ -39,7 +39,7 @@ output/
 $ cd examples
 # copy builded static lib and header.
 $ cp -R ../build/output/* ./
-$ cmake
+$ cmake .
 $ make
 $ ./a.out
 classes:
@@ -85,7 +85,7 @@ $ DLK_LIB_DIR=`pwd`/../examples/dlk_lib/ cmake -DBUILD_SHARED_LIBS=ON ../
 $ make
 $ make test
 Running tests...
-Test project /home/yoya/git/yoya/blueoil/runtime/build
+Test project <repos_dir>/blueoil/runtime/build
     Start 1: blueoil-test-tensor
 1/4 Test #1: blueoil-test-tensor ..............   Passed    0.00 sec
     Start 2: blueoil-test-image
