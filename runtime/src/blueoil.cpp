@@ -132,9 +132,8 @@ static void Tensor_data_dump(const float *data, const std::vector<int>& shape){
       for (int i = 0 ; i < c ; i++) {
 	std::cout << data[c*x + i] << " ";
       }
-      std::cout << " ";
+      std::cout << std::endl;
     }
-    std::cout << std::endl;
   } else { // 3-D over to recursive
     auto itr = shape.begin();
     int n  = *itr;
