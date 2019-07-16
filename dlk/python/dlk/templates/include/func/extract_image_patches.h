@@ -185,6 +185,7 @@ inline void func_ExtractImagePatches(
   if (out_depth < kernel_size * kernel_size) {
     int bit_shift = out_depth * QUANTIZED_PACKED::BitCount / (kernel_size * kernel_size);
     const QUANTIZED_PACKED::base_t mask((QUANTIZED_PACKED::base_t(1) << bit_shift) - 1);
+    const uint64_t mask64 = mask * 0x1'0000'0001ull;
     std::fill(output.data(), output.data() + output.size(), QUANTIZED_PACKED(0));
     for(T_UINT wi = 0; wi < out_height; wi++)
       for(T_UINT wj = 0; wj < out_width; wj++)
@@ -213,16 +214,13 @@ inline void func_ExtractImagePatches(
             const auto out_new = vorr_u32(out_old, shifted);
             vst1_u32(reinterpret_cast<uint32_t*>(output.data() + out_idx), out_new);
 #else
-            for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
-              const auto out_idx = ch_high * out_height * out_width * bits_per_input
-                + wi * out_width * bits_per_input
-                + wj * bits_per_input
-                + digit;
-              const auto in_idx = row * input_width * bits_per_input
-                + col * bits_per_input
-                + digit;
-              output.data()[out_idx] |= QUANTIZED_PACKED((mask & input.data()[in_idx].Raw()) << ch_low);
-            }
+            const auto out_idx = ch_high * out_height * out_width * bits_per_input
+              + wi * out_width * bits_per_input
+              + wj * bits_per_input;
+            const auto in_idx = row * input_width * bits_per_input
+              + col * bits_per_input;
+            const auto in = *reinterpret_cast<uint64_t*>(input.data() + in_idx);
+            *reinterpret_cast<uint64_t*>(output.data() + out_idx) |= (mask64 & in) << ch_low;
 #endif
           }
   } else {
@@ -245,19 +243,15 @@ inline void func_ExtractImagePatches(
               const auto in = vld1_u32(reinterpret_cast<uint32_t*>(input.data() + in_idx));
               vst1_u32(reinterpret_cast<uint32_t*>(output.data() + out_idx), in);
 #else
-              for(T_UINT digit = 0; digit < bits_per_input; ++digit) {
-                const auto ch_high = ih + (ki * kernel_size + kj) * input_depth;
-                const auto out_idx = ch_high * out_height * out_width * bits_per_input
-                  + wi * out_width * bits_per_input
-                  + wj * bits_per_input
-                  + digit;
-                const auto in_idx = ih * input_height * input_width * bits_per_input
-                  + row * input_width * bits_per_input
-                  + col * bits_per_input
-                  + digit;
-                output.data()[out_idx]
-                  = input.data()[in_idx];
-              }
+              const auto ch_high = ih + (ki * kernel_size + kj) * input_depth;
+              const auto out_idx = ch_high * out_height * out_width * bits_per_input
+                + wi * out_width * bits_per_input
+                + wj * bits_per_input;
+              const auto in_idx = ih * input_height * input_width * bits_per_input
+                + row * input_width * bits_per_input
+                + col * bits_per_input;
+              *reinterpret_cast<uint64_t*>(output.data() + out_idx) =
+                  *reinterpret_cast<uint64_t*>(input.data() + in_idx);
 #endif
             }
   }
