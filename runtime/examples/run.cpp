@@ -13,22 +13,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 =============================================================================*/
 
-#include "blueoil.hpp"
-
 #include <string>
 #include <iostream>
 #include <vector>
 
-
-using namespace std;
+#include "blueoil.hpp"
 
 // TODO: delete this func. it is for debug.
 blueoil::Tensor RandomImage(int height, int width, int channel) {
     blueoil::Tensor t({height, width, channel});
-    vector<float>& data = t.data();
+    std::vector<float>& data = t.data();
+    unsigned seed = 0;
 
-    for (int i = 0; i < data.size(); ++i) {
-        const float f_rand = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 255;
+    for (size_t i = 0; i < data.size(); ++i) {
+        const float f_rand = static_cast <float> (rand_r(&seed)) / static_cast <float> (RAND_MAX) * 255;
         data[i] = f_rand;
     }
 
@@ -38,32 +36,29 @@ blueoil::Tensor RandomImage(int height, int width, int channel) {
 
 
 int main() {
-    string meta_yaml = "meta.yaml";
+  std::string meta_yaml = "meta.yaml";
 
-    blueoil::Predictor predictor = blueoil::Predictor(meta_yaml);
+  blueoil::Predictor predictor = blueoil::Predictor(meta_yaml);
 
-    cout << "classes: " << endl;
-    for (string j: predictor.classes) {
-        std::cout << j << "\n";
-    }
+  std::cout << "classes: " << std::endl;
+  for (std::string j : predictor.classes) {
+    std::cout << j << "\n";
+  }
 
-    cout << "task: " << predictor.task << endl;
+  std::cout << "task: " << predictor.task << std::endl;
 
-    cout << "expected input shape: " << endl;
-    for (int j: predictor.expected_input_shape) {
-        std::cout << j << "\n";
-    }
+  std::cout << "expected input shape: " << std::endl;
+  for (int j : predictor.expected_input_shape) {
+    std::cout << j << "\n";
+  }
 
-    blueoil::Tensor random_image = RandomImage(256, 256, 3);
+  blueoil::Tensor random_image = RandomImage(256, 256, 3);
 
-    cout << "Run" << endl;
-    blueoil::Tensor output =  predictor.Run(random_image);
+  std::cout << "Run" << std::endl;
+  blueoil::Tensor output =  predictor.Run(random_image);
 
-    cout << "Results !" << endl;
-    for (float j: output.data()) {
-        cout << j << endl;
-    }
-
-
-
+  std::cout << "Results !" << std::endl;
+  for (float j : output.data()) {
+    std::cout << j << std::endl;
+  }
 }
