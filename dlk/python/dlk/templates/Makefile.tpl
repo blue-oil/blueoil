@@ -72,6 +72,15 @@ LIB_X86_SRC := \
     $(SRC_DIR)/func/impl/generic/pack_16bit.cpp
 LIB_X86_OBJ := $(patsubst %.cpp, %.o, $(LIB_X86_SRC))
 
+LIB_X86_AVX_SRC := \
+    $(SRC_DIR)/func/generic/batch_normalization.cpp \
+    $(SRC_DIR)/func/impl/x86_avx/quantized_conv2d_tiling.cpp \
+    $(SRC_DIR)/matrix/generic/quantized_multiplication.cpp \
+    $(SRC_DIR)/func/impl/generic/pop_count.cpp \
+    $(SRC_DIR)/func/impl/x86_avx/apply_thresholds.cpp \
+    $(SRC_DIR)/func/impl/x86_avx/pack_16bit.cpp
+LIB_X86_AVX_OBJ := $(patsubst %.cpp, %.o, $(LIB_X86_AVX_SRC))
+
 LIB_OBJ := $(patsubst %.cpp, %.o, $(LIB_SRC))
 OBJ := $(patsubst %.cpp, %.o, $(SRC))
 
@@ -81,6 +90,8 @@ HLS_INCLUDE := -I./hls/include
 
 TARGETS_X86  := lm_x86
 
+TARGETS_X86_AVX  := lm_x86_avx
+
 TARGETS_AARCH64 := lm_aarch64
 
 TARGETS_ARM  := lm_arm
@@ -89,6 +100,8 @@ TARGETS_FPGA := lm_fpga
 
 LIBS_X86     := lib_x86
 
+LIBS_X86_AVX := lib_x86_avx
+
 LIBS_AARCH64 := lib_aarch64
 
 LIBS_ARM     := lib_arm
@@ -96,6 +109,8 @@ LIBS_ARM     := lib_arm
 LIBS_FPGA    := lib_fpga
 
 ARS_X86     := ar_x86
+
+ARS_X86_AVX := ar_x86_avx
 
 ARS_AARCH64 := ar_aarch64
 
@@ -136,6 +151,10 @@ lm_x86:           CXX = g++
 lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -DUSE_PNG -pthread -g
 lm_x86:           CXXFLAGS +=
 
+lm_x86_avx:       CXX = g++
+lm_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -mavx2 -DUSE_AVX -DUSE_PNG -pthread -g -fopenmp
+lm_x86_avx:       CXXFLAGS +=
+
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
 lm_aarch64:       FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -pthread -g -fopenmp
 lm_aarch64:       CXXFLAGS +=
@@ -151,6 +170,10 @@ lm_fpga:          CXXFLAGS +=
 lib_x86:           CXX = g++
 lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -pthread -g
 lib_x86:           CXXFLAGS +=
+
+lib_x86_avx:       CXX = g++
+lib_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -pthread -g -fopenmp
+lib_x86_avx:       CXXFLAGS +=
 
 lib_aarch64:       CXX = aarch64-linux-gnu-g++
 lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_NEON -pthread -g
@@ -169,6 +192,12 @@ ar_x86:           CXX = g++
 ar_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -pthread -g
 ar_x86:           LDFLAGS += -rcs
 ar_x86:           NAME = x86
+
+ar_x86_avx:       AR = ar
+ar_x86_avx:       CXX = g++
+ar_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -pthread -g -fopenmp
+ar_x86_avx:       LDFLAGS += -rcs
+ar_x86_avx:       NAME = x86_avx
 
 ar_aarch64:       AR = aarch64-linux-gnu-ar
 ar_aarch64:       CXX = aarch64-linux-gnu-g++
@@ -201,8 +230,14 @@ $(TARGETS_AARCH64): $(OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
 $(TARGETS_X86): $(OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
 	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_X86_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_X86_LIBS) -pthread -ldl
 
+$(TARGETS_X86_AVX): $(OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_X86_AVX_LIBS) -pthread -ldl
+
 $(LIBS_X86): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
 	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ) -o $@.so $(CXXFLAGS) $(TVM_X86_LIBS) -shared -pthread -ldl
+
+$(LIBS_X86_AVX): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ) -o $@.so $(CXXFLAGS) $(TVM_X86_AVX_LIBS) -shared -pthread -ldl
 
 $(LIBS_AARCH64): $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
 	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ) -o $@.so $(CXXFLAGS) $(TVM_AARCH64_LIBS)  -shared -pthread -ldl
@@ -215,6 +250,9 @@ $(LIBS_FPGA): $(LIB_OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ)
 
 $(ARS_X86): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
 	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(TVM_X86_LIBS) $(LIB_X86_OBJ)
+
+$(ARS_X86_AVX): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(TVM_X86_AVX_LIBS) $(LIB_X86_AVX_OBJ)
 
 $(ARS_AARCH64): $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
 	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(TVM_AARCH64_LIBS) $(LIB_AARCH64_OBJ)

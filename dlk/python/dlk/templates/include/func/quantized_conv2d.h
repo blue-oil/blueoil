@@ -60,7 +60,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
     convert_tensor(input, tmp);
     Measurement::Stop();
     dlk::impl::TCAConv2d(tmp, kernel, p);
-#elif defined USE_NEON
+#elif defined USE_NEON || defined USE_AVX
     dlk::impl::tiling_input_t::tensor_info_t<std::size_t> shape = {
       ic / TilingInTypeBitWidth,
       ih,
