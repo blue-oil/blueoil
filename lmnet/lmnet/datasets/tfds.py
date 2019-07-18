@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
@@ -49,7 +48,7 @@ def _format_object_detection_record(record, image_size, num_max_boxes):
     xmax = tf.cast(xmax * image_size[1], tf.int64)
 
     height = ymax - ymin
-    width  = xmax - xmin
+    width = xmax - xmin
 
     # Combine boxes and labels
     label = tf.expand_dims(record["objects"]["label"], axis=1)
@@ -208,17 +207,17 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
 
     def _validate_feature_structure(self):
         is_valid = \
-            "image"   in self.info.features and \
+            "image" in self.info.features and \
             "objects" in self.info.features and \
-            "label"   in self.info.features["objects"] and \
-            "bbox"    in self.info.features["objects"] and \
-            isinstance(self.info.features["image"],            tfds.features.Image) and \
-            isinstance(self.info.features["objects"],          tfds.features.SequenceDict) and \
+            "label" in self.info.features["objects"] and \
+            "bbox" in self.info.features["objects"] and \
+            isinstance(self.info.features["image"], tfds.features.Image) and \
+            isinstance(self.info.features["objects"], tfds.features.SequenceDict) and \
             isinstance(self.info.features["objects"]["label"], tfds.features.ClassLabel) and \
-            isinstance(self.info.features["objects"]["bbox"],  tfds.features.BBoxFeature)
+            isinstance(self.info.features["objects"]["bbox"], tfds.features.BBoxFeature)
 
         if not is_valid:
-            raise ValueError("Datasets should have \"objects\" and \"image\" features and " \
+            raise ValueError("Datasets should have \"objects\" and \"image\" features and "
                              "\"objects\" should be a SequenceDict containing \"label\" and \"bbox\".")
 
     def _format_dataset(self):
