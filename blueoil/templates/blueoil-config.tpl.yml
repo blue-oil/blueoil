@@ -24,6 +24,8 @@ trainer:
   #   '3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'.
   learning_rate_schedule: {{ learning_rate_schedule }}
   initial_learning_rate: {{ initial_learning_rate_value }}
+  save_checkpoint_steps: {{save_checkpoint_steps}}
+  keep_checkpoint_max: {{keep_checkpoint_max}}
 
 network:
   quantize_first_convolution: {{ quantize_first_convolution }}
