@@ -1,5 +1,5 @@
 # LMNet
-This project is developed as one part of Blueoil project -- the deep learning model part.  
+This project is developed as one part of Blueoil project -- the deep learning model part.
 
 
 * Training and Evaluation
@@ -7,7 +7,7 @@ This project is developed as one part of Blueoil project -- the deep learning mo
   * `train.py`: entry point script for training.
   * `evaluate.py`: entry point script for evaluattion metrics of trained models.
   * `output_event.py`: entry point script for output metrics in csv and markdown from tensorboard event log.
-  
+
 * Blueoil integration
   in `executor` dir.
   * `export.py`: entry point script for exporting proto buffer file from a trained model for DLK converter.
@@ -20,7 +20,7 @@ This project is developed as one part of Blueoil project -- the deep learning mo
 - - -
 
 # Getting Started
-Here is a simple example on how to use this tool.  
+Here is a simple example on how to use this tool.
 You can see more usage details in the following sub-sections. (e.g. downloading dataset, training)
 ```
 # clone this repository
@@ -55,7 +55,7 @@ If you want to use Docker, read the [lmnet in Docker](docs/docker/README.md) pag
 - - -
 
 # Setting up python environment
-Before you start to work on this project, you need to setup your local python environment correctly.  
+Before you start to work on this project, you need to setup your local python environment correctly.
 
 ## Supported python version
 The following versions of Python can be used: `3.5`, `3.6`.
@@ -114,11 +114,11 @@ In this project, we can choose model architecture and dataset separately. (VGG->
 to be written.
 
 ## Starting training
-Main training script is `executor/train.py`.  
-When you start training, you need to specify some (required) options.  
+Main training script is `executor/train.py`.
+When you start training, you need to specify some (required) options.
 You can see the option descriptions with `-h` flag.
 ```
-# PYTHONPATH=. python executor/train.py -h 
+# PYTHONPATH=. python executor/train.py -h
 Usage: train.py [OPTIONS]
 
 Options:
@@ -132,31 +132,31 @@ Options:
   -h, --help                Show this message and exit.
 ```
 
-`--network` and `--dataset` option will override config on-the-fly.  
+`--network` and `--dataset` option will override config on-the-fly.
 If you'd like to use your own custom config, please refer to `configs/example/classification.py` before your training. See also [Config specification](docs/specification/config.md).
 To run training in Docker, read the [lmnet in Docker](docs/docker/README.md) page.
 
 ## Saving model and training results
-After training a model, you can save the result in the filesystem.  
-By default, these files are generated under `saved` directory.  
+After training a model, you can save the result in the filesystem.
+By default, these files are generated under `saved` directory.
 You can change the directory via unix env variable `OUTPUT_DIR`, please refer to `lmnet/environment.py`.
 
-Under the `saved` directory, the experiments are saved with an associated id.  
-This `id` is specified via the script option `-i` or `--experiment_id`.  
+Under the `saved` directory, the experiments are saved with an associated id.
+This `id` is specified via the script option `-i` or `--experiment_id`.
 e.g.
-`PYTHONPATH=. python executor/train.py -n classification.lmnet -d mnist -i lmnet_mnist`  
-In the above case, id and experiment directory name is `lmnet_mnist`.  
-Default value of `--experiment_id` is `experiment`.  
+`PYTHONPATH=. python executor/train.py -n classification.lmnet -d mnist -i lmnet_mnist`
+In the above case, id and experiment directory name is `lmnet_mnist`.
+Default value of `--experiment_id` is `experiment`.
 
-And then, sub-directories are also created in `lmnet_mnist`.  
+And then, sub-directories are also created in `lmnet_mnist`.
 Currently, there are 3 sub-directories.
 
-- config.py   
-Actual copy of the config file used for training.  
+- config.py
+Actual copy of the config file used for training.
 It is useful to record the configured parameters, lest we forget it.
-- checkpoints  
+- checkpoints
 tensorflow's ckpt files are saved there
-- tensorboard  
+- tensorboard
 tensorboard's source files are saved there
 
 Finally, The tree structure is per below.
@@ -178,11 +178,11 @@ saved/
 
 
 ## Starting evaluation
-Main evaluation script is `executor/evaluate.py`.  
-When you start doing evaluation, you need to specify some (required) options.  
+Main evaluation script is `executor/evaluate.py`.
+When you start doing evaluation, you need to specify some (required) options.
 You can see the option descriptions with `-h` flag.
 ```
-# PYTHONPATH=. python executor/evaluate.py -h 
+# PYTHONPATH=. python executor/evaluate.py -h
 Usage: evaluate.py [OPTIONS]
 
 Options:
@@ -191,26 +191,26 @@ Options:
   -n, --network TEXT        network name. override config.NETWORK_CLASS
   -d, --dataset TEXT        dataset name. override config.DATASET_CLASS
   -c, --config_file TEXT    config file path. override(merge) saved experiment config.
-                            if it is not provided, it restore from saved experiment config. 
+                            if it is not provided, it restore from saved experiment config.
   -h, --help                Show this message and exit.
 ```
 
-`--network` and `--dataset` option override config on the fly.  
+`--network` and `--dataset` option override config on the fly.
 
 - - -
 
 ## Improving accuracy
-In progress.  
+In progress.
 We need to implement some ideas to increase the accuracy.
 
 ### Using train validation saving
-A subset is split from the train data and used to decide points at which the model is saved.  
-This can increase performance of the saved model for quantized network, but also increases training time.  
+A subset is split from the train data and used to decide points at which the model is saved.
+This can increase performance of the saved model for quantized network, but also increases training time.
 
-The SAVE_STEPS parameter should be small to make use of this feature (increasing the value of this parameter gives faster training but might not increase accuracy as much).  
-Also TRAIN_VALIDATION_SAVING_SIZE determines how much to split from the train data.  
-Currently, this feature is implemented for quantized classification of cifar10 and cifar100.  
-If you don't want to use this feature, set TRAIN_VALIDATION_SAVING_SIZE to zero.  
+The SAVE_CHECKPOINT_STEPS parameter should be small to make use of this feature (increasing the value of this parameter gives faster training but might not increase accuracy as much).
+Also TRAIN_VALIDATION_SAVING_SIZE determines how much to split from the train data.
+Currently, this feature is implemented for quantized classification of cifar10 and cifar100.
+If you don't want to use this feature, set TRAIN_VALIDATION_SAVING_SIZE to zero.
 
 To apply this feature to another dataset, the dataset file should define another available subset called train_validation_saving, which is split from the original train dataset in the dataset file. Also a dataset parameter TRAIN_VALIDATION_SAVING_SIZE should be included in the config file.
 
@@ -237,7 +237,7 @@ Usage: export.py [OPTIONS]
 
   In the case with `images` option, create each layer output value npy files
   in `export/{restore_path}/{image_size}/{image_name}/**.npy` for debug.
-  
+
 Options:
   -i, --experiment_id TEXT        id of this experiment.  [required]
   --restore_path TEXT             restore ckpt file base path. e.g.
@@ -382,7 +382,7 @@ e.g.
 # Profiling model
 Profiling a trained model.
 
-If it exists unquantized layers, use `-uql` to point it out. 
+If it exists unquantized layers, use `-uql` to point it out.
 
 ```
 # PYTHONPATH=. python executor/profile_model.py -h
@@ -439,7 +439,7 @@ For convenience, just run `remake_docs.sh` under `docs`.
 For example, `./remake_docs.sh 8000`
 will update `source`. Then build html and serve at port `8000`.
 
-For more details, please take a look at the script file. 
+For more details, please take a look at the script file.
 
 Or you can just run step by step:
 

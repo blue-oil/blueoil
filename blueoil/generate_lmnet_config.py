@@ -123,9 +123,10 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # default setting
     default_lmnet_config = {
-        "save_steps": 1000,
+        "save_checkpoint_steps": 1000,
         "test_steps": 1000,
         "summarise_steps": 100,
+        "keep_checkpoint_max": 5,
     }
     dataset = {
 
@@ -190,8 +191,8 @@ def _blueoil_to_lmnet(blueoil_config):
         if optimizer == 'Momentum':
             optimizer_kwargs = {"momentum": 0.9}
         else:
-            optimizer_kwargs = {}            
-            
+            optimizer_kwargs = {}
+
     if learning_rate_schedule == "2-step-decay":
         learning_rate_kwargs = {
             "values": [
