@@ -20,6 +20,13 @@ import tensorflow_datasets as tfds
 from lmnet.datasets.base import Base, ObjectDetectionBase
 
 
+def _grayscale_to_rgb(record):
+    return {
+        "image": tf.image.grayscale_to_rgb(record["image"]),
+        "label": record["label"]
+    }
+
+
 def _format_classification_record(record, image_size, num_classes):
     image = tf.image.resize(record["image"], image_size)
     label = tf.one_hot(record["label"], num_classes)
@@ -59,8 +66,6 @@ def _format_object_detection_record(record, image_size, num_max_boxes):
 class TFDSMixin:
     """
     A Mixin to compose dataset classes for TFDS.
-    Only images which has 3 channels (RGB) can be loaded for now.
-    TODO(fujiwara): Convert grayscale images into RGB images.
     """
     available_subsets = ["train", "validation"]
     extend_dir = None
@@ -69,8 +74,8 @@ class TFDSMixin:
             self,
             tfds_name,
             tfds_data_dir,
+            tfds_image_size,
             tfds_download=False,
-            tfds_image_size=None,
             num_max_boxes=100,
             *args,
             **kwargs
@@ -168,6 +173,12 @@ class TFDSClassification(TFDSMixin, Base):
             raise ValueError("Datasets should have \"label\" and \"image\" features.")
 
     def _format_dataset(self):
+        if self.info.features['image'].shape[2] == 1:
+            self.tf_dataset = self.tf_dataset.map(
+                _grayscale_to_rgb,
+                num_parallel_calls=tf.data.experimental.AUTOTUNE
+            )
+
         self.tf_dataset = self.tf_dataset.map(
             lambda record: _format_classification_record(record, self.tfds_image_size, self.num_classes),
             num_parallel_calls=tf.data.experimental.AUTOTUNE
@@ -211,6 +222,12 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
                              "\"objects\" should be a SequenceDict containing \"label\" and \"bbox\".")
 
     def _format_dataset(self):
+        if self.info.features['image'].shape[2] == 1:
+            self.tf_dataset = self.tf_dataset.map(
+                _grayscale_to_rgb,
+                num_parallel_calls=tf.data.experimental.AUTOTUNE
+            )
+
         self.tf_dataset = self.tf_dataset.map(
             lambda record: _format_object_detection_record(record, self.tfds_image_size, self.num_max_boxes),
             num_parallel_calls=tf.data.experimental.AUTOTUNE
