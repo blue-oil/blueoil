@@ -265,6 +265,9 @@ bool Network::init()
   {% endfor -%}
 #endif // RUN_ON_FPGA
 
+#pragma omp parallel
+  std::cout << std::flush;
+
   return true;
 }
 
