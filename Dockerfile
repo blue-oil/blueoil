@@ -66,6 +66,7 @@ RUN cd /home/blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
 RUN apt-get install -y --no-install-recommends \
     x11-apps \
     imagemagick \
+    ttf-dejavu \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
