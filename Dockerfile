@@ -3,7 +3,7 @@ FROM nvidia/cuda:10.0-cudnn7-runtime-ubuntu${UBUNTU_VERSION}
 # python3.6 is provided by ubuntu18.04
 # python3.5 is provided by ubuntu16.04
 
-MAINTAINER masuda@leapmind.io
+MAINTAINER blueoil-admin@leapmind.io
 
 # TensorBoard
 EXPOSE 6006
