@@ -163,6 +163,10 @@ def _blueoil_to_lmnet(blueoil_config):
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
     optimizer  = blueoil_config["trainer"]["optimizer"]
+
+    save_checkpoint_steps = blueoil_config["trainer"]["save_checkpoint_steps"]
+    keep_checkpoint_max   = blueoil_config["trainer"]["keep_checkpoint_max"]
+
     if optimizer == 'Adam':
         optimizer_class = "tf.train.AdamOptimizer"
     elif optimizer == 'Momentum':
@@ -274,6 +278,8 @@ def _blueoil_to_lmnet(blueoil_config):
         "optimizer_kwargs": optimizer_kwargs,
         "learning_rate_func": learning_rate_func,
         "learning_rate_kwargs": learning_rate_kwargs,
+        "save_checkpoint_steps": save_checkpoint_steps,
+        "keep_checkpoint_max": keep_checkpoint_max,
 
         "image_size": image_size,
         "classes": classes,
