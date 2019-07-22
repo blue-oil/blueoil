@@ -123,10 +123,8 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # default setting
     default_lmnet_config = {
-        "save_checkpoint_steps": 1000,
         "test_steps": 1000,
         "summarise_steps": 100,
-        "keep_checkpoint_max": 5,
     }
     dataset = {
 
@@ -164,8 +162,10 @@ def _blueoil_to_lmnet(blueoil_config):
     batch_size = blueoil_config["trainer"]["batch_size"]
     optimizer  = blueoil_config["trainer"]["optimizer"]
 
-    save_checkpoint_steps = blueoil_config["trainer"]["save_checkpoint_steps"]
-    keep_checkpoint_max   = blueoil_config["trainer"]["keep_checkpoint_max"]
+    save_checkpoint_steps, keep_checkpoint_max = blueoil_config["trainer"]
+
+    save_checkpoint_steps = save_checkpoint_steps if save_checkpoint_steps is not None else 1000
+    keep_checkpoint_max = keep_checkpoint_max if keep_checkpoint_max is not None else 5
 
     if optimizer == 'Adam':
         optimizer_class = "tf.train.AdamOptimizer"
