@@ -1,28 +1,28 @@
 # Training for Basic Classification
 
-This guide trains a neural network model to classify images of 10 objects in the [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) dataset on GPU server.
+This tutorial covers training a neural network model on a GPU server to classify images of 10 objects in the [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) dataset.
 
 <img src="../_static/cifar10.png" width="400">
 
 ## Preparation
 
-The CIFAR-10 dataset is available from official website, but original dataset's format (numpy array) is unsupported in the Blueoil.
+The CIFAR-10 dataset is available from the official website. However, the dataset's original format (numpy array) is unsupported in Blueoil.
 
-Blueoil supports 2 formats for basic classification.
+Blueoil supports 2 formats for basic classification:
 
 - Caltech101 format
 - DeLTA-Mark format
 
-Note: *Please see the detail in <a href="../usage/dataset.html">Prepare training dataset</a>*
+Note: *Please see the details in <a href="../usage/dataset.html">Prepare training dataset</a>*
 
 
-You can download other data format (PNG image format) of CIFAR-10 from our mirror site.
+You can download PNG format CIFAR-10 from our mirror site.
 [https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/cifar.tgz](https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/cifar.tgz)
 
     $ wget https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/cifar.tgz
     $ tar xzf cifar.tgz
 
-The subdirectory of this dataset under train or test becomes the class name and images are located under the subdirectory. (This is same as Caltech101 format)
+The subdirectories of train and test represent the classes. The respective images are located in the aforementioned subdirectories. (The organization is the same for the Caltech101 format.)
 ```
 cifar
  ├─ train
@@ -44,15 +44,15 @@ cifar
      ...
 ```
 
-CIFAR-10 dataset consists of 60,000 32x32 color images in 10 classes, with 6,000 images per class. There are 50,000 training images and 10,000 test images.
+The CIFAR-10 dataset consists of 60,000 32x32 color images split into 10 classes, with 6,000 images per class. There are 50,000 training images and 10,000 test images.
 
 ## Generate a configuration file
 
-Generate your model configuration file interactively by running `blueoil init` command.
+Generate your model configuration file interactively by running the `blueoil init` command.
 
     $ ./blueoil.sh init
 
-This is an example of configuration.
+Below is an example configuration.
 
 ```
 #### Generate config ####
@@ -79,15 +79,15 @@ This is an example of configuration.
 - Image size: 32x32
 - Number of epoch: (Any number)
 
-If configuration finishes, configuration file is generated `{Model name}.yml` under `./config` directory.
+If configuration finishes, the configuration file is generated in the `{Model name}.yml` under `./config` directory.
 
 ## Train a neural network
 
-Train your model by running `blueoil train` command with model configuration.
+Train your model by running `blueoil train` with model configuration.
 
     $ ./blueoil.sh train config/{Model name}.yml
 
-When training is started, training log and checkpoints are generated under `./saved/{Mode name}_{TIMESTAMP}` directory.
+When training has started, the training log and checkpoints are generated under `./saved/{Mode name}_{TIMESTAMP}`.
 
 Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
@@ -108,10 +108,10 @@ Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
     $ ./blueoil.sh convert config/[Model name].yml saved/{Mode name}_{TIMESTAMP}
 
 `Blueoil convert` automatically executes some conversion processes.
-- Convert Tensorflow checkpoint to protocol buffer graph.
-- Optimize graph
-- Generate source code for executable binary
-- Compile for x86, ARM and FPGA
+- Converts Tensorflow checkpoint to protocol buffer graph.
+- Optimizes graph.
+- Generates source code for executable binary.
+- Compiles for x86, ARM and FPGA.
 
 If conversion is successful, output files are generated under `./saved/{Mode name}_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
 
@@ -147,9 +147,9 @@ output
 - Run inference script
 
     Explore into the `output/python` directory, and
-    run `run.py` and inference result is saved in `./output/output.json`.
+    run `run.py`. Inference result is saved in `./output/output.json`.
 
-    Note: If you run the script for the first time, you have to setup a python environment (2.7 or 3.5+) and install requirements python packages.
+    Note: If you run the script for the first time, you have to setup a python environment (2.7 or 3.5+) and install the required python packages.
 
       $ cd {output/python directory}
       $ sudo pip install -r requirements.txt  # only the first time
@@ -158,7 +158,7 @@ output
           -m ../models/lib/lib_x86.so \
           -c ../models/meta.yaml
 
-- Check inference result
+- Check inference result. Should look like the example below.
 
       {
           "classes": [

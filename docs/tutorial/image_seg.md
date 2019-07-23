@@ -1,19 +1,19 @@
 # Training for Semantic Segmentation
 
-This guide trains a neural network model to semantic segmentation of [CamVid](http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/) dataset on GPU server.
+This guide covers training a neural network model on a GPU server to perferm semantic segmentation of on the [CamVid](http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/) dataset.
 
 <img src="../_static/camvid.jpg" width="600">
 
 ## Preparation
 
-The CamVid dataset is available from SegNet tutorial on [Github](https://github.com/alexgkendall/SegNet-Tutorial), but the dataset contain fixed absolute path of the data like [`/SegNet/CamVid/test/0001TP_008550.png`](https://github.com/alexgkendall/SegNet-Tutorial/blob/master/CamVid/test.txt). We  changed the absolute paths to relative paths. You can download from our mirror site.
+The CamVid dataset is available from the SegNet tutorial on [Github](https://github.com/alexgkendall/SegNet-Tutorial), but the dataset contains fixed absolute paths of the data like [`/SegNet/CamVid/test/0001TP_008550.png`](https://github.com/alexgkendall/SegNet-Tutorial/blob/master/CamVid/test.txt). We have changed the absolute paths to relative paths. You can download out modified dataset from our mirror site.
 
 ```
 $ wget https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/camvid.tgz
 $ tar -xzf camvid.tgz
 ```
 
-The subdirectory of this dataset is like below structure. In CamVid dataset format, training and annotation data are both binary image file.
+The directory structure of this dataset is shown below. In the CamVid dataset, both training and annotation data are binary image files.
 
 ```
 CamVid
@@ -58,7 +58,7 @@ Generate your model configuration file interactively by running `blueoil.sh init
 
     $ ./blueoil.sh init
 
-This is an example of initialization.
+This is an example of the initialization procedure.
 
 ```
 #### Generate config ####
@@ -87,9 +87,9 @@ Train your model by running `blueoil.sh train` command with model configuration.
 
     $ ./blueoil.sh train config/{Model name}.yml
 
-When training is started, training log and checkpoints are generated under `./saved/{Mode name}_{TIMESTAMP}` directory.
+When training has started, the training log and checkpoints will be generated under `./saved/{Mode name}_{TIMESTAMP}`.
 
-Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process. 
+Training is running on the TensorFlow backend. So you can use TensorBoard to visualize your training progress.
 
     $ ./blueoil.sh tensorboard saved/{Model name}_{TIMESTAMP} {Port}
 
@@ -142,14 +142,14 @@ output
 
 - Prepare images for inference
 
-	You can find test imgaes on CamVid [Official Site](http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/).
+	You can find test imgaes on CamVid's [Official Site](http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/).
 
 		$ wget http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/pr/0006R0_f02040.jpg
 
 - Run inference script
 
     Explore into the `output/python` directory, and
-    run `run.py` and inference result is saved in `./output/images/{image_name}.png`.
+    run `run.py`. Inference results are saved in `./output/images/{image_name}.png`.
 
     Note: If you run the script for the first time, you have to setup a python environment (2.7 or 3.5+) and required python packages.
 
@@ -162,8 +162,8 @@ output
 	      -c ../models/meta.yaml
 	```
 
-- Check inference result
+- Check inference results
 
-	Image will be exported to `output/images/{image_name}.png`. Here is the sample output.
+	Image will be exported to `output/images/{image_name}.png`. Below you can see an example of the expected output.
 
 	<img src="../_static/semantic_segmentation_output.png">
