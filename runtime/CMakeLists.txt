@@ -26,6 +26,7 @@ if(USE_OPENCV)
   if(NOT OpenCV_FOUND)
     message(SEND_ERROR "OpenCV library not found.")
   endif()
+  add_definitions(-DUSE_OPENCV=1)
 endif()
 
 

@@ -19,7 +19,9 @@ limitations under the License.
 
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
+#ifdef USE_OPENCV
 #include "blueoil_opencv.hpp"
+#endif
 #include "blueoil_data_processor.hpp"
 #include "test_util.hpp"
 
