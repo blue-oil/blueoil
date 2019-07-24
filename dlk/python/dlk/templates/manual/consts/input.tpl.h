@@ -26,7 +26,7 @@ extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom> {{ node.
 
 #ifdef RUN_ON_FPGA
 extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }};
-#elif defined USE_NEON
+#elif defined USE_NEON || defined USE_AVX
 extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension}}> {{ node.name }};
 #else
 extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.kn2row_dimension_format }}> {{ node.name }};
