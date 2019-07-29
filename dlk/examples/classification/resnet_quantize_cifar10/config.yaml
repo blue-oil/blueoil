@@ -82,7 +82,8 @@ PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     - 32
     - 32
   - !!python/object:lmnet.pre_processor.PerImageStandardization {}
-SAVE_STEPS: 2500
+SAVE_CHECKPOINT_STEPS: 2500
+KEEP_CHECKPOINT_MAX: 5
 SUMMARISE_STEPS: 2500
 TASK: !!python/object/apply:lmnet.common.Tasks
 - IMAGE.CLASSIFICATION

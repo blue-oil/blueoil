@@ -275,7 +275,8 @@ def test_training():
     config.BATCH_SIZE = 4
     config.TEST_STEPS = 1
     config.MAX_STEPS = 2
-    config.SAVE_STEPS = 1
+    config.SAVE_CHECKPOINT_STEPS = 1
+    config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
     config.IS_DISTRIBUTION = False

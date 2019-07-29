@@ -84,7 +84,8 @@ PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     - 32
     - 32
   - !!python/object:lmnet.pre_processor.DivideBy255 {}
-SAVE_STEPS: 100000
+SAVE_CHECKPOINT_STEPS: 100000
+KEEP_CHECKPOINT_MAX: 5
 SUMMARISE_STEPS: 100
 TASK: !!python/object/apply:lmnet.common.Tasks
 - IMAGE.CLASSIFICATION
