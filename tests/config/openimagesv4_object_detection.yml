@@ -6,7 +6,7 @@ network_name: LMFYoloQuantize
 dataset:
   format: OpenImagesV4
   train_path: ./lmnet/tests/fixtures/datasets/custom_open_images_v4_bounding_boxes/for_train
-  test_path: 
+  test_path:
 
 trainer:
   batch_size: 1
@@ -24,6 +24,8 @@ trainer:
   #   '3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'.
   learning_rate_schedule: constant
   initial_learning_rate: 0.001
+  save_checkpoint_steps: 1000
+  keep_checkpoint_max: 5
 
 network:
   quantize_first_convolution: yes
