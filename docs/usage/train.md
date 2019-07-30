@@ -15,6 +15,6 @@ Arguments:
 
 `blueoil train` command runs actual training.
 
-Before running `blueoil train` command, make sure you've already put training/test data in the proper path, defined in configuration file.
+Before running `blueoil train`, make sure you've already put training/test data in the proper location, as defined in the configuration file.
 
-If you want to stop training, you should type `Ctrl + C` or kill `blueoil.sh` processes. And you can restart training from saved checkpoints with setting `EXPERIMENT_ID` to be the same as existing id.
+If you want to stop training, you should press `Ctrl + C` or kill the `blueoil.sh` processes. You can restart training from saved checkpoints by setting `EXPERIMENT_ID` to be the same as an existing id.
