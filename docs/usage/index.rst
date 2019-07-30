@@ -19,3 +19,4 @@ Blueoil is battery included, so you don't need to bother about defining your own
    train
    convert
    run
+   timing
