@@ -136,3 +136,5 @@ DATASET.AUGMENTOR = Sequence([
     Hue((-10, 10)),
     SSDRandomCrop(min_crop_ratio=0.7),
 ])
+DATASET.ENABLE_PREFETCH = True
+DATASET.NUM_PARALLEL_PROCESS = 16

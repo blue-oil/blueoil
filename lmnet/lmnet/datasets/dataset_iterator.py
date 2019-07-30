@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from multiprocessing import Pool
+import os
 import time
+import queue
 import threading
 import numpy as np
-import os
-import queue
 import tensorflow as tf
+
+from multiprocessing import Pool
+from multiprocessing import cpu_count
 from lmnet.datasets.tfds import TFDSBase
 from lmnet.datasets.base import SegmentationBase, ObjectDetectionBase
 
@@ -91,12 +93,13 @@ def _xorshift32(r):
 
 
 class _MultiProcessDatasetPrefetchThread(threading.Thread):
-    def __init__(self, dataset, result_queue, seed):
+    def __init__(self, dataset, result_queue, seed, num_parallel_process):
         super().__init__()
         # TODO(tokunaga): the number of processes should be configurable
         self.seed = seed + 1  # seed must not be 0 because using xorshift32.
         self.support_getitem = hasattr(dataset, "__getitem__")
-        self.pool = Pool(processes=8, initializer=_prefetch_setup,
+        self.num_parallel_process = num_parallel_process
+        self.pool = Pool(processes=self.num_parallel_process, initializer=_prefetch_setup,
                          initargs=(dataset, self.seed, not self.support_getitem))
         self.result_queue = result_queue
         self.batch_size = dataset.batch_size
@@ -132,7 +135,7 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
     def refresh_pool(self):
         self.pool.close()
         self.seed += 1
-        self.pool = Pool(processes=8, initializer=_prefetch_setup,
+        self.pool = Pool(processes=self.num_parallel_process, initializer=_prefetch_setup,
                          initargs=(self.dataset, self.seed, not self.support_getitem))
 
     def loop_body(self):
@@ -229,18 +232,23 @@ class DatasetIterator:
     available_subsets = ["train", "train_validation_saving", "validation"]
 
     """docstring for DatasetIterator."""
-    def __init__(self, dataset, enable_prefetch=False, seed=0):
+    def __init__(self, dataset, enable_prefetch=False, seed=0, queue_size=None, num_parallel_process=None):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
         self.seed = seed
+        num_parallel_process = num_parallel_process if num_parallel_process else max(int(cpu_count() // 2), 1)
+        queue_size = queue_size if queue_size else self.dataset.batch_size * num_parallel_process
 
         if issubclass(dataset.__class__, TFDSBase):
             self.enable_prefetch = False
             self.reader = _TFDSReader(self.dataset)
         else:
             if self.enable_prefetch:
-                self.prefetch_result_queue = queue.Queue(maxsize=200)
-                self.prefetcher = _MultiProcessDatasetPrefetchThread(self.dataset, self.prefetch_result_queue, seed)
+                self.prefetch_result_queue = queue.Queue(maxsize=queue_size)
+                self.prefetcher = _MultiProcessDatasetPrefetchThread(self.dataset,
+                                                                     self.prefetch_result_queue,
+                                                                     seed,
+                                                                     num_parallel_process)
                 self.prefetcher.start()
                 print("ENABLE prefetch")
             else:

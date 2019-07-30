@@ -40,7 +40,10 @@ def setup_dataset(config, subset, rank):
     dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
     dataset = DatasetClass(subset=subset, **dataset_kwargs)
     enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
-    return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
+    num_parallel_process = dataset_kwargs['num_parallel_process']
+    return DatasetIterator(dataset, seed=rank,
+                           enable_prefetch=enable_prefetch,
+                           num_parallel_process=num_parallel_process)
 
 
 def start_training(config):
