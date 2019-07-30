@@ -41,6 +41,7 @@ IMAGE_SIZE:
 IS_DEBUG: false
 IS_DISTRIBUTION: false
 IS_PRETRAIN: false
+KEEP_CHECKPOINT_MAX: 5
 MAX_STEPS: 150000
 NETWORK:
   ACTIVATION_QUANTIZER: !!python/name:lmnet.quantizations.linear.linear_mid_tread_half_quantizer ''
@@ -66,7 +67,6 @@ PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
   processors:
   - !!python/object:lmnet.pre_processor.DivideBy255 {}
 SAVE_CHECKPOINT_STEPS: 3000
-KEEP_CHECKPOINT_MAX: 5
 SUMMARISE_STEPS: 1000
 TASK: !!python/object/apply:lmnet.common.Tasks
 - IMAGE.SEMANTIC_SEGMENTATION
