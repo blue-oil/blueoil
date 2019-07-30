@@ -6,7 +6,7 @@ network_name: LMFYoloQuantize
 dataset:
   format: OpenImagesV4
   train_path: ./lmnet/tests/fixtures/datasets/custom_open_images_v4_bounding_boxes/for_train
-  test_path:
+  test_path: 
 
 trainer:
   batch_size: 1
