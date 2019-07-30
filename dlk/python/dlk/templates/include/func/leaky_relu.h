@@ -17,7 +17,30 @@ limitations under the License.
 #define DLK_FUNC_LEAKY_RELU_H_INCLUDED
 
 #include "global.h"
+#include "tensor_view.h"
+#include "func/impl/unary_op.h"
 
-void func_LeakyRelu(T_FLOAT input[], T_FLOAT output[], T_FLOAT alpha, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+template <typename T>
+struct leaky_relu {
+ public:
+  explicit leaky_relu(const T& alpha) : alpha(alpha) {}
+  T operator()(const T& x) {
+    return std::max(x, x * alpha);
+  }
+ private:
+  const T alpha;
+};
+
+template <typename T, MemoryLayout layout>
+void func_LeakyRelu(const TensorView<T, layout>& input,
+    const TensorView<T, layout>& output,
+    T alpha) {
+  Measurement::Start("LeakyReLu");
+
+  leaky_relu<T> f(alpha);
+  dlk::impl::unary_op(input, output, f);
+
+  Measurement::Stop();
+}
 
 #endif // DLK_FUNC_LEAKY_RELU_H_INCLUDED

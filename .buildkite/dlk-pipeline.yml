@@ -1,0 +1,16 @@
+  - command: "make test-dlk-main"
+    label: "dlk: main"
+    agents:
+    - "agent-type=fpga"
+    - "env=production"
+    timeout_in_minutes: "40"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-dlk-pep8"
+    label: "dlk: pep8"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'

@@ -20,11 +20,21 @@ limitations under the License.
 
 {% if node.is_scalar -%}
 
-extern {{ node.dtype.cpptype() }} {{ node.name }};
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom> {{ node.name }};
+
+{% elif node.transposed_data -%}
+
+#ifdef RUN_ON_FPGA
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }};
+#elif defined USE_NEON || defined USE_AVX
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension}}> {{ node.name }};
+#else
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.kn2row_dimension_format }}> {{ node.name }};
+#endif
 
 {% else -%}
 
-extern {{ node.dtype.cpptype() }}* {{ node.name }};
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension}}> {{ node.name }};
 
 {%- endif %}
 

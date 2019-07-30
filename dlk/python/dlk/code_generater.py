@@ -63,32 +63,12 @@ class CodeGenerater(object):
                 # if the file's dir not exist, make it
                 utils.make_dirs([dest_file_dir_path])
 
-                if 'tpl' in path.basename(src_file_path):
+                if 'tpl' in path.basename(src_file_path) and path.basename(src_file_path)[0] != '.':
                     relative_src_file_path = str(src_file.relative_to(self.template.root_dir))
                     self.template.generate(relative_src_file_path,
                                            dest_file_dir_path)
                 else:
                     shutil.copy2(src_file_path, dest_file_path)
-
-    def generate_consts(self) -> None:
-        const_src_dir_path = path.join(self.src_dir, 'consts')
-        const_header_dir_path = path.join(self.header_dir, 'consts')
-        utils.make_dirs([const_src_dir_path, const_header_dir_path])
-
-        const_src_template_path = path.join('manual', 'input', 'const.tpl.cpp')
-        const_header_template_path = path.join('manual', 'input', 'const.tpl.h')
-
-        for const in self.graph.consts:
-
-            self.template.generate(const_src_template_path,
-                                   const_src_dir_path,
-                                   new_name=const.name,
-                                   const=const)
-
-            self.template.generate(const_header_template_path,
-                                   const_header_dir_path,
-                                   new_name=const.name,
-                                   const=const)
 
     def generate_inputs(self) -> None:
         input_src_dir_path = path.join(self.src_dir, 'inputs')

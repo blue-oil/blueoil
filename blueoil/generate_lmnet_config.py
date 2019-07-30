@@ -21,6 +21,7 @@ from tempfile import NamedTemporaryFile
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
+from tensorflow import gfile
 
 from lmnet.utils.module_loader import load_class
 from blueoil.vars import TEMPLATE_DIR
@@ -97,11 +98,11 @@ def _load_yaml(blueoil_config_filename):
     Returns:
         blueoil_config(dict): dict of blueoil config.
     """
-    if not os.path.exists(blueoil_config_filename):
+    if not gfile.Exists(blueoil_config_filename):
         FileNotFoundError("File not found: {}".format(blueoil_config_filename))
 
-    with open(blueoil_config_filename, "r") as f:
-        blueoil_config = yaml.load(f)
+    with gfile.GFile(blueoil_config_filename, "r") as f:
+        blueoil_config = yaml.load(f, Loader=yaml.SafeLoader)
 
     model_name, _ = os.path.splitext(os.path.basename(blueoil_config_filename))
 

@@ -20,17 +20,100 @@ limitations under the License.
 #include "time_measurement.h"
 
 template<class T>
-void func_ConcatOnDepth(T *inputs[], T_UINT *depths, T_UINT n_inputs, T output[], T_UINT out_height, T_UINT out_width, T_UINT out_depth)
-{
+void func_ConcatOnDepth(const TensorView<T, MemoryLayout::NHWC> inputs[],
+    T_UINT *depths, T_UINT n_inputs,
+    const TensorView<T, MemoryLayout::NHWC>& output) {
   Measurement::Start("func_ConcatOnDepth");
+  const auto shape = output.get_shape();
+  T_UINT out_height = shape[1];
+  T_UINT out_width = shape[2];
 
   T_UINT output_index = 0;
   T_UINT input_index[32] = {0};
 
-  for(T_UINT i = 0; i < out_height * out_width; i++)
-    for(T_UINT n = 0; n < n_inputs; n++)
-      for(T_UINT d = 0; d < depths[n]; d++)
-        output[output_index++] = inputs[n][input_index[n]++];
+  if (!std::is_same<T, typename Base<T>::type>::value) {
+    // quantized and packed inputs
+    for(T_UINT i = 0; i < n_inputs; i++)
+      depths[i] /= 32;
+  }
+
+  T_UINT index = 0;
+  for(T_UINT n = 0; n < n_inputs; n++)
+    for(T_UINT d = 0; d < depths[n]; d++) {
+      for(T_UINT h = 0; h < out_height; h++)
+        for(T_UINT w = 0; w < out_width; w++) {
+          output(0, h, w, index) = inputs[n](0, h, w, d);
+        }
+      ++index;
+    }
+
+  Measurement::Stop();
+}
+
+template<class T>
+void func_ConcatOnDepth(const TensorView<T, MemoryLayout::HWChBCl> inputs[],
+    T_UINT *depths, T_UINT n_inputs,
+    const TensorView<T, MemoryLayout::HWChBCl>& output) {
+  Measurement::Start("func_ConcatOnDepth");
+  const auto shape = output.get_shape();
+  T_UINT out_height = shape[0];
+  T_UINT out_width = shape[1];
+  T_UINT bits = shape[3];
+
+  T_UINT output_index = 0;
+  T_UINT input_index[32] = {0};
+
+  if (!std::is_same<T, typename Base<T>::type>::value) {
+    // quantized and packed inputs
+    for(T_UINT i = 0; i < n_inputs; i++)
+      depths[i] /= 32;
+  }
+
+  T_UINT index = 0;
+  for(T_UINT n = 0; n < n_inputs; n++)
+    for(T_UINT d = 0; d < depths[n]; d++) {
+      for(T_UINT h = 0; h < out_height; h++)
+        for(T_UINT w = 0; w < out_width; w++) {
+          for(T_UINT digit = 0; digit < bits; ++digit) {
+            output(h, w, index, digit, 0) = inputs[n](h, w, d, digit, 0);
+          }
+        }
+      ++index;
+    }
+
+  Measurement::Stop();
+}
+
+template<class T>
+void func_ConcatOnDepth(const TensorView<T, MemoryLayout::ChHWBCl> inputs[],
+    T_UINT *depths, T_UINT n_inputs,
+    const TensorView<T, MemoryLayout::ChHWBCl>& output) {
+  Measurement::Start("func_ConcatOnDepth");
+  const auto shape = output.get_shape();
+  T_UINT out_height = shape[1];
+  T_UINT out_width = shape[2];
+  T_UINT bits = shape[3];
+
+  T_UINT output_index = 0;
+  T_UINT input_index[32] = {0};
+
+  if (!std::is_same<T, typename Base<T>::type>::value) {
+    // quantized and packed inputs
+    for(T_UINT i = 0; i < n_inputs; i++)
+      depths[i] /= 32;
+  }
+
+  T_UINT index = 0;
+  for(T_UINT n = 0; n < n_inputs; n++)
+    for(T_UINT d = 0; d < depths[n]; d++) {
+      for(T_UINT h = 0; h < out_height; h++)
+        for(T_UINT w = 0; w < out_width; w++) {
+          for(T_UINT digit = 0; digit < bits; ++digit) {
+            output(index, h, w, digit, 0) = inputs[n](d, h, w, digit, 0);
+          }
+        }
+      ++index;
+    }
 
   Measurement::Stop();
 }

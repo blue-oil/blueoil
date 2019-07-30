@@ -101,22 +101,39 @@ def run_and_check(command, cwd, file_stdout=None, file_stderr=None, testcase=Non
 def wait_for_device(host: str, tries: int, seconds: int, log_path: str, testcase=None) -> bool:
 
     board_found = False
+    board_ssh_enabled = False
     for i in range(tries):
         try:
             print(f'Waiting for device {host}: try {i+1} of {tries}')
-            time.sleep(seconds)
 
-            run_and_check(
-                ["ping", "-c5", host],
-                log_path, join(log_path, "ping.out"), join(log_path, "ping.err"), testcase)
+            if not board_found:
+                run_and_check(
+                    ["ping", "-c5", host],
+                    log_path, join(log_path, "ping.out"), join(log_path, "ping.err"), testcase)
 
-            board_found = True
-            break
+                board_found = True
+            else:
+                run_and_check(
+                    [ "ssh",
+                     "-o",
+                     "StrictHostKeyChecking no",
+                     f"root@{host}",
+                     f"uname -a"
+                     ],
+                    log_path,
+                    join(log_path, "ssh_uname-a.out"),
+                    join(log_path, "ssh_uname-a.err"),
+                    testcase
+                )
+
+                board_ssh_enabled = True
+                break
         except Exception as e:
             print(str(e))
+            time.sleep(seconds)
             continue
 
-    return board_found
+    return board_ssh_enabled
 
 def setup_de10nano(hw_path: str, output_path: str, testcase=None):
 

@@ -30,28 +30,13 @@ set(CMAKE_CXX_EXTENSIONS YES)
 #
 file(GLOB SRC_LIB_ALL "src/inputs/*.cpp")
 list(APPEND SRC_LIB_ALL
-    src/func/add.cpp
     src/func/average_pool.cpp
-    src/func/bias_add.cpp
     src/func/conv2d.cpp
-    src/func/impl/apply_thresholds.cpp
-    src/func/impl/quantized_conv2d_dim2col.cpp
-    src/func/max.cpp
     src/func/max_pool.cpp
-    src/func/minimum.cpp
     src/func/pad.cpp
-    src/func/mul.cpp
     src/func/matmul.cpp
     src/func/quantize.cpp
-    src/func/quantized_conv2d.cpp
-    src/func/real_div.cpp
-    src/func/relu.cpp
-    src/func/leaky_relu.cpp
-    src/func/round.cpp
-    src/func/scale.cpp
     src/func/softmax.cpp
-    src/func/sqrt.cpp
-    src/func/sub.cpp
     src/func/unpooling.cpp
     src/matrix/shift_add.cpp
     src/network_c_interface.cpp
@@ -71,7 +56,6 @@ endif()
 if(RUN_ON_FPGA)
     list(APPEND SRC_LIB_ALL src/pack2b_neonv7.S)
     list(APPEND SRC_LIB_ALL src/func/arm_neon/batch_normalization.cpp)
-    list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/quantized_conv2d_tiling.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/fpga/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pop_count.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arm_neon/quantized_multiplication.cpp)
@@ -81,11 +65,15 @@ elseif(USE_NEON)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/quantized_conv2d_tiling.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/generic/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pop_count.cpp)
+    list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pack_16bit.cpp)
+    list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/apply_thresholds.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/arm_neon/quantized_multiplication.cpp)
 else()
     list(APPEND SRC_LIB_ALL src/func/generic/batch_normalization.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/generic/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/generic/pop_count.cpp)
+    list(APPEND SRC_LIB_ALL src/func/impl/generic/pack_16bit.cpp)
+    list(APPEND SRC_LIB_ALL src/func/impl/generic/apply_thresholds.cpp)
     list(APPEND SRC_LIB_ALL src/matrix/generic/quantized_multiplication.cpp)
 endif()
 
@@ -107,6 +95,9 @@ macro(add_dlk_target_compile_properties target)
     endif()
     if(RUN_ON_FPGA)
         target_compile_definitions(${target} PUBLIC -DRUN_ON_FPGA)
+    endif()
+    if(AARCH32)
+        target_compile_definitions(${target} PUBLIC -DAARCH32)
     endif()
 endmacro()
 

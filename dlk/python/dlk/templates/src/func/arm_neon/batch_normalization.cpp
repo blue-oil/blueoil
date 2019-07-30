@@ -21,12 +21,19 @@ limitations under the License.
 
 #include <arm_neon.h>
 
-void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
-                             T_FLOAT mean[], T_FLOAT variance[],
-                             T_FLOAT epsilon, T_FLOAT output[],
-                             T_UINT out_height, T_UINT out_width,
-                             T_UINT out_depth) {
+void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::C>& gamma,
+    const TensorView<T_FLOAT, MemoryLayout::C>& beta,
+    const TensorView<T_FLOAT, MemoryLayout::C>& mean,
+    const TensorView<T_FLOAT, MemoryLayout::C>& variance,
+    T_FLOAT epsilon,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output) {
   Measurement::Start("BatchNorm");
+
+  const auto out_shape = output.get_shape();
+  T_UINT out_height = out_shape[1];
+  T_UINT out_width = out_shape[2];
+  T_UINT out_depth = out_shape[3];
 
   // temporary fix: will be replaced by pre-allocated one
   T_FLOAT *scale = new float[out_depth];
@@ -38,10 +45,10 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
 
   int i = 0;
   for (; i <= static_cast<int>(out_depth) - 4; i += 4) {
-    float32x4_t gamma_batch = vld1q_f32(&gamma[i]);
-    float32x4_t var_batch = vld1q_f32(&variance[i]);
-    float32x4_t beta_batch = vld1q_f32(&beta[i]);
-    float32x4_t mu_batch = vld1q_f32(&mean[i]);
+    float32x4_t gamma_batch = vld1q_f32(gamma.data() + i);
+    float32x4_t var_batch = vld1q_f32(variance.data() + i);
+    float32x4_t beta_batch = vld1q_f32(beta.data() + i);
+    float32x4_t mu_batch = vld1q_f32(mean.data() + i);
 
     scale_b = vaddq_f32(var_batch, eps_batch);
     float32x4_t rsqrt_est = vrsqrteq_f32(scale_b);
@@ -55,19 +62,20 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
   }
 
   for (; i < static_cast<int>(out_depth); i++) {
-    scale[i] = gamma[i] * (1.0 / std::sqrt(variance[i] + epsilon));
-    shift[i] = beta[i] - (scale[i] * mean[i]);
+    scale[i] = gamma(i) * (1.0 / std::sqrt(variance(i) + epsilon));
+    shift[i] = beta(i) - (scale[i] * mean(i));
   }
 
 // TODO(nlpng): remove use of OpenMP library
 #pragma omp parallel for
   for (T_UINT f = 0; f < size; f++) {
 
-    T_FLOAT *in_temp = &input[f * out_depth];
-    T_FLOAT *out_temp = &output[f * out_depth];
+    T_FLOAT *in_temp = input.data() + f * out_depth;
+    T_FLOAT *out_temp = output.data() + f * out_depth;
 
     T_UINT d = 0;
     for (; d + 3 < out_depth; d += 4) {
+#ifdef AARCH32
       asm volatile("vldmia %0, {d16,d17}    \t\n" // q8(d16,d17) scale
                    "vldmia %1, {d18,d19}    \t\n" // q9(d18,d19) shift
                    "vldmia %2, {d20,d21}    \t\n" // q10(d20,d21) input
@@ -76,6 +84,12 @@ void func_BatchNormalization(T_FLOAT input[], T_FLOAT gamma[], T_FLOAT beta[],
                    :
                    : "r"(&scale[d]), "r"(&shift[d]), "r"(in_temp), "r"(out_temp)
                    : "memory", "q8", "q9", "q10");
+#else
+      const auto scale_v = vld1q_f32(scale + d);
+      const auto shift_v = vld1q_f32(shift + d);
+      const auto in_v = vld1q_f32(in_temp);
+      vst1q_f32(out_temp, vmlaq_f32(shift_v, in_v, scale_v));
+#endif
       in_temp += 4;
       out_temp += 4;
     }

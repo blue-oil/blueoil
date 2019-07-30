@@ -5,7 +5,17 @@ BASE_DIR=$(dirname $0)
 RUN_SCRIPT=${BASE_DIR}/blueoil.sh
 TEST_RESULT=0
 TEST_CONFIG_PREFIX=created_by_test_script
-YML_CONFIG_FILE=$1
+ADDITIONAL_TEST_FLAG="true"
+if [ "$1" == "--task" ]; then
+    TASK_TYPES=$2
+    if [ "$3" != "--additional_test" ]; then
+        ADDITIONAL_TEST_FLAG="false"
+    fi
+
+else
+    YML_CONFIG_FILE=$1
+    TASK_TYPES="classification object_detection semantic_segmentation"
+fi
 TIME_STAMP=$(date +%Y%m%d%H%M%S)
 TMP_TEST_DIR=./tmp/tests/${TIME_STAMP}
 if [ ! -d ${TMP_TEST_DIR} ]; then
@@ -22,6 +32,9 @@ function usage_exit(){
 	echo ""
 	echo "Usage"
 	echo "${NAME} <YML_CONFIG_FILE(optional)>"
+	echo "${NAME} --task classification <--additional_test(option)>"
+	echo "${NAME} --task object_detection <--additional_test(option)>"
+	echo "${NAME} --task semantic_segmentation <--additional_test(option)>"
 	exit 1
 }
 
@@ -64,6 +77,17 @@ function get_dataset_format_by_task(){
     esac
 }
 
+function get_task_type_number(){
+    case "$1" in
+        "classification" )
+            echo "1";;
+        "object_detection" )
+            echo "2";;
+        "semantic_segmentation" )
+            echo "3";;
+    esac
+}
+
 function @(){
     VALID_EXIT_STATUS=$1
     TEST_LOG_FILE=${TMP_TEST_DIR}/test_${TEST_LOG_NO}.log
@@ -89,6 +113,7 @@ echo ""
 echo "# Basic tests"
 
 function init_test(){
+    TEST_LOG_FILE=${TMP_TEST_DIR}/test_${TEST_LOG_NO}.log
     TEST_CASE=$1
     TASK_TYPE_NUMBER=$2
     NETWORK_NUMBER=$4
@@ -125,7 +150,7 @@ function init_test(){
         "
     fi
     expect -c "
-        set timeout 5
+        set timeout 20
         spawn env LANG=C ${RUN_SCRIPT} init
         expect \"your model name ():\"
         send \"${CONFIG_NAME}\n\"
@@ -137,7 +162,7 @@ function init_test(){
         send \"${DATASET_FORMAT_NUMBER}\n\"
         expect \"training dataset path:\"
         send \"${TRAINING_DATASET_PATH}\n\"
-        expect \"set validataion dataset?\"
+        expect \"set validation dataset?\"
         send \"${SET_VALIDATION_PATH}\n\"
         ${EXPECT_VALIDATION}
         expect \"batch size (integer):\"
@@ -150,14 +175,14 @@ function init_test(){
         send \"${OPTIMIZER_NUMBER}\n\"
         expect \"initial learning rate:\"
         send \"\n\"
-        expect \"choose learning rate setting(tune1 / tune2 / tune3 / fixed):\"
+        expect \"choose learning rate schedule ({epochs} is the number of training epochs you entered before)\"
         send \"\n\"
         ${QA_ENABLE_DATA_AUGMENTATION}
-        expect \"apply quantization at the first layer?:\"
+        expect \"apply quantization at the first layer?\"
         send \"\n\"
         expect \"Next step:\"
-    " > /dev/null
-    assert $? 0
+    " >> ${TEST_LOG_FILE} 2>&1
+    @ 0 ls config/${CONFIG_NAME}.yml
     # Wait for complete ${RUN_SCRIPT} init
     sleep 1
     mv config/${CONFIG_NAME}.yml ${TMP_TEST_DIR}/
@@ -168,15 +193,16 @@ function init_test(){
 function basic_test(){
     if [ ! -f "${YML_CONFIG_FILE}" ]; then
         echo "ERROR: No such file : ${YML_CONFIG_FILE}"
-        usage_exit
+        echo "ERROR: Skipping tests of ${YML_CONFIG_FILE}"
+        TEST_RESULT=1
+    else
+        @ 0 ${RUN_SCRIPT} train ${YML_CONFIG_FILE}
+
+        EXPERIMENT_DIR=$(ls -td ./saved/${CONFIG_NAME}* | head -1)
+        @ 0 ${RUN_SCRIPT} convert ${YML_CONFIG_FILE} ${EXPERIMENT_DIR}
+
+        @ 0 ${RUN_SCRIPT} predict ${YML_CONFIG_FILE} lmnet/tests/fixtures ${TMP_TEST_DIR} ${EXPERIMENT_DIR}
     fi
-
-    @ 0 ${RUN_SCRIPT} train ${YML_CONFIG_FILE}
-
-    EXPERIMENT_DIR=$(ls -td ./saved/${CONFIG_NAME}* | head -1)
-    @ 0 ${RUN_SCRIPT} convert ${YML_CONFIG_FILE} ${EXPERIMENT_DIR}
-
-    @ 0 ${RUN_SCRIPT} predict ${YML_CONFIG_FILE} lmnet/tests/fixtures ${TMP_TEST_DIR} ${EXPERIMENT_DIR}
 }
 
 function additional_test(){
@@ -232,11 +258,14 @@ function additional_test(){
 trap 'show_error_log; clean_exit 1' 1 2 3 15
 
 if [ "${YML_CONFIG_FILE}" == "" ]; then
-    ADDITIONAL_TEST_FLAG=0
-    TASK_TYPE_NUMBER=1
     ENABLE_DATA_AUGMENTATION="y"
-    for TASK_TYPE in "classification" "object_detection" "semantic_segmentation"
+    for TASK_TYPE in ${TASK_TYPES}
     do
+        TASK_TYPE_NUMBER=$(get_task_type_number ${TASK_TYPE})
+        if [ "${TASK_TYPE_NUMBER}" == "" ]; then
+            echo "ERROR: Unsupported Task Type."
+            usage_exit
+        fi
         DATASET_FORMAT_NUMBER=1
         for DATASET_FORMAT in $(get_dataset_format_by_task ${TASK_TYPE})
         do
@@ -247,15 +276,14 @@ if [ "${YML_CONFIG_FILE}" == "" ]; then
                 OPTIMIZER_NUMBER=$(($((${TASK_TYPE_NUMBER} % ${#OPTIMIZSERS[@]}))+1))
                 init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${ENABLE_DATA_AUGMENTATION} ${OPTIMIZER_NUMBER} ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH}
                 basic_test
-                if [ ${ADDITIONAL_TEST_FLAG} -eq 0 ]; then
+                if [ ${ADDITIONAL_TEST_FLAG} == "true" ]; then
                     # Run additional test only once
                     additional_test
-                    ADDITIONAL_TEST_FLAG=1
+                    ADDITIONAL_TEST_FLAG="false"
                 fi
             done
             DATASET_FORMAT_NUMBER=$((DATASET_FORMAT_NUMBER+1))
         done
-        TASK_TYPE_NUMBER=$((TASK_TYPE_NUMBER+1))
     done
 else
     CONFIG_NAME=$(echo $(basename ${YML_CONFIG_FILE}) | sed 's/\..*$//')
@@ -275,4 +303,3 @@ else
     show_error_log
     clean_exit 1
 fi
-

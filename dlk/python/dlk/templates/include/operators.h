@@ -52,13 +52,15 @@ struct binary_convolution_parameters {
     }
   }
   BIN_CONV_OUTPUT *thresholds;
-  T_INT n_bit;
+  T_UINT n_bit;
   T_FLOAT max_value;
   unsigned long device_input_phys_addr;
   unsigned long device_output_phys_addr;
+  unsigned long device_kernel_phys_addr;
 
   DMA_Buffer *dma_input_buffer;
   DMA_Buffer *dma_output_buffer;
+  const char* debug_name;
 };
 
 #endif

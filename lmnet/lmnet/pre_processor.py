@@ -113,19 +113,26 @@ def resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
 
     resized_image = resize(image, (height, width))
 
+    if gt_boxes is None:
+        return resized_image, None
+
+    resized_gt_boxes = gt_boxes.copy()
+
     scale = [height / origin_height, width / origin_width]
 
     if gt_boxes is not None and len(gt_boxes) != 0:
-        gt_boxes[:, 0] = gt_boxes[:, 0] * scale[1]
-        gt_boxes[:, 1] = gt_boxes[:, 1] * scale[0]
-        gt_boxes[:, 2] = gt_boxes[:, 2] * scale[1]
-        gt_boxes[:, 3] = gt_boxes[:, 3] * scale[0]
+        resized_gt_boxes[:, 0] = gt_boxes[:, 0] * scale[1]
+        resized_gt_boxes[:, 1] = gt_boxes[:, 1] * scale[0]
+        resized_gt_boxes[:, 2] = gt_boxes[:, 2] * scale[1]
+        resized_gt_boxes[:, 3] = gt_boxes[:, 3] * scale[0]
 
         # move boxes beyond boundary of image for scaling error.
-        gt_boxes[:, 0] = np.minimum(gt_boxes[:, 0], width - gt_boxes[:, 2])
-        gt_boxes[:, 1] = np.minimum(gt_boxes[:, 1], height - gt_boxes[:, 3])
+        resized_gt_boxes[:, 0] = np.minimum(resized_gt_boxes[:, 0],
+                                            width - resized_gt_boxes[:, 2])
+        resized_gt_boxes[:, 1] = np.minimum(resized_gt_boxes[:, 1],
+                                            height - resized_gt_boxes[:, 3])
 
-    return resized_image, gt_boxes
+    return resized_image, resized_gt_boxes
 
 
 def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256)):

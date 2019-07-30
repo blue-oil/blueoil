@@ -69,7 +69,7 @@ All example commands are in case you use Linux or macOS. If you use other system
 ### Download Linux system image (On your PC)
 You can download the Linux system image updated for Blueoil from the following.
 
-    $ wget https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/os_images/de10nano_ubuntu.img.gz
+    $ wget https://leapmind-public-storage.s3-ap-northeast-1.amazonaws.com/os_images/de10nano_ubuntu_TCAv2.img.gz
 
 Downloaded file contains the "de10nano_ubuntu.img".
 Please set the empty microSD card (8GB+) into your PC and write the downloaded image to microSD card as below.
@@ -151,16 +151,20 @@ REQUIRED_FILES are shown in the following list. These files are necessary in lat
 {Blueoil directory}/dlk/hw/intel/de10_nano/
  ├── linux_kernel/zImage
  ├── linux_kernel/kernel_modules.tar.gz
- ├── qconv_with_kn2row/soc_system.dtb
- ├── qconv_with_kn2row/soc_system.rbf
- ├── qconv_with_kn2row/preloader-mkpimage.bin
- └── qconv_with_kn2row/dma/terasic_ubuntu_arm32/udmabuf.ko
+ └── dma/terasic_ubuntu_arm32/udmabuf.ko
+
+{Blueoil directory}/output_files/fpga/
+ ├── preloader-mkpimage.bin
+ ├── soc_system.rbf
+ └── soc_system.dtb
 ```
 
 Copy the required files to the `REQUIRED_FILES` directory.
 
     $ cd {Blueoil directory}/hw/intel/de10_nano/
-    $ cp linux_kernel/zImage linux_kernel/kernel_modules.tar.gz qconv_with_kn2row/soc_system.dtb qconv_with_kn2row/soc_system.rbf qconv_with_kn2row/preloader-mkpimage.bin qconv_with_kn2row/dma/terasic_ubuntu_arm32/udmabuf.ko REQUIRED_FILES/
+    $ cp linux_kernel/zImage linux_kernel/kernel_modules.tar.gz dma/terasic_ubuntu_arm32/udmabuf.ko REQUIRED_FILES/
+    $ cd {Blueoil directory}/output_files/fpga/
+    $ cp soc_system.dtb soc_system.rbf preloader-mkpimage.bin REQUIRED_FILES/
 
 Note: u-boot.scr does not need updating.
 

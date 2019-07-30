@@ -17,6 +17,7 @@ limitations under the License.
 #define DLK_FUNC_AVERAGE_POOL_H_INCLUDED
 
 #include "global.h"
+#include "tensor_view.h"
 
 struct avg_pooling_parameters {
   T_UINT input_height;
@@ -33,6 +34,8 @@ struct avg_pooling_parameters {
   T_UINT padding;
 };
 
-void func_AveragePool(T_FLOAT input[], T_FLOAT output[], struct avg_pooling_parameters app, T_UINT out_height, T_UINT out_width, T_UINT out_depth);
+void func_AveragePool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
+    struct avg_pooling_parameters app);
 
 #endif // DLK_FUNC_AVERAGE_POOL_H_INCLUDED
