@@ -34,6 +34,12 @@ limitations under the License.
 #ifdef USE_NEON
   #include <arm_neon.h>
 #endif
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+#ifdef USE_AVX
+  #include <x86intrin.h>
+#endif
 
 
 
@@ -107,21 +113,61 @@ inline void func_QTZ_linear_mid_tread_half_body(
   float32x4_t round_offset = vdupq_n_f32(0.5);
   float32x4_t max_value_rn = vdupq_n_f32(max_value_r * n);
 
-  for (; i <= static_cast<int>(end) - 4; i += 4)
+  for (; i <= static_cast<int>(end) - 8; i += 8)
   {
-    float32x4_t tmp = vld1q_f32(&input[i]);
-    tmp = vmaxq_f32(tmp, min_value_x4);
-    tmp = vminq_f32(tmp, max_value_x4);
-    //    tmp = vmlaq_f32(tmp, max_value_rn, round_offset);
-    tmp = vmulq_f32(tmp, max_value_rn);
-    tmp = vaddq_f32(tmp, round_offset);
-    int32x4_t r = vcvtq_s32_f32(tmp);
-    int r_tmp[4];
-    vst1q_s32(r_tmp, r);
-    output[i] = r_tmp[0];
-    output[i+1] = r_tmp[1];
-    output[i+2] = r_tmp[2];
-    output[i+3] = r_tmp[3];
+    const auto in0 = vld1q_f32(&input[i]);
+    const auto in1 = vld1q_f32(&input[i + 4]);
+    const auto mx0 = vmaxq_f32(in0, min_value_x4);
+    const auto mx1 = vmaxq_f32(in1, min_value_x4);
+    const auto mn0 = vminq_f32(mx0, max_value_x4);
+    const auto mn1 = vminq_f32(mx1, max_value_x4);
+    //const auto mad0 = vmlaq_f32(round_offset, mn0, max_value_rn);
+    //const auto mad1 = vmlaq_f32(round_offset, mn1, max_value_rn);
+    const auto mul0 = vmulq_f32(mn0, max_value_rn);
+    const auto mul1 = vmulq_f32(mn1, max_value_rn);
+    const auto mad0 = vaddq_f32(mul0, round_offset);
+    const auto mad1 = vaddq_f32(mul1, round_offset);
+    const auto round0 = vcvtq_u32_f32(mad0);
+    const auto round1 = vcvtq_u32_f32(mad1);
+    const auto narrow10 = vmovn_u32(round0);
+    const auto narrow11 = vmovn_u32(round1);
+    const auto narrow2 = vmovn_u16(vcombine_u16(narrow10, narrow11));
+    vst1_u8(output + i, narrow2);
+  }
+#elif defined USE_AVX
+  const auto max_value_v = _mm256_set1_ps(max_value);
+  const auto min_value_v = _mm256_set1_ps(min_value);
+  const auto round_offset = _mm256_set1_ps(0.5f);
+  const auto max_value_rn = _mm256_set1_ps(max_value_r * n);
+
+  for (; i <= static_cast<int>(end) - 32; i += 32) {
+    const auto in0 = _mm256_loadu_ps(input + i +  0);
+    const auto in1 = _mm256_loadu_ps(input + i +  8);
+    const auto in2 = _mm256_loadu_ps(input + i + 16);
+    const auto in3 = _mm256_loadu_ps(input + i + 24);
+    const auto mx0 = _mm256_max_ps(in0, min_value_v);
+    const auto mx1 = _mm256_max_ps(in1, min_value_v);
+    const auto mx2 = _mm256_max_ps(in2, min_value_v);
+    const auto mx3 = _mm256_max_ps(in3, min_value_v);
+    const auto mn0 = _mm256_min_ps(mx0, max_value_v);
+    const auto mn1 = _mm256_min_ps(mx1, max_value_v);
+    const auto mn2 = _mm256_min_ps(mx2, max_value_v);
+    const auto mn3 = _mm256_min_ps(mx3, max_value_v);
+    const auto mul0 = _mm256_mul_ps(mn0, max_value_rn);
+    const auto mul1 = _mm256_mul_ps(mn1, max_value_rn);
+    const auto mul2 = _mm256_mul_ps(mn2, max_value_rn);
+    const auto mul3 = _mm256_mul_ps(mn3, max_value_rn);
+    const auto round0 = _mm256_cvtps_epi32(mul0);
+    const auto round1 = _mm256_cvtps_epi32(mul1);
+    const auto round2 = _mm256_cvtps_epi32(mul2);
+    const auto round3 = _mm256_cvtps_epi32(mul3);
+    const auto pack01 = _mm256_packs_epi32(round0, round1);
+    const auto pack23 = _mm256_packs_epi32(round2, round3);
+    const auto perm01 = _mm256_permute4x64_epi64(pack01, 0xD8);
+    const auto perm23 = _mm256_permute4x64_epi64(pack23, 0xD8);
+    const auto pack = _mm256_packs_epi16(perm01, perm23);
+    const auto perm = _mm256_permute4x64_epi64(pack, 0xD8);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + i), perm);
   }
 #endif
 
@@ -141,34 +187,26 @@ inline void func_QTZ_linear_mid_tread_half(
   Measurement::Start("QTZ_linear_mid_tread_half");
 
   unsigned num_elems = input.size();
-  QUANTIZED_NOT_PACKED* output_not_packed = new QUANTIZED_NOT_PACKED[num_elems];
+  QUANTIZED_NOT_PACKED output_not_packed[MAX_SIZE_INPUTS_PER_LAYER];
 
-  unsigned int chunk_size = num_elems / std::thread::hardware_concurrency();
-  if (chunk_size == 0) {
-    chunk_size += 1;
-  }
+#ifdef _OPENMP
+  const unsigned threads = omp_get_max_threads();
+#else
+  const unsigned threads = 1;
+#endif
+  unsigned int chunk_size = (num_elems + threads - 1) / threads;
 
-  std::vector<std::thread> threads;
+#pragma omp parallel for
   for (unsigned int i = 0; i < num_elems; i += chunk_size) {
-    threads.emplace_back(std::thread([&input, &nbit, &max_value, &output_not_packed, i, chunk_size, num_elems] {
-          func_QTZ_linear_mid_tread_half_body(input.data(), nbit(), max_value(), output_not_packed, i,
+    func_QTZ_linear_mid_tread_half_body(input.data(), nbit(), max_value(), output_not_packed, i,
                                               std::min(i + chunk_size, static_cast<unsigned int>(num_elems)));
-    }));
   }
-
-  for (auto& th: threads) {
-    th.join();
-  }
-
-  //static T_UINT counter = 0;
-  //write_to_file("out/qconv_input_quantized_not_packed", counter++, output_not_packed, in_height * in_width * in_depth);
 
   const auto in_shape = input.get_shape();
   const auto in_height = in_shape[1];
   const auto in_width = in_shape[2];
   const auto in_depth = in_shape[3];
   pack_input(output_not_packed, in_height, in_width, in_depth, nbit(), output.data());
-  delete [] output_not_packed;
 
   Measurement::Stop();
 }
