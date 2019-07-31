@@ -2,11 +2,11 @@
 Getting started tutorials
 ***********
 
-Blueoil is an open-source deep learning platform for low bit computation.
-Blueoil offers runtimes to develop for embedded deep learning.
+Blueoil is an open-source deep learning platform for computation using low-bit variables.
+Blueoil offers a runtime to help develop deep learning applications on embedded devices.
 See the sections below to get started.
 
-Please setup the environment before starting tutorials.
+Please setup the environment before attempting the tutorials.
 (See the detail in `Installation <../install/install.html>`_)
 
 .. toctree::
@@ -16,4 +16,4 @@ Please setup the environment before starting tutorials.
    image_det
    image_seg
    run_fpga
-   
+

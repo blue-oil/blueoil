@@ -14,6 +14,6 @@ Usage:
                           if you want to use save.ckpt-1000, you can set CHECKPOINT_NO as 1000.
 ```
 
-`blueoil convert` command converts trained model to executable binary files for x86, ARM Cortex-A9, and FPGA.
+`blueoil convert` command converts trained models to executable binary files for x86, ARM Cortex-A9, and FPGA.
 
 
