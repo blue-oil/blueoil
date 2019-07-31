@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "matrix_view.h"
 #include "matrix/row_major_to_col_major.h"
+#include "matrix/col_major_to_row_major.h"
 #include "time_measurement.h"
 
 #ifdef USE_NEON
@@ -58,6 +59,126 @@ inline void matrix_multiplication_col3(
 #endif
 }
 
+inline void matrix_multiplication_impl(
+   MatrixView<float, MatrixOrder::RowMajor>& A,
+   MatrixView<float, MatrixOrder::ColMajor>& B,
+   MatrixView<float, MatrixOrder::ColMajor>& C) {
+#ifdef USE_NEON
+  constexpr std::size_t regblock_n = 8;
+  constexpr std::size_t regblock_m = 4;
+  const auto B_col_blocks = (B.cols() + regblock_m - 1) / regblock_m;
+  float B_buf[B_col_blocks * B.rows() * regblock_m];
+  float *B_buf_ptr = B_buf;
+  for (std::size_t j = 0; j < B.cols(); j += regblock_m) {
+    if (B.cols() - j >= regblock_m) {
+      std::size_t k = 0;
+      for (; k < B.rows(); k += regblock_m) {
+        const auto im0 = vld1q_f32(B.data(k, j + 0));
+        const auto im1 = vld1q_f32(B.data(k, j + 1));
+        const auto im2 = vld1q_f32(B.data(k, j + 2));
+        const auto im3 = vld1q_f32(B.data(k, j + 3));
+        const auto pm01 = vtrnq_f32(im0, im1);
+        const auto pm23 = vtrnq_f32(im2, im3);
+        const auto om0 = vcombine_f32(vget_low_f32(pm01.val[0]), vget_low_f32(pm23.val[0]));
+        const auto om1 = vcombine_f32(vget_low_f32(pm01.val[1]), vget_low_f32(pm23.val[1]));
+        const auto om2 = vcombine_f32(vget_high_f32(pm01.val[0]), vget_high_f32(pm23.val[0]));
+        const auto om3 = vcombine_f32(vget_high_f32(pm01.val[1]), vget_high_f32(pm23.val[1]));
+        vst1q_f32(B_buf_ptr, om0);
+        B_buf_ptr += 4;
+        vst1q_f32(B_buf_ptr, om1);
+        B_buf_ptr += 4;
+        vst1q_f32(B_buf_ptr, om2);
+        B_buf_ptr += 4;
+        vst1q_f32(B_buf_ptr, om3);
+        B_buf_ptr += 4;
+      }
+      for (; k < B.rows(); ++k) {
+        for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
+          if (j + j2 >= B.cols()) break;
+          B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+        }
+      }
+    } else {
+      for (std::size_t k = 0; k < B.rows(); ++k) {
+        for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
+          if (j + j2 >= B.cols()) break;
+          B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+        }
+      }
+    }
+  }
+#pragma omp parallel for
+  for (std::size_t i = 0; i < A.rows(); i += regblock_n) {
+    float A_buf[regblock_n * A.cols()];
+    for (std::size_t k = 0; k < A.cols(); ++k) {
+      for (std::size_t i2 = 0; i2 < regblock_n; ++i2) {
+        if (i + i2 >= A.rows()) break;
+        A_buf[k * regblock_n + i2] = A(i + i2, k);
+      }
+    }
+    float *B_buf_ptr = B_buf;
+    for (std::size_t j = 0; j < B.cols(); j += regblock_m) {
+      if (A.rows() - i >= regblock_n && B.cols() - j >= regblock_m) {
+        float *A_buf_ptr = A_buf;
+        auto accum00 = vdupq_n_f32(0);
+        auto accum01 = vdupq_n_f32(0);
+        auto accum10 = vdupq_n_f32(0);
+        auto accum11 = vdupq_n_f32(0);
+        auto accum20 = vdupq_n_f32(0);
+        auto accum21 = vdupq_n_f32(0);
+        auto accum30 = vdupq_n_f32(0);
+        auto accum31 = vdupq_n_f32(0);
+        for (std::size_t k = 0; k < A.cols(); ++k) {
+          const auto a0 = vld1q_f32(A_buf_ptr);
+          A_buf_ptr += 4;
+          const auto a1 = vld1q_f32(A_buf_ptr);
+          A_buf_ptr += 4;
+          const auto b = vld1q_f32(B_buf_ptr);
+          B_buf_ptr += 4;
+          const auto bl = vget_low_f32(b);
+          const auto bh = vget_high_f32(b);
+          accum00 = vmlaq_lane_f32(accum00, a0, bl, 0);
+          accum01 = vmlaq_lane_f32(accum01, a1, bl, 0);
+          accum10 = vmlaq_lane_f32(accum10, a0, bl, 1);
+          accum11 = vmlaq_lane_f32(accum11, a1, bl, 1);
+          accum20 = vmlaq_lane_f32(accum20, a0, bh, 0);
+          accum21 = vmlaq_lane_f32(accum21, a1, bh, 0);
+          accum30 = vmlaq_lane_f32(accum30, a0, bh, 1);
+          accum31 = vmlaq_lane_f32(accum31, a1, bh, 1);
+        }
+        vst1q_f32(C.data(i + 0, j + 0), accum00);
+        vst1q_f32(C.data(i + 4, j + 0), accum01);
+        vst1q_f32(C.data(i + 0, j + 1), accum10);
+        vst1q_f32(C.data(i + 4, j + 1), accum11);
+        vst1q_f32(C.data(i + 0, j + 2), accum20);
+        vst1q_f32(C.data(i + 4, j + 2), accum21);
+        vst1q_f32(C.data(i + 0, j + 3), accum30);
+        vst1q_f32(C.data(i + 4, j + 3), accum31);
+      } else {
+        const auto i2max = std::min(regblock_n, A.rows() - i);
+        const auto j2max = std::min(regblock_m, B.cols() - j);
+        for (std::size_t i2 = 0; i2 < i2max; ++i2) {
+          for (std::size_t j2 = 0; j2 < j2max; ++j2) {
+            auto accum = vdupq_n_f32(0.0f);
+            std::size_t k;
+            for (k = 0; k+3 < A.cols(); k += 4) {
+              accum = vmlaq_f32(accum, vld1q_f32(A.data(i + i2, k)), vld1q_f32(B.data(k, j + j2)));
+            }
+            float accum_ary[4];
+            vst1q_f32(accum_ary, accum);
+            float res = accum_ary[0] + accum_ary[1] + accum_ary[2] + accum_ary[3];
+            for (; k < A.cols(); ++k) {
+              res += A(i + i2, k) * B(k, j + j2);
+            }
+            C(i + i2, j + j2) = res;
+          }
+        }
+      }
+    }
+  }
+#endif
+}
+
 } // namespace details
 
 // FIXME: this implementation is very slow...
@@ -72,10 +193,12 @@ void matrix_multiplication(
 
 #ifdef USE_NEON
   if (A.cols() == 3 && A.rows() % 4 == 0) {
-      details::matrix_multiplication_col3(A, B, C);
-    Measurement::Stop();
-    return;
+    details::matrix_multiplication_col3(A, B, C);
+  } else {
+    details::matrix_multiplication_impl(A, B, C);
   }
+  Measurement::Stop();
+  return;
 #endif
 
   constexpr unsigned int block_size_i = 16; // configurable, multiple of 4
