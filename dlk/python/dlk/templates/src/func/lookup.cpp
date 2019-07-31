@@ -81,9 +81,9 @@ void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
   in_ptr += count_floor * 3;
   out_ptr += count_floor * 2;
   for (std::size_t i = count_floor; i < count; ++i) {
-    int r = int(*in_ptr++ * 255.0);
-    int g = int(*in_ptr++ * 255.0);
-    int b = int(*in_ptr++ * 255.0);
+    int r = int(*in_ptr++ * 255.0f);
+    int g = int(*in_ptr++ * 255.0f);
+    int b = int(*in_ptr++ * 255.0f);
 
     auto r_lsb = lsb_ptr[r];
     auto g_lsb = lsb_ptr[g];
@@ -98,9 +98,9 @@ void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
 #else
   for(int ih = 0; ih < h; ih++)
   for(int iw = 0; iw < w; iw++) {
-    int r = int(*in_ptr++ * 255.0);
-    int g = int(*in_ptr++ * 255.0);
-    int b = int(*in_ptr++ * 255.0);
+    int r = int(*in_ptr++ * 255.0f);
+    int g = int(*in_ptr++ * 255.0f);
+    int b = int(*in_ptr++ * 255.0f);
 
     auto r_lsb = lsb_ptr[r];
     auto g_lsb = lsb_ptr[g];
