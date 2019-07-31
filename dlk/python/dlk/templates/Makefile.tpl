@@ -121,25 +121,18 @@ ARS_ARM     := ar_arm
 ARS_FPGA    := ar_fpga
 
 
-RM_TARGETS_LIST := $(TARGETS) \
-                   hls_simulation \
+RM_TARGETS_LIST := hls_simulation \
                    hls_synthesis \
                    derive_threshold
 RM       := rm -rf
 
 HLS_INSTALL_DIR := $(shell which i++ | sed 's|/bin/i++||g')
 
-.PHONY: test
-test: $(TARGETS)
-	@$(foreach t,$(TARGETS),echo ./$(t); ./$(t); echo "";)
-
-.PHONY: all
-all: $(TARGETS)
-
 .PHONY: clean
 clean:
-	-$(RM) $(TARGETS) $(foreach t,$(RM_TARGETS_LIST),$(t).elf) transcript
+	-$(RM) *.elf
 	-$(RM) *.a
+	-$(RM) *.so
 	-$(RM) $(LIB_OBJ)
 	-$(RM) $(LIB_X86_OBJ)
 	-$(RM) $(LIB_ARM_OBJ)
