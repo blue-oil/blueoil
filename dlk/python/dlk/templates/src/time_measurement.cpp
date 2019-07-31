@@ -22,10 +22,15 @@ std::vector<std::string> Measurement::current_context;
 std::vector<Measurement::Node*> Measurement::stack;
 std::vector<std::unique_ptr<Measurement::Node>> Measurement::roots;
 
-
+#ifndef FUNC_TIME_MEASUREMENT
+/* NOP */
+void Measurement::Start(const std::string &measure_name){}
+void Measurement::Stop(){}
+void Measurement::Report(){}
+void Measurement::DumpTimeTree(const Node& node, int level){}
+#else
 void Measurement::Start(const std::string &measure_name)
 {
-  #if defined FUNC_TIME_MEASUREMENT
   measure m;
   m.start = std::chrono::system_clock::now();
   m.end = std::chrono::system_clock::time_point();
@@ -51,13 +56,10 @@ void Measurement::Start(const std::string &measure_name)
 
   times[measure_name].push_back(m);
   current_context.push_back(measure_name);
-  #endif
 }
 
 void Measurement::Stop()
 {
-  #if defined FUNC_TIME_MEASUREMENT
-
   if(current_context.size() == 0 || times[current_context.back()].size() == 0) {
     std::cout << "ERROR: wrong Start/Stop pairs" << std::endl;
     return;
@@ -73,31 +75,13 @@ void Measurement::Stop()
 
   times[current_context.back()].back().end = std::chrono::system_clock::now();
   current_context.pop_back();
-  #endif
 }
 
 void Measurement::Report()
 {
-  #if defined FUNC_TIME_MEASUREMENT
-  for(auto it = times.begin(); it != times.end(); ++it)
-  {
-    std::cout << it->first << ",";
-    double sum = 0.0;
-    for(auto m = it->second.begin(); m != it->second.end(); ++m)
-    {
-      double t = std::chrono::duration_cast<TIME_ORDER>(m->end - m->start).count();
-      std::cout << t << ",";
-      sum +=t;
-    }
-    std::cout << "  sum:" << sum / 1000 << "ms";
-    std::cout << std::endl;
-  }
-
-  std::cout << "---------------------------------------------------" << std::endl;
-  for (auto& root: roots) {
+ for (auto& root: roots) {
     DumpTimeTree(*root, 0);
   }
-  #endif
 }
 
 void Measurement::DumpTimeTree(const Node& node, int level) {
@@ -121,3 +105,4 @@ void Measurement::DumpTimeTree(const Node& node, int level) {
       DumpTimeTree(*child, level + 1);
     }
 }
+#endif /* FUNC_TIME_MEASUREMENT */
