@@ -107,3 +107,14 @@ def load_dataset_class(name):
     dataset_class = _load_class_from_name(name, base_dir)
 
     return dataset_class
+
+
+def load_tfds_builder_class(name):
+    """dynamically load a class object from a tfds builder file.
+
+    Return: tfds builder class object
+    """
+    base_dir = os.path.join("lmnet", "utils", "tfds_builders")
+    dataset_class = _load_class_from_name(name, base_dir)
+
+    return dataset_class

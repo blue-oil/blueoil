@@ -17,6 +17,8 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 from lmnet.datasets.base import Base, ObjectDetectionBase
+from lmnet.utils.tfds_builders.classification import ClassificationBuilder
+from lmnet.utils.tfds_builders.object_detection import ObjectDetectionBuilder
 
 
 def _grayscale_to_rgb(record):
@@ -84,9 +86,12 @@ class TFDSMixin:
             **kwargs,
         )
 
-        builder = tfds.builder(tfds_name, data_dir=tfds_data_dir)
-        if tfds_download:
-            builder.download_and_prepare()
+        if tfds_name in tfds.list_builders():
+            builder = tfds.builder(tfds_name, data_dir=tfds_data_dir)
+            if tfds_download:
+                builder.download_and_prepare()
+        else:
+            builder = self.builder_class(tfds_name, data_dir=tfds_data_dir)
 
         self.info = builder.info
         self._init_available_splits()
@@ -153,6 +158,8 @@ class TFDSClassification(TFDSMixin, Base):
     A dataset class for loading TensorFlow Datasets for classification.
     TensorFlow Datasets which have "label" and "image" features can be loaded by this class.
     """
+    builder_class = ClassificationBuilder
+
     @property
     def classes(self):
         return self.info.features["label"].names
@@ -189,6 +196,8 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
     A dataset class for loading TensorFlow Datasets for object detection.
     TensorFlow Datasets which have "objects" and "image" features can be loaded by this class.
     """
+    builder_class = ObjectDetectionBuilder
+
     @classmethod
     def count_max_boxes(cls):
         raise NotImplementedError()
