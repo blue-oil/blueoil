@@ -108,20 +108,16 @@ void ApplyThresholdsAndPack(
   const auto a##k = vuzpq_u8(res##k0, res##k1).val[0]; \
   const auto am##k = vmulq_u8(vshrq_n_u8(a##k, 1), coeff); \
   const auto al##k = vmulq_u8(vandq_u8(a##k, vdupq_n_u8(0x01)), coeff); \
-  const auto bm##k = vreinterpretq_u8_u16(vpaddlq_u8(am##k)); \
-  const auto bl##k = vreinterpretq_u8_u16(vpaddlq_u8(al##k));
+  const auto bm##k = vpadd_u8(vget_low_u8(am##k), vget_high_u8(am##k)); \
+  const auto bl##k = vpadd_u8(vget_low_u8(al##k), vget_high_u8(al##k));
+
+#define MAKE_C(k, k0, k1) \
+  const auto cm##k = vpadd_u8(bm##k0, bm##k1); \
+  const auto cl##k = vpadd_u8(bl##k0, bl##k1);
 
 #define MAKE_D(k, k0, k1) \
-  const auto cm##k = vuzpq_u8(bm##k0, bm##k1).val[0]; \
-  const auto cl##k = vuzpq_u8(bl##k0, bl##k1).val[0]; \
-  const auto dm##k = vreinterpretq_u8_u16(vpaddlq_u8(cm##k)); \
-  const auto dl##k = vreinterpretq_u8_u16(vpaddlq_u8(cl##k));
-
-#define MAKE_F(k, k0, k1) \
-  const auto em##k = vuzpq_u8(dm##k0, dm##k1).val[0]; \
-  const auto el##k = vuzpq_u8(dl##k0, dl##k1).val[0]; \
-  const auto fm##k = vreinterpretq_u8_u16(vpaddlq_u8(em##k)); \
-  const auto fl##k = vreinterpretq_u8_u16(vpaddlq_u8(el##k));
+  const auto dm##k = vpadd_u8(cm##k0, cm##k1); \
+  const auto dl##k = vpadd_u8(cl##k0, cl##k1);
 
   const auto length = result.cols() * result.rows();
   constexpr uint8_t coeff_ary[16] = {
@@ -130,7 +126,6 @@ void ApplyThresholdsAndPack(
   };
   const auto coeff = vld1q_u8(coeff_ary);
 #ifdef AARCH32
-  constexpr std::size_t SIMD_WIDTH = 64; // hard coded, not configurable
 #pragma omp parallel for
   for (std::size_t i = 0; i < length; i += 32) {
     APPLY(0)
@@ -140,12 +135,10 @@ void ApplyThresholdsAndPack(
     APPLY(3)
     MAKE_B(1, 2, 3)
     // store
-    const auto cm = vuzpq_u8(bm0, bm1).val[0];
-    const auto cl = vuzpq_u8(bl0, bl1).val[0];
-    const auto dm = vreinterpret_u8_u16(vmovn_u32(vpaddlq_u16(vpaddlq_u8(cm))));
-    const auto dl = vreinterpret_u8_u16(vmovn_u32(vpaddlq_u16(vpaddlq_u8(cl))));
-    const auto e = vreinterpret_u32_u8(vuzp_u8(dl, dm).val[0]);
-    vst1_u32(reinterpret_cast<uint32_t*>(output + i / 16), e);
+    const auto cm = vpadd_u8(bm0, bm1);
+    const auto cl = vpadd_u8(bl0, bl1);
+    const auto d = vpadd_u8(cl, cm);
+    vst1_u8(reinterpret_cast<uint8_t*>(output + i / 16), d);
   }
 #else
   constexpr std::size_t SIMD_WIDTH = 128; // hard coded, not configurable
@@ -158,35 +151,35 @@ void ApplyThresholdsAndPack(
     APPLY(2)
     APPLY(3)
     MAKE_B(1, 2, 3)
-    MAKE_D(0, 0, 1)
+    MAKE_C(0, 0, 1)
     APPLY(4)
     APPLY(5)
     MAKE_B(2, 4, 5)
     APPLY(6)
     APPLY(7)
     MAKE_B(3, 6, 7)
-    MAKE_D(1, 2, 3)
-    MAKE_F(0, 0, 1)
+    MAKE_C(1, 2, 3)
+    MAKE_D(0, 0, 1)
     APPLY(8)
     APPLY(9)
     MAKE_B(4, 8, 9)
     APPLY(10)
     APPLY(11)
     MAKE_B(5, 10, 11)
-    MAKE_D(2, 4, 5)
+    MAKE_C(2, 4, 5)
     APPLY(12)
     APPLY(13)
     MAKE_B(6, 12, 13)
     APPLY(14)
     APPLY(15)
     MAKE_B(7, 14, 15)
-    MAKE_D(3, 6, 7)
-    MAKE_F(1, 2, 3)
-    // g
-    uint32x4x2_t g;
-    g.val[1] = vreinterpretq_u32_u8(vuzpq_u8(fm0, fm1).val[0]);
-    g.val[0] = vreinterpretq_u32_u8(vuzpq_u8(fl0, fl1).val[0]);
-    vst2q_u32(reinterpret_cast<uint32_t*>(output + i / 16), g);
+    MAKE_C(3, 6, 7)
+    MAKE_D(1, 2, 3)
+    // e
+    uint32x4x2_t e;
+    e.val[1] = vreinterpretq_u32_u8(vcombine_u8(dm0, dm1));
+    e.val[0] = vreinterpretq_u32_u8(vcombine_u8(dl0, dl1));
+    vst2q_u32(reinterpret_cast<uint32_t*>(output + i / 16), e);
   }
   for (std::size_t i = length_floor; i < length; i += 32) {
     APPLY(0)
@@ -196,12 +189,10 @@ void ApplyThresholdsAndPack(
     APPLY(3)
     MAKE_B(1, 2, 3)
     // store
-    const auto cm = vuzpq_u8(bm0, bm1).val[0];
-    const auto cl = vuzpq_u8(bl0, bl1).val[0];
-    const auto dm = vreinterpret_u8_u16(vmovn_u32(vpaddlq_u16(vpaddlq_u8(cm))));
-    const auto dl = vreinterpret_u8_u16(vmovn_u32(vpaddlq_u16(vpaddlq_u8(cl))));
-    const auto e = vreinterpret_u32_u8(vuzp_u8(dl, dm).val[0]);
-    vst1_u32(reinterpret_cast<uint32_t*>(output + i / 16), e);
+    const auto cm = vpadd_u8(bm0, bm1);
+    const auto cl = vpadd_u8(bl0, bl1);
+    const auto d = vpadd_u8(cl, cm);
+    vst1_u8(reinterpret_cast<uint8_t*>(output + i / 16), d);
   }
 #endif
 #undef APPLY
