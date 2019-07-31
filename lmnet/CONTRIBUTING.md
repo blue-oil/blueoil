@@ -39,19 +39,12 @@ Before sending your pull request, there are several points that one should know.
 * At least run your code once to make sure it works
 * Add test for your code (see files under `tests` folder)
 * Run tests (`pytest` and `flake8` currently)
-* Once submitted, it will also run [Jenkins](#about-jenkins) automatically.
+* Once submitted, it will also run by CI automatically.
 * Need reviewer
 
 If you don't know how to do above things, see `README.md` and contact to contributor.
 
 After sending your pull request, Please add labels.
-
-### About Jenkins
-
-* Jenkins is an automated server, located [here](https://jenkins.leapmind:8443).
-* The user login/password (general purpose) is at [leapmind internal website](https://sites.google.com/a/leapmind.io/internal/home/infurachimu/jenkins?pli=1).
-* Once inside, go to the job named **lmnet_pr_test**, find the #id of your run by looking at build history. Console output can be viewed for details about test passing/failure.
-* If you need new files such as new datasets, please contact `infra team` to add related files into Jenkins.
 
 ### Coding Standard
 

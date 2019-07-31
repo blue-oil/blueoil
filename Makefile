@@ -47,7 +47,7 @@ test-lmnet-main: build
 
 .PHONY: test-lmnet-check-dataset-storage
 test-lmnet-check-dataset-storage: build
-	# Check datasets storage with Python3.6 (only available on Jenkins)
+	# Check datasets storage with Python3.6
 	docker run $(DOCKER_OPT) -v /storage/dataset:/storage/dataset -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) -e DATA_DIR=/storage/dataset --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-check_dataset_storage"
 
 .PHONY: test-dlk
