@@ -26,6 +26,8 @@ enum ResizeFilter {
                    RESIZE_FILTER_BI_LINEAR = 2,
 };
 
+Tensor LoadImage(const std::string filename);
+
 Tensor Resize(const Tensor& image, const int width, const int height,
               const enum ResizeFilter filter);
 

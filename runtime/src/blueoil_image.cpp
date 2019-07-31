@@ -19,6 +19,9 @@ limitations under the License.
 
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
+#ifdef USE_OPENCV
+#include "blueoil_opencv.hpp"
+#endif
 
 namespace blueoil {
 namespace image {
@@ -33,6 +36,18 @@ T clamp(const T x, const T lowerLimit, const T upperLimit) {
     return upperLimit;
   }
   return x;
+}
+
+
+Tensor LoadImage(const std::string filename) {
+#ifdef USE_OPENCV
+  cv::Mat img = cv::imread(filename, 1);  // 1:force to RGB format
+  assert(! img.empty());
+  blueoil::Tensor tensor = blueoil::opencv::Tensor_fromCVMat(img);
+  return tensor;
+#else
+  return NULL;
+#endif
 }
 
 /*
