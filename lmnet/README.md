@@ -114,9 +114,9 @@ In this project, we can choose model architecture and dataset separately. (VGG->
 to be written.
 
 ## Starting training
-Main training script is `executor/train.py`. 
+Main training script is `executor/train.py`.
 When you start training, you need to specify some (required) options.  
-You can see the option descriptions with `-h` flag.  
+You can see the option descriptions with `-h` flag.
 ```
 # PYTHONPATH=. python executor/train.py -h 
 Usage: train.py [OPTIONS]
@@ -151,7 +151,7 @@ Default value of `--experiment_id` is `experiment`.
 And then, sub-directories are also created in `lmnet_mnist`.  
 Currently, there are 3 sub-directories.
 
-- config.py  
+- config.py
 Actual copy of the config file used for training.  
 It is useful to record the configured parameters, lest we forget it.
 - checkpoints  
@@ -190,7 +190,7 @@ Options:
   --restore_path TEXT       restore ckpt file base path. e.g. saved/experiment/checkpoints/save.ckpt-10001
   -n, --network TEXT        network name. override config.NETWORK_CLASS
   -d, --dataset TEXT        dataset name. override config.DATASET_CLASS
-  -c, --config_file TEXT    config file path. override(merge) saved experiment config. 
+  -c, --config_file TEXT    config file path. override(merge) saved experiment config.
                             if it is not provided, it restore from saved experiment config.
   -h, --help                Show this message and exit.
 ```
@@ -222,7 +222,7 @@ To apply this feature to another dataset, the dataset file should define another
 # Exporting model to proto buffer
 Exporting a trained model to proto buffer files and meta config yaml.
 
-In the case with `images` option, create each layer output value npy files in `export/{restore_path}/{image_size}/{image_name}/**.npy` for debug.  
+In the case with `images` option, create each layer output value npy files in `export/{restore_path}/{image_size}/{image_name}/**.npy` for debug.
 
 * Load config file from saved experiment dir.
 * Export config file to yaml. See also [Config specification](docs/specification/config.md).
@@ -383,7 +383,7 @@ e.g.
 
 
 # Profiling model
-Profiling a trained model. 
+Profiling a trained model.
 
 If it exists unquantized layers, use `-uql` to point it out.
 
