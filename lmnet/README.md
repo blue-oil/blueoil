@@ -418,7 +418,7 @@ e.g.
 - - -
 
 # Test code
-- Before your branch can be merged into `master` branch, your code has to pass all tests on our `jenkins test` server.
+- Before your branch can be merged into `master` branch, your code has to pass all tests.
 - When you create a new `pull requests`, please **make sure** your code has passed the following tests in your local environment.
 
 ## How to test locally:

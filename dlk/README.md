@@ -22,7 +22,7 @@ dlk contains following 3 separable steps.
 - **src**: C++ code here
 - **docs**: More detailed [documentations](http://192.168.1.200/dlk-docs/index.html)
 - **examples**: Test examples include the DNN graph and npy test files
-- **tests**: Test scripts automatically run by Jenkins
+- **tests**: Test scripts automatically run by CI
 
 <br/>
 
