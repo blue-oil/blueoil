@@ -32,7 +32,7 @@ from core.operators import Operator, Conv, Identity, QTZ_binary_mean_scaling, \
     BatchNormalization, QTZ_linear_mid_tread_half, Add, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
     Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, DepthToSpace, ResizeNearestNeighbor, \
-    Split, Pad, MatMul, Gather, Unique, Cast, Minimum, StridedSlice, Prod, Shape, LeakyRelu
+    Split, Pad, MatMul, Gather, Unique, Cast, Minimum, StridedSlice, Prod, Shape, LeakyRelu, Mean
 
 DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
     # any
@@ -203,7 +203,7 @@ class Node(object):
             attrs_data.append(self.nd_.attr[attr_name].list.i)
         elif attr_name in ['epsilon', 'alpha']:
             attrs_data.append(self.nd_.attr[attr_name].f)
-        elif attr_name == 'is_training' or attr_name == 'use_cudnn_on_gpu':
+        elif attr_name in ['is_training', 'use_cudnn_on_gpu', 'keep_dims']:
             attrs_data.append(self.nd_.attr[attr_name].b)
         elif attr_name in ['block_size', 'num_split']:
             attrs_data.append(self.nd_.attr[attr_name].i)
@@ -1167,6 +1167,20 @@ class Importer(object):
                 dtype,
                 input_ops,
                 dimension_format=current_format,
+            )
+        elif op_type == 'Mean':
+            keepdims = node.attribute('keep_dims')[0]
+            if not shape:
+                attributes = {'keep_dims': keepdims}
+                shape = infer_shape(attributes)
+
+            new_op = Mean(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
+                keepdims=keepdims,
             )
         else:
             raise UnsupportedNode(

@@ -3109,3 +3109,54 @@ class Shape(Operator):
     @property
     def is_monotonic(self) -> bool:
         return False
+
+
+class Mean(Operator):
+    """Reduce mean operator.
+    Computes the mean of elements across dimensions of a tensor.
+    Input
+    -----
+    A
+        2-dimensional matrix A
+    B
+        2-dimensional matrix B
+    Output
+    ------
+    C
+        Matrix multiply results from A * B
+    """
+
+    _input_names = ['A', 'B']
+    _output_names = ['C']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC',
+                 keepdims: bool = True) -> None:
+        """Init the Mean operator."""
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+        self._keepdims = keepdims
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def _dispatch_name(self) -> str:
+        return type(self).__name__
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    def run_forward(self) -> np.ndarray:
+        a_data = self.input_ops['A'].data
+        b_data = self.input_ops['B'].data
+        self._data = np.mean(a_data, axis=tuple(b_data), keepdims=self._keepdims)
+        return self._data
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
