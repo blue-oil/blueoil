@@ -94,15 +94,21 @@ inline void matrix_multiplication_impl(
       }
       for (; k < B.rows(); ++k) {
         for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
-          if (j + j2 >= B.cols()) break;
-          B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+          if (j + j2 >= B.cols()) {
+            B_buf[j * B.rows() + k * regblock_m + j2] = 0;
+          } else {
+            B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+          }
         }
       }
     } else {
       for (std::size_t k = 0; k < B.rows(); ++k) {
         for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
-          if (j + j2 >= B.cols()) break;
-          B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+          if (j + j2 >= B.cols()) {
+            B_buf[j * B.rows() + k * regblock_m + j2] = 0;
+          } else {
+            B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+          }
         }
       }
     }
@@ -112,8 +118,11 @@ inline void matrix_multiplication_impl(
     float A_buf[regblock_n * A.cols()];
     for (std::size_t k = 0; k < A.cols(); ++k) {
       for (std::size_t i2 = 0; i2 < regblock_n; ++i2) {
-        if (i + i2 >= A.rows()) break;
-        A_buf[k * regblock_n + i2] = A(i + i2, k);
+        if (i + i2 >= A.rows()) {
+          A_buf[k * regblock_n + i2] = 0;
+        } else {
+          A_buf[k * regblock_n + i2] = A(i + i2, k);
+        }
       }
     }
     float *B_buf_ptr = B_buf;
@@ -154,6 +163,62 @@ inline void matrix_multiplication_impl(
         vst1q_f32(C.data(i + 4, j + 2), accum21);
         vst1q_f32(C.data(i + 0, j + 3), accum30);
         vst1q_f32(C.data(i + 4, j + 3), accum31);
+      } else if (A.rows() - i >= regblock_n) {
+        const auto j2max = std::min(regblock_m, B.cols() - j);
+        for (std::size_t j2 = 0; j2 < j2max; ++j2) {
+          float *A_buf_ptr = A_buf;
+          auto accum0 = vdupq_n_f32(0.0f);
+          auto accum1 = vdupq_n_f32(0.0f);
+          for (std::size_t k = 0; k < A.cols(); ++k) {
+            const auto a0 = vld1q_f32(A_buf_ptr);
+            A_buf_ptr += 4;
+            const auto a1 = vld1q_f32(A_buf_ptr);
+            A_buf_ptr += 4;
+            const auto b = vdupq_n_f32(B(k, j + j2));
+            accum0 = vmlaq_f32(accum0, a0, b);
+            accum1 = vmlaq_f32(accum1, a1, b);
+          }
+          vst1q_f32(C.data(i + 0, j + j2), accum0);
+          vst1q_f32(C.data(i + 4, j + j2), accum1);
+        }
+      } else if (B.cols() - j >= regblock_m) {
+        const auto i2max = std::min(regblock_n, A.rows() - i);
+        for (std::size_t i2 = 0; i2 < i2max; ++i2) {
+          B_buf_ptr = B_buf + j * A.cols();
+          auto accum0 = vdupq_n_f32(0.0f);
+          auto accum1 = vdupq_n_f32(0.0f);
+          auto accum2 = vdupq_n_f32(0.0f);
+          auto accum3 = vdupq_n_f32(0.0f);
+          std::size_t k;
+          for (k = 0; k+3 < A.cols(); k += 4) {
+            const auto a = vld1q_f32(A.data(i + i2, k));
+            const auto b = vld4q_f32(B_buf_ptr);
+            B_buf_ptr += 16;
+            accum0 = vmlaq_f32(accum0, a, b.val[0]);
+            accum1 = vmlaq_f32(accum1, a, b.val[1]);
+            accum2 = vmlaq_f32(accum2, a, b.val[2]);
+            accum3 = vmlaq_f32(accum3, a, b.val[3]);
+          }
+          const auto res0 = vpadd_f32(vget_low_f32(accum0), vget_high_f32(accum0));
+          const auto res1 = vpadd_f32(vget_low_f32(accum1), vget_high_f32(accum1));
+          const auto res2 = vpadd_f32(vget_low_f32(accum2), vget_high_f32(accum2));
+          const auto res3 = vpadd_f32(vget_low_f32(accum3), vget_high_f32(accum3));
+          const auto res01 = vpadd_f32(res0, res1);
+          const auto res23 = vpadd_f32(res2, res3);
+          auto res = vcombine_f32(res01, res23);
+          for (; k < A.cols(); ++k) {
+            const auto a = vdupq_n_f32(A(i + i2, k));
+            const auto b = vld1q_f32(B_buf_ptr);
+            B_buf_ptr += 4;
+            res = vmlaq_f32(res, a, b);
+          }
+          float res_ary[4];
+          vst1q_f32(res_ary, res);
+          C(i + i2, j + 0) = res_ary[0];
+          C(i + i2, j + 1) = res_ary[1];
+          C(i + i2, j + 2) = res_ary[2];
+          C(i + i2, j + 3) = res_ary[3];
+        }
       } else {
         const auto i2max = std::min(regblock_n, A.rows() - i);
         const auto j2max = std::min(regblock_m, B.cols() - j);
