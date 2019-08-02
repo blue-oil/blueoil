@@ -26,6 +26,9 @@ limitations under the License.
 #include "time_measurement.h"
 #include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_tiling.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 template <typename T, MemoryLayout layout>
 void QuantizedConv2D(const TensorView<T, layout>& input,
@@ -178,7 +181,19 @@ void func_QuantizedConv2DWithThreshold(
 
   Measurement::Start("Memcpy");
 
+#ifdef _OPENMP
+  const int num_blocks = bytes / sizeof(QUANTIZED_PACKED);
+  const int num_threads = omp_get_max_threads();
+  const int chunk_size = (num_blocks + num_threads - 1) / num_threads;
+#pragma omp parallel for
+  for (int i = 0; i < num_blocks; i += chunk_size) {
+    memcpy(output.data() + i,
+        (QUANTIZED_PACKED*)(p.device_output_buf) + i,
+        std::min(chunk_size, num_blocks - i) * sizeof(QUANTIZED_PACKED));
+  }
+#else
   memcpy(output.data(), (void*)p.device_output_buf, bytes);
+#endif
 
   Measurement::Stop();
 }
