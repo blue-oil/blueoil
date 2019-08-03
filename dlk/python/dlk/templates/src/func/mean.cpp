@@ -17,20 +17,21 @@ limitations under the License.
 #include "func/mean.h"
 #include "time_measurement.h"
 
-void func_Matmul(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
-    const TensorView<T_FLOAT, MemoryLayout::NC>& factor,
-    const TensorView<T_FLOAT, MemoryLayout::NC>& output) {
+void func_Mean(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<int, MemoryLayout::C>& factor,
+    const TensorView<T_FLOAT, MemoryLayout::NC>& output, 
+    T_UINT in_h, T_UINT in_w) {
 #ifndef RUN_AS_HLS
   Measurement::Start("Mean");
 #endif
-  T_UINT in_size = input.size();
+  T_UINT in_size = in_h * in_w;
   T_UINT out_depth = output.size();
 
-  T_UINT index = 0;
-  for (T_UINT kz = 0; kz < in_size; kz++){
-    for (T_UINT kd = 0; kd < out_depth; kd++){
-      output[kd] += input[index] / in_size;
-      index++;
+  for (T_UINT dh = 0; dh < in_h; dh++){
+    for (T_UINT dw = 0; dw < in_w; dw++){
+      for (T_UINT dd = 0; dd < out_depth; dd++){
+        output(0, dd) += input(0, dh, dw, dd) / in_size;
+      }
     }
   }
 

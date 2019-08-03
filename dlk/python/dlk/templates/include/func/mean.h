@@ -20,7 +20,8 @@ limitations under the License.
 #include "tensor_view.h"
 
 void func_Mean(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
-    const TensorView<T_FLOAT, MemoryLayout::NC>& factor,
-    const TensorView<T_FLOAT, MemoryLayout::NC>& output);
+    const TensorView<int, MemoryLayout::C>& factor,
+    const TensorView<T_FLOAT, MemoryLayout::NC>& output,
+    T_UINT in_h, T_UINT in_w);
 
 #endif // DLK_FUNC_MEAN_H_INCLUDED

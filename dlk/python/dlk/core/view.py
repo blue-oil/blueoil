@@ -728,9 +728,13 @@ class View(object):
 
             inputs_string = self.inputs_to_string(input_ops)
 
+            a_op = input_ops['A']
+            ih = a_op.height
+            iw = a_op.width
+            
             return self.format_string(
                 f"""
-                func_Mean({inputs_string}, {op.name});
+                func_Mean({inputs_string}, {op.name}, {ih}, {iw});
                 """
             )
         elif self.op.op_type == 'Lookup':

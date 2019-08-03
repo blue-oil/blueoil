@@ -20,6 +20,7 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/max_pool.cpp \
     $(SRC_DIR)/func/pad.cpp \
     $(SRC_DIR)/func/matmul.cpp \
+    $(SRC_DIR)/func/mean.cpp \
     $(SRC_DIR)/func/quantize.cpp \
     $(SRC_DIR)/func/softmax.cpp \
     $(SRC_DIR)/func/unpooling.cpp \
