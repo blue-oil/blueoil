@@ -264,6 +264,14 @@ bool Network::init()
   {%    set kernel = qconv.input_nodes[1] -%}
   std::memcpy(kernel_buffer + {{qconv.name}}_kernel_offset, {{kernel.name}}.data(), {{qconv.name}}_kernel_size);
   {% endfor -%}
+
+  auto* thresholds_buffer = mapPhysicalMemory(THRESHOLD_ADDR, total_thresholds_size);
+  {% for qconv in graph.convs(quantized_only=True) -%}
+      {% if qconv.has_thresholds -%}
+          {% set thresholds = qconv.thresholds -%}
+  std::memcpy(thresholds_buffer + {{qconv.name}}_thresholds_offset, {{qconv.name}}_thresholds, {{qconv.name}}_thresholds_size);
+      {% endif -%}
+  {% endfor -%}
 #endif // RUN_ON_FPGA
 
 #pragma omp parallel

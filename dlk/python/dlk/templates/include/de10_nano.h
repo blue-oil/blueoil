@@ -505,20 +505,14 @@ Parameters calcParameters(uint32_t inputHeight, uint32_t inputWidth, uint32_t in
 }
 
 void RunTCA(unsigned long input_addr, unsigned long output_addr, unsigned long kernel_addr,
-  BIN_CONV_OUTPUT th_data[], unsigned in_w, unsigned in_h, unsigned in_c, unsigned nbits_in_data,
+  unsigned long thresholds_addr, unsigned in_w, unsigned in_h, unsigned in_c, unsigned nbits_in_data,
   unsigned out_w, unsigned out_h, unsigned out_c, unsigned k_w, unsigned k_h, unsigned pad, unsigned stride) {
 
   const unsigned k_size = (k_h * k_w * in_c * out_c) / 32;
   // MappedMem k_data_mem(KERNEL_ADDR, k_size, sizeof(T_UINT));
   // k_data_mem.Write(k_data_packed, k_size);
 
-  unsigned use_threshold = (th_data != NULL) ? 1 : 0;
-
-  if (use_threshold == 1) {
-    const unsigned th_size = out_c * NUM_OF_A2W1_THRESHOLD;
-    MappedMem th_data_mem(THRESHOLD_ADDR, th_size, sizeof(BIN_CONV_OUTPUT));
-    th_data_mem.Write(th_data, th_size);
-  }
+  unsigned use_threshold = (thresholds_addr != NULL) ? 1 : 0;
 
   static volatile uint32_t* csr = nullptr;
   if (csr == nullptr) {
@@ -526,7 +520,7 @@ void RunTCA(unsigned long input_addr, unsigned long output_addr, unsigned long k
   }
     auto tileWidth = 32u;
     auto tileHeight = 32u;
-    auto p = calcParameters(in_h, in_w, in_c, tileWidth, tileHeight, out_c, k_h, k_w, input_addr, kernel_addr, THRESHOLD_ADDR, output_addr, use_threshold == 1);
+    auto p = calcParameters(in_h, in_w, in_c, tileWidth, tileHeight, out_c, k_h, k_w, input_addr, kernel_addr, thresholds_addr, output_addr, use_threshold == 1);
 
     csr[Csr::admaInputAddress] = p.admaInputAddress;
     csr[Csr::admaInputHCount] = p.admaInputHCount;
