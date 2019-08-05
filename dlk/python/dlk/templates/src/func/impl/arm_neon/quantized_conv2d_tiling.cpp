@@ -17,9 +17,7 @@ limitations under the License.
 #include <climits>
 
 #include "global.h"
-#include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_tiling.h"
-#include "func/impl/pack_16bit.h"
 #include "time_measurement.h"
 #include "tensor_convert.h"
 
