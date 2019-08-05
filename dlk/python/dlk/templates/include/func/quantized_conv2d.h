@@ -24,8 +24,8 @@ limitations under the License.
 #include "tensor_convert.h"
 #include "operators.h"
 #include "time_measurement.h"
-#include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_tiling.h"
+#include "func/impl/quantized_conv2d_kn2row.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
