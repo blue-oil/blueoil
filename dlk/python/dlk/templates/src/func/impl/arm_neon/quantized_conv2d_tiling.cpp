@@ -19,7 +19,6 @@ limitations under the License.
 #include "global.h"
 #include "func/impl/quantized_conv2d_tiling.h"
 #include "time_measurement.h"
-#include "tensor_convert.h"
 
 #include <arm_neon.h>
 
