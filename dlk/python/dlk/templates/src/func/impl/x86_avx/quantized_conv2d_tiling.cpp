@@ -17,11 +17,8 @@ limitations under the License.
 #include <climits>
 
 #include "global.h"
-#include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_tiling.h"
-#include "func/impl/pack_16bit.h"
 #include "time_measurement.h"
-#include "tensor_convert.h"
 
 #include <x86intrin.h>
 
@@ -33,8 +30,13 @@ namespace dlk {
 
 namespace impl {
 
-static const auto buf_th = std::make_unique<QUANTIZED_PACKED[]>(MAX_SIZE_QOUTPUTS_PER_LAYER);
-static const auto buf_non_th = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_SIZE_OUTPUTS_PER_LAYER);
+static const auto buf_th0 = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
+static const auto buf_th1 = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
+static const auto buf_th2 = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
+static const auto buf_flg = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
+
+//static const auto buf_th = std::make_unique<QUANTIZED_PACKED[]>(MAX_SIZE_QOUTPUTS_PER_LAYER);
+//static const auto buf_non_th = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_SIZE_OUTPUTS_PER_LAYER);
 alignas(32) static int16_t nksum_ary[MAX_SIZE_QKERNELS_PER_LAYER];
 alignas(32) static uint16_t nk[MAX_SIZE_QKERNELS_PER_LAYER*2];
 
@@ -101,6 +103,51 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   assert((in_channels % InTypeBitWidth) == 0);
 
   Measurement::Start("Quantized Conv2D Tiling");
+  if (p.thresholds != nullptr) {
+    const auto table = _mm256_setr_epi8(
+        0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14, 15,
+        0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14, 15
+    );
+    for (T_UINT i = 0; i < out_channels; i += 16) {
+      const auto v0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i +  0));
+      const auto v1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 16));
+      const auto v2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 32));
+      const auto v3 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 48));
+      const auto tmp00 = _mm256_shuffle_ps(_mm256_castsi256_ps(v0), _mm256_castsi256_ps(v1), 0x88);
+      const auto tmp01 = _mm256_shuffle_ps(_mm256_castsi256_ps(v0), _mm256_castsi256_ps(v1), 0xdd);
+      const auto tmp02 = _mm256_shuffle_ps(_mm256_castsi256_ps(v2), _mm256_castsi256_ps(v3), 0x88);
+      const auto tmp03 = _mm256_shuffle_ps(_mm256_castsi256_ps(v2), _mm256_castsi256_ps(v3), 0xdd);
+      const auto tmp10 = _mm256_shuffle_epi8(_mm256_castps_si256(tmp00), table);
+      const auto tmp11 = _mm256_shuffle_epi8(_mm256_castps_si256(tmp01), table);
+      const auto tmp12 = _mm256_shuffle_epi8(_mm256_castps_si256(tmp02), table);
+      const auto tmp13 = _mm256_shuffle_epi8(_mm256_castps_si256(tmp03), table);
+      const auto tmp20 = _mm256_unpacklo_epi16(tmp10, tmp12);
+      const auto tmp21 = _mm256_unpackhi_epi16(tmp10, tmp12);
+      const auto tmp22 = _mm256_unpacklo_epi16(tmp11, tmp13);
+      const auto tmp23 = _mm256_unpackhi_epi16(tmp11, tmp13);
+      const auto tmp30 = _mm256_shuffle_epi8(tmp20, table);
+      const auto tmp31 = _mm256_shuffle_epi8(tmp21, table);
+      const auto tmp32 = _mm256_shuffle_epi8(tmp22, table);
+      const auto tmp33 = _mm256_shuffle_epi8(tmp23, table);
+      const auto tmp40 = _mm256_permute4x64_epi64(tmp30, 0xD8);
+      const auto tmp41 = _mm256_permute4x64_epi64(tmp31, 0xD8);
+      const auto tmp42 = _mm256_permute4x64_epi64(tmp32, 0xD8);
+      const auto tmp43 = _mm256_permute4x64_epi64(tmp33, 0xD8);
+      const auto th0 = _mm256_shuffle_epi32(tmp40, 0xD8);
+      const auto th1 = _mm256_shuffle_epi32(tmp41, 0xD8);
+      const auto th2 = _mm256_shuffle_epi32(tmp42, 0xD8);
+      const auto flg = _mm256_shuffle_epi32(tmp43, 0xD8);
+      const auto is_neg = _mm256_cmpgt_epi16(_mm256_setzero_si256(), flg);
+      const auto res0 = _mm256_sub_epi16(th0, is_neg);
+      const auto res1 = _mm256_sub_epi16(th1, is_neg);
+      const auto res2 = _mm256_sub_epi16(th2, is_neg);
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_th0.get() + i), res0);
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_th1.get() + i), res1);
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_th2.get() + i), res2);
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_flg.get() + i), flg);
+    }
+  }
+
   const auto mask4 = _mm256_set1_epi8(0x0F);
   const auto popc_table = _mm256_setr_epi8(
     0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
@@ -110,6 +157,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   if (kh == 1 && kw == 1) {
     constexpr T_UINT InChUnroll = InTypeBitWidth; // hardcoded, not configurable
     constexpr T_UINT OutChUnroll = 16; // hardcoded, not configurable
+    constexpr T_UINT OutChUnroll2 = 32; // hardcoded, not configurable
     constexpr T_UINT InBitChUnroll = 2; // hardcoded, not configurable
     constexpr T_UINT ColUnroll = 4; // hardcoded, not configurable
     const auto row_tile_count = in_height;
@@ -136,7 +184,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
     const auto voffset = _mm256_sub_epi64(_mm256_setr_epi64x(0, 1, 2, 3), _mm256_set1_epi64x(in_width));
 #pragma omp parallel for schedule(guided)
     for (T_UINT tile_index = 0; tile_index < total_tile_count; ++tile_index) {
-      const auto out_ch_high = tile_index % out_tile_count * OutChUnroll;
+      const auto out_ch_high = tile_index % out_tile_count;
       const auto col = (tile_index / out_tile_count) % col_tile_count * ColUnroll;
       const auto row = tile_index / (out_tile_count * col_tile_count);
       auto xnorsum00 = _mm256_setzero_si256();
@@ -148,7 +196,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       auto xnorsum30 = _mm256_setzero_si256();
       auto xnorsum31 = _mm256_setzero_si256();
       for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
-        const auto nk_index = out_ch_high * (in_channels / InTypeBitWidth * 2)
+        const auto nk_index = out_ch_high * (in_channels / InTypeBitWidth * 2) * OutChUnroll
           + (in_ch_high / InTypeBitWidth * 2) * OutChUnroll;
         const auto nk0 = _mm256_load_si256(reinterpret_cast<__m256i*>(nk + nk_index + 0 * OutChUnroll));
         const auto nk1 = _mm256_load_si256(reinterpret_cast<__m256i*>(nk + nk_index + 1 * OutChUnroll));
@@ -205,18 +253,54 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
         BINDP(1, 3, 1);
 #undef BINDP
       }
-      const auto nksum = _mm256_load_si256(reinterpret_cast<__m256i*>(nksum_ary + out_ch_high));
-      const auto out_index = row * out_width * out_channels
-          + col * out_channels
-          + out_ch_high;
+      const auto nksum = _mm256_load_si256(reinterpret_cast<__m256i*>(nksum_ary + out_ch_high * OutChUnroll));
+      const auto Ohh = out_ch_high / 2;
+      const auto Om = out_ch_high % 2;
+#define LOAD_TH \
+  const auto th0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th0.get() + out_ch_high * OutChUnroll)); \
+  const auto th1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th1.get() + out_ch_high * OutChUnroll)); \
+  const auto th2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th2.get() + out_ch_high * OutChUnroll)); \
+  const auto flg = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_flg.get() + out_ch_high * OutChUnroll)); \
+  const auto is_neg = _mm256_cmpgt_epi16(_mm256_setzero_si256(), flg); \
+  const auto m2 = _mm256_sub_epi16(flg, _mm256_set1_epi16(2)); \
+  const auto is_not_const = _mm256_cmpgt_epi16(_mm256_setzero_si256(), m2);
+
+#define APPLY_PACK \
+  const auto f0 = _mm256_andnot_si256(_mm256_cmpgt_epi16(th0, d), flg); \
+  const auto f1 = _mm256_andnot_si256(_mm256_cmpgt_epi16(th1, d), flg); \
+  const auto f2 = _mm256_andnot_si256(_mm256_cmpgt_epi16(th2, d), flg); \
+  const auto tmp = _mm256_add_epi16(_mm256_add_epi16(f0, f1), _mm256_add_epi16(f2, is_neg)); \
+  const auto res = _mm256_blendv_epi8(m2, tmp, is_not_const); \
+  const auto pres = _mm256_packs_epi16(res, _mm256_setzero_si256()); \
+  const auto bres = _mm256_castsi256_si128(_mm256_permute4x64_epi64(pres, 0xD8)); \
+  const auto vlsb = _mm_slli_epi32(bres, 7); \
+  const auto vmsb = _mm_slli_epi32(bres, 6); \
+  const auto lsb = _mm_movemask_epi8(vlsb); \
+  const auto msb = _mm_movemask_epi8(vmsb);
+
 #define CALC(j) \
   if (col + j >= out_width) continue; \
   do { \
     const auto shifted = _mm256_slli_epi16(xnorsum##j##1, 1); \
     const auto tmp = _mm256_add_epi16(xnorsum##j##0, shifted); \
-    const auto res = _mm256_sub_epi16(tmp, nksum); \
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(p.device_output_buf + out_index + j * out_channels), res); \
+    const auto d = _mm256_sub_epi16(tmp, nksum); \
+    if (p.thresholds != nullptr) { \
+      APPLY_PACK \
+      const auto packed_index = Ohh * out_height * out_width * 4 \
+          + row * out_width * 4 \
+          + (col + j) * 4 \
+          + Om; \
+      reinterpret_cast<uint16_t*>(p.device_output_buf)[packed_index + 0] = lsb; \
+      reinterpret_cast<uint16_t*>(p.device_output_buf)[packed_index + 2] = msb; \
+    } else { \
+      const auto out_index = Ohh * out_height * out_width * OutChUnroll2 \
+          + row * out_width * OutChUnroll2 \
+          + (col + j) * OutChUnroll2 \
+          + Om * OutChUnroll; \
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(p.device_output_buf + out_index), d); \
+    } \
   } while (0)
+      LOAD_TH
       CALC(0);
       CALC(1);
       CALC(2);
@@ -225,6 +309,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   } else {
     constexpr T_UINT InChUnroll = InTypeBitWidth; // hardcoded, not configurable
     constexpr T_UINT OutChUnroll = 16; // hardcoded, not configurable
+    constexpr T_UINT OutChUnroll2 = 32; // hardcoded, not configurable
     constexpr T_UINT InBitChUnroll = 2; // hardcoded, not configurable
     constexpr T_UINT ColUnroll = 2; // hardcoded, not configurable
     const T_UINT TileHeight = std::min(in_height, T_UINT(16)); // configurable
@@ -235,10 +320,10 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
     const T_UINT total_tile_count = row_tile_count * col_tile_count * out_tile_count;
 #pragma omp parallel for schedule(guided)
     for (T_UINT tile_index = 0; tile_index < total_tile_count; ++tile_index) {
-      const auto out_ch_high = tile_index % out_tile_count * OutChUnroll;
+      const auto out_ch_high = tile_index % out_tile_count;
       const auto col_high = (tile_index / out_tile_count) % col_tile_count * TileWidth;
       const auto row_high = tile_index / (out_tile_count * col_tile_count) * TileHeight;
-      int16_t out_tile[TileHeight][TileWidth][OutChUnroll];
+      BIN_CONV_OUTPUT out_tile[TileHeight][TileWidth][OutChUnroll];
       for (unsigned int row = 0; row < TileHeight; ++row) {
         for (unsigned int col = 0; col < TileWidth; ++col) {
           for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
@@ -248,12 +333,12 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       }
       for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
         QUANTIZED_PACKED_KERNEL notk[kh][kw][OutChUnroll];
-        int16_t notsum[OutChUnroll] = {};
+        BIN_CONV_OUTPUT notsum[OutChUnroll] = {};
         for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
           notsum[out_ch] = 0;
           for (unsigned int kr = 0; kr < kh; ++kr) {
             for (unsigned int kc = 0; kc < kw; ++kc) {
-              const auto index = (out_ch_high + out_ch) * kh * kw * (in_channels / InTypeBitWidth)
+              const auto index = (out_ch_high * OutChUnroll + out_ch) * kh * kw * (in_channels / InTypeBitWidth)
                 + kr * kw * (in_channels / InTypeBitWidth)
                 + kc * (in_channels / InTypeBitWidth)
                 + (in_ch_high / InTypeBitWidth);
@@ -357,48 +442,59 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
           }
         }
       }
-      for (unsigned int row = 0; row < TileHeight; ++row) {
-        if (row_high + row >= out_height) break;
-        for (unsigned int col = 0; col < TileWidth; ++col) {
-          if (col_high + col >= out_width) break;
-          for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
-            unsigned int index = (row_high + row) * out_width * out_channels
-                + (col_high + col) * out_channels
-                + (out_ch_high + out_ch);
-            p.device_output_buf[index] = out_tile[row][col][out_ch];
+      if (p.thresholds != nullptr) {
+        const auto th0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th0.get() + out_ch_high * OutChUnroll));
+        const auto th1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th1.get() + out_ch_high * OutChUnroll));
+        const auto th2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th2.get() + out_ch_high * OutChUnroll));
+        const auto flg = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_flg.get() + out_ch_high * OutChUnroll));
+        const auto is_neg = _mm256_cmpgt_epi16(_mm256_setzero_si256(), flg);
+        const auto m2 = _mm256_sub_epi16(flg, _mm256_set1_epi16(2));
+        const auto is_not_const = _mm256_cmpgt_epi16(_mm256_setzero_si256(), m2);
+        for (unsigned int row = 0; row < TileHeight; ++row) {
+          if (row_high + row >= out_height) break;
+          for (unsigned int col = 0; col < TileWidth; ++col) {
+            if (col_high + col >= out_width) break;
+            const auto vec = _mm256_loadu_si256(reinterpret_cast<__m256i*>(&out_tile[row][col][0]));
+            const auto f0 = _mm256_andnot_si256(_mm256_cmpgt_epi16(th0, vec), flg);
+            const auto f1 = _mm256_andnot_si256(_mm256_cmpgt_epi16(th1, vec), flg);
+            const auto f2 = _mm256_andnot_si256(_mm256_cmpgt_epi16(th2, vec), flg);
+            const auto tmp = _mm256_add_epi16(_mm256_add_epi16(f0, f1), _mm256_add_epi16(f2, is_neg));
+            const auto res = _mm256_blendv_epi8(m2, tmp, is_not_const);
+            const auto pres = _mm256_packs_epi16(res, _mm256_setzero_si256());
+            const auto bres = _mm256_castsi256_si128(_mm256_permute4x64_epi64(pres, 0xD8));
+            const auto vlsb = _mm_slli_epi32(bres, 7);
+            const auto vmsb = _mm_slli_epi32(bres, 6);
+            const auto lsb = _mm_movemask_epi8(vlsb);
+            const auto msb = _mm_movemask_epi8(vmsb);
+            const auto Ohh = out_ch_high / 2;
+            const auto Om = out_ch_high % 2;
+            const auto index = Ohh * out_height * out_width * 4
+                + (row_high + row) * out_width * 4
+                + (col_high + col) * 4
+                + Om;
+            reinterpret_cast<uint16_t*>(p.device_output_buf)[index + 0] = lsb;
+            reinterpret_cast<uint16_t*>(p.device_output_buf)[index + 2] = msb;
+          }
+        }
+      } else {
+        for (unsigned int row = 0; row < TileHeight; ++row) {
+          if (row_high + row >= out_height) break;
+          for (unsigned int col = 0; col < TileWidth; ++col) {
+            if (col_high + col >= out_width) break;
+            const auto vec = _mm256_loadu_si256(reinterpret_cast<__m256i*>(&out_tile[row][col][0]));
+            const auto Ohh = out_ch_high / 2;
+            const auto Om = out_ch_high % 2;
+            const auto index = Ohh * out_height * out_width * OutChUnroll2
+                + (row_high + row) * out_width * OutChUnroll2
+                + (col_high + col) * OutChUnroll2
+                + Om * OutChUnroll;
+            _mm256_storeu_si256(reinterpret_cast<__m256i*>(p.device_output_buf + index), vec);
           }
         }
       }
     }
   }
   Measurement::Stop();
-
-  using namespace dlk;
-  auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
-      p.device_output_buf, out_channels, in_height * in_width);
-
-  if (p.thresholds != nullptr) {
-    ApplyThresholdsAndPack(output_, p, buf_th.get());
-    Measurement::Start("copy");
-    std::copy(buf_th.get(), buf_th.get() + out_size / 32 * 2, (QUANTIZED_PACKED*)p.device_output_buf);
-    Measurement::Stop();
-  } else {
-    const T_UINT b = 32;
-    Measurement::Start("copy");
-    std::copy(p.device_output_buf, p.device_output_buf + out_size, buf_non_th.get());
-    Measurement::Stop();
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>::tensor_info_t<std::size_t> buf_shape = {
-      out_height, out_width, out_channels
-    };
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC> buf_tensor(buf_non_th.get(), buf_shape);
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl>::tensor_info_t<std::size_t> out_shape = {
-      (out_channels + b - 1) / b, out_height, out_width, b
-    };
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl> out(p.device_output_buf, out_shape);
-    Measurement::Start("Output tensor convert");
-    convert_tensor(buf_tensor, out);
-    Measurement::Stop();
-  }
 }
 
 } // namespace impl
