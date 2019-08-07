@@ -19,10 +19,10 @@ DATASET:
         lmnet.data_augmentor.FlipLeftRight:
           probability: 0.5
   BATCH_SIZE: 100
-  PRE_PROCESSOR: 
+  PRE_PROCESSOR:
     lmnet.data_processor.Sequence:
       processors:
-      - 
+      -
         lmnet.pre_processor.Resize:
           size:
           - 32
@@ -66,6 +66,7 @@ NETWORK_CLASS: lmnet.networks.classification.lmnet_quantize.LmnetQuantize
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
 PRETRAIN_VARS: []
-SAVE_STEPS: 5000
+SAVE_CHECKPOINT_STEPS: 5000
+KEEP_CHECKPOINT_MAX: 5
 SUMMARISE_STEPS: 100
 TEST_STEPS: 1000
