@@ -114,7 +114,7 @@ In this project, we can choose model architecture and dataset separately. (VGG->
 to be written.
 
 ## Starting training
-Main training script is `executor/train.py`.  
+Main training script is `executor/train.py`.
 When you start training, you need to specify some (required) options.  
 You can see the option descriptions with `-h` flag.
 ```
@@ -151,7 +151,7 @@ Default value of `--experiment_id` is `experiment`.
 And then, sub-directories are also created in `lmnet_mnist`.  
 Currently, there are 3 sub-directories.
 
-- config.py   
+- config.py
 Actual copy of the config file used for training.  
 It is useful to record the configured parameters, lest we forget it.
 - checkpoints  
@@ -191,7 +191,7 @@ Options:
   -n, --network TEXT        network name. override config.NETWORK_CLASS
   -d, --dataset TEXT        dataset name. override config.DATASET_CLASS
   -c, --config_file TEXT    config file path. override(merge) saved experiment config.
-                            if it is not provided, it restore from saved experiment config. 
+                            if it is not provided, it restore from saved experiment config.
   -h, --help                Show this message and exit.
 ```
 
@@ -207,10 +207,13 @@ We need to implement some ideas to increase the accuracy.
 A subset is split from the train data and used to decide points at which the model is saved.  
 This can increase performance of the saved model for quantized network, but also increases training time.  
 
-The SAVE_STEPS parameter should be small to make use of this feature (increasing the value of this parameter gives faster training but might not increase accuracy as much).  
+The SAVE_CHECKPOINT_STEPS parameter should be small to make use of this feature (increasing the value of this parameter gives faster training but might not increase accuracy as much).  
 Also TRAIN_VALIDATION_SAVING_SIZE determines how much to split from the train data.  
-Currently, this feature is implemented for quantized classification of cifar10 and cifar100.  
+Currently, this feature is implemented for quantized classification of cifar10 and cifar100.
 If you don't want to use this feature, set TRAIN_VALIDATION_SAVING_SIZE to zero.  
+
+The KEEP_CHECKPOINT_MAX is equivalent to 'max_to_keep' of tensorflow train.Saver parameter which indicates the maximum number of recent checkpoint files to keep. As new files are created, older files are deleted. 
+If None or 0, no checkpoints are deleted from the filesystem but only the last one is kept in the checkpoint file. Defaults to 5 (that is, the 5 most recent checkpoint files are kept.)
 
 To apply this feature to another dataset, the dataset file should define another available subset called train_validation_saving, which is split from the original train dataset in the dataset file. Also a dataset parameter TRAIN_VALIDATION_SAVING_SIZE should be included in the config file.
 
@@ -237,7 +240,7 @@ Usage: export.py [OPTIONS]
 
   In the case with `images` option, create each layer output value npy files
   in `export/{restore_path}/{image_size}/{image_name}/**.npy` for debug.
-  
+
 Options:
   -i, --experiment_id TEXT        id of this experiment.  [required]
   --restore_path TEXT             restore ckpt file base path. e.g.
@@ -382,7 +385,7 @@ e.g.
 # Profiling model
 Profiling a trained model.
 
-If it exists unquantized layers, use `-uql` to point it out. 
+If it exists unquantized layers, use `-uql` to point it out.
 
 ```
 # PYTHONPATH=. python executor/profile_model.py -h

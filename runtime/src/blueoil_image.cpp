@@ -1,3 +1,18 @@
+/* Copyright 2019 The Blueoil Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+=============================================================================*/
+
 #include <iostream>
 #include <cmath>
 #include <cassert>
@@ -90,16 +105,16 @@ Tensor ResizeHorizontal_BiLinear(const Tensor &tensor, const int width) {
   xSrcWindow = (xSrcWindow < 2)? 2 :xSrcWindow;
   for (int dstY = 0 ; dstY < height ; dstY++) {
     for (int dstX = 0 ; dstX < width ; dstX++) {
-      int srcX = (int) std::floor(dstX/xScale);
+      int srcX = static_cast<int>(std::floor(dstX/xScale));
       int srcY = dstY;
       for (int c = 0 ; c < channels ; c++) {
         float v = 0.0;
         float totalW = 0.0;
-        for (int x = -xSrcWindow ; x < xSrcWindow; x++){
+        for (int x = -xSrcWindow ; x < xSrcWindow; x++) {
           int srcX2 = clamp(srcX + x, 0, srcWidth - 1);
           const float *srcRGB = tensor.dataAsArray({srcY, srcX2, 0});
           float d = std::abs(static_cast<float>(x) / static_cast<float> (xSrcWindow));
-          float w = 1.0 - d; // Bi-Linear
+          float w = 1.0 - d;  // Bi-Linear
           v += w * srcRGB[c];
           totalW += w;
         }
@@ -124,7 +139,7 @@ Tensor ResizeVertical_BiLinear(const Tensor &tensor, const int height) {
   for (int dstY = 0 ; dstY < height ; dstY++) {
     for (int dstX = 0 ; dstX < width ; dstX++) {
       int srcX = dstX;
-      int srcY = (int) std::floor(dstY/yScale);
+      int srcY = static_cast<int>(std::floor(dstY/yScale));
       for (int c = 0 ; c < channels ; c++) {
         float v = 0.0;
         float totalW = 0.0;
@@ -132,7 +147,7 @@ Tensor ResizeVertical_BiLinear(const Tensor &tensor, const int height) {
           int srcY2 = clamp(srcY + y, 0, srcHeight - 1);
           const float *srcRGB = tensor.dataAsArray({srcY2, srcX, 0});
           float d = std::abs(static_cast<float>(y) / static_cast<float> (ySrcWindow));
-          float w = 1.0 - d; // Bi-Linear
+          float w = 1.0 - d;  // Bi-Linear
           v += w * srcRGB[c];
           totalW += w;
         }
@@ -148,8 +163,8 @@ Tensor Resize(const Tensor& image, const int width, const int height,
               const enum ResizeFilter filter) {
   auto shape = image.shape();
   int channels = shape[2];
-  assert(shape.size() == 3); // 3D shape: HWC
-  assert((channels == 1) || (channels == 3)); // grayscale or RGB
+  assert(shape.size() == 3);  // 3D shape: HWC
+  assert((channels == 1) || (channels == 3));  // grayscale or RGB
   assert((filter == RESIZE_FILTER_NEAREST_NEIGHBOR) || (filter == RESIZE_FILTER_BI_LINEAR));
   const int srcHeight = shape[0];
   const int srcWidth  = shape[1];
@@ -169,8 +184,8 @@ Tensor Resize(const Tensor& image, const int width, const int height,
     }
   }
   return dstImage;
-}   
+}
 
 
-} // namespace image
-} // namespace blueoil
+}  // namespace image
+}  // namespace blueoil
