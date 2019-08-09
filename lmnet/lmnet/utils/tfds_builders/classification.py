@@ -16,17 +16,19 @@
 import math
 import os
 
+import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
 
-class ImageFolder(tfds.core.GeneratorBasedBuilder):
+class ClassificationBuilder(tfds.core.GeneratorBasedBuilder):
     """Generic TFDS builder for classification dataset"""
     VERSION = tfds.core.Version("0.1.0")
 
-    def __init__(self, dataset_name, raw_data_path, **kwargs):
+    def __init__(self, dataset_name, dataset_class=None, dataset_kwargs=None, **kwargs):
         self.name = dataset_name
-        self.raw_data_path = raw_data_path
+        self.dataset_class = dataset_class
+        self.dataset_kwargs = dataset_kwargs
         super().__init__(**kwargs)
 
     def _info(self):
@@ -40,64 +42,39 @@ class ImageFolder(tfds.core.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        data_path = self.raw_data_path
-        split_names = []
-        classes = []
-        for split_name in tf.io.gfile.listdir(data_path):
-            if not tf.io.gfile.isdir(os.path.join(data_path, split_name)):
-                continue
-            
-            split_names.append(split_name)
-            for class_name in tf.io.gfile.listdir(os.path.join(data_path, split_name)):
-                if not tf.io.gfile.isdir(os.path.join(data_path, split_name, class_name)):
-                    continue
-
-                classes.append(class_name)
-
-        classes = list(set(classes))
-        self.info.features["label"].names = sorted(classes)
-
         available_splits = {
             "train": tfds.Split.TRAIN,
-            "val": tfds.Split.VALIDATION,
+            "validation": tfds.Split.VALIDATION,
             "test": tfds.Split.TEST,
         }
 
         splits = []
-        for split_name in split_names:
-            if split_name in available_splits:
+        for subset in self.dataset_class.available_subsets:
+            if subset in available_splits:
+                dataset = self.dataset_class(**self.dataset_kwargs)
+                self.info.features["label"].names = dataset.classes
+
                 splits.append(
                     tfds.core.SplitGenerator(
-                        name=available_splits[split_name],
-                        num_shards=self._num_shards(data_path, split_name),
-                        gen_kwargs=dict(data_path=data_path, split_name=split_name)
+                        name=available_splits[subset],
+                        num_shards=self._num_shards(dataset),
+                        gen_kwargs=dict(dataset=dataset)
                     )
                 )
 
         return splits
 
-    def _num_shards(self, data_path, split_name):
+    def _num_shards(self, dataset):
         total_size = 0
         max_shard_size = 256 * 1024 * 1024 # 256MiB
-        for image_file in self._image_files(data_path, split_name):
-            total_size += tf.io.gfile.Gfile(image_file).size()
+        for image, _ in dataset:
+            total_size += image.nbytes
 
         return int(math.ceil(total_size / max_shard_size))
 
-    def _image_files(self, data_path, split_name):
-        split_dir = os.path.join(data_path, split_name)
-        for parent, _, files in tf.io.gfile.walk(split_dir):
-            for file in files:
-                splitted = os.path.splitext(file)
-                if len(splitted) == 2 and splitted[1] in ("png", "jpg"):
-                    yield os.path.join(parent, file)
-
-    def _generate_examples(self, data_path, split_name):
-        for image_file in self._image_files(data_path, split_name):
-            class_dir, file = os.path.split(image_file)
-            label = os.path.basename(class_dir)
-
+    def _generate_examples(self, dataset):
+        for image, label in dataset:
             yield {
-                "image": image_file,
-                "label": label
+                "image": image,
+                "label": label.tolist().index(1)
             }

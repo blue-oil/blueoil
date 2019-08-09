@@ -20,7 +20,11 @@ import click
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from lmnet.utils.module_loader import load_tfds_builder_class
+from lmnet.datasets.base import ObjectDetectionBase
+from lmnet.datasets.tfds import TFDSMixin
+from lmnet.utils import config as config_util
+from lmnet.utils.tfds_builders.classification import ClassificationBuilder
+from lmnet.utils.tfds_builders.object_detection import ObjectDetectionBuilder
 
 
 def _copy_directory_recursively(src, dst):
@@ -42,24 +46,31 @@ def _copy_directory_recursively(src, dst):
             tf.io.gfile.copy(src_file, dst_file)
 
 
-def run(name, input_path, output_path, builder_name, overwrite):
-    if not tf.io.gfile.exists(input_path):
-        raise ValueError("Input path does not exist: {}".format(input_path))
-
+def run(name, config_file, output_path, overwrite):
     if tf.io.gfile.exists(os.path.join(output_path, name)):
         if not overwrite:
             raise ValueError("Output path already exists: {}\n"
                              "Please use --overwrite if you want to overwrite."
                              .format(os.path.join(output_path, name)))
 
-    try:
-        builder_class = load_tfds_builder_class(builder_name)
-    except:
-        raise NotImplementedError("Builder class does not exist: lmnet.utils.tfds_builders.{}"
-                                  .format(builder_name))
+    config = config_util.load(config_file)
+    dataset_class = config.DATASET_CLASS
+    dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+
+    if issubclass(dataset_class, TFDSMixin):
+        raise ValueError("You cannot use dataset classes which is already a TFDS format.")
+
+    if issubclass(dataset_class, ObjectDetectionBase):
+        builder_class = ObjectDetectionBuilder
+    else:
+        builder_class = ClassificationBuilder
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        builder = builder_class(dataset_name=name, raw_data_path=input_path, data_dir=tmpdir)
+        builder = builder_class(dataset_name=name,
+                                dataset_class=dataset_class,
+                                dataset_kwargs=dataset_kwargs,
+                                data_dir=tmpdir)
+
         builder.download_and_prepare()
         print("Dataset was built successfully.")
 
@@ -77,15 +88,9 @@ def run(name, input_path, output_path, builder_name, overwrite):
     required=True,
 )
 @click.option(
-    "-b",
-    "--builder",
-    help="Builder name.",
-    required=True,
-)
-@click.option(
-    "-i",
-    "--input_path",
-    help="Raw dataset needs to be placed at <input_path>/<name>.",
+    "-c",
+    "--config_file",
+    help="Path to config file.",
     required=True,
 )
 @click.option(
@@ -101,13 +106,12 @@ def run(name, input_path, output_path, builder_name, overwrite):
     is_flag=True,
     default=False,
 )
-def main(name, input_path, output_path, builder, overwrite):
+def main(name, config_file, output_path, overwrite):
     """A script to build custom TFDS datasets"""
     run(
         name,
-        os.path.expanduser(input_path),
+        os.path.expanduser(config_file),
         os.path.expanduser(output_path),
-        builder,
         overwrite
     )
 
