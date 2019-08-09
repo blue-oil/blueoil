@@ -51,7 +51,7 @@ class ClassificationBuilder(tfds.core.GeneratorBasedBuilder):
         splits = []
         for subset in self.dataset_class.available_subsets:
             if subset in available_splits:
-                dataset = self.dataset_class(**self.dataset_kwargs)
+                dataset = self.dataset_class(subset=subset, **self.dataset_kwargs)
                 self.info.features["label"].names = dataset.classes
 
                 splits.append(

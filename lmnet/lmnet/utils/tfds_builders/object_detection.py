@@ -55,7 +55,11 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
         splits = []
         for subset in self.dataset_class.available_subsets:
             if subset in available_splits:
-                dataset = self.dataset_class(**self.dataset_kwargs)
+                try:
+                    dataset = self.dataset_class(subset=subset, **self.dataset_kwargs)
+                except:
+                    continue
+
                 self.info.features["objects"]["label"].names = dataset.classes
 
                 splits.append(
@@ -83,6 +87,8 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
             objects = []
             for annotation in annotations:
                 xmin, ymin, w, h, label = annotation
+                if label == -1:
+                    continue
 
                 objects.append({
                     "label": label,
