@@ -23,7 +23,9 @@ from tensorflow.keras.utils import Progbar
 
 from lmnet.utils import executor, module_loader, config as config_util
 from lmnet import environment
+from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.dataset_iterator import DatasetIterator
+from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
 
 
 def _save_checkpoint(saver, sess, global_step, step):
@@ -38,7 +40,16 @@ def _save_checkpoint(saver, sess, global_step, step):
 def setup_dataset(config, subset, rank):
     DatasetClass = config.DATASET_CLASS
     dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
-    dataset = DatasetClass(subset=subset, **dataset_kwargs)
+    tfds_kwargs = dataset_kwargs.pop("tfds_kwargs", {})
+
+    # If there is a settings for TFDS, TFDS dataset class will be used.
+    if tfds_kwargs != {}:
+        if issubclass(DatasetClass, ObjectDetectionBase):
+            DatasetClass = TFDSObjectDetection
+        else:
+            DatasetClass = TFDSClassification
+
+    dataset = DatasetClass(subset=subset, **dataset_kwargs, **tfds_kwargs)
     enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
     return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
 

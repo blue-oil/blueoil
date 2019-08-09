@@ -46,16 +46,20 @@ def _copy_directory_recursively(src, dst):
             tf.io.gfile.copy(src_file, dst_file)
 
 
-def run(name, config_file, output_path, overwrite):
-    if tf.io.gfile.exists(os.path.join(output_path, name)):
-        if not overwrite:
-            raise ValueError("Output path already exists: {}\n"
-                             "Please use --overwrite if you want to overwrite."
-                             .format(os.path.join(output_path, name)))
-
+def run(config_file, overwrite):
     config = config_util.load(config_file)
     dataset_class = config.DATASET_CLASS
     dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+
+    tfds_kwargs = dataset_kwargs.pop("tfds_kwargs")
+    name = tfds_kwargs['name']
+    data_dir = os.path.expanduser(tfds_kwargs['data_dir'])
+
+    if tf.io.gfile.exists(os.path.join(data_dir, name)):
+        if not overwrite:
+            raise ValueError("Output path already exists: {}\n"
+                             "Please use --overwrite if you want to overwrite."
+                             .format(os.path.join(data_dir, name)))
 
     if issubclass(dataset_class, TFDSMixin):
         raise ValueError("You cannot use dataset classes which is already a TFDS format.")
@@ -75,29 +79,17 @@ def run(name, config_file, output_path, overwrite):
         print("Dataset was built successfully.")
 
         print("Copying to destination...")
-        _copy_directory_recursively(src=tmpdir, dst=output_path)
+        _copy_directory_recursively(src=tmpdir, dst=data_dir)
 
         print("Done!!")
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option(
-    "-n",
-    "--name",
-    help="Dataset name.",
-    required=True,
-)
-@click.option(
     "-c",
     "--config_file",
     help="Path to config file.",
     required=True,
-)
-@click.option(
-    "-o",
-    "--output_path",
-    help="Generated datasets will be placed at <output_path>/<name>.",
-    default=os.path.join(os.path.expanduser("~"), "tensorflow_datasets"),
 )
 @click.option(
     "-ow",
@@ -106,14 +98,9 @@ def run(name, config_file, output_path, overwrite):
     is_flag=True,
     default=False,
 )
-def main(name, config_file, output_path, overwrite):
+def main(config_file, overwrite):
     """A script to build custom TFDS datasets"""
-    run(
-        name,
-        os.path.expanduser(config_file),
-        os.path.expanduser(output_path),
-        overwrite
-    )
+    run(os.path.expanduser(config_file), overwrite)
 
 
 if __name__ == "__main__":
