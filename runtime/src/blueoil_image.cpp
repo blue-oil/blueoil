@@ -40,14 +40,17 @@ T clamp(const T x, const T lowerLimit, const T upperLimit) {
 
 
 Tensor LoadImage(const std::string filename) {
+  blueoil::Tensor tensor({0});
 #ifdef USE_OPENCV
   cv::Mat img = cv::imread(filename, 1);  // 1:force to RGB format
-  assert(! img.empty());
-  blueoil::Tensor tensor = blueoil::opencv::Tensor_fromCVMat(img);
-  return tensor;
+  if (img.empty()) {
+    throw std::invalid_argument("can't read file as image");
+  }
+  tensor = blueoil::opencv::Tensor_fromCVMat(img);
 #else
-  return NULL;
+  throw std::invalid_argument("LoadImage not implemented yet. without image library");
 #endif
+  return tensor;
 }
 
 /*
