@@ -274,7 +274,7 @@ def test_calculate_truth_and_maskes():
         image_size=[128, 256],
         batch_size=2,
         num_max_boxes=5,
-        seen_threshold=0,
+        loss_warmup_steps=0,
     )
 
     gt_boxes_list = [
@@ -600,7 +600,7 @@ def test_calculate_truth_and_maskes():
     # TODO(wakisaka): prepare numpy predict_boxes.
     predict_boxes = tf.convert_to_tensor(expected_cell_gt_boxes, dtype=tf.float32)
     cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes =\
-        model.loss_function._calculate_truth_and_maskes(gt_boxes_list, predict_boxes, is_training=False)
+        model.loss_function._calculate_truth_and_maskes(gt_boxes_list, predict_boxes, global_step=0)
 
     tf.InteractiveSession()
     cell_gt_boxes_val = cell_gt_boxes.eval()
@@ -681,7 +681,7 @@ def test_reorg():
         image_size=[128, 256],
         batch_size=2,
         num_max_boxes=5,
-        seen_threshold=0,
+        loss_warmup_steps=0,
     )
 
     outputs = model._reorg("reorg", inputs, stride=2, data_format="NHWC", use_space_to_depth=False)
@@ -709,7 +709,8 @@ def test_training():
     config.BATCH_SIZE = 2
     config.TEST_STEPS = 1
     config.MAX_STEPS = 2
-    config.SAVE_STEPS = 1
+    config.SAVE_CHECKPOINT_STEPS = 1
+    config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
     config.IS_DISTRIBUTION = False

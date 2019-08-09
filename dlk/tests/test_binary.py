@@ -89,7 +89,7 @@ class TestBinary(TestCaseDLKBase):
                       join(project_dir, "elf.out"),
                       join(project_dir, "elf.err"),
                       self,
-                      check_stdout_include=['TotalRunTime,']
+                      check_stdout_include=['TotalRunTime ']
                       )
 
         print(f"Binary time-measurement test : passed!")

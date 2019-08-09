@@ -52,7 +52,8 @@ TASK = Tasks.OBJECT_DETECTION
 CLASSES = {{classes}}
 
 MAX_EPOCHS = {{max_epochs}}
-SAVE_STEPS = {{save_steps}}
+SAVE_CHECKPOINT_STEPS = {{save_checkpoint_steps}}
+KEEP_CHECKPOINT_MAX = {{keep_checkpoint_max}}
 TEST_STEPS = {{test_steps}}
 SUMMARISE_STEPS = {{summarise_steps}}
 
@@ -107,7 +108,7 @@ NETWORK.WEIGHT_DECAY_RATE = 0.0005
 NETWORK.SCORE_THRESHOLD = score_threshold
 NETWORK.NMS_IOU_THRESHOLD = nms_iou_threshold
 NETWORK.NMS_MAX_OUTPUT_SIZE = nms_max_output_size
-NETWORK.SEEN_THRESHOLD = 8000
+NETWORK.LOSS_WARMUP_STEPS = int(8000 / BATCH_SIZE)
 
 # quantize
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer

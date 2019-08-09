@@ -1,21 +1,21 @@
 # Training for Object Detection
 
-This guide trains a neural network model to object detection of Human Face in the [Open Images Dataset V4](https://storage.googleapis.com/openimages/web/index.html) on GPU server.
+This tutorial covers training a neural network model on a GPU server to perform object detection of Human Faces in the [Open Images Dataset V4](https://storage.googleapis.com/openimages/web/index.html).
 
 <img src="../_static/openimages_v4.png" width="600">
 
 ## Preparation
 
-The Open Images V4 dataset is available from official website, but original dataset is too large for the tutorial. So, We provide reduced dataset.
+The Open Images V4 dataset is available from the official website, however it is too large for this tutorial. So we provide a reduced dataset.
 
 Blueoil supports 2 formats for object detection.
 
 - OpenImagev4 format
 - DeLTA-Mark format
 
-Note: *Please see the detail in <a href="../usage/dataset.html">Prepare training dataset</a>*
+Note: *Please see the details in <a href="../usage/dataset.html">Prepare training dataset</a>*
 
-You can download subset of Open Images V4 from
+You can download a subset of Open Images V4 from:
 [our server](https://s3-ap-northeast-1.amazonaws.com/leapmind-public-storage/datasets/openimages_face.tgz).
 
 
@@ -27,11 +27,11 @@ This dataset consists of 2866 Human Face images and 5170 annotation boxes.
 
 ## Generate a configuration file
 
-Generate your model configuration file interactively by running `blueoil.sh init` command.
+Generate your model configuration file interactively by running `blueoil.sh init`.
 
     $ ./blueoil.sh init
 
-This is an example of initialization.
+Below is an example of initialization.
 
 ```
 #### Generate config ####
@@ -54,13 +54,13 @@ apply quantization at the first layer?  no
 
 ## Train a network model
 
-Train your model by running `blueoil.sh train` command with model configuration.
+Train your model by running `blueoil.sh train` with a model configuration.
 
     $ ./blueoil.sh train config/{Model name}.yml
 
-When training is started, training log and checkpoints are generated under `./saved/{Mode name}_{TIMESTAMP}` directory.
+When training has started, the training log and checkpoints are generated under `./saved/{Mode name}_{TIMESTAMP}`.
 
-Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process.
+Training runs on the TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
     $ ./blueoil.sh tensorboard saved/{Model name}_{TIMESTAMP} {Port}
 
@@ -82,10 +82,10 @@ Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
     $ ./blueoil.sh convert config/{Model name}.yml saved/{Mode name}_{TIMESTAMP}
 
 `blueoil.sh convert` automatically executes some conversion processes.
-- Convert Tensorflow checkpoint to protocol buffer graph.
-- Optimize graph
-- Generate source code for executable binary
-- Compile for x86, ARM and FPGA
+- Converts Tensorflow checkpoint to protocol buffer graph.
+- Optimizes graph.
+- Generates source code for executable binary.
+- Compiles for x86, ARM and FPGA.
 
 If conversion is successful, output files are generated under `./saved/{Mode name}_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
 
@@ -118,10 +118,10 @@ output
 
 		$ wget https://farm4.staticflickr.com/1172/1144309435_eff42ee683_o.jpg
 
-- Run inference script
+- Run the inference script.
 
     Explore into the `output/python` directory, and
-    run `run.py` and inference result is saved in `./output/output.json`.
+    run `run.py` and the inference result is saved in `./output/output.json`.
 
     Note: If you run the script for the first time, you have to setup a python environment (2.7 or 3.5+) and required python packages.
 
@@ -141,7 +141,7 @@ output
 	    threshold: 0.4
 	```
 
-- Check inference result
+- Check inference results. An example output file is shown below.
 
 	```
 	{
