@@ -23,6 +23,8 @@ limitations under the License.
 
 #ifdef USE_NEON
   #include <arm_neon.h>
+#elif defined USE_AVX
+  #include <x86intrin.h>
 #endif
 
 namespace dlk {
@@ -57,6 +59,10 @@ inline void matrix_multiplication_col3(
   delete [] A_colm.data();
 
 #endif
+}
+
+constexpr std::size_t ceil_mod(const std::size_t n, const std::size_t mod) {
+  return n + (mod - n%mod) % mod;
 }
 
 inline void matrix_multiplication_impl(
@@ -241,6 +247,124 @@ inline void matrix_multiplication_impl(
       }
     }
   }
+#elif defined USE_AVX
+  constexpr std::size_t regblock_n = 16;
+  constexpr std::size_t regblock_m = 4;
+  const auto kmax = ceil_mod(A.cols(), regblock_m);
+  const auto jmax = ceil_mod(B.cols(), regblock_m);
+  alignas(32) float B_buf[jmax * kmax];
+  float *B_buf_ptr = B_buf;
+  for (std::size_t j = 0; j < jmax; j += regblock_m) {
+    if (B.cols() - j >= regblock_m) {
+      std::size_t k = 0;
+      for (; k + regblock_m <= B.rows(); k += regblock_m) {
+        const auto im0 = _mm_loadu_ps(B.data(k, j + 0));
+        const auto im1 = _mm_loadu_ps(B.data(k, j + 1));
+        const auto im2 = _mm_loadu_ps(B.data(k, j + 2));
+        const auto im3 = _mm_loadu_ps(B.data(k, j + 3));
+        const auto pm0 = _mm_shuffle_ps(im0, im1, 0x44);
+        const auto pm1 = _mm_shuffle_ps(im2, im3, 0x44);
+        const auto pm2 = _mm_shuffle_ps(im0, im1, 0xEE);
+        const auto pm3 = _mm_shuffle_ps(im2, im3, 0xEE);
+        const auto qm0 = _mm_shuffle_ps(pm0, pm1, 0x88);
+        const auto qm1 = _mm_shuffle_ps(pm0, pm1, 0xDD);
+        const auto qm2 = _mm_shuffle_ps(pm2, pm3, 0x88);
+        const auto qm3 = _mm_shuffle_ps(pm2, pm3, 0xDD);
+        _mm_store_ps(B_buf_ptr, qm0);
+        B_buf_ptr += 4;
+        _mm_store_ps(B_buf_ptr, qm1);
+        B_buf_ptr += 4;
+        _mm_store_ps(B_buf_ptr, qm2);
+        B_buf_ptr += 4;
+        _mm_store_ps(B_buf_ptr, qm3);
+        B_buf_ptr += 4;
+      }
+      for (; k < kmax; ++k) {
+        for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
+          if (j + j2 >= B.cols() || k >= B.rows()) {
+            B_buf[j * kmax + k * regblock_m + j2] = 0;
+          } else {
+            B_buf[j * kmax + k * regblock_m + j2] = B(k, j + j2);
+          }
+        }
+        B_buf_ptr += 4;
+      }
+    } else {
+      for (std::size_t k = 0; k < kmax; ++k) {
+        for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
+          if (j + j2 >= B.cols() || k >= B.rows()) {
+            B_buf[j * kmax + k * regblock_m + j2] = 0;
+          } else {
+            B_buf[j * kmax + k * regblock_m + j2] = B(k, j + j2);
+          }
+        }
+        B_buf_ptr += 4;
+      }
+    }
+  }
+#pragma omp parallel for
+  for (std::size_t i = 0; i < A.rows(); i += regblock_n) {
+    alignas(32) float A_buf[regblock_n * kmax];
+    for (std::size_t k = 0; k < kmax; ++k) {
+      for (std::size_t i2 = 0; i2 < regblock_n; ++i2) {
+        if (i + i2 >= A.rows() || k >= A.cols()) {
+          A_buf[k * regblock_n + i2] = 0;
+        } else {
+          A_buf[k * regblock_n + i2] = A(i + i2, k);
+        }
+      }
+    }
+    float *B_buf_ptr = B_buf;
+    std::size_t j = 0;
+    for (; j < jmax; j += regblock_m) {
+      float *A_buf_ptr = A_buf;
+      auto accum00 = _mm256_setzero_ps();
+      auto accum01 = _mm256_setzero_ps();
+      auto accum10 = _mm256_setzero_ps();
+      auto accum11 = _mm256_setzero_ps();
+      auto accum20 = _mm256_setzero_ps();
+      auto accum21 = _mm256_setzero_ps();
+      auto accum30 = _mm256_setzero_ps();
+      auto accum31 = _mm256_setzero_ps();
+      for (std::size_t k = 0; k < kmax; ++k) {
+        const auto a0 = _mm256_load_ps(A_buf_ptr);
+        A_buf_ptr += 8;
+        const auto a1 = _mm256_load_ps(A_buf_ptr);
+        A_buf_ptr += 8;
+        const auto b0 = _mm256_set1_ps(*B_buf_ptr++);
+        accum00 = _mm256_fmadd_ps(a0, b0, accum00);
+        accum01 = _mm256_fmadd_ps(a1, b0, accum01);
+        const auto b1 = _mm256_set1_ps(*B_buf_ptr++);
+        accum10 = _mm256_fmadd_ps(a0, b1, accum10);
+        accum11 = _mm256_fmadd_ps(a1, b1, accum11);
+        const auto b2 = _mm256_set1_ps(*B_buf_ptr++);
+        accum20 = _mm256_fmadd_ps(a0, b2, accum20);
+        accum21 = _mm256_fmadd_ps(a1, b2, accum21);
+        const auto b3 = _mm256_set1_ps(*B_buf_ptr++);
+        accum30 = _mm256_fmadd_ps(a0, b3, accum30);
+        accum31 = _mm256_fmadd_ps(a1, b3, accum31);
+      }
+      const auto lane_ids = _mm256_setr_epi32(
+          0, 1, 2, 3, 4, 5, 6, 7
+      );
+      const auto idx0 = lane_ids + _mm256_set1_epi32(i+0);
+      const auto idx1 = lane_ids + _mm256_set1_epi32(i+8);
+      const auto vn = _mm256_set1_epi32(A.rows());
+      const auto mask0 = _mm256_cmpgt_epi32(vn, idx0);
+      const auto mask1 = _mm256_cmpgt_epi32(vn, idx1);
+      _mm256_maskstore_ps(C.data(i + 0, j + 0), mask0, accum00);
+      _mm256_maskstore_ps(C.data(i + 8, j + 0), mask1, accum01);
+      if (j + 1 >= B.cols()) continue;
+      _mm256_maskstore_ps(C.data(i + 0, j + 1), mask0, accum10);
+      _mm256_maskstore_ps(C.data(i + 8, j + 1), mask1, accum11);
+      if (j + 2 >= B.cols()) continue;
+      _mm256_maskstore_ps(C.data(i + 0, j + 2), mask0, accum20);
+      _mm256_maskstore_ps(C.data(i + 8, j + 2), mask1, accum21);
+      if (j + 3 >= B.cols()) continue;
+      _mm256_maskstore_ps(C.data(i + 0, j + 3), mask0, accum30);
+      _mm256_maskstore_ps(C.data(i + 8, j + 3), mask1, accum31);
+    }
+  }
 #endif
 }
 
@@ -262,6 +386,10 @@ void matrix_multiplication(
   } else {
     details::matrix_multiplication_impl(A, B, C);
   }
+  Measurement::Stop();
+  return;
+#elif defined USE_AVX
+  details::matrix_multiplication_impl(A, B, C);
   Measurement::Stop();
   return;
 #endif
