@@ -132,24 +132,17 @@ def visualize_semantic_segmentation(image, post_processed, config):
     return result
 
 
-def visualize_pose_estimation(images, heatmaps):
-    """
-    visualize pose estimation
-    :param images: ndarray, (batch_size, height, width, 3)
-    :param heatmaps: ndarray, (batch_size, height, width, num_joints)
-    :return: drawed_image: ndarray, (batch_size, height, width, 3)
-    """
-
-    drawed_images = np.uint8(images * 255.0)
-
-    for i in range(images.shape[0]):
-        joints = gaussian_heatmap_to_joints(heatmaps[i], stride=2)
-        drawed_images[i] = visualize_joints(joints, drawed_images[i])
-
-    return drawed_images
-
-
 def visualize_joints(joints, image):
+    """
+    Visualize joints
+    Args:
+        joints: a numpy array of shape (num_joints, 3).
+        image: a numpy array of shape (height, width, 3).
+
+    Returns:
+        drawed_image: a numpy array of shape (height, width, 3).
+
+    """
     image = PIL.Image.fromarray(image, mode="RGB")
     draw = PIL.ImageDraw.Draw(image)
 

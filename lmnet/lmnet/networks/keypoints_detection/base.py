@@ -19,7 +19,7 @@ import numpy as np
 from lmnet.networks.base import BaseNetwork
 from lmnet.metrics.object_keypoint_similarity import compute_oks_batch
 from lmnet.post_processor import gaussian_heatmap_to_joints
-from lmnet.visualize import visualize_pose_estimation
+from lmnet.visualize import visualize_joints
 
 
 class Base(BaseNetwork):
@@ -60,21 +60,41 @@ class Base(BaseNetwork):
         base = self.base(images, is_training)
         return tf.identity(base, name="output")
 
-    def _colored_heatmaps(self, heatmaps, name=""):
+    def _colored_heatmaps(self, heatmaps, color, name=""):
+        """
+        Visualize heatmaps with given color.
+        Args:
+            heatmaps: a Tensor of shape (batch_size, height, width, num_joints).
+            color: a numpy array of shape (batch_size, 1, 1, num_joints, 3).
+            name: str, name to display on tensorboard.
+
+        """
 
         heatmaps_colored = tf.expand_dims(heatmaps, axis=-1)
-        heatmaps_colored *= self.color
+        heatmaps_colored *= color
         heatmaps_colored = tf.reduce_sum(heatmaps_colored, axis=3)
 
         tf.summary.image(name, heatmaps_colored)
 
     @staticmethod
-    def py_post_process(heatmaps, num_dimensions=2):
+    def py_post_process(heatmaps, num_dimensions=2, stride=2):
+        """
+        Convert from heatmaps to joints,
+        it is mainly used for visualization and metrics in training time.
+        Args:
+            heatmaps: a numpy array of shape (batch_size, height, width, num_joints).
+            num_dimensions: int.
+            stride: int, stride = image_height / heatmap_height.
+
+        Returns:
+            batch_joints: a numpy array of shape (batch_size, num_joints, 3).
+
+        """
         batch_size = heatmaps.shape[0]
         list_joints = []
 
         for i in range(batch_size):
-            joints = gaussian_heatmap_to_joints(heatmaps[i], num_dimensions, stride=2)
+            joints = gaussian_heatmap_to_joints(heatmaps[i], num_dimensions, stride=stride)
             list_joints.append(joints)
 
         batch_joints = np.stack(list_joints)
@@ -82,22 +102,71 @@ class Base(BaseNetwork):
         return batch_joints
 
     def post_process(self, output):
+        """
+        Tensorflow mirror method for py_post_process(),
+        it is mainly used for visualization and metrics in training time.
+        Args:
+            output: a Tensor of shape (batch_size, height, width, num_joints).
+
+        Returns:
+            joints: a Tensor of shape (batch_size, num_joints, 3).
+
+        """
 
         joints = tf.py_func(self.py_post_process,
-                            [output],
+                            [output, 2, 2],
                             tf.float32)
 
         return joints
 
-    def _visualize_output(self, images, output, name="visualize_output"):
+    @staticmethod
+    def py_visualize_output(images, heatmaps, stride=2):
+        """
+        Visualize pose estimation, it is mainly used for visualization in training time.
+        Args:
+            images: a numpy array of shape (batch_size, height, width, 3).
+            heatmaps: a numpy array of shape (batch_size, height, width, num_joints).
+            stride: int, stride = image_height / heatmap_height.
 
-        drawed_images = tf.py_func(visualize_pose_estimation,
-                                   [images, output],
+        Returns:
+            drawed_images: a numpy array of shape (batch_size, height, width, 3).
+
+        """
+
+        drawed_images = np.uint8(images * 255.0)
+
+        for i in range(images.shape[0]):
+            joints = gaussian_heatmap_to_joints(heatmaps[i], stride=stride)
+            drawed_images[i] = visualize_joints(joints, drawed_images[i])
+
+        return drawed_images
+
+    def _visualize_output(self, images, output, name="visualize_output"):
+        """
+        A tensorflow mirror method for py_visualize_output().
+        Args:
+            images: a Tensor of shape (batch_size, height, width, 3).
+            output: a Tensor of shape (batch_size, height, width, num_joints).
+            name: str, name to display on tensorboard.
+
+        """
+
+        drawed_images = tf.py_func(self.visualize_output,
+                                   [images, output, self.stride],
                                    tf.uint8)
 
         tf.summary.image(name, drawed_images)
 
     def _compute_oks(self, output, labels):
+        """
+        Compute object keypoint similarity between output and labels.
+        Args:
+            output: a Tensor of shape (batch_size, height, width, num_joints).
+            labels: a Tensor of shape (batch_size, height, width, num_joints).
+
+        Returns:
+            oks: a Tensor represents object keypoint similarity.
+        """
 
         joints_gt = self.post_process(labels)
         joints_pred = self.post_process(output)
@@ -109,18 +178,36 @@ class Base(BaseNetwork):
         return oks
 
     def summary(self, output, labels=None):
+        """
+        Summary for tensorboard.
+        Args:
+            output: a Tensor of shape (batch_size, height, width, num_joints).
+            labels: a Tensor of shape (batch_size, height, width, num_joints).
+
+        """
         images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
         tf.summary.image("input", images)
 
-        self.color = np.random.randn(1, 1, 1, 17, 3)
+        color = np.random.randn(1, 1, 1, 17, 3)
 
-        self._colored_heatmaps(labels, name="labels_heatmap")
-        self._colored_heatmaps(output, name="output_heatmap")
+        self._colored_heatmaps(labels, color, name="labels_heatmap")
+        self._colored_heatmaps(output, color, name="output_heatmap")
 
         self._visualize_output(images, labels, "visualize_labels")
         self._visualize_output(images, output, "visualize_output")
 
     def metrics(self, output, labels):
+        """
+        Compute metrics for single-person pose estimation task.
+        Args:
+            output: a Tensor of shape (batch_size, height, width, num_joints).
+            labels: a Tensor of shape (batch_size, height, width, num_joints).
+
+        Returns:
+            results: a dict, {metric_name: metric_tensor}.
+            updates_op: an operation that increments the total and count variables appropriately.
+
+        """
 
         output = output if self.data_format == 'NHWC' else tf.transpose(output, perm=[0, 2, 3, 1])
 

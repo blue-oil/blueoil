@@ -45,7 +45,6 @@ from lmnet.utils.demo import (
 from lmnet.visualize import (
     label_to_color_image,
     visualize_joints,
-    heatmap_to_joints,
 )
 
 
@@ -318,7 +317,7 @@ def run_keypoints_detection(config):
                 drawed_img = window_img
                 if result is not None:
 
-                    drawed_img = visualize_joints(result, window_img)
+                    drawed_img = visualize_joints(result[0], window_img)
                     drawed_img = add_fps(drawed_img, fps)
 
                 cv2.imshow(window_name, drawed_img)
