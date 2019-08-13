@@ -28,6 +28,7 @@ class LmSinglePoseV1(Base):
 
     def __init__(
             self,
+            stride=2,
             *args,
             **kwargs):
         super().__init__(
@@ -37,7 +38,7 @@ class LmSinglePoseV1(Base):
         self.activation = tf.nn.relu
         self.custom_getter = None
         self.num_joints = 17
-        self.stride = 2
+        self.stride = stride
 
     def loss(self, output, labels):
         """Loss

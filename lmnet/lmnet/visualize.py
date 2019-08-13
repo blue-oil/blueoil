@@ -26,7 +26,6 @@ import PIL.ImageDraw
 import PIL.ImageFont
 
 from lmnet.common import get_color_map
-from lmnet.post_processor import gaussian_heatmap_to_joints
 
 
 FONT = "DejaVuSans.ttf"

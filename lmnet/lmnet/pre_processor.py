@@ -401,7 +401,11 @@ class ResizeWithJoints(Processor):
     def __init__(self, image_size):
         self.image_size = image_size
 
-    def __call__(self, image, joints, **kwargs):
+    def __call__(self, image, joints=None, **kwargs):
+        if joints is None:
+            resized_image = resize(image, size=self.image_size)
+            return dict({'image': resized_image}, **kwargs)
+
         resized_image, new_joints = resize_with_joints(image=image, joints=joints,
                                                        image_size=self.image_size)
         return dict({'image': resized_image, 'joints': new_joints}, **kwargs)
@@ -454,7 +458,11 @@ class JointsToGaussianHeatmap(Processor):
         self.sigma = sigma
         self.max_value = max_value
 
-    def __call__(self, joints, **kwargs):
+    def __call__(self, joints=None, **kwargs):
+
+        if joints is None:
+            return kwargs
+
         heatmap = joints_to_gaussian_heatmap(joints=joints, image_size=self.image_size,
                                              num_joints=self.num_joints, stride=self.stride,
                                              sigma=self.sigma, max_value=self.max_value)

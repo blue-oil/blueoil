@@ -425,7 +425,7 @@ class Softmax(Processor):
 
 class FormatJoints(Processor):
 
-    def __init__(self, num_dimensions=2, stride=1, confidence_threshold=0.1):
+    def __init__(self, num_dimensions=2, stride=2, confidence_threshold=0.1):
         """
         Args:
             num_dimensions: int, it only supports 2 for now.
@@ -448,8 +448,9 @@ class FormatJoints(Processor):
         """
 
         batch_size = outputs.shape[0]
+        num_joints = outputs.shape[3]
 
-        joints = np.zeros((batch_size, self.num_joints, self.num_dimensions), dtype=np.float32)
+        joints = np.zeros((batch_size, num_joints, self.num_dimensions + 1), dtype=np.float32)
 
         for i in range(batch_size):
             joints[i] = gaussian_heatmap_to_joints(outputs[i],
@@ -460,7 +461,7 @@ class FormatJoints(Processor):
         return dict({'outputs': joints}, **kwargs)
 
 
-def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=1, confidence_threshold=0.1):
+def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=2, confidence_threshold=0.1):
     """
     Extract joints from gaussian heatmap. Current version only supports 2D pose estimation.
     Args:
@@ -485,8 +486,8 @@ def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=1, confidence_t
             continue
         argm = np.argmax(heatmap[:, :, i])
         y, x = np.unravel_index(argm, (height, width))
-        joints[i, 0] = x * stride
-        joints[i, 1] = y * stride
+        joints[i, 0] = x * stride - 0.5 * stride
+        joints[i, 1] = y * stride - 0.5 * stride
         joints[i, 2] = 1
 
     return joints

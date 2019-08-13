@@ -3,10 +3,15 @@ import numpy as np
 
 def compute_oks_batch(joints_gt, joints_pred, image_size=(160, 160)):
     """
+    Compute a object keypoint similarity for a batch of examples.
+    Args:
+        joints_gt: a numpy array of shape (batch_size, num_joints, 3).
+        joints_pred: a numpy array of shape (batch_size, num_joints, 3).
+        image_size: a tuple, (height, width).
 
-    :param joints_gt: (batch_size, num_joints, 3)
-    :param joints_pred: (batch_size, num_joints, 3)
-    :return:
+    Returns:
+        oks_batch: float.
+
     """
 
     num_batch = joints_gt.shape[0]
@@ -28,11 +33,17 @@ def compute_oks_batch(joints_gt, joints_pred, image_size=(160, 160)):
 
 def compute_oks(joints_gt, joints_pred, image_size=(160, 160)):
     """
+    Compute a object keypoint similarity for one example.
+    Args:
+        joints_gt: a numpy array of shape (num_joints, 3).
+        joints_pred: a numpy array of shape (num_joints, 3).
+        image_size: a tuple, (height, width).
 
-    :param joints_gt: (num_joints, 3)
-    :param joints_pred: (num_joints, 3)
-    :return:
+    Returns:
+        oks: float.
+
     """
+
     num_joints = joints_gt.shape[0]
 
     x_gt = joints_gt[:, 0]

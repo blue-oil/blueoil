@@ -114,7 +114,7 @@ class Base(BaseNetwork):
         """
 
         joints = tf.py_func(self.py_post_process,
-                            [output, 2, 2],
+                            [output, 2, self.stride],
                             tf.float32)
 
         return joints
@@ -151,7 +151,7 @@ class Base(BaseNetwork):
 
         """
 
-        drawed_images = tf.py_func(self.visualize_output,
+        drawed_images = tf.py_func(self.py_visualize_output,
                                    [images, output, self.stride],
                                    tf.uint8)
 
