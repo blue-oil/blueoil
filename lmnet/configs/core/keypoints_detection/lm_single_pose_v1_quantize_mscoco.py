@@ -74,7 +74,7 @@ PRE_PROCESSOR = Sequence([
     DivideBy255()
 ])
 POST_PROCESSOR = Sequence([
-    FormatJoints(num_dimensions=2, stride=1, confidence_threshold=0.1)
+    FormatJoints(num_dimensions=2, stride=2, confidence_threshold=0.1)
 ])
 
 step_per_epoch = int(149813 / BATCH_SIZE)
@@ -84,8 +84,8 @@ NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
 NETWORK.OPTIMIZER_KWARGS = {}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 NETWORK.LEARNING_RATE_KWARGS = {
-        "values": [1e-3, 1e-3, 1e-4, 1e-5],
-        "boundaries": [2000, step_per_epoch * 5, step_per_epoch * 10],
+        "values": [1e-4, 1e-3, 1e-4, 1e-5],
+        "boundaries": [5000, step_per_epoch * 5, step_per_epoch * 10],
 }
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
