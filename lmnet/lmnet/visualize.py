@@ -26,6 +26,7 @@ import PIL.ImageDraw
 import PIL.ImageFont
 
 from lmnet.common import get_color_map
+from lmnet.post_processor import gaussian_heatmap_to_joints
 
 
 FONT = "DejaVuSans.ttf"
@@ -129,6 +130,51 @@ def visualize_semantic_segmentation(image, post_processed, config):
     result = PIL.Image.blend(PIL.Image.fromarray(image), mask_img, alpha)
 
     return result
+
+
+def visualize_pose_estimation(images, heatmaps):
+    """
+    visualize pose estimation
+    :param images: ndarray, (batch_size, height, width, 3)
+    :param heatmaps: ndarray, (batch_size, height, width, num_joints)
+    :return: drawed_image: ndarray, (batch_size, height, width, 3)
+    """
+
+    drawed_images = np.uint8(images * 255.0)
+
+    for i in range(images.shape[0]):
+        joints = gaussian_heatmap_to_joints(heatmaps[i], stride=2)
+        drawed_images[i] = visualize_joints(joints, drawed_images[i])
+
+    return drawed_images
+
+
+def visualize_joints(joints, image):
+    image = PIL.Image.fromarray(image, mode="RGB")
+    draw = PIL.ImageDraw.Draw(image)
+
+    num_joints = joints.shape[0]
+
+    joint_pairs = [[0, 1], [1, 3], [0, 2], [2, 4],
+                   [5, 6], [5, 7], [7, 9], [6, 8], [8, 10],
+                   [5, 11], [6, 12], [11, 12],
+                   [11, 13], [12, 14], [13, 15], [14, 16]]
+
+    for pair in joint_pairs:
+        if joints[pair[0], 2] > 0 and joints[pair[1], 2] > 0:
+            joint0 = (joints[pair[0], 0], joints[pair[0], 1])
+            joint1 = (joints[pair[1], 0], joints[pair[1], 1])
+            draw.line([joint0, joint1], fill=(255, 191, 0), width=3)
+
+    for i in range(num_joints):
+        if joints[i, 2] > 0:
+            center_x, center_y = joints[i, :2]
+            draw.ellipse([center_x - 2, center_y - 2,
+                          center_x + 2, center_y + 2], fill=(238, 130, 238))
+
+    drawed_iamge = np.array(image, dtype=np.uint8)
+
+    return drawed_iamge
 
 
 def label_to_color_image(results, colormap):

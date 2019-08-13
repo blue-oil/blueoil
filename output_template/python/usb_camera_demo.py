@@ -44,6 +44,8 @@ from lmnet.utils.demo import (
 
 from lmnet.visualize import (
     label_to_color_image,
+    visualize_joints,
+    heatmap_to_joints,
 )
 
 
@@ -279,6 +281,58 @@ def run_sementic_segmentation(config):
         m1.show()
 
 
+def run_keypoints_detection(config):
+    global nn
+    camera_width = 160
+    camera_height = 160
+    window_name = "Keypoints Detection Demo"
+
+    vc = init_camera(camera_width, camera_height)
+
+    pool = Pool(processes=1, initializer=nn.init)
+    result = None
+    fps = 1.0
+
+    q_save = Queue()
+    q_show = Queue()
+
+    grabbed, camera_img = vc.read()
+    if not grabbed:
+        print("Frame is empty")
+
+    q_show.put(camera_img.copy())
+    input_img = camera_img.copy()
+
+    while True:
+        m1 = MyTime("1 loop of while(1) of main()")
+        pool_result = pool.apply_async(_run_inference, (input_img,))
+        is_first = True
+        while True:
+            grabbed, camera_img = vc.read()
+            if is_first:
+                input_img = camera_img.copy()
+                is_first = False
+            q_save.put(camera_img.copy())
+            if not q_show.empty():
+                window_img = q_show.get()
+                drawed_img = window_img
+                if result is not None:
+
+                    drawed_img = visualize_joints(result, window_img)
+                    drawed_img = add_fps(drawed_img, fps)
+
+                cv2.imshow(window_name, drawed_img)
+                key = cv2.waitKey(2)  # Wait for 2ms
+                if key == 27:  # ESC to quit
+                    return
+            if pool_result.ready():
+                break
+        q_show = clear_queue(q_show)
+        q_save, q_show = swap_queue(q_save, q_show)
+        result, fps = pool_result.get()
+        m1.show()
+
+
 def run(model, config_file):
     global nn, pre_process, post_process
     filename, file_extension = os.path.splitext(model)
@@ -312,6 +366,9 @@ def run(model, config_file):
 
     if config.TASK == "IMAGE.SEMANTIC_SEGMENTATION":
         run_sementic_segmentation(config)
+
+    if config.TASK == "IMAGE.KEYPOINTS_DETECTION":
+        run_keypoints_detection(config)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

@@ -167,6 +167,29 @@ class ObjectDetectionBase(Base, metaclass=ABCMeta):
         return image
 
 
+class KeypointsDetectionBase(Base, metaclass=ABCMeta):
+
+    @staticmethod
+    def crop_from_full_image(full_image, box, joints):
+        full_height, full_width, _ = full_image.shape
+
+        x1, y1, x2, y2 = box
+
+        cropped_image = full_image[int(y1):int(y2), int(x1):int(x2)]
+        new_joints = joints.copy()
+        new_joints[:, 0] -= x1
+        new_joints[:, 1] -= y1
+
+        return cropped_image, new_joints
+
+    @staticmethod
+    def _get_image(target_file):
+        image = PIL.Image.open(target_file)
+        image = image.convert("RGB")
+        image = np.array(image)
+        return image
+
+
 class DistributionInterface(metaclass=ABCMeta):
 
     @abstractmethod

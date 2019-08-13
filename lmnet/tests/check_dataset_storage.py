@@ -30,7 +30,7 @@ import numpy as np
 import PIL.Image
 import PIL.ImageDraw
 
-from lmnet.pre_processor import Resize, ResizeWithMask, ResizeWithGtBoxes
+from lmnet.pre_processor import Resize, ResizeWithMask, ResizeWithGtBoxes, ResizeWithJoints
 from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.datasets.pascalvoc_2012 import Pascalvoc2012
 from lmnet.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
@@ -45,6 +45,7 @@ from lmnet.datasets.mscoco import (
     MscocoObjectDetection as MscocoObjectDetection,
     MscocoObjectDetectionPerson as MscocoObjectDetectionPerson,
 )
+from lmnet.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
 from lmnet.datasets.widerface import WiderFace
 from lmnet.datasets.bdd100k import BDD100K
 from lmnet.datasets.dataset_iterator import DatasetIterator
@@ -742,6 +743,54 @@ def test_mscoco_object_detection_person():
         assert labels.shape[2] == 5
 
 
+def test_mscoco_2017_single_pose_estimation():
+    batch_size = 3
+    image_size = [160, 160]
+
+    num_train = 149813
+    num_val = 6352
+
+    num_joints = 17
+    num_dimensions = 2
+
+    dataset = MscocoSinglePersonKeypoints(batch_size=batch_size,
+                                          pre_processor=ResizeWithJoints(image_size))
+    dataset = DatasetIterator(dataset)
+
+    assert dataset.num_per_epoch == num_train
+    val_dataset = MscocoObjectDetectionPerson(subset="validation", batch_size=batch_size,
+                                              pre_processor=ResizeWithJoints(image_size))
+    val_dataset = DatasetIterator(val_dataset)
+
+    assert val_dataset.num_per_epoch == num_val
+
+    for _ in range(STEP_SIZE):
+        images, labels = dataset.feed()
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == batch_size
+        assert images.shape[1] == image_size[0]
+        assert images.shape[2] == image_size[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == batch_size
+        assert labels.shape[1] == num_joints
+        assert labels.shape[2] == num_dimensions + 1
+
+    for _ in range(STEP_SIZE):
+        images, labels = val_dataset.feed()
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == batch_size
+        assert images.shape[1] == image_size[0]
+        assert images.shape[2] == image_size[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == batch_size
+        assert labels.shape[1] == num_joints
+        assert labels.shape[2] == num_dimensions + 1
+
+
 def test_ilsvrc_2012():
     batch_size = 3
     image_size = [256, 512]
@@ -906,6 +955,7 @@ if __name__ == '__main__':
     test_mscoco_segmentation()
     test_mscoco_object_detection()
     test_mscoco_object_detection_person()
+    test_mscoco_2017_single_pose_estimation()
     test_ilsvrc_2012()
     test_widerface()
     test_bdd100k()

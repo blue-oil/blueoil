@@ -21,7 +21,7 @@ import os
 import queue
 import tensorflow as tf
 from lmnet.datasets.tfds import TFDSBase
-from lmnet.datasets.base import SegmentationBase, ObjectDetectionBase
+from lmnet.datasets.base import SegmentationBase, ObjectDetectionBase, KeypointsDetectionBase
 
 
 _dataset = None
@@ -46,6 +46,8 @@ def _apply_augmentations(dataset, image, label):
         sample['mask'] = label
     elif issubclass(dataset.__class__, ObjectDetectionBase):
         sample['gt_boxes'] = label
+    elif issubclass(dataset.__class__, KeypointsDetectionBase):
+        sample['joints'] = label
     else:
         sample['label'] = label
 
@@ -61,6 +63,8 @@ def _apply_augmentations(dataset, image, label):
         label = sample['mask']
     elif issubclass(dataset.__class__, ObjectDetectionBase):
         label = sample['gt_boxes']
+    elif issubclass(dataset.__class__, KeypointsDetectionBase):
+        label = sample['heatmap']
     else:
         label = sample['label']
 

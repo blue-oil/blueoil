@@ -167,6 +167,33 @@ def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256)):
     return resized_image, gt_boxes
 
 
+def resize_with_joints(image, joints, image_size):
+    """
+    Resize image with joints to target image_size.
+    Args:
+        image: a numpy array of shape (height, width, 3).
+        joints: a numpy array of shape (num_joints, 3).
+        image_size: a tuple, (new_height, new_width).
+
+    Returns:
+        resized_image: a numpy array of shape (new_height, new_width, 3).
+        new_joints: a numpy array of shape (num_joints, 3).
+    """
+
+    original_height, original_width, _ = image.shape
+
+    scale_height = image_size[0] / original_height
+    scale_width = image_size[1] / original_width
+
+    resized_image = resize(image, image_size)
+
+    new_joints = joints.copy()
+    new_joints[:, 0] *= scale_width
+    new_joints[:, 1] *= scale_height
+
+    return resized_image, new_joints
+
+
 def per_image_standardization(image):
     """Image standardization per image.
 
@@ -211,6 +238,79 @@ def _liner_quantize(x, bit, value_min, value_max):
     n = (2 ** bit - 1)
     result = np.round(x * n) / n
     return result * value_range + value_min
+
+
+def joints_to_gaussian_heatmap(joints, image_size,
+                               num_joints=17, stride=1,
+                               sigma=2, max_value=10):
+    """
+    Convert joints to gaussian heatmap which can be learned by networks.
+
+    References:
+        https://github.com/Microsoft/human-pose-estimation.pytorch
+
+    Args:
+        joints: a numpy array of shape (num_joints).
+        image_size: a tuple, (height, width).
+        num_joints: int.
+        stride: int, stride = image_height / heatmap_height.
+        sigma: int, used to compute gaussian heatmap.
+        max_value: int, max value of gauusian heatmap.
+
+    Returns:
+        heatmap: a numpy array of shape (height, width, num_joints).
+
+    """
+
+    assert num_joints == joints.shape[0]
+
+    tmp_size = sigma * 3
+
+    height, width = image_size
+
+    height //= stride
+    width //= stride
+
+    heatmap = np.zeros((height, width, num_joints), dtype=np.float32)
+
+    for i in range(num_joints):
+
+        if joints[i, 2] > 0:
+            center_x = int(joints[i, 0] / stride + 0.5)
+            center_y = int(joints[i, 1] / stride + 0.5)
+
+            up_left = [int(center_x - tmp_size), int(center_y - tmp_size)]
+            bottom_right = [int(center_x + tmp_size + 1), int(center_y + tmp_size + 1)]
+
+            if center_x >= width or center_x < 0:
+                continue
+
+            if center_y >= height or center_y < 0:
+                continue
+
+            size = 2 * tmp_size + 1
+            x = np.arange(0, size, 1, np.float32)
+            y = x[:, np.newaxis]
+            x0 = y0 = size // 2
+
+            g = np.exp(-((x - x0)**2 + (y - y0)**2) / (2 * sigma**2))
+
+            # Usable gaussian range
+            g_x = max(0, -up_left[0]), min(bottom_right[0], width) - up_left[0]
+            g_y = max(0, -up_left[1]), min(bottom_right[1], height) - up_left[1]
+
+            # Image range
+            img_x = max(0, up_left[0]), min(bottom_right[0], width)
+            img_y = max(0, up_left[1]), min(bottom_right[1], height)
+
+            heatmap[img_y[0]:img_y[1], img_x[0]:img_x[1], i] = g[g_y[0]:g_y[1], g_x[0]:g_x[1]]
+
+    am = np.amax(heatmap)
+    if am > 0:
+        heatmap /= am
+    heatmap *= max_value
+
+    return heatmap
 
 
 class PerImageLinerQuantize(Processor):
@@ -296,6 +396,17 @@ class ResizeWithMask(Processor):
         return dict({'image': image, 'mask': mask}, **kwargs)
 
 
+class ResizeWithJoints(Processor):
+
+    def __init__(self, image_size):
+        self.image_size = image_size
+
+    def __call__(self, image, joints, **kwargs):
+        resized_image, new_joints = resize_with_joints(image=image, joints=joints,
+                                                       image_size=self.image_size)
+        return dict({'image': resized_image, 'joints': new_joints}, **kwargs)
+
+
 class DivideBy255(Processor):
     """Divide image by 255.
     """
@@ -317,3 +428,34 @@ class LetterBoxes(Processor):
         image = image / 255.0
         image, gt_boxes = square(image, gt_boxes, fill=0.5)
         return dict({'image': image, 'gt_boxes': gt_boxes}, **kwargs)
+
+
+class JointsToGaussianHeatmap(Processor):
+    """
+    Convert joints to gaussian heatmap which can be learned by networks.
+
+    Use :func:`~joints_to_gaussian_heatmap` inside.
+
+    Args:
+    image_size: a tuple, (height, width).
+    num_joints: int.
+    stride: int, stride = image_height / heatmap_height.
+    sigma: int, used to compute gaussian heatmap.
+    max_value: int, max value of gauusian heatmap.
+
+    """
+
+    def __init__(self, image_size, num_joints=17,
+                 stride=1, sigma=3, max_value=10):
+
+        self.image_size = image_size
+        self.num_joints = num_joints
+        self.stride = stride
+        self.sigma = sigma
+        self.max_value = max_value
+
+    def __call__(self, joints, **kwargs):
+        heatmap = joints_to_gaussian_heatmap(joints=joints, image_size=self.image_size,
+                                             num_joints=self.num_joints, stride=self.stride,
+                                             sigma=self.sigma, max_value=self.max_value)
+        return dict({'heatmap': heatmap}, **kwargs)
