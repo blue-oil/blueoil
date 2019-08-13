@@ -135,7 +135,7 @@ lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -DUSE_PNG -pthread -g
 lm_x86:           CXXFLAGS +=
 
 lm_x86_avx:       CXX = g++
-lm_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -mavx2 -DUSE_AVX -DUSE_PNG -pthread -g -fopenmp
+lm_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -mavx2 -mfma -DUSE_AVX -DUSE_PNG -pthread -g -fopenmp
 lm_x86_avx:       CXXFLAGS +=
 
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
@@ -155,7 +155,7 @@ lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden
 lib_x86:           CXXFLAGS +=
 
 lib_x86_avx:       CXX = g++
-lib_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -pthread -g -fopenmp
+lib_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -mavx2 -mfma -pthread -g -fopenmp
 lib_x86_avx:       CXXFLAGS +=
 
 lib_aarch64:       CXX = aarch64-linux-gnu-g++
