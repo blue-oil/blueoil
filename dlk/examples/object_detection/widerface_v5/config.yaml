@@ -57,6 +57,7 @@ IMAGE_SIZE:
 IS_DEBUG: false
 IS_DISTRIBUTION: false
 IS_PRETRAIN: true
+KEEP_CHECKPOINT_MAX: 5
 MAX_STEPS: 1000000
 NETWORK:
   ACTIVATION_QUANTIZER: !!python/name:lmnet.quantizations.linear.linear_mid_tread_half_quantizer ''
@@ -237,7 +238,7 @@ PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     - 160
     - 160
   - !!python/object:lmnet.pre_processor.DivideBy255 {}
-SAVE_STEPS: 1000
+SAVE_CHECKPOINT_STEPS: 1000
 SUMMARISE_STEPS: 1000
 TASK: !!python/object/apply:lmnet.common.Tasks
 - IMAGE.OBJECT_DETECTION

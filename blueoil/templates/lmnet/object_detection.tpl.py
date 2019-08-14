@@ -52,7 +52,8 @@ TASK = Tasks.OBJECT_DETECTION
 CLASSES = {{classes}}
 
 MAX_EPOCHS = {{max_epochs}}
-SAVE_STEPS = {{save_steps}}
+SAVE_CHECKPOINT_STEPS = {{save_checkpoint_steps}}
+KEEP_CHECKPOINT_MAX = {{keep_checkpoint_max}}
 TEST_STEPS = {{test_steps}}
 SUMMARISE_STEPS = {{summarise_steps}}
 

@@ -43,6 +43,7 @@ IMAGE_SIZE:
 IS_DEBUG: false
 IS_DISTRIBUTION: false
 IS_PRETRAIN: false
+KEEP_CHECKPOINT_MAX: 5
 MAX_STEPS: 100000
 NETWORK:
   ACTIVATION_QUANTIZER: !!python/name:lmnet.quantizations.linear.linear_mid_tread_half_quantizer ''
@@ -82,7 +83,7 @@ PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     - 32
     - 32
   - !!python/object:lmnet.pre_processor.PerImageStandardization {}
-SAVE_STEPS: 2500
+SAVE_CHECKPOINT_STEPS: 2500
 SUMMARISE_STEPS: 2500
 TASK: !!python/object/apply:lmnet.common.Tasks
 - IMAGE.CLASSIFICATION
