@@ -85,26 +85,6 @@ class LmSinglePoseV1(Base):
             output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
-    def _depth_to_space(self, inputs=None, block_size=2, name=''):
-        if self.data_format != 'NHWC':
-            inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
-        output = tf.depth_to_space(inputs, block_size=block_size, name=name)
-        if self.data_format != 'NHWC':
-            output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
-        return output
-
-    def _encode_image(self, images):
-        embedding_granularity = 256
-        embedding_dim = 10
-        embedding_initial_value = np.random.rand(embedding_granularity, embedding_dim).astype(np.float32)
-        self.embedding = tf.Variable(embedding_initial_value)
-
-        images = tf.cast(images * 255, tf.int32)
-        images = tf.clip_by_value(images, 0, 255)
-        encoded = tf.contrib.layers.embedding_lookup_unique(self.embedding, images)
-        shape = encoded.get_shape()
-        return tf.reshape(encoded, (shape[0], shape[1], shape[2], -1))
-
     def base(self, images, is_training, *args, **kwargs):
         channels_data_format = 'channels_last' if self.data_format == 'NHWC' else 'channels_first'
         _lmnet_block = self._get_lmnet_block(is_training, channels_data_format)
