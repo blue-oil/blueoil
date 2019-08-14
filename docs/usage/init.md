@@ -1,14 +1,12 @@
 # Generate a configuration file
 
-You can generate your configuration file interactively by running `blueoil init` command.
+You can generate your configuration file interactively by running `blueoil init`.
 
     $ ./blueoil.sh init
 
-`blueoil init` command generates a configuration file to train your new model.
+`blueoil init` generates a configuration file used to train your new model.
 
-With the `blueoil init` command, you can configure your training configuration interactively.
-
-This is an example of configuration.
+Below is an example.
 ```
 #### Generate config ####
   your model name ():  test
@@ -50,14 +48,14 @@ common:
         - probability: 0.5
 ```
 
-Please see <a href="../reference/data_augmentor.html">the data augmentor reference page</a>, when you want to know about augmentation methods. the all of augmentation methods and parameter are explained, methods name in generated yaml correspond to class name under `lmnet.data_augmentor` in the reference.
+Please see <a href="../reference/data_augmentor.html">the data augmentor reference page</a>, when you want to know about augmentation methods. All of the augmentation methods and the required parameters are explained there. Method names in the generated yaml file correspond to class names under `lmnet.data_augmentor` in the reference.
 
 
 #### optimizer
 
-You can choose optimizer from Adam or Momentum. Each optimizer uses TensorFlow implementation. Please see TensorFlow documentation, [AdamOptimizer](https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer) and [MomentumOptimizer](https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer).
+You can choose an optimizer between Adam and Momentum. Each optimizer uses the TensorFlow implementation. Please see the TensorFlow documentation for [AdamOptimizer](https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer) and [MomentumOptimizer](https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer).
 
-generated yaml:
+The generated yaml:
 
 ```
 trainer:
@@ -70,4 +68,4 @@ trainer:
   optimizer: Adam
 ```
 
-Blueoil use optimizers with your input learning rate for both Adam and Momentum, and `momentum=0.9` for Momentum. Other values are TensorFlow default described in TensorFlow documentation.
+Blueoil uses learning rate you input for both Adam and Momentum. Blueoil uses `momentum=0.9` for Momentum. Other values are TensorFlow defaults as described in the TensorFlow documentation.

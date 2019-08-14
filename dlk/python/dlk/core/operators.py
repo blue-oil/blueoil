@@ -2614,6 +2614,58 @@ class DepthToSpace(Operator):
         return True
 
 
+class ResizeNearestNeighbor(Operator):
+    """Resize Nearest Neighbor operator.
+
+    Input
+    -----
+    input
+        Input tensor
+
+    Output
+    ------
+    output
+        A tensor with resized height and width and same depth
+
+    Attributes (optional constructor parameters)
+    ----------
+        Align corners is not supported.
+    """
+
+    _input_names = ['input']
+    _output_names = ['output']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC'
+                 ) -> None:
+        """Init the quantization operator."""
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def _dispatch_name(self) -> str:
+        return type(self).__name__
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        return lists['input']
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
+
 class Split(Operator):
     """Split operator.
 

@@ -108,7 +108,7 @@ def start_training(config):
 
         output = model.inference(images_placeholder, is_training_placeholder)
         if ModelClass.__module__.startswith("lmnet.networks.object_detection"):
-            loss = model.loss(output, labels_placeholder, is_training_placeholder)
+            loss = model.loss(output, labels_placeholder, global_step)
         else:
             loss = model.loss(output, labels_placeholder)
         opt = model.optimizer(global_step)
@@ -133,7 +133,7 @@ def start_training(config):
         if use_train_validation_saving:
             saver = tf.train.Saver(max_to_keep=1)
         else:
-            saver = tf.train.Saver(max_to_keep=None)
+            saver = tf.train.Saver(max_to_keep=config.KEEP_CHECKPOINT_MAX)
 
         if config.IS_PRETRAIN:
             all_vars = tf.global_variables()
@@ -213,7 +213,8 @@ def start_training(config):
         max_steps = config.MAX_STEPS
 
     progbar = Progbar(max_steps)
-    progbar.update(last_step)
+    if rank == 0:
+        progbar.update(last_step)
     for step in range(last_step, max_steps):
         if config.IS_DISTRIBUTION:
             # scatter dataset
@@ -257,7 +258,7 @@ def start_training(config):
         else:
             sess.run([train_op], feed_dict=feed_dict)
 
-        to_be_saved = step == 0 or (step + 1) == max_steps or (step + 1) % config.SAVE_STEPS == 0
+        to_be_saved = step == 0 or (step + 1) == max_steps or (step + 1) % config.SAVE_CHECKPOINT_STEPS == 0
 
         if to_be_saved and rank == 0:
             if use_train_validation_saving:
@@ -348,7 +349,8 @@ def start_training(config):
             if rank == 0:
                 val_writer.add_summary(metrics_summary, step + 1)
 
-        progbar.update(step + 1)
+        if rank == 0:
+            progbar.update(step + 1)
     # training loop end.
     print("Done")
 

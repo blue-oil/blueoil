@@ -15,9 +15,22 @@ build: deps
 	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
 
 .PHONY: test
-test: build
-	# Run Blueoil test
-	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh
+test: build test-classification test-object-detection test-semantic-segmentation
+
+.PHONY: test-classification
+test-classification: build
+	# Run Blueoil test of classification
+	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task classification
+
+.PHONY: test-object-detection
+test-object-detection: build
+	# Run Blueoil test of object-detection
+	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task object_detection
+
+.PHONY: test-semantic-segmentation
+test-semantic-segmentation: build
+	# Run Blueoil test of semantic-segmentation
+	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task semantic_segmentation --additional_test
 
 .PHONY: test-lmnet
 test-lmnet: test-lmnet-pep8 test-lmnet-main test-lmnet-check-dataset-storage
@@ -34,7 +47,7 @@ test-lmnet-main: build
 
 .PHONY: test-lmnet-check-dataset-storage
 test-lmnet-check-dataset-storage: build
-	# Check datasets storage with Python3.6 (only available on Jenkins)
+	# Check datasets storage with Python3.6
 	docker run $(DOCKER_OPT) -v /storage/dataset:/storage/dataset -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) -e DATA_DIR=/storage/dataset --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-check_dataset_storage"
 
 .PHONY: test-dlk
