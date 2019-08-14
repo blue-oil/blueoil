@@ -10,9 +10,9 @@ Blueoil provides two features.
 
 | Type | Status |
 | --- | --- |
-| blueoil | [![Build status](https://badge.buildkite.com/c56e1c6e8160a5351fc2aa19dce80705b1aa8426ad322cf9e3.svg)](https://buildkite.com/blueoil/blueoil-test) |
-| lmnet | [![Build status](https://badge.buildkite.com/45ff7e206fc1de4c160f72781463fdbbcffb1321c1e69e08d1.svg)](https://buildkite.com/blueoil/lmnet-test) |
-| dlk | [![Build status](https://badge.buildkite.com/c1d2082e8076b48057a621c7dbabfa280975dcd71da83f49e9.svg)](https://buildkite.com/blueoil/dlk-test) |
+| blueoil | [![Build status](https://badge.buildkite.com/c56e1c6e8160a5351fc2aa19dce80705b1aa8426ad322cf9e3.svg?branch=master)](https://buildkite.com/blueoil/blueoil-test) |
+| lmnet | [![Build status](https://badge.buildkite.com/45ff7e206fc1de4c160f72781463fdbbcffb1321c1e69e08d1.svg?branch=master)](https://buildkite.com/blueoil/lmnet-test) |
+| dlk | [![Build status](https://badge.buildkite.com/c1d2082e8076b48057a621c7dbabfa280975dcd71da83f49e9.svg?branch=master)](https://buildkite.com/blueoil/dlk-test) |
 | docs | [![CircleCI](https://circleci.com/gh/blue-oil/blueoil.svg?style=svg)](https://circleci.com/gh/blue-oil/blueoil) |
 
 See also [CI settings](./tests/README.md).
