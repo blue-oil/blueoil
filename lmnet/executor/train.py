@@ -213,7 +213,8 @@ def start_training(config):
         max_steps = config.MAX_STEPS
 
     progbar = Progbar(max_steps)
-    progbar.update(last_step)
+    if rank == 0:
+        progbar.update(last_step)
     for step in range(last_step, max_steps):
         if config.IS_DISTRIBUTION:
             # scatter dataset
@@ -353,7 +354,8 @@ def start_training(config):
                 val_writer.add_summary(metrics_summary, step + 1)
                 val_writer.flush()
 
-        progbar.update(step + 1)
+        if rank == 0:
+            progbar.update(step + 1)
     # training loop end.
     print("Done")
 
