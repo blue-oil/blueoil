@@ -16,15 +16,15 @@
 import functools
 
 import tensorflow as tf
-import numpy as np
 
 from lmnet.blocks import lmnet_block
 from lmnet.networks.keypoints_detection.base import Base
 
 
 class LmSinglePoseV1(Base):
-    """LM original semantic segmentation network.
-    This network is composed of 11 convolution layers with space_to_depth and depth_to_space."""
+    """
+    LM original single-person pose estimation network.
+    """
 
     def __init__(
             self,
@@ -140,7 +140,8 @@ class LmSinglePoseV1(Base):
 
 
 class LmSinglePoseV1Quantize(LmSinglePoseV1):
-    """LM original quantize semantic segmentation network.
+    """
+    LM original quantized single-person pose estimation network.
 
     Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
     ``weight_quantizer``, ``weight_quantizer_kwargs``.
