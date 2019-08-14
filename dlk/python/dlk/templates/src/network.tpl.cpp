@@ -26,6 +26,7 @@ limitations under the License.
 #include "func/concat_v2.h"
 #include "func/conv2d.h"
 #include "func/depth_to_space.h"
+#include "func/resize_nearest_neighbor.h"
 #include "func/extract_image_patches.h"
 #include "func/max.h"
 #include "func/max_pool.h"
@@ -258,12 +259,15 @@ bool Network::init()
   {{ '\n' -}}
 
 #if defined RUN_ON_FPGA
-  auto* kernel_buffer = mapPhysicalMemory(KERNEL_ADDR, total_kernel_size); 
+  auto* kernel_buffer = mapPhysicalMemory(KERNEL_ADDR, total_kernel_size);
   {% for qconv in graph.convs(quantized_only=True) -%}
   {%    set kernel = qconv.input_nodes[1] -%}
   std::memcpy(kernel_buffer + {{qconv.name}}_kernel_offset, {{kernel.name}}.data(), {{qconv.name}}_kernel_size);
   {% endfor -%}
 #endif // RUN_ON_FPGA
+
+#pragma omp parallel
+  std::cout << std::flush;
 
   return true;
 }

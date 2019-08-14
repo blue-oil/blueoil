@@ -1,13 +1,30 @@
+/* Copyright 2019 The Blueoil Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+=============================================================================*/
+
 #include <cstdlib>
 #include <iostream>
 
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
+#ifdef USE_OPENCV
 #include "blueoil_opencv.hpp"
+#endif
 #include "test_util.hpp"
 
 float test_input[3][8][8] =
-  { { // Red
+  { {  // Red
      {255, 0, 0, 0, 0, 0, 0, 0},
      {0, 255, 0, 0, 0, 0, 0, 0},
      {0, 0, 100, 0, 0, 0, 0, 0},
@@ -17,7 +34,7 @@ float test_input[3][8][8] =
      {0, 0, 0, 0, 0, 0, 255, 0},
      {0, 0, 0, 0, 0, 0, 0, 255}
      },
-    { // Green
+    {  // Green
      {0, 0, 0, 0, 0, 0, 0, 255},
      {0, 0, 0, 0, 0, 0, 255, 0},
      {0, 0, 0, 0, 0, 100, 0, 0},
@@ -27,47 +44,47 @@ float test_input[3][8][8] =
      {0, 255, 0, 0, 0, 0, 0, 0},
      {255, 0, 0, 0, 0, 0, 0, 0}
     },
-    { // Blue
-     {  0,  0,  0,255,255,  0,  0,  0},
-     {  0,  0,  0,255,255,  0,  0,  0},
-     {  0,  0,  0,255,255,  0,  0,  0},
-     {255,255,255,100,100,255,255,255},
-     {255,255,255,100,100,255,255,255},
-     {  0,  0,  0,255,255,  0,  0,  0},
-     {  0,  0,  0,255,255,  0,  0,  0},
-     {  0,  0,  0,255,255,  0,  0,  0}
+    {  // Blue
+     {  0,   0,   0, 255, 255,   0,   0,   0},
+     {  0,   0,   0, 255, 255,   0,   0,   0},
+     {  0,   0,   0, 255, 255,   0,   0,   0},
+     {255, 255, 255, 100, 100, 255, 255, 255},
+     {255, 255, 255, 100, 100, 255, 255, 255},
+     {  0,   0,   0, 255, 255,   0,   0,   0},
+     {  0,   0,   0, 255, 255,   0,   0,   0},
+     {  0,   0,   0, 255, 255,   0,   0,   0}
     } };
 
 float test_expect[3][4][4] =
-  { { // Red
-     {255,  0, 0,   0},
-     {  0,100, 0,   0},
-     {  0,  0,100,  0},
-     {  0,  0,  0,255}
+  { {  // Red
+     {255,   0,   0,   0},
+     {  0, 100,   0,   0},
+     {  0,   0, 100,   0},
+     {  0,   0,   0, 255}
      },
-    { // Green
+    {  // Green
      {  0,  0,  0,  0},
      {  0,  0,  0,  0},
      {  0,  0,  0,  0},
      {  0,  0,  0,  0}
     },
-    { // Blue
-     {  0,255,  0,  0},
-     {255,100,255,255},
-     {  0,255,  0,  0},
-     {  0,255,  0,  0}
+    {  // Blue
+     {  0, 255,   0,   0},
+     {255, 100, 255, 255},
+     {  0, 255,   0,   0},
+     {  0, 255,   0,   0}
     } };
 
 int test_resize() {
   // CHW (3-channel, height, width)
   int width = 4, height = 4;
-  blueoil::Tensor input({3, 8, 8}, (float *)test_input);
-  blueoil::Tensor expect({3, 4, 4}, (float *)test_expect);
+  blueoil::Tensor input({3, 8, 8}, reinterpret_cast<float *>(test_input));
+  blueoil::Tensor expect({3, 4, 4}, reinterpret_cast<float *>(test_expect));
   input = blueoil::util::Tensor_CHW_to_HWC(input);
   expect = blueoil::util::Tensor_CHW_to_HWC(expect);
   blueoil::Tensor output = blueoil::image::Resize(input, width, height,
                                                   blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
-  if (! output.allclose(expect)) {
+  if (!output.allclose(expect)) {
     std::cerr << "test_resize: output != expect" << std::endl;
     blueoil::util::Tensor_HWC_to_CHW(output).dump();
     blueoil::util::Tensor_HWC_to_CHW(expect).dump();
@@ -77,6 +94,7 @@ int test_resize() {
 }
 
 int command_resize(int argc, char **argv) {
+#ifdef USE_OPENCV
   char *infile = argv[1];
   int width = atoi(argv[2]);
   int height = atoi(argv[3]);
@@ -88,7 +106,7 @@ int command_resize(int argc, char **argv) {
   if (5 < argc) {
     int f = atoi(argv[4]);
     if ((f != blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR) &&
-	( f != blueoil::image::RESIZE_FILTER_BI_LINEAR)) {
+        (f != blueoil::image::RESIZE_FILTER_BI_LINEAR)) {
       std::cerr << "unknown filter:" << f << std::endl;
       return EXIT_FAILURE;
     }
@@ -97,16 +115,17 @@ int command_resize(int argc, char **argv) {
   char *outfile = argv[4];
   std::cout << "infile:" << infile << " width:" << width <<
     " height:" << height << " outfile:" << outfile << std::endl;
-  cv::Mat img = cv::imread(infile, 1); // 1:force to RGB format
+  cv::Mat img = cv::imread(infile, 1);  // 1:force to RGB format
   if (img.data == NULL) {
     std::cerr << "can't open image file:" << infile <<std::endl;
     return EXIT_FAILURE;
   }
   blueoil::Tensor input = blueoil::opencv::Tensor_fromCVMat(img);
   blueoil::Tensor output = blueoil::image::Resize(input, width, height,
-						  filter);
+                                                  filter);
   cv::Mat img2 = blueoil::opencv::Tensor_toCVMat(output);
   cv::imwrite(outfile, img2);
+#endif  // USE_OPENCV
   return EXIT_SUCCESS;
 }
 

@@ -31,7 +31,7 @@ from core.graph import Graph
 from core.operators import Operator, Conv, Identity, QTZ_binary_mean_scaling, \
     BatchNormalization, QTZ_linear_mid_tread_half, Add, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
-    Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, DepthToSpace, \
+    Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, DepthToSpace, ResizeNearestNeighbor, \
     Split, Pad, MatMul, Gather, Unique, Cast, Minimum, StridedSlice, Prod, Shape, LeakyRelu
 
 DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
@@ -1026,6 +1026,18 @@ class Importer(object):
                 input_ops,
                 dimension_format=current_format,
                 block_size=bs[0]
+            )
+        elif op_type == 'ResizeNearestNeighbor':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = ResizeNearestNeighbor(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format,
             )
         elif op_type == 'Split':
             num_split = node.attribute('num_split')[0]

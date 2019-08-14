@@ -4,7 +4,7 @@
 #
 set(TOOLCHAIN_PATH "")
 set(CMAKE_SYSROOT "")
-
+set(AARCH32 ON)
 
 #
 # Cross-compiling for ARM
