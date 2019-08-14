@@ -20,7 +20,7 @@ import numpy as np
 import os
 import queue
 import tensorflow as tf
-from lmnet.datasets.tfds import TFDSBase
+from lmnet.datasets.tfds import TFDSMixin
 from lmnet.datasets.base import SegmentationBase, ObjectDetectionBase, KeypointsDetectionBase
 
 
@@ -238,7 +238,7 @@ class DatasetIterator:
         self.enable_prefetch = enable_prefetch
         self.seed = seed
 
-        if issubclass(dataset.__class__, TFDSBase):
+        if issubclass(dataset.__class__, TFDSMixin):
             self.enable_prefetch = False
             self.reader = _TFDSReader(self.dataset)
         else:
