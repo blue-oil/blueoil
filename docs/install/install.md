@@ -71,19 +71,25 @@ You can download an upt-to-date-for-Blueoil Linux system image by:
 
     $ wget https://leapmind-public-storage.s3-ap-northeast-1.amazonaws.com/os_images/de10nano_ubuntu_TCAv2.img.gz
 
-Downloaded file should contain "de10nano_ubuntu.img".
-Insert an empty microSD card (8GB+) into your PC and write the downloaded image to it:
-
-    $ cat de10nano_ubuntu.img.gz | gunzip | sudo dd of=/dev/mmcblk0 bs=4M
-
-Caution:
+The downloaded file should contain the image "de10nano_ubuntu_TCAv2.img".
+Insert an empty microSD card (8GB+) into your PC and write the downloaded image to it.
 - On Linux
-    - Make sure unmount the microSD with `umount` command before writing.
-    - `/dev/xxx` might have a different name, so please confirm the name for the target microSD.
+    - Make sure to unmount the microSD with `umount` command before writing.
+    - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`
+    - Type the following command:
+
+
+    $ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/[your_target_name] bs=4M
 - In macOS
-    - Make sure unmount the microSD with `diskutil` command before writing.
-    - `/dev/xxx` might have a different name, so please confirm the name for the target microSD.
+    - Make sure to unmount the microSD with `diskutil` command before writing.
+    - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`
     - `bs` option of `dd` command should be set to `4m`.
+    - Type the following command:    
+
+
+    $ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/[your_target_name] bs=4m
+- Using Etcher
+    - Alternatively, you can use the open source software [Etcher](https://www.balena.io/etcher/) to help you write the image on any platform.
 
 Remove the microSD from your host system after `dd` && `sync` operations have finished.
 
@@ -99,11 +105,9 @@ Login to the board via serial.
 $ sudo cu -l  /dev/ttyUSB0  -s 115200
 
 Connected.
-
-Ubuntu 16.04.1 LTS DE10_NANO ttyS0
 ```
 
-You can login using the following information:
+Hit enter, and you can login using the following information:
 - User name: root
 - Password: (nothing)
 
