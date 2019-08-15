@@ -73,25 +73,26 @@ You can download an upt-to-date-for-Blueoil Linux system image by:
 
 The downloaded file should contain the image "de10nano_ubuntu_TCAv2.img".
 Insert an empty microSD card (8GB+) into your PC and write the downloaded image to it.
-- On Linux
+- Using Etcher [Recommended]
+    - We recommend using the open source software [Etcher](https://www.balena.io/etcher/) to help you write the image on any platform.
+    
+- Using Linux terminal
     - Make sure to unmount the microSD with `umount` command before writing.
-    - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`
+    - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`.
     - Type the following command:
 
 
     $ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/[your_target_name] bs=4M
-- In macOS
+- Using macOS terminal
     - Make sure to unmount the microSD with `diskutil` command before writing.
-    - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`
-    - `bs` option of `dd` command should be set to `4m`.
+    - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`.
+    - To make the process faster, append an `r` in front of `[your_target_name]`.
     - Type the following command:    
 
 
-    $ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/[your_target_name] bs=4m
-- Using Etcher
-    - Alternatively, you can use the open source software [Etcher](https://www.balena.io/etcher/) to help you write the image on any platform.
+    $ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/r[your_target_name] bs=4m
 
-Remove the microSD from your host system after `dd` && `sync` operations have finished.
+Remove the microSD from your host system after the operation have finished.
 
 You can also create a Linux system using an image from Terasic's official website.
 Please refer to ['Create Linux system on microSD card'](#create-linux-system-on-microsd-card).
