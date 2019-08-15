@@ -5,7 +5,7 @@ using a DE10-Nano Kit board and a USB camera.
 
 #### Setup
 
-- The DE10-Nano: Prepare the board and create a Linux system on a microSD card. (For details  please see <a href="../install/install.html">Installation</a>.)
+- The DE10-Nano: Prepare the board and create a Linux system on a microSD card. (For details, please see [Installation](../install/install.html).)
 - USB camera: After setting up the DE10-Nano board, connect the USB camera to the DE10-Nano board.
 Make sure the camera is recognized by the device.
 - For macOS: Please install [XQuartz](https://www.xquartz.org) so that the demo output can be displayed on your screen.
