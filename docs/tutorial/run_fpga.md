@@ -14,7 +14,7 @@ Make sure the camera is recognized by the device.
 
 - After having done the Setup step, you should be able to login to the DE10-Nano via ssh.
 
-      $ ssh -X root@{DE10-Nano's IP}
+      $ ssh -X root@{DE10-Nano's IP address}
 
 - Copy the directory generated as `output` by `blueoil convert` to the DE10-Nano as `/demo`. It should contain the following:
 

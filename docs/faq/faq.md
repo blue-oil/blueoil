@@ -8,7 +8,7 @@ Do the following steps if the FPGA board cannot be connected via serial, or a `L
 
 ### Cannot connect to the FPGA board via ssh
 You need ethernet LAN connection with the FPGA board to connect to it via ssh.
-The IP of your FPGA board can be found using the `ifconfig` command.
+The IP address of your FPGA board can be found using the `ifconfig` command.
 
 ## OS
 
