@@ -53,7 +53,7 @@
     {
       "license": 5,
       "file_name": "000000008690.jpg",
-      "coco_url": "http://images.cocodataset.org/val2017/000000008690.jpg",
+      "coco_url": "http://images.cocodataset.org/train2017/000000008690.jpg",
       "height": 480,
       "width": 640,
       "date_captured": "2013-11-16 14:25:31",
@@ -63,7 +63,7 @@
     {
       "license": 5,
       "file_name": "000000389109.jpg",
-      "coco_url": "http://images.cocodataset.org/val2017/000000389109.jpg",
+      "coco_url": "http://images.cocodataset.org/train2017/000000389109.jpg",
       "height": 640,
       "width": 427,
       "date_captured": "2013-11-20 14:38:39",
@@ -73,7 +73,7 @@
     {
       "license": 5,
       "file_name": "000000570664.jpg",
-      "coco_url": "http://images.cocodataset.org/val2017/000000570664.jpg",
+      "coco_url": "http://images.cocodataset.org/train2017/000000570664.jpg",
       "height": 333,
       "width": 500,
       "date_captured": "2013-11-17 16:35:56",
