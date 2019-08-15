@@ -100,7 +100,7 @@ class TFDSMixin:
         self._validate_feature_structure()
 
         self.tf_dataset = self._builder.as_dataset(split=self.available_splits[self.subset])
-        self.image_size = image_size
+        self._image_size = image_size
         self._num_max_boxes = num_max_boxes
         self._format_dataset()
 
@@ -188,7 +188,7 @@ class TFDSClassification(TFDSMixin, Base):
             )
 
         self.tf_dataset = self.tf_dataset.map(
-            lambda record: _format_classification_record(record, self.image_size, self.num_classes),
+            lambda record: _format_classification_record(record, self._image_size, self.num_classes),
             num_parallel_calls=tf.data.experimental.AUTOTUNE
         )
 
@@ -258,7 +258,10 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
                 num_parallel_calls=tf.data.experimental.AUTOTUNE
             )
 
+        # self.num_max_boxes should be evaluated before executing lambda function.
+        num_max_boxes = self.num_max_boxes
+
         self.tf_dataset = self.tf_dataset.map(
-            lambda record: _format_object_detection_record(record, self.image_size, self.num_max_boxes),
+            lambda record: _format_object_detection_record(record, self._image_size, num_max_boxes),
             num_parallel_calls=tf.data.experimental.AUTOTUNE
         )
