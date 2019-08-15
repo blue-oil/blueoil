@@ -101,13 +101,15 @@ Please refer to ['Create Linux system on microSD card'](#create-linux-system-on-
 
 Connect the board to your host system using a mini-b USB cable.
 Login to the board via serial.
-
+- On Linux
+    - The path name of your FPGA board should look similar to `/dev/ttyUSB0`.
+- In macOS
+    - The path name of your FPGA board should look similar to `/dev/tty.usbserial-A106I1IY`.
 ```
-$ sudo cu -l  /dev/ttyUSB0  -s 115200
+$ sudo cu -l  /dev/[your_fpga_board]  -s 115200
 
 Connected.
 ```
-
 Hit enter, and you can login using the following information:
 - User name: root
 - Password: (nothing)
