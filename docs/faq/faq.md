@@ -16,11 +16,11 @@ The IP address of your FPGA board can be found using the `ifconfig` command.
 If the Linux OS does not boot, it is likely that your OS is not properly written. 
 Please erase your microSD card and write the OS again.
 We recommend using [Etcher](https://www.balena.io/etcher/) to help you write the image on any platform.
-Please refer to the details in <a href="../install/install.html#download-linux-system-image-on-your-pc">Download Linux system image (On your PC)</a>
+Please refer to the details in [Download Linux system image (On your PC)](../install/install.html#download-linux-system-image-on-your-pc).
 
 ## Errors
 
 ### `memory error` in python
 It is likely that you don't have enough disk space. 
 You can check it using the `fdisk` command. 
-If you did not expand your root partition, we recommend doing it by following the final part of <a href="../install/install.html#connect-to-the-fpga-board-on-your-pc">Connect to the FPGA board (On your PC)</a>.
+If you did not expand your root partition, we recommend doing it by following the final part of [Connect to the FPGA board (On your PC)](../install/install.html#connect-to-the-fpga-board-on-your-pc).
