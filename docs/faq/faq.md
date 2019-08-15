@@ -11,14 +11,15 @@ You need ethernet LAN connection with the FPGA board to connect to it via ssh.
 The IP of your FPGA board can be found using the `ifconfig` command.
 
 ## OS
+
 ### The Linux OS does not boot
 If the Linux OS does not boot, it is likely that your OS is not properly written. 
 Please erase your microSD card and write the OS again.
 We recommend using [Etcher](https://www.balena.io/etcher/) to help you write the image on any platform.
 Please refer to the details in <a href="../install/install.html#download-linux-system-image-on-your-pc">Download Linux system image (On your PC)</a>
 
-
 ## Errors
+
 ### `memory error` in python
 It is likely that you don't have enough disk space. 
 You can check it using the `fdisk` command. 
