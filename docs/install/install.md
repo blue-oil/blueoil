@@ -80,17 +80,18 @@ Insert an empty microSD card (8GB+) into your PC and write the downloaded image 
     - Make sure to unmount the microSD with `umount` command before writing.
     - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`.
     - Type the following command:
+```
+$ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/[your_target_name] bs=4M
+```
 
-
-    $ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/[your_target_name] bs=4M
 - Using macOS terminal
     - Make sure to unmount the microSD with `diskutil` command before writing.
     - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`.
     - To make the process faster, append an `r` in front of `[your_target_name]`.
     - Type the following command:    
-
-
-    $ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/r[your_target_name] bs=4m
+```
+$ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/r[your_target_name] bs=4m
+```
 
 Remove the microSD from your host system after the operation have finished.
 
