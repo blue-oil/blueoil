@@ -18,7 +18,6 @@ import tempfile
 
 import click
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
 from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 from lmnet.datasets.tfds import TFDSMixin
@@ -32,7 +31,7 @@ def _copy_directory_recursively(src, dst):
     for parent, directories, files in tf.io.gfile.walk(src):
         for directory in directories:
             src_dir = os.path.join(parent, directory)
-            dst_dir =  os.path.relpath(src_dir, src)
+            dst_dir = os.path.relpath(src_dir, src)
             dst_dir = os.path.join(dst, dst_dir)
 
             if tf.io.gfile.exists(dst_dir):

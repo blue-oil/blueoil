@@ -222,7 +222,7 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
                     data = sess.run(next_batch)
                     if max_boxes < data["objects"]["label"].shape[0]:
                         max_boxes = data["objects"]["label"].shape[0]
-                except:
+                except tf.errors.OutOfRangeError:
                     break
 
         return max_boxes

@@ -53,7 +53,7 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
             if subset in available_splits:
                 try:
                     dataset = self.dataset_class(subset=subset, **self.dataset_kwargs)
-                except:
+                except Exception:
                     continue
 
                 self.info.features["objects"]["label"].names = dataset.classes
@@ -70,7 +70,7 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
 
     def _num_shards(self, dataset):
         total_size = 0
-        max_shard_size = 256 * 1024 * 1024 # 256MiB
+        max_shard_size = 256 * 1024 * 1024  # 256MiB
         for image, _ in dataset:
             total_size += image.nbytes
 
