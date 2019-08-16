@@ -486,8 +486,8 @@ def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=2, confidence_t
             continue
         argm = np.argmax(heatmap[:, :, i])
         y, x = np.unravel_index(argm, (height, width))
-        joints[i, 0] = x * stride - 0.5 * stride
-        joints[i, 1] = y * stride - 0.5 * stride
+        joints[i, 0] = x * stride
+        joints[i, 1] = y * stride
         joints[i, 2] = 1
 
     return joints

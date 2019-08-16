@@ -310,6 +310,7 @@ def test_format_joints():
     num_dimensions = 2
     stride = 1
     confidence_threshold = 0.5
+    num_joints = 17
 
     input_joints = np.array([[1, 1, 1],
                              [2, 2, 1],
@@ -329,7 +330,7 @@ def test_format_joints():
                              [16, 16, 1],
                              [17, 17, 0]])
 
-    pre_process = JointsToGaussianHeatmap(image_size, num_joints=17,
+    pre_process = JointsToGaussianHeatmap(image_size, num_joints=num_joints,
                                           stride=1, sigma=3, max_value=10)
 
     post_process = FormatJoints(num_dimensions=num_dimensions,
@@ -341,7 +342,9 @@ def test_format_joints():
 
     output_joints = post_process(heatmap)["outputs"][0]
 
-    assert np.allclose(output_joints, input_joints, atol=1e-4, rtol=1e-4)
+    for i in range(num_joints):
+        if input_joints[i, 2] == 1:
+            assert np.allclose(output_joints[i], input_joints[i], atol=1e-4, rtol=1e-4)
 
 
 if __name__ == '__main__':

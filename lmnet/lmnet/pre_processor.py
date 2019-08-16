@@ -276,8 +276,8 @@ def joints_to_gaussian_heatmap(joints, image_size,
     for i in range(num_joints):
 
         if joints[i, 2] > 0:
-            center_x = int(joints[i, 0] / stride + 0.5)
-            center_y = int(joints[i, 1] / stride + 0.5)
+            center_x = int(joints[i, 0] / stride)
+            center_y = int(joints[i, 1] / stride)
 
             up_left = [int(center_x - tmp_size), int(center_y - tmp_size)]
             bottom_right = [int(center_x + tmp_size + 1), int(center_y + tmp_size + 1)]
