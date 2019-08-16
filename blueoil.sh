@@ -139,7 +139,23 @@ function set_lmnet_docker_options(){
 		-e CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}"
 }
 
+function count_char(){
+	REPLACED=$(echo $1 | sed -e "s/$2//g")
+	echo $((${#1}-${#REPLACED}+1))
+}
+
+function detect_gpu_num(){
+	if [ "${#CUDA_VISIBLE_DEVICES}" -eq 0 ]; then
+		echo 0
+        else
+		count_char "${CUDA_VISIBLE_DEVICES}" ","
+	fi
+
+}
+
 function blueoil_train(){
+	GPU_NUM=$(detect_gpu_num)
+
 	set_variables_from_config $1
 	OUTPUT_DIR=${2:-./saved}
 	create_directory ${OUTPUT_DIR}
@@ -152,10 +168,17 @@ function blueoil_train(){
 		EXPERIMENT_ID=${CONFIG_NAME}_${TIME_STAMP}
 	fi
 
+        if [ "$GPU_NUM" -gt 1 ]; then
+            HOROVOD_PREFIX="horovodrun -np $GPU_NUM"
+        else
+            HOROVOD_PREFIX=""
+        fi
+
 	echo "#### Run training (${EXPERIMENT_ID}) ####"
 
+        # grep is to filter out annoying "Read -1... " error message. For more detail, see https://github.com/horovod/horovod/issues/503
 	docker run ${LMNET_DOCKER_OPTIONS} ${DOCKER_IMAGE} \
-		python blueoil/blueoil_train.py -c ${GUEST_CONFIG_DIR}/${YML_CONFIG_FILE_NAME} -i ${EXPERIMENT_ID}
+		${HOROVOD_PREFIX} python blueoil/blueoil_train.py -c ${GUEST_CONFIG_DIR}/${YML_CONFIG_FILE_NAME} -i ${EXPERIMENT_ID} |& grep -v "Read -1"
 	error_exit $? "Training exited with a non-zero status"
 
 	if [ ! -f ${OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/checkpoint ]; then
