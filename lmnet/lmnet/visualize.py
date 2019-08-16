@@ -131,17 +131,26 @@ def visualize_semantic_segmentation(image, post_processed, config):
     return result
 
 
-def visualize_joints(joints, image):
+def visualize_joints(joints, image, original_image_size=None):
     """
     Visualize joints
     Args:
         joints: a numpy array of shape (num_joints, 3).
         image: a numpy array of shape (height, width, 3).
+        original_image_size: a tuple, (original_height, original_width). If not None, joints will be scaled.
 
     Returns:
         drawed_image: a numpy array of shape (height, width, 3).
 
     """
+
+    if original_image_size is not None:
+        height, width, _ = image.shape
+        scale_height = height / original_image_size[0]
+        scale_width = width / original_image_size[1]
+        joints[:, 0] *= scale_width
+        joints[:, 1] *= scale_height
+
     image = PIL.Image.fromarray(image, mode="RGB")
     draw = PIL.ImageDraw.Draw(image)
 
@@ -164,9 +173,9 @@ def visualize_joints(joints, image):
             draw.ellipse([center_x - 2, center_y - 2,
                           center_x + 2, center_y + 2], fill=(238, 130, 238))
 
-    drawed_iamge = np.array(image, dtype=np.uint8)
+    drawed_image = np.array(image, dtype=np.uint8)
 
-    return drawed_iamge
+    return drawed_image
 
 
 def label_to_color_image(results, colormap):

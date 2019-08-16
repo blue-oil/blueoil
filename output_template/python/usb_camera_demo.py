@@ -286,9 +286,12 @@ def run_sementic_segmentation(config):
 
 def run_keypoints_detection(config):
     global nn
-    camera_width = 160
-    camera_height = 160
+    camera_width = 320
+    camera_height = 240
     window_name = "Keypoints Detection Demo"
+
+    input_width = config.IMAGE_SIZE[1]
+    input_height = config.IMAGE_SIZE[0]
 
     vc = init_camera(camera_width, camera_height)
 
@@ -321,7 +324,7 @@ def run_keypoints_detection(config):
                 drawed_img = window_img
                 if result is not None:
 
-                    drawed_img = visualize_joints(result[0], window_img)
+                    drawed_img = visualize_joints(result[0], window_img, (input_height, input_width))
                     drawed_img = add_fps(drawed_img, fps)
 
                 cv2.imshow(window_name, drawed_img)
