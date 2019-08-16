@@ -13,12 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import csv
 import math
-import os
-import xml.etree.ElementTree as ET
 
-import tensorflow as tf
 import tensorflow_datasets as tfds
 
 
