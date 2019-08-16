@@ -104,7 +104,9 @@ class YoloV2(BaseNetwork):
 
             # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
             # Number of cell is the spatial dimension of the final convolutional features.
-            self.num_cell = tf.tuple([tf.cast((self.image_size[0] / 32), tf.int32), tf.cast((self.image_size[1] / 32), tf.int32)])
+            image_size0 = self.image_size[0] / 32
+            image_size1 = self.image_size[1] / 32
+            self.num_cell = tf.tuple([tf.cast(image_size0, tf.int32), tf.cast(image_size1, tf.int32)])
         else:
             self.num_cell = self.image_size[0] // 32, self.image_size[1] // 32
 
