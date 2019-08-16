@@ -43,6 +43,7 @@ list(APPEND SRC_LIB_ALL
     src/network.cpp
     src/pack_input_to_qwords.cpp
     src/time_measurement.cpp
+    src/quantizer.cpp
 )
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/src/scaling_factors.cpp)
