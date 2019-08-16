@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import functools
+import os
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -93,6 +94,11 @@ class TFDSMixin:
             if download:
                 self._builder.download_and_prepare()
         else:
+            if not tf.io.gfile.exists(os.path.join(data_dir, name)):
+                raise ValueError("Dataset directory does not exist: {}\n"
+                                 "Please run `python executor/build_tfds.py -c <config file>` before training."
+                                 .format(os.path.join(data_dir, name)))
+
             self._builder = self.builder_class(name, data_dir=data_dir)
 
         self.info = self._builder.info

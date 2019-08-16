@@ -20,7 +20,7 @@ import click
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from lmnet.datasets.base import ObjectDetectionBase
+from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 from lmnet.datasets.tfds import TFDSMixin
 from lmnet.utils import config as config_util
 from lmnet.utils.tfds_builders.classification import ClassificationBuilder
@@ -52,9 +52,13 @@ def run(config_file, overwrite):
     dataset_class = config.DATASET_CLASS
     dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
 
+    if "tfds_kwargs" not in dataset_kwargs:
+        raise ValueError("The given config file does not contain settings for building TFDS datasets.\n"
+                         "Please see help messages (python executor/build_tfds.py -h) for detail.")
+
     tfds_kwargs = dataset_kwargs.pop("tfds_kwargs")
-    name = tfds_kwargs['name']
-    data_dir = os.path.expanduser(tfds_kwargs['data_dir'])
+    name = tfds_kwargs["name"]
+    data_dir = os.path.expanduser(tfds_kwargs["data_dir"])
 
     if tf.io.gfile.exists(os.path.join(data_dir, name)):
         if not overwrite:
@@ -67,6 +71,8 @@ def run(config_file, overwrite):
 
     if issubclass(dataset_class, ObjectDetectionBase):
         builder_class = ObjectDetectionBuilder
+    elif issubclass(dataset_class, SegmentationBase):
+        raise NotImplementedError("A dataset builder for segmentation dataset is not implemented yet.")
     else:
         builder_class = ClassificationBuilder
 
@@ -85,22 +91,51 @@ def run(config_file, overwrite):
         print("Done!!")
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.option(
     "-c",
     "--config_file",
-    help="Path to config file.",
+    help="A path to config file",
     required=True,
 )
 @click.option(
     "-ow",
     "--overwrite",
-    help="Overwrite if the output already exists.",
+    help="Overwrite if the output directory already exists.",
     is_flag=True,
     default=False,
 )
 def main(config_file, overwrite):
-    """A script to build custom TFDS datasets"""
+    """
+    A script to build custom TFDS datasets
+
+    \b
+    This script can build custom TFDS datasets from existing dataset classes.
+    You can use training config files to specify which dataset class to be used as data source.
+    The following settings are required in the config file.
+
+    \b
+    ```
+    DATASET_CLASS = <dataset class>
+    DATASET.TFDS_KWARGS = {
+        "name": "<a dataset name to be generated>",
+        "data_dir": "<a directory path to output generated dataset>",
+        "image_size": <image size array like [128, 128]>,
+    }
+    ```
+
+    \b
+    If you have a training config file with the settings above,
+    you can execute this script and the training script with the same config file.
+    Then the generated TFDS dataset will be used for training.
+
+    \b
+    ```
+    python executor/build_tfds.py -c common_config_file.py
+    python executor/train.py      -c common_config_file.py
+    ```
+    """
+
     run(os.path.expanduser(config_file), overwrite)
 
 
