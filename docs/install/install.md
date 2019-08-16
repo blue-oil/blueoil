@@ -71,21 +71,29 @@ You can download an upt-to-date-for-Blueoil Linux system image by:
 
     $ wget https://leapmind-public-storage.s3-ap-northeast-1.amazonaws.com/os_images/de10nano_ubuntu_TCAv2.img.gz
 
-Downloaded file should contain "de10nano_ubuntu.img".
-Insert an empty microSD card (8GB+) into your PC and write the downloaded image to it:
+The downloaded file should contain the image "de10nano_ubuntu_TCAv2.img".
+Insert an empty microSD card (8GB+) into your PC and write the downloaded image to it.
+- Using Etcher [Recommended]
+    - We recommend using the open source software [Etcher](https://www.balena.io/etcher/) to help you write the image on any platform.
+    
+- Using Linux terminal
+    - Make sure to unmount the microSD with `umount` command before writing.
+    - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`.
+    - Type the following command:
+```
+$ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/[your_target_name] bs=4M
+```
 
-    $ cat de10nano_ubuntu.img.gz | gunzip | sudo dd of=/dev/mmcblk0 bs=4M
+- Using macOS terminal
+    - Make sure to unmount the microSD with `diskutil` command before writing.
+    - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`.
+    - To make the process faster, append an `r` in front of `[your_target_name]`.
+    - Type the following command:    
+```
+$ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/r[your_target_name] bs=4m
+```
 
-Caution:
-- On Linux
-    - Make sure unmount the microSD with `umount` command before writing.
-    - `/dev/xxx` might have a different name, so please confirm the name for the target microSD.
-- In macOS
-    - Make sure unmount the microSD with `diskutil` command before writing.
-    - `/dev/xxx` might have a different name, so please confirm the name for the target microSD.
-    - `bs` option of `dd` command should be set to `4m`.
-
-Remove the microSD from your host system after `dd` && `sync` operations have finished.
+Remove the microSD from your host system after the operation have finished.
 
 You can also create a Linux system using an image from Terasic's official website.
 Please refer to ['Create Linux system on microSD card'](#create-linux-system-on-microsd-card).
@@ -94,16 +102,16 @@ Please refer to ['Create Linux system on microSD card'](#create-linux-system-on-
 
 Connect the board to your host system using a mini-b USB cable.
 Login to the board via serial.
-
+- On Linux
+    - The path name of your FPGA board should look similar to `/dev/ttyUSB0`.
+- In macOS
+    - The path name of your FPGA board should look similar to `/dev/tty.usbserial-A106I1IY`.
 ```
-$ sudo cu -l  /dev/ttyUSB0  -s 115200
+$ sudo cu -l  /dev/[your_fpga_board]  -s 115200
 
 Connected.
-
-Ubuntu 16.04.1 LTS DE10_NANO ttyS0
 ```
-
-You can login using the following information:
+Hit enter, and you can login using the following information:
 - User name: root
 - Password: (nothing)
 
