@@ -92,7 +92,7 @@ RUN apt-get update && apt-get install -y g++-5-arm-linux-gnueabihf && \
 
 # Install requirements
 COPY lmnet/*requirements.txt /tmp/requirements/
-RUN pip install -r /tmp/requirements/gpu.requirements.txt && rm -rf /tmp/requirements
+RUN pip install -r /tmp/requirements/gpu.requirements.txt
 # In order to install blueoil requirements `prompt_toolkit==1.0.15`, uninstall prompt-toolkit v2.0 that depends on `pdb==0.10.2`.
 RUN pip uninstall -y prompt-toolkit
 
@@ -101,13 +101,43 @@ COPY lmnet/third_party /home/blueoil/lmnet/third_party
 # https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
 RUN cd /home/blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
 
-# For development
-RUN apt-get update && apt-get install -y \
-    x11-apps \
-    imagemagick \
-    && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Install requirements for OpenMPI and Horovod
+
+# Install OpenMPI
+RUN mkdir /tmp/openmpi && \
+    cd /tmp/openmpi && \
+    wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-4.0.1.tar.gz && \
+    tar zxf openmpi-4.0.1.tar.gz && \
+    cd openmpi-4.0.1 && \
+    ./configure --enable-orterun-prefix-by-default && \
+    make -j $(nproc) all && \
+    make install && \
+    ldconfig && \
+    rm -rf /tmp/openmpi
+
+# Install OpenSSH for MPI to communicate between containers
+RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
+    mkdir -p /var/run/sshd
+
+# Set env to install horovod with nccl and tensorflow option
+ENV HOROVOD_GPU_ALLREDUCE NCCL
+ENV HOROVOD_WITH_TENSORFLOW 1
+# Set temporarily CUDA stubs to install Horovod
+RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs
+# Install requirements for distributed training
+RUN pip install -r /tmp/requirements/dist.requirements.txt
+# Unset temporarily CUDA stubs
+RUN ldconfig
+
+# Configure OpenMPI to run good defaults:
+#   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0 --mca btl_vader_single_copy_mechanism none
+RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf && \
+    echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf && \
+    echo "btl_tcp_if_exclude = lo,docker0" >> /usr/local/etc/openmpi-mca-params.conf
+
+# we cannot customize the path of this temporal directory...
+RUN mkdir /.horovod && chmod 777 /.horovod
+
 
 # Copy blueoil sources to docker image
 COPY blueoil /home/blueoil/blueoil
@@ -128,5 +158,13 @@ RUN chmod 777 /home/blueoil/dlk
 # Copy lmnet sources to docker image
 COPY lmnet /home/blueoil/lmnet
 
+
 ENV PYTHONPATH $PYTHONPATH:/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk
 WORKDIR /home/blueoil
+
+# For development
+RUN apt-get update && apt-get install -y \
+     x11-apps imagemagick
+
+RUN  apt-get clean && \
+     rm -rf /var/lib/apt/lists/*
