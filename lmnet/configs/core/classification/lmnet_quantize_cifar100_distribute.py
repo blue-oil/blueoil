@@ -56,8 +56,8 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-# distributed training
-IS_DISTRIBUTION = True
+
+
 num_worker = 4
 
 # for debug

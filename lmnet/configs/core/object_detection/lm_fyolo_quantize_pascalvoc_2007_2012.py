@@ -17,7 +17,16 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
+
+#from lmnet.networks.object_detection.lm_fyolo_160_1x1_exp10_alt_v2 import LMFYoloQuantize
+#from lmnet.networks.object_detection.lm_fyolo_160_1x1_exp10 import LMFYoloQuantize
+from lmnet.networks.object_detection.bazelface import LMFYoloQuantize
+from lmnet.networks.object_detection.bazelface3 import LMFYoloQuantize
+#from lmnet.networks.object_detection.gazelnet import LMFYoloQuantize
+#from lmnet.networks.object_detection.lm_yangyolo import LMFYoloQuantize
+#from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
+
+
 from lmnet.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
@@ -48,18 +57,21 @@ IS_DEBUG = False
 NETWORK_CLASS = LMFYoloQuantize
 DATASET_CLASS = Pascalvoc20072012
 
+
 IMAGE_SIZE = [320, 320]
-BATCH_SIZE = 32
+BATCH_SIZE = 12
 DATA_FORMAT = "NHWC"
 TASK = Tasks.OBJECT_DETECTION
 CLASSES = DATASET_CLASS.classes
 
-MAX_STEPS = 1000000
-SAVE_CHECKPOINT_STEPS = 10000
+num_processes = 1
+step_per_epoch = int(16551 / BATCH_SIZE)
+MAX_STEPS = step_per_epoch * 160
+SAVE_CHECKPOINT_STEPS = step_per_epoch * 10
 KEEP_CHECKPOINT_MAX = 5
-TEST_STEPS = 1000
-SUMMARISE_STEPS = 1000
-IS_DISTRIBUTION = False
+TEST_STEPS = step_per_epoch
+SUMMARISE_STEPS = step_per_epoch
+
 
 # for debug
 # IS_DEBUG = True
@@ -101,11 +113,42 @@ NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 # In the origianl yolov2 Paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
 # Train data num per epoch is 16551
-step_per_epoch = int(16551 / BATCH_SIZE)
+
+# NETWORK.LEARNING_RATE_KWARGS = {
+#         "values": [5e-4, 2e-2, 5e-3, 5e-4, 5e-5],
+#         "boundaries": [step_per_epoch * 5, step_per_epoch * 80, step_per_epoch * 120, step_per_epoch * 140],
+# }
+
+
+init_lr = 0.0001
+max_lr = 0.01 * num_processes
+last_lr = 0.0025
+
+values = [init_lr]
+boundaries = []
+
+for i in range(1, 40):
+    values.append(max_lr * float(i) / 40 + init_lr)
+    boundaries.append(step_per_epoch * i)
+
+for i in range(40, 80):
+    values.append(max_lr - max_lr * float(i-40) / 40 + last_lr)
+    boundaries.append(step_per_epoch * i)
+
+values.append(last_lr)
+boundaries.append(step_per_epoch * 85)
+
+values.append(last_lr * 0.1)
+boundaries.append(step_per_epoch * 90)
+
+values.append(last_lr * 0.01)
+boundaries.append(step_per_epoch * 95)
+
 NETWORK.LEARNING_RATE_KWARGS = {
-        "values": [5e-4, 2e-2, 5e-3, 5e-4],
-        "boundaries": [step_per_epoch, step_per_epoch * 80, step_per_epoch * 120],
+        "values": values,
+        "boundaries": boundaries,
 }
+
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
@@ -119,7 +162,7 @@ NETWORK.WEIGHT_DECAY_RATE = 0.0005
 NETWORK.SCORE_THRESHOLD = score_threshold
 NETWORK.NMS_IOU_THRESHOLD = nms_iou_threshold
 NETWORK.NMS_MAX_OUTPUT_SIZE = nms_max_output_size
-NETWORK.LOSS_WARMUP_STEPS = int(8000 / BATCH_SIZE)
+NETWORK.LOSS_WARMUP_STEPS = int(20000 / BATCH_SIZE)
 # quantization
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
 NETWORK.ACTIVATION_QUANTIZER_KWARGS = {

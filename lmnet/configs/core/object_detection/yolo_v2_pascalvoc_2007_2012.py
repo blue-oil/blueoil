@@ -55,8 +55,8 @@ KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 10000
 SUMMARISE_STEPS = 1000
 
-# distributed training
-IS_DISTRIBUTION = False
+
+
 
 # for debug
 # IS_DEBUG = True

@@ -55,8 +55,8 @@ IS_PRETRAIN = False
 PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
-# distributed training
-IS_DISTRIBUTION = False
+
+
 
 # for debug
 # MAX_STEPS = 10
