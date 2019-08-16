@@ -255,6 +255,7 @@ def start_training(config):
                 [metrics_summary_op], feed_dict=metrics_feed_dict,
             )
             train_writer.add_summary(metrics_summary, step + 1)
+            train_writer.flush()
         else:
             sess.run([train_op], feed_dict=feed_dict)
 
@@ -283,6 +284,7 @@ def start_training(config):
                     if train_validation_saving_step % config.SUMMARISE_STEPS == 0:
                         summary, _ = sess.run([summary_op, metrics_update_op], feed_dict=feed_dict)
                         train_val_saving_writer.add_summary(summary, step + 1)
+                        train_val_saving_writer.flush()
                     else:
                         sess.run([metrics_update_op], feed_dict=feed_dict)
 
@@ -294,6 +296,7 @@ def start_training(config):
                     [metrics_summary_op], feed_dict=metrics_feed_dict,
                 )
                 train_val_saving_writer.add_summary(metrics_summary, step + 1)
+                train_val_saving_writer.flush()
 
                 current_train_validation_saving_set_accuracy = sess.run(metrics_ops_dict["accuracy"])
 
@@ -336,6 +339,7 @@ def start_training(config):
                     summary, _ = sess.run([summary_op, metrics_update_op], feed_dict=feed_dict)
                     if rank == 0:
                         val_writer.add_summary(summary, step + 1)
+                        val_writer.flush()
                 else:
                     sess.run([metrics_update_op], feed_dict=feed_dict)
 
@@ -348,6 +352,7 @@ def start_training(config):
             )
             if rank == 0:
                 val_writer.add_summary(metrics_summary, step + 1)
+                val_writer.flush()
 
         if rank == 0:
             progbar.update(step + 1)
