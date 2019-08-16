@@ -19,7 +19,13 @@ import tensorflow_datasets as tfds
 
 
 class ClassificationBuilder(tfds.core.GeneratorBasedBuilder):
-    """Generic TFDS builder for classification dataset"""
+    """
+    A custom TFDS builder for classification dataset.
+    This class loads data from existing dataset classes and
+    generate TFDS formatted dataset which is equivalent to the original one.
+    See also: https://www.tensorflow.org/datasets/add_dataset
+    """
+
     VERSION = tfds.core.Version("0.1.0")
 
     def __init__(self, dataset_name, dataset_class=None, dataset_kwargs=None, **kwargs):
@@ -31,7 +37,7 @@ class ClassificationBuilder(tfds.core.GeneratorBasedBuilder):
     def _info(self):
         return tfds.core.DatasetInfo(
             builder=self,
-            description="Generic TFDS builder for classification dataset",
+            description="Custom TFDS dataset for classification",
             features=tfds.features.FeaturesDict({
                 "image": tfds.features.Image(),
                 "label": tfds.features.ClassLabel(),
@@ -45,10 +51,15 @@ class ClassificationBuilder(tfds.core.GeneratorBasedBuilder):
             "test": tfds.Split.TEST,
         }
 
+        # Try to instantiate each subsets and skip the subset if it fails.
         splits = []
         for subset in self.dataset_class.available_subsets:
             if subset in available_splits:
-                dataset = self.dataset_class(subset=subset, **self.dataset_kwargs)
+                try:
+                    dataset = self.dataset_class(subset=subset, **self.dataset_kwargs)
+                except Exception:
+                    continue
+
                 self.info.features["label"].names = dataset.classes
 
                 splits.append(
@@ -61,17 +72,18 @@ class ClassificationBuilder(tfds.core.GeneratorBasedBuilder):
 
         return splits
 
-    def _num_shards(self, dataset):
-        total_size = 0
-        max_shard_size = 256 * 1024 * 1024  # 256MiB
-        for image, _ in dataset:
-            total_size += image.nbytes
-
-        return int(math.ceil(total_size / max_shard_size))
-
     def _generate_examples(self, dataset):
         for image, label in dataset:
             yield {
                 "image": image,
                 "label": label.tolist().index(1)
             }
+
+    def _num_shards(self, dataset):
+        """Decide a number of shards so as not the size of each shard exceeds 256MiB"""
+        total_size = 0
+        max_shard_size = 256 * 1024 * 1024  # 256MiB
+        for image, _ in dataset:
+            total_size += image.nbytes
+
+        return int(math.ceil(total_size / max_shard_size))

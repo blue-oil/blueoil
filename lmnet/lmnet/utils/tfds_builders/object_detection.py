@@ -19,7 +19,13 @@ import tensorflow_datasets as tfds
 
 
 class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
-    """Generic TFDS builder for object detection dataset"""
+    """
+    A custom TFDS builder for object detection dataset.
+    This class loads data from existing dataset classes and
+    generate TFDS formatted dataset which is equivalent to the original one.
+    See also: https://www.tensorflow.org/datasets/add_dataset
+    """
+
     VERSION = tfds.core.Version("0.1.0")
 
     def __init__(self, dataset_name, dataset_class=None, dataset_kwargs=None, **kwargs):
@@ -31,7 +37,7 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
     def _info(self):
         return tfds.core.DatasetInfo(
             builder=self,
-            description="Generic TFDS builder for object detection dataset",
+            description="Custom TFDS dataset for object detection",
             features=tfds.features.FeaturesDict({
                 "image": tfds.features.Image(),
                 "objects": tfds.features.SequenceDict({
@@ -48,6 +54,7 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
             "test": tfds.Split.TEST,
         }
 
+        # Try to instantiate each subsets and skip the subset if it fails.
         splits = []
         for subset in self.dataset_class.available_subsets:
             if subset in available_splits:
@@ -67,14 +74,6 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
                 )
 
         return splits
-
-    def _num_shards(self, dataset):
-        total_size = 0
-        max_shard_size = 256 * 1024 * 1024  # 256MiB
-        for image, _ in dataset:
-            total_size += image.nbytes
-
-        return int(math.ceil(total_size / max_shard_size))
 
     def _generate_examples(self, dataset):
         for image, annotations in dataset:
@@ -100,3 +99,12 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
                 "image": image,
                 "objects": objects
             }
+
+    def _num_shards(self, dataset):
+        """Decide a number of shards so as not the size of each shard exceeds 256MiB"""
+        total_size = 0
+        max_shard_size = 256 * 1024 * 1024  # 256MiB
+        for image, _ in dataset:
+            total_size += image.nbytes
+
+        return int(math.ceil(total_size / max_shard_size))

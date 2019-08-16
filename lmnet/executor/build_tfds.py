@@ -26,6 +26,35 @@ from lmnet.utils.tfds_builders.classification import ClassificationBuilder
 from lmnet.utils.tfds_builders.object_detection import ObjectDetectionBuilder
 
 
+def _get_tfds_settings(config_file):
+    config = config_util.load(config_file)
+    dataset_class = config.DATASET_CLASS
+    dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+
+    if "tfds_kwargs" not in dataset_kwargs:
+        raise ValueError("The given config file does not contain settings for building TFDS datasets.\n"
+                         "Please see help messages (python executor/build_tfds.py -h) for detail.")
+
+    tfds_kwargs = dataset_kwargs.pop("tfds_kwargs")
+    dataset_name = tfds_kwargs["name"]
+    data_dir = os.path.expanduser(tfds_kwargs["data_dir"])
+
+    return dataset_class, dataset_kwargs, dataset_name, data_dir
+
+
+def _get_tfds_builder_class(dataset_class):
+    if issubclass(dataset_class, TFDSMixin):
+        raise ValueError("You cannot use dataset classes which is already a TFDS format.")
+
+    if issubclass(dataset_class, SegmentationBase):
+        raise NotImplementedError("A dataset builder for segmentation dataset is not implemented yet.")
+
+    if issubclass(dataset_class, ObjectDetectionBase):
+        return ObjectDetectionBuilder
+
+    return ClassificationBuilder
+
+
 def _copy_directory_recursively(src, dst):
     tf.io.gfile.makedirs(dst)
     for parent, directories, files in tf.io.gfile.walk(src):
@@ -47,36 +76,18 @@ def _copy_directory_recursively(src, dst):
 
 
 def run(config_file, overwrite):
-    config = config_util.load(config_file)
-    dataset_class = config.DATASET_CLASS
-    dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+    """Build custom TFDS datasets from config file"""
+    dataset_class, dataset_kwargs, dataset_name, data_dir = _get_tfds_settings(config_file)
 
-    if "tfds_kwargs" not in dataset_kwargs:
-        raise ValueError("The given config file does not contain settings for building TFDS datasets.\n"
-                         "Please see help messages (python executor/build_tfds.py -h) for detail.")
+    if not overwrite and tf.io.gfile.exists(os.path.join(data_dir, dataset_name)):
+        raise ValueError("Output path already exists: {}\n"
+                         "Please use --overwrite if you want to overwrite."
+                         .format(os.path.join(data_dir, dataset_name)))
 
-    tfds_kwargs = dataset_kwargs.pop("tfds_kwargs")
-    name = tfds_kwargs["name"]
-    data_dir = os.path.expanduser(tfds_kwargs["data_dir"])
-
-    if tf.io.gfile.exists(os.path.join(data_dir, name)):
-        if not overwrite:
-            raise ValueError("Output path already exists: {}\n"
-                             "Please use --overwrite if you want to overwrite."
-                             .format(os.path.join(data_dir, name)))
-
-    if issubclass(dataset_class, TFDSMixin):
-        raise ValueError("You cannot use dataset classes which is already a TFDS format.")
-
-    if issubclass(dataset_class, ObjectDetectionBase):
-        builder_class = ObjectDetectionBuilder
-    elif issubclass(dataset_class, SegmentationBase):
-        raise NotImplementedError("A dataset builder for segmentation dataset is not implemented yet.")
-    else:
-        builder_class = ClassificationBuilder
+    builder_class = _get_tfds_builder_class(dataset_class)
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        builder = builder_class(dataset_name=name,
+        builder = builder_class(dataset_name=dataset_name,
                                 dataset_class=dataset_class,
                                 dataset_kwargs=dataset_kwargs,
                                 data_dir=tmpdir)

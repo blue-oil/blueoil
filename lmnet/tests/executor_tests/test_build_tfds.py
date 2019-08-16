@@ -96,7 +96,7 @@ def test_build_tfds_classification():
     assert train_dataset.num_per_epoch == train_data_num
     assert validation_dataset.num_per_epoch == validation_data_num
 
-    for _ in range(10):
+    for _ in range(train_data_num):
         images, labels = train_dataset.feed()
 
         assert isinstance(images, np.ndarray)
@@ -109,7 +109,7 @@ def test_build_tfds_classification():
         assert labels.shape[0] == config.BATCH_SIZE
         assert labels.shape[1] == train_dataset.num_classes
 
-    for _ in range(10):
+    for _ in range(validation_data_num):
         images, labels = validation_dataset.feed()
 
         assert isinstance(images, np.ndarray)
