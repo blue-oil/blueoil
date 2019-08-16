@@ -20,17 +20,22 @@ from tensorflow import gfile
 
 from blueoil.generate_lmnet_config import generate
 from executor.train import run as run_train
-
+from lmnet.utils import horovod as horovod_util
 
 def run(blueoil_config_file, experiment_id):
     """Train from blueoil config."""
 
-    # Copy bueoil config yaml.
-    output_dir = os.environ.get('OUTPUT_DIR', 'saved')
-    experiment_dir = os.path.join(output_dir, experiment_id)
-    save_config_file(blueoil_config_file, experiment_dir)
+    if horovod_util.is_enabled():
+        hvd = horovod_util.setup()
+
+    if horovod_util.is_rank0():
+        # Copy bueoil config yaml.
+        output_dir = os.environ.get('OUTPUT_DIR', 'saved')
+        experiment_dir = os.path.join(output_dir, experiment_id)
+        save_config_file(blueoil_config_file, experiment_dir)
 
     # Generete lmnet config from blueoil config.
+    # this lmnet_config_file cannot be reuse from multiprocesses as the file is a named temporary file.
     lmnet_config_file = generate(blueoil_config_file)
 
     # Start training
@@ -69,6 +74,8 @@ def save_config_file(config_file, dest_dir):
     default="experiment",
     required=True,
 )
+
+
 def main(config_file, experiment_id):
     run(config_file, experiment_id)
 
