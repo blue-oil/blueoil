@@ -22,11 +22,12 @@ from blueoil.generate_lmnet_config import generate
 from executor.train import run as run_train
 from lmnet.utils import horovod as horovod_util
 
+
 def run(blueoil_config_file, experiment_id):
     """Train from blueoil config."""
 
     if horovod_util.is_enabled():
-        hvd = horovod_util.setup()
+        horovod_util.setup()
 
     if horovod_util.is_rank0():
         # Copy bueoil config yaml.
@@ -74,8 +75,6 @@ def save_config_file(config_file, dest_dir):
     default="experiment",
     required=True,
 )
-
-
 def main(config_file, experiment_id):
     run(config_file, experiment_id)
 

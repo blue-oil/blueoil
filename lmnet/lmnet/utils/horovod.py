@@ -15,12 +15,12 @@
 # =============================================================================
 
 import os
-import sys
 import subprocess
 
 import horovod.tensorflow as hvd
 
 horovod_initialized = False
+
 
 def setup():
     global horovod_initialized
@@ -45,6 +45,7 @@ def setup():
     assert horovod_rank == comm.Get_rank()
     return hvd
 
+
 def _get_pname(pid):
     p = subprocess.Popen(["ps -o cmd= {}".format(pid)], stdout=subprocess.PIPE, shell=True)
     return p.communicate()[0].decode('utf-8')
@@ -62,6 +63,7 @@ def is_enabled():
     else:
         return False
 
+
 # return True if horovod is not enabled, or enabled and the process is rank 0.
 def is_rank0():
     if not is_enabled():
@@ -72,6 +74,3 @@ def is_rank0():
         return True
 
     return False
-
-def num_worker():
-    return horovod_num_worker
