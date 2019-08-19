@@ -122,12 +122,12 @@ RUN apt-get install -y --no-install-recommends openssh-client openssh-server && 
 # Set env to install horovod with nccl and tensorflow option
 ENV HOROVOD_GPU_ALLREDUCE NCCL
 ENV HOROVOD_WITH_TENSORFLOW 1
-# Set temporarily CUDA stubs to install Horovod
-RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs
+
+ENV CUDA_HOME /usr/local/cuda-10.0
+ENV LD_LIBRARY_PATH /usr/local/cuda-10.0/compat/:/usr/local/cuda-10.0/targets/x86_64-linux/lib/:$LD_LIBRARY_PATH
+
 # Install requirements for distributed training
 RUN pip install -r /tmp/requirements/dist.requirements.txt
-# Unset temporarily CUDA stubs
-RUN ldconfig
 
 # Configure OpenMPI to run good defaults:
 #   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0 --mca btl_vader_single_copy_mechanism none
