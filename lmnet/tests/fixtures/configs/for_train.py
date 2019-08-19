@@ -45,7 +45,7 @@ DATASET_CLASS = Dummy
 
 IMAGE_SIZE = [28, 28]
 BATCH_SIZE = 2
-DATA_FORMAT = "NCHW"
+DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
 CLASSES = DATASET_CLASS(subset="train", batch_size=1).classes
 

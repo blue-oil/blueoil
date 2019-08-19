@@ -720,13 +720,13 @@ def test_training():
     config.NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
     config.NETWORK.IMAGE_SIZE = config.IMAGE_SIZE
     config.NETWORK.BATCH_SIZE = config.BATCH_SIZE
-    config.NETWORK.DATA_FORMAT = "NCHW"
+    config.NETWORK.DATA_FORMAT = "NHWC"
 
-    # daasegt config
+    # dataset config
     config.DATASET = EasyDict()
     config.DATASET.PRE_PROCESSOR = ResizeWithGtBoxes(config.IMAGE_SIZE)
     config.DATASET.BATCH_SIZE = config.BATCH_SIZE
-    config.DATASET.DATA_FORMAT = "NCHW"
+    config.DATASET.DATA_FORMAT = "NHWC"
 
     environment.init("test_yolo_v2")
     prepare_dirs(recreate=True)
@@ -740,7 +740,7 @@ def test_yolov2_post_process():
     batch_size = 2
     classes = range(5)
     anchors = [(0.1, 0.2), (1.2, 1.1)]
-    data_format = "NCHW"
+    data_format = "NHWC"
     score_threshold = 0.25
     nms_iou_threshold = 0.5
 
