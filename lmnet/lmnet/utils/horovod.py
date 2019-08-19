@@ -17,12 +17,19 @@
 import os
 import subprocess
 
-import horovod.tensorflow as hvd
+try:
+    import horovod.tensorflow as hvd
+    horovod_installed = True
+except:
+    horovod_installed = False
 
 horovod_initialized = False
 
 
 def setup():
+    if not horovod_installed:
+        return False
+
     global horovod_initialized
     if horovod_initialized:
         return hvd
@@ -66,6 +73,9 @@ def is_enabled():
 
 # return True if horovod is not enabled, or enabled and the process is rank 0.
 def is_rank0():
+    if not horovod_installed:
+        return True
+
     if not is_enabled():
         return True
 
