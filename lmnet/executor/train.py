@@ -42,16 +42,15 @@ def setup_dataset(config, subset, rank):
     enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
     return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
 
+
 def start_training(config):
     use_horovod = horovod_util.is_enabled()
     print("use_horovod:", use_horovod)
     if use_horovod:
         hvd = horovod_util.setup()
         rank = hvd.rank()
-        num_worker = hvd.size()
     else:
         rank = 0
-        num_worker = 1
 
     ModelClass = config.NETWORK_CLASS
     network_kwargs = dict((key.lower(), val) for key, val in config.NETWORK.items())

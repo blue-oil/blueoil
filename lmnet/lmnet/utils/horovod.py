@@ -20,7 +20,7 @@ import subprocess
 try:
     import horovod.tensorflow as hvd
     horovod_installed = True
-except:
+except ImportError:
     horovod_installed = False
 
 horovod_initialized = False
