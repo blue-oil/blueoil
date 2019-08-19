@@ -57,7 +57,6 @@ PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
 
-
 # for debug
 # MAX_STEPS = 10
 # BATCH_SIZE = 31

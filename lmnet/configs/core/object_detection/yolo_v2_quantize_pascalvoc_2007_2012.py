@@ -60,8 +60,6 @@ TEST_STEPS = 5000
 SUMMARISE_STEPS = 1000
 
 
-
-
 # for debug
 # IS_DEBUG = True
 # SUMMARISE_STEPS = 100

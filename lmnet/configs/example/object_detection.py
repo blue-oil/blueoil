@@ -60,8 +60,6 @@ TEST_STEPS = 100
 SUMMARISE_STEPS = 10
 
 
-
-
 # pretrain
 IS_PRETRAIN = False
 PRETRAIN_VARS = []

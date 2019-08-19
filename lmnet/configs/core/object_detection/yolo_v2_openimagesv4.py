@@ -41,7 +41,6 @@ from lmnet.data_augmentor import (
 IS_DEBUG = False
 
 
-
 NETWORK_CLASS = YoloV2
 DATASET_CLASS = OpenImagesV4BoundingBox
 

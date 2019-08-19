@@ -58,8 +58,6 @@ PRE_PROCESSOR = Sequence([
 POST_PROCESSOR = None
 
 
-
-
 # for debug
 # MAX_STEPS = 10
 # BATCH_SIZE = 31
