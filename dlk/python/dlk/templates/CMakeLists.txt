@@ -39,6 +39,7 @@ list(APPEND SRC_LIB_ALL
     src/func/softmax.cpp
     src/func/unpooling.cpp
     src/matrix/shift_add.cpp
+    src/matrix/multiplication.cpp
     src/network_c_interface.cpp
     src/network.cpp
     src/pack_input_to_qwords.cpp
