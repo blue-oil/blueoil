@@ -16,6 +16,7 @@
 import numpy as np
 import click
 import re
+
 from pathlib import Path
 
 
@@ -42,7 +43,7 @@ def main(debug_data_path, expected_data_path):
     d_output = Path(debug_data_path)
     e_output = Path(expected_data_path)
 
-    ptrn_ex = re.compile(r'\d{3}_(.*):(\d+)')
+    ptrn_ex = re.compile(r'(\d{3})_(.*):(\d+)')
     ptrn_dbg = re.compile(r'(.*)0')
     expected_output = [e for e in e_output.iterdir() if e.suffix == '.npy' and ptrn_ex.match(e.stem)]
     debug_output = [e for e in d_output.iterdir() if e.suffix == '.npy' and ptrn_dbg.match(e.stem)]
@@ -53,19 +54,29 @@ def main(debug_data_path, expected_data_path):
     if not expected_output:
         print(f"Expected data path {e_output} is empty (no .npy files)")
 
+    results = {}
+    diffs = {}
     for o in debug_output:
         name_dbg = ptrn_dbg.match(o.stem).group(1)
         for eo in expected_output:
-            name_ex = ptrn_ex.match(eo.stem).group(1)
-            output_id_ex = ptrn_ex.match(eo.stem).group(2)
+            name_ex = ptrn_ex.match(eo.stem).group(2)
+            output_id_ex = ptrn_ex.match(eo.stem).group(3)
             if name_ex == name_dbg and output_id_ex == '0':
                 data_dbg = np.load(o)
                 data_ex = np.load(eo)
 
-                if np.allclose(data_ex.flatten() * data_dbg['scale'], data_dbg['data'], rtol=0.00001, atol=0.00001):
-                    print(f"[OK]   {name_ex}")
+                if np.allclose(data_ex.flatten() * data_dbg['scale'], data_dbg['data'], rtol=0.0001, atol=0.0001):
+                    results[ptrn_ex.match(eo.stem).group(1)] = f"[OK]   {name_ex}"
                 else:
-                    print(f"[FAIL] {name_ex}")
+                    results[ptrn_ex.match(eo.stem).group(1)] = f"[FAIL] {name_ex}"
+
+                idx = np.isclose(data_ex.flatten() * data_dbg['scale'], data_dbg['data'], rtol=0.0001, atol=0.0001)
+                diffs[ptrn_ex.match(eo.stem).group(1)] = data_ex.flatten().size - np.count_nonzero(idx)
+
+    sorted_results = [val for key, val in sorted(results.items())]
+    sorted_diffs = [val for key, val in sorted(diffs.items())]
+    for r, d in zip(sorted_results, sorted_diffs):
+        print(r, d)
 
 
 if __name__ == '__main__':
