@@ -50,28 +50,21 @@ $ export CUDA_VISIBLE_DEVICES="2"
 $ docker-compose build horovod
 ```
 #### Running container for distributed training with multi GPUs
-You can run distributed training by using `mpirun` command.
+You can run distributed training by using `horovodrun` command.
 This distribution is based on Uber's open source distributed training framework: [Horovod](https://github.com/uber/horovod)
-You should set option `mpirun -np [number of processes]` (`[number of processes]` is how many workers you distribute).
+You should set option `horovodrun -np [number of processes]` (`[number of processes]` is how many workers you distribute).
 Each process uses one GPU for training, so `[number of processes]` should be less than or equal to the number of GPUs on your machine. And you should set `CUDA_VISIBLE_DEVICES` to use multi GPUs because it's default is "0" (only one GPU).
-This is an example of cifar10 with 4GPUs.
+This is an example of training cifar10 with 4GPUs.
 ```
 $ export CUDA_VISIBLE_DEVICES="0,1,2,3"
-$ docker-compose run --rm horovod mpirun -np 4 python executor/train.py -c configs/core/classification/lmnet_quantize_cifar10_distribute.py -i test_for_distribution
+$ docker-compose run --rm horovod horovodrun -np 4 python executor/train.py -c configs/core/classification/lmnet_quantize_cifar10.py -i test_for_distribution
 ```
-There are sample configs for distributed training.
-```
-configs/core/classification/lmnet_quantize_cifar10_distribute.py
-configs/core/classification/lmnet_quantize_cifar100_distribute.py
-```
-These configs have the parameter of `NUM_WORKER`, and are designed to scale learning rate with `NUM_WORKER`.
-You should set `NUM_WORKER` as same as `mpirun`'s option of `[number of processes]`.
-The effective batch size in synchronous distributed training is scaled by the number of workers. So it is need to increase in learning rate to compensates for the increased batch size.
+
+From Blueoil 0.11.0, you don't need to set `IS_DISTRIBUTION` parameter in the configuration file. When you prepend `horovodrun -np {process_num}`, Blueoil automatically runs on Horovod.
+However, Bleuoil doesn't automatically adjust parameters like learning rate. When using Horovod, the effective batch size increases in proportion to the number of processes.
+Hence we recommend to scale the learning rate the learning rate according to the number of processes.
 
 ## Running on the DGX-1
-The DGX-1 has 8 GPUs(Tesla V100), and V100(volta architecture) needs CUDA 9 or higher.
-Current lmnet requires tensorflow 1.4, and it is not supported CUDA 9, so we should use docker images provided by NVIDIA and optimoized to run tensorflow 1.4 with V100.
-We can run lmnet with NVIDIA's docker image by using docker-compose service `horovod-volta`.
 
 ### Getting started
 #### Login to NGC (NVIDIA GPU Cloud)
@@ -96,10 +89,10 @@ $ docker-compose run --rm horovod-volta python executor/train.py [some options]
 #### Running container for distributed training with multi GPUs
 The default of `CUDA_VISIBLE_DEVICES` is set as `1,0,2,3,7,6,4,5`.
 This reason is bandwidth optimization with horovod's ring-allreduce algorithm on the architecture of NVLINK in DGX-1.
-Before training, you should set `NUM_WORKER` in your config as same as `mpirun`'s option of `[number of processes]`.
+Before training, you should set `NUM_WORKER` in your config as same as `horovodrun`'s option of `[number of processes]`.
 This is an example of cifar10 with 8GPUs.
 ```
-$ docker-compose run --rm horovod-volta mpirun -np 8 python executor/train.py -c configs/core/classification/lmnet_quantize_cifar10_distribute.py -i test_for_distribution
+$ docker-compose run --rm horovod-volta horovodrun -np 8 python executor/train.py -c configs/core/classification/lmnet_quantize_cifar10.py -i test_for_distribution
 ```
 
 ## Running Tensorboard
