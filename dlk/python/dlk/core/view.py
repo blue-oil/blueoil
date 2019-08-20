@@ -136,7 +136,7 @@ class View(object):
                     max_value = self.op.a_quantizer[0].max_v
                 else:
                     threshold = 'nullptr'
-                    thresholds_addr = 'NULL'
+                    thresholds_addr = '0'
                     conv_func = 'func_QuantizedConv2D'
                     nbit_aqtz = 2
                     max_value = 2.0
