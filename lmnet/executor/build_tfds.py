@@ -109,7 +109,7 @@ def run(config_file, overwrite):
     required=True,
 )
 @click.option(
-    "-ow",
+    "-o",
     "--overwrite",
     help="Overwrite if the output directory already exists.",
     is_flag=True,

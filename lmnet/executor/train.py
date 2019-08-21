@@ -43,7 +43,7 @@ def setup_dataset(config, subset, rank):
     tfds_kwargs = dataset_kwargs.pop("tfds_kwargs", {})
 
     # If there is a settings for TFDS, TFDS dataset class will be used.
-    if not tfds_kwargs:
+    if tfds_kwargs:
         if issubclass(DatasetClass, ObjectDetectionBase):
             DatasetClass = TFDSObjectDetection
         else:
