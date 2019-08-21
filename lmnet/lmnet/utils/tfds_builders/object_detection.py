@@ -48,30 +48,24 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        available_splits = {
+        self.info.features["objects"]["label"].names = self.dataset_class(**self.dataset_kwargs).classes
+
+        predefined_names = {
             "train": tfds.Split.TRAIN,
             "validation": tfds.Split.VALIDATION,
             "test": tfds.Split.TEST,
         }
 
-        # Try to instantiate each subsets and skip the subset if it fails.
         splits = []
         for subset in self.dataset_class.available_subsets:
-            if subset in available_splits:
-                try:
-                    dataset = self.dataset_class(subset=subset, **self.dataset_kwargs)
-                except Exception:
-                    continue
-
-                self.info.features["objects"]["label"].names = dataset.classes
-
-                splits.append(
-                    tfds.core.SplitGenerator(
-                        name=available_splits[subset],
-                        num_shards=self._num_shards(dataset),
-                        gen_kwargs=dict(dataset=dataset)
-                    )
+            dataset = self.dataset_class(subset=subset, **self.dataset_kwargs)
+            splits.append(
+                tfds.core.SplitGenerator(
+                    name=predefined_names.get(subset, subset),
+                    num_shards=self._num_shards(dataset),
+                    gen_kwargs=dict(dataset=dataset)
                 )
+            )
 
         return splits
 
@@ -79,13 +73,8 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
         for image, annotations in dataset:
             height, width, _ = image.shape
 
-            objects = []
-            for annotation in annotations:
-                xmin, ymin, w, h, label = annotation
-                if label == -1:
-                    continue
-
-                objects.append({
+            objects = [
+                {
                     "label": label,
                     "bbox": tfds.features.BBox(
                         ymin / height,
@@ -93,7 +82,10 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
                         (ymin + h) / height,
                         (xmin + w) / width,
                     )
-                })
+                }
+                for xmin, ymin, w, h, label in annotations
+                if label != -1
+            ]
 
             yield {
                 "image": image,
@@ -102,9 +94,6 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
 
     def _num_shards(self, dataset):
         """Decide a number of shards so as not the size of each shard exceeds 256MiB"""
-        total_size = 0
         max_shard_size = 256 * 1024 * 1024  # 256MiB
-        for image, _ in dataset:
-            total_size += image.nbytes
-
-        return int(math.ceil(total_size / max_shard_size))
+        total_size = sum(image.nbytes for image, _ in dataset)
+        return (total_size + max_shard_size - 1) // max_shard_size

@@ -81,9 +81,6 @@ class ClassificationBuilder(tfds.core.GeneratorBasedBuilder):
 
     def _num_shards(self, dataset):
         """Decide a number of shards so as not the size of each shard exceeds 256MiB"""
-        total_size = 0
         max_shard_size = 256 * 1024 * 1024  # 256MiB
-        for image, _ in dataset:
-            total_size += image.nbytes
-
-        return int(math.ceil(total_size / max_shard_size))
+        total_size = sum(image.nbytes for image, _ in dataset)
+        return (total_size + max_shard_size - 1) // max_shard_size
