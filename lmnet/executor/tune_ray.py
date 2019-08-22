@@ -22,7 +22,9 @@ import multiprocessing
 
 from easydict import EasyDict
 from lmnet.utils import executor, config as config_util
+from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.dataset_iterator import DatasetIterator
+from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
 
 import ray
 from ray.tune import run_experiments, register_trainable, Trainable
@@ -134,7 +136,17 @@ def setup_dataset(config, subset, rank):
     """helper function from lmnet/train.py to setup the data iterator"""
     dataset_class = config.DATASET_CLASS
     dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
-    dataset = dataset_class(subset=subset, **dataset_kwargs)
+
+    # If there is a settings for TFDS, TFDS dataset class will be used.
+    tfds_kwargs = dataset_kwargs.pop("tfds_kwargs", {})
+    if tfds_kwargs:
+        if issubclass(dataset_class, ObjectDetectionBase):
+            dataset_class = TFDSObjectDetection
+        else:
+            dataset_class = TFDSClassification
+
+    dataset = dataset_class(subset=subset, **dataset_kwargs, **tfds_kwargs)
+
     # TODO (Neil): Enable both train and validation
     # For some reasons processes are not terminated cleanly, enable prefetch ONLY for the train dataset.
     enable_prefetch = dataset_kwargs.pop("enable_prefetch", False) if subset == 'train' else False

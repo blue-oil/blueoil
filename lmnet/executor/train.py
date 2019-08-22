@@ -40,9 +40,9 @@ def _save_checkpoint(saver, sess, global_step, step):
 def setup_dataset(config, subset, rank):
     DatasetClass = config.DATASET_CLASS
     dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
-    tfds_kwargs = dataset_kwargs.pop("tfds_kwargs", {})
 
     # If there is a settings for TFDS, TFDS dataset class will be used.
+    tfds_kwargs = dataset_kwargs.pop("tfds_kwargs", {})
     if tfds_kwargs:
         if issubclass(DatasetClass, ObjectDetectionBase):
             DatasetClass = TFDSObjectDetection
