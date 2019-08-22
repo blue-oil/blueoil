@@ -477,15 +477,16 @@ def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=2, confidence_t
 
     height, width, num_joints = heatmap.shape
 
-    threshold_value = np.max(heatmap) * confidence_threshold
+    threshold_value = 10 * confidence_threshold
 
     joints = np.zeros((num_joints, num_dimensions + 1), dtype=np.float32)
 
     for i in range(num_joints):
-        if np.max(heatmap[:, :, i]) < threshold_value:
-            continue
         argm = np.argmax(heatmap[:, :, i])
         y, x = np.unravel_index(argm, (height, width))
+        max_value = heatmap[y, x, i]
+        if max_value < threshold_value:
+            continue
         joints[i, 0] = x * stride
         joints[i, 1] = y * stride
         joints[i, 2] = 1
