@@ -86,6 +86,8 @@ def run(config_file, overwrite):
 
     builder_class = _get_tfds_builder_class(dataset_class)
 
+    # Generate data in tmp directory and copy it to data_dir at the end.
+    # This is because generating data directly to remote storage (e.g. GCS) is sometimes very slow.
     with tempfile.TemporaryDirectory() as tmpdir:
         builder = builder_class(dataset_name=dataset_name,
                                 dataset_class=dataset_class,
@@ -133,6 +135,10 @@ def main(config_file, overwrite):
         "image_size": <image size array like [128, 128]>,
     }
     ```
+
+    \b
+    Note: Images will be resized into the specified size when TFRecords are loaded.
+          Images stored in TFRecords still have original size.
 
     \b
     If you have a training config file with the settings above,
