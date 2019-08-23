@@ -156,8 +156,3 @@ def test_build_tfds_object_detection():
         assert labels.shape[0] == config.BATCH_SIZE
         assert labels.shape[1] == num_max_boxes
         assert labels.shape[2] == 5
-
-
-if __name__ == '__main__':
-    test_build_tfds_classification()
-    test_build_tfds_object_detection()
