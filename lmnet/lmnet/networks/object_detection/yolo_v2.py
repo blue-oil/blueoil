@@ -102,9 +102,11 @@ class YoloV2(BaseNetwork):
                 tf.constant(self.image_size[0], dtype=tf.int32), tf.constant(self.image_size[1], dtype=tf.int32)
             ])
 
-            # TODO(wakisaka): Be enable to cnahge `32`. it depends on pooling times.
+            # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
             # Number of cell is the spatial dimension of the final convolutional features.
-            self.num_cell = tf.tuple([tf.to_int32(self.image_size[0] / 32), tf.to_int32(self.image_size[1] / 32)])
+            image_size0 = self.image_size[0] / 32
+            image_size1 = self.image_size[1] / 32
+            self.num_cell = tf.tuple([tf.cast(image_size0, tf.int32), tf.cast(image_size1, tf.int32)])
         else:
             self.num_cell = self.image_size[0] // 32, self.image_size[1] // 32
 
@@ -175,7 +177,7 @@ class YoloV2(BaseNetwork):
             tf.summary.scalar("score_threshold", self.score_threshold)
             tf.summary.scalar("nms_iou_threshold", self.nms_iou_threshold)
             tf.summary.scalar("nms_max_output_size", self.nms_max_output_size)
-            tf.summary.scalar("nms_per_class", tf.to_int32(self.nms_per_class))
+            tf.summary.scalar("nms_per_class", tf.cast(self.nms_per_class, tf.int32))
 
         if self.change_base_output:
             predict_classes, predict_confidence, predict_boxes = self._split_predictions(output)
@@ -313,7 +315,7 @@ class YoloV2(BaseNetwork):
             gt_boxes :3D tensor [batch_size, max_num_boxes, 5(x, y, w, h, class_id)]
         """
         axis = 2
-        gt_boxes = tf.to_float(gt_boxes)
+        gt_boxes = tf.cast(gt_boxes, tf.float32)
         gt_boxes_without_label = gt_boxes[:, :, :4]
         gt_boxes_only_label = tf.reshape(gt_boxes[:, :, 4], [self.batch_size, -1, 1])
         gt_boxes_without_label = format_XYWH_to_CXCYWH(gt_boxes_without_label, axis=axis)
@@ -389,11 +391,11 @@ class YoloV2(BaseNetwork):
             resized_boxes: 5D Tensor,
                            shape is [batch_size, num_cell, num_cell, boxes_per_cell, 4(center_x, center_y, w, h)].
         """
-        image_size_h, image_size_w = tf.to_float(self.image_size[0]), tf.to_float(self.image_size[1])
-        num_cell_y, num_cell_x = tf.to_float(self.num_cell[0]), tf.to_float(self.num_cell[1])
+        image_size_h, image_size_w = tf.cast(self.image_size[0], tf.float32), tf.cast(self.image_size[1], tf.float32)
+        num_cell_y, num_cell_x = tf.cast(self.num_cell[0], tf.float32), tf.cast(self.num_cell[1], tf.float32)
 
         offset_x, offset_y, offset_w, offset_h = self.offset_boxes()
-        offset_x, offset_y = tf.to_float(offset_x), tf.to_float(offset_y)
+        offset_x, offset_y = tf.cast(offset_x, tf.float32), tf.cast(offset_y, tf.float32)
 
         resized_boxes = boxes / [
             image_size_w,
@@ -426,11 +428,11 @@ class YoloV2(BaseNetwork):
             resized_boxes: 5D Tensor,
                            shape is [batch_size, num_cell, num_cell, boxes_per_cell, 4(center_x, center_y, w, h)].
         """
-        image_size_h, image_size_w = tf.to_float(self.image_size[0]), tf.to_float(self.image_size[1])
-        num_cell_y, num_cell_x = tf.to_float(self.num_cell[0]), tf.to_float(self.num_cell[1])
+        image_size_h, image_size_w = tf.cast(self.image_size[0], tf.float32), tf.cast(self.image_size[1], tf.float32)
+        num_cell_y, num_cell_x = tf.cast(self.num_cell[0], tf.float32), tf.cast(self.num_cell[1], tf.float32)
 
         offset_x, offset_y, offset_w, offset_h = self.offset_boxes()
-        offset_x, offset_y = tf.to_float(offset_x), tf.to_float(offset_y)
+        offset_x, offset_y = tf.cast(offset_x, tf.float32), tf.cast(offset_y, tf.float32)
 
         resized_predict_boxes = tf.stack([
             (predict_boxes[:, :, :, :, 0] + offset_x) / num_cell_x,
@@ -1384,8 +1386,8 @@ class YoloV2Loss:
                 [tf.float32, tf.float32, tf.int64, tf.int64]
             )
 
-        object_maskes = tf.to_float(object_maskes)
-        coordinate_maskes = tf.to_float(coordinate_maskes)
+        object_maskes = tf.cast(object_maskes, tf.float32)
+        coordinate_maskes = tf.cast(coordinate_maskes, tf.float32)
         return cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes
 
     def _weight_decay_loss(self):
@@ -1433,7 +1435,7 @@ class YoloV2Loss:
             # iou_mask: [batch_size, num_cell, num_cell, boxes_per_cell, 1]
             iou_mask = best_iou > self.loss_iou_threshold
             iou_mask = tf.expand_dims(iou_mask, 4)
-            iou_mask = tf.to_float(iou_mask)
+            iou_mask = tf.cast(iou_mask, tf.float32)
 
             if self.is_debug:
                 iou_mask = tf.Print(
@@ -1451,7 +1453,7 @@ class YoloV2Loss:
                                                  predict_classes, predict_confidence)
 
             # for class loss
-            truth_classes = tf.to_int32(cell_gt_boxes[:, :, :, :, 4])
+            truth_classes = tf.cast(cell_gt_boxes[:, :, :, :, 4], tf.int32)
             truth_classes = tf.one_hot(truth_classes, self.num_classes)
 
             cell_gt_boxes = cell_gt_boxes[:, :, :, :, :4]
@@ -1553,10 +1555,10 @@ def summary_boxes(tag, images, boxes, image_size, max_outputs=3, data_format="NH
             images = tf.transpose(images, [0, 2, 3, 1])
 
         boxes = tf.stack([
-            boxes[:, :, 0] / tf.to_float(image_size[0]),
-            boxes[:, :, 1] / tf.to_float(image_size[1]),
-            boxes[:, :, 2] / tf.to_float(image_size[0]),
-            boxes[:, :, 3] / tf.to_float(image_size[1]),
+            boxes[:, :, 0] / tf.cast(image_size[0], tf.float32),
+            boxes[:, :, 1] / tf.cast(image_size[1], tf.float32),
+            boxes[:, :, 2] / tf.cast(image_size[0], tf.float32),
+            boxes[:, :, 3] / tf.cast(image_size[1], tf.float32),
         ], axis=2)
 
         bb_images = tf.image.draw_bounding_boxes(images, boxes)

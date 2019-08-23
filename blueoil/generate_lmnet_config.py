@@ -123,7 +123,6 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # default setting
     default_lmnet_config = {
-        "save_steps": 1000,
         "test_steps": 1000,
         "summarise_steps": 100,
     }
@@ -162,6 +161,20 @@ def _blueoil_to_lmnet(blueoil_config):
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
     optimizer  = blueoil_config["trainer"]["optimizer"]
+
+    default_save_checkpoint_steps = 1000
+    default_keep_checkpoint_max = 5
+
+    if 'save_checkpoint_steps' in blueoil_config["trainer"]:
+        save_checkpoint_steps = blueoil_config["trainer"]['save_checkpoint_steps']
+    else:
+        save_checkpoint_steps = default_save_checkpoint_steps
+
+    if 'keep_checkpoint_max' in blueoil_config["trainer"]:
+        keep_checkpoint_max = blueoil_config["trainer"]["keep_checkpoint_max"]
+    else:
+        keep_checkpoint_max = default_keep_checkpoint_max
+
     if optimizer == 'Adam':
         optimizer_class = "tf.train.AdamOptimizer"
     elif optimizer == 'Momentum':
@@ -190,8 +203,8 @@ def _blueoil_to_lmnet(blueoil_config):
         if optimizer == 'Momentum':
             optimizer_kwargs = {"momentum": 0.9}
         else:
-            optimizer_kwargs = {}            
-            
+            optimizer_kwargs = {}
+
     if learning_rate_schedule == "2-step-decay":
         learning_rate_kwargs = {
             "values": [
@@ -273,6 +286,8 @@ def _blueoil_to_lmnet(blueoil_config):
         "optimizer_kwargs": optimizer_kwargs,
         "learning_rate_func": learning_rate_func,
         "learning_rate_kwargs": learning_rate_kwargs,
+        "save_checkpoint_steps": save_checkpoint_steps,
+        "keep_checkpoint_max": keep_checkpoint_max,
 
         "image_size": image_size,
         "classes": classes,

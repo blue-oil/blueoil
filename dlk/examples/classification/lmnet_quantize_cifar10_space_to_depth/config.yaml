@@ -29,6 +29,7 @@ IMAGE_SIZE:
 IS_DEBUG: false
 IS_DISTRIBUTION: false
 IS_PRETRAIN: false
+KEEP_CHECKPOINT_MAX: 5
 MAX_STEPS: 100000
 NETWORK:
   ACTIVATION_QUANTIZER: !!python/name:lmnet.quantizations.linear.linear_mid_tread_half_quantizer ''
@@ -60,6 +61,6 @@ NETWORK_CLASS: !!python/name:lmnet.networks.classification.lmnet_v1.LmnetV1Quant
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
 PRETRAIN_VARS: []
-SAVE_STEPS: 100000
+SAVE_CHECKPOINT_STEPS: 100000
 SUMMARISE_STEPS: 100
 TEST_STEPS: 1000

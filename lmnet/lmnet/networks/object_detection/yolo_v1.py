@@ -156,7 +156,7 @@ class YoloV1(BaseNetwork):
         gt_boxes :3D tensor [batch_size, max_num_boxes, 5(x, y, w, h, class_id)]
         """
         axis = 2
-        gt_boxes = tf.to_float(gt_boxes)
+        gt_boxes = tf.cast(gt_boxes, tf.float32)
         gt_boxes_without_label = gt_boxes[:, :, :4]
         gt_boxes_only_label = tf.reshape(gt_boxes[:, :, 4], [self.batch_size, -1, 1])
         gt_boxes_without_label = format_XYWH_to_CXCYWH(gt_boxes_without_label, axis=axis)
@@ -378,7 +378,7 @@ class YoloV1(BaseNetwork):
                     masked_boxes[:, 1],
                     masked_boxes[:, 2],
                     masked_boxes[:, 3],
-                    tf.to_float(masked_classes),
+                    tf.cast(masked_classes, tf.float32),
                     masked_class_probability,
                 ], axis=1)
 
@@ -595,7 +595,7 @@ class YoloV1Loss:
         # calculate intersection. [batch_size, cell_size, cell_size, boxes_per_cell, 2]
         inter = right_bottom - left_top
         inter_square = inter[:, :, :, :, 0] * inter[:, :, :, :, 1]
-        mask = tf.to_float(inter[:, :, :, :, 0] > 0) * tf.to_float(inter[:, :, :, :, 1] > 0)
+        mask = tf.cast(inter[:, :, :, :, 0] > 0, tf.float32) * tf.cast(inter[:, :, :, :, 1] > 0, tf.float32)
 
         intersection = mask * inter_square
 
@@ -618,7 +618,7 @@ class YoloV1Loss:
         # exclude dummy. class id `-1` is dummy.
         gt_mask = tf.not_equal(gt_boxes[:, 4], -1)
 
-        result = i < tf.reduce_sum(tf.to_int32(gt_mask))
+        result = i < tf.reduce_sum(tf.cast(gt_mask, tf.int32))
 
         return result
 
@@ -635,8 +635,8 @@ class YoloV1Loss:
         center_y = gt_boxes[i, 1]
         center_x = gt_boxes[i, 0]
 
-        cell_y_index = tf.to_int32(tf.floor((center_y / self.image_size[1]) * self.cell_size))
-        cell_x_index = tf.to_int32(tf.floor((center_x / self.image_size[0]) * self.cell_size))
+        cell_y_index = tf.cast(tf.floor((center_y / self.image_size[1]) * self.cell_size), tf.int32)
+        cell_x_index = tf.cast(tf.floor((center_x / self.image_size[0]) * self.cell_size), tf.int32)
 
         boxes = []
         mask_list = []
@@ -709,7 +709,7 @@ class YoloV1Loss:
             cell_gt_boxes, object_mask = self._gt_boxes_to_cell(gt_boxes)
 
             # for class loss
-            truth_classes = tf.to_int32(cell_gt_boxes[:, :, :, 4])
+            truth_classes = tf.cast(cell_gt_boxes[:, :, :, 4], tf.int32)
             truth_classes = tf.one_hot(truth_classes, self.num_classes)
 
             # resize to real space.

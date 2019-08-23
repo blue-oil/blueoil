@@ -64,7 +64,7 @@ class LmnetMulti:
         """
 
         with tf.name_scope("loss"):
-            labels = tf.to_float(labels)
+            labels = tf.cast(labels, tf.float32)
             if self.is_debug:
                 labels = tf.Print(labels, [tf.shape(labels), tf.argmax(labels, 1)], message="labels:", summarize=200)
                 output = tf.Print(output, [tf.shape(output), tf.argmax(output, 1)], message="output:", summarize=200)

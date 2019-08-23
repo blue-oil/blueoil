@@ -20,12 +20,13 @@ else()
   set(DCORE_BUILD_SHARED_LIBS OFF)
 endif()
 
-option(USE_OPENCV "use OpenCV library" ON)
+option(USE_OPENCV "use OpenCV library" OFF)
 if(USE_OPENCV)
   find_package(OpenCV REQUIRED)
   if(NOT OpenCV_FOUND)
     message(SEND_ERROR "OpenCV library not found.")
   endif()
+  add_definitions(-DUSE_OPENCV=1)
 endif()
 
 
