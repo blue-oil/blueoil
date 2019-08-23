@@ -43,30 +43,24 @@ class ClassificationBuilder(tfds.core.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        available_splits = {
+        self.info.features["label"].names = self.dataset_class(**self.dataset_kwargs).classes
+
+        predefined_names = {
             "train": tfds.Split.TRAIN,
             "validation": tfds.Split.VALIDATION,
             "test": tfds.Split.TEST,
         }
 
-        # Try to instantiate each subsets and skip the subset if it fails.
         splits = []
         for subset in self.dataset_class.available_subsets:
-            if subset in available_splits:
-                try:
-                    dataset = self.dataset_class(subset=subset, **self.dataset_kwargs)
-                except Exception:
-                    continue
-
-                self.info.features["label"].names = dataset.classes
-
-                splits.append(
-                    tfds.core.SplitGenerator(
-                        name=available_splits[subset],
-                        num_shards=self._num_shards(dataset),
-                        gen_kwargs=dict(dataset=dataset)
-                    )
+            dataset = self.dataset_class(subset=subset, **self.dataset_kwargs)
+            splits.append(
+                tfds.core.SplitGenerator(
+                    name=predefined_names[subset],
+                    num_shards=self._num_shards(dataset),
+                    gen_kwargs=dict(dataset=dataset)
                 )
+            )
 
         return splits
 

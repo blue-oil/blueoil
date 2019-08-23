@@ -29,7 +29,7 @@ from lmnet.utils.tfds_builders.object_detection import ObjectDetectionBuilder
 def _get_tfds_settings(config_file):
     config = config_util.load(config_file)
     dataset_class = config.DATASET_CLASS
-    dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+    dataset_kwargs = {key.lower(): val for key, val in config.DATASET.items()}
 
     if "tfds_kwargs" not in dataset_kwargs:
         raise ValueError("The given config file does not contain settings for building TFDS datasets.\n"
@@ -60,8 +60,7 @@ def _copy_directory_recursively(src, dst):
     for parent, directories, files in tf.io.gfile.walk(src):
         for directory in directories:
             src_dir = os.path.join(parent, directory)
-            dst_dir = os.path.relpath(src_dir, src)
-            dst_dir = os.path.join(dst, dst_dir)
+            dst_dir = os.path.join(dst, os.path.relpath(src_dir, src))
 
             if tf.io.gfile.exists(dst_dir):
                 tf.io.gfile.rmtree(dst_dir)
@@ -70,8 +69,7 @@ def _copy_directory_recursively(src, dst):
 
         for file in files:
             src_file = os.path.join(parent, file)
-            dst_file = os.path.relpath(src_file, src)
-            dst_file = os.path.join(dst, dst_file)
+            dst_file = os.path.join(dst, os.path.relpath(src_file, src))
             tf.io.gfile.copy(src_file, dst_file)
 
 

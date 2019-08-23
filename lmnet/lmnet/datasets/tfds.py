@@ -212,7 +212,7 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
         sess = tf.Session()
         max_boxes = 0
 
-        for split in builder.info.splits.keys():
+        for split in builder.info.splits:
             tf_dataset = builder.as_dataset(split=split)
             iterator = tf_dataset.make_one_shot_iterator()
             next_batch = iterator.get_next()

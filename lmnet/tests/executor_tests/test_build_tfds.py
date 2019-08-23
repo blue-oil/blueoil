@@ -37,34 +37,6 @@ def setup_dataset(dataset_class, subset, **kwargs):
     return DatasetIterator(dataset, seed=0)
 
 
-def _show_images_with_boxes(images, labels):
-    """show image for debug"""
-    if not _RUN_AS_A_SCRIPT:
-        return
-
-    import time
-    import PIL.Image
-    import PIL.ImageDraw
-
-    images_min = abs(images.min())
-    images_max = (images + images_min).max()
-
-    images = (images + images_min) * (255 / images_max)
-    images = (images).astype(np.uint8)
-
-    for image, label in zip(images, labels):
-        image = PIL.Image.fromarray(image)
-        draw = PIL.ImageDraw.Draw(image)
-
-        for box in label:
-            xy = [box[0], box[1], box[0] + box[2], box[1] + box[3]]
-            draw.rectangle(xy)
-
-        print("image show")
-        image.show()
-        time.sleep(0.5)
-
-
 def test_build_tfds_classification():
     environment.setup_test_environment()
 
@@ -159,7 +131,6 @@ def test_build_tfds_object_detection():
 
     for _ in range(train_data_num):
         images, labels = train_dataset.feed()
-        _show_images_with_boxes(images, labels)
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == config.BATCH_SIZE
@@ -174,7 +145,6 @@ def test_build_tfds_object_detection():
 
     for _ in range(validation_data_num):
         images, labels = validation_dataset.feed()
-        _show_images_with_boxes(images, labels)
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == config.BATCH_SIZE
@@ -189,6 +159,5 @@ def test_build_tfds_object_detection():
 
 
 if __name__ == '__main__':
-    _RUN_AS_A_SCRIPT = True
     test_build_tfds_classification()
     test_build_tfds_object_detection()

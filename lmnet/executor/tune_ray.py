@@ -135,7 +135,7 @@ def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
 def setup_dataset(config, subset, rank):
     """helper function from lmnet/train.py to setup the data iterator"""
     dataset_class = config.DATASET_CLASS
-    dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+    dataset_kwargs = {key.lower(): val for key, val in config.DATASET.items()}
 
     # If there is a settings for TFDS, TFDS dataset class will be used.
     tfds_kwargs = dataset_kwargs.pop("tfds_kwargs", {})
@@ -160,7 +160,7 @@ class TrainTunable(Trainable):
         executor.init_logging(self.lm_config)
 
         model_class = self.lm_config.NETWORK_CLASS
-        network_kwargs = dict((key.lower(), val) for key, val in self.lm_config.NETWORK.items())
+        network_kwargs = {key.lower(): val for key, val in self.lm_config.NETWORK.items()}
         network_kwargs = update_parameters_for_each_trial(network_kwargs, self.config)
 
         # No distributed training was implemented, therefore rank set to 0
