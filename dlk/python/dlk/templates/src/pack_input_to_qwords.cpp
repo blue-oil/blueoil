@@ -15,7 +15,6 @@ limitations under the License.
 #include <limits.h>
 #include "global.h"
 #include "pack_input_to_qwords.h"
-#include "pack2bits.h"
 #include "operators.h" // FIXME(nikolay): for convolution_parameters definition, rid of it later
 #include "time_measurement.h"
 #ifdef USE_NEON
