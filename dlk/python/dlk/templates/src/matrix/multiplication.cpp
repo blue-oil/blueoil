@@ -35,7 +35,8 @@ constexpr std::size_t ceil_mod(const std::size_t n, const std::size_t mod) {
 
 static constexpr std::size_t align_margin = 32 / sizeof(float);
 static constexpr std::size_t KMAX = 3;
-static const auto B_buf = std::make_unique<float[]>(MAX_IN_C * ceil_mod(MAX_IN_C * KMAX * KMAX, 8) + align_margin);
+static constexpr std::size_t B_buf_size = MAX_IN_C * ceil_mod(MAX_IN_C * KMAX * KMAX, 8) + align_margin;
+static const auto B_buf = std::make_unique<float[]>(B_buf_size);
 
 void matrix_multiplication_col3(
   MatrixView<float, MatrixOrder::RowMajor>& A,
@@ -253,8 +254,10 @@ void matrix_multiplication_impl(
   constexpr std::size_t regblock_m = 4;
   const auto kmax = ceil_mod(A.cols(), regblock_m);
   const auto jmax = ceil_mod(B.cols(), regblock_m);
-  float * const B_buf_aligned = std::align(32, kmax * jmax, B_buf.get(), MAX_SIZE_KERNELS_PER_LAYER + align_margin);
-  float *B_buf_ptr = B_buf_aligned;
+  auto B_buf_aligned = reinterpret_cast<void*>(B_buf.get());
+  auto space = B_buf_size;
+  std::align(32, kmax * jmax, B_buf_aligned, space);
+  float *B_buf_ptr = reinterpret_cast<float*>(B_buf_aligned);
   for (std::size_t j = 0; j < jmax; j += regblock_m) {
     if (B.cols() - j >= regblock_m) {
       std::size_t k = 0;
@@ -283,23 +286,21 @@ void matrix_multiplication_impl(
       for (; k < kmax; ++k) {
         for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
           if (j + j2 >= B.cols() || k >= B.rows()) {
-            B_buf[j * kmax + k * regblock_m + j2] = 0;
+            *B_buf_ptr++ = 0;
           } else {
-            B_buf[j * kmax + k * regblock_m + j2] = B(k, j + j2);
+            *B_buf_ptr++ = B(k, j + j2);
           }
         }
-        B_buf_ptr += 4;
       }
     } else {
       for (std::size_t k = 0; k < kmax; ++k) {
         for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
           if (j + j2 >= B.cols() || k >= B.rows()) {
-            B_buf[j * kmax + k * regblock_m + j2] = 0;
+            *B_buf_ptr++ = 0;
           } else {
-            B_buf[j * kmax + k * regblock_m + j2] = B(k, j + j2);
+            *B_buf_ptr++ = B(k, j + j2);
           }
         }
-        B_buf_ptr += 4;
       }
     }
   }
@@ -315,7 +316,7 @@ void matrix_multiplication_impl(
         }
       }
     }
-    float *B_buf_ptr = B_buf_aligned;
+    float *B_buf_ptr = reinterpret_cast<float*>(B_buf_aligned);
     std::size_t j = 0;
     for (; j < jmax; j += regblock_m) {
       float *A_buf_ptr = A_buf;
