@@ -102,10 +102,7 @@ def _export(config, restore_path, image_path):
         is_training = tf.constant(False, name="is_training")
 
         images_placeholder, _ = model.placeholderes()
-        output = model.inference(images_placeholder, is_training)
-        model.summary(output)
-
-        summary_op = tf.summary.merge_all()
+        model.inference(images_placeholder, is_training)
         init_op = tf.global_variables_initializer()
 
         saver = tf.train.Saver(max_to_keep=50)
@@ -113,8 +110,6 @@ def _export(config, restore_path, image_path):
     session_config = tf.ConfigProto()
     sess = tf.Session(graph=graph, config=session_config)
     sess.run(init_op)
-
-    export_writer = tf.summary.FileWriter(environment.TENSORBOARD_DIR + "/export")
 
     saver.restore(sess, restore_path)
 
@@ -146,9 +141,6 @@ def _export(config, restore_path, image_path):
                 index += 1
 
         _save_npy(image_path, npy_output_dir, image, raw_image, all_outputs, config.IMAGE_SIZE)
-
-        summary = sess.run(summary_op, feed_dict=feed_dict)
-        export_writer.add_summary(summary)
 
     yaml_names = config_util.save_yaml(main_output_dir, config)
     pb_name = executor.save_pb_file(sess, main_output_dir)

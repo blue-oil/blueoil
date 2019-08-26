@@ -13,10 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import functools
+import os
+
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
 from lmnet.datasets.base import Base, ObjectDetectionBase
+from lmnet.utils.tfds_builders.classification import ClassificationBuilder
+from lmnet.utils.tfds_builders.object_detection import ObjectDetectionBuilder
 
 
 def _grayscale_to_rgb(record):
@@ -71,11 +76,11 @@ class TFDSMixin:
 
     def __init__(
             self,
-            tfds_name,
-            tfds_data_dir,
-            tfds_image_size,
-            tfds_download=False,
-            num_max_boxes=100,
+            name,
+            data_dir,
+            image_size,
+            download=False,
+            num_max_boxes=None,
             *args,
             **kwargs
     ):
@@ -84,16 +89,24 @@ class TFDSMixin:
             **kwargs,
         )
 
-        builder = tfds.builder(tfds_name, data_dir=tfds_data_dir)
-        if tfds_download:
-            builder.download_and_prepare()
+        if name in tfds.list_builders():
+            self._builder = tfds.builder(name, data_dir=data_dir)
+            if download:
+                self._builder.download_and_prepare()
+        else:
+            if not tf.io.gfile.exists(os.path.join(data_dir, name)):
+                raise ValueError("Dataset directory does not exist: {}\n"
+                                 "Please run `python executor/build_tfds.py -c <config file>` before training."
+                                 .format(os.path.join(data_dir, name)))
 
-        self.info = builder.info
+            self._builder = self.builder_class(name, data_dir=data_dir)
+
+        self.info = self._builder.info
         self._init_available_splits()
         self._validate_feature_structure()
 
-        self.tf_dataset = builder.as_dataset(split=self.available_splits[self.subset])
-        self.tfds_image_size = tfds_image_size
+        self.tf_dataset = self._builder.as_dataset(split=self.available_splits[self.subset])
+        self._image_size = image_size
         self._num_max_boxes = num_max_boxes
         self._format_dataset()
 
@@ -153,6 +166,8 @@ class TFDSClassification(TFDSMixin, Base):
     A dataset class for loading TensorFlow Datasets for classification.
     TensorFlow Datasets which have "label" and "image" features can be loaded by this class.
     """
+    builder_class = ClassificationBuilder
+
     @property
     def classes(self):
         return self.info.features["label"].names
@@ -179,7 +194,7 @@ class TFDSClassification(TFDSMixin, Base):
             )
 
         self.tf_dataset = self.tf_dataset.map(
-            lambda record: _format_classification_record(record, self.tfds_image_size, self.num_classes),
+            lambda record: _format_classification_record(record, self._image_size, self.num_classes),
             num_parallel_calls=tf.data.experimental.AUTOTUNE
         )
 
@@ -189,9 +204,28 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
     A dataset class for loading TensorFlow Datasets for object detection.
     TensorFlow Datasets which have "objects" and "image" features can be loaded by this class.
     """
+    builder_class = ObjectDetectionBuilder
+
     @classmethod
-    def count_max_boxes(cls):
-        raise NotImplementedError()
+    @functools.lru_cache(maxsize=None)
+    def count_max_boxes(cls, builder):
+        sess = tf.Session()
+        max_boxes = 0
+
+        for split in builder.info.splits:
+            tf_dataset = builder.as_dataset(split=split)
+            iterator = tf_dataset.make_one_shot_iterator()
+            next_batch = iterator.get_next()
+
+            while True:
+                try:
+                    data = sess.run(next_batch)
+                    if max_boxes < data["objects"]["label"].shape[0]:
+                        max_boxes = data["objects"]["label"].shape[0]
+                except tf.errors.OutOfRangeError:
+                    break
+
+        return max_boxes
 
     @property
     def classes(self):
@@ -203,6 +237,9 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
 
     @property
     def num_max_boxes(self):
+        if self._num_max_boxes is None:
+            self._num_max_boxes = self.__class__.count_max_boxes(self._builder)
+
         return self._num_max_boxes
 
     def _validate_feature_structure(self):
@@ -227,7 +264,10 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
                 num_parallel_calls=tf.data.experimental.AUTOTUNE
             )
 
+        # self.num_max_boxes should be evaluated before executing lambda function.
+        num_max_boxes = self.num_max_boxes
+
         self.tf_dataset = self.tf_dataset.map(
-            lambda record: _format_object_detection_record(record, self.tfds_image_size, self.num_max_boxes),
+            lambda record: _format_object_detection_record(record, self._image_size, num_max_boxes),
             num_parallel_calls=tf.data.experimental.AUTOTUNE
         )
