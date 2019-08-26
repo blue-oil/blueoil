@@ -26,7 +26,7 @@ from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
 
 
-def setup_dataset(config, subset, rank):
+def setup_dataset(config, subset, seed):
     DatasetClass = config.DATASET_CLASS
     dataset_kwargs = {key.lower(): val for key, val in config.DATASET.items()}
 
@@ -40,7 +40,7 @@ def setup_dataset(config, subset, rank):
 
     dataset = DatasetClass(subset=subset, **dataset_kwargs, **tfds_kwargs)
     enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
-    return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
+    return DatasetIterator(dataset, seed=seed, enable_prefetch=enable_prefetch)
 
 
 def evaluate(config, restore_path):
@@ -62,7 +62,7 @@ def evaluate(config, restore_path):
     else:
         subset = "validation"
 
-    validation_dataset = setup_dataset(config, subset, rank=0)
+    validation_dataset = setup_dataset(config, subset, seed=0)
 
     graph = tf.Graph()
     with graph.as_default():
