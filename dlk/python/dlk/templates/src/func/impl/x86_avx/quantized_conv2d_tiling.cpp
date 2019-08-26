@@ -296,8 +296,8 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
     const auto out_index = Ohh * out_height * out_width * OutChUnroll2 \
         + row * out_width * OutChUnroll2 \
         + (col + i) * OutChUnroll2 \
-        + Om; \
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(p.device_output_buf + out_index + i * OutChUnroll2), ans##i); \
+        + Om * OutChUnroll; \
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(p.device_output_buf + out_index), ans##i); \
   } while(0)
           OUT(0);
           OUT(1);
