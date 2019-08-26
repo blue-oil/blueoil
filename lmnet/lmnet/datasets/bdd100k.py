@@ -125,7 +125,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         total_count = len(img_paths)
         print("\rGathering annotation data ... ", end="")
         counts = 0
-        for i, item in enumerate(anno_data):      # Without pymp : Fix indentation
+        for i, item in enumerate(anno_data):
             counts += 1
             for label in item['labels']:
                 class_name = label['category'].replace(' ', '_')
