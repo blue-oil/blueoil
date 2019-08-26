@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
 import os
 import math
-import pymp
-import time
 import json
 import glob
 import pickle
 import functools
 
 import numpy as np
-from collections import OrderedDict
-from multiprocessing import cpu_count
-
 from PIL import Image
-from lmnet.utils.image import load_image
+from collections import OrderedDict
+
 from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 
 
-class BDD100KObjDet(ObjectDetectionBase):
+class BDD100KObjectDetection(ObjectDetectionBase):
     """BDD100K Dataset for Object Detection (Car Camera)
     https://github.com/ucbdrive/bdd-data
     """
@@ -33,7 +29,26 @@ class BDD100KObjDet(ObjectDetectionBase):
                "truck"]
     num_classes = len(classes)
     available_subsets = ["train", "validation"]
-    extend_dir = "bdd100k"
+    extend_dir = "BDD100K/bdd100k"
+
+    @property
+    def label_colors(self):
+        bike = [119, 11, 32]
+        bus = [0, 60, 100]
+        car = [0, 0, 142]
+        motor = [0, 0, 230]
+        person = [220, 20, 60]
+        rider = [255, 0, 0]
+        traffic_light = [250, 170, 30]
+        traffic_sign = [220, 220, 0]
+        train = [0, 80, 100]
+        truck = [0, 0, 70]
+
+        return np.array([
+            bike, bus, car, motor,
+            person, rider, traffic_light,
+            traffic_sign, train, truck
+        ])
 
     @classmethod
     @functools.lru_cache(maxsize=None)
@@ -85,42 +100,72 @@ class BDD100KObjDet(ObjectDetectionBase):
         self.anno_dir = os.path.join(self.data_dir, "labels", "bdd100k_labels_images_" + subset_dir + ".json")
         self.paths = []
         self.bboxs = []
+        self.save_file = os.path.join("dataset", "bdd100k_%s.pickle" % self.subset)
+        if not os.path.exists(os.path.dirname(self.save_file)):
+            os.makedirs(os.path.dirname(self.save_file))
 
-        self._init_files_and_annotations()
+        if os.path.exists(self.save_file):
+            with open(self.save_file, "rb") as f:
+                loaded_data = pickle.load(f)
+                if len(loaded_data[0]) > 0:
+                    self.paths, self.bboxs = loaded_data
+                else:
+                    os.remove(self.save_file)
+                    self._init_files_and_annotations()
+        else:
+            self._init_files_and_annotations()
 
     def _init_files_and_annotations(self):
-        img_paths = glob.glob(join(self.img_dir, "*.jpg"))
-        anno_paths = [join(self.anno_dir, splitext(basename(f))[0] + ".json")
-                      for f in img_paths]
+        img_paths = OrderedDict([(os.path.basename(path), path) for path in glob.glob(os.path.join(self.img_dir, "*.jpg"))])
+        anno_data = json.load(open(self.anno_dir))
 
-        self.paths = img_paths
-        for f in anno_paths:
-            with open(f) as fp:
-                raw = json.load(fp)
-            objs = raw["frames"][0]["objects"]
-            bbox = []
-            for obj in objs:
-                cat = obj["category"]
-                cat = cat.replace(" ", "_")
-                if cat in self.classes:
-                    cls_idx = self.classes.index(cat)
-                    x1 = int(round(obj["box2d"]["x1"]))
-                    x2 = int(round(obj["box2d"]["x2"]))
-                    y1 = int(round(obj["box2d"]["y1"]))
-                    y2 = int(round(obj["box2d"]["y2"]))
-                    x = x1
-                    y = y1
-                    w = x2 - x1
-                    h = y2 - y1
+        bbox = [[] for _ in range(len(img_paths))]
+        img_index = list(img_paths.keys())
 
-                    bbox.append([x, y, w, h, cls_idx])
-            bbox = np.array(bbox, dtype=np.int32)
-            self.bboxs.append(bbox)
+        total_count = len(img_paths)
+        print("\rGathering annotation data ... ", end="")
+        counts = 0
+        for i, item in enumerate(anno_data):      # Without pymp : Fix indentation
+            counts += 1
+            for label in item['labels']:
+                class_name = label['category'].replace(' ', '_')
+                # Skip if Label not in images
+                if not item['name'] in img_index:
+                    continue
+                # Skip if Classname/Category not in Selected classes
+                if not class_name in self.classes:
+                    continue
+
+                index = img_index.index(item['name'])
+                cls_idx = self.classes.index(class_name)
+                x1 = int(round(label["box2d"]["x1"]))
+                x2 = int(round(label["box2d"]["x2"]))
+                y1 = int(round(label["box2d"]["y1"]))
+                y2 = int(round(label["box2d"]["y2"]))
+                x = x1
+                y = y1
+                w = x2 - x1
+                h = y2 - y1
+                box = [x, y, w, h, cls_idx]
+
+                bbox[index] += [box]
+
+            print("\rGathering annotation data ... %d%% [%s/%s] " %
+                  (math.floor(100*(counts/total_count)), counts, total_count), end="")
+
+        print()
+
+        self.paths = list(img_paths.values())
+        self.bboxs = bbox
+
+        # This annotation gathering takes long time so saving train/val dataset pickle for next use
+        with open(self.save_file, "wb") as f:
+            pickle.dump((self.paths, self.bboxs), f)
 
     def __getitem__(self, i, type=None):
         image_file_path = self.paths[i]
 
-        image = load_image(image_file_path)
+        image = self._get_image(image_file_path)
 
         gt_boxes = self.bboxs[i]
         gt_boxes = np.array(gt_boxes)
@@ -133,7 +178,7 @@ class BDD100KObjDet(ObjectDetectionBase):
         return self.num_per_epoch
 
 
-class BDD100KSeg(SegmentationBase):
+class BDD100KSegmentation(SegmentationBase):
     """BDD100K Dataset for Segmentation
     https://github.com/ucbdrive/bdd-data
     """
@@ -260,7 +305,7 @@ class BDD100KSeg(SegmentationBase):
 
 
 def check_dataset():
-    train = BDD100KObjDet(subset="train")
+    train = BDD100KObjectDetection(subset="train")
     print(len(train.paths))
     print(train.paths[0:5])
     print(train.bboxs[0:5])

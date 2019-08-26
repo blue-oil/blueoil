@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
-from lmnet.datasets.bdd100k import BDD100KSeg
+from lmnet.datasets.bdd100k import BDD100KSegmentation
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     DivideBy255,
@@ -39,7 +39,7 @@ from lmnet.quantizations import (
 IS_DEBUG = False
 
 NETWORK_CLASS = LmSegnetQuantize
-DATASET_CLASS = BDD100KSeg
+DATASET_CLASS = BDD100KSegmentation
 
 IMAGE_SIZE = [160, 320]
 BATCH_SIZE = 8
