@@ -64,8 +64,6 @@ def test_bdd100k_seg():
     colors = train_dataset.label_colors
     assert len(colors) == 34
 
-    print(train_dataset.data_dir + '/' + train_dataset.image_dir + '/' + train_dataset.subset)
-
     train_image_files, train_label_files = train_iterator.feed()
     assert train_image_files.shape[0] == batch_size
     assert train_label_files.shape[0] == batch_size
