@@ -360,9 +360,9 @@ bool Network::run(float *network_input, float *network_output)
     {# Temporary: better access to the quantizer #}
 
     {% if node.dtype.cpptype() in ['int', 'int32_t'] -%}
-      save_int32_data("debug/{{ node.name }}", {{ node.view.shape }}, {{ node.name }}.data(), 3.0 / 2.0 );
+      save_int32_data("debug/{{ node.name }}", {{ node.view.shape }}, 0, {{ node.name }}.data(), 3.0 / 2.0 );
     {% elif node.dtype.cpptype() in ['unsigned', 'uint32_t'] -%}
-      save_uint32_data("debug/{{ node.name }}", {{ node.view.shape }}, {{ node.name }}.data(), 1.0);
+      save_uint32_data("debug/{{ node.name }}", {{ node.view.shape }}, 0, {{ node.name }}.data(), 1.0);
     {% elif node.dtype.cpptype() == 'float' -%}
       {% if node.output_ops.keys()|length > 1 %}
         {% for k in node.output_ops.keys() -%}
