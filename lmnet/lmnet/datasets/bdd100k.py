@@ -107,7 +107,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
     def _init_files_and_annotations(self):
         img_paths = OrderedDict([(os.path.basename(path), path)
                                  for path in glob.glob(os.path.join(self.img_dir, "*.jpg"))])
-        img_names = list(img_paths.keys())
+        img_names = set(img_paths.keys())
 
         anno_data = json.load(open(self.anno_dir))
         bbox = [[] for _ in range(len(img_paths))]
