@@ -353,10 +353,21 @@ class View(object):
                 """
             )
 
-        # elif self.op.op_type == 'Mean':
-        #     if len(input_ops) != 2:
-        #         self.raise_invalid_args_exception(op, input_ops, output_ops)
-        #     return self.render_alias(op, input_ops, output_ops)
+        elif self.op.op_type == 'Mean':
+            if len(input_ops) != 2:
+                self.raise_invalid_args_exception(op, input_ops, output_ops)
+
+            inputs_string = self.inputs_to_string(input_ops)
+
+            a_op = input_ops['A']
+            ih = a_op.height
+            iw = a_op.width
+
+            return self.format_string(
+                f"""
+                func_Mean({inputs_string}, {op.name}, {ih}, {iw});
+                """
+            )
 
         elif self.op.op_type == 'StopGradient':
             if len(input_ops) != 1:
@@ -720,21 +731,6 @@ class View(object):
             return self.format_string(
                 f"""
                 func_Matmul({inputs_string}, {op.name});
-                """
-            )
-        elif self.op.op_type == 'Mean':
-            if len(input_ops) != 2:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(input_ops)
-
-            a_op = input_ops['A']
-            ih = a_op.height
-            iw = a_op.width
-            
-            return self.format_string(
-                f"""
-                func_Mean({inputs_string}, {op.name}, {ih}, {iw});
                 """
             )
         elif self.op.op_type == 'Lookup':

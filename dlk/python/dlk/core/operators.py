@@ -3113,17 +3113,19 @@ class Shape(Operator):
 
 class Mean(Operator):
     """Reduce mean operator.
-    Computes the mean of elements across dimensions of a tensor.
+    Computes the mean of elements across dimensions of an input array.
+    This operator is referred as tf.reduce_mean, which is equivalent to np.mean.
+
     Input
     -----
     A
-        2-dimensional matrix A
+        Input: the array to reduce.
     B
-        2-dimensional matrix B
+        Axis: The dimensions to reduce.
     Output
     ------
     C
-        Matrix multiply results from A * B
+        The reduced output array
     """
 
     _input_names = ['A', 'B']
