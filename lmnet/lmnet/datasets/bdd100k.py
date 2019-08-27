@@ -112,18 +112,15 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         anno_data = json.load(open(self.anno_dir))
 
         bbox = [[] for _ in range(len(img_paths))]
-        bbox = dict(zip(list(img_paths.keys()), bbox))
+        bbox = OrderedDict(zip(list(img_paths.keys()), bbox))
 
         total_count = len(img_paths)
         img_names = list(img_paths.keys())
 
         print("\rGathering annotation data ... ", end="")
         counts = 0
-        st = time.process_time()
         for item in anno_data:
             counts += 1
-            if counts > 55000:
-                break
             # Skip if Label not in images
             if not item['name'] in img_names:
                 continue
@@ -152,7 +149,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
 
         print()
 
-        self.paths = list(bbox.keys())
+        self.paths = list(img_paths.values())
         self.bboxs = list(bbox.values())
 
     def __getitem__(self, i, type=None):
