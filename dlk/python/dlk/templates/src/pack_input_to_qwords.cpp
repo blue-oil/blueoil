@@ -74,14 +74,8 @@ int pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_w
 
 #ifdef USE_AVX
   constexpr std::size_t SIMD_WIDTH = 32;
-  if ((len % SIMD_WIDTH) == 0) {
+  if ((input_depth % SIMD_WIDTH) == 0) {
     const auto blocks = len / SIMD_WIDTH;
-    const auto coeff = _mm256_setr_epi8(
-        1, 2, 4, 8, 16, 32, 64, 128,
-        1, 2, 4, 8, 16, 32, 64, 128,
-        1, 2, 4, 8, 16, 32, 64, 128,
-        1, 2, 4, 8, 16, 32, 64, 128
-    );
     for (int i = 0; i < blocks; ++i) {
       const auto a = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + i * SIMD_WIDTH));
       const auto l = _mm256_movemask_epi8(_mm256_slli_epi16(a, 7));
