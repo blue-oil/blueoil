@@ -144,7 +144,6 @@ class BDD100KObjectDetection(ObjectDetectionBase):
                 w = x2 - x1
                 h = y2 - y1
 
-                # st = time.process_time()
                 index = item['name']
                 bbox[index] += [[x, y, w, h, cls_idx]]
 
