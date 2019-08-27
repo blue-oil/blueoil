@@ -136,13 +136,12 @@ void func_QTZ_linear_mid_tread_half_body(
     const auto round1 = _mm256_cvtps_epi32(mul1);
     const auto round2 = _mm256_cvtps_epi32(mul2);
     const auto round3 = _mm256_cvtps_epi32(mul3);
-    const auto pack01 = _mm256_packs_epi32(round0, round1);
-    const auto pack23 = _mm256_packs_epi32(round2, round3);
-    const auto perm01 = _mm256_permute4x64_epi64(pack01, 0xD8);
-    const auto perm23 = _mm256_permute4x64_epi64(pack23, 0xD8);
-    const auto pack = _mm256_packs_epi16(perm01, perm23);
-    const auto perm = _mm256_permute4x64_epi64(pack, 0xD8);
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + i), perm);
+    const auto pack02 = _mm256_packs_epi32(round0, round2);
+    const auto pack13 = _mm256_packs_epi32(round1, round3);
+    const auto perm02 = _mm256_permute4x64_epi64(pack02, 0xD8);
+    const auto perm13 = _mm256_permute4x64_epi64(pack13, 0xD8);
+    const auto pack = _mm256_packs_epi16(perm02, perm13);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + i), pack);
   }
 #endif
 
