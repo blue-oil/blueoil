@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import math
+import time
 import json
 import glob
 import pickle
@@ -104,63 +105,56 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         if not os.path.exists(os.path.dirname(self.save_file)):
             os.makedirs(os.path.dirname(self.save_file))
 
-        if os.path.exists(self.save_file):
-            with open(self.save_file, "rb") as f:
-                loaded_data = pickle.load(f)
-                if len(loaded_data[0]) > 0:
-                    self.paths, self.bboxs = loaded_data
-                else:
-                    os.remove(self.save_file)
-                    self._init_files_and_annotations()
-        else:
-            self._init_files_and_annotations()
+        self._init_files_and_annotations()
 
     def _init_files_and_annotations(self):
         img_paths = OrderedDict([(os.path.basename(path), path) for path in glob.glob(os.path.join(self.img_dir, "*.jpg"))])
         anno_data = json.load(open(self.anno_dir))
 
         bbox = [[] for _ in range(len(img_paths))]
-        img_index = list(img_paths.keys())
+        bbox = dict(zip(list(img_paths.keys()), bbox))
 
         total_count = len(img_paths)
+        img_names = list(img_paths.keys())
+
         print("\rGathering annotation data ... ", end="")
         counts = 0
-        for i, item in enumerate(anno_data):
+        st = time.process_time()
+        for item in anno_data:
             counts += 1
+            if counts > 55000:
+                break
+            # Skip if Label not in images
+            if not item['name'] in img_names:
+                continue
             for label in item['labels']:
                 class_name = label['category'].replace(' ', '_')
-                # Skip if Label not in images
-                if not item['name'] in img_index:
-                    continue
                 # Skip if Classname/Category not in Selected classes
                 if not class_name in self.classes:
                     continue
 
-                index = img_index.index(item['name'])
                 cls_idx = self.classes.index(class_name)
                 x1 = int(round(label["box2d"]["x1"]))
                 x2 = int(round(label["box2d"]["x2"]))
                 y1 = int(round(label["box2d"]["y1"]))
                 y2 = int(round(label["box2d"]["y2"]))
+
                 x = x1
                 y = y1
                 w = x2 - x1
                 h = y2 - y1
-                box = [x, y, w, h, cls_idx]
 
-                bbox[index] += [box]
+                # st = time.process_time()
+                index = item['name']
+                bbox[index] += [[x, y, w, h, cls_idx]]
 
             print("\rGathering annotation data ... %d%% [%s/%s] " %
                   (math.floor(100*(counts/total_count)), counts, total_count), end="")
 
         print()
 
-        self.paths = list(img_paths.values())
-        self.bboxs = bbox
-
-        # This annotation gathering takes long time so saving train/val dataset pickle for next use
-        with open(self.save_file, "wb") as f:
-            pickle.dump((self.paths, self.bboxs), f)
+        self.paths = list(bbox.keys())
+        self.bboxs = list(bbox.values())
 
     def __getitem__(self, i, type=None):
         image_file_path = self.paths[i]
