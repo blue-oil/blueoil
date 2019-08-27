@@ -107,25 +107,22 @@ class BDD100KObjectDetection(ObjectDetectionBase):
 
     def _init_files_and_annotations(self):
         img_paths = OrderedDict([(os.path.basename(path), path) for path in glob.glob(os.path.join(self.img_dir, "*.jpg"))])
-        anno_data = json.load(open(self.anno_dir))
+        img_names = list(img_paths.keys())
 
+        anno_data = json.load(open(self.anno_dir))
         bbox = [[] for _ in range(len(img_paths))]
         bbox = OrderedDict(zip(list(img_paths.keys()), bbox))
 
-        total_count = len(img_paths)
-        img_names = list(img_paths.keys())
-
-        print("\rGathering annotation data ... ", end="")
         counts = 0
         for item in anno_data:
             counts += 1
             # Skip if Label not in images
-            if not item['name'] in img_names:
+            if item['name'] not in img_names:
                 continue
             for label in item['labels']:
                 class_name = label['category'].replace(' ', '_')
                 # Skip if Classname/Category not in Selected classes
-                if not class_name in self.classes:
+                if class_name not in self.classes:
                     continue
 
                 cls_idx = self.classes.index(class_name)
@@ -141,10 +138,6 @@ class BDD100KObjectDetection(ObjectDetectionBase):
 
                 index = item['name']
                 bbox[index] += [[x, y, w, h, cls_idx]]
-
-            print("\rGathering annotation data ... %d%% [%s/%s] " %
-                  (math.floor(100*(counts/total_count)), counts, total_count), end="")
-
         print()
 
         self.paths = list(img_paths.values())
