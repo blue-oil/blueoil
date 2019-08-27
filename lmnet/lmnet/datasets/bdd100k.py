@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 import math
-import time
 import json
 import glob
-import pickle
 import functools
 
 import numpy as np
@@ -300,7 +298,3 @@ def check_dataset():
     print(train.paths[0:5])
     print(train.bboxs[0:5])
     print("seems dataset was loaded correctly")
-
-
-if __name__ == '__main__':
-    check_dataset()
