@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import math
 import json
 import glob
 import functools
@@ -106,7 +105,8 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         self._init_files_and_annotations()
 
     def _init_files_and_annotations(self):
-        img_paths = OrderedDict([(os.path.basename(path), path) for path in glob.glob(os.path.join(self.img_dir, "*.jpg"))])
+        img_paths = OrderedDict([(os.path.basename(path), path)
+                                 for path in glob.glob(os.path.join(self.img_dir, "*.jpg"))])
         img_names = list(img_paths.keys())
 
         anno_data = json.load(open(self.anno_dir))
