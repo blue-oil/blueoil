@@ -100,38 +100,33 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   Measurement::Start("Quantized Conv2D Tiling");
   if (p.thresholds != nullptr) {
     const auto table = _mm256_setr_epi8(
-        0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14, 15,
-        0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14, 15
+        0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15,
+        0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15
+    );
+    const auto table2 = _mm256_setr_epi32(
+        0, 4, 2, 6, 1, 5, 3, 7
     );
     for (std::size_t i = 0; i < out_channels; i += 16) {
       const auto v0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i +  0));
       const auto v1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 16));
       const auto v2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 32));
       const auto v3 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 48));
-      const auto tmp00 = _mm256_shuffle_ps(_mm256_castsi256_ps(v0), _mm256_castsi256_ps(v1), 0x88);
-      const auto tmp01 = _mm256_shuffle_ps(_mm256_castsi256_ps(v0), _mm256_castsi256_ps(v1), 0xdd);
-      const auto tmp02 = _mm256_shuffle_ps(_mm256_castsi256_ps(v2), _mm256_castsi256_ps(v3), 0x88);
-      const auto tmp03 = _mm256_shuffle_ps(_mm256_castsi256_ps(v2), _mm256_castsi256_ps(v3), 0xdd);
-      const auto tmp10 = _mm256_shuffle_epi8(_mm256_castps_si256(tmp00), table);
-      const auto tmp11 = _mm256_shuffle_epi8(_mm256_castps_si256(tmp01), table);
-      const auto tmp12 = _mm256_shuffle_epi8(_mm256_castps_si256(tmp02), table);
-      const auto tmp13 = _mm256_shuffle_epi8(_mm256_castps_si256(tmp03), table);
-      const auto tmp20 = _mm256_unpacklo_epi16(tmp10, tmp12);
-      const auto tmp21 = _mm256_unpackhi_epi16(tmp10, tmp12);
-      const auto tmp22 = _mm256_unpacklo_epi16(tmp11, tmp13);
-      const auto tmp23 = _mm256_unpackhi_epi16(tmp11, tmp13);
-      const auto tmp30 = _mm256_shuffle_epi8(tmp20, table);
-      const auto tmp31 = _mm256_shuffle_epi8(tmp21, table);
-      const auto tmp32 = _mm256_shuffle_epi8(tmp22, table);
-      const auto tmp33 = _mm256_shuffle_epi8(tmp23, table);
-      const auto tmp40 = _mm256_permute4x64_epi64(tmp30, 0xD8);
-      const auto tmp41 = _mm256_permute4x64_epi64(tmp31, 0xD8);
-      const auto tmp42 = _mm256_permute4x64_epi64(tmp32, 0xD8);
-      const auto tmp43 = _mm256_permute4x64_epi64(tmp33, 0xD8);
-      const auto th0 = _mm256_shuffle_epi32(tmp40, 0xD8);
-      const auto th1 = _mm256_shuffle_epi32(tmp41, 0xD8);
-      const auto th2 = _mm256_shuffle_epi32(tmp42, 0xD8);
-      const auto flg = _mm256_shuffle_epi32(tmp43, 0xD8);
+      const auto tmp00 = _mm256_shuffle_epi8(v0, table);
+      const auto tmp01 = _mm256_shuffle_epi8(v1, table);
+      const auto tmp02 = _mm256_shuffle_epi8(v2, table);
+      const auto tmp03 = _mm256_shuffle_epi8(v3, table);
+      const auto tmp10 = _mm256_unpacklo_epi32(tmp00, tmp01);
+      const auto tmp11 = _mm256_unpacklo_epi32(tmp02, tmp03);
+      const auto tmp12 = _mm256_unpackhi_epi32(tmp00, tmp01);
+      const auto tmp13 = _mm256_unpackhi_epi32(tmp02, tmp03);
+      const auto tmp20 = _mm256_unpacklo_epi32(tmp10, tmp11);
+      const auto tmp21 = _mm256_unpackhi_epi32(tmp10, tmp11);
+      const auto tmp22 = _mm256_unpacklo_epi32(tmp12, tmp13);
+      const auto tmp23 = _mm256_unpackhi_epi32(tmp12, tmp13);
+      const auto th0 = _mm256_permutevar8x32_epi32(tmp20, table2);
+      const auto th1 = _mm256_permutevar8x32_epi32(tmp21, table2);
+      const auto th2 = _mm256_permutevar8x32_epi32(tmp22, table2);
+      const auto flg = _mm256_permutevar8x32_epi32(tmp23, table2);
       const auto is_neg = _mm256_cmpgt_epi16(_mm256_setzero_si256(), flg);
       const auto res0 = _mm256_sub_epi16(th0, is_neg);
       const auto res1 = _mm256_sub_epi16(th1, is_neg);
