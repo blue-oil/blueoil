@@ -58,6 +58,8 @@ class FlowNetSV1(BaseNetwork):
         else:
             raise ValueError("data format must be 'NCHW' or 'NHWC'. got {}.".format(self.data_format))
 
+        # TODO Think: pytorch used batch_norm but tf did not.
+        # pytorch: if batch_norm no bias else use bias.
         with tf.variable_scope(name):
             conved = tf.layers.conv2d(
                 inputs,
@@ -88,14 +90,45 @@ class FlowNetSV1(BaseNetwork):
 
             return output
 
-    def _deconv(self):
-        # TODO antipad? (pytorch did not use) + convtranposed2d
-        pass
-
-    def _predict_flow(self, name, inputs):
+    def _deconv(
+            self,
+            name,
+            inputs,
+            filters
+    ):
+        # The paper and pytorch used LeakyReLU(0.1,inplace=True) but tf did not. I decide to still use it.
         with tf.variable_scope(name):
-            # TODO DLK does not handle padding=1. Need to use pad function
-            return tf.layers.conv2d(inputs, 2, kernel_size=3, strides=1, padding=1, use_bias=False)
+            # tf only allows 'SAME' or 'VALID' padding.
+            # In conv2d_transpose, h = h1 * stride if padding == 'Same'
+            # https://datascience.stackexchange.com/questions/26451/how-to-calculate-the-output-shape-of-conv2d-transpose
+            conved =  tf.layers.conv2d_transpose(
+                inputs,
+                filters,
+                kernel_size=4,
+                strides=2,
+                padding='SAME',
+                use_bias=True
+            )
+            output = self.activation(conved)
+            return output
+
+
+    def _predict_flow(
+            self,
+            name,
+            inputs
+    ):
+        with tf.variable_scope(name):
+            # pytorch uses padding = 1 = (3 -1) // 2. So it is 'SAME'.
+            return tf.layers.conv2d(
+                inputs,
+                2,
+                kernel_size=3,
+                strides=1,
+                padding='SAME',
+                use_bias=True
+            )
+
 
     def _upsample_flow(self):
         pass
@@ -110,7 +143,8 @@ class FlowNetSV1(BaseNetwork):
             tf.Tensor: Inference result.
         """
 
-        # TODO tf version uses padding=VALID and pad to match the original caffe code. Can DLK handle this?
+        # TODO tf version uses padding=VALID and pad to match the original caffe code.
+        # Acan DLK handle this?
         # pytorch version uses (kernel_size-1) // 2, which is equal to 'SAME' in tf
         x = self._conv_bn_act('conv1', images, 64, is_training, kernel_size=7, strides=2)
         conv_2 = self._conv_bn_act('conv2', x, 128, is_training, kernel_size=5, strides=2)
@@ -119,11 +153,16 @@ class FlowNetSV1(BaseNetwork):
         x = self._conv_bn_act('conv4', conv3_1, 512, is_training, strides=2)
         conv4_1 = self._conv_bn_act('conv4_1', x, 512, is_training)
         x = self._conv_bn_act('conv5', conv4_1, 512, is_training, strides=2)
-        conv5_1 = self._conv_bn_act('conv5_1', x, 512, is_training)
-        x = self._conv_bn_act('conv6', conv5_1, 1024, is_training, strides=2)
-        conv6_1 = self._conv_bn_act('conv6_1', x, 1024, is_training)
+        conv5_1 = self._conv_bn_act('conv5_1', x, 512, is_training) # 12x16
+        x = self._conv_bn_act('conv6', conv5_1, 1024, is_training, strides=2) # 12x16
+        conv6_1 = self._conv_bn_act('conv6_1', x, 1024, is_training) # 6x8
 
-        predict_flow6 =
+        deconv5 = self._deconv('deconv5', conv6_1, 512)
+        predict_flow6 = self._predict_flow('predict_flow6', conv6_1)
+        upsample_flow6 = self._upsample_flow()
+
+        # Same order as pytorch and tf
+        concat5 = tf.concat([conv5_1, deconv5, upsample_flow6], axis=3)
 
 
         return {
