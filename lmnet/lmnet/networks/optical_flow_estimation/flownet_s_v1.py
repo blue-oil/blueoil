@@ -107,11 +107,11 @@ class FlowNetSV1(BaseNetwork):
                 kernel_size=4,
                 strides=2,
                 padding='SAME',
-                use_bias=True
+                use_bias=True,
+                biases_initializer=None
             )
             output = self.activation(conved)
             return output
-
 
     def _predict_flow(
             self,
@@ -129,9 +129,21 @@ class FlowNetSV1(BaseNetwork):
                 use_bias=True
             )
 
-
-    def _upsample_flow(self):
-        pass
+    def _upsample_flow(
+            self,
+            name,
+            inputs
+    ):
+        # TODO Think: tf uses bias but pytorch did not
+        with tf.variable_scope(name):
+            return tf.layers.conv2d_transpose(
+                inputs,
+                2,
+                kernel_size=4,
+                strides=2,
+                padding='SAME',
+                use_bias=False
+            )
 
     def base(self, images, is_training, *args, **kwargs):
         """Base network.
@@ -157,13 +169,30 @@ class FlowNetSV1(BaseNetwork):
         x = self._conv_bn_act('conv6', conv5_1, 1024, is_training, strides=2) # 12x16
         conv6_1 = self._conv_bn_act('conv6_1', x, 1024, is_training) # 6x8
 
-        deconv5 = self._deconv('deconv5', conv6_1, 512)
         predict_flow6 = self._predict_flow('predict_flow6', conv6_1)
-        upsample_flow6 = self._upsample_flow()
+        upsample_flow6 = self._upsample_flow('upsample_flow6', predict_flow6)
+        deconv5 = self._deconv('deconv5', conv6_1, 512)
 
         # Same order as pytorch and tf
         concat5 = tf.concat([conv5_1, deconv5, upsample_flow6], axis=3)
+        predict_flow5 = self._predict_flow('predict_flow5', concat5)
+        upsample_flow5 = self._upsample_flow('upsample_flow5', predict_flow5)
+        deconv4 = self._deconv('deconv4', concat5, 256)
 
+        concat4 = tf.concat([conv4_1, deconv4, upsample_flow5], axis=3)
+        predict_flow4 = self._predict_flow('predict_flow4', concat4)
+        upsample_flow4 = self._upsample_flow('upsample_flow4', predict_flow4)
+        deconv3 = self._deconv('deconv3', concat4, 256)
+
+        concat3 = tf.concat([conv3_1, deconv3, upsample_flow4], axis=3)
+        predict_flow3 = self._predict_flow('predict_flow3', concat3)
+        upsample_flow3 = self._upsample_flow('upsample_flow3', predict_flow3)
+        deconv2 = self._deconv('deconv2', concat3, 256)
+
+        concat2 = tf.concat([conv_2, deconv2, upsample_flow3], axis=3)
+        predict_flow2 = self._predict_flow('predict_flow2', concat2)
+
+        # TODO Bilinar upsampling
 
         return {
             'predict_flow6': predict_flow6,
