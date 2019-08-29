@@ -38,7 +38,7 @@ class Packer:
         self.bitwidth = bitwidth
         self.wordsize = wordsize
 
-    def pack_to_word(self, v, powers = None):
+    def pack_to_word(self, v, powers=None):
         if not powers:
             return np.dot(v, self.powers)
         else:
@@ -92,6 +92,5 @@ class Packer:
                 output[oi] = self.pack_to_word(np.bitwise_and(sliced_tensor, 1), powers)
                 oi += 1
                 sliced_tensor = np.right_shift(sliced_tensor, 1)
-
 
         return output.reshape([1, output_size])
