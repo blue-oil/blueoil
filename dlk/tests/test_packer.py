@@ -82,7 +82,7 @@ class TestPacker(unittest.TestCase):
         test_input[0:-1:4] = 4
 
         with self.assertRaises(OverflowError):
-            test_output = packer.run(test_input)
+            packer.run(test_input)
 
 
 if __name__ == '__main__':
