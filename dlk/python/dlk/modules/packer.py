@@ -88,6 +88,7 @@ class Packer(BaseModule):
         self.packer = self.lib.packer_create()
 
         self.set_bitwidth(nbit_qkernel)
+        self.bitwidth = nbit_qkernel
         self.set_wordsize(nbit_qword)
         self.set_multiplexing_mode(multiplexing_mode)
         self.set_extra_bit_value(extra_bit_value)
@@ -130,6 +131,9 @@ class Packer(BaseModule):
         """
         # nk = data_format.index('N') if 'N' in data_format \
         #     else data_format.index('O')
+
+        if (tensor > (2 ** self.bitwidth - 1)).any():
+            raise OverflowError('One or more input values exceed bitwidth.')
 
         number_of_kernels = 1  # tensor.shape[nk]
         output_size = self.lib.packer_get_output_size(self.packer,

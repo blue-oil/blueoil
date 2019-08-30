@@ -33,8 +33,20 @@ class TestPacker(unittest.TestCase):
         test_input[0:6] = [0, 1, 0, 1, 0, 1]
 
         test_output = packer.run(test_input)
-        print(test_output)
+
         self.assertEqual(test_output[0], 42)
+
+    def test_bw1_not_dividable_by_wordsize(self):
+        """Test for when the input tensor size is not able to divide by wordsize."""
+        packer = Packer(1, 32)
+
+        test_input = np.zeros([37], dtype=np.float32)
+        test_input[0:-1:2] = 1
+
+        test_output = packer.run(test_input)[0]
+        expected_output = [1431655765, 4294967269]
+
+        self.assertTrue((test_output == expected_output).all())
 
     def test_bw2_dividable_by_wordsize(self):
         """Test for when the input tensor size is able to divide by wordsize (2 bit version)."""
@@ -57,9 +69,20 @@ class TestPacker(unittest.TestCase):
         test_input[0:-1:4] = 2
 
         test_output = packer.run(test_input)[0]
-        expectged_output = np.array([1145324612, 286331153, 4294967268, 4294967265], dtype=np.uint32)
+        expected_output = [1145324612, 286331153, 4294967268, 4294967265]
 
-        self.assertTrue((test_output == expectged_output).all())
+        self.assertTrue((test_output == expected_output).all())
+
+    def test_raise_exception(self):
+        """Raise an exception if an input value is larger than bitwidth."""
+        packer = Packer(2, 32)
+
+        test_input = np.zeros([37], dtype=np.float32)
+        test_input[0:-1:2] = 1
+        test_input[0:-1:4] = 4
+
+        with self.assertRaises(OverflowError):
+            test_output = packer.run(test_input)
 
 
 if __name__ == '__main__':
