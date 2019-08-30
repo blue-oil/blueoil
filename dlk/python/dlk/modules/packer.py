@@ -77,7 +77,7 @@ class Packer:
         self.powers = np.power(2, np.arange(wordsize))
         for i in range(0, tensor.size // wordsize):
             iw = i * wordsize
-            sliced_tensor = tensor_flat[iw:iw+wordsize]
+            sliced_tensor = tensor_flat[iw:iw + wordsize]
 
             for _ in range(0, self.bitwidth):
                 output[oi] = self.pack_to_word(np.bitwise_and(sliced_tensor, 1))
