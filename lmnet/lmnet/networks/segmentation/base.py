@@ -76,7 +76,7 @@ class Base(BaseNetwork):
 
     def _summary_labels(self, labels):
 
-        tf.summary.image("labels", tf.to_float(tf.expand_dims(labels, axis=3)))
+        tf.summary.image("labels", tf.cast(tf.expand_dims(labels, axis=3), tf.float32))
 
         labels = self._color_labels(labels, name="labels_color")
 
@@ -172,9 +172,9 @@ class SegnetBase(Base):
         with tf.name_scope("loss"):
             # calculate loss weights for each class.
             loss_weight = []
-            all_size = tf.to_float(tf.reduce_prod(tf.shape(labels)))
+            all_size = tf.cast(tf.reduce_prod(tf.shape(labels)), tf.float32)
             for class_index in range(self.num_classes):
-                num_label = tf.reduce_sum(tf.to_float(tf.equal(labels, class_index)))
+                num_label = tf.reduce_sum(tf.cast(tf.equal(labels, class_index), tf.float32))
                 weight = (all_size - num_label) / all_size
                 loss_weight.append(weight)
 
