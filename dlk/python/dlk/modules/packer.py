@@ -73,7 +73,7 @@ class Packer:
         output = np.zeros(output_size, dtype=np.uint32)
         oi = 0
 
-        # generate powers (1,2,4,8....) here to pack binary values fast
+        # generate powers of 2 (1,2,4,8....) here to pack binary values fast
         self.powers = np.power(2, np.arange(wordsize))
         for i in range(0, tensor.size // wordsize):
             iw = i * wordsize
