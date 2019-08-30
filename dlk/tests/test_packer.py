@@ -77,7 +77,7 @@ class TestPacker(unittest.TestCase):
         """Raise an exception if an input value is larger than bitwidth."""
         packer = Packer(2, 32)
 
-        test_input = np.zeros([37], dtype=np.float32)
+        test_input = np.zeros([83], dtype=np.float32)
         test_input[0:-1:2] = 1
         test_input[0:-1:4] = 4
 
