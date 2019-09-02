@@ -368,11 +368,13 @@ class FlowNetSV1(BaseNetwork):
 
         # TODO put weight in config file
         # This adds the weighted loss to the loss collection
-        total_weighted_loss = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
-        tf.summary.scalar("total_weighted_loss", total_weighted_loss)
+        weighted_epe = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
+        tf.summary.scalar("weighted_epe", weighted_epe)
 
-        # Return the total loss: weighted loss + regularization terms defined in the base
-        return tf.losses.get_total_loss()
+        # Return the total loss: weighted epe + regularization terms defined in the base function
+        total_loss = tf.losses.get_total_loss()
+        tf.summary.scalar("total_loss", total_loss)
+        return total_loss
 
 
 
