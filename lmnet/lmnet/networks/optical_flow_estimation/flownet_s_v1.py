@@ -18,6 +18,7 @@ import functools
 import tensorflow as tf
 
 from lmnet.networks.base import BaseNetwork
+from .flowlib import flow_to_image
 
 
 class FlowNetSV1(BaseNetwork):
@@ -35,6 +36,8 @@ class FlowNetSV1(BaseNetwork):
             **kwargs
         )
 
+        # TODO PyCharm warning. I think we should define self.images first here. Check other networks.
+        self.images = None
         self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
         self.weight_decay_rate = 0.0004
         self.use_batch_norm = True
@@ -202,7 +205,7 @@ class FlowNetSV1(BaseNetwork):
             'conv6_1': conv6_1,
         }
 
-    def _refinement_block(self, conv_dict, is_training):
+    def _refinement_block(self, images, conv_dict, is_training):
         predict_flow6 = self._predict_flow('predict_flow6', conv_dict['conv6_1'])
         upsample_flow6 = self._upsample_flow('upsample_flow6', predict_flow6)
         deconv5 = self._deconv('deconv5', conv_dict['conv6_1'], 512)
@@ -226,46 +229,54 @@ class FlowNetSV1(BaseNetwork):
         concat2 = tf.concat([conv_dict['conv_2'], deconv2, upsample_flow3], axis=3)
         predict_flow2 = self._predict_flow('predict_flow2', concat2)
 
-        # TODO Check if returning dict causes memory error
+        # TODO why * 20.0? Wait for issue or email reply
+        predict_flow2 = predict_flow2 * 20.0
+
+        # TODO should we move upsampling to post-process?
+        # TODO Reason not to move: we need variable flow for both training (for tf.summary) and not training.
+        _, height, width, _ = images.get_shape().as_list()
+        # Reasons to use align_corners=True:
+        # https://stackoverflow.com/questions/51077930/tf-image-resize-bilinear-when-align-corners-false
+        # https://github.com/tensorflow/tensorflow/issues/6720#issuecomment-298190596
+        flow = tf.image.resize_bilinear(predict_flow2, tf.stack[height, width], align_corners=True)
+
+        # TODO Check if returning dict causes memory error. Maybe we can return a tensor when not training?
         if is_training:
             return {
                 'predict_flow6': predict_flow6,
                 'predict_flow5': predict_flow5,
                 'predict_flow4': predict_flow4,
                 'predict_flow3': predict_flow3,
-                'predict_flow2': predict_flow2
+                'predict_flow2': predict_flow2,
+                'flow': flow
             }
         else:
             return {
-                'predict_flow2': predict_flow2
+                'flow': flow
             }
 
-    def _post_process(self, predict_flow2, height, width):
-        # TODO why * 20.0? Wait for issue or email reply
-        predict_flow2 = predict_flow2 * 20.0
-
-        # Reasons to use align_corners=True:
-        # https://stackoverflow.com/questions/51077930/tf-image-resize-bilinear-when-align-corners-false
-        # https://github.com/tensorflow/tensorflow/issues/6720#issuecomment-298190596
-        return tf.image.resize_bilinear(predict_flow2, tf.stack[height, width], align_corners=True)
+    # TODO Perhaps we don't need this.
+    # def _post_process(self, predict_flow2, height, width):
+    #     pass
 
     def base(self, images, is_training, *args, **kwargs):
         """Base network.
 
         Args:
-            images: Input images.
+            images: Input images. shape is (batch_size, height, width, 6)
             is_training: A flag for if is training.
         Returns:
-            tf.Tensor: Inference result.
+            A dictionary of tf.Tensors.
         """
+        self.images = images
         conv_dict = self._contractive_block(images, is_training)
-        return self._refinement_block(conv_dict, is_training)
+        return self._refinement_block(images, conv_dict, is_training)
 
     def metrics(self, output, labels):
         """Metrics.
 
         Args:
-            output: tensor from inference.
+            output: dict of tensors from inference.
             labels: labels tensor.
         """
         # TODO check if pass breaks the code
@@ -273,8 +284,37 @@ class FlowNetSV1(BaseNetwork):
         pass
 
     def summary(self, output, labels=None):
+        """Summary.
+
+        Args:
+            output: dict of tensors from inference.
+            labels: labels tensor.
+        """
         super().summary(output, labels)
-        pass
+
+        images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
+
+        # Visualize input images in TensorBoard.
+        # Split a batch of two stacked images into two batch of unstacked, separate images.
+        images_a, images_b = tf.split(images, [3, 3], 3)
+        tf.summary.image("input_images_a", images_a, max_outputs=2)
+        tf.summary.image("input_images_b", images_b, max_outputs=2)
+
+        # Visualize output flow in TensorBoard with color encoding.
+        output_flow_0 = output['flow'][0, :, :, :]
+        output_flow_0 = tf.py_func(flow_to_image, [output_flow_0], tf.uint8)
+        output_flow_1 = output['flow'][1, :, :, :]
+        output_flow_1 = tf.py_func(flow_to_image, [output_flow_1], tf.uint8)
+        output_flow_img = tf.stack([output_flow_0, output_flow_1], 0)
+        tf.summary.image('output_flow', output_flow_img, max_outputs=2)
+
+        # Visualize labels flow in TensorBoard with color encoding.
+        labels_flow_0 = labels[0, :, :, :]
+        labels_flow_0 = tf.py_func(flow_to_image, [labels_flow_0], tf.uint8)
+        labels_flow_1 = labels[1, :, :, :]
+        labels_flow_1 = tf.py_func(flow_to_image, [labels_flow_1], tf.uint8)
+        labels_flow_img = tf.stack([labels_flow_0, labels_flow_1], 0)
+        tf.summary.image('labels_flow', labels_flow_img, max_outputs=2)
 
     def placeholders(self):
         """Placeholders.
@@ -309,9 +349,7 @@ class FlowNetSV1(BaseNetwork):
             # return {k: tf.identity(v, name=k) for k, v in base_dict.items()}
             return base_dict
         else:
-            predict_flow2 = base_dict["predict_flow2"]
-            _, height, width, _ = images.get_shape().as_list()
-            flow = self._post_process(predict_flow2, height, width)
+            flow = base_dict["flow"]
             return tf.identity(flow, name="output")
 
     # TODO make it a function.
@@ -375,8 +413,3 @@ class FlowNetSV1(BaseNetwork):
         total_loss = tf.losses.get_total_loss()
         tf.summary.scalar("total_loss", total_loss)
         return total_loss
-
-
-
-
-
