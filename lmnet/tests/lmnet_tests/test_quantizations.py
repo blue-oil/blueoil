@@ -49,6 +49,7 @@ def make_grad_y(x_size=default_x_size):
     input_range = (-10., 10.)
     return np.random.uniform(input_range[0], input_range[1], size=x_size).astype(np.float32)
 
+
 def make_test_input(x_size=default_x_size, input_range=(-10., 10.)):
     """Make test input
     """
@@ -58,8 +59,10 @@ def make_test_input(x_size=default_x_size, input_range=(-10., 10.)):
     x = tf.convert_to_tensor(np_x)
     return np_x, x
 
+
 def allclose(a, b):
     return np.allclose(a, b, atol=1e-4, rtol=1e-4)
+
 
 def test_binary_channel_wise_mean_scaling_quantizer():
     tf.InteractiveSession()
