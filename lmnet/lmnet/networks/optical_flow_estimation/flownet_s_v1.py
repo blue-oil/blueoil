@@ -43,7 +43,9 @@ class FlowNetSV1(BaseNetwork):
         self.use_batch_norm = True
         self.custom_getter = None
         # TODO Where should I put the c files and where do we compile custom ops?
-        self.downsample_so = tf.load_op_library("downsample.so")
+        self.downsample_so = tf.load_op_library(
+            tf.resource_loader.get_path_to_datafile("downsample.so")
+        )
 
     # TODO: Import _conv_bn_act from blocks after replacing strides=2 using space to depth.
     def _conv_bn_act(
