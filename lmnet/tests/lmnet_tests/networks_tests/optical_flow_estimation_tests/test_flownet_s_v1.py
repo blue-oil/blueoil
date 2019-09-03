@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 The Blueoil Authors. All Rights Reserved.
+# Copyright 2019 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -242,6 +242,44 @@ def test_refinement_block():
     output_dict = sess.run(output)
     for name, shape in expected_output_shape_dict.items():
         assert shape == output_dict[name].shape
+
+
+def test_training():
+    """Test only that no error raised."""
+    config = EasyDict()
+
+    config.NETWORK_CLASS = FlowNetSV1
+    # TODO dataset
+    config.DATASET_CLASS = None
+
+    config.IS_DEBUG = False
+    config.IMAGE_SIZE = [384, 512]
+    config.BATCH_SIZE = 8
+    config.TEST_STEPS = 1
+    config.MAX_STEPS = 2
+    config.SAVE_CHECKPOINT_STEPS = 1
+    config.KEEP_CHECKPOINT_MAX = 5
+    config.SUMMARISE_STEPS = 1
+    config.IS_PRETRAIN = False
+    config.IS_DISTRIBUTION = False
+
+    # network model config
+    config.NETWORK = EasyDict()
+    config.NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
+    config.NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
+    config.NETWORK.IMAGE_SIZE = config.IMAGE_SIZE
+    config.NETWORK.BATCH_SIZE = config.BATCH_SIZE
+    config.NETWORK.DATA_FORMAT = "NHCW"
+
+    # dataset config
+    config.DATASET = EasyDict()
+    config.DATASET.PRE_PROCESSOR = None
+    config.DATASET.BATCH_SIZE = config.BATCH_SIZE
+    config.DATASET.DATA_FORMAT = "NHCW"
+
+    environment.init("test_flownet_s_v1")
+    prepare_dirs(recreate=True)
+    start_training(config)
 
 
 if __name__ == '__main__':
