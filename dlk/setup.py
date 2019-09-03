@@ -83,16 +83,6 @@ def run_command(command):
         raise RuntimeError('Error executing command: ' + command)
 
 
-def build_library():
-    root_path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(root_path)
-    os.makedirs(root_path + '/build', exist_ok=True)
-    os.chdir(root_path + '/build')
-    os.system('cmake ../cpp/packer')
-    os.system('make')
-    os.chdir(root_path)
-
-
 class CustomInstall(install):
     description = 'Install DLK'
     user_options = install.user_options
@@ -178,7 +168,6 @@ class CustomInstall(install):
 
 class CustomTest(test):
     def run(self):
-        build_library()
         test.run(self)
 
 
@@ -188,27 +177,11 @@ class CMakeExtension(Extension):
         self.sourcedir = os.path.abspath(sourcedir)
 
 
-class CMakeBuild(build_ext):
-    def run(self):
-        try:
-            out = subprocess.check_output(['cmake', '--version'])
-        except OSError:
-            raise RuntimeError("CMake must be installed to build the following extensions: " +
-                               ", ".join(e.name for e in self.extensions))
-
-        self.build_extension()
-
-    def build_extension(self):
-        build_library()
-
-
 setup(
     cmdclass={
         'test': CustomTest,
-        'build_ext': CMakeBuild,
         'install': CustomInstall},
 
-    ext_modules=[CMakeExtension('packer')],
     name='dlk',
     python_requires='>= 3.6.3',
     version=__version__,
