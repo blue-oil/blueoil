@@ -80,5 +80,28 @@ def test_conv_bn_act():
     assert output_custom_np.shape == (inputs_shape[0], output_custom_h, output_custom_w, filters)
 
 
+def test_deconv():
+    inputs_shape = (1, 6, 8, 1024)
+    filters = 512
+    # TODO Can I randomly assign rgb values to images?
+    inputs_np = np.random.uniform(0., 1., size=inputs_shape).astype(np.float32)
+
+    with tf.device('/cpu:0'):
+        inputs = tf.convert_to_tensor(inputs_np, dtype=tf.float32)
+
+        model = FlowNetSV1(
+            data_format="NHWC"
+        )
+
+        output_default = model._deconv("deconv_default", inputs, filters)
+
+        init_op = tf.global_variables_initializer()
+
+    sess = tf.Session()
+    sess.run(init_op)
+    output_default_np = sess.run(output_default)
+    assert output_default_np.shape == (inputs_shape[0], inputs_shape[1] * 2, inputs_shape[2] * 2, filters)
+
+
 if __name__ == '__main__':
     test_conv_bn_act()
