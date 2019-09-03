@@ -191,7 +191,7 @@ class FlowNetSV1(BaseNetwork):
         # pytorch version uses (kernel_size-1) // 2, which is equal to 'SAME' in tf
         x = self._conv_bn_act('conv1', images, 64, is_training, kernel_size=7, strides=2)
         conv2 = self._conv_bn_act('conv2', x, 128, is_training, kernel_size=5, strides=2)
-        x = self._conv_bn_act('conv3', x, 256, is_training, kernel_size=5, strides=2)
+        x = self._conv_bn_act('conv3', conv2, 256, is_training, kernel_size=5, strides=2)
         conv3_1 = self._conv_bn_act('conv3_1', x, 256, is_training)
         x = self._conv_bn_act('conv4', conv3_1, 512, is_training, strides=2)
         conv4_1 = self._conv_bn_act('conv4_1', x, 512, is_training)
