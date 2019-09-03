@@ -229,7 +229,7 @@ class FlowNetSV1(BaseNetwork):
         upsample_flow3 = self._upsample_flow('upsample_flow3', predict_flow3)
         deconv2 = self._deconv('deconv2', concat3, 256)
 
-        concat2 = tf.concat([conv_dict['conv_2'], deconv2, upsample_flow3], axis=3)
+        concat2 = tf.concat([conv_dict['conv2'], deconv2, upsample_flow3], axis=3)
         predict_flow2 = self._predict_flow('predict_flow2', concat2)
 
         # TODO why * 20.0? Wait for issue or email reply
@@ -241,7 +241,7 @@ class FlowNetSV1(BaseNetwork):
         # Reasons to use align_corners=True:
         # https://stackoverflow.com/questions/51077930/tf-image-resize-bilinear-when-align-corners-false
         # https://github.com/tensorflow/tensorflow/issues/6720#issuecomment-298190596
-        flow = tf.image.resize_bilinear(predict_flow2, tf.stack[height, width], align_corners=True)
+        flow = tf.image.resize_bilinear(predict_flow2, tf.stack([height, width]), align_corners=True)
 
         # TODO Check if returning dict causes memory error. Maybe we can return a tensor when not training?
         if is_training:
@@ -355,7 +355,6 @@ class FlowNetSV1(BaseNetwork):
             flow = base_dict["flow"]
             return tf.identity(flow, name="output")
 
-    # TODO make it a function.
     def loss(self, output, labels):
         """loss.
 
