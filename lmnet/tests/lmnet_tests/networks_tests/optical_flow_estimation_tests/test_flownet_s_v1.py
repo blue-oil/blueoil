@@ -38,25 +38,45 @@ def get_conv1d_output_shape(length, kernel_size, striding=1, padding='SAME'):
 
 def test_conv_bn_act():
     inputs_shape = (1, 384, 512, 6)
+    filters = 64
+    kernel_size = 7
+    strides = 2
     # TODO Can I randomly assign rgb values to images?
     inputs_np = np.random.uniform(0., 1., size=inputs_shape).astype(np.float32)
 
-    inputs = tf.convert_to_tensor(inputs_np, dtype=tf.float32)
-    model = FlowNetSV1(
-        data_format="NHWC"
-    )
-    filters = 64
+    with tf.device('/cpu:0'):
+        inputs = tf.convert_to_tensor(inputs_np, dtype=tf.float32)
 
-    output_default = model._conv_bn_act("conv_bn_act", inputs, filters, True)
-    output_default_np = output_default.eval()
+        model = FlowNetSV1(
+            data_format="NHWC"
+        )
+
+        output_default = model._conv_bn_act(
+            "conv_bn_act_default",
+            inputs,
+            filters,
+            True
+        )
+
+        output_custom = model._conv_bn_act(
+            "conv_bn_act",
+            inputs,
+            filters,
+            True,
+            kernel_size=kernel_size,
+            strides=strides
+        )
+        output_custom_h = get_conv1d_output_shape(inputs_shape[1], kernel_size, strides)
+        output_custom_w = get_conv1d_output_shape(inputs_shape[2], kernel_size, strides)
+
+        init_op = tf.global_variables_initializer()
+
+    sess = tf.Session()
+    sess.run(init_op)
+    output_default_np = sess.run(output_default)
     assert output_default_np.shape == (inputs_shape[0], inputs_shape[1], inputs_shape[2], filters)
 
-    kernel_size = 7
-    strides = 2
-    output_custom = model._conv_bn_act("conv_bn_act", inputs, filters, True, kernel_size=kernel_size, strides=strides)
-    output_custom_np = output_custom.eval()
-    output_custom_h = get_conv1d_output_shape(inputs_shape[1], kernel_size, strides)
-    output_custom_w = get_conv1d_output_shape(inputs_shape[1], kernel_size, strides)
+    output_custom_np = sess.run(output_custom)
     assert output_custom_np.shape == (inputs_shape[0], output_custom_h, output_custom_w, filters)
 
 
