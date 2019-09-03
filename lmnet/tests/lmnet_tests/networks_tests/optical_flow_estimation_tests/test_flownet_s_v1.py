@@ -44,6 +44,7 @@ def test_conv_bn_act():
     # TODO Can I randomly assign rgb values to images?
     inputs_np = np.random.uniform(0., 1., size=inputs_shape).astype(np.float32)
 
+    # TODO remove cpu
     with tf.device('/cpu:0'):
         inputs = tf.convert_to_tensor(inputs_np, dtype=tf.float32)
 
@@ -103,5 +104,30 @@ def test_deconv():
     assert output_default_np.shape == (inputs_shape[0], inputs_shape[1] * 2, inputs_shape[2] * 2, filters)
 
 
+def test_downsample():
+    inputs_shape = (1, 200, 400, 2)
+    output_shape = (1, 100, 200, 2)
+    # TODO Need to know how flow is normalized
+    inputs_np = np.random.uniform(-1., 1., size=inputs_shape).astype(np.float32)
+
+    inputs = tf.convert_to_tensor(inputs_np, dtype=tf.float32)
+
+    model = FlowNetSV1(
+        data_format="NHWC"
+    )
+
+    output_default = model._downsample("downsample_default", inputs, [output_shape[1], output_shape[2]])
+
+    init_op = tf.global_variables_initializer()
+
+    sess = tf.Session()
+    sess.run(init_op)
+    output_default_np = sess.run(output_default)
+    assert output_default_np.shape == output_shape
+
+
 if __name__ == '__main__':
     test_conv_bn_act()
+    test_deconv()
+    test_downsample()
+
