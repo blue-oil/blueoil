@@ -181,7 +181,7 @@ class FlowNetSV1(BaseNetwork):
 
             squared_difference = tf.square(tf.subtract(output, labels))
             # sum across the 2 channels: sum[(X - Y)^2] -> N, H, W, 1
-            loss = tf.reduce_sum(squared_difference, axis=3, keep_dims=True)
+            loss = tf.reduce_sum(squared_difference, axis=3, keepdims=True)
             loss = tf.sqrt(loss)
             return tf.reduce_sum(loss) / batch_size
 
