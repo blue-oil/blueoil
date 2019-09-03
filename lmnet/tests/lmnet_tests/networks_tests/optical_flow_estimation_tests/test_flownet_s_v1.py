@@ -178,9 +178,10 @@ def test_average_endpoint_error():
 
 
 def test_contractive_block():
-    inputs_shape = (2, 384, 512, 6)
-    inputs_np = np.random.uniform(0., 1., size=inputs_shape).astype(np.float32)
-    expected_output_shaped_dict = {
+    images_shape = (2, 384, 512, 6)
+    is_training = True
+    images_np = np.random.uniform(0., 1., size=images_shape).astype(np.float32)
+    expected_output_shape_dict = {
         'conv2': (2, 96, 128, 128),
         'conv3_1': (2, 48, 64, 256),
         'conv4_1': (2, 24, 32, 512),
@@ -188,20 +189,58 @@ def test_contractive_block():
         'conv6_1': (2, 6, 8, 1024),
     }
 
-    inputs = tf.convert_to_tensor(inputs_np, dtype=tf.float32)
-
+    images = tf.convert_to_tensor(images_np, dtype=tf.float32)
     model = FlowNetSV1(
         data_format="NHWC"
     )
-
-    output = model._contractive_block(inputs, True)
+    output = model._contractive_block(images, is_training)
 
     init_op = tf.global_variables_initializer()
 
     sess = tf.Session()
     sess.run(init_op)
     output_dict = sess.run(output)
-    for name, shape in expected_output_shaped_dict.items():
+    for name, shape in expected_output_shape_dict.items():
+        assert shape == output_dict[name].shape
+
+
+def test_refinement_block():
+    images_shape = (2, 384, 512, 6)
+    is_training = True
+    images_np = np.random.uniform(0., 1., size=images_shape).astype(np.float32)
+    conv_shape_dict = {
+        'conv2': (2, 96, 128, 128),
+        'conv3_1': (2, 48, 64, 256),
+        'conv4_1': (2, 24, 32, 512),
+        'conv5_1': (2, 12, 16, 512),
+        'conv6_1': (2, 6, 8, 1024),
+    }
+    expected_output_shape_dict = {
+        'predict_flow6': (2, 6, 8, 2),
+        'predict_flow5': (2, 12, 16, 2),
+        'predict_flow4': (2, 24, 32, 2),
+        'predict_flow3': (2, 48, 64, 2),
+        'predict_flow2': (2, 96, 128, 2),
+        'flow': (2, 384, 512, 2)
+    }
+
+    conv_dict = {}
+    for name, shape in conv_shape_dict.items():
+        conv_np = np.random.uniform(0., 1., size=shape).astype(np.float32)
+        conv_dict[name] = tf.convert_to_tensor(conv_np, dtype=tf.float32)
+
+    images = tf.convert_to_tensor(images_np, dtype=tf.float32)
+    model = FlowNetSV1(
+        data_format="NHWC"
+    )
+    output = model._refinement_block(images, conv_dict, is_training)
+
+    init_op = tf.global_variables_initializer()
+
+    sess = tf.Session()
+    sess.run(init_op)
+    output_dict = sess.run(output)
+    for name, shape in expected_output_shape_dict.items():
         assert shape == output_dict[name].shape
 
 
@@ -211,4 +250,4 @@ if __name__ == '__main__':
     test_downsample()
     test_average_endpoint_error()
     test_contractive_block()
-
+    test_refinement_block()
