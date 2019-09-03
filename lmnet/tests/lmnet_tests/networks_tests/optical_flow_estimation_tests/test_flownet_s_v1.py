@@ -177,9 +177,38 @@ def test_average_endpoint_error():
     assert np.all(avg_epe_np == expected_avg_epe)
 
 
+def test_contractive_block():
+    inputs_shape = (2, 384, 512, 6)
+    inputs_np = np.random.uniform(0., 1., size=inputs_shape).astype(np.float32)
+    expected_output_shaped_dict = {
+        'conv2': (2, 96, 128, 128),
+        'conv3_1': (2, 48, 64, 256),
+        'conv4_1': (2, 24, 32, 512),
+        'conv5_1': (2, 12, 16, 512),
+        'conv6_1': (2, 6, 8, 1024),
+    }
+
+    inputs = tf.convert_to_tensor(inputs_np, dtype=tf.float32)
+
+    model = FlowNetSV1(
+        data_format="NHWC"
+    )
+
+    output = model._contractive_block(inputs, True)
+
+    init_op = tf.global_variables_initializer()
+
+    sess = tf.Session()
+    sess.run(init_op)
+    output_dict = sess.run(output)
+    for name, shape in expected_output_shaped_dict.items():
+        assert shape == output_dict[name].shape
+
+
 if __name__ == '__main__':
     test_conv_bn_act()
     test_deconv()
     test_downsample()
     test_average_endpoint_error()
+    test_contractive_block()
 
