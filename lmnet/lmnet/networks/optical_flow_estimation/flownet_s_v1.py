@@ -108,6 +108,7 @@ class FlowNetSV1(BaseNetwork):
             # tf only allows 'SAME' or 'VALID' padding.
             # In conv2d_transpose, h = h1 * stride if padding == 'Same'
             # https://datascience.stackexchange.com/questions/26451/how-to-calculate-the-output-shape-of-conv2d-transpose
+            # TODO in flownet2-tf, he typed 'biases_initializer'=None. I don't know if it worked.
             conved =  tf.layers.conv2d_transpose(
                 inputs,
                 filters,
@@ -115,7 +116,7 @@ class FlowNetSV1(BaseNetwork):
                 strides=2,
                 padding='SAME',
                 use_bias=True,
-                biases_initializer=None,
+                bias_initializer=None,
                 kernel_regularizer=tf.contrib.layers.l2_regularizer(self.weight_decay_rate)
             )
             output = self.activation(conved)
