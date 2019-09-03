@@ -126,8 +126,60 @@ def test_downsample():
     assert output_default_np.shape == output_shape
 
 
+def test_average_endpoint_error():
+    output = np.array([
+        [
+            [
+                [1, 2],
+                [3, 4],
+                [5, 6]
+            ],
+            [
+                [7, 8],
+                [9, 10],
+                [11, 12]
+            ]
+        ]
+    ])
+
+    labels = np.array([
+        [
+            [
+                [2, 7],
+                [5, 3],
+                [6, 6]
+            ],
+            [
+                [9, 0],
+                [3, 10],
+                [7, 14]
+            ]
+        ]
+    ])
+
+    tf.InteractiveSession()
+    output_tensor = tf.convert_to_tensor(output, dtype=tf.float32)
+    labels_tensor = tf.convert_to_tensor(labels, dtype=tf.float32)
+
+    model = FlowNetSV1(
+        data_format="NHWC"
+    )
+
+    batch_size = output.shape[0]
+    squared_difference = np.square(np.subtract(output, labels))
+    squared_difference = np.sum(squared_difference, axis=3, keepdims=True)
+    avg_epe_per_pixel = np.sqrt(squared_difference)
+    expected_avg_epe = np.sum(avg_epe_per_pixel) / batch_size
+    expected_avg_epe = expected_avg_epe.astype(dtype=np.float32)
+
+    avg_epe = model._average_endpoint_error(output_tensor, labels_tensor)
+    avg_epe_np = avg_epe.eval()
+    assert np.all(avg_epe_np == expected_avg_epe)
+
+
 if __name__ == '__main__':
     test_conv_bn_act()
     test_deconv()
     test_downsample()
+    test_average_endpoint_error()
 
