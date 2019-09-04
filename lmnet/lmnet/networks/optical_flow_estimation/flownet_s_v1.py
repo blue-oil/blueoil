@@ -300,11 +300,13 @@ class FlowNetSV1(BaseNetwork):
 
         # Visualize input images in TensorBoard.
         # Split a batch of two stacked images into two batch of unstacked, separate images.
+        # We visualize the first and second image in each batch, so max_outputs is set to 2.
         images_a, images_b = tf.split(images, [3, 3], 3)
         tf.summary.image("input_images_a", images_a, max_outputs=2)
         tf.summary.image("input_images_b", images_b, max_outputs=2)
 
         # Visualize output flow in TensorBoard with color encoding.
+        # We visualize the first (0) and second (1) flow in each batch.
         output_flow_0 = output['flow'][0, :, :, :]
         output_flow_0 = tf.py_func(flow_to_image, [output_flow_0], tf.uint8)
         output_flow_1 = output['flow'][1, :, :, :]
@@ -313,6 +315,7 @@ class FlowNetSV1(BaseNetwork):
         tf.summary.image('output_flow', output_flow_img, max_outputs=2)
 
         # Visualize labels flow in TensorBoard with color encoding.
+        # We visualize the first (0) and second (1) flow in each batch.
         labels_flow_0 = labels[0, :, :, :]
         labels_flow_0 = tf.py_func(flow_to_image, [labels_flow_0], tf.uint8)
         labels_flow_1 = labels[1, :, :, :]
