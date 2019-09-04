@@ -19,8 +19,12 @@ limitations under the License.
 
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
+#include "blueoil_npy.hpp"
 #ifdef USE_OPENCV
 #include "blueoil_opencv.hpp"
+#endif
+#ifdef USE_PNG
+#include "blueoil_png.hpp"
 #endif
 
 namespace blueoil {
@@ -43,14 +47,16 @@ Tensor LoadImage(const std::string filename) {
   blueoil::Tensor tensor({0});
 #ifdef USE_OPENCV
   cv::Mat img = cv::imread(filename, 1);  // 1:force to RGB format
-  if (img.empty()) {
-    throw std::invalid_argument("can't read file as image");
+  if (! img.empty()) {
+    return blueoil::opencv::Tensor_fromCVMat(img);
   }
-  tensor = blueoil::opencv::Tensor_fromCVMat(img);
-#else
-  throw std::invalid_argument("LoadImage not implemented yet. without image library");
+#elif USE_PNG
+  tensor = blueoil::png::Tensor_fromPNGFile(filename);
+  if (tensor.shape[0] > 0) {
+    return tensor;
+  }
 #endif
-  return tensor;
+  return blueoil::npy::Tensor_fromNPYFile(filename);
 }
 
 /*

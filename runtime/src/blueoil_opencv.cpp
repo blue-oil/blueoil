@@ -20,6 +20,7 @@ limitations under the License.
 #include "blueoil_opencv.hpp"
 
 namespace blueoil {
+
 namespace opencv {
 
 
