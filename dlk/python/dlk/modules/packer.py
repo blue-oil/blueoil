@@ -38,12 +38,13 @@ class Packer:
 
         self.bitwidth = bitwidth
         self.wordsize = wordsize
+        # generate powers of 2 (1,2,4,8....) here to pack binary values fast
+        self.powers = np.power(2, np.arange(wordsize)).astype(np.uint32)
 
-    def pack_to_word(self, v, powers=None):
-        if not powers:
-            return np.dot(v, self.powers)
-        else:
-            return np.dot(v, powers)
+    def _pack_to_word(self, v):
+        wordsize = self.wordsize
+        powers = self.powers
+        return np.dot(v, powers).astype(np.uint32)
 
     def run(self, tensor: np.ndarray, data_format: str = 'NHWC') -> np.ndarray:
         """Pack a tensor.
@@ -66,31 +67,25 @@ class Packer:
 
         wordsize = self.wordsize
 
-        output_size = tensor.size // wordsize
         if tensor.size % wordsize != 0:
-            output_size += 1
+            raise ValueError("size of tensor ({}) must be multiple of word size ({})".format(tensor.size, wordsize))
+
+        if (tensor >= (2 ** self.bitwidth)).any():
+            raise ValueError("all value of input tensor must be less than bit width ({})".format(self.bitwidth))
+
+        output_size = tensor.size // wordsize * self.bitwidth
 
         tensor_flat = tensor.flatten(order='C').astype(np.uint32)
         output = np.zeros(output_size, dtype=np.uint32)
         oi = 0
-
-        # generate powers of 2 (1,2,4,8....) here to pack binary values fast
-        self.powers = np.power(2, np.arange(wordsize))
-        for i in range(0, tensor.size // wordsize):
-            iw = i * wordsize
-            sliced_tensor = tensor_flat[iw:iw + wordsize]
+        for i in range(0, tensor.size, wordsize):
+            if i + wordsize < tensor.size:
+                sliced_tensor = tensor_flat[i:i + wordsize]
+            else:
+                sliced_tensor = tensor_flat[i:]
 
             for _ in range(0, self.bitwidth):
-                output[oi] = self.pack_to_word(np.bitwise_and(sliced_tensor, 1))
-                oi += 1
-                sliced_tensor = np.right_shift(sliced_tensor, 1)
-
-        if tensor.size % wordsize != 0:
-            iw = (tensor.size // wordsize + 1) * wordsize
-            sliced_tensor = tensor_flat[iw:-1]
-            powers = np.power(2, np.arange(sliced_tensor.size))
-            for _ in range(0, self.bitwidth):
-                output[oi] = self.pack_to_word(np.bitwise_and(sliced_tensor, 1), powers)
+                output[oi] = self._pack_to_word(np.bitwise_and(sliced_tensor, 1))
                 oi += 1
                 sliced_tensor = np.right_shift(sliced_tensor, 1)
 
