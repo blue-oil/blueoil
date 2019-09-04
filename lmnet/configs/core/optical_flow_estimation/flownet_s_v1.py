@@ -20,9 +20,9 @@ from lmnet.common import Tasks
 from lmnet.networks.optical_flow_estimation.flownet_s_v1 import FlowNetSV1
 from lmnet.data_processor import Sequence
 from lmnet.data_augmentor import (
-    Crop,
-    FlipLeftRight,
-    Pad,
+    Brightness,
+    Contrast,
+    Color
 )
 
 
@@ -82,9 +82,14 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-# TODO We can train it first without augmentation
-# DATASET.AUGMENTOR = Sequence([
-#     Pad(2),
-#     Crop(size=IMAGE_SIZE),
-#     FlipLeftRight(),
-# ])
+DATASET.VALIDATION_RATIO = 0.2
+DATASET.RANDOM_SEED = 2019
+
+# TODO I use default values because the metrics used in the paper are different.
+# I didn't add Gaussian Blur because it's different from Gaussian Noise.
+# Augmentation is not available in pytorch repo
+DATASET.AUGMENTOR = Sequence([
+    Brightness(),
+    Contrast(),
+    Color()
+])
