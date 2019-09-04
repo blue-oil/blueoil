@@ -282,9 +282,10 @@ class FlowNetSV1(BaseNetwork):
             output: dict of tensors from inference.
             labels: labels tensor.
         """
-        # TODO check if pass breaks the code
-        # TODO would be nice to return the EPE of all flow predictions. Think how to do so with loss function.
-        pass
+        # TODO check if it breaks the code
+        metrics_ops_dict = {}
+        metrics_update_op = tf.no_op(name=None)
+        return metrics_ops_dict, metrics_update_op
 
     def summary(self, output, labels=None):
         """Summary.
