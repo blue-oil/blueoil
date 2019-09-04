@@ -6,7 +6,6 @@ import functools
 
 import numpy as np
 from PIL import Image
-from collections import OrderedDict
 
 from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 
@@ -27,7 +26,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
                "truck"]
     num_classes = len(classes)
     available_subsets = ["train", "validation"]
-    extend_dir = "BDD100K/bdd100k"
+    extend_dir = "bdd100k"
 
     @property
     def label_colors(self):
@@ -105,20 +104,23 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         self._init_files_and_annotations()
 
     def _init_files_and_annotations(self):
-        img_paths = OrderedDict([(os.path.basename(path), path)
-                                 for path in glob.glob(os.path.join(self.img_dir, "*.jpg"))])
+        img_paths = dict([(os.path.basename(path), path)
+                          for path in glob.glob(os.path.join(self.img_dir, "*.jpg"))])
         img_names = set(img_paths.keys())
 
         anno_data = json.load(open(self.anno_dir))
-        bbox = [[] for _ in range(len(img_paths))]
-        bbox = OrderedDict(zip(list(img_paths.keys()), bbox))
 
         counts = 0
+        max_boxes = 0
+        self.paths = []
+        self.bboxs = []
         for item in anno_data:
             counts += 1
             # Skip if Label not in images
-            if item['name'] not in img_names:
+            img_name = item['name']
+            if img_name not in img_names:
                 continue
+            bbox = []
             for label in item['labels']:
                 class_name = label['category'].replace(' ', '_')
                 # Skip if Classname/Category not in Selected classes
@@ -136,12 +138,16 @@ class BDD100KObjectDetection(ObjectDetectionBase):
                 w = x2 - x1
                 h = y2 - y1
 
-                index = item['name']
-                bbox[index] += [[x, y, w, h, cls_idx]]
-        print()
+                bbox += [[x, y, w, h, cls_idx]]
 
-        self.paths = list(img_paths.values())
-        self.bboxs = list(bbox.values())
+            num_boxes = len(bbox)
+            if num_boxes > 0:
+                self.paths.append(img_paths[img_name])
+                self.bboxs.append(bbox)
+                if num_boxes > max_boxes:
+                    max_boxes = num_boxes
+
+        self.max_boxes = max_boxes
 
     def __getitem__(self, i, type=None):
         image_file_path = self.paths[i]
@@ -164,9 +170,9 @@ class BDD100KSegmentation(SegmentationBase):
     https://github.com/ucbdrive/bdd-data
     """
     available_subsets = ["train", "validation", "test"]
-    extend_dir = "BDD100K/seg"
+    extend_dir = "seg"
     image_dir = 'images'
-    label_dir = 'labels'      # labels : gray scale labels
+    label_dir = 'labels'  # labels : gray scale labels
     classes = [
         "unlabeled",
         "ego vehicle",
