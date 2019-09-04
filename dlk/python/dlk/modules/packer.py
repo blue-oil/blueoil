@@ -44,6 +44,8 @@ class Packer:
     def _pack_to_word(self, v):
         wordsize = self.wordsize
         powers = self.powers
+        if v.size != wordsize:
+            powers = np.power(2, np.arange(v.size)).astype(np.uint32)
         return np.dot(v, powers).astype(np.uint32)
 
     def run(self, tensor: np.ndarray, data_format: str = 'NHWC') -> np.ndarray:
@@ -67,13 +69,12 @@ class Packer:
 
         wordsize = self.wordsize
 
-        if tensor.size % wordsize != 0:
-            raise ValueError("size of tensor ({}) must be multiple of word size ({})".format(tensor.size, wordsize))
-
         if (tensor >= (2 ** self.bitwidth)).any():
             raise ValueError("all value of input tensor must be less than bit width ({})".format(self.bitwidth))
 
-        output_size = tensor.size // wordsize * self.bitwidth
+        output_size = tensor.size // wordsize
+        output_size += 1 if tensor.size % wordsize != 0 else 0
+        output_size *= self.bitwidth
 
         tensor_flat = tensor.flatten(order='C').astype(np.uint32)
         output = np.zeros(output_size, dtype=np.uint32)

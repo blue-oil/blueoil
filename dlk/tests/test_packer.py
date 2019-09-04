@@ -43,10 +43,35 @@ class TestPacker(unittest.TestCase):
         test_input = np.zeros([32], dtype=np.float32)
         test_input[0:6] = [0, 3, 0, 3, 0, 3]
 
-        test_output = packer.run(test_input)[0]
+        test_output = packer.run(test_input)
         expected_output = [42, 42]
 
-        self.assertTrue((test_output == expected_output).all())
+        np.testing.assert_array_equal(test_output[0], expected_output)
+
+    def test_bw1_not_dividable_by_wordsize(self):
+        """Test for when the input tensor size is not able to divide by wordsize (1 bit version)."""
+        packer = Packer(1, 37)
+
+        test_input = np.zeros([37], dtype=np.float32)
+        test_input[0::2] = 1
+
+        test_output = packer.run(test_input)
+        expected_output = [1431655765]
+
+        np.testing.assert_array_equal(test_output[0], expected_output)
+
+    def test_bw2_not_dividable_by_wordsize(self):
+        """Test for when the input tensor size is not able to divide by wordsize (2 bit version)."""
+        packer = Packer(2, 37)
+
+        test_input = np.zeros([32], dtype=np.float32)
+        test_input[0:6] = [0, 3, 0, 3, 0, 3]
+        test_input[0::3] = 2
+
+        test_output = packer.run(test_input)
+        expected_output = [34, 1227133547]
+
+        np.testing.assert_array_equal(test_output[0], expected_output)
 
     def test_raise_exception_bitwidth(self):
         """Raise an exception if an input value is larger than bitwidth."""
@@ -58,7 +83,6 @@ class TestPacker(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             packer.run(test_input)
-
 
     def test_raise_exception_wordsize(self):
         """Raise an exception if an input value is not multiple of word size."""
