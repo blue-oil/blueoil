@@ -32,8 +32,6 @@ tmp/
 dlk2_tvm/
 
 # docs
-docs/cpp/html/
-docs/cpp/latex/
 docs/python/_build/
 docs/python/html/
 docs/python/latex/
