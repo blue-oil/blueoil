@@ -172,7 +172,7 @@ class FlowNetSV1(BaseNetwork):
         Given labels and outputs of size (batch_size, height, width, 2), calculates average endpoint error:
             sqrt{sum_across_the_2_channels[(X - Y)^2]}
         """
-        batch_size = output.get_shape().as_list()[0]
+        batch_size, height, width, _ = output.get_shape().as_list()
         with tf.name_scope(None, "average_endpoint_error", (output, labels)):
             # TODO I don't think the two lines below is necessary.
             # output = tf.to_float(output)
@@ -180,10 +180,9 @@ class FlowNetSV1(BaseNetwork):
             output.get_shape().assert_is_compatible_with(labels.get_shape())
 
             squared_difference = tf.square(tf.subtract(output, labels))
-            # sum across the 2 channels: sum[(X - Y)^2] -> N, H, W, 1
             loss = tf.reduce_sum(squared_difference, axis=3, keepdims=True)
             loss = tf.sqrt(loss)
-            return tf.reduce_sum(loss) / batch_size
+            return tf.reduce_sum(loss) / (height * width * batch_size)
 
     def _contractive_block(self, images, is_training):
         # TODO tf version uses padding=VALID and pad to match the original caffe code.

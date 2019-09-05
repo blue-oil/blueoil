@@ -165,11 +165,11 @@ def test_average_endpoint_error():
         data_format="NHWC"
     )
 
-    batch_size = output.shape[0]
+    batch_size, height, width, _ = output.shape
     squared_difference = np.square(np.subtract(output, labels))
     squared_difference = np.sum(squared_difference, axis=3, keepdims=True)
     avg_epe_per_pixel = np.sqrt(squared_difference)
-    expected_avg_epe = np.sum(avg_epe_per_pixel) / batch_size
+    expected_avg_epe = np.sum(avg_epe_per_pixel) / (batch_size * height * width)
     expected_avg_epe = expected_avg_epe.astype(dtype=np.float32)
 
     avg_epe = model._average_endpoint_error(output_tensor, labels_tensor)
