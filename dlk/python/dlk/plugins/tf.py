@@ -203,7 +203,7 @@ class Node(object):
             attrs_data.append(self.nd_.attr[attr_name].list.i)
         elif attr_name in ['epsilon', 'alpha']:
             attrs_data.append(self.nd_.attr[attr_name].f)
-        elif attr_name in ['is_training', 'use_cudnn_on_gpu', 'keep_dims']:
+        elif attr_name in ('is_training', 'use_cudnn_on_gpu', 'keep_dims'):
             attrs_data.append(self.nd_.attr[attr_name].b)
         elif attr_name in ['block_size', 'num_split']:
             attrs_data.append(self.nd_.attr[attr_name].i)
