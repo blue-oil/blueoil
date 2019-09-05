@@ -60,6 +60,10 @@ def make_test_input(x_size=default_x_size, input_range=(-10., 10.)):
     return np_x, x
 
 
+def allclose(a, b):
+    return np.allclose(a, b, atol=1e-4, rtol=1e-4)
+
+
 def test_binary_channel_wise_mean_scaling_quantizer():
     tf.InteractiveSession()
 
@@ -84,8 +88,8 @@ def test_binary_channel_wise_mean_scaling_quantizer():
     for split in np.split(y.eval(), 4, axis=3):
         assert len(np.unique(split)) == 2
 
-    assert np.allclose(y.eval(), expected_y)
-    assert np.allclose(grad_x.eval(), expected_grad_x)
+    assert allclose(y.eval(), expected_y)
+    assert allclose(grad_x.eval(), expected_grad_x)
 
 
 def test_binary_mean_scaling_quantizer():
@@ -109,8 +113,8 @@ def test_binary_mean_scaling_quantizer():
     y = quantizer(x)
     grad_x, = tf.gradients(y, x, grad_ys=grad_y)
 
-    assert np.allclose(y.eval(), expected_y)
-    assert np.allclose(grad_x.eval(), expected_grad_x)
+    assert allclose(y.eval(), expected_y)
+    assert allclose(grad_x.eval(), expected_grad_x)
 
 
 @pytest.mark.parametrize("bit_size", [2, 3])
@@ -145,8 +149,8 @@ def test_linear_mid_tread_half_quantizer(bit_size, max_value):
     y = quantizer(x)
     grad_x, = tf.gradients(y, x, grad_ys=grad_y)
 
-    assert np.allclose(y.eval(), expected_y)
-    assert np.allclose(grad_x.eval(), expected_grad_x)
+    assert allclose(y.eval(), expected_y)
+    assert allclose(grad_x.eval(), expected_grad_x)
 
 
 @pytest.mark.parametrize("threshold", [0.3, 0.7])
@@ -183,8 +187,8 @@ def test_twn_weight_quantizer(threshold):
     y = quantizer(x)
     grad_x, = tf.gradients(y, x, grad_ys=grad_y)
 
-    assert np.allclose(y.eval(), expected_y)
-    assert np.allclose(grad_x.eval(), expected_grad_x)
+    assert allclose(y.eval(), expected_y)
+    assert allclose(grad_x.eval(), expected_grad_x)
 
 
 # TODO(wakisaka): Test positive, negative is not 1.0 case. current these init by 1.0.
@@ -211,10 +215,10 @@ def test_ttq_weight_quantizer():
 
     sess.run(tf.global_variables_initializer())
 
-    assert np.allclose(y.eval(), expected_y)
-    assert np.allclose(grad_x.eval(), expected_grad_x)
-    assert np.allclose(grad_p.eval(), expected_grad_p)
-    assert np.allclose(grad_n.eval(), expected_grad_n)
+    assert allclose(y.eval(), expected_y)
+    assert allclose(grad_x.eval(), expected_grad_x)
+    assert allclose(grad_p.eval(), expected_grad_p)
+    assert allclose(grad_n.eval(), expected_grad_n)
 
 
 if __name__ == '__main__':
