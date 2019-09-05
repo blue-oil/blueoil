@@ -125,9 +125,9 @@ class OpticalFlowEstimationBase(Base):
     def num_per_epoch(self):
         return len(self.file_list)
 
-    def split_file_list(self, validation_rate, split_seed):
+    def split_file_list(self, validation_rate, validation_seed):
         train_dataset, validation_dataset = train_valid_split(
-            self.file_list, validation_rate, split_seed)
+            self.file_list, validation_rate, validation_seed)
         if self.subset == "train":
             self.file_list = train_dataset
         else:
