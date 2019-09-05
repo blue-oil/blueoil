@@ -21,7 +21,8 @@ limitations under the License.
 #include "tensor_view.h"
 
 template<class T>
-void func_Split(const TensorView<T, MemoryLayout::NHWC>& input, const TensorView<T, MemoryLayout::NHWC> * const outputs, T_UINT num_split)
+void func_Split(const TensorView<T, MemoryLayout::NHWC>& input,
+    const TensorView<T, MemoryLayout::NHWC> * const outputs, T_UINT *depths, T_UINT num_split)
 {
   Measurement::Start("func_Split");
 
@@ -39,6 +40,40 @@ void func_Split(const TensorView<T, MemoryLayout::NHWC>& input, const TensorView
       for(T_UINT d = 0; d < out_depth; d++){
         outputs[n].data()[output_index[n]++] = input.data()[input_index++];
       }
+    }
+  }
+
+  Measurement::Stop();
+}
+
+template<class T>
+void func_Split(const TensorView<T, MemoryLayout::HWChBCl>& input,
+    const TensorView<T, MemoryLayout::HWChBCl> * const outputs, T_UINT *depths, T_UINT num_split)
+{
+  Measurement::Start("func_Split");
+
+  const auto in_shape = input.get_shape();
+  T_UINT in_height = in_shape[0];
+  T_UINT in_width = in_shape[1];
+  T_UINT bits = in_shape[3];
+
+  if (!std::is_same<T, typename Base<T>::type>::value) {
+    // quantized and packed inputs
+    for(T_UINT i = 0; i < num_split; i++)
+      depths[i] /= 32;
+  }
+
+  T_UINT index = 0;
+  for(T_UINT n = 0; n < num_split; n++) {
+    for(T_UINT d = 0; d < depths[n]; d++) {
+      for(T_UINT h = 0; h < in_height; h++) {
+        for(T_UINT w = 0; w < in_width; w++) {
+          for(T_UINT digit = 0; digit < bits; ++digit) {
+            outputs[n](h, w, d, digit, 0) = input(h, w, index, digit, 0);
+          }
+        }
+      }
+      ++index;
     }
   }
 
