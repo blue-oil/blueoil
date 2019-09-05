@@ -100,8 +100,8 @@ def _open_pfm_file(file_name):
 
 
 class OpticalFlowEstimationBase(Base):
-    classes = None
-    num_classes = None
+    classes = ()
+    num_classes = 0
     available_subsets = ["train", "validation"]
     _coef = 1 / 255.0
 
