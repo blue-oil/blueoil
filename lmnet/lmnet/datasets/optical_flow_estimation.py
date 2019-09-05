@@ -105,10 +105,11 @@ class OpticalFlowEstimationBase(Base):
     available_subsets = ["train", "validation"]
     _coef = 1 / 255.0
 
-    def __init__(self, *args, validation_rate=0.1, split_seed=1234, **kwargs):
+    def __init__(
+            self, *args, validation_rate=0.1, validation_seed=1234, **kwargs):
         super().__init__(*args, **kwargs,)
         self.fetch_file_list()
-        self.split_file_list(validation_rate, split_seed)
+        self.split_file_list(validation_rate, validation_seed)
 
     def __getitem__(self, index, type=None):
         image_a_path, image_b_path, flow_path = self.file_list[index]
@@ -124,9 +125,9 @@ class OpticalFlowEstimationBase(Base):
     def num_per_epoch(self):
         return len(self.file_list)
 
-    def split_file_list(self, validation_rate, split_seed):
+    def split_file_list(self, validation_rate, validation_seed):
         train_dataset, validation_dataset = train_valid_split(
-            self.file_list, validation_rate, split_seed)
+            self.file_list, validation_rate, validation_seed)
         if self.subset == "train":
             self.file_list = train_dataset
         else:
