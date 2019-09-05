@@ -18,6 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.optical_flow_estimation.flownet_s_v1 import FlowNetSV1
+from lmnet.datasets.optical_flow_estimation import FlyingChairs
 from lmnet.data_processor import Sequence
 from lmnet.data_augmentor import (
     Brightness,
@@ -29,8 +30,7 @@ from lmnet.data_augmentor import (
 IS_DEBUG = False
 
 NETWORK_CLASS = FlowNetSV1
-# TODO Need dataset class
-DATASET_CLASS = None
+DATASET_CLASS = FlyingChairs
 
 IMAGE_SIZE = [384, 512]
 BATCH_SIZE = 8
