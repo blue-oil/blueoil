@@ -269,13 +269,13 @@ def test_training():
     config.NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
     config.NETWORK.IMAGE_SIZE = config.IMAGE_SIZE
     config.NETWORK.BATCH_SIZE = config.BATCH_SIZE
-    config.NETWORK.DATA_FORMAT = "NHCW"
+    config.NETWORK.DATA_FORMAT = "NHWC"
 
     # dataset config
     config.DATASET = EasyDict()
     config.DATASET.PRE_PROCESSOR = None
     config.DATASET.BATCH_SIZE = config.BATCH_SIZE
-    config.DATASET.DATA_FORMAT = "NHCW"
+    config.DATASET.DATA_FORMAT = "NHWC"
     config.DATASET.VALIDATION_RATE = 0.2
     config.DATASET.VALIDATION_SEED = 2019
 
@@ -291,3 +291,4 @@ if __name__ == '__main__':
     test_average_endpoint_error()
     test_contractive_block()
     test_refinement_block()
+    test_training()
