@@ -39,10 +39,10 @@ TASK = Tasks.OPTICAL_FLOW_ESTIMATION
 CLASSES = DATASET_CLASS.classes
 
 MAX_STEPS = 1200000
-SAVE_CHECKPOINT_STEPS = 50000
+SAVE_CHECKPOINT_STEPS = 5000
 KEEP_CHECKPOINT_MAX = 5
-TEST_STEPS = 10000
-SUMMARISE_STEPS = 1000
+TEST_STEPS = 100
+SUMMARISE_STEPS = 50
 # pretrain
 IS_PRETRAIN = False
 PRETRAIN_VARS = []
@@ -87,8 +87,8 @@ DATASET.VALIDATION_SEED = 2019
 # TODO I use default values because the metrics used in the paper are different.
 # I didn't add Gaussian Blur because it's different from Gaussian Noise.
 # Augmentation is not available in pytorch repo
-DATASET.AUGMENTOR = Sequence([
-    Brightness(),
-    Contrast(),
-    Color()
-])
+# DATASET.AUGMENTOR = Sequence([
+#     Brightness(),
+#     Contrast(),
+#     Color()
+# ])

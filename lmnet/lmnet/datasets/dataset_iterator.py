@@ -186,7 +186,6 @@ class _SimpleDatasetReader:
                     self.seed = _xorshift32(self.seed)
                     random_state = np.random.RandomState(self.seed)
                     random_state.shuffle(self.data_ids)
-
             yield self.data_ids.pop()
 
     def read(self):
