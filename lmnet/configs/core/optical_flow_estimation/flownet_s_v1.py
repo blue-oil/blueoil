@@ -82,8 +82,8 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.VALIDATION_RATIO = 0.2
-DATASET.RANDOM_SEED = 2019
+DATASET.VALIDATION_RATE = 0.2
+DATASET.VALIDATION_SEED = 2019
 
 # TODO I use default values because the metrics used in the paper are different.
 # I didn't add Gaussian Blur because it's different from Gaussian Noise.

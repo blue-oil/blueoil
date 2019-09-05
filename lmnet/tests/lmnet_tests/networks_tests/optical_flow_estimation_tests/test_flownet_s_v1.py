@@ -20,6 +20,7 @@ import tensorflow as tf
 
 from executor.train import start_training
 from lmnet import environment
+from lmnet.datasets.optical_flow_estimation import FlyingChairs
 from lmnet.networks.optical_flow_estimation.flownet_s_v1 import FlowNetSV1
 from lmnet.utils.executor import prepare_dirs
 
@@ -249,8 +250,7 @@ def test_training():
     config = EasyDict()
 
     config.NETWORK_CLASS = FlowNetSV1
-    # TODO dataset
-    config.DATASET_CLASS = None
+    config.DATASET_CLASS = FlyingChairs
 
     config.IS_DEBUG = False
     config.IMAGE_SIZE = [384, 512]
@@ -276,6 +276,8 @@ def test_training():
     config.DATASET.PRE_PROCESSOR = None
     config.DATASET.BATCH_SIZE = config.BATCH_SIZE
     config.DATASET.DATA_FORMAT = "NHCW"
+    config.DATASET.VALIDATION_RATE = 0.2
+    config.DATASET.VALIDATION_SEED = 2019
 
     environment.init("test_flownet_s_v1")
     prepare_dirs(recreate=True)
