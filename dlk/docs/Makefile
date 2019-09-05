@@ -1,15 +1,12 @@
 # This Makefile is only for documentation
 
-.PHONY: python cpp clean
+.PHONY: python clean
 
-all: cpp python
+all: python
 
 python:
 	cd python; PYTHONPATH=../../python/dlk make html
 
-cpp:
-	cd cpp; doxygen
 
 clean:
-	cd python; make clean; \
-	cd ../cpp; rm -rf html latex
+	cd python; make clean
