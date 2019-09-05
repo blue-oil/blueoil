@@ -236,6 +236,7 @@ def flow_error(tu, tv, u, v):
     return mepe
 
 
+# TODO Need this
 def flow_to_image(flow):
     """
     Convert flow into middlebury color code image
@@ -422,6 +423,7 @@ def scale_image(image, new_range):
     return scaled_image.astype(np.uint8)
 
 
+# TODO Need this
 def compute_color(u, v):
     """
     compute optical flow color map
@@ -466,6 +468,7 @@ def compute_color(u, v):
     return img
 
 
+# TODO Need this
 def make_color_wheel():
     """
     Generate color wheel according Middlebury color code
