@@ -53,7 +53,6 @@ class TestBinary(TestCaseDLKBase):
                threshold_skipping=False,
                num_pe=16,
                use_tvm=False,
-               use_onnx=False,
                debug=False,
                cache_dma=False,
                )
