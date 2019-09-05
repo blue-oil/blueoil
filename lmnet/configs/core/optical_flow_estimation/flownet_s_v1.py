@@ -66,7 +66,7 @@ POST_PROCESSOR = None
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9, "momentum2": 0.999}
+NETWORK.OPTIMIZER_KWARGS = {"beta1": 0.9, "beta2": 0.999}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 NETWORK.LEARNING_RATE_KWARGS = {
     "values": [0.0001, 0.00005, 0.000025, 0.0000125, 0.00000625],
