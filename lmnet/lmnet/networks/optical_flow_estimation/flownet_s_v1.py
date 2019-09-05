@@ -38,6 +38,7 @@ class FlowNetSV1(BaseNetwork):
 
         # TODO PyCharm warning. I think we should define self.images first here. Check other networks.
         self.images = None
+        self.base_dict = None
         self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
         self.weight_decay_rate = 0.0004
         self.use_batch_norm = True
@@ -243,19 +244,14 @@ class FlowNetSV1(BaseNetwork):
         flow = tf.image.resize_bilinear(predict_flow2, tf.stack([height, width]), align_corners=True)
 
         # TODO Check if returning dict causes memory error. Maybe we can return a tensor when not training?
-        if is_training:
-            return {
-                'predict_flow6': predict_flow6,
-                'predict_flow5': predict_flow5,
-                'predict_flow4': predict_flow4,
-                'predict_flow3': predict_flow3,
-                'predict_flow2': predict_flow2,
-                'flow': flow
-            }
-        else:
-            return {
-                'flow': flow
-            }
+        return {
+            'predict_flow6': predict_flow6,
+            'predict_flow5': predict_flow5,
+            'predict_flow4': predict_flow4,
+            'predict_flow3': predict_flow3,
+            'predict_flow2': predict_flow2,
+            'flow': flow
+        }
 
     # TODO Perhaps we don't need this.
     # def _post_process(self, predict_flow2, height, width):
@@ -272,7 +268,8 @@ class FlowNetSV1(BaseNetwork):
         """
         self.images = images
         conv_dict = self._contractive_block(images, is_training)
-        return self._refinement_block(images, conv_dict, is_training)
+        self.base_dict = self._refinement_block(images, conv_dict, is_training)
+        return self.base_dict["flow"]
 
     def metrics(self, output, labels):
         """Metrics.
@@ -281,8 +278,10 @@ class FlowNetSV1(BaseNetwork):
             output: dict of tensors from inference.
             labels: labels tensor.
         """
-        # TODO check if it breaks the code
-        metrics_ops_dict = {}
+        # TODO Check if this is okay
+        metrics_ops_dict = {
+            "no_op": tf.no_op(name=None)
+        }
         metrics_update_op = tf.no_op(name=None)
         return metrics_ops_dict, metrics_update_op
 
@@ -306,9 +305,9 @@ class FlowNetSV1(BaseNetwork):
 
         # Visualize output flow in TensorBoard with color encoding.
         # We visualize the first (0) and second (1) flow in each batch.
-        output_flow_0 = output['flow'][0, :, :, :]
+        output_flow_0 = output[0, :, :, :]
         output_flow_0 = tf.py_func(flow_to_image, [output_flow_0], tf.uint8)
-        output_flow_1 = output['flow'][1, :, :, :]
+        output_flow_1 = output[1, :, :, :]
         output_flow_1 = tf.py_func(flow_to_image, [output_flow_1], tf.uint8)
         output_flow_img = tf.stack([output_flow_0, output_flow_1], 0)
         tf.summary.image('output_flow', output_flow_img, max_outputs=2)
@@ -322,7 +321,8 @@ class FlowNetSV1(BaseNetwork):
         labels_flow_img = tf.stack([labels_flow_0, labels_flow_1], 0)
         tf.summary.image('labels_flow', labels_flow_img, max_outputs=2)
 
-    def placeholders(self):
+    # TODO CHANGE THE NAME
+    def placeholderes(self):
         """Placeholders.
 
         Return placeholders.
@@ -331,15 +331,14 @@ class FlowNetSV1(BaseNetwork):
             tf.placeholder: Placeholders.
         """
 
-        shape = (self.batch_size, self.image_size[0], self.image_size[1], 3) \
-            if self.data_format == 'NHWC' else (self.batch_size, 3, self.image_size[0], self.image_size[1])
+        shape = (self.batch_size, self.image_size[0], self.image_size[1], 6) \
+            if self.data_format == 'NHWC' else (self.batch_size, 6, self.image_size[0], self.image_size[1])
         images_placeholder = tf.placeholder(
             tf.float32,
             shape=shape,
             name="images_placeholder")
 
         labels_placeholder = tf.placeholder(
-            # TODO check dataloader.py. I think it should be float32
             tf.float32,
             shape=(self.batch_size, self.image_size[0], self.image_size[1], 2),
             name="labels_placeholder")
@@ -347,18 +346,13 @@ class FlowNetSV1(BaseNetwork):
         return images_placeholder, labels_placeholder
 
     def inference(self, images, is_training):
-        base_dict = self.base(images, is_training)
+        flow = self.base(images, is_training)
         # TODO why do we need tf.identity? Perhaps for adding a name.
-        # TODO train.py and predict.py both call inference => Is returning dict (train) and tensor (predict) okay?
-        if is_training:
-            # TODO I don't think we need tf.identity here because the tensors are already named.
-            # return {k: tf.identity(v, name=k) for k, v in base_dict.items()}
-            return base_dict
-        else:
-            flow = base_dict["flow"]
-            return tf.identity(flow, name="output")
+        return tf.identity(flow, name="output")
 
-    def loss(self, output, labels):
+    # TODO the _output is not used because we need dictionary from self.base_dict
+    # _output can only be a tensor, which is the flow
+    def loss(self, _output, labels):
         """loss.
 
         Params:
@@ -368,48 +362,49 @@ class FlowNetSV1(BaseNetwork):
         """
 
         losses = []
+        base_dict = self.base_dict
 
         # L2 loss between predict_flow6 (weighted w/ 0.32)
-        predict_flow6 = output['predict_flow6']
+        predict_flow6 = base_dict['predict_flow6']
         size = [predict_flow6.shape[1], predict_flow6.shape[2]]
-        downsampled_flow6 = self._downsample(labels, size)
+        downsampled_flow6 = self._downsample("downsampled_flow6", labels, size)
         avg_epe_predict_flow6 = self._average_endpoint_error(downsampled_flow6, predict_flow6)
         tf.summary.scalar("avg_epe_predict_flow6", avg_epe_predict_flow6)
         losses.append(avg_epe_predict_flow6)
 
         # L2 loss between predict_flow5 (weighted w/ 0.08)
-        predict_flow5 = output['predict_flow5']
+        predict_flow5 = base_dict['predict_flow5']
         size = [predict_flow5.shape[1], predict_flow5.shape[2]]
-        downsampled_flow5 = self._downsample(labels, size)
+        downsampled_flow5 = self._downsample("downsampled_flow5", labels, size)
         avg_epe_predict_flow5 = self._average_endpoint_error(downsampled_flow5, predict_flow5)
         tf.summary.scalar("avg_epe_predict_flow5", avg_epe_predict_flow5)
         losses.append(avg_epe_predict_flow5)
 
         # L2 loss between predict_flow4 (weighted w/ 0.02)
-        predict_flow4 = output['predict_flow4']
+        predict_flow4 = base_dict['predict_flow4']
         size = [predict_flow4.shape[1], predict_flow4.shape[2]]
-        downsampled_flow4 = self._downsample(labels, size)
+        downsampled_flow4 = self._downsample("downsampled_flow4", labels, size)
         avg_epe_predict_flow4 = self._average_endpoint_error(downsampled_flow4, predict_flow4)
         tf.summary.scalar("avg_epe_predict_flow4", avg_epe_predict_flow4)
         losses.append(avg_epe_predict_flow4)
 
         # L2 loss between predict_flow3 (weighted w/ 0.01)
-        predict_flow3 = output['predict_flow3']
+        predict_flow3 = base_dict['predict_flow3']
         size = [predict_flow3.shape[1], predict_flow3.shape[2]]
-        downsampled_flow3 = self._downsample(labels, size)
+        downsampled_flow3 = self._downsample("downsampled_flow3", labels, size)
         avg_epe_predict_flow3 = self._average_endpoint_error(downsampled_flow3, predict_flow3)
         tf.summary.scalar("avg_epe_predict_flow3", avg_epe_predict_flow3)
         losses.append(avg_epe_predict_flow3)
 
         # L2 loss between predict_flow2 (weighted w/ 0.005)
-        predict_flow2 = output['predict_flow2']
+        predict_flow2 = base_dict['predict_flow2']
         size = [predict_flow2.shape[1], predict_flow2.shape[2]]
-        downsampled_flow2 = self._downsample(labels, size)
+        downsampled_flow2 = self._downsample("downsampled_flow2", labels, size)
         avg_epe_predict_flow2 = self._average_endpoint_error(downsampled_flow2, predict_flow2)
         tf.summary.scalar("avg_epe_predict_flow2", avg_epe_predict_flow2)
         losses.append(avg_epe_predict_flow2)
 
-        # TODO put weight in config file
+        # TODO put weight in config file?
         # This adds the weighted loss to the loss collection
         weighted_epe = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
         tf.summary.scalar("weighted_epe", weighted_epe)
