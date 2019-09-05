@@ -7,7 +7,8 @@
 # Date: 6th Aug 2016
 # ==============================
 """
-import png
+# TODO Maybe we don't need png
+# import png
 import numpy as np
 import matplotlib.colors as cl
 import matplotlib.pyplot as plt
