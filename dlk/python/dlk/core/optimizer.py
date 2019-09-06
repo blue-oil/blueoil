@@ -623,10 +623,8 @@ def pass_lookup(graph: Graph) -> None:
         idx = 0
         for p in qtz_data:
             data = packer.run(p.astype(np.float32), p.shape).flatten()
-            # lsb[idx] = data[0] & 0x0000FFFF
-            # msb[idx] = data[1] & 0x0000FFFF
-            lsb[idx] = data[0] & 0x000003FF
-            msb[idx] = data[1] & 0x000003FF
+            lsb[idx] = data[0]
+            msb[idx] = data[1]
 
             idx += 1
 
