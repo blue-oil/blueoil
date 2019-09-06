@@ -87,17 +87,14 @@ class CustomInstall(install):
     description = 'Install DLK'
     user_options = install.user_options
     user_options.append(('enable-tvm', None, 'Enable TVM support'))
-    user_options.append(('enable-onnx', None, 'Enable ONNX support'))
 
     def initialize_options(self):
         install.initialize_options(self)
         self.enable_tvm = None
-        self.enable_onnx = None
 
     def finalize_options(self):
         install.finalize_options(self)
         print('TVM support: ' + ('OFF' if self.enable_tvm is None else 'ON'))
-        print('ONNX support: ' + ('OFF' if self.enable_onnx is None else 'ON'))
 
     def run(self):
         install.run(self)
@@ -155,15 +152,6 @@ class CustomInstall(install):
             run_command('python setup.py install')
 
             os.chdir(root_path)
-
-        if self.enable_onnx:
-            # install ONNX v1.1.1
-            if int(pip.__version__.split('.')[0]) >= 10:
-                from pip._internal import main as pipmain
-                pipmain(['install', 'onnx==1.1.1'])
-            else:
-                from pip import main as pipmain
-                pipmain(['install', 'onnx==1.1.1'])
 
 
 class CustomTest(test):

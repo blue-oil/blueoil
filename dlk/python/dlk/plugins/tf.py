@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+"""Module for protocol buffer."""
 
-"""Module for ONNX."""
 import functools
 import importlib
 from collections import defaultdict
@@ -128,7 +128,7 @@ class Node(object):
 
     @property
     def node_def_object(self):
-        """Return onnx object."""
+        """Return node object."""
         return self.nd_
 
     @property
@@ -331,7 +331,7 @@ class Output(object):
 
     @property
     def node_def_object(self):
-        """Return onnx object."""
+        """Return node object."""
         return self.out_
 
     @property
