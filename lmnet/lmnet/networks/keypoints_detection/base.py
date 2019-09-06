@@ -172,7 +172,7 @@ class Base(BaseNetwork):
         joints_pred = self.post_process(output)
 
         oks = tf.py_func(compute_oks_batch,
-                         [joints_gt, joints_pred],
+                         [joints_gt, joints_pred, self.image_size],
                          tf.float32)
 
         return oks
