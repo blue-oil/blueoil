@@ -13,9 +13,6 @@ bin/
 build/
 dist/
 
-# Testing
-tests/tf_onnx/
-
 # pyenv
 .python-version
 
