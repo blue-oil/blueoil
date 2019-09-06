@@ -83,31 +83,18 @@ def run_command(command):
         raise RuntimeError('Error executing command: ' + command)
 
 
-def build_library():
-    root_path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(root_path)
-    os.makedirs(root_path + '/build', exist_ok=True)
-    os.chdir(root_path + '/build')
-    os.system('cmake ../cpp/packer')
-    os.system('make')
-    os.chdir(root_path)
-
-
 class CustomInstall(install):
     description = 'Install DLK'
     user_options = install.user_options
     user_options.append(('enable-tvm', None, 'Enable TVM support'))
-    user_options.append(('enable-onnx', None, 'Enable ONNX support'))
 
     def initialize_options(self):
         install.initialize_options(self)
         self.enable_tvm = None
-        self.enable_onnx = None
 
     def finalize_options(self):
         install.finalize_options(self)
         print('TVM support: ' + ('OFF' if self.enable_tvm is None else 'ON'))
-        print('ONNX support: ' + ('OFF' if self.enable_onnx is None else 'ON'))
 
     def run(self):
         install.run(self)
@@ -166,19 +153,9 @@ class CustomInstall(install):
 
             os.chdir(root_path)
 
-        if self.enable_onnx:
-            # install ONNX v1.1.1
-            if int(pip.__version__.split('.')[0]) >= 10:
-                from pip._internal import main as pipmain
-                pipmain(['install', 'onnx==1.1.1'])
-            else:
-                from pip import main as pipmain
-                pipmain(['install', 'onnx==1.1.1'])
-
 
 class CustomTest(test):
     def run(self):
-        build_library()
         test.run(self)
 
 
@@ -188,27 +165,11 @@ class CMakeExtension(Extension):
         self.sourcedir = os.path.abspath(sourcedir)
 
 
-class CMakeBuild(build_ext):
-    def run(self):
-        try:
-            out = subprocess.check_output(['cmake', '--version'])
-        except OSError:
-            raise RuntimeError("CMake must be installed to build the following extensions: " +
-                               ", ".join(e.name for e in self.extensions))
-
-        self.build_extension()
-
-    def build_extension(self):
-        build_library()
-
-
 setup(
     cmdclass={
         'test': CustomTest,
-        'build_ext': CMakeBuild,
         'install': CustomInstall},
 
-    ext_modules=[CMakeExtension('packer')],
     name='dlk',
     python_requires='>= 3.6.3',
     version=__version__,

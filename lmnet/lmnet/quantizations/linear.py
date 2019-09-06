@@ -102,7 +102,7 @@ def linear_mid_tread_half_quantizer(
 
             x = tf.clip_by_value(x, min_value, max_value, name="clip")
             shifted = (x - min_value) / value_range
-            quantized = tf.round(shifted * n) / n
+            quantized = tf.floor(shifted * n + 0.5) / n
             unshifted = quantized * value_range + min_value
             return unshifted
 

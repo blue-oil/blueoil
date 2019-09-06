@@ -35,7 +35,6 @@ class Config(object):
                  default_qword_dtype=Uint32,
                  tvm_path=None,
                  test_dir=None,
-                 use_onnx=False,
                  optimized_pb_path=None,
                  output_pj_path=None,
                  debug: bool = False,
@@ -53,7 +52,6 @@ class Config(object):
         self.default_qword_dtype = default_qword_dtype
         self.tvm_path: str = tvm_path
         self.test_dir: str = test_dir
-        self.use_onnx: bool = use_onnx
         self.optimized_pb_path: str = optimized_pb_path
         self.output_pj_path: str = output_pj_path
         self.__debug: bool = debug

@@ -54,7 +54,6 @@ class TestGenerateProject(unittest.TestCase):
                    threshold_skipping=True,
                    num_pe=16,
                    use_tvm=True,
-                   use_onnx=False,
                    debug=False,
                    cache_dma=False,
                    )
@@ -83,7 +82,6 @@ class TestGenerateProject(unittest.TestCase):
                    threshold_skipping=True,
                    num_pe=16,
                    use_tvm=True,
-                   use_onnx=False,
                    debug=False,
                    cache_dma=False,
                    )
@@ -112,7 +110,6 @@ class TestGenerateProject(unittest.TestCase):
                    threshold_skipping=True,
                    num_pe=16,
                    use_tvm=True,
-                   use_onnx=False,
                    debug=True,
                    cache_dma=False,
                    )

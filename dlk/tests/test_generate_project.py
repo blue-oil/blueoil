@@ -47,7 +47,6 @@ class TestGenerateProject(TestCaseDLKBase):
                threshold_skipping=flag_thskip,
                num_pe=16,
                use_tvm=False,
-               use_onnx=False,
                debug=False,
                cache_dma=False
                )
