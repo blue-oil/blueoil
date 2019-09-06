@@ -43,7 +43,6 @@ RUN apt-get update && apt-get install -y \
     libsqlite3-dev \
     wget \
     curl \
-    llvm \
     libncurses5-dev \
     libncursesw5-dev \
     xz-utils \
