@@ -187,8 +187,8 @@ class KeypointsDetectionBase(Base, metaclass=ABCMeta):
 
         x1, y1, x2, y2 = box
 
-        x1 -= 20
-        x2 += 20
+        x1 -= 30
+        x2 += 30
         y1 -= 10
         y2 += 10
 

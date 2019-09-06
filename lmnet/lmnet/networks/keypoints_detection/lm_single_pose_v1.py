@@ -38,6 +38,9 @@ class LmSinglePoseV1(Base):
         self.activation = tf.nn.relu
         self.custom_getter = None
         self.num_joints = 17
+
+        assert stride in [2, 4, 8, 16], "Only stride 2, 4, 8, 16 are supported."
+
         self.stride = stride
 
     def loss(self, output, labels):
@@ -61,7 +64,7 @@ class LmSinglePoseV1(Base):
 
             refine_loss = tf.reduce_sum(top_k_values) / top_k
 
-            loss = global_loss + refine_loss
+            loss = refine_loss + global_loss
 
             tf.summary.scalar("global_loss", global_loss)
             tf.summary.scalar("refine_loss", refine_loss)
@@ -121,18 +124,24 @@ class LmSinglePoseV1(Base):
         x = _lmnet_block('conv10', x, 128, 3)
         x = _lmnet_block('conv11', x, 128, 3)
         x = _lmnet_block('conv12', x, 128, 3)
-        c4 = _lmnet_block('c4', x, 64, 1)
+        c4 = _lmnet_block('c4', x, 32, 1)
 
         x = self._space_to_depth(name='space2depth5', inputs=x)
         x = _lmnet_block('conv13', x, 256, 3)
         x = _lmnet_block('conv14', x, 256, 3)
         x = _lmnet_block('conv15', x, 256, 3)
-        c5 = _lmnet_block('c5', x, 128, 1)
+        x = _lmnet_block('conv16', x, 256, 3)
+        x = _lmnet_block('conv17', x, 256, 3)
+        c5 = _lmnet_block('c5', x, 32, 1)
 
         x = connect_block(lateral=c4, up=c5, name="connect_block1")
-        x = connect_block(lateral=c3, up=x, name="connect_block2")
-        x = connect_block(lateral=c2, up=x, name="connect_block3")
-        x = connect_block(lateral=c1, up=x, name="connect_block4")
+
+        if self.stride < 16:
+            x = connect_block(lateral=c3, up=x, name="connect_block2")
+            if self.stride < 8:
+                x = connect_block(lateral=c2, up=x, name="connect_block3")
+                if self.stride < 4:
+                    x = connect_block(lateral=c1, up=x, name="connect_block4")
 
         x = _lmnet_block('conv_final', x, self.num_joints, 3, activation=None)
 
@@ -196,5 +205,13 @@ class LmSinglePoseV1Quantize(LmSinglePoseV1):
         with tf.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
+
+                if var.op.name.startswith("conv1/"):
+                    return var
+
+                if var.op.name.startswith("conv_final/"):
+                    return var
+
                 return weight_quantization(var)
+
         return var

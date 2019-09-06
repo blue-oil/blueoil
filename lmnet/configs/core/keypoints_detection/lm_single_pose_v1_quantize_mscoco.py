@@ -43,8 +43,8 @@ IS_DEBUG = False
 NETWORK_CLASS = LmSinglePoseV1Quantize
 DATASET_CLASS = MscocoSinglePersonKeypoints
 
-IMAGE_SIZE = [160, 160]
-BATCH_SIZE = 4
+IMAGE_SIZE = [256, 320]
+BATCH_SIZE = 8
 DATA_FORMAT = "NHWC"
 TASK = Tasks.KEYPOINTS_DETECTION
 CLASSES = DATASET_CLASS.classes
@@ -69,13 +69,18 @@ PRETRAIN_FILE = ""
 # SUMMARISE_STEPS = 1
 # IS_DEBUG = True
 
+# stride of output heatmap. the smaller, the slower.
+STRIDE = 8
+
 PRE_PROCESSOR = Sequence([
     ResizeWithJoints(image_size=IMAGE_SIZE),
-    JointsToGaussianHeatmap(image_size=IMAGE_SIZE, stride=2),
+    JointsToGaussianHeatmap(image_size=IMAGE_SIZE,
+                            stride=STRIDE, sigma=2,
+                            max_value=10),
     DivideBy255()
 ])
 POST_PROCESSOR = Sequence([
-    FormatJoints(num_dimensions=2, stride=2, confidence_threshold=0.1)
+    FormatJoints(num_dimensions=2, stride=STRIDE, confidence_threshold=0.1)
 ])
 
 step_per_epoch = int(149813 / BATCH_SIZE)
@@ -88,6 +93,7 @@ NETWORK.LEARNING_RATE_KWARGS = {
         "values": [1e-4, 1e-3, 1e-4, 1e-5],
         "boundaries": [5000, step_per_epoch * 5, step_per_epoch * 10],
 }
+NETWORK.STRIDE = STRIDE
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
