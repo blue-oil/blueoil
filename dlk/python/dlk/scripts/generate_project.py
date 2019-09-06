@@ -16,7 +16,7 @@
 """
 Script that automatically runs all of the folllowing steps.
 
-- Import onnx, lmnet's export and config.
+- Import protocol buffer, lmnet's export and config.
 - Generate all cpp source headers and other control files like Makefile.
 """
 import click
@@ -112,13 +112,12 @@ def run(input_path: str,
         threshold_skipping: bool = False,
         num_pe: int = 16,
         use_tvm: bool = False,
-        use_onnx: bool = False,
         debug: bool = False,
         cache_dma: bool = False):
 
     output_dlk_test_dir = path.join(dest_dir_path, f'{project_name}.test')
     optimized_pb_path = path.join(dest_dir_path, f'{project_name}')
-    optimized_pb_path += '.onnx' if use_onnx else '.pb'
+    optimized_pb_path += '.pb'
     output_project_path = path.join(dest_dir_path, f'{project_name}.prj')
 
     config = Config(num_pe=num_pe,
@@ -136,17 +135,7 @@ def run(input_path: str,
     utils.make_dirs(dest_dir_path)
 
     click.echo('import pb file')
-    if use_onnx:
-        try:
-            __import__('onnx')
-        except ImportError:
-            raise ImportError('ONNX is required but not installed.')
-        from frontend.base import BaseIO
-        from frontend.onnx import OnnxIO
-        io: BaseIO = OnnxIO()
-
-    else:
-        io = TensorFlowIO()
+    io = TensorFlowIO()
     model: Model = io.read(input_path)
 
     click.echo('optimize graph step: start')
@@ -163,7 +152,7 @@ def run(input_path: str,
     "-i",
     "--input_path",
     type=click.Path(exists=True),
-    help="onnx protobuf path which you want to convert to C codes",
+    help="protobuf path which you want to convert to C codes",
 )
 @click.option(
     "-o",
@@ -204,13 +193,6 @@ def run(input_path: str,
     help="optimize CPU/GPU operations using TVM",
 )
 @click.option(
-    "-onnx",
-    "--use_onnx",
-    is_flag=True,
-    default=False,
-    help="if the input file is in ONNX format"
-)
-@click.option(
     "-dbg",
     "--debug",
     is_flag=True,
@@ -231,7 +213,6 @@ def main(input_path,
          threshold_skipping,
          num_pe,
          use_tvm,
-         use_onnx,
          debug,
          cache_dma):
 
@@ -243,7 +224,6 @@ def main(input_path,
         threshold_skipping=threshold_skipping,
         num_pe=num_pe,
         use_tvm=use_tvm,
-        use_onnx=use_onnx,
         debug=debug,
         cache_dma=cache_dma)
 
