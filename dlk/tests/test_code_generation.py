@@ -535,7 +535,6 @@ class TestCodeGeneration(TestCaseDLKBase):
                threshold_skipping=threshold_skipping,
                num_pe=16,
                use_tvm=False,
-               use_onnx=False,
                debug=False,
                cache_dma=cache_dma,
                )
