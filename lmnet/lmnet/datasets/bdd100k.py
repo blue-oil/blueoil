@@ -290,10 +290,3 @@ class BDD100KSegmentation(SegmentationBase):
     def num_per_epoch(self):
         return len(self.files_and_annotations()[0])
 
-
-def check_dataset():
-    train = BDD100KObjectDetection(subset="train")
-    print(len(train.paths))
-    print(train.paths[0:5])
-    print(train.bboxs[0:5])
-    print("seems dataset was loaded correctly")
