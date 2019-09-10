@@ -17,11 +17,8 @@ limitations under the License.
 #include <climits>
 
 #include "global.h"
-#include "func/impl/apply_thresholds.h"
 #include "func/impl/quantized_conv2d_tiling.h"
-#include "func/impl/pack_16bit.h"
 #include "time_measurement.h"
-#include "tensor_convert.h"
 
 #include <x86intrin.h>
 
@@ -33,40 +30,40 @@ namespace dlk {
 
 namespace impl {
 
-static const auto buf_th = std::make_unique<QUANTIZED_PACKED[]>(MAX_SIZE_QOUTPUTS_PER_LAYER);
-static const auto buf_non_th = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_SIZE_OUTPUTS_PER_LAYER);
-alignas(32) static int16_t nksum_ary[MAX_SIZE_QKERNELS_PER_LAYER];
-alignas(32) static uint16_t nk[MAX_SIZE_QKERNELS_PER_LAYER*2];
+static const auto buf_th0 = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
+static const auto buf_th1 = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
+static const auto buf_th2 = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
+static const auto buf_flg = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
 
 void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
     const tiling_input_t& output) {
   Measurement::Start("Pack_input_for_tiling");
-  const T_UINT in_channels = input.get_shape()[3];
-  const T_UINT in_height = input.get_shape()[1];
-  const T_UINT in_width = input.get_shape()[2];
-  const T_UINT in_bitwidth = output.get_shape()[3];
+  const std::size_t in_channels = input.get_shape()[3];
+  const std::size_t in_height = input.get_shape()[1];
+  const std::size_t in_width = input.get_shape()[2];
+  const std::size_t in_bitwidth = output.get_shape()[3];
   
-  constexpr T_UINT InTypeBitWidth = CHAR_BIT * sizeof(uint32_t);
-  const T_UINT in_stride = (in_channels + InTypeBitWidth - 1) / InTypeBitWidth;
+  constexpr std::size_t InTypeBitWidth = CHAR_BIT * sizeof(uint32_t);
+  const std::size_t in_stride = (in_channels + InTypeBitWidth - 1) / InTypeBitWidth;
 #pragma omp parallel for schedule(dynamic)
-  for (unsigned int in_ch_high = 0; in_ch_high < in_stride; ++in_ch_high) {
-    for (unsigned int row = 0; row < in_height; ++row) {
-      for (unsigned int col = 0; col < in_width; ++col) {
-        for (unsigned int in_bit_ch = 0; in_bit_ch < in_bitwidth; ++in_bit_ch) {
+  for (std::size_t in_ch_high = 0; in_ch_high < in_stride; ++in_ch_high) {
+    for (std::size_t row = 0; row < in_height; ++row) {
+      for (std::size_t col = 0; col < in_width; ++col) {
+        for (std::size_t in_bit_ch = 0; in_bit_ch < in_bitwidth; ++in_bit_ch) {
           output(in_ch_high, row, col, in_bit_ch, 0) = tiling_input_elem_t(0);
         }
       }
     }
   }
 #pragma omp parallel for schedule(dynamic)
-  for (unsigned int row = 0; row < in_height; ++row) {
-    for (unsigned int col = 0; col < in_width; ++col) {
-      for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
-        for (unsigned int in_ch_low = 0; in_ch_low < InTypeBitWidth; ++in_ch_low) {
-          unsigned int in_ch = in_ch_high + in_ch_low;
+  for (std::size_t row = 0; row < in_height; ++row) {
+    for (std::size_t col = 0; col < in_width; ++col) {
+      for (std::size_t in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
+        for (std::size_t in_ch_low = 0; in_ch_low < InTypeBitWidth; ++in_ch_low) {
+          std::size_t in_ch = in_ch_high + in_ch_low;
           if (in_ch >= in_channels) break;
           QUANTIZED_NOT_PACKED val = input(0, row, col, in_ch);
-          for (unsigned int in_bit_ch = 0; in_bit_ch < in_bitwidth; ++in_bit_ch) {
+          for (std::size_t in_bit_ch = 0; in_bit_ch < in_bitwidth; ++in_bit_ch) {
             tiling_input_elem_base_t bit = (val >> in_bit_ch) & 1;
             output(in_ch_high / InTypeBitWidth, row, col, in_bit_ch, 0) |= tiling_input_elem_t(bit << in_ch_low);
           }
@@ -81,194 +78,292 @@ void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::
 void QuantizedConv2DTiling(const tiling_input_t& input,
                                   const kernel_t& kernel,
                                   const binary_convolution_parameters &p) {
-  constexpr T_UINT InTypeBitWidth = tiling_input_elem_t::BitCount;
+  constexpr std::size_t InTypeBitWidth = tiling_input_elem_t::BitCount;
   convolution_parameters cp = p.normal_conv_params;
-  const T_UINT out_channels = cp.output_channels;
-  const T_UINT kh = cp.kernel_height;
-  const T_UINT kw = cp.kernel_width;
-  const T_UINT in_bitwidth = 2;
-  const T_UINT in_channels = cp.kernel_depth;
-  const T_UINT in_height = cp.input_height;
-  const T_UINT in_width = cp.input_width;
-  const T_UINT in_stride = (in_channels + InTypeBitWidth - 1) / InTypeBitWidth;
-  const T_UINT padding = cp.padding;
-  const T_UINT out_height = cp.output_height;
-  const T_UINT out_width = cp.output_width;
-  const T_UINT out_size = out_height * out_width * out_channels;
+  const std::size_t out_channels = cp.output_channels;
+  const std::size_t kh = cp.kernel_height;
+  const std::size_t kw = cp.kernel_width;
+  const std::size_t in_bitwidth = 2;
+  const std::size_t in_channels = cp.kernel_depth;
+  const std::size_t in_height = cp.input_height;
+  const std::size_t in_width = cp.input_width;
+  const std::size_t in_stride = (in_channels + InTypeBitWidth - 1) / InTypeBitWidth;
+  const std::size_t padding = cp.padding;
+  const std::size_t out_height = cp.output_height;
+  const std::size_t out_width = cp.output_width;
+  const std::size_t out_size = out_height * out_width * out_channels;
 
   //assert(kh * kw < 32);
   assert(in_height * in_width == out_height * out_width);
   assert((in_channels % InTypeBitWidth) == 0);
 
   Measurement::Start("Quantized Conv2D Tiling");
-  const auto mask4 = _mm256_set1_epi8(0x0F);
-  const auto popc_table = _mm256_setr_epi8(
-    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
-    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
-  );
-  const auto vone = _mm256_set1_epi8(0x01);
+  if (p.thresholds != nullptr) {
+    const auto table = _mm256_setr_epi8(
+        0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15,
+        0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15
+    );
+    const auto table2 = _mm256_setr_epi32(
+        0, 4, 2, 6, 1, 5, 3, 7
+    );
+    for (std::size_t i = 0; i < out_channels; i += 16) {
+      const auto v0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i +  0));
+      const auto v1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 16));
+      const auto v2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 32));
+      const auto v3 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 48));
+      const auto tmp00 = _mm256_shuffle_epi8(v0, table);
+      const auto tmp01 = _mm256_shuffle_epi8(v1, table);
+      const auto tmp02 = _mm256_shuffle_epi8(v2, table);
+      const auto tmp03 = _mm256_shuffle_epi8(v3, table);
+      const auto tmp10 = _mm256_unpacklo_epi32(tmp00, tmp01);
+      const auto tmp11 = _mm256_unpacklo_epi32(tmp02, tmp03);
+      const auto tmp12 = _mm256_unpackhi_epi32(tmp00, tmp01);
+      const auto tmp13 = _mm256_unpackhi_epi32(tmp02, tmp03);
+      const auto tmp20 = _mm256_unpacklo_epi32(tmp10, tmp11);
+      const auto tmp21 = _mm256_unpackhi_epi32(tmp10, tmp11);
+      const auto tmp22 = _mm256_unpacklo_epi32(tmp12, tmp13);
+      const auto tmp23 = _mm256_unpackhi_epi32(tmp12, tmp13);
+      const auto th0 = _mm256_permutevar8x32_epi32(tmp20, table2);
+      const auto th1 = _mm256_permutevar8x32_epi32(tmp21, table2);
+      const auto th2 = _mm256_permutevar8x32_epi32(tmp22, table2);
+      const auto flg = _mm256_permutevar8x32_epi32(tmp23, table2);
+      const auto is_neg = _mm256_cmpgt_epi16(_mm256_setzero_si256(), flg);
+      const auto res0 = _mm256_sub_epi16(th0, is_neg);
+      const auto res1 = _mm256_sub_epi16(th1, is_neg);
+      const auto res2 = _mm256_sub_epi16(th2, is_neg);
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_th0.get() + i), res0);
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_th1.get() + i), res1);
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_th2.get() + i), res2);
+      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_flg.get() + i), flg);
+    }
+  }
+
   if (kh == 1 && kw == 1) {
-    constexpr T_UINT InChUnroll = InTypeBitWidth; // hardcoded, not configurable
-    constexpr T_UINT OutChUnroll = 16; // hardcoded, not configurable
-    constexpr T_UINT InBitChUnroll = 2; // hardcoded, not configurable
-    constexpr T_UINT ColUnroll = 4; // hardcoded, not configurable
+    constexpr std::size_t InChUnroll = InTypeBitWidth; // hardcoded, not configurable
+    constexpr std::size_t OutChUnroll = 16; // hardcoded, not configurable
+    constexpr std::size_t OutChUnroll2 = 32; // hardcoded, not configurable
+    constexpr std::size_t OutChBlocks = OutChUnroll2 / OutChUnroll;
+    constexpr std::size_t InBitChUnroll = 2; // hardcoded, not configurable
+    constexpr std::size_t ColUnroll = 4; // hardcoded, not configurable
     const auto row_tile_count = in_height;
     const auto col_tile_count = (in_width + ColUnroll - 1) / ColUnroll;
-    const auto out_tile_count = (out_channels + OutChUnroll - 1) / OutChUnroll;
-    const auto total_tile_count = row_tile_count * col_tile_count * out_tile_count;
-    for (T_UINT i = 0; i < out_channels; ++i) {
+    const auto total_tile_count = row_tile_count * col_tile_count;
+    alignas(32) int16_t nksum_ary[MAX_IN_C];
+    alignas(32) uint32_t nk[MAX_SIZE_QKERNELS_PER_LAYER];
+    for (std::size_t i = 0; i < out_channels; ++i) {
       nksum_ary[i] = 0;
     }
-    for (T_UINT i = 0; i < out_channels; i += OutChUnroll) {
-      for (T_UINT j = 0; j < in_channels / InTypeBitWidth; ++j) {
-        for (T_UINT k = 0; k < OutChUnroll; ++k) {
+    for (std::size_t i = 0; i < out_channels; i += OutChUnroll) {
+      for (std::size_t j = 0; j < in_channels / InTypeBitWidth; ++j) {
+        for (std::size_t k = 0; k < OutChUnroll; ++k) {
           const auto nk_tmp
             = kernel.data()[(i+k) * (in_channels / InTypeBitWidth) + j].Raw();
-          nk[i * (in_channels / InTypeBitWidth * 2) + (j * 2) * OutChUnroll + k]
-            = nk_tmp;
-          nk[i * (in_channels / InTypeBitWidth * 2) + (j * 2 + 1) * OutChUnroll + k]
-            = nk_tmp >> 16;
+          const auto nk_index = i * (in_channels / InTypeBitWidth) * 2
+              + j * OutChUnroll * 2
+              + k * 2;
+          nk[nk_index + 0] = nk_tmp;
+          nk[nk_index + 1] = nk_tmp;
           nksum_ary[i + k]
             += __builtin_popcount(nk_tmp) * 3;
         }
       }
     }
-    const auto voffset = _mm256_sub_epi64(_mm256_setr_epi64x(0, 1, 2, 3), _mm256_set1_epi64x(in_width));
+    const auto mask4 = _mm256_set1_epi8(0x0F);
+    const auto vone = _mm256_set1_epi8(1);
+    const auto popc_table = _mm256_setr_epi8(
+      0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+      0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
+    );
 #pragma omp parallel for schedule(guided)
-    for (T_UINT tile_index = 0; tile_index < total_tile_count; ++tile_index) {
-      const auto out_ch_high = tile_index % out_tile_count * OutChUnroll;
-      const auto col = (tile_index / out_tile_count) % col_tile_count * ColUnroll;
-      const auto row = tile_index / (out_tile_count * col_tile_count);
-      auto xnorsum00 = _mm256_setzero_si256();
-      auto xnorsum01 = _mm256_setzero_si256();
-      auto xnorsum10 = _mm256_setzero_si256();
-      auto xnorsum11 = _mm256_setzero_si256();
-      auto xnorsum20 = _mm256_setzero_si256();
-      auto xnorsum21 = _mm256_setzero_si256();
-      auto xnorsum30 = _mm256_setzero_si256();
-      auto xnorsum31 = _mm256_setzero_si256();
-      for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
-        const auto nk_index = out_ch_high * (in_channels / InTypeBitWidth * 2)
-          + (in_ch_high / InTypeBitWidth * 2) * OutChUnroll;
-        const auto nk0 = _mm256_load_si256(reinterpret_cast<__m256i*>(nk + nk_index + 0 * OutChUnroll));
-        const auto nk1 = _mm256_load_si256(reinterpret_cast<__m256i*>(nk + nk_index + 1 * OutChUnroll));
-        const auto vcol = _mm256_add_epi64(_mm256_set1_epi64x(col), voffset);
-        const auto loadmask = _mm256_cmpgt_epi64(_mm256_setzero_si256(), vcol);
-        const auto in_index = (in_ch_high / InTypeBitWidth) * in_height * in_width * in_bitwidth
+    for (std::size_t tile_index = 0; tile_index < total_tile_count; ++tile_index) {
+      const auto col = tile_index % col_tile_count * ColUnroll;
+      const auto row = tile_index / col_tile_count;
+      alignas(32) uint32_t in_buf[MAX_IN_C/InTypeBitWidth][ColUnroll][2];
+      for (std::size_t in_ch_high = 0; in_ch_high < in_channels/InTypeBitWidth; ++in_ch_high) {
+        const auto in_index = in_ch_high * in_height * in_width * in_bitwidth
           + row * in_width * in_bitwidth
           + col * in_bitwidth;
-        const auto in = _mm256_maskload_epi64(reinterpret_cast<const long long*>(input.data() + in_index), loadmask);
-        const auto in_lo = _mm256_castsi256_si128(in);
-        const auto in_hi = _mm256_extracti128_si256(in, 1);
-        const auto in000 = _mm256_broadcastw_epi16(in_lo);
-        const auto in001 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_lo,  4));
-        const auto in010 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_lo,  8));
-        const auto in011 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_lo, 12));
-        const auto in020 = _mm256_broadcastw_epi16(in_hi);
-        const auto in021 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_hi,  4));
-        const auto in030 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_hi,  8));
-        const auto in031 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_hi, 12));
-#define BINDP(i, j, k) \
-  do { \
-    const auto xnor = in##i##j##k ^ nk##i; \
-    const auto l4 = mask4 & xnor; \
-    const auto popc_l4 = _mm256_shuffle_epi8(popc_table, l4); \
-    const auto h4 = mask4 & _mm256_srli_epi32(xnor, 4); \
-    const auto popc_h4 = _mm256_shuffle_epi8(popc_table, h4); \
-    const auto cnt = _mm256_add_epi8(popc_l4, popc_h4); \
-    const auto cnt16 = _mm256_maddubs_epi16(cnt, vone); \
-    xnorsum##j##k = _mm256_add_epi16(xnorsum##j##k, cnt16); \
-  } while(0)
-        BINDP(0, 0, 0);
-        BINDP(0, 0, 1);
-        BINDP(0, 1, 0);
-        BINDP(0, 1, 1);
-        BINDP(0, 2, 0);
-        BINDP(0, 2, 1);
-        BINDP(0, 3, 0);
-        BINDP(0, 3, 1);
-        const auto in100 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_lo,  2));
-        const auto in101 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_lo,  6));
-        const auto in110 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_lo, 10));
-        const auto in111 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_lo, 14));
-        const auto in120 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_hi,  2));
-        const auto in121 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_hi,  6));
-        const auto in130 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_hi, 10));
-        const auto in131 = _mm256_broadcastw_epi16(_mm_bsrli_si128(in_hi, 14));
-        BINDP(1, 0, 0);
-        BINDP(1, 0, 1);
-        BINDP(1, 1, 0);
-        BINDP(1, 1, 1);
-        BINDP(1, 2, 0);
-        BINDP(1, 2, 1);
-        BINDP(1, 3, 0);
-        BINDP(1, 3, 1);
-#undef BINDP
+        for (std::size_t j = 0; j < ColUnroll; ++j) {
+          if (col + j >= in_width) {
+            in_buf[in_ch_high][j][0] = 0;
+            in_buf[in_ch_high][j][1] = 0;
+          } else {
+            in_buf[in_ch_high][j][0] = input.data()[in_index + j * 2 + 0].Raw();
+            in_buf[in_ch_high][j][1] = input.data()[in_index + j * 2 + 1].Raw();
+          }
+        }
       }
-      const auto nksum = _mm256_load_si256(reinterpret_cast<__m256i*>(nksum_ary + out_ch_high));
-      const auto out_index = row * out_width * out_channels
-          + col * out_channels
-          + out_ch_high;
-#define CALC(j) \
-  if (col + j >= out_width) continue; \
+      for (std::size_t Oh = 0; Oh < out_channels; Oh += OutChUnroll) {
+        auto xnorsum0 = _mm256_setzero_si256();
+        auto xnorsum1 = _mm256_setzero_si256();
+        auto xnorsum2 = _mm256_setzero_si256();
+        auto xnorsum3 = _mm256_setzero_si256();
+        for (std::size_t in_ch_high = 0; in_ch_high < in_channels/InTypeBitWidth; ++in_ch_high) {
+          const auto nk_index = Oh * (in_channels / InTypeBitWidth) * 2
+            + in_ch_high * OutChUnroll * 2;
+          const auto nk0 = _mm256_load_si256(reinterpret_cast<__m256i*>(&nk[nk_index +  0 * 2]));
+          const auto nk1 = _mm256_load_si256(reinterpret_cast<__m256i*>(&nk[nk_index +  4 * 2]));
+          const auto nk2 = _mm256_load_si256(reinterpret_cast<__m256i*>(&nk[nk_index +  8 * 2]));
+          const auto nk3 = _mm256_load_si256(reinterpret_cast<__m256i*>(&nk[nk_index + 12 * 2]));
+#define BINDP(i, j) \
+  const auto xnor##j = in ^ nk##j; \
+  const auto l4##j = mask4 & xnor##j; \
+  const auto popc_l4##j = _mm256_shuffle_epi8(popc_table, l4##j); \
+  const auto h4##j = mask4 & _mm256_srli_epi32(xnor##j, 4); \
+  const auto popc_h4##j = _mm256_shuffle_epi8(popc_table, h4##j); \
+  const auto cnt##j = _mm256_add_epi8(popc_l4##j, popc_h4##j); \
+  const auto cnt16_##j = _mm256_maddubs_epi16(cnt##j, vone);
+
+#define BINCONV(i) \
   do { \
-    const auto shifted = _mm256_slli_epi16(xnorsum##j##1, 1); \
-    const auto tmp = _mm256_add_epi16(xnorsum##j##0, shifted); \
-    const auto res = _mm256_sub_epi16(tmp, nksum); \
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(p.device_output_buf + out_index + j * out_channels), res); \
-  } while (0)
-      CALC(0);
-      CALC(1);
-      CALC(2);
-      CALC(3);
+    const auto in = _mm256_set1_epi64x(*reinterpret_cast<uint64_t*>(&in_buf[in_ch_high][i][0])); \
+    BINDP(i, 0); \
+    BINDP(i, 1); \
+    const auto pack01 = _mm256_packs_epi16(cnt16_0, cnt16_1); \
+    const auto cnt32_01 = _mm256_maddubs_epi16(pack01, vone); \
+    BINDP(i, 2); \
+    BINDP(i, 3); \
+    const auto pack23 = _mm256_packs_epi16(cnt16_2, cnt16_3); \
+    const auto cnt32_23 = _mm256_maddubs_epi16(pack23, vone); \
+    const auto pack03 = _mm256_packs_epi16(cnt32_01, cnt32_23); \
+    const auto cnt64 = _mm256_maddubs_epi16(pack03, _mm256_set1_epi16(0x0201)); \
+    xnorsum##i = _mm256_add_epi16(xnorsum##i, cnt64); \
+  } while(0)
+          BINCONV(0);
+          BINCONV(1);
+          BINCONV(2);
+          BINCONV(3);
+#undef BINDP
+#undef BINCONV
+        }
+        const auto nksum = _mm256_load_si256(reinterpret_cast<__m256i*>(nksum_ary + Oh));
+        const auto table = _mm256_setr_epi32(
+            0, 4, 1, 5, 2, 6, 3, 7
+        );
+        const auto permed0 = _mm256_permutevar8x32_epi32(xnorsum0, table);
+        const auto permed1 = _mm256_permutevar8x32_epi32(xnorsum1, table);
+        const auto permed2 = _mm256_permutevar8x32_epi32(xnorsum2, table);
+        const auto permed3 = _mm256_permutevar8x32_epi32(xnorsum3, table);
+        const auto ans0 = _mm256_sub_epi16(permed0, nksum);
+        const auto ans1 = _mm256_sub_epi16(permed1, nksum);
+        const auto ans2 = _mm256_sub_epi16(permed2, nksum);
+        const auto ans3 = _mm256_sub_epi16(permed3, nksum);
+        const auto Ohh = Oh / OutChUnroll2;
+        const auto Om = Oh / OutChUnroll % OutChBlocks;
+        if (p.thresholds != nullptr) {
+          const auto th0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th0.get() + Oh));
+          const auto th1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th1.get() + Oh));
+          const auto th2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th2.get() + Oh));
+          const auto flg = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_flg.get() + Oh));
+          const auto is_neg = _mm256_cmpgt_epi16(_mm256_setzero_si256(), flg);
+          const auto m2 = _mm256_sub_epi16(flg, _mm256_set1_epi16(2));
+          const auto is_not_const = _mm256_cmpgt_epi16(_mm256_setzero_si256(), m2);
+#define APPLY_PACK(i) \
+  if (col + i >= out_width) continue; \
+  do { \
+    const auto f0 = _mm256_andnot_si256(_mm256_cmpgt_epi16(th0, ans##i), flg); \
+    const auto f1 = _mm256_andnot_si256(_mm256_cmpgt_epi16(th1, ans##i), flg); \
+    const auto f2 = _mm256_andnot_si256(_mm256_cmpgt_epi16(th2, ans##i), flg); \
+    const auto tmp = _mm256_add_epi16(_mm256_add_epi16(f0, f1), _mm256_add_epi16(f2, is_neg)); \
+    const auto res = _mm256_blendv_epi8(m2, tmp, is_not_const); \
+    const auto packed = _mm256_packs_epi16(res, _mm256_setzero_si256()); \
+    const auto permed = _mm256_permute4x64_epi64(packed, 0xD8); \
+    const auto shorted = _mm256_castsi256_si128(permed); \
+    const auto vlsb = _mm_slli_epi16(shorted, 7); \
+    const auto vmsb = _mm_slli_epi16(shorted, 6); \
+    const auto lsb = _mm_movemask_epi8(vlsb); \
+    const auto msb = _mm_movemask_epi8(vmsb); \
+    reinterpret_cast<uint16_t*>(p.device_output_buf)[out_index + i * 2 * OutChBlocks + 0 * OutChBlocks] = lsb; \
+    reinterpret_cast<uint16_t*>(p.device_output_buf)[out_index + i * 2 * OutChBlocks + 1 * OutChBlocks] = msb; \
+  } while(0)
+          const auto out_index = Ohh * out_height * out_width * 2 * OutChBlocks
+              + row * out_width * 2 * OutChBlocks
+              + col * 2 * OutChBlocks
+              + Om;
+          APPLY_PACK(0);
+          APPLY_PACK(1);
+          APPLY_PACK(2);
+          APPLY_PACK(3);
+        } else {
+#define OUT(i) \
+  if (col + i >= out_width) continue; \
+  do { \
+    const auto out_index = Ohh * out_height * out_width * OutChUnroll2 \
+        + row * out_width * OutChUnroll2 \
+        + (col + i) * OutChUnroll2 \
+        + Om * OutChUnroll; \
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(p.device_output_buf + out_index), ans##i); \
+  } while(0)
+          OUT(0);
+          OUT(1);
+          OUT(2);
+          OUT(3);
+#undef OUT
+        }
+      }
     }
   } else {
-    constexpr T_UINT InChUnroll = InTypeBitWidth; // hardcoded, not configurable
-    constexpr T_UINT OutChUnroll = 16; // hardcoded, not configurable
-    constexpr T_UINT InBitChUnroll = 2; // hardcoded, not configurable
-    constexpr T_UINT ColUnroll = 2; // hardcoded, not configurable
-    const T_UINT TileHeight = std::min(in_height, T_UINT(16)); // configurable
-    const T_UINT TileWidth = std::min(in_width + (in_width & 1), T_UINT(16)); // configurable
-    const T_UINT row_tile_count = (in_height + TileHeight - 1) / TileHeight;
-    const T_UINT col_tile_count = (in_width + TileWidth - 1) / TileWidth;
-    const T_UINT out_tile_count = (out_channels + OutChUnroll - 1) / OutChUnroll;
-    const T_UINT total_tile_count = row_tile_count * col_tile_count * out_tile_count;
+    constexpr std::size_t InChUnroll = InTypeBitWidth; // hardcoded, not configurable
+    constexpr std::size_t OutChUnroll = 8; // hardcoded, not configurable
+    constexpr std::size_t OutChUnroll2 = 32; // hardcoded, not configurable
+    constexpr std::size_t OutChBlocks = OutChUnroll2 / OutChUnroll;
+    constexpr std::size_t InBitChUnroll = 2; // hardcoded, not configurable
+    constexpr std::size_t ColUnroll = 3; // hardcoded, not configurable
+    const std::size_t TileHeightMax = 20; // configurable
+    const std::size_t TileWidthMax = 21; // configurable
+    const std::size_t TileHeight = std::min(in_height, TileHeightMax);
+    const std::size_t TileWidth = std::min(in_width + (ColUnroll - in_width % ColUnroll) % ColUnroll, TileWidthMax);
+    const std::size_t khMax = 5;
+    const std::size_t kwMax = 5;
+    
+    const std::size_t row_tile_count = (in_height + TileHeight - 1) / TileHeight;
+    const std::size_t col_tile_count = (in_width + TileWidth - 1) / TileWidth;
+    const std::size_t out_tile_count = (out_channels + OutChUnroll - 1) / OutChUnroll;
+    const std::size_t total_tile_count = row_tile_count * col_tile_count * out_tile_count;
+    const auto vone = _mm256_set1_epi8(0x01);
 #pragma omp parallel for schedule(guided)
-    for (T_UINT tile_index = 0; tile_index < total_tile_count; ++tile_index) {
-      const auto out_ch_high = tile_index % out_tile_count * OutChUnroll;
+    for (std::size_t tile_index = 0; tile_index < total_tile_count; ++tile_index) {
+      const auto out_ch_high = tile_index % out_tile_count;
       const auto col_high = (tile_index / out_tile_count) % col_tile_count * TileWidth;
       const auto row_high = tile_index / (out_tile_count * col_tile_count) * TileHeight;
-      int16_t out_tile[TileHeight][TileWidth][OutChUnroll];
-      for (unsigned int row = 0; row < TileHeight; ++row) {
-        for (unsigned int col = 0; col < TileWidth; ++col) {
-          for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
+      alignas(32) BIN_CONV_OUTPUT out_tile[TileHeightMax][TileWidthMax][OutChUnroll];
+      for (std::size_t row = 0; row < TileHeight; ++row) {
+        for (std::size_t col = 0; col < TileWidth; ++col) {
+          for (std::size_t out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
             out_tile[row][col][out_ch] = 0;
           }
         }
       }
-      for (unsigned int in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
-        QUANTIZED_PACKED_KERNEL notk[kh][kw][OutChUnroll];
-        int16_t notsum[OutChUnroll] = {};
-        for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
+      const auto mask4 = _mm256_set1_epi8(0x0F);
+      const auto vone = _mm256_set1_epi8(1);
+      const auto popc_table = _mm256_setr_epi8(
+        0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+        0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
+      );
+      for (std::size_t in_ch_high = 0; in_ch_high < in_channels; in_ch_high += InTypeBitWidth) {
+        alignas(32) QUANTIZED_PACKED_KERNEL notk[khMax][kwMax][OutChUnroll][2];
+        alignas(32) BIN_CONV_OUTPUT notsum[OutChUnroll] = {};
+        for (std::size_t out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
           notsum[out_ch] = 0;
-          for (unsigned int kr = 0; kr < kh; ++kr) {
-            for (unsigned int kc = 0; kc < kw; ++kc) {
-              const auto index = (out_ch_high + out_ch) * kh * kw * (in_channels / InTypeBitWidth)
+          for (std::size_t kr = 0; kr < kh; ++kr) {
+            for (std::size_t kc = 0; kc < kw; ++kc) {
+              const auto index = (out_ch_high * OutChUnroll + out_ch) * kh * kw * (in_channels / InTypeBitWidth)
                 + kr * kw * (in_channels / InTypeBitWidth)
                 + kc * (in_channels / InTypeBitWidth)
                 + (in_ch_high / InTypeBitWidth);
-              notk[kr][kc][out_ch] = kernel.data()[index];
-              notsum[out_ch] += pop_count(notk[kr][kc][out_ch]);
+              notk[kr][kc][out_ch][0] = kernel.data()[index];
+              notk[kr][kc][out_ch][1] = kernel.data()[index];
+              notsum[out_ch] += pop_count(notk[kr][kc][out_ch][0]) * 3;
             }
           }
         }
-        for (unsigned int in_bit_ch_high = 0; in_bit_ch_high < in_bitwidth; in_bit_ch_high += InBitChUnroll) {
-          tiling_input_elem_t in_tile[TileHeight + kh - 1][TileWidth + kw - 1][InBitChUnroll];
-          for (unsigned int row = 0; row < TileHeight + kh - 1; ++row) {
+        for (std::size_t in_bit_ch_high = 0; in_bit_ch_high < in_bitwidth; in_bit_ch_high += InBitChUnroll) {
+          alignas(32) tiling_input_elem_t in_tile[TileHeightMax + khMax - 1][TileWidthMax + kwMax - 1][InBitChUnroll];
+          for (std::size_t row = 0; row < TileHeight + kh - 1; ++row) {
             if (row_high + row >= in_height + 2*padding) break;
-            for (unsigned int col = 0; col < TileWidth + kw - 1; ++col) {
+            for (std::size_t col = 0; col < TileWidth + kw - 1; ++col) {
               if (col_high + col >= in_width + 2*padding) break;
-              for (unsigned int in_bit_ch = 0; in_bit_ch < InBitChUnroll; ++in_bit_ch) {
+              for (std::size_t in_bit_ch = 0; in_bit_ch < InBitChUnroll; ++in_bit_ch) {
                 if (row_high + row < padding || row_high + row >= in_height + padding
                     || col_high + col < padding || col_high + col >= in_width + padding) {
                   in_tile[row][col][in_bit_ch] = tiling_input_elem_t(0);
@@ -282,123 +377,145 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
               }
             }
           }
-          for (unsigned int row = 0; row < TileHeight; ++row) {
-            for (unsigned int col = 0; col < TileWidth; col += ColUnroll) {
-              auto xnorsum000 = _mm256_setzero_si256();
-              auto xnorsum001 = _mm256_setzero_si256();
-              auto xnorsum010 = _mm256_setzero_si256();
-              auto xnorsum011 = _mm256_setzero_si256();
-              auto xnorsum100 = _mm256_setzero_si256();
-              auto xnorsum101 = _mm256_setzero_si256();
-              auto xnorsum110 = _mm256_setzero_si256();
-              auto xnorsum111 = _mm256_setzero_si256();
-              for (unsigned int kr = 0; kr < kh; ++kr) {
-                auto in00 = _mm256_set1_epi32(in_tile[row + kr][col][0].Raw());
-                auto in10 = _mm256_set1_epi32(in_tile[row + kr][col][1].Raw());
-                for (unsigned int kc = 0; kc < kw; ++kc) {
-                  const auto nk0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(&notk[kr][kc][ 0]));
-                  const auto nk1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(&notk[kr][kc][ 8]));
-                  const auto in01 = _mm256_set1_epi32(in_tile[row + kr][col + kc + 1][0].Raw());
-#define BINDP(i, j, k) \
+          for (std::size_t row = 0; row < TileHeight; ++row) {
+            for (std::size_t col = 0; col < TileWidth; col += ColUnroll) {
+              auto xnorsum00 = _mm256_setzero_si256();
+              auto xnorsum01 = _mm256_setzero_si256();
+              auto xnorsum10 = _mm256_setzero_si256();
+              auto xnorsum11 = _mm256_setzero_si256();
+              auto xnorsum20 = _mm256_setzero_si256();
+              auto xnorsum21 = _mm256_setzero_si256();
+              for (std::size_t kr = 0; kr < kh; ++kr) {
+                auto in0 = _mm256_set1_epi64x(*reinterpret_cast<uint64_t*>(&in_tile[row + kr][col + 0][0]));
+                auto in1 = _mm256_set1_epi64x(*reinterpret_cast<uint64_t*>(&in_tile[row + kr][col + 1][0]));
+                for (std::size_t kc = 0; kc < kw; ++kc) {
+                  const auto nk0 = _mm256_load_si256(reinterpret_cast<__m256i*>(&notk[kr][kc][ 0][0]));
+                  const auto nk1 = _mm256_load_si256(reinterpret_cast<__m256i*>(&notk[kr][kc][ 4][0]));
+#define BINDP(i, j) \
   do { \
-    const auto xnor = in##i##j ^ nk##k; \
+    const auto xnor = in##i ^ nk##j; \
     const auto l4 = mask4 & xnor; \
     const auto popc_l4 = _mm256_shuffle_epi8(popc_table, l4); \
     const auto h4 = mask4 & _mm256_srli_epi32(xnor, 4); \
     const auto popc_h4 = _mm256_shuffle_epi8(popc_table, h4); \
     const auto cnt = _mm256_add_epi8(popc_l4, popc_h4); \
-    xnorsum##i##j##k = _mm256_add_epi8(xnorsum##i##j##k, cnt); \
-  } while (0);
-                  BINDP(0, 0, 0);
-                  BINDP(0, 0, 1);
-                  BINDP(0, 1, 0);
-                  BINDP(0, 1, 1);
-                  in00 = in01;
-                  const auto in11 = _mm256_set1_epi32(in_tile[row + kr][col + kc + 1][1].Raw());
-                  BINDP(1, 0, 0);
-                  BINDP(1, 0, 1);
-                  BINDP(1, 1, 0);
-                  BINDP(1, 1, 1);
-                  in10 = in11;
+    xnorsum##i##j = _mm256_add_epi8(xnorsum##i##j, cnt); \
+  } while(0)
+
+#define BINCONV(i) \
+  do { \
+    BINDP(i, 0); \
+    BINDP(i, 1); \
+  } while(0)
+                  BINCONV(0);
+                  BINCONV(1);
+                  const auto in2 = _mm256_set1_epi64x(*reinterpret_cast<uint64_t*>(&in_tile[row + kr][col + kc + 2][0]));
+                  BINCONV(2);
+                  in0 = in1;
+                  in1 = in2;
                 }
               }
-              const auto psum000 = _mm256_maddubs_epi16(xnorsum000, vone);
-              const auto psum001 = _mm256_maddubs_epi16(xnorsum001, vone);
-              const auto psum010 = _mm256_maddubs_epi16(xnorsum010, vone);
-              const auto psum011 = _mm256_maddubs_epi16(xnorsum011, vone);
-              const auto psum100 = _mm256_maddubs_epi16(xnorsum100, vone);
-              const auto psum101 = _mm256_maddubs_epi16(xnorsum101, vone);
-              const auto psum110 = _mm256_maddubs_epi16(xnorsum110, vone);
-              const auto psum111 = _mm256_maddubs_epi16(xnorsum111, vone);
-              const auto usum000 = _mm256_hadd_epi16(psum000, psum001);
-              const auto usum001 = _mm256_hadd_epi16(psum010, psum011);
-              const auto usum010 = _mm256_hadd_epi16(psum100, psum101);
-              const auto usum011 = _mm256_hadd_epi16(psum110, psum111);
-              const auto usum100 = _mm256_permute4x64_epi64(usum000, 0xD8);
-              const auto usum101 = _mm256_permute4x64_epi64(usum001, 0xD8);
-              const auto usum110 = _mm256_permute4x64_epi64(usum010, 0xD8);
-              const auto usum111 = _mm256_permute4x64_epi64(usum011, 0xD8);
-              const auto tmp0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(&out_tile[row][col + 0][0]));
-              const auto tmp1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(&out_tile[row][col + 1][0]));
-              const auto nsum = _mm256_loadu_si256(reinterpret_cast<__m256i*>(&notsum[0]));
-              const auto diff00 = _mm256_sub_epi16(usum100, nsum);
-              const auto diff01 = _mm256_sub_epi16(usum101, nsum);
-              const auto diff10 = _mm256_sub_epi16(usum110, nsum);
-              const auto diff11 = _mm256_sub_epi16(usum111, nsum);
-              const auto shifted00 = _mm256_slli_epi16(diff00, in_bit_ch_high);
-              const auto shifted01 = _mm256_slli_epi16(diff01, in_bit_ch_high);
-              const auto shifted10 = _mm256_slli_epi16(diff10, in_bit_ch_high + 1);
-              const auto shifted11 = _mm256_slli_epi16(diff11, in_bit_ch_high + 1);
-              const auto res0 = _mm256_add_epi16(tmp0, _mm256_add_epi16(shifted00, shifted10));
-              const auto res1 = _mm256_add_epi16(tmp1, _mm256_add_epi16(shifted01, shifted11));
-              _mm256_storeu_si256(reinterpret_cast<__m256i*>(&out_tile[row][col + 0][0]), res0);
-              _mm256_storeu_si256(reinterpret_cast<__m256i*>(&out_tile[row][col + 1][0]), res1);
+              const auto cnt16_00 = _mm256_maddubs_epi16(xnorsum00, vone);
+              const auto cnt16_01 = _mm256_maddubs_epi16(xnorsum01, vone);
+              const auto cnt16_10 = _mm256_maddubs_epi16(xnorsum10, vone);
+              const auto cnt16_11 = _mm256_maddubs_epi16(xnorsum11, vone);
+              const auto cnt16_20 = _mm256_maddubs_epi16(xnorsum20, vone);
+              const auto cnt16_21 = _mm256_maddubs_epi16(xnorsum21, vone);
+              const auto v11 = _mm256_set1_epi16(0x0001);
+              const auto cnt32_00 = _mm256_madd_epi16(cnt16_00, v11);
+              const auto cnt32_01 = _mm256_madd_epi16(cnt16_01, v11);
+              const auto cnt32_10 = _mm256_madd_epi16(cnt16_10, v11);
+              const auto cnt32_11 = _mm256_madd_epi16(cnt16_11, v11);
+              const auto cnt32_20 = _mm256_madd_epi16(cnt16_20, v11);
+              const auto cnt32_21 = _mm256_madd_epi16(cnt16_21, v11);
+              const auto packed00 = _mm256_packs_epi32(cnt32_00, cnt32_01);
+              const auto packed01 = _mm256_packs_epi32(cnt32_10, cnt32_11);
+              const auto packed02 = _mm256_packs_epi32(cnt32_20, cnt32_21);
+              const auto permed00 = _mm256_permute4x64_epi64(packed00, 0xD8);
+              const auto permed01 = _mm256_permute4x64_epi64(packed01, 0xD8);
+              const auto permed02 = _mm256_permute4x64_epi64(packed02, 0xD8);
+              const auto v12 = _mm256_set1_epi32(0x00020001);
+              const auto hlpacked0 = _mm256_madd_epi16(permed00, v12);
+              const auto hlpacked1 = _mm256_madd_epi16(permed01, v12);
+              const auto hlpacked2 = _mm256_madd_epi16(permed02, v12);
+              const auto packed10 = _mm256_packs_epi32(hlpacked0, _mm256_setzero_si256());
+              const auto packed11 = _mm256_packs_epi32(hlpacked1, _mm256_setzero_si256());
+              const auto packed12 = _mm256_packs_epi32(hlpacked2, _mm256_setzero_si256());
+              const auto permed10 = _mm256_permute4x64_epi64(packed10, 0xD8);
+              const auto permed11 = _mm256_permute4x64_epi64(packed11, 0xD8);
+              const auto permed12 = _mm256_permute4x64_epi64(packed12, 0xD8);
+              const auto short0 = _mm256_castsi256_si128(permed10);
+              const auto short1 = _mm256_castsi256_si128(permed11);
+              const auto short2 = _mm256_castsi256_si128(permed12);
+              const auto tmp0 = _mm_load_si128(reinterpret_cast<__m128i*>(&out_tile[row][col + 0][0]));
+              const auto tmp1 = _mm_load_si128(reinterpret_cast<__m128i*>(&out_tile[row][col + 1][0]));
+              const auto tmp2 = _mm_load_si128(reinterpret_cast<__m128i*>(&out_tile[row][col + 2][0]));
+              const auto nsum = _mm_load_si128(reinterpret_cast<__m128i*>(&notsum[0]));
+              const auto diff0 = _mm_sub_epi16(short0, nsum);
+              const auto diff1 = _mm_sub_epi16(short1, nsum);
+              const auto diff2 = _mm_sub_epi16(short2, nsum);
+              const auto res0 = _mm_add_epi16(tmp0, diff0);
+              const auto res1 = _mm_add_epi16(tmp1, diff1);
+              const auto res2 = _mm_add_epi16(tmp2, diff2);
+              _mm_store_si128(reinterpret_cast<__m128i*>(&out_tile[row][col + 0][0]), res0);
+              _mm_store_si128(reinterpret_cast<__m128i*>(&out_tile[row][col + 1][0]), res1);
+              _mm_store_si128(reinterpret_cast<__m128i*>(&out_tile[row][col + 2][0]), res2);
             }
           }
         }
       }
-      for (unsigned int row = 0; row < TileHeight; ++row) {
-        if (row_high + row >= out_height) break;
-        for (unsigned int col = 0; col < TileWidth; ++col) {
-          if (col_high + col >= out_width) break;
-          for (unsigned int out_ch = 0; out_ch < OutChUnroll; ++out_ch) {
-            unsigned int index = (row_high + row) * out_width * out_channels
-                + (col_high + col) * out_channels
-                + (out_ch_high + out_ch);
-            p.device_output_buf[index] = out_tile[row][col][out_ch];
+      if (p.thresholds != nullptr) {
+        const auto th0 = _mm_loadu_si128(reinterpret_cast<__m128i*>(buf_th0.get() + out_ch_high * OutChUnroll));
+        const auto th1 = _mm_loadu_si128(reinterpret_cast<__m128i*>(buf_th1.get() + out_ch_high * OutChUnroll));
+        const auto th2 = _mm_loadu_si128(reinterpret_cast<__m128i*>(buf_th2.get() + out_ch_high * OutChUnroll));
+        const auto flg = _mm_loadu_si128(reinterpret_cast<__m128i*>(buf_flg.get() + out_ch_high * OutChUnroll));
+        const auto is_neg = _mm_cmpgt_epi16(_mm_setzero_si128(), flg);
+        const auto m2 = _mm_sub_epi16(flg, _mm_set1_epi16(2));
+        const auto is_not_const = _mm_cmpgt_epi16(_mm_setzero_si128(), m2);
+        for (std::size_t row = 0; row < TileHeight; ++row) {
+          if (row_high + row >= out_height) break;
+          for (std::size_t col = 0; col < TileWidth; ++col) {
+            if (col_high + col >= out_width) break;
+            const auto vec = _mm_loadu_si128(reinterpret_cast<__m128i*>(&out_tile[row][col][0]));
+            const auto f0 = _mm_andnot_si128(_mm_cmpgt_epi16(th0, vec), flg);
+            const auto f1 = _mm_andnot_si128(_mm_cmpgt_epi16(th1, vec), flg);
+            const auto f2 = _mm_andnot_si128(_mm_cmpgt_epi16(th2, vec), flg);
+            const auto tmp = _mm_add_epi16(_mm_add_epi16(f0, f1), _mm_add_epi16(f2, is_neg));
+            const auto res = _mm_blendv_epi8(m2, tmp, is_not_const);
+            const auto pres = _mm_packs_epi16(res, _mm_setzero_si128());
+            const auto vlsb = _mm_slli_epi32(pres, 7);
+            const auto vmsb = _mm_slli_epi32(pres, 6);
+            const auto lsb = _mm_movemask_epi8(vlsb);
+            const auto msb = _mm_movemask_epi8(vmsb);
+            const auto Ohh = out_ch_high / OutChBlocks;
+            const auto Om = out_ch_high % OutChBlocks;
+            const auto index = Ohh * out_height * out_width * 2 * OutChBlocks
+                + (row_high + row) * out_width * 2 * OutChBlocks
+                + (col_high + col) * 2 * OutChBlocks
+                + Om;
+            reinterpret_cast<uint8_t*>(p.device_output_buf)[index + 0] = lsb;
+            reinterpret_cast<uint8_t*>(p.device_output_buf)[index + OutChBlocks] = msb;
+          }
+        }
+      } else {
+        for (std::size_t row = 0; row < TileHeight; ++row) {
+          if (row_high + row >= out_height) break;
+          for (std::size_t col = 0; col < TileWidth; ++col) {
+            if (col_high + col >= out_width) break;
+            const auto vec = _mm_load_si128(reinterpret_cast<__m128i*>(&out_tile[row][col][0]));
+            const auto Ohh = out_ch_high / OutChBlocks;
+            const auto Om = out_ch_high % OutChBlocks;
+            const auto index = Ohh * out_height * out_width * OutChUnroll2
+                + (row_high + row) * out_width * OutChUnroll2
+                + (col_high + col) * OutChUnroll2
+                + Om * OutChUnroll;
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(p.device_output_buf + index), vec);
           }
         }
       }
     }
   }
   Measurement::Stop();
-
-  using namespace dlk;
-  auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
-      p.device_output_buf, out_channels, in_height * in_width);
-
-  if (p.thresholds != nullptr) {
-    ApplyThresholdsAndPack(output_, p, buf_th.get());
-    Measurement::Start("copy");
-    std::copy(buf_th.get(), buf_th.get() + out_size / 32 * 2, (QUANTIZED_PACKED*)p.device_output_buf);
-    Measurement::Stop();
-  } else {
-    const T_UINT b = 32;
-    Measurement::Start("copy");
-    std::copy(p.device_output_buf, p.device_output_buf + out_size, buf_non_th.get());
-    Measurement::Stop();
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>::tensor_info_t<std::size_t> buf_shape = {
-      out_height, out_width, out_channels
-    };
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC> buf_tensor(buf_non_th.get(), buf_shape);
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl>::tensor_info_t<std::size_t> out_shape = {
-      (out_channels + b - 1) / b, out_height, out_width, b
-    };
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl> out(p.device_output_buf, out_shape);
-    Measurement::Start("Output tensor convert");
-    convert_tensor(buf_tensor, out);
-    Measurement::Stop();
-  }
 }
 
 } // namespace impl
