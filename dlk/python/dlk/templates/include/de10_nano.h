@@ -508,10 +508,6 @@ void RunTCA(unsigned long input_addr, unsigned long output_addr, unsigned long k
   unsigned long thresholds_addr, unsigned in_w, unsigned in_h, unsigned in_c, unsigned nbits_in_data,
   unsigned out_w, unsigned out_h, unsigned out_c, unsigned k_w, unsigned k_h, unsigned pad, unsigned stride) {
 
-  const unsigned k_size = (k_h * k_w * in_c * out_c) / 32;
-  // MappedMem k_data_mem(KERNEL_ADDR, k_size, sizeof(T_UINT));
-  // k_data_mem.Write(k_data_packed, k_size);
-
   unsigned use_threshold = (thresholds_addr != 0) ? 1 : 0;
 
   static volatile uint32_t* csr = nullptr;
