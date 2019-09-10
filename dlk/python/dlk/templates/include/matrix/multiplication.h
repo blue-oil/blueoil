@@ -17,46 +17,21 @@ limitations under the License.
 #define DLK_MATRIX_MULTIPLICATION_H_INCLUDED
 
 #include "matrix_view.h"
-#include "matrix/row_major_to_col_major.h"
 #include "time_measurement.h"
-
-#ifdef USE_NEON
-  #include <arm_neon.h>
-#endif
 
 namespace dlk {
 
 namespace details {
 
-inline void matrix_multiplication_col3(
+void matrix_multiplication_col3(
   MatrixView<float, MatrixOrder::RowMajor>& A,
   MatrixView<float, MatrixOrder::ColMajor>& B,
-  MatrixView<float, MatrixOrder::ColMajor>& C) {
-#ifdef USE_NEON
-  auto A_colm = row_major_to_col_major(A);
-  for (std::size_t i = 0; i < B.cols(); ++i) {
-    float32x4_t rhs0 = vdupq_n_f32((float)(*B.data(0, i)));
-    float32x4_t rhs1 = vdupq_n_f32((float)(*B.data(1, i)));
-    float32x4_t rhs2 = vdupq_n_f32((float)(*B.data(2, i)));
+  MatrixView<float, MatrixOrder::ColMajor>& C);
 
-    assert(A.rows() % 4 == 0);
-    for (std::size_t j = 0; j + 3 < A.rows(); j += 4) {
-      float32x4_t lhs0 = vld1q_f32(A_colm.data(j, 0));
-      float32x4_t lhs1 = vld1q_f32(A_colm.data(j, 1));
-      float32x4_t lhs2 = vld1q_f32(A_colm.data(j, 2));
-
-      float32x4_t r;
-      r = vmulq_f32(lhs0, rhs0);
-      r = vmlaq_f32(r, lhs1, rhs1);
-      r = vmlaq_f32(r, lhs2, rhs2);
-      vst1q_f32(C.data(j, i), r);
-    }
-  }
-  // FIXME: hacky way to prevent memory leak
-  delete [] A_colm.data();
-
-#endif
-}
+void matrix_multiplication_impl(
+   MatrixView<float, MatrixOrder::RowMajor>& A,
+   MatrixView<float, MatrixOrder::ColMajor>& B,
+   MatrixView<float, MatrixOrder::ColMajor>& C);
 
 } // namespace details
 
@@ -72,10 +47,16 @@ void matrix_multiplication(
 
 #ifdef USE_NEON
   if (A.cols() == 3 && A.rows() % 4 == 0) {
-      details::matrix_multiplication_col3(A, B, C);
-    Measurement::Stop();
-    return;
+    details::matrix_multiplication_col3(A, B, C);
+  } else {
+    details::matrix_multiplication_impl(A, B, C);
   }
+  Measurement::Stop();
+  return;
+#elif defined USE_AVX
+  details::matrix_multiplication_impl(A, B, C);
+  Measurement::Stop();
+  return;
 #endif
 
   constexpr unsigned int block_size_i = 16; // configurable, multiple of 4
