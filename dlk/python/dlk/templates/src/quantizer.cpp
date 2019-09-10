@@ -96,8 +96,6 @@ void func_QTZ_linear_mid_tread_half_body(
     const auto mx1 = vmaxq_f32(in1, min_value_x4);
     const auto mn0 = vminq_f32(mx0, max_value_x4);
     const auto mn1 = vminq_f32(mx1, max_value_x4);
-    //const auto mad0 = vmlaq_f32(round_offset, mn0, max_value_rn);
-    //const auto mad1 = vmlaq_f32(round_offset, mn1, max_value_rn);
     const auto mul0 = vmulq_f32(mn0, max_value_rn);
     const auto mul1 = vmulq_f32(mn1, max_value_rn);
     const auto mad0 = vaddq_f32(mul0, round_offset);
