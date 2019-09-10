@@ -66,7 +66,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
     def num_max_boxes(self):
         # from dataset:
         # train - max 91 boxes, val - max 66 boxes
-        return self.max_boxes
+        return 91
 
     @property
     def num_per_epoch(self):
@@ -97,9 +97,6 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         self.anno_dir = os.path.join(self.data_dir, "labels", "bdd100k_labels_images_" + subset_dir + ".json")
         self.paths = []
         self.bboxs = []
-        self.save_file = os.path.join("dataset", "bdd100k_%s.pickle" % self.subset)
-        if not os.path.exists(os.path.dirname(self.save_file)):
-            os.makedirs(os.path.dirname(self.save_file))
 
         self._init_files_and_annotations()
 
@@ -289,4 +286,3 @@ class BDD100KSegmentation(SegmentationBase):
     @property
     def num_per_epoch(self):
         return len(self.files_and_annotations()[0])
-
