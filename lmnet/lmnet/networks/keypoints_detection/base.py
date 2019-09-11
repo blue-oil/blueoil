@@ -188,7 +188,7 @@ class Base(BaseNetwork):
         images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
         tf.summary.image("input", images)
 
-        color = np.random.randn(1, 1, 1, 17, 3)
+        color = np.random.randn(1, 1, 1, self.num_joints, 3)
 
         self._colored_heatmaps(labels, color, name="labels_heatmap")
         self._colored_heatmaps(output, color, name="output_heatmap")
