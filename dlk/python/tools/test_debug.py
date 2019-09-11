@@ -68,14 +68,15 @@ def main(debug_data_path, expected_data_path):
                 r_tol = 0.0001
                 a_tol = 0.0001
 
-                idx = np.isclose(data_ex.flatten() * data_dbg['scale'], data_dbg['data'], rtol=r_tol, atol=a_tol)
+                within_tolerance = np.isclose(data_ex.flatten() * data_dbg['scale'], data_dbg['data'],
+                                              rtol=r_tol, atol=a_tol)
 
-                if np.all(idx):
+                if np.all(within_tolerance):
                     results[ptrn_ex.match(eo.stem).group(1)] = f"[OK]   {name_ex}:{output_id_ex}"
                 else:
                     results[ptrn_ex.match(eo.stem).group(1)] = f"[FAIL] {name_ex}:{output_id_ex}"
 
-                diffs[ptrn_ex.match(eo.stem).group(1)] = data_ex.flatten().size - np.count_nonzero(idx)
+                diffs[ptrn_ex.match(eo.stem).group(1)] = data_ex.flatten().size - np.count_nonzero(within_tolerance)
 
     sorted_results = [val for key, val in sorted(results.items())]
     sorted_diffs = [val for key, val in sorted(diffs.items())]
