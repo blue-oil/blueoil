@@ -354,6 +354,9 @@ def run(network, dataset, config_file, experiment_id, recreate):
         dataset_class = module_loader.load_dataset_class(dataset)
         config.DATASET_CLASS = dataset_class
 
+    if horovod_util.is_enabled():
+        horovod_util.setup()
+
     if horovod_util.is_rank0():
         config_util.display(config)
         executor.init_logging(config)

@@ -66,7 +66,10 @@ def is_enabled():
 
     parent_process_name = _get_pname(ppid)
     if parent_process_name.startswith("horovodrun") or parent_process_name.startswith("mpirun"):
-        return True
+        if horovod_installed:
+            return True
+        else:
+            return False
     else:
         return False
 
@@ -79,7 +82,6 @@ def is_rank0():
     if not is_enabled():
         return True
 
-    setup()
     if hvd.rank() == 0:
         return True
 
