@@ -86,8 +86,6 @@ def im2col(x, kernel_shape=[3, 3], padding='SAME', strides=[1, 1, 1]):
 # This implementation is not completely generalized because,
 # In theory we can extend this into multi dimentional tensor.
 class QuantizedMatrix(object):
-    # basic concept is described in wiki
-    # https://github.com/LeapMind/dlk/wiki/onnxw2cc-documentation
     ARRANGEMENT = ['Sequential', 'BitInterleaving', 'WordInterleaving']
 
     def __init__(self, x, nbits=1, nbits_per_word=32, arrangement='WordInterleaving'):

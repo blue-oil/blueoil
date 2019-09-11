@@ -86,84 +86,16 @@ def run_command(command):
 class CustomInstall(install):
     description = 'Install DLK'
     user_options = install.user_options
-    user_options.append(('enable-tvm', None, 'Enable TVM support'))
-    user_options.append(('enable-onnx', None, 'Enable ONNX support'))
 
     def initialize_options(self):
         install.initialize_options(self)
-        self.enable_tvm = None
-        self.enable_onnx = None
 
     def finalize_options(self):
         install.finalize_options(self)
-        print('TVM support: ' + ('OFF' if self.enable_tvm is None else 'ON'))
-        print('ONNX support: ' + ('OFF' if self.enable_onnx is None else 'ON'))
 
     def run(self):
         install.run(self)
         install.do_egg_install(self)
-
-        if self.enable_tvm:
-            # clone TVM from github
-            if not os.path.exists('tvm'):
-                run_command('git clone --recursive https://github.com/dmlc/tvm.git')
-
-            # install TVM
-            root_path = Path(os.path.dirname(os.path.realpath(__file__)))
-            tvm_path = root_path / 'tvm'
-            build_path = tvm_path / 'build'
-            tvm_python_path = tvm_path / 'python'
-            tvm_topi_path = tvm_path / 'topi' / 'python'
-            tvm_runtime_code = tvm_path / 'apps' / 'howto_deploy' / 'tvm_runtime_pack.cc'
-            tvm_runtime_code_dest_path = root_path / 'python' / 'dlk' / 'templates' / 'tvm_runtime'
-
-            os.chdir(str(root_path))
-
-            if tvm_runtime_code.exists():
-                if not tvm_runtime_code_dest_path.exists():
-                    tvm_runtime_code_dest_path.mkdir(parents=True)
-                shutil.copy2(tvm_runtime_code, tvm_runtime_code_dest_path)
-
-            already_installed = True
-            for module in ['tvm', 'topi']:
-                try:
-                    __import__(module)
-                except ImportError:
-                    print('Module %s is not installed' % module)
-                    already_installed = False
-
-            if already_installed:
-                print('TVM is already installed')
-                return
-
-            os.chdir(str(tvm_path))
-
-            llvm_config_path = os.getenv('LLVM_CONFIG_PATH', False) or 'llvm-config'
-            cpu_count = len(os.sched_getaffinity(0)) if 'sched_getaffinity' in dir(os) else os.cpu_count()
-            cpu_count = min(cpu_count, 8)
-
-            run_command('cp make/config.mk ./')
-            run_command(f'echo "LLVM_CONFIG = {llvm_config_path}" >> ./config.mk')
-            run_command(f'make -j{cpu_count}')
-
-            os.environ['PYTHONPATH'] = str(tvm_python_path) + ':' + str(tvm_topi_path)
-
-            os.chdir(str(tvm_python_path))
-            run_command('python setup.py install')
-
-            os.chdir(str(tvm_topi_path))
-            run_command('python setup.py install')
-
-            os.chdir(root_path)
-
-        if self.enable_onnx:
-            # install ONNX v1.1.1
-            if int(pip.__version__.split('.')[0]) >= 10:
-                from pip._internal import main as pipmain
-                pipmain(['install', 'onnx==1.1.1'])
-            else:
-                from pip import main as pipmain
-                pipmain(['install', 'onnx==1.1.1'])
 
 
 class CustomTest(test):

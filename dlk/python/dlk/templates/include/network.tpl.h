@@ -84,6 +84,19 @@ private:
   {%    set offset.o = offset.o + size -%}
   {% endfor -%}
   const uint32_t total_kernel_size = std::max(1, {{offset.o}});
+
+  {% set th_offset = namespace(o=0) -%}
+  {% for qconv in graph.convs(quantized_only=True) -%}
+  {%     if qconv.has_thresholds -%}
+  {%         set thresholds = qconv.thresholds -%}
+  {%         set b = 32 -%}
+  {%         set size = thresholds|length * b // 8 -%}
+  const uint32_t {{qconv.name}}_thresholds_size = {{size}};
+  const uint32_t {{qconv.name}}_thresholds_offset = {{th_offset.o}};
+  {%         set th_offset.o = th_offset.o + size -%}
+  {%     endif -%}
+  {% endfor -%}
+  const uint32_t total_thresholds_size = std::max(1, {{th_offset.o}});
 #endif // RUN_ON_FPGA
 };
 

@@ -25,11 +25,13 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/unpooling.cpp \
     $(SRC_DIR)/func/lookup.cpp \
     $(SRC_DIR)/matrix/shift_add.cpp \
+    $(SRC_DIR)/matrix/multiplication.cpp \
     $(SRC_DIR)/network_c_interface.cpp \
     $(SRC_DIR)/network.cpp \
     $(SRC_DIR)/pack_input_to_qwords.cpp \
     $(SRC_DIR)/time_measurement.cpp \
-    $(SRC_DIR)/write_to_file.cpp
+    $(SRC_DIR)/write_to_file.cpp \
+    $(SRC_DIR)/quantizer.cpp
 
 SRC := $(LIB_SRC) $(wildcard $(DLK_TEST_SRC_DIR)/*.cpp) mains/main.cpp
 SRC := $(filter-out ./src/network_c_interface.cpp, $(SRC))
@@ -37,29 +39,21 @@ SRC := $(filter-out ./src/network_c_interface.cpp, $(SRC))
 LIB_ARM_SRC := $(wildcard $(SRC_DIR)/*.S) \
     $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
-    $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
-    $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp \
-    $(SRC_DIR)/func/impl/arm_neon/pack_16bit.cpp \
-    $(SRC_DIR)/func/impl/arm_neon/apply_thresholds.cpp \
-    $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
+    $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp
 LIB_ARM_OBJ := $(patsubst %.S, %.o, $(LIB_ARM_SRC))
 LIB_ARM_OBJ := $(patsubst %.cpp, %.o, $(LIB_ARM_OBJ))
 
 LIB_FPGA_SRC := $(wildcard $(SRC_DIR)/*.S) \
     $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/fpga/quantized_conv2d_kn2row.cpp \
-    $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp \
-    $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp
+    $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp
 LIB_FPGA_OBJ := $(patsubst %.S, %.o, $(LIB_FPGA_SRC))
 LIB_FPGA_OBJ := $(patsubst %.cpp, %.o, $(LIB_FPGA_OBJ))
 
 LIB_AARCH64_SRC := \
     $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/arm_neon/quantized_conv2d_tiling.cpp \
-    $(SRC_DIR)/matrix/arm_neon/quantized_multiplication.cpp \
-    $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp \
-    $(SRC_DIR)/func/impl/arm_neon/apply_thresholds.cpp \
-    $(SRC_DIR)/func/impl/arm_neon/pack_16bit.cpp
+    $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp
 LIB_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_SRC))
 LIB_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_OBJ))
 
@@ -75,10 +69,7 @@ LIB_X86_OBJ := $(patsubst %.cpp, %.o, $(LIB_X86_SRC))
 LIB_X86_AVX_SRC := \
     $(SRC_DIR)/func/generic/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/x86_avx/quantized_conv2d_tiling.cpp \
-    $(SRC_DIR)/matrix/generic/quantized_multiplication.cpp \
-    $(SRC_DIR)/func/impl/generic/pop_count.cpp \
-    $(SRC_DIR)/func/impl/x86_avx/apply_thresholds.cpp \
-    $(SRC_DIR)/func/impl/x86_avx/pack_16bit.cpp
+    $(SRC_DIR)/func/impl/generic/pop_count.cpp
 LIB_X86_AVX_OBJ := $(patsubst %.cpp, %.o, $(LIB_X86_AVX_SRC))
 
 LIB_OBJ := $(patsubst %.cpp, %.o, $(LIB_SRC))
@@ -145,7 +136,7 @@ lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -DUSE_PNG -pthread -g
 lm_x86:           CXXFLAGS +=
 
 lm_x86_avx:       CXX = g++
-lm_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -mavx2 -DUSE_AVX -DUSE_PNG -pthread -g -fopenmp
+lm_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -mavx2 -mfma -DUSE_AVX -DUSE_PNG -pthread -g -fopenmp
 lm_x86_avx:       CXXFLAGS +=
 
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
@@ -165,7 +156,7 @@ lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden
 lib_x86:           CXXFLAGS +=
 
 lib_x86_avx:       CXX = g++
-lib_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -pthread -g -fopenmp
+lib_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -mavx2 -mfma -pthread -g -fopenmp
 lib_x86_avx:       CXXFLAGS +=
 
 lib_aarch64:       CXX = aarch64-linux-gnu-g++
@@ -211,50 +202,50 @@ ar_fpga:          LDFLAGS += -rcs
 ar_fpga:          NAME = fpga
 
 
-$(TARGETS_ARM): $(OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ)
-	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_ARM_LIBS) -pthread -ldl
+$(TARGETS_ARM): $(OBJ) $(LIB_ARM_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(LIB_ARM_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
-$(TARGETS_FPGA): $(OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ)
-	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_ARM_LIBS) -pthread -ldl
+$(TARGETS_FPGA): $(OBJ) $(LIB_FPGA_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(LIB_FPGA_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
-$(TARGETS_AARCH64): $(OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
-	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_AARCH64_OBJ) -pthread -ldl
+$(TARGETS_AARCH64): $(OBJ) $(LIB_AARCH64_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(LIB_AARCH64_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
-$(TARGETS_X86): $(OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
-	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_X86_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_X86_LIBS) -pthread -ldl
+$(TARGETS_X86): $(OBJ) $(LIB_X86_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(LIB_X86_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
-$(TARGETS_X86_AVX): $(OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ)
-	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_X86_AVX_LIBS) -pthread -ldl
+$(TARGETS_X86_AVX): $(OBJ) $(LIB_X86_AVX_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(LIB_X86_AVX_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
-$(LIBS_X86): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ) -o $@.so $(CXXFLAGS) $(TVM_X86_LIBS) -shared -pthread -ldl
+$(LIBS_X86): $(LIB_OBJ) $(LIB_X86_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_X86_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
 
-$(LIBS_X86_AVX): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ) -o $@.so $(CXXFLAGS) $(TVM_X86_AVX_LIBS) -shared -pthread -ldl
+$(LIBS_X86_AVX): $(LIB_OBJ) $(LIB_X86_AVX_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_X86_AVX_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
 
-$(LIBS_AARCH64): $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ) -o $@.so $(CXXFLAGS) $(TVM_AARCH64_LIBS)  -shared -pthread -ldl
+$(LIBS_AARCH64): $(LIB_OBJ) $(LIB_AARCH64_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_AARCH64_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
 
-$(LIBS_ARM): $(LIB_OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ) -o $@.so $(CXXFLAGS) $(TVM_ARM_LIBS) -shared -pthread -ldl
+$(LIBS_ARM): $(LIB_OBJ) $(LIB_ARM_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_ARM_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
 
-$(LIBS_FPGA): $(LIB_OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ) -o $@.so $(CXXFLAGS) $(TVM_ARM_LIBS) -shared -pthread -ldl
+$(LIBS_FPGA): $(LIB_OBJ) $(LIB_FPGA_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_FPGA_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
 
-$(ARS_X86): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
-	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(TVM_X86_LIBS) $(LIB_X86_OBJ)
+$(ARS_X86): $(LIB_OBJ) $(LIB_X86_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_X86_OBJ)
 
-$(ARS_X86_AVX): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ)
-	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(TVM_X86_AVX_LIBS) $(LIB_X86_AVX_OBJ)
+$(ARS_X86_AVX): $(LIB_OBJ) $(LIB_X86_AVX_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_X86_AVX_OBJ)
 
-$(ARS_AARCH64): $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
-	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(TVM_AARCH64_LIBS) $(LIB_AARCH64_OBJ)
+$(ARS_AARCH64): $(LIB_OBJ) $(LIB_AARCH64_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_AARCH64_OBJ)
 
-$(ARS_ARM): $(LIB_OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ)
-	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ) $(TVM_ARM_LIBS)
+$(ARS_ARM): $(LIB_OBJ) $(LIB_ARM_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_ARM_OBJ)
 
-$(ARS_FPGA): $(LIB_OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ)
-	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ) $(TVM_ARM_LIBS)
+$(ARS_FPGA): $(LIB_OBJ) $(LIB_FPGA_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_FPGA_OBJ)
 
 %.o: %.S
 	$(CXX) $(FLAGS) -c $^ -o $@ $(CXXFLAGS)

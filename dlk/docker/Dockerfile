@@ -86,20 +86,6 @@ USER root
 RUN chown -R root:root /home/xcomp/x-tools && \
     mv /home/xcomp/x-tools /opt
 
-# Compilation of LLVM. This is last because newer gcc is requred.
-RUN mkdir /root/src_llvm && \
-    cd /root/src_llvm && \
-    svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_501/final/ llvm-5.0.1 && \
-    cd llvm-5.0.1/tools && \
-    svn co http://llvm.org/svn/llvm-project/cfe/tags/RELEASE_501/final/ clang && \
-    mkdir /root/build_llvm && \
-    source scl_source enable rh-python36 && \
-    source scl_source enable devtoolset-6 && \
-    cd /root/build_llvm && \
-    cmake -G "Unix Makefiles" /root/src_llvm/llvm-5.0.1/ -DCMAKE_INSTALL_PREFIX=/opt/llvm -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="ARM;X86" && \
-    make -j16 && \
-    make install
-
 
 ########################################################
 # The begining of running image
@@ -150,7 +136,6 @@ COPY --from=builder /opt/intelFPGA_lite/17.1 /opt/intelFPGA_lite/17.1
 COPY --from=builder /opt/intelFPGA/17.1 /opt/intelFPGA/17.1
 COPY --from=builder /opt/x-tools /opt/x-tools
 COPY --from=builder /root/dlk /root/dlk
-COPY --from=builder /opt/llvm /opt/llvm
 RUN ln -s /opt/x-tools/arm-unknown-linux-gnueabihf/bin/arm-unknown-linux-gnueabihf-g++ /usr/local/bin/arm-linux-gnueabihf-g++ 
 RUN ln -s /usr/bin/cmake3 /usr/local/bin/cmake 
 
