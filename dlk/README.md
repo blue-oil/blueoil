@@ -34,22 +34,9 @@ dlk contains following 3 separable steps.
 
 # Installation
 
-## LLVM
-The installation process assumes that LLVM is already installed on the system.
-To check if LLVM is correctly installed run:
-```
-$ llvm-config --version
-5.0.1
-```
-If you get a different output, please, install from http://releases.llvm.org/
-**macOS user definitely need to install other version of LLVM not natively
-installed one.**
-
 
 ## Setup.py installation
 To install DLK run the command:
-Before doing this step, you should check above LLVM section, and confirm your
-`llvm-config` is on your PATH.
 ```
 $ python setup.py install
 [long output, could take some minutes depending on your environment]
@@ -60,17 +47,6 @@ If you fail in installing python packages like numpy, tensorflow, etc., try upgr
 $ pip install --upgrade setuptools
 ```
 
-
-If tvm runtime is desirable, you can enable it with `enable-tvm` flag.
-```
-$ PYTHONPATH=python/dlk python setup.py install --enable-tvm
-```
-
-If you don't want to add `llvm-config` on your PATH especially for macOS users, 
-you can also take the path through environment variable `LLVM_CONFIG_PATH`.
-```
-$ LLVM_CONFIG_PATH=/somewhere/llvm-config python setup.py install
-```
 
 Now you should be able to successfully run:
 ```
@@ -133,15 +109,6 @@ quantization as long as the operations are monotone function.
 PYTHONPATH=python/dlk python python/dlk/scripts/generate_project.py -i examples/classification/lmnet_quantize_cifar10/minimal_graph_with_shape.pb -o tmp/ -p classification_hq_ts -ts -hq
 ```
 -->
-
-### TVM runtime
-If TVM option is enaled in the [Installation](#Setup.py-installation) session, we can make use of the TVM runtime for those operations that need to run on CPU. 
-This optimization can be activated using the `-tvm` flag.
-
-#### example
-```
-PYTHONPATH=python/dlk python python/dlk/scripts/generate_project.py -i examples/classification/lmnet_quantize_cifar10/minimal_graph_with_shape.pb -o tmp/ -p classification_hq_ts_tvm -ts -hq -tvm
-```
 
 # Auto IP synthesis and boot-files generation for FPGA
 `blueoil_build_altera.tpl.sh` will also be generated in yor project directory which you

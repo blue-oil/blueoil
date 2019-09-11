@@ -42,7 +42,8 @@ def dict_codegen_classification_x86() -> dict:
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '133_output:0.npy',
             'hard_quantize': False,
-            'threshold_skipping': False
+            'threshold_skipping': False,
+            'use_avx': False
             }
 
 
@@ -54,7 +55,8 @@ def dict_codegen_resnet_classification_x86() -> dict:
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '368_output:0.npy',
             'hard_quantize': False,
-            'threshold_skipping': False
+            'threshold_skipping': False,
+            'use_avx': False
             }
 
 
@@ -66,7 +68,8 @@ def dict_codegen_group_conv_classification_x86() -> dict:
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '149_output:0.npy',
             'hard_quantize': False,
-            'threshold_skipping': False
+            'threshold_skipping': False,
+            'use_avx': False
             }
 
 
@@ -80,7 +83,8 @@ def dict_codegen_classification_cpu_hq_ts() -> dict:
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '133_output:0.npy',
             'hard_quantize': True,
-            'threshold_skipping': True
+            'threshold_skipping': True,
+            'use_avx': False
             }
 
 
@@ -172,7 +176,9 @@ def dict_codegen_object_detection_x86() -> dict:
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '317_output:0.npy',
             'hard_quantize': False,
-            'threshold_skipping': False}
+            'threshold_skipping': False,
+            'use_avx': False
+            }
 
 
 def dict_codegen_segmentation_x86() -> dict:
@@ -183,7 +189,9 @@ def dict_codegen_segmentation_x86() -> dict:
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '227_output:0.npy',
             'hard_quantize': False,
-            'threshold_skipping': False}
+            'threshold_skipping': False,
+            'use_avx': False
+            }
 
 
 def get_configurations():
@@ -223,6 +231,61 @@ def get_configurations():
         updated_dict(dict_codegen_segmentation_x86(), {'hard_quantize': True}),
         updated_dict(dict_codegen_segmentation_x86(),
                      {'hard_quantize': True, 'threshold_skipping': True}),
+
+        # Classification / x86 AVX
+        updated_dict(dict_codegen_classification_x86(), {'use_avx' : True}),
+        updated_dict(dict_codegen_classification_x86(),
+                     {'hard_quantize': True,
+                      'use_avx': True}),
+        updated_dict(dict_codegen_classification_x86(),
+                     {'hard_quantize': True,
+                      'use_avx': True,
+                      "input_name": 'raw_image.png', "use_run_test_script": True,
+                      "test_level": TEST_LEVEL_FUTURE_TARGET
+                      }),
+        updated_dict(dict_codegen_classification_x86(),
+                     {'hard_quantize': True,
+                      'use_avx': True,
+                      "input_name": 'preprocessed_image.npy',
+                      "use_run_test_script": True, "from_npy": True}),
+
+        # Classification group convolution / x86 AVX
+        updated_dict(dict_codegen_group_conv_classification_x86(), {'use_avx': True}),
+        updated_dict(dict_codegen_group_conv_classification_x86(),
+                     {'hard_quantize': True,
+                      'use_avx': True}),
+
+        # Classification resnet / x86 AVX
+        updated_dict(dict_codegen_resnet_classification_x86(), {'use_avx': True}),
+        updated_dict(dict_codegen_resnet_classification_x86(),
+                     {'hard_quantize': True,
+                      'use_avx': True}),
+        updated_dict(dict_codegen_resnet_classification_x86(),
+                     {'hard_quantize': True,
+                      'use_avx': True,
+                      'threshold_skipping': True}),
+
+        updated_dict(dict_codegen_classification_cpu_hq_ts(), {'use_avx': True}),
+
+        # Detection / x86 AVX
+        updated_dict(dict_codegen_object_detection_x86(), {'use_avx': True}),
+        updated_dict(dict_codegen_object_detection_x86(),
+                     {'hard_quantize': True,
+                      'use_avx': True}),
+        updated_dict(dict_codegen_object_detection_x86(),
+                     {'hard_quantize': True,
+                      'use_avx': True,
+                      'threshold_skipping': True}),
+
+        # Segmentation / x86 AVX
+        updated_dict(dict_codegen_segmentation_x86(), {'use_avx': True}),
+        updated_dict(dict_codegen_segmentation_x86(),
+                     {'hard_quantize': True,
+                      'use_avx': True}),
+        updated_dict(dict_codegen_segmentation_x86(),
+                     {'hard_quantize': True,
+                      'use_avx': True,
+                      'threshold_skipping': True}),
 
         # Classification FPGA
         dict_codegen_classification_fpga(),
@@ -271,51 +334,51 @@ def get_configurations():
 
         # Classification ARM
         updated_dict(dict_codegen_classification_fpga(),
-                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': False,
+                     {'cpu_name': 'arm', 'prefix': 'arm_cls', 'hard_quantize': False,
                       'threshold_skipping': False}),
         updated_dict(dict_codegen_classification_fpga(),
-                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': True,
+                     {'cpu_name': 'arm', 'prefix': 'arm_cls', 'hard_quantize': True,
                       'threshold_skipping': False}),
         updated_dict(dict_codegen_classification_fpga(),
-                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': False,
+                     {'cpu_name': 'arm', 'prefix': 'arm_cls', 'hard_quantize': False,
                       'threshold_skipping': True}),
         updated_dict(dict_codegen_classification_fpga(),
-                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls', 'hard_quantize': True,
+                     {'cpu_name': 'arm', 'prefix': 'arm_cls', 'hard_quantize': True,
                       'threshold_skipping': True}),
 
         # Classification ResNet-18 ARM
         updated_dict(dict_codegen_classification_resnet_fpga(),
-                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls_rn', 'hard_quantize': False,
+                     {'cpu_name': 'arm', 'prefix': 'arm_cls_rn', 'hard_quantize': False,
                       'threshold_skipping': False}),
         updated_dict(dict_codegen_classification_resnet_fpga(),
-                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls_rn', 'hard_quantize': True,
+                     {'cpu_name': 'arm', 'prefix': 'arm_cls_rn', 'hard_quantize': True,
                       'threshold_skipping': False}),
         updated_dict(dict_codegen_classification_resnet_fpga(),
-                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls_rn', 'hard_quantize': False,
+                     {'cpu_name': 'arm', 'prefix': 'arm_cls_rn', 'hard_quantize': False,
                       'threshold_skipping': True}),
         updated_dict(dict_codegen_classification_resnet_fpga(),
-                     {'cpu_name': 'arm_fpga', 'prefix': 'arm_cls_rn', 'hard_quantize': True,
+                     {'cpu_name': 'arm', 'prefix': 'arm_cls_rn', 'hard_quantize': True,
                       'threshold_skipping': True}),
 
         # Detection ARM
         updated_dict(dict_codegen_object_detection_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_det', 'hard_quantize': False, 'threshold_skipping': False}),
+                     {'cpu_name':'arm', 'prefix': 'arm_det', 'hard_quantize': False, 'threshold_skipping': False}),
         updated_dict(dict_codegen_object_detection_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_det', 'hard_quantize': True, 'threshold_skipping': False}),
+                     {'cpu_name':'arm', 'prefix': 'arm_det', 'hard_quantize': True, 'threshold_skipping': False}),
         updated_dict(dict_codegen_object_detection_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_det', 'hard_quantize': False, 'threshold_skipping': True}),
+                     {'cpu_name':'arm', 'prefix': 'arm_det', 'hard_quantize': False, 'threshold_skipping': True}),
         updated_dict(dict_codegen_object_detection_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_det', 'hard_quantize': True, 'threshold_skipping': True}),
+                     {'cpu_name':'arm', 'prefix': 'arm_det', 'hard_quantize': True, 'threshold_skipping': True}),
 
         # Detection WiderFace ARM
         updated_dict(dict_codegen_object_detection_widerface_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_det_wf', 'hard_quantize': False, 'threshold_skipping': False}),
+                     {'cpu_name':'arm', 'prefix': 'arm_det_wf', 'hard_quantize': False, 'threshold_skipping': False}),
         updated_dict(dict_codegen_object_detection_widerface_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_det_wf', 'hard_quantize': True, 'threshold_skipping': False}),
+                     {'cpu_name':'arm', 'prefix': 'arm_det_wf', 'hard_quantize': True, 'threshold_skipping': False}),
         updated_dict(dict_codegen_object_detection_widerface_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_det_wf', 'hard_quantize': False, 'threshold_skipping': True}),
+                     {'cpu_name':'arm', 'prefix': 'arm_det_wf', 'hard_quantize': False, 'threshold_skipping': True}),
         updated_dict(dict_codegen_object_detection_widerface_fpga(),
-                     {'cpu_name':'arm_fpga', 'prefix': 'arm_det_wf', 'hard_quantize': True, 'threshold_skipping': True}),
+                     {'cpu_name':'arm', 'prefix': 'arm_det_wf', 'hard_quantize': True, 'threshold_skipping': True}),
    ]
 
     return [(i, configuration) for i, configuration in enumerate(configurations)]
@@ -443,6 +506,7 @@ class TestCodeGeneration(TestCaseDLKBase):
                     from_npy=False,
                     need_arm_compiler=False,
                     cache_dma=False,
+                    use_avx=False,
                     test_id=0
                     ) -> None:
 
@@ -470,8 +534,6 @@ class TestCodeGeneration(TestCaseDLKBase):
                activate_hard_quantization=hard_quantize,
                threshold_skipping=threshold_skipping,
                num_pe=16,
-               use_tvm=False,
-               use_onnx=False,
                debug=False,
                cache_dma=cache_dma,
                )
@@ -498,12 +560,15 @@ class TestCodeGeneration(TestCaseDLKBase):
         cmake_use_arm =  '-DTOOLCHAIN_NAME=linux_arm'
         cmake_use_neon = '-DUSE_NEON=1'
         cmake_use_fpga = '-DRUN_ON_FPGA=1'
+        cmake_use_avx =  '-DUSE_AVX=1'
 
         cmake_defs = []
         if cpu_name == 'arm':
             cmake_defs += [cmake_use_arm, cmake_use_neon]
         if cpu_name == 'arm_fpga':
             cmake_defs += [cmake_use_arm, cmake_use_neon, cmake_use_fpga]
+        if use_avx == True:
+            cmake_defs += [cmake_use_avx]
 
         run_and_check(['cmake'] + cmake_defs + ['.'],
                       project_dir,
