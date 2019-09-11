@@ -202,50 +202,50 @@ ar_fpga:          LDFLAGS += -rcs
 ar_fpga:          NAME = fpga
 
 
-$(TARGETS_ARM): $(OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ)
-	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_ARM_LIBS) -pthread -ldl
+$(TARGETS_ARM): $(OBJ) $(LIB_ARM_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(LIB_ARM_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
-$(TARGETS_FPGA): $(OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ)
-	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_ARM_LIBS) -pthread -ldl
+$(TARGETS_FPGA): $(OBJ) $(LIB_FPGA_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(LIB_FPGA_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
-$(TARGETS_AARCH64): $(OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
-	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_AARCH64_OBJ) -pthread -ldl
+$(TARGETS_AARCH64): $(OBJ) $(LIB_AARCH64_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(LIB_AARCH64_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
-$(TARGETS_X86): $(OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
-	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_X86_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_X86_LIBS) -pthread -ldl
+$(TARGETS_X86): $(OBJ) $(LIB_X86_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(LIB_X86_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
-$(TARGETS_X86_AVX): $(OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ)
-	$(CXX) $(FLAGS) $(OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ) -o $@.elf $(CXXFLAGS) $(TVM_X86_AVX_LIBS) -pthread -ldl
+$(TARGETS_X86_AVX): $(OBJ) $(LIB_X86_AVX_OBJ)
+	$(CXX) $(FLAGS) $(OBJ) $(LIB_X86_AVX_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
-$(LIBS_X86): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ) -o $@.so $(CXXFLAGS) $(TVM_X86_LIBS) -shared -pthread -ldl
+$(LIBS_X86): $(LIB_OBJ) $(LIB_X86_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_X86_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
 
-$(LIBS_X86_AVX): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ) -o $@.so $(CXXFLAGS) $(TVM_X86_AVX_LIBS) -shared -pthread -ldl
+$(LIBS_X86_AVX): $(LIB_OBJ) $(LIB_X86_AVX_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_X86_AVX_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
 
-$(LIBS_AARCH64): $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ) -o $@.so $(CXXFLAGS) $(TVM_AARCH64_LIBS)  -shared -pthread -ldl
+$(LIBS_AARCH64): $(LIB_OBJ) $(LIB_AARCH64_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_AARCH64_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
 
-$(LIBS_ARM): $(LIB_OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ) -o $@.so $(CXXFLAGS) $(TVM_ARM_LIBS) -shared -pthread -ldl
+$(LIBS_ARM): $(LIB_OBJ) $(LIB_ARM_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_ARM_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
 
-$(LIBS_FPGA): $(LIB_OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ) -o $@.so $(CXXFLAGS) $(TVM_ARM_LIBS) -shared -pthread -ldl
+$(LIBS_FPGA): $(LIB_OBJ) $(LIB_FPGA_OBJ)
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_FPGA_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
 
-$(ARS_X86): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_OBJ)
-	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(TVM_X86_LIBS) $(LIB_X86_OBJ)
+$(ARS_X86): $(LIB_OBJ) $(LIB_X86_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_X86_OBJ)
 
-$(ARS_X86_AVX): $(LIB_OBJ) $(TVM_OBJ) $(LIB_X86_AVX_OBJ)
-	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(TVM_X86_AVX_LIBS) $(LIB_X86_AVX_OBJ)
+$(ARS_X86_AVX): $(LIB_OBJ) $(LIB_X86_AVX_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_X86_AVX_OBJ)
 
-$(ARS_AARCH64): $(LIB_OBJ) $(TVM_OBJ) $(LIB_AARCH64_OBJ)
-	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(TVM_AARCH64_LIBS) $(LIB_AARCH64_OBJ)
+$(ARS_AARCH64): $(LIB_OBJ) $(LIB_AARCH64_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_AARCH64_OBJ)
 
-$(ARS_ARM): $(LIB_OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ)
-	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(LIB_ARM_OBJ) $(TVM_ARM_LIBS)
+$(ARS_ARM): $(LIB_OBJ) $(LIB_ARM_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_ARM_OBJ)
 
-$(ARS_FPGA): $(LIB_OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ)
-	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(TVM_OBJ) $(LIB_FPGA_OBJ) $(TVM_ARM_LIBS)
+$(ARS_FPGA): $(LIB_OBJ) $(LIB_FPGA_OBJ)
+	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_FPGA_OBJ)
 
 %.o: %.S
 	$(CXX) $(FLAGS) -c $^ -o $@ $(CXXFLAGS)
