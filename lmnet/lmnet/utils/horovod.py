@@ -16,6 +16,7 @@
 
 import os
 import subprocess
+import sys
 
 try:
     import horovod.tensorflow as hvd
@@ -69,7 +70,8 @@ def is_enabled():
         if horovod_installed:
             return True
         else:
-            return False
+            print("you're trying to run on horovod, but importing Horovod failed. exit.")
+            sys.exit(1)
     else:
         return False
 
