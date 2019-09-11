@@ -21,7 +21,5 @@ DLK depends on the Python packages below:
 - bleach: Apache License v2
 
 And optionally,
-- onnx: MIT
-- tvm: Apache 2.0
 - Markdown: BSD License
 - decorator: new BSD License

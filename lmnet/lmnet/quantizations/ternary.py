@@ -120,13 +120,13 @@ def twn_weight_quantizer(threshold=0.7, dtype=tf.float32):
         Returns:
             quantized(tf.Variable): The quantized weights.
         """
-        ternary_threshold = tf.reduce_sum(tf.abs(weights)) * threshold / tf.to_float(tf.size(weights))
+        ternary_threshold = tf.reduce_sum(tf.abs(weights)) * threshold / tf.cast(tf.size(weights), tf.float32)
         mask_positive = (weights > ternary_threshold)
         mask_negative = (weights < -ternary_threshold)
         mask_p_or_n = mask_positive | mask_negative
 
         p_or_n_weights = tf.where(mask_p_or_n, weights, tf.zeros_like(weights))
-        scaling_factor = tf.reduce_sum(tf.abs(p_or_n_weights)) / tf.reduce_sum(tf.to_float(mask_p_or_n))
+        scaling_factor = tf.reduce_sum(tf.abs(p_or_n_weights)) / tf.reduce_sum(tf.cast(mask_p_or_n, tf.float32))
 
         positive_weights = scaling_factor * tf.where(mask_positive, tf.ones_like(weights), tf.zeros_like(weights))
         negative_weights = - scaling_factor * tf.where(mask_negative, tf.ones_like(weights), tf.zeros_like(weights))
