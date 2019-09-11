@@ -359,7 +359,7 @@ class View(object):
 
             inputs_string = self.inputs_to_string(input_ops)
 
-            a_op = input_ops['A']
+            a_op = input_ops['input']
             ih = a_op.height
             iw = a_op.width
 

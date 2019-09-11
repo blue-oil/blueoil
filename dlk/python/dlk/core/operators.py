@@ -3118,18 +3118,18 @@ class Mean(Operator):
 
     Input
     -----
-    A
-        Input: the array to reduce.
-    B
-        Axis: The dimensions to reduce.
+    input
+        The array to reduce.
+    axis
+        The dimensions to reduce.
     Output
     ------
-    C
+    output
         The reduced output array
     """
 
-    _input_names = ['A', 'B']
-    _output_names = ['C']
+    _input_names = ['input', 'axis']
+    _output_names = ['output']
 
     def __init__(self,
                  name: str,
