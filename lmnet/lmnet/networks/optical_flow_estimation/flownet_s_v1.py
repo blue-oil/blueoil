@@ -33,6 +33,9 @@ class FlowNetSV1(BaseNetwork):
         # TODO PyCharm warning. I think we should define self.images first here. Check other networks.
         self.images = None
         self.base_dict = None
+        self._activation = lambda x: tf.nn.leaky_relu(
+            x, alpha=0.1, name="leaky_relu")
+        # self.activation is quantizable
         self.activation = lambda x: tf.nn.leaky_relu(
             x, alpha=0.1, name="leaky_relu")
         self.weight_decay_rate = weight_decay_rate
@@ -46,7 +49,8 @@ class FlowNetSV1(BaseNetwork):
 
     # TODO: Import _conv_bn_act from blocks after replacing strides=2 using space to depth.
     def _conv_bn_act(self, name, inputs, filters, is_training,
-                     kernel_size=3, strides=1, enable_detail_summary=False):
+                     kernel_size=3, strides=1, enable_detail_summary=False, activation=None
+                     ):
         if self.data_format == "NCHW":
             channel_data_format = "channels_first"
         elif self.data_format == "NHWC":
@@ -80,7 +84,10 @@ class FlowNetSV1(BaseNetwork):
             else:
                 batch_normed = conved
 
-            output = self.activation(batch_normed)
+            if activation is None:
+                output = self.activation(batch_normed)
+            else:
+                output = activation(batch_normed)
 
             if enable_detail_summary:
                 tf.summary.histogram('conv_output', conved)
@@ -89,7 +96,7 @@ class FlowNetSV1(BaseNetwork):
 
             return output
 
-    def _deconv(self, name, inputs, filters):
+    def _deconv(self, name, inputs, filters, activation=None):
         # The paper and pytorch used LeakyReLU(0.1,inplace=True) but tf did not. I decide to still use it.
         with tf.variable_scope(name):
             # tf only allows 'SAME' or 'VALID' padding.
@@ -107,7 +114,10 @@ class FlowNetSV1(BaseNetwork):
                 kernel_regularizer=tf.contrib.layers.l2_regularizer(
                     self.weight_decay_rate)
             )
-            output = self.activation(conved)
+            if activation is None:
+                output = self.activation(conved)
+            else:
+                output = activation(conved)
             return output
 
     def _predict_flow(self, name, inputs):
@@ -159,7 +169,8 @@ class FlowNetSV1(BaseNetwork):
         # TODO tf version uses padding=VALID and pad to match the original caffe code.
         # Can DLK handle this?
         # pytorch version uses (kernel_size-1) // 2, which is equal to 'SAME' in tf
-        x = self._conv_bn_act('conv1', images, 64, is_training, kernel_size=7, strides=2)
+        x = self._conv_bn_act('conv1', images, 64, is_training, kernel_size=7, strides=2,
+                              activation=self._activation)
         conv2 = self._conv_bn_act('conv2', x, 128, is_training, kernel_size=5, strides=2)
         x = self._conv_bn_act('conv3', conv2, 256, is_training, kernel_size=5, strides=2)
         conv3_1 = self._conv_bn_act('conv3_1', x, 256, is_training)
@@ -383,3 +394,97 @@ class FlowNetSV1(BaseNetwork):
         total_loss = tf.losses.get_total_loss()
         tf.summary.scalar("total_loss", total_loss)
         return total_loss
+
+
+class FlowNetSV1Quantized(FlowNetSV1):
+    """ Quantized FlowNet s v1 network.
+    """
+
+    def __init__(
+            self,
+            quantize_first_convolution=False,
+            quantize_last_convolution=False,
+            activation_quantizer=None,
+            activation_quantizer_kwargs=None,
+            weight_quantizer=None,
+            weight_quantizer_kwargs=None,
+            *args,
+            **kwargs
+    ):
+        """
+        Args:
+            quantize_first_convolution(bool): use quantization in first conv.
+            quantize_last_convolution(bool): use quantization in last conv.
+            weight_quantizer (callable): weight quantizer.
+            weight_quantize_kwargs(dict): Initialize kwargs for weight quantizer.
+            activation_quantizer (callable): activation quantizer
+            activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
+        """
+
+        super().__init__(
+            *args,
+            **kwargs,
+        )
+
+        self.quantize_first_convolution = quantize_first_convolution
+        self.quantize_last_convolution = quantize_last_convolution
+
+        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
+        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
+
+        assert callable(weight_quantizer)
+        assert callable(activation_quantizer)
+
+        self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
+        self.activation = activation_quantizer(**activation_quantizer_kwargs)
+
+    @staticmethod
+    def _quantized_variable_getter(
+            weight_quantization,
+            quantize_first_convolution,
+            quantize_last_convolution,
+            getter,
+            name,
+            *args,
+            **kwargs):
+        """Get the quantized variables.
+
+        Use if to choose or skip the target should be quantized.
+
+        Args:
+            getter: Default from tensorflow.
+            name: Default from tensorflow.
+            weight_quantization: Callable object which quantize variable.
+            args: Args.
+            kwargs: Kwargs.
+        """
+        assert callable(weight_quantization)
+        var = getter(name, *args, **kwargs)
+        with tf.variable_scope(name):
+            if "kernel" == var.op.name.split("/")[-1]:
+
+                if not quantize_first_convolution:
+                    if var.op.name.startswith("conv1/"):
+                        return var
+
+                if not quantize_last_convolution:
+                    if var.op.name.startswith("predict_flow2/"):
+                        return var
+
+                # Apply weight quantize to variable whose last word of name is "kernel".
+                quantized_kernel = weight_quantization(var)
+                tf.summary.histogram("quantized_kernel", quantized_kernel)
+                return quantized_kernel
+
+        return var
+
+    def base(self, images, is_training, *args, **kwargs):
+        custom_getter = functools.partial(
+            self._quantized_variable_getter,
+            self.weight_quantization,
+            self.quantize_first_convolution,
+            self.quantize_last_convolution,
+        )
+        with tf.variable_scope("", custom_getter=custom_getter):
+            return super().base(images, is_training)
+
