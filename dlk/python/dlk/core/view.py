@@ -130,11 +130,13 @@ class View(object):
 
                 if op.has_thresholds:
                     threshold = f'{op.name}_thresholds'
+                    thresholds_addr = f'THRESHOLD_ADDR + {op.name}_thresholds_offset'
                     conv_func = 'func_QuantizedConv2DWithThreshold'
                     nbit_aqtz = self.op.a_quantizer[0].nbit
                     max_value = self.op.a_quantizer[0].max_v
                 else:
                     threshold = 'nullptr'
+                    thresholds_addr = '0'
                     conv_func = 'func_QuantizedConv2D'
                     nbit_aqtz = 2
                     max_value = 2.0
@@ -169,6 +171,7 @@ class View(object):
                     binConv2D_struct.debug_name = "{op.name}";
 #ifdef RUN_ON_FPGA
                     binConv2D_struct.device_kernel_phys_addr = KERNEL_ADDR + {op.name}_kernel_offset;
+                    binConv2D_struct.device_thresholds_phys_addr = {thresholds_addr};
 #endif
 
                     {conv_func}({inputs_string}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
