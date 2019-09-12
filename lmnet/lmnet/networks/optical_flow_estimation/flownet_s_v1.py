@@ -22,49 +22,39 @@ from .flowlib import flow_to_image
 
 
 class FlowNetSV1(BaseNetwork):
-    """FlowNetS v1 for optical flow estimation.
+    """
+    FlowNetS v1 for optical flow estimation.
     """
     version = 1.00
 
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+    def __init__(self, *args, weight_decay_rate=0.0004, **kwargs):
+        super().__init__(*args, **kwargs)
 
         # TODO PyCharm warning. I think we should define self.images first here. Check other networks.
         self.images = None
         self.base_dict = None
-        self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
-        self.weight_decay_rate = 0.0004
+        self.activation = lambda x: tf.nn.leaky_relu(
+            x, alpha=0.1, name="leaky_relu")
+        self.weight_decay_rate = weight_decay_rate
         self.use_batch_norm = True
         self.custom_getter = None
+
         # TODO Where should I put the c files and where do we compile custom ops?
         self.downsample_so = tf.load_op_library(
             tf.resource_loader.get_path_to_datafile("downsample.so")
         )
 
     # TODO: Import _conv_bn_act from blocks after replacing strides=2 using space to depth.
-    def _conv_bn_act(
-            self,
-            name,
-            inputs,
-            filters,
-            is_training,
-            kernel_size=3,
-            strides=1,
-            enable_detail_summary=False,
-    ):
+    def _conv_bn_act(self, name, inputs, filters, is_training,
+                     kernel_size=3, strides=1, enable_detail_summary=False):
         if self.data_format == "NCHW":
             channel_data_format = "channels_first"
         elif self.data_format == "NHWC":
             channel_data_format = "channels_last"
         else:
-            raise ValueError("data format must be 'NCHW' or 'NHWC'. got {}.".format(self.data_format))
+            raise ValueError(
+                "data format must be 'NCHW' or 'NHWC'. got {}.".format(
+                    self.data_format))
 
         # TODO Think: pytorch used batch_norm but tf did not.
         # pytorch: if batch_norm no bias else use bias.
@@ -77,7 +67,8 @@ class FlowNetSV1(BaseNetwork):
                 strides=strides,
                 use_bias=False,
                 data_format=channel_data_format,
-                kernel_regularizer=tf.contrib.layers.l2_regularizer(self.weight_decay_rate)
+                kernel_regularizer=tf.contrib.layers.l2_regularizer(
+                    self.weight_decay_rate)
             )
 
             if self.use_batch_norm:
@@ -98,19 +89,14 @@ class FlowNetSV1(BaseNetwork):
 
             return output
 
-    def _deconv(
-            self,
-            name,
-            inputs,
-            filters
-    ):
+    def _deconv(self, name, inputs, filters):
         # The paper and pytorch used LeakyReLU(0.1,inplace=True) but tf did not. I decide to still use it.
         with tf.variable_scope(name):
             # tf only allows 'SAME' or 'VALID' padding.
             # In conv2d_transpose, h = h1 * stride if padding == 'Same'
             # https://datascience.stackexchange.com/questions/26451/how-to-calculate-the-output-shape-of-conv2d-transpose
             # TODO in flownet2-tf, he typed 'biases_initializer'=None. I don't know if it worked.
-            conved =  tf.layers.conv2d_transpose(
+            conved = tf.layers.conv2d_transpose(
                 inputs,
                 filters,
                 kernel_size=4,
@@ -118,16 +104,13 @@ class FlowNetSV1(BaseNetwork):
                 padding='SAME',
                 use_bias=True,
                 bias_initializer=None,
-                kernel_regularizer=tf.contrib.layers.l2_regularizer(self.weight_decay_rate)
+                kernel_regularizer=tf.contrib.layers.l2_regularizer(
+                    self.weight_decay_rate)
             )
             output = self.activation(conved)
             return output
 
-    def _predict_flow(
-            self,
-            name,
-            inputs
-    ):
+    def _predict_flow(self, name, inputs):
         with tf.variable_scope(name):
             # pytorch uses padding = 1 = (3 -1) // 2. So it is 'SAME'.
             return tf.layers.conv2d(
@@ -139,11 +122,7 @@ class FlowNetSV1(BaseNetwork):
                 use_bias=True
             )
 
-    def _upsample_flow(
-            self,
-            name,
-            inputs
-    ):
+    def _upsample_flow(self, name, inputs):
         # TODO Think: tf uses bias but pytorch did not
         with tf.variable_scope(name):
             return tf.layers.conv2d_transpose(
@@ -155,20 +134,11 @@ class FlowNetSV1(BaseNetwork):
                 use_bias=False
             )
 
-    def _downsample(
-            self,
-            name,
-            inputs,
-            size
-    ):
+    def _downsample(self, name, inputs, size):
         with tf.variable_scope(name):
             return self.downsample_so.downsample(inputs, size)
 
-    def _average_endpoint_error(
-            self,
-            output,
-            labels
-    ):
+    def _average_endpoint_error(self, output, labels):
         """
         Given labels and outputs of size (batch_size, height, width, 2), calculates average endpoint error:
             sqrt{sum_across_the_2_channels[(X - Y)^2]}
@@ -196,9 +166,9 @@ class FlowNetSV1(BaseNetwork):
         x = self._conv_bn_act('conv4', conv3_1, 512, is_training, strides=2)
         conv4_1 = self._conv_bn_act('conv4_1', x, 512, is_training)
         x = self._conv_bn_act('conv5', conv4_1, 512, is_training, strides=2)
-        conv5_1 = self._conv_bn_act('conv5_1', x, 512, is_training) # 12x16
-        x = self._conv_bn_act('conv6', conv5_1, 1024, is_training, strides=2) # 12x16
-        conv6_1 = self._conv_bn_act('conv6_1', x, 1024, is_training) # 6x8
+        conv5_1 = self._conv_bn_act('conv5_1', x, 512, is_training)  # 12x16
+        x = self._conv_bn_act('conv6', conv5_1, 1024, is_training, strides=2)  # 12x16
+        conv6_1 = self._conv_bn_act('conv6_1', x, 1024, is_training)  # 6x8
 
         return {
             'conv2': conv2,
@@ -241,7 +211,8 @@ class FlowNetSV1(BaseNetwork):
         # Reasons to use align_corners=True:
         # https://stackoverflow.com/questions/51077930/tf-image-resize-bilinear-when-align-corners-false
         # https://github.com/tensorflow/tensorflow/issues/6720#issuecomment-298190596
-        flow = tf.image.resize_bilinear(predict_flow2, tf.stack([height, width]), align_corners=True)
+        flow = tf.image.resize_bilinear(
+            predict_flow2, tf.stack([height, width]), align_corners=True)
 
         # TODO Check if returning dict causes memory error. Maybe we can return a tensor when not training?
         return {
@@ -330,7 +301,6 @@ class FlowNetSV1(BaseNetwork):
         Returns:
             tf.placeholder: Placeholders.
         """
-
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 6) \
             if self.data_format == 'NHWC' else (self.batch_size, 6, self.image_size[0], self.image_size[1])
         images_placeholder = tf.placeholder(

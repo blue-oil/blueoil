@@ -20,9 +20,18 @@ import tensorflow as tf
 
 from executor.train import start_training
 from lmnet import environment
+from lmnet.utils.executor import prepare_dirs
+from lmnet.data_processor import Sequence
 from lmnet.datasets.optical_flow_estimation import FlyingChairs
 from lmnet.networks.optical_flow_estimation.flownet_s_v1 import FlowNetSV1
-from lmnet.utils.executor import prepare_dirs
+from lmnet.networks.optical_flow_estimation.data_augmentor import (
+    Brightness, Color, Contrast, Gamma, GaussianBlur, GaussianNoise, Hue,
+    FlipLeftRight, FlipTopBottom, Scale, Rotate, Translate
+)
+from lmnet.networks.optical_flow_estimation.pre_processor import (
+    DevideBy255
+)
+
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 # Set test environment
@@ -278,7 +287,24 @@ def test_training():
     config.DATASET.DATA_FORMAT = "NHWC"
     config.DATASET.VALIDATION_RATE = 0.2
     config.DATASET.VALIDATION_SEED = 2019
-
+    config.DATASET.AUGMENTOR = Sequence([
+        # Geometric transformation
+        FlipLeftRight(0.5),
+        FlipTopBottom(0.5),
+        Translate(-0.2, 0.2),
+        Rotate(-17, +17),
+        Scale(1.0, 2.0),
+        # Pixel-wise augmentation
+        Brightness(0.8, 1.2),
+        Contrast(0.2, 1.4),
+        Color(0.5, 2.0),
+        Gamma(0.7, 1.5),
+        # Hue(-128.0, 128.0),
+        GaussianNoise(0.0, 10.0)
+    ])
+    config.DATASET.PRE_PROCESSOR = Sequence([
+        DevideBy255(),
+    ])
     environment.init("test_flownet_s_v1")
     prepare_dirs(recreate=True)
     start_training(config)

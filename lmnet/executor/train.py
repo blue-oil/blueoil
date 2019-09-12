@@ -50,8 +50,13 @@ def setup_dataset(config, subset, rank):
             DatasetClass = TFDSClassification
 
     dataset = DatasetClass(subset=subset, **dataset_kwargs, **tfds_kwargs)
-    enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
-    return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
+    enable_prefetch = dataset_kwargs.pop(
+        "{}_enable_prefetch".format(subset), False)
+    queue_size = dataset_kwargs.pop("{}_queue_size".format(subset), 200)
+    process_num = dataset_kwargs.pop("{}_process_num".format(subset), 8)
+    return DatasetIterator(
+        dataset, seed=rank, enable_prefetch=enable_prefetch,
+        queue_size=queue_size, process_num=process_num)
 
 
 def start_training(config):
@@ -90,8 +95,10 @@ def start_training(config):
     print("train dataset num:", train_dataset.num_per_epoch)
 
     if use_train_validation_saving:
-        train_validation_saving_dataset = setup_dataset(config, "train_validation_saving", rank)
-        print("train_validation_saving dataset num:", train_validation_saving_dataset.num_per_epoch)
+        train_validation_saving_dataset = setup_dataset(
+            config, "train_validation_saving", rank)
+        print("train_validation_saving dataset num:",
+              train_validation_saving_dataset.num_per_epoch)
 
     validation_dataset = setup_dataset(config, "validation", rank)
     print("validation dataset num:", validation_dataset.num_per_epoch)
@@ -113,7 +120,8 @@ def start_training(config):
             )
 
         global_step = tf.Variable(0, name="global_step", trainable=False)
-        is_training_placeholder = tf.placeholder(tf.bool, name="is_training_placeholder")
+        is_training_placeholder = tf.placeholder(
+            tf.bool, name="is_training_placeholder")
 
         images_placeholder, labels_placeholder = model.placeholderes()
 
@@ -127,13 +135,15 @@ def start_training(config):
             # add Horovod Distributed Optimizer
             opt = hvd.DistributedOptimizer(opt)
         train_op = model.train(loss, opt, global_step)
-        metrics_ops_dict, metrics_update_op = model.metrics(output, labels_placeholder)
+        metrics_ops_dict, metrics_update_op = model.metrics(
+            output, labels_placeholder)
         # TODO(wakisaka): Deal with many networks.
         model.summary(output, labels_placeholder)
 
         summary_op = tf.summary.merge_all()
 
-        metrics_summary_op, metrics_placeholders = executor.prepare_metrics(metrics_ops_dict)
+        metrics_summary_op, metrics_placeholders = executor.prepare_metrics(
+            metrics_ops_dict)
 
         init_op = tf.global_variables_initializer()
         reset_metrics_op = tf.local_variables_initializer()
@@ -154,7 +164,8 @@ def start_training(config):
             print("pretrain_vars", [
                 var.name for var in pretrain_var_list
             ])
-            pretrain_saver = tf.train.Saver(pretrain_var_list, name="pretrain_saver")
+            pretrain_saver = tf.train.Saver(
+                pretrain_var_list, name="pretrain_saver")
 
     if config.IS_DISTRIBUTION:
         # For distributed training
@@ -180,14 +191,18 @@ def start_training(config):
     sess.run([init_op, reset_metrics_op])
 
     if rank == 0:
-        train_writer = tf.summary.FileWriter(environment.TENSORBOARD_DIR + "/train", sess.graph)
+        train_writer = tf.summary.FileWriter(
+            environment.TENSORBOARD_DIR + "/train", sess.graph)
         if use_train_validation_saving:
-            train_val_saving_writer = tf.summary.FileWriter(environment.TENSORBOARD_DIR + "/train_validation_saving")
-        val_writer = tf.summary.FileWriter(environment.TENSORBOARD_DIR + "/validation")
+            train_val_saving_writer = tf.summary.FileWriter(
+                environment.TENSORBOARD_DIR + "/train_validation_saving")
+        val_writer = tf.summary.FileWriter(
+            environment.TENSORBOARD_DIR + "/validation")
 
         if config.IS_PRETRAIN:
             print("------- Load pretrain data ----------")
-            pretrain_saver.restore(sess, os.path.join(config.PRETRAIN_DIR, config.PRETRAIN_FILE))
+            pretrain_saver.restore(sess, os.path.join(
+                config.PRETRAIN_DIR, config.PRETRAIN_FILE))
             sess.run(tf.assign(global_step, 0))
 
         last_step = 0
@@ -201,8 +216,10 @@ def start_training(config):
             last_step = sess.run(global_step)
             # TODO(wakisaka): tensorflow v1.3 remain previous event log in tensorboard.
             # https://github.com/tensorflow/tensorflow/blob/r1.3/tensorflow/python/training/supervisor.py#L1072
-            train_writer.add_session_log(SessionLog(status=SessionLog.START), global_step=last_step + 1)
-            val_writer.add_session_log(SessionLog(status=SessionLog.START), global_step=last_step + 1)
+            train_writer.add_session_log(SessionLog(
+                status=SessionLog.START), global_step=last_step + 1)
+            val_writer.add_session_log(SessionLog(
+                status=SessionLog.START), global_step=last_step + 1)
             print("recovered. last step", last_step)
 
     if config.IS_DISTRIBUTION:
@@ -219,7 +236,8 @@ def start_training(config):
 
     # Calculate max steps. The priority of config.MAX_EPOCHS is higher than config.MAX_STEPS.
     if "MAX_EPOCHS" in config:
-        max_steps = int(train_dataset.num_per_epoch / config.BATCH_SIZE * config.MAX_EPOCHS)
+        max_steps = int(
+            train_dataset.num_per_epoch / config.BATCH_SIZE * config.MAX_EPOCHS)
     else:
         max_steps = config.MAX_STEPS
 
@@ -260,7 +278,8 @@ def start_training(config):
             train_writer.add_summary(summary, step + 1)
 
             metrics_values = sess.run(list(metrics_ops_dict.values()))
-            metrics_feed_dict = {placeholder: value for placeholder, value in zip(metrics_placeholders, metrics_values)}
+            metrics_feed_dict = {placeholder: value for placeholder, value in zip(
+                metrics_placeholders, metrics_values)}
 
             metrics_summary, = sess.run(
                 [metrics_summary_op], feed_dict=metrics_feed_dict,
@@ -270,20 +289,23 @@ def start_training(config):
         else:
             sess.run([train_op], feed_dict=feed_dict)
 
-        to_be_saved = step == 0 or (step + 1) == max_steps or (step + 1) % config.SAVE_CHECKPOINT_STEPS == 0
+        to_be_saved = step == 0 or (
+            step + 1) == max_steps or (step + 1) % config.SAVE_CHECKPOINT_STEPS == 0
 
         if to_be_saved and rank == 0:
             if use_train_validation_saving:
 
                 sess.run(reset_metrics_op)
-                train_validation_saving_step_size = int(math.ceil(train_validation_saving_dataset.num_per_epoch
-                                                                  / config.BATCH_SIZE))
-                print("train_validation_saving_step_size", train_validation_saving_step_size)
+                train_validation_saving_step_size = int(math.ceil(
+                    train_validation_saving_dataset.num_per_epoch / config.BATCH_SIZE))
+                print("train_validation_saving_step_size",
+                      train_validation_saving_step_size)
 
                 current_train_validation_saving_set_accuracy = 0
 
                 for train_validation_saving_step in range(train_validation_saving_step_size):
-                    print("train_validation_saving_step", train_validation_saving_step)
+                    print("train_validation_saving_step",
+                          train_validation_saving_step)
 
                     images, labels = train_validation_saving_dataset.feed()
                     feed_dict = {
@@ -293,7 +315,8 @@ def start_training(config):
                     }
 
                     if train_validation_saving_step % config.SUMMARISE_STEPS == 0:
-                        summary, _ = sess.run([summary_op, metrics_update_op], feed_dict=feed_dict)
+                        summary, _ = sess.run(
+                            [summary_op, metrics_update_op], feed_dict=feed_dict)
                         train_val_saving_writer.add_summary(summary, step + 1)
                         train_val_saving_writer.flush()
                     else:
@@ -309,11 +332,13 @@ def start_training(config):
                 train_val_saving_writer.add_summary(metrics_summary, step + 1)
                 train_val_saving_writer.flush()
 
-                current_train_validation_saving_set_accuracy = sess.run(metrics_ops_dict["accuracy"])
+                current_train_validation_saving_set_accuracy = sess.run(
+                    metrics_ops_dict["accuracy"])
 
                 if current_train_validation_saving_set_accuracy > top_train_validation_saving_set_accuracy:
                     top_train_validation_saving_set_accuracy = current_train_validation_saving_set_accuracy
-                    print("New top train_validation_saving accuracy is: ", top_train_validation_saving_set_accuracy)
+                    print("New top train_validation_saving accuracy is: ",
+                          top_train_validation_saving_set_accuracy)
 
                     _save_checkpoint(saver, sess, global_step, step)
 
@@ -328,14 +353,18 @@ def start_training(config):
                     ["output"],
                 )
                 pb_name = "minimal_graph_with_shape_{}.pb".format(step + 1)
-                pbtxt_name = "minimal_graph_with_shape_{}.pbtxt".format(step + 1)
-                tf.train.write_graph(minimal_graph, environment.CHECKPOINTS_DIR, pb_name, as_text=False)
-                tf.train.write_graph(minimal_graph, environment.CHECKPOINTS_DIR, pbtxt_name, as_text=True)
+                pbtxt_name = "minimal_graph_with_shape_{}.pbtxt".format(
+                    step + 1)
+                tf.train.write_graph(
+                    minimal_graph, environment.CHECKPOINTS_DIR, pb_name, as_text=False)
+                tf.train.write_graph(
+                    minimal_graph, environment.CHECKPOINTS_DIR, pbtxt_name, as_text=True)
 
         if step == 0 or (step + 1) % config.TEST_STEPS == 0:
             # init metrics values
             sess.run(reset_metrics_op)
-            test_step_size = int(math.ceil(validation_dataset.num_per_epoch / config.BATCH_SIZE))
+            test_step_size = int(
+                math.ceil(validation_dataset.num_per_epoch / config.BATCH_SIZE))
 
             for test_step in range(test_step_size):
 
@@ -347,7 +376,8 @@ def start_training(config):
                 }
 
                 if test_step % config.SUMMARISE_STEPS == 0:
-                    summary, _ = sess.run([summary_op, metrics_update_op], feed_dict=feed_dict)
+                    summary, _ = sess.run(
+                        [summary_op, metrics_update_op], feed_dict=feed_dict)
                     if rank == 0:
                         val_writer.add_summary(summary, step + 1)
                         val_writer.flush()

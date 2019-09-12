@@ -57,25 +57,24 @@ def train_valid_split(arr, validation_rate=0.25, seed=None):
 
 
 @functools.lru_cache(maxsize=None)
-def _open_image_file(file_name, dtype=np.float32):
-    # return imageio.imread(file_name).astype(dtype)
+def _open_image_file(file_name, dtype=np.uint8):
     return np.array(PIL.Image.open(file_name), dtype=dtype)
 
 
 @functools.lru_cache(maxsize=None)
-def _open_flo_file(file_name):
+def _open_flo_file(file_name, dtype=np.float32):
     with open(file_name, "rb") as f:
         magic = np.fromfile(f, np.float32, count=1)
         assert 202021.25 == magic, \
             "Magic number incorrect. Invalid .flo file"
         width = np.fromfile(f, np.int32, count=1)[0]
         height = np.fromfile(f, np.int32, count=1)[0]
-        data = np.fromfile(f, np.float32, count=2 * width * height)
+        data = np.fromfile(f, dtype, count=2 * width * height)
     return np.resize(data, (height, width, 2))
 
 
 @functools.lru_cache(maxsize=None)
-def _open_pfm_file(file_name):
+def _open_pfm_file(file_name, dtype=np.float32):
     color, width, height, scale, endian = None, None, None, None, None
     with open(file_name, "rb") as f:
         # loading header information
@@ -94,16 +93,17 @@ def _open_pfm_file(file_name):
             scale = -scale
         else:
             endian = ">"
-        data = np.fromfile(f, endian + "f").astype(np.float32)
+        data = np.fromfile(f, endian + "f").astype(dtype)
     shape = (height, width, 3) if color else (height, width)
-    return np.reshape(data, shape)[..., :2]
+    data = np.reshape(data, shape)[::-1, :, :2]
+    data[:, :, 1] *= -1
+    return data
 
 
 class OpticalFlowEstimationBase(Base):
     classes = ()
     num_classes = 0
     available_subsets = ["train", "validation"]
-    _coef = 1 / 255.0
 
     def __init__(
             self, *args, validation_rate=0.1, validation_seed=1234, **kwargs):
@@ -116,7 +116,8 @@ class OpticalFlowEstimationBase(Base):
         image_a = _open_image_file(image_a_path)
         image_b = _open_image_file(image_b_path)
         flow = self.flow_loader(flow_path)
-        return self._coef * np.concatenate([image_a, image_b], axis=2), flow
+        return np.concatenate(
+            [image_a, image_b], axis=2).astype(np.uint8), flow
 
     def __len__(self):
         return self.num_per_epoch

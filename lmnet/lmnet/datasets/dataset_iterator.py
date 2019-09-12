@@ -13,13 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from multiprocessing import Pool
-import time
-import threading
-import numpy as np
+
 import os
 import queue
+import time
+import threading
+import traceback
+
+import numpy as np
 import tensorflow as tf
+from multiprocessing import Pool
+
 from lmnet.datasets.tfds import TFDSMixin
 from lmnet.datasets.base import SegmentationBase, ObjectDetectionBase
 
@@ -31,7 +35,7 @@ def _prefetch_setup(dataset, seed, do_shuffle):
     global _dataset
     _dataset = dataset
     if do_shuffle:
-        np.random.seed(os.getpid()+seed)
+        np.random.seed(os.getpid() + seed)
         _dataset.seed = os.getpid() + seed
         _dataset._shuffle()
 
@@ -78,6 +82,16 @@ def _process_one_data(i):
 
 def _concat_data(data_list):
     images, labels = zip(*data_list)
+    if any([_image.shape != images[0].shape for _image in images]):
+        print("[Warn] invalid image_list type detected!")
+        print([_image.shape for _image in images])
+        return None
+
+    if any([_label.shape != labels[0].shape for _label in labels]):
+        print("[Warn] invalid image_list type detected!")
+        print([_label.shape for _label in labels])
+        return None
+
     images = np.array(images)
     labels = np.array(labels)
     return (images, labels)
@@ -91,13 +105,14 @@ def _xorshift32(r):
 
 
 class _MultiProcessDatasetPrefetchThread(threading.Thread):
-    def __init__(self, dataset, result_queue, seed):
+    def __init__(self, dataset, result_queue, seed, process_num=8):
         super().__init__()
         # TODO(tokunaga): the number of processes should be configurable
         self.seed = seed + 1  # seed must not be 0 because using xorshift32.
         self.support_getitem = hasattr(dataset, "__getitem__")
-        self.pool = Pool(processes=8, initializer=_prefetch_setup,
-                         initargs=(dataset, self.seed, not self.support_getitem))
+        self.pool = Pool(
+            processes=process_num, initializer=_prefetch_setup,
+            initargs=(dataset, self.seed, not self.support_getitem))
         self.result_queue = result_queue
         self.batch_size = dataset.batch_size
         self.dataset = dataset
@@ -126,28 +141,33 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
 
     def chunks(self, l, n):
         """Yield successive n-sized chunks from l."""
-        for i in range(0, len(l), n):
-            yield l[i:i + n]
+        for _i in range(0, len(l), n):
+            yield l[_i:_i + n]
 
     def refresh_pool(self):
         self.pool.close()
         self.seed += 1
-        self.pool = Pool(processes=8, initializer=_prefetch_setup,
-                         initargs=(self.dataset, self.seed, not self.support_getitem))
+        self.pool = Pool(
+            processes=8, initializer=_prefetch_setup,
+            initargs=(self.dataset, self.seed, not self.support_getitem))
 
     def loop_body(self):
         task_list = self.gen_task(self.dataset.batch_size * 8)
         fetch_result = self.pool.map(_process_one_data, task_list)
         for fetch_result_chunk in self.chunks(fetch_result, self.batch_size):
-            data_batch = _concat_data(fetch_result_chunk)
-            put_ok = False
-            while not put_ok:
-                try:
-                    self.result_queue.put(data_batch, 1)
-                    put_ok = True
-                except queue.Full:
-                    if self.terminate:
-                        break
+            try:
+                # put_ok = False
+                data_batch = _concat_data(fetch_result_chunk)
+                if data_batch is None:
+                    continue
+                # while not put_ok:
+                self.result_queue.put(data_batch, 1)
+                # put_ok = True
+            except queue.Full:
+                if self.terminate:
+                    break
+            except Exception as e:
+                traceback.print_exc()
 
     def run(self):
         count = 0
@@ -169,7 +189,6 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
 
 
 class _SimpleDatasetReader:
-
     def __init__(self, dataset, seed, shuffle=True):
         self.dataset = dataset
         self.seed = seed + 1  # seed must not be 0 because using xorshift32.
@@ -228,7 +247,10 @@ class DatasetIterator:
     available_subsets = ["train", "train_validation_saving", "validation"]
 
     """docstring for DatasetIterator."""
-    def __init__(self, dataset, enable_prefetch=False, seed=0):
+
+    def __init__(
+            self, dataset, seed=0, enable_prefetch=False,
+            queue_size=200, process_num=8):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
         self.seed = seed
@@ -238,8 +260,10 @@ class DatasetIterator:
             self.reader = _TFDSReader(self.dataset)
         else:
             if self.enable_prefetch:
-                self.prefetch_result_queue = queue.Queue(maxsize=200)
-                self.prefetcher = _MultiProcessDatasetPrefetchThread(self.dataset, self.prefetch_result_queue, seed)
+                self.prefetch_result_queue = queue.Queue(maxsize=queue_size)
+                self.prefetcher = _MultiProcessDatasetPrefetchThread(
+                    self.dataset, self.prefetch_result_queue, seed,
+                    process_num=process_num)
                 self.prefetcher.start()
                 print("ENABLE prefetch")
             else:
@@ -274,6 +298,8 @@ class DatasetIterator:
 
     def __next__(self):
         if self.enable_prefetch:
+            print("\033[K remaining queue size: {}".format(
+                self.prefetch_result_queue.qsize()), end="\r")
             (images, labels) = self.prefetch_result_queue.get()
         else:
             images, labels = self.reader.read()
@@ -295,7 +321,8 @@ class DatasetIterator:
         random_state = np.random.RandomState(self.seed)
         random_indices = list(range(self.num_per_epoch))
         random_state.shuffle(random_indices)
-        print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
+        print("Shuffle {} train dataset with random state {}.".format(
+            self.__class__.__name__, self.seed))
         print(random_indices[0:10])
         self.seed += 1
         return random_indices
@@ -315,7 +342,8 @@ if __name__ == '__main__':
         Blur(),
     ])
 
-    dataset_iterator = DatasetIterator(dataset=cifar10, enable_prefetch=True, augmentor=augmentor)
+    dataset_iterator = DatasetIterator(
+        dataset=cifar10, enable_prefetch=True, augmentor=augmentor)
     time.sleep(2)
     import time
     t0 = time.time()
@@ -323,7 +351,8 @@ if __name__ == '__main__':
     t1 = time.time()
     print("time of prefetch: {}".format(t1 - t0))
 
-    dataset_iterator2 = DatasetIterator(dataset=cifar10, enable_prefetch=False, augmentor=augmentor)
+    dataset_iterator2 = DatasetIterator(
+        dataset=cifar10, enable_prefetch=False, augmentor=augmentor)
     t0 = time.time()
     data_batch = next(dataset_iterator2)
     t1 = time.time()
