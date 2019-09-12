@@ -23,13 +23,19 @@ from lmnet import environment
 from lmnet.utils.executor import prepare_dirs
 from lmnet.data_processor import Sequence
 from lmnet.datasets.optical_flow_estimation import FlyingChairs
-from lmnet.networks.optical_flow_estimation.flownet_s_v1 import FlowNetSV1
+from lmnet.networks.optical_flow_estimation.flownet_s_v1 import (
+    FlowNetSV1, FlowNetSV1Quantized
+)
 from lmnet.networks.optical_flow_estimation.data_augmentor import (
     Brightness, Color, Contrast, Gamma, GaussianBlur, GaussianNoise, Hue,
     FlipLeftRight, FlipTopBottom, Scale, Rotate, Translate
 )
 from lmnet.networks.optical_flow_estimation.pre_processor import (
     DevideBy255
+)
+from lmnet.quantizations import (
+    binary_channel_wise_mean_scaling_quantizer,
+    linear_mid_tread_half_quantizer,
 )
 
 
@@ -310,11 +316,75 @@ def test_training():
     start_training(config)
 
 
+def test_quantize_training():
+    """Test only that no error raised."""
+    config = EasyDict()
+
+    config.NETWORK_CLASS = FlowNetSV1Quantized
+    config.DATASET_CLASS = FlyingChairs
+
+    config.IS_DEBUG = False
+    config.IMAGE_SIZE = [384, 512]
+    config.BATCH_SIZE = 8
+    config.TEST_STEPS = 1
+    config.MAX_STEPS = 2
+    config.SAVE_CHECKPOINT_STEPS = 1
+    config.KEEP_CHECKPOINT_MAX = 5
+    config.SUMMARISE_STEPS = 1
+    config.IS_PRETRAIN = False
+    config.IS_DISTRIBUTION = False
+
+    # network model config
+    config.NETWORK = EasyDict()
+    config.NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
+    config.NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
+    config.NETWORK.IMAGE_SIZE = config.IMAGE_SIZE
+    config.NETWORK.BATCH_SIZE = config.BATCH_SIZE
+    config.NETWORK.DATA_FORMAT = "NHWC"
+    config.NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
+    config.NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
+        'bit': 2,
+        'max_value': 2.0
+    }
+    config.NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
+    config.NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
+
+    # dataset config
+    config.DATASET = EasyDict()
+    config.DATASET.PRE_PROCESSOR = None
+    config.DATASET.BATCH_SIZE = config.BATCH_SIZE
+    config.DATASET.DATA_FORMAT = "NHWC"
+    config.DATASET.VALIDATION_RATE = 0.2
+    config.DATASET.VALIDATION_SEED = 2019
+    config.DATASET.AUGMENTOR = Sequence([
+        # Geometric transformation
+        FlipLeftRight(0.5),
+        FlipTopBottom(0.5),
+        Translate(-0.2, 0.2),
+        Rotate(-17, +17),
+        Scale(1.0, 2.0),
+        # Pixel-wise augmentation
+        Brightness(0.8, 1.2),
+        Contrast(0.2, 1.4),
+        Color(0.5, 2.0),
+        Gamma(0.7, 1.5),
+        # Hue(-128.0, 128.0),
+        GaussianNoise(0.0, 10.0)
+    ])
+    config.DATASET.PRE_PROCESSOR = Sequence([
+        DevideBy255(),
+    ])
+    environment.init("test_flownet_s_v1_quantize")
+    prepare_dirs(recreate=True)
+    start_training(config)
+
+
 if __name__ == '__main__':
-    test_conv_bn_act()
-    test_deconv()
-    test_downsample()
-    test_average_endpoint_error()
-    test_contractive_block()
-    test_refinement_block()
-    test_training()
+    # test_conv_bn_act()
+    # test_deconv()
+    # test_downsample()
+    # test_average_endpoint_error()
+    # test_contractive_block()
+    # test_refinement_block()
+    # test_training()
+    test_quantize_training()
