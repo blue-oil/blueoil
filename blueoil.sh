@@ -5,7 +5,7 @@ function usage_exit(){
 	echo "Usage"
 	echo "${NAME} init"
 	echo "${NAME} train <YML_CONFIG_FILE> <OUTPUT_DIRECTORY(optional)> <EXPERIMENT_ID(optional)>"
-	echo "${NAME} convert <YML_CONFIG_FILE> <EXPERIMENT_DIRECTORY> <CHECKPOINT_NO(optional)>"
+	echo "${NAME} convert <YML_CONFIG_FILE> <EXPERIMENT_DIRECTORY> <CHECKPOINT_NO(optional)> <TIMING_ENABLE(optional)>"
 	echo "${NAME} predict <YML_CONFIG_FILE> <INPUT_DIRECTORY> <OUTPUT_DIRECTORY> <EXPERIMENT_DIRECTORY> <CHECKPOINT_NO(optional)>"
 	echo "${NAME} tensorboard <EXPERIMENT_DIRECTORY> <PORT(optional)>"
 	echo ""
@@ -194,6 +194,7 @@ function set_variables_for_restore(){
 	OUTPUT_DIR=$(dirname ${EXPERIMENT_DIR})
 	EXPERIMENT_ID=$(basename ${EXPERIMENT_DIR})
 	CHECKPOINT_NO=${3:-0}
+	TIME_FLAG=${4:-0}
 	set_lmnet_docker_options
 
 	if [ ${CHECKPOINT_NO} -gt 0 ]; then
@@ -202,15 +203,18 @@ function set_variables_for_restore(){
 			error_exit 1 "Invalid number of checkpoint, there is no checkpoints ${OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/save.ckpt-${CHECKPOINT_NO}"
 		fi
 	fi
+	if [ ${TIME_FLAG} -gt 0 ]; then
+		TIMING_ENABLE="--timing"
+	fi
 }
 
 function blueoil_convert(){
-	set_variables_for_restore $1 $2 $3
+	set_variables_for_restore $1 $2 $3 $4
 
 	echo "#### Generate output files ####"
 
 	docker run ${LMNET_DOCKER_OPTIONS} ${DOCKER_IMAGE} \
-		python blueoil/blueoil_convert.py -i ${EXPERIMENT_ID} ${RESTORE_OPTION}
+		python blueoil/blueoil_convert.py -i ${EXPERIMENT_ID} ${RESTORE_OPTION} ${TIMING_ENABLE}
 	error_exit $? "Failed to generate output files"
 
 	# Set path for DLK
@@ -277,9 +281,9 @@ case "$1" in
 		exit 0;;
 	"convert" )
 		check_num_args $# -lt 3
-		check_num_args $# -gt 4
+		check_num_args $# -gt 5
 		check_files_and_directories $2 $3
-		blueoil_convert $2 $3 $4
+		blueoil_convert $2 $3 $4 $5
 		exit 0;;
 	"predict" )
 		check_num_args $# -lt 5

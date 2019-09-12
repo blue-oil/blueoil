@@ -67,7 +67,7 @@ def strip_binary(output):
         subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
 
 
-def make_all(project_dir, output_dir):
+def make_all(project_dir, output_dir, timing):
     """Make each target."""
 
     make_list = [
@@ -92,13 +92,12 @@ def make_all(project_dir, output_dir):
 
     # Make each target and move output files
     for target, output in make_list:
-        if target in ["lm_x86", "lm_arm", "lm_fpga", "lm_aarch64"]:
-            os.environ["CXXFLAGS"] = cxxflags_cache + " -DFUNC_TIME_MEASUREMENT"
-        else:
-            os.environ["CXXFLAGS"] = cxxflags_cache
+        if target in ["lib_x86", "lib_arm", "lib_fpga", "lib_aarch64"] and timing:
+            cxxflags_cache += " -DFUNC_TIME_MEASUREMENT"
 
-        subprocess.run(("make", "clean", "--quiet"))
-        subprocess.run(("make",  target, "-j4", "--quiet"))
+        cxxflags = "CXXFLAGS={}".format(cxxflags_cache.strip())
+        subprocess.run(("make", "clean"))
+        subprocess.run(("make",  target, "-j4", cxxflags))
         strip_binary(output)
         output_file_path = os.path.join(output_dir, output)
         os.rename(output, output_file_path)
@@ -106,14 +105,13 @@ def make_all(project_dir, output_dir):
     os.chdir(running_dir)
 
 
-def run(experiment_id, restore_path, output_template_dir=None):
+def run(experiment_id, restore_path, timing, output_template_dir=None):
     """Convert from trained model.
 
     Returns:
         output_root_dir (str): Path of exported dir.
             (i.e. `(path to saved)/saved/det_20190326181434/export/save.ckpt-161/128x128/output/`)
     """
-
     # Export model
     export_dir = run_export(experiment_id, restore_path=restore_path)
 
@@ -124,7 +122,6 @@ def run(experiment_id, restore_path, output_template_dir=None):
     activate_hard_quantization = True
     threshold_skipping = True
     cache_dma = True
-
     # Generate project
     run_generate_project(
         input_path=input_pb_path,
@@ -134,7 +131,6 @@ def run(experiment_id, restore_path, output_template_dir=None):
         threshold_skipping=threshold_skipping,
         cache_dma=cache_dma
     )
-
     # Create output dir from template
     output_root_dir = os.path.join(export_dir, "output")
     output_directories = create_output_directory(output_root_dir, output_template_dir)
@@ -148,7 +144,7 @@ def run(experiment_id, restore_path, output_template_dir=None):
     # Make
     project_dir_name = "{}.prj".format(project_name)
     project_dir = os.path.join(dest_dir_path, project_dir_name)
-    make_all(project_dir, output_directories.get("library_dir"))
+    make_all(project_dir, output_directories.get("library_dir"), timing)
 
     return output_root_dir
 
@@ -165,8 +161,14 @@ def run(experiment_id, restore_path, output_template_dir=None):
     help="restore ckpt file base path. e.g. saved/experiment/checkpoints/save.ckpt-10001",
     default=None,
 )
-def main(experiment_id, restore_path):
-    run(experiment_id, restore_path)
+@click.option(
+    "-t",
+    "--timing",
+    help="enable operation time measurements",
+    is_flag=True,
+)
+def main(experiment_id, restore_path, timing):
+    run(experiment_id, restore_path, timing)
 
 
 if __name__ == '__main__':
