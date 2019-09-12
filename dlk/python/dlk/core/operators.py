@@ -3153,8 +3153,8 @@ class Mean(Operator):
         return False
 
     def run_forward(self) -> np.ndarray:
-        a_data = self.input_ops['A'].data
-        b_data = self.input_ops['B'].data
+        a_data = self.input_ops['input'].data
+        b_data = self.input_ops['axis'].data
         self._data = np.mean(a_data, axis=tuple(b_data), keepdims=self._keepdims)
         return self._data
 
