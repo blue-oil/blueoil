@@ -183,46 +183,64 @@ inline void func_ExtractImagePatches(
   T_UINT output_index = 0;
 
   if (out_depth < kernel_size * kernel_size) {
-    int bit_shift = out_depth * QUANTIZED_PACKED::BitCount / (kernel_size * kernel_size);
+    const T_UINT kernel_area = kernel_size * kernel_size;
+    const T_UINT bit_shift = out_depth * QUANTIZED_PACKED::BitCount / kernel_area;
     const QUANTIZED_PACKED::base_t mask((QUANTIZED_PACKED::base_t(1) << bit_shift) - 1);
+    const T_UINT lb_kernel_size = __builtin_ctz(kernel_size);
+    const T_UINT kernel_mask = (1 << lb_kernel_size) - 1;
+#ifdef USE_NEON
+    const auto shift_ref = vcombine_s32(vdup_n_s32(0), vdup_n_s32(bit_shift));
+    const auto add = vdupq_n_s32(bit_shift * 2);
+    const auto mask_v = vdupq_n_u32(mask);
+#else
     const uint64_t mask64 = mask * 0x1'0000'0001ull;
-    std::fill(output.data(), output.data() + output.size(), QUANTIZED_PACKED(0));
+#endif
+    const T_UINT blocks = kernel_area / out_depth;
+#pragma omp parallel for
     for(T_UINT wi = 0; wi < out_height; wi++)
       for(T_UINT wj = 0; wj < out_width; wj++)
-        for(T_UINT ki = 0; ki < kernel_size; ki++)
-          for(T_UINT kj = 0; kj < kernel_size; kj++)
-          {
+#ifdef USE_NEON
+        for(T_UINT k = 0; k < out_depth; ++k) {
+          auto tmp = vdupq_n_u32(0);
+          auto shift = shift_ref;
+          for(T_UINT i = 0; i < blocks; i += 2) {
+            T_UINT ki = (k * blocks + i) >> lb_kernel_size;
+            T_UINT kj = (k * blocks + i) & kernel_mask;
             T_INT row = (wi * stride) + ki;
             T_INT col = (wj * stride) + kj;
-            T_UINT ch = (ki * kernel_size + kj) * bit_shift;
-            T_UINT ch_high = ch / QUANTIZED_PACKED::BitCount;
-            T_UINT ch_low = ch % QUANTIZED_PACKED::BitCount;
-#ifdef USE_NEON
-            const auto out_idx = ch_high * out_height * out_width * bits_per_input
-              + wi * out_width * bits_per_input
-              + wj * bits_per_input;
             const auto in_idx = row * input_width * bits_per_input
               + col * bits_per_input;
-            const auto in = vld1_u32(reinterpret_cast<uint32_t*>(input.data() + in_idx));
-            const auto masked = vand_u32(vdup_n_u32(mask), in);
-#ifdef AARCH32
-            const auto shifted = vshl_u32(masked, vdup_n_s32(ch_low));
+            const auto in = vld1q_u32(reinterpret_cast<uint32_t*>(input.data() + in_idx));
+            const auto masked = vandq_u32(mask_v, in);
+            const auto shifted = vshlq_u32(masked, shift);
+            shift += add;
+            tmp |= shifted;
+          }
+          const auto out = vorr_u32(vget_low_u32(tmp), vget_high_u32(tmp));
+          const auto out_idx = k * out_height * out_width * bits_per_input
+            + wi * out_width * bits_per_input
+            + wj * bits_per_input;
+          vst1_u32(reinterpret_cast<uint32_t*>(output.data() + out_idx), out);
+        }
 #else
-            const auto shifted = vshl_n_u32(masked, ch_low);
-#endif
-            const auto out_old = vld1_u32(reinterpret_cast<uint32_t*>(output.data() + out_idx));
-            const auto out_new = vorr_u32(out_old, shifted);
-            vst1_u32(reinterpret_cast<uint32_t*>(output.data() + out_idx), out_new);
-#else
-            const auto out_idx = ch_high * out_height * out_width * bits_per_input
-              + wi * out_width * bits_per_input
-              + wj * bits_per_input;
+        for(T_UINT k = 0; k < out_depth; ++k) {
+          uint64_t out = 0;
+          for(T_UINT i = 0; i < blocks; ++i) {
+            T_UINT ki = (k * blocks + i) >> lb_kernel_size;
+            T_UINT kj = (k * blocks + i) & kernel_mask;
+            T_INT row = (wi * stride) + ki;
+            T_INT col = (wj * stride) + kj;
             const auto in_idx = row * input_width * bits_per_input
               + col * bits_per_input;
             const auto in = *reinterpret_cast<uint64_t*>(input.data() + in_idx);
-            *reinterpret_cast<uint64_t*>(output.data() + out_idx) |= (mask64 & in) << ch_low;
-#endif
+            out |= (mask64 & in) << (i * bit_shift);
           }
+          const auto out_idx = k * out_height * out_width * bits_per_input
+            + wi * out_width * bits_per_input
+            + wj * bits_per_input;
+          *reinterpret_cast<uint64_t*>(output.data() + out_idx) = out;
+        }
+#endif
   } else {
     for(T_UINT ih = 0; ih < input_depth; ++ih)
       for(T_UINT wi = 0; wi < out_height; wi++)
@@ -232,7 +250,6 @@ inline void func_ExtractImagePatches(
             {
               T_INT row = (wi * stride) + ki;
               T_INT col = (wj * stride) + kj;
-#ifdef USE_NEON
               const auto ch_high = ih + (ki * kernel_size + kj) * input_depth;
               const auto out_idx = ch_high * out_height * out_width * bits_per_input
                 + wi * out_width * bits_per_input
@@ -240,16 +257,10 @@ inline void func_ExtractImagePatches(
               const auto in_idx = ih * input_height * input_width * bits_per_input
                 + row * input_width * bits_per_input
                 + col * bits_per_input;
+#ifdef USE_NEON
               const auto in = vld1_u32(reinterpret_cast<uint32_t*>(input.data() + in_idx));
               vst1_u32(reinterpret_cast<uint32_t*>(output.data() + out_idx), in);
 #else
-              const auto ch_high = ih + (ki * kernel_size + kj) * input_depth;
-              const auto out_idx = ch_high * out_height * out_width * bits_per_input
-                + wi * out_width * bits_per_input
-                + wj * bits_per_input;
-              const auto in_idx = ih * input_height * input_width * bits_per_input
-                + row * input_width * bits_per_input
-                + col * bits_per_input;
               *reinterpret_cast<uint64_t*>(output.data() + out_idx) =
                   *reinterpret_cast<uint64_t*>(input.data() + in_idx);
 #endif
