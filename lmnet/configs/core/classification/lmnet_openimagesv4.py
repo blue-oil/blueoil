@@ -57,8 +57,6 @@ PRE_PROCESSOR = Sequence([
 ])
 POST_PROCESSOR = None
 
-# distributed training
-IS_DISTRIBUTION = False
 
 # for debug
 # MAX_STEPS = 10

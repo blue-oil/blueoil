@@ -60,7 +60,6 @@ REQUIEMNT_PARAMS_FOR_TRAINING = REQUIEMNT_PARAMS_FOR_INFERENCE + [
     "PRETRAIN_VARS",
     "PRETRAIN_DIR",
     "PRETRAIN_FILE",
-    "IS_DISTRIBUTION",
 ]
 
 
@@ -97,10 +96,10 @@ def check_config(config, mode="inference"):
         if isinstance(key, tuple):
             keys = key
             if not any([key in config for key in keys]):
-                raise KeyError("config file should be included {} parameter".format(" or ".join(keys)))
+                raise KeyError("config file should include {} parameter".format(" or ".join(keys)))
         else:
             if key not in config:
-                raise KeyError("config file should be included {} parameter".format(key))
+                raise KeyError("config file should include {} parameter".format(key))
 
 
 def load(config_file):
