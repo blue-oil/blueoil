@@ -210,7 +210,7 @@ void TCAConv2d(const kn2row_input_t& input,
     Measurement::Stop();
 
     Measurement::Start("Conv2D TCA");
-    de10_nano::RunTCA(p.device_input_phys_addr, p.device_output_phys_addr, p.device_kernel_phys_addr, p.thresholds, in_w, in_h,
+    de10_nano::RunTCA(p.device_input_phys_addr, p.device_output_phys_addr, p.device_kernel_phys_addr, p.device_thresholds_phys_addr, in_w, in_h,
       k_c, MAX_NBIT_QINPUT, out_w, out_h, out_c, k_w, k_h, cp.padding, cp.stride_along_height);
     Measurement::Stop();
 

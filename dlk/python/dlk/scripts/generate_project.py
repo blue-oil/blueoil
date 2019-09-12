@@ -101,9 +101,6 @@ def generate_code_step(model: Model, config: Config) -> None:
     if config.threshold_skipping:
         builder.generate_thresholds()
 
-    if config.use_tvm:
-        builder.generate_tvm_libraries()
-
 
 def run(input_path: str,
         dest_dir_path: str,
@@ -111,7 +108,6 @@ def run(input_path: str,
         activate_hard_quantization: bool,
         threshold_skipping: bool = False,
         num_pe: int = 16,
-        use_tvm: bool = False,
         debug: bool = False,
         cache_dma: bool = False):
 
@@ -123,7 +119,6 @@ def run(input_path: str,
     config = Config(num_pe=num_pe,
                     activate_hard_quantization=activate_hard_quantization,
                     threshold_skipping=threshold_skipping,
-                    tvm_path=(path.join(ROOT_DIR, 'tvm') if use_tvm else None),
                     test_dir=output_dlk_test_dir,
                     optimized_pb_path=optimized_pb_path,
                     output_pj_path=output_project_path,
@@ -186,13 +181,6 @@ def run(input_path: str,
     help='set number of PE used in FPGA IP',
 )
 @click.option(
-    "-tvm",
-    "--use_tvm",
-    is_flag=True,
-    default=False,
-    help="optimize CPU/GPU operations using TVM",
-)
-@click.option(
     "-dbg",
     "--debug",
     is_flag=True,
@@ -212,7 +200,6 @@ def main(input_path,
          activate_hard_quantization,
          threshold_skipping,
          num_pe,
-         use_tvm,
          debug,
          cache_dma):
 
@@ -223,7 +210,6 @@ def main(input_path,
         activate_hard_quantization=activate_hard_quantization,
         threshold_skipping=threshold_skipping,
         num_pe=num_pe,
-        use_tvm=use_tvm,
         debug=debug,
         cache_dma=cache_dma)
 
