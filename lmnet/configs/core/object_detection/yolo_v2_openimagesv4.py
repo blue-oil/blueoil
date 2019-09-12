@@ -39,8 +39,7 @@ from lmnet.data_augmentor import (
 )
 
 IS_DEBUG = False
-# distributed training
-IS_DISTRIBUTION = False
+
 
 NETWORK_CLASS = YoloV2
 DATASET_CLASS = OpenImagesV4BoundingBox
