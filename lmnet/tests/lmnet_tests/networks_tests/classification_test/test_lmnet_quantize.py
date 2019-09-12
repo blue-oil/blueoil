@@ -53,7 +53,6 @@ def test_training():
     config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
-    config.IS_DISTRIBUTION = False
 
     # network model config
     config.NETWORK = EasyDict()
