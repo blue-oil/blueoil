@@ -271,12 +271,12 @@ class Scale(Augmentor):
         data = np.concatenate([image, label * factor], axis=2)
         zoomed_data = ndimage.zoom(data, [factor, factor, 1], order=1)
         data = self.random_crop(zoomed_data, crop_size=image_size)
-        image = data[..., :-2]
-        image[image < 0] = 0
-        image[image > 255] = 255
-        image = image.astype(np.uint8)
-        label = data[..., -2:]
-        return dict({"image": image, "label": label}, **kwargs)
+        image_new = data[..., :-2]
+        image_new[image_new < 0] = 0
+        image_new[image_new > 255] = 255
+        image_new = image_new.astype(np.uint8)
+        label_new = data[..., -2:]
+        return dict({"image": image_new, "label": label_new}, **kwargs)
 
 
 class Translate(Augmentor):
@@ -291,9 +291,6 @@ class Translate(Augmentor):
         dh = np.random.uniform(self.min_value, self.max_value)
         dw = np.random.uniform(self.min_value, self.max_value)
         shift = [int(image_size[0] * dh), int(image_size[1] * dw), 0]
-        data = np.concatenate([image, label], axis=2)
-        shifted_data = ndimage.shift(data, shift, order=1, cval=0)
-        image = shifted_data[..., :-2]
-        image = image.astype(np.uint8)
-        label = shifted_data[..., -2:]
-        return dict({"image": image, "label": label}, **kwargs)
+        shifted_image = ndimage.shift(image, shift, order=1, cval=0)
+        shifted_label = ndimage.shift(label, shift, order=1, cval=0)
+        return dict({"image": shifted_image, "label": shifted_label}, **kwargs)

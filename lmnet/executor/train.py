@@ -52,11 +52,12 @@ def setup_dataset(config, subset, rank):
     dataset = DatasetClass(subset=subset, **dataset_kwargs, **tfds_kwargs)
     enable_prefetch = dataset_kwargs.pop(
         "{}_enable_prefetch".format(subset), False)
-    queue_size = dataset_kwargs.pop("{}_queue_size".format(subset), 200)
+    pre_load = dataset_kwargs.pop("{}_pre_load".format(subset), False)
     process_num = dataset_kwargs.pop("{}_process_num".format(subset), 8)
+    queue_size = dataset_kwargs.pop("{}_queue_size".format(subset), 200)
     return DatasetIterator(
         dataset, seed=rank, enable_prefetch=enable_prefetch,
-        queue_size=queue_size, process_num=process_num)
+        pre_load=pre_load, queue_size=queue_size, process_num=process_num)
 
 
 def start_training(config):

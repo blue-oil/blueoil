@@ -56,12 +56,10 @@ def train_valid_split(arr, validation_rate=0.25, seed=None):
     return [arr[_] for _ in train_indices], [arr[_] for _ in valid_indices]
 
 
-@functools.lru_cache(maxsize=None)
 def _open_image_file(file_name, dtype=np.uint8):
     return np.array(PIL.Image.open(file_name), dtype=dtype)
 
 
-@functools.lru_cache(maxsize=None)
 def _open_flo_file(file_name, dtype=np.float32):
     with open(file_name, "rb") as f:
         magic = np.fromfile(f, np.float32, count=1)
@@ -73,7 +71,6 @@ def _open_flo_file(file_name, dtype=np.float32):
     return np.resize(data, (height, width, 2))
 
 
-@functools.lru_cache(maxsize=None)
 def _open_pfm_file(file_name, dtype=np.float32):
     color, width, height, scale, endian = None, None, None, None, None
     with open(file_name, "rb") as f:
@@ -106,11 +103,15 @@ class OpticalFlowEstimationBase(Base):
     available_subsets = ["train", "validation"]
 
     def __init__(
-            self, *args, validation_rate=0.1, validation_seed=1234, **kwargs):
+            self, *args, validation_rate=0.1, validation_seed=1234,
+            pre_load=False, **kwargs):
         super().__init__(*args, **kwargs,)
         self.fetch_file_list()
         self.split_file_list(validation_rate, validation_seed)
+        if pre_load:
+            self.pre_load()
 
+    @functools.lru_cache(maxsize=None)
     def __getitem__(self, index, type=None):
         image_a_path, image_b_path, flow_path = self.file_list[index]
         image_a = _open_image_file(image_a_path)
@@ -133,6 +134,12 @@ class OpticalFlowEstimationBase(Base):
             self.file_list = train_dataset
         else:
             self.file_list = validation_dataset
+
+    def pre_load(self):
+        pbar = tqdm.tqdm(range(len(self)))
+        for _i in pbar:
+            _res = self[_i]
+            pbar.set_description("loading {}".format(_i))
 
     def flow_loader(self):
         NotImplementedError()

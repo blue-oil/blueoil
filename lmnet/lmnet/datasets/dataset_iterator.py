@@ -250,7 +250,7 @@ class DatasetIterator:
 
     def __init__(
             self, dataset, seed=0, enable_prefetch=False,
-            queue_size=200, process_num=8):
+            queue_size=200, process_num=8, pre_load=False):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
         self.seed = seed
@@ -259,6 +259,8 @@ class DatasetIterator:
             self.enable_prefetch = False
             self.reader = _TFDSReader(self.dataset)
         else:
+            if pre_load:
+                dataset.pre_load()
             if self.enable_prefetch:
                 self.prefetch_result_queue = queue.Queue(maxsize=queue_size)
                 self.prefetcher = _MultiProcessDatasetPrefetchThread(
