@@ -56,7 +56,7 @@ test-dlk: test-dlk-pep8 test-dlk-main
 .PHONY: test-dlk-pep8
 test-dlk-pep8: build
 	# Check dlk PEP8
-	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pycodestyle --ignore=W --max-line-length=120 --exclude='*static/pb*','*docs/*','*.eggs*','*tvm/*','*tests/*','backends/*' ."
+	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pycodestyle --ignore=W --max-line-length=120 --exclude='*static/pb*','*docs/*','*.eggs*','*tests/*','backends/*' ."
 
 .PHONY: test-dlk-main
 test-dlk-main: build

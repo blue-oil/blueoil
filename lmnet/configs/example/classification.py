@@ -53,8 +53,6 @@ SAVE_CHECKPOINT_STEPS = 100
 TEST_STEPS = 100
 SUMMARISE_STEPS = 10
 
-# distributed training
-IS_DISTRIBUTION = False
 
 # pretrain
 IS_PRETRAIN = False

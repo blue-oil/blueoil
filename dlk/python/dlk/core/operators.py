@@ -1446,7 +1446,7 @@ class QTZ_linear_mid_tread_half(Quantizer):
 
         n = 2 ** bit - 1
         np.clip(in_data, 0, max_value, out=in_data)
-        kwargs['data'] = np.round(in_data * n / max_value).astype(np.int32)
+        kwargs['data'] = np.floor(in_data * n / max_value + 0.5).astype(np.int32)
         return kwargs
 
     def de_run(self, **kwargs) -> Dict:

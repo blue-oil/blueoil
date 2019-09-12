@@ -21,6 +21,12 @@ limitations under the License.
 #include "func/impl/quantized_conv2d_kn2row.h"
 #include "func/impl/quantized_conv2d_tiling.h"
 #include "func/impl/quantized_conv2d_dim2col.h"
+#ifdef USE_NEON
+#include <arm_neon.h>
+#endif
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 inline void convert_tensor(const TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>& before,
     const TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl>& after) {
@@ -104,11 +110,24 @@ inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWCh
   const auto width = in_shape[1];
   const auto channel = in_shape[2];
   const auto bits = in_shape[3];
+#pragma omp parallel for
   for (std::size_t i = 0; i < height; ++i)
     for (std::size_t j = 0; j < width; ++j)
-      for (std::size_t k = 0; k < channel; ++k)
-        for (std::size_t d = 0; d < bits; ++d)
-          after(k, i, j, d, 0) = before(i, j, k, d, 0);
+      for (std::size_t k = 0; k < channel; ++k) {
+        const auto idx_before = i * width * channel * bits
+            + j * channel * bits
+            + k * bits;
+        const auto idx_after = k * height * width * bits
+            + i * width * bits
+            + j * bits;
+#ifdef AARCH32
+        const auto tmp = vld1_u32(reinterpret_cast<uint32_t*>(before.data() + idx_before));
+        vst1_u32(reinterpret_cast<uint32_t*>(after.data() + idx_after), tmp);
+#else
+        *reinterpret_cast<uint64_t*>(after.data() + idx_after) =
+            *reinterpret_cast<uint64_t*>(before.data() + idx_before);
+#endif
+      }
 }
 
 inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& before,
@@ -118,11 +137,24 @@ inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHW
   const auto width = in_shape[2];
   const auto channel = in_shape[0];
   const auto bits = in_shape[3];
+#pragma omp parallel for
   for (std::size_t i = 0; i < height; ++i)
     for (std::size_t j = 0; j < width; ++j)
-      for (std::size_t k = 0; k < channel; ++k)
-        for (std::size_t d = 0; d < bits; ++d)
-          after(i, j, k, d, 0) = before(k, i, j, d, 0);
+      for (std::size_t k = 0; k < channel; ++k) {
+        const auto idx_before = k * height * width * bits
+            + i * width * bits
+            + j * bits;
+        const auto idx_after = i * width * channel * bits
+            + j * channel * bits
+            + k * bits;
+#ifdef AARCH32
+        const auto tmp = vld1_u32(reinterpret_cast<uint32_t*>(before.data() + idx_before));
+        vst1_u32(reinterpret_cast<uint32_t*>(after.data() + idx_after), tmp);
+#else
+        *reinterpret_cast<uint64_t*>(after.data() + idx_after) =
+            *reinterpret_cast<uint64_t*>(before.data() + idx_before);
+#endif
+      }
 }
 
 inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& before,
@@ -139,8 +171,17 @@ inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::
 template <typename T, MemoryLayout layout>
 void convert_tensor(const TensorView<T, layout>& before,
     const TensorView<T, layout>& after) {
-  auto num_elems = before.size();
+  const auto num_elems = before.size();
+#ifdef _OPENMP
+  const auto num_threads = omp_get_max_threads();
+  const auto chunk_size = (num_elems + num_threads - 1) / num_threads;
+#pragma omp parallel for
+  for (int i = 0; i < num_elems; i += chunk_size) {
+    std::copy(before.data() + i, before.data() + std::min(i + chunk_size, num_elems), after.data() + i);
+  }
+#else
   std::copy(before.data(), before.data() + num_elems, after.data());
+#endif
 }
 
 #endif

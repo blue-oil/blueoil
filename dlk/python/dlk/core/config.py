@@ -33,9 +33,7 @@ class Config(object):
                  quartus_path='blueoil_de10-nano.prj',
                  placeholder_dtype=float,
                  default_qword_dtype=Uint32,
-                 tvm_path=None,
                  test_dir=None,
-                 use_onnx=False,
                  optimized_pb_path=None,
                  output_pj_path=None,
                  debug: bool = False,
@@ -51,9 +49,7 @@ class Config(object):
         self.pll_frequency: str = pll_frequency
         self.quartus_path: str = quartus_path
         self.default_qword_dtype = default_qword_dtype
-        self.tvm_path: str = tvm_path
         self.test_dir: str = test_dir
-        self.use_onnx: bool = use_onnx
         self.optimized_pb_path: str = optimized_pb_path
         self.output_pj_path: str = output_pj_path
         self.__debug: bool = debug
@@ -62,10 +58,6 @@ class Config(object):
     @property
     def pre_processor(self) -> str:
         return 'DivideBy255'
-
-    @property
-    def use_tvm(self):
-        return self.tvm_path is not None
 
     @property
     def cpu_count(self) -> int:

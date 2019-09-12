@@ -6,15 +6,11 @@ dlk2.egg-info/
 
 # C extensions
 *.so
-python/dlk2/templates/tvm_runtime
 
 # Distribution / packaging
 bin/
 build/
 dist/
-
-# Testing
-tests/tf_onnx/
 
 # pyenv
 .python-version
@@ -28,12 +24,7 @@ cmake-build-debug
 # tmp
 tmp/
 
-# virtualenv
-dlk2_tvm/
-
 # docs
-docs/cpp/html/
-docs/cpp/latex/
 docs/python/_build/
 docs/python/html/
 docs/python/latex/

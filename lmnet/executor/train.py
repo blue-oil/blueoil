@@ -21,7 +21,7 @@ import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 from tensorflow.keras.utils import Progbar
 
-from lmnet.utils import executor, module_loader, config as config_util
+from lmnet.utils import executor, module_loader, config as config_util, horovod as horovod_util
 from lmnet import environment
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.dataset_iterator import DatasetIterator
@@ -61,25 +61,12 @@ def setup_dataset(config, subset, rank):
 
 
 def start_training(config):
-    if config.IS_DISTRIBUTION:
-        import horovod.tensorflow as hvd
-        # initialize Horovod.
-        hvd.init()
-        num_worker = hvd.size()
+    use_horovod = horovod_util.is_enabled()
+    print("use_horovod:", use_horovod)
+    if use_horovod:
+        hvd = horovod_util.setup()
         rank = hvd.rank()
-        # verify that MPI multi-threading is supported.
-        assert hvd.mpi_threads_supported()
-        # make sure MPI is not re-initialized.
-        import mpi4py.rc
-        mpi4py.rc.initialize = False
-        # import mpi4py
-        from mpi4py import MPI
-        comm = MPI.COMM_WORLD
-        # check size and rank are syncronized
-        assert num_worker == comm.Get_size()
-        assert rank == comm.Get_rank()
     else:
-        num_worker = 1
         rank = 0
 
     ModelClass = config.NETWORK_CLASS
@@ -132,7 +119,7 @@ def start_training(config):
         else:
             loss = model.loss(output, labels_placeholder)
         opt = model.optimizer(global_step)
-        if config.IS_DISTRIBUTION:
+        if use_horovod:
             # add Horovod Distributed Optimizer
             opt = hvd.DistributedOptimizer(opt)
         train_op = model.train(loss, opt, global_step)
@@ -148,7 +135,7 @@ def start_training(config):
 
         init_op = tf.global_variables_initializer()
         reset_metrics_op = tf.local_variables_initializer()
-        if config.IS_DISTRIBUTION:
+        if use_horovod:
             # add Horovod broadcasting variables from rank 0 to all
             bcast_global_variables_op = hvd.broadcast_global_variables(0)
 
@@ -168,7 +155,7 @@ def start_training(config):
             pretrain_saver = tf.train.Saver(
                 pretrain_var_list, name="pretrain_saver")
 
-    if config.IS_DISTRIBUTION:
+    if use_horovod:
         # For distributed training
         session_config = tf.ConfigProto(
             gpu_options=tf.GPUOptions(
@@ -223,15 +210,9 @@ def start_training(config):
                 status=SessionLog.START), global_step=last_step + 1)
             print("recovered. last step", last_step)
 
-    if config.IS_DISTRIBUTION:
+    if use_horovod:
         # broadcast variables from rank 0 to all other processes
         sess.run(bcast_global_variables_op)
-        # calculate step per epoch for each nodes
-        train_num_per_epoch = train_dataset.num_per_epoch
-        num_per_nodes = (train_num_per_epoch + num_worker - 1) // num_worker
-        step_per_epoch = num_per_nodes // config.BATCH_SIZE
-        begin_index = (train_num_per_epoch * rank) // num_worker
-        end_index = begin_index + num_per_nodes
 
     last_step = sess.run(global_step)
 
@@ -246,15 +227,6 @@ def start_training(config):
     if rank == 0:
         progbar.update(last_step)
     for step in range(last_step, max_steps):
-        if config.IS_DISTRIBUTION:
-            # scatter dataset
-            if step % step_per_epoch == 0:
-                indices = train_dataset.get_shuffle_index() if rank == 0 else None
-                # broadcast shuffled indices
-                indices = comm.bcast(indices, 0)
-                feed_indices = indices[begin_index:end_index]
-                # update each dataset by splited indices
-                train_dataset.update_dataset(feed_indices)
 
         images, labels = train_dataset.feed()
 
@@ -404,7 +376,6 @@ def start_training(config):
 
 def run(network, dataset, config_file, experiment_id, recreate):
     environment.init(experiment_id)
-
     config = config_util.load(config_file)
 
     if network:
@@ -414,12 +385,16 @@ def run(network, dataset, config_file, experiment_id, recreate):
         dataset_class = module_loader.load_dataset_class(dataset)
         config.DATASET_CLASS = dataset_class
 
-    config_util.display(config)
-    executor.init_logging(config)
+    if horovod_util.is_enabled():
+        horovod_util.setup()
 
-    executor.prepare_dirs(recreate)
-    config_util.copy_to_experiment_dir(config_file)
-    config_util.save_yaml(environment.EXPERIMENT_DIR, config)
+    if horovod_util.is_rank0():
+        config_util.display(config)
+        executor.init_logging(config)
+
+        executor.prepare_dirs(recreate)
+        config_util.copy_to_experiment_dir(config_file)
+        config_util.save_yaml(environment.EXPERIMENT_DIR, config)
 
     start_training(config)
 
