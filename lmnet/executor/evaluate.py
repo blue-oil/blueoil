@@ -85,7 +85,7 @@ def evaluate(config, restore_path):
         global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, labels_placeholder = model.placeholderes()
+        images_placeholder, labels_placeholder = model.placeholders()
 
         output = model.inference(images_placeholder, is_training)
 
