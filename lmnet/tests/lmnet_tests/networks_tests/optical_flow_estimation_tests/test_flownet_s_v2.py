@@ -311,7 +311,7 @@ def test_training():
     config.DATASET.PRE_PROCESSOR = Sequence([
         DevideBy255(),
     ])
-    environment.init("test_flownet_s_v1")
+    environment.init("test_flownet_s_v2")
     prepare_dirs(recreate=True)
     start_training(config)
 
@@ -374,7 +374,7 @@ def test_quantize_training():
     config.DATASET.PRE_PROCESSOR = Sequence([
         DevideBy255(),
     ])
-    environment.init("test_flownet_s_v1_quantize")
+    environment.init("test_flownet_s_v2_quantize")
     prepare_dirs(recreate=True)
     start_training(config)
 
@@ -386,5 +386,5 @@ if __name__ == '__main__':
     # test_average_endpoint_error()
     # test_contractive_block()
     # test_refinement_block()
-    test_training()
+    # test_training()
     test_quantize_training()
