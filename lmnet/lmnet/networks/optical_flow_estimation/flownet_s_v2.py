@@ -60,6 +60,16 @@ class FlowNetSV2(BaseNetwork):
             output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
+    def _depth_to_space(self, name, inputs, block_size):
+        if self.data_format != 'NHWC':
+            inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
+
+        output = tf.depth_to_space(inputs, block_size=block_size, name=name)
+
+        if self.data_format != 'NHWC':
+            output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
+        return output
+
     def _conv_bn_act(self, name, inputs, filters, is_training,
                      kernel_size=3, strides=1, enable_detail_summary=False, activation=None
                      ):
@@ -119,17 +129,21 @@ class FlowNetSV2(BaseNetwork):
             # In conv2d_transpose, h = h1 * stride if padding == 'Same'
             # https://datascience.stackexchange.com/questions/26451/how-to-calculate-the-output-shape-of-conv2d-transpose
             # TODO in flownet2-tf, he typed 'biases_initializer'=None. I don't know if it worked.
-            conved = tf.layers.conv2d_transpose(
+
+            inputs = self._depth_to_space(name, inputs, 2)
+
+            conved = tf.layers.conv2d(
                 inputs,
                 filters,
-                kernel_size=4,
-                strides=2,
+                kernel_size=3,
+                strides=1,
                 padding='SAME',
                 use_bias=True,
                 bias_initializer=None,
                 kernel_regularizer=tf.contrib.layers.l2_regularizer(
                     self.weight_decay_rate)
             )
+
             if activation is None:
                 output = self.activation(conved)
             else:
@@ -151,14 +165,19 @@ class FlowNetSV2(BaseNetwork):
     def _upsample_flow(self, name, inputs):
         # TODO Think: tf uses bias but pytorch did not
         with tf.variable_scope(name):
-            return tf.layers.conv2d_transpose(
+
+            inputs = self._depth_to_space(name, inputs, 2)
+
+            conved = tf.layers.conv2d(
                 inputs,
                 2,
-                kernel_size=4,
-                strides=2,
+                kernel_size=3,
+                strides=1,
                 padding='SAME',
                 use_bias=False
             )
+
+            return conved
 
     def _downsample(self, name, inputs, size):
         with tf.variable_scope(name):
