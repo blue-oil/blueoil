@@ -339,8 +339,7 @@ class FlowNetSV2(BaseNetwork):
         labels_flow_img = tf.stack([labels_flow_0, labels_flow_1], 0)
         tf.summary.image('labels_flow', labels_flow_img, max_outputs=2)
 
-    # TODO CHANGE THE NAME
-    def placeholderes(self):
+    def placeholders(self):
         """Placeholders.
 
         Return placeholders.

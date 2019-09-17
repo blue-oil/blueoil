@@ -81,7 +81,7 @@ def main_process(config, restore_path):
             **network_kwargs
         )
         is_training = tf.constant(False, name="is_training")
-        images_placeholder, _ = model.placeholderes()
+        images_placeholder, _ = model.placeholders()
         output_op = model.inference(images_placeholder, is_training)
         init_op = tf.global_variables_initializer()
         saver = tf.train.Saver(max_to_keep=None)
