@@ -36,7 +36,7 @@ def shuffle(*arrays, seed=None):
         seed(int): The seed of random generator.
 
     Returns:
-        shuffled arrays(list): List of shuffled arrays. len(shuddled) == len(arrays)
+        shuffled arrays(list): List of shuffled arrays. len(shuffled) == len(arrays)
     """
 
     random_state = np.random.RandomState(seed)

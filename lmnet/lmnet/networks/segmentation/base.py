@@ -165,7 +165,7 @@ class SegnetBase(Base):
 
         Args:
            output: Tensor of network output. shape is (batch_size, output_height, output_width, num_classes).
-           labels: Tensor of grayscale imnage gt labels. shape is (batch_size, height, width).
+           labels: Tensor of grayscale image gt labels. shape is (batch_size, height, width).
         """
         if self.data_format == 'NCHW':
             output = tf.transpose(output, perm=[0, 2, 3, 1])

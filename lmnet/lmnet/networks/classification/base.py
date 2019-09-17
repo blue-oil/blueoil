@@ -126,7 +126,7 @@ class Base(BaseNetwork):
 
         results = []
 
-        # shpae: [batch_size, height, width, num_classes]
+        # shape: [batch_size, height, width, num_classes]
         heatmap = tf.image.resize_images(
             target_feature_map, [self.image_size[0], self.image_size[1]],
             method=tf.image.ResizeMethod.BICUBIC,
