@@ -27,7 +27,8 @@ class FlowNetSV1(BaseNetwork):
     """
     version = 1.00
 
-    def __init__(self, *args, weight_decay_rate=0.0004, **kwargs):
+    def __init__(self, *args, weight_decay_rate=0.0004,
+                 disable_load_op_library=False, **kwargs):
         super().__init__(*args, **kwargs)
 
         # TODO PyCharm warning. I think we should define self.images first here. Check other networks.
@@ -43,9 +44,10 @@ class FlowNetSV1(BaseNetwork):
         self.custom_getter = None
 
         # TODO Where should I put the c files and where do we compile custom ops?
-        self.downsample_so = tf.load_op_library(
-            tf.resource_loader.get_path_to_datafile("downsample.so")
-        )
+        if not disable_load_op_library:
+            self.downsample_so = tf.load_op_library(
+                tf.resource_loader.get_path_to_datafile("downsample.so")
+            )
 
     # TODO: Import _conv_bn_act from blocks after replacing strides=2 using space to depth.
     def _conv_bn_act(self, name, inputs, filters, is_training,
@@ -487,4 +489,3 @@ class FlowNetSV1Quantized(FlowNetSV1):
         )
         with tf.variable_scope("", custom_getter=custom_getter):
             return super().base(images, is_training)
-
