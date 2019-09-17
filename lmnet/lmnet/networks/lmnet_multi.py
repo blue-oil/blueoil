@@ -28,7 +28,7 @@ class LmnetMulti:
     version = 0.01
 
     @property
-    def placeholderes(self):
+    def placeholders(self):
         """placeholders"""
 
         images_placeholder = tf.placeholder(
