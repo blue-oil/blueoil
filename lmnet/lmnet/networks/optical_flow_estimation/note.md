@@ -25,3 +25,17 @@ CUDA_VISIBLE_DEVICES=XXX pytest tests/lmnet_tests/networks_tests/optical_flow_es
 ```
 CUDA_VISIBLE_DEVICES=XXX DATASET_DIR=/home/blueiol/dataset/ python lmnet/executor/train.py -c lmnet/configs/core/optical_flow_estimation/flownet_s_v1.py -i ZZZ
 ```
+
+
+## pb conversion
+
+```
+CUDA_VISIBLE_DEVICES=XXX python lmnet/executor/export.py -i YYY --restore_path ZZZ
+```
+
+## dlk conversion
+
+```
+cd dlk
+PYTHONPATH=python/dlk python python/dlk/scripts/generate_project.py -i minimal_graph_with_shape.pb -o ../tmp/ -p XXX -hq -ts
+```
