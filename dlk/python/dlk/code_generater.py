@@ -120,20 +120,6 @@ class CodeGenerater(object):
                                self.header_dir,
                                quantized_convs=qconvs_convs)
 
-    def generate_tvm_libraries(self):
-        from core.tvm_library_generator import TVMLibraryGenerator
-        supported_operations = ['Conv']
-
-        archs = {
-            'x86': 'llvm --system-lib -target=x86_64',
-            'arm': 'llvm --system-lib -target=armv7l-none-linux-gnueabihf',
-        }
-
-        tvm_gen = TVMLibraryGenerator(self.graph, self.config.output_pj_path, archs)
-        for operation in supported_operations:
-            for node in self.graph.find_node_by_op_type(operation):
-                tvm_gen(node)
-
     def reuse_output_buffers(self):
 
         operations = self.graph.non_variables

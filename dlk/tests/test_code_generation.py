@@ -534,7 +534,6 @@ class TestCodeGeneration(TestCaseDLKBase):
                activate_hard_quantization=hard_quantize,
                threshold_skipping=threshold_skipping,
                num_pe=16,
-               use_tvm=False,
                debug=False,
                cache_dma=cache_dma,
                )

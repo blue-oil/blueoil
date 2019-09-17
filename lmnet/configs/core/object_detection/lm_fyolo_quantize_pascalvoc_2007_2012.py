@@ -18,6 +18,8 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
+
+
 from lmnet.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
@@ -48,6 +50,7 @@ IS_DEBUG = False
 NETWORK_CLASS = LMFYoloQuantize
 DATASET_CLASS = Pascalvoc20072012
 
+
 IMAGE_SIZE = [320, 320]
 BATCH_SIZE = 32
 DATA_FORMAT = "NHWC"
@@ -59,7 +62,7 @@ SAVE_CHECKPOINT_STEPS = 10000
 KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 1000
 SUMMARISE_STEPS = 1000
-IS_DISTRIBUTION = False
+
 
 # for debug
 # IS_DEBUG = True
@@ -102,10 +105,12 @@ NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 # In the origianl yolov2 Paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
 # Train data num per epoch is 16551
 step_per_epoch = int(16551 / BATCH_SIZE)
+
 NETWORK.LEARNING_RATE_KWARGS = {
-        "values": [5e-4, 2e-2, 5e-3, 5e-4],
-        "boundaries": [step_per_epoch, step_per_epoch * 80, step_per_epoch * 120],
+        "values": [5e-4, 2e-2, 5e-3, 5e-4, 5e-5],
+        "boundaries": [step_per_epoch * 5, step_per_epoch * 80, step_per_epoch * 120, step_per_epoch * 140],
 }
+
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT

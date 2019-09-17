@@ -45,7 +45,7 @@ DATASET_CLASS = Dummy
 
 IMAGE_SIZE = [28, 28]
 BATCH_SIZE = 2
-DATA_FORMAT = "NCHW"
+DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
 CLASSES = DATASET_CLASS(subset="train", batch_size=1).classes
 
@@ -55,8 +55,6 @@ KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 100
 SUMMARISE_STEPS = 100
 
-# distributed training
-IS_DISTRIBUTION = False
 
 # pretrain
 IS_PRETRAIN = False

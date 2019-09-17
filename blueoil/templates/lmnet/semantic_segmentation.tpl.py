@@ -51,8 +51,6 @@ KEEP_CHECKPOINT_MAX = {{keep_checkpoint_max}}
 TEST_STEPS = {{test_steps}}
 SUMMARISE_STEPS = {{summarise_steps}}
 
-# distributed training
-IS_DISTRIBUTION = False
 
 # pretrain
 IS_PRETRAIN = False
