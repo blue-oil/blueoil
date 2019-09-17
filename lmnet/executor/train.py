@@ -26,6 +26,7 @@ from lmnet import environment
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from lmnet.common import Tasks
 
 
 def _save_checkpoint(saver, sess, global_step, step):
@@ -85,7 +86,7 @@ def start_training(config):
 
     graph = tf.Graph()
     with graph.as_default():
-        if ModelClass.__module__.startswith("lmnet.networks.object_detection"):
+        if config.TASK == Tasks.OBJECT_DETECTION:
             model = ModelClass(
                 classes=train_dataset.classes,
                 num_max_boxes=train_dataset.num_max_boxes,
@@ -105,7 +106,7 @@ def start_training(config):
         images_placeholder, labels_placeholder = model.placeholders()
 
         output = model.inference(images_placeholder, is_training_placeholder)
-        if ModelClass.__module__.startswith("lmnet.networks.object_detection"):
+        if config.TASK == Tasks.OBJECT_DETECTION:
             loss = model.loss(output, labels_placeholder, global_step)
         else:
             loss = model.loss(output, labels_placeholder)
