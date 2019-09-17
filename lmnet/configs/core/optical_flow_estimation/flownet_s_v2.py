@@ -20,8 +20,8 @@ from easydict import EasyDict
 
 from lmnet.common import Tasks
 from lmnet.data_processor import Sequence
-from lmnet.networks.optical_flow_estimation.flownet_s_v1 import (
-    FlowNetSV1Quantized
+from lmnet.networks.optical_flow_estimation.flownet_s_v2 import (
+    FlowNetSV2
 )
 from lmnet.datasets.optical_flow_estimation import (
     FlyingChairs, ChairsSDHom
@@ -33,12 +33,8 @@ from lmnet.networks.optical_flow_estimation.data_augmentor import (
 from lmnet.networks.optical_flow_estimation.pre_processor import (
     DevideBy255
 )
-from lmnet.quantizations import (
-    binary_channel_wise_mean_scaling_quantizer,
-    linear_mid_tread_half_quantizer,
-)
 
-NETWORK_CLASS = FlowNetSV1Quantized
+NETWORK_CLASS = FlowNetSV2
 DATASET_CLASS = FlyingChairs
 
 IMAGE_SIZE = [384, 512]
@@ -89,23 +85,16 @@ NETWORK.WEIGHT_DECAY_RATE = 0.0004
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
-NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
-NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
-    'bit': 2,
-    'max_value': 2.0
-}
-NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
-NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
-NETWORK.QUANTIZE_ACTIVATION_BEFORE_LAST_LAYER = False
 
 # dataset
 DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.TRAIN_ENABLE_PREFETCH = True
-DATASET.TRAIN_PROCESS_NUM = 20
+DATASET.TRAIN_PROCESS_NUM = 40
 DATASET.TRAIN_QUEUE_SIZE = 1000
-DATASET.VALIDATION_ENABLE_PREFETCH = True
+DATASET.VALIDATION_ENABLE_PREFETCH = False
+DATASET.VALIDATION_PRE_LOAD = False
 DATASET.VALIDATION_PROCESS_NUM = 1
 DATASET.VALIDATION_QUEUE_SIZE = 500
 DATASET.VALIDATION_RATE = 0.1
