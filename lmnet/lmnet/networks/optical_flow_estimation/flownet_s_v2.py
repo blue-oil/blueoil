@@ -21,11 +21,11 @@ from lmnet.networks.base import BaseNetwork
 from .flowlib import flow_to_image
 
 
-class FlowNetSV1(BaseNetwork):
+class FlowNetSV2(BaseNetwork):
     """
-    FlowNetS v1 for optical flow estimation.
+    FlowNetS v2 for optical flow estimation.
     """
-    version = 1.00
+    version = 2.00
 
     def __init__(self, *args, weight_decay_rate=0.0004,
                  disable_load_op_library=False, **kwargs):
@@ -34,11 +34,12 @@ class FlowNetSV1(BaseNetwork):
         # TODO PyCharm warning. I think we should define self.images first here. Check other networks.
         self.images = None
         self.base_dict = None
-        self._activation = lambda x: tf.nn.leaky_relu(
+        self.activation_first_layer = lambda x: tf.nn.leaky_relu(
             x, alpha=0.1, name="leaky_relu")
         # self.activation is quantizable
         self.activation = lambda x: tf.nn.leaky_relu(
             x, alpha=0.1, name="leaky_relu")
+        self.activation_before_last_layer = self.activation
         self.weight_decay_rate = weight_decay_rate
         self.use_batch_norm = True
         self.custom_getter = None
@@ -49,7 +50,16 @@ class FlowNetSV1(BaseNetwork):
                 tf.resource_loader.get_path_to_datafile("downsample.so")
             )
 
-    # TODO: Import _conv_bn_act from blocks after replacing strides=2 using space to depth.
+    def _space_to_depth(self, name, inputs, block_size):
+        if self.data_format != 'NHWC':
+            inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
+
+        output = tf.space_to_depth(inputs, block_size=block_size, name=name)
+
+        if self.data_format != 'NHWC':
+            output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
+        return output
+
     def _conv_bn_act(self, name, inputs, filters, is_training,
                      kernel_size=3, strides=1, enable_detail_summary=False, activation=None
                      ):
@@ -61,6 +71,10 @@ class FlowNetSV1(BaseNetwork):
             raise ValueError(
                 "data format must be 'NCHW' or 'NHWC'. got {}.".format(
                     self.data_format))
+
+        if strides > 1:
+            inputs = self._space_to_depth(name, inputs, strides)
+            strides = 1
 
         # TODO Think: pytorch used batch_norm but tf did not.
         # pytorch: if batch_norm no bias else use bias.
@@ -171,10 +185,11 @@ class FlowNetSV1(BaseNetwork):
         # TODO tf version uses padding=VALID and pad to match the original caffe code.
         # Can DLK handle this?
         # pytorch version uses (kernel_size-1) // 2, which is equal to 'SAME' in tf
-        x = self._conv_bn_act('conv1', images, 64, is_training, kernel_size=7, strides=2,
-                              activation=self._activation)
-        conv2 = self._conv_bn_act('conv2', x, 128, is_training, kernel_size=5, strides=2)
-        x = self._conv_bn_act('conv3', conv2, 256, is_training, kernel_size=5, strides=2)
+        x = self._conv_bn_act('conv1', images, 64, is_training, strides=2,
+                              activation=self.activation_first_layer)
+        conv2 = self._conv_bn_act('conv2', x, 128, is_training, strides=2,
+                                  activation=self.activation_before_last_layer)
+        x = self._conv_bn_act('conv3', conv2, 256, is_training, strides=2)
         conv3_1 = self._conv_bn_act('conv3_1', x, 256, is_training)
         x = self._conv_bn_act('conv4', conv3_1, 512, is_training, strides=2)
         conv4_1 = self._conv_bn_act('conv4_1', x, 512, is_training)
@@ -210,7 +225,7 @@ class FlowNetSV1(BaseNetwork):
         concat3 = tf.concat([conv_dict['conv3_1'], deconv3, upsample_flow4], axis=3)
         predict_flow3 = self._predict_flow('predict_flow3', concat3)
         upsample_flow3 = self._upsample_flow('upsample_flow3', predict_flow3)
-        deconv2 = self._deconv('deconv2', concat3, 256)
+        deconv2 = self._deconv('deconv2', concat3, 256, activation=self.activation_before_last_layer)
 
         concat2 = tf.concat([conv_dict['conv2'], deconv2, upsample_flow3], axis=3)
         predict_flow2 = self._predict_flow('predict_flow2', concat2)
@@ -398,14 +413,15 @@ class FlowNetSV1(BaseNetwork):
         return total_loss
 
 
-class FlowNetSV1Quantized(FlowNetSV1):
-    """ Quantized FlowNet s v1 network.
+class FlowNetSV2Quantized(FlowNetSV2):
+    """ Quantized FlowNet s v2 network.
     """
 
     def __init__(
             self,
             quantize_first_convolution=False,
             quantize_last_convolution=False,
+            quantize_activation_before_last_layer=False,
             activation_quantizer=None,
             activation_quantizer_kwargs=None,
             weight_quantizer=None,
@@ -430,6 +446,7 @@ class FlowNetSV1Quantized(FlowNetSV1):
 
         self.quantize_first_convolution = quantize_first_convolution
         self.quantize_last_convolution = quantize_last_convolution
+        self.quantize_activation_before_last_layer = quantize_activation_before_last_layer
 
         activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
         weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
@@ -439,6 +456,11 @@ class FlowNetSV1Quantized(FlowNetSV1):
 
         self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
         self.activation = activation_quantizer(**activation_quantizer_kwargs)
+
+        if quantize_activation_before_last_layer:
+            self.activation_before_last_layer = self.activation
+        else:
+            self.activation_before_last_layer = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
 
     @staticmethod
     def _quantized_variable_getter(
