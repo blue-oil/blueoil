@@ -139,7 +139,7 @@ const char *c2numpy_descr(c2numpy_type type) {
     return nullptr;
 }
 
-int c2numpy_init(c2numpy_writer *writer, const std::string outputFilePrefix, int32_t numRowsPerFile) {
+int c2numpy_init(c2numpy_writer *writer, const std::string outputFilePrefix, uint32_t Postfix, int32_t numRowsPerFile) {
     writer->file = nullptr;
     writer->outputFilePrefix = outputFilePrefix;
     writer->sizeSeekPosition = 0;
@@ -150,7 +150,7 @@ int c2numpy_init(c2numpy_writer *writer, const std::string outputFilePrefix, int
     writer->numRowsPerFile = numRowsPerFile;
     writer->currentColumn = 0;
     writer->currentRowInFile = 0;
-    writer->currentFileNumber = 0;
+    writer->currentFileNumber = Postfix;
 
     return 0;
 }

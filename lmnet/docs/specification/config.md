@@ -36,7 +36,6 @@ Go to section:
 |PRETRAIN_FILE|string|'save.ckpt-1'|Pretrain checkpoint file name. It is needed when `IS_PRETRAIN` flag is `True`||||
 |PRE_PROCESSOR|Sequence|Sequence([...])|Sequence of pre-processors.|○|○|○|
 |POST_PROCESSOR|Sequence|Sequence([...])|Sequence of post-processors.|○|○|○|
-|IS_DISTRIBUTION|boolean|True, False|Set True to use distribution training. |○|||
 |NETWORK.OPTIMIZER_CLASS|class|tf.train.AdamOptimizer|Class of optimizer.|○|||
 |NETWORK.OPTIMIZER_KWARGS|dict|{"learning_rate": 0.00005, "epsilon": 1e-4}|kwargs of optimizer.|○|||
 |NETWORK.IMAGE_SIZE|list [int, int]|IMAGE_SIZE|Image size for network. Normally same to IMAGE_SIZE.|○|○||
