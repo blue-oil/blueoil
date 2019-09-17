@@ -111,7 +111,7 @@ class OpticalFlowEstimationBase(Base):
         if pre_load:
             self.pre_load()
 
-    @functools.lru_cache(maxsize=None)
+    # @functools.lru_cache(maxsize=None)
     def __getitem__(self, index, type=None):
         image_a_path, image_b_path, flow_path = self.file_list[index]
         image_a = _open_image_file(image_a_path)
