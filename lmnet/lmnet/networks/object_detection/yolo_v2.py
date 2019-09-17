@@ -1350,7 +1350,7 @@ class YoloV2Loss:
         return cell_gt_boxes, truth_confidence, object_masks, coordinate_masks
 
     def _calculate_truth_and_masks(self, gt_boxes_list, predict_boxes, global_step,
-                                    predict_classes=None, predict_confidence=None):
+                                   predict_classes=None, predict_confidence=None):
         """Calculate truth and masks for loss function from gt boxes and predict boxes.
 
         Args:
@@ -1450,7 +1450,7 @@ class YoloV2Loss:
             # coordinate_mask: [batch_size, num_cell, num_cell, box_per_cell, 1]
             cell_gt_boxes, truth_confidence, object_mask, coordinate_mask =\
                 self._calculate_truth_and_masks(gt_boxes, predict_boxes, global_step,
-                                                 predict_classes, predict_confidence)
+                                                predict_classes, predict_confidence)
 
             # for class loss
             truth_classes = tf.cast(cell_gt_boxes[:, :, :, :, 4], tf.int32)
