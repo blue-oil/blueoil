@@ -98,7 +98,7 @@ def make_all(project_dir, output_dir):
             os.environ["CXXFLAGS"] = cxxflags_cache
 
         subprocess.run(("make", "clean", "--quiet"))
-        subprocess.run(("make",  target, "-j4", "--quiet"))
+        subprocess.run(("make", target, "-j4", "--quiet"))
         strip_binary(output)
         output_file_path = os.path.join(output_dir, output)
         os.rename(output, output_file_path)
@@ -123,7 +123,7 @@ def run(experiment_id,
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")
-    if project_name is None or len(project_name) < 1:
+    if not project_name:
         project_name = "project"
     activate_hard_quantization = True
     threshold_skipping = True
