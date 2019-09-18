@@ -22,6 +22,7 @@ from lmnet.datasets.image_folder import ImageFolderBase
 from lmnet.networks.classification.darknet import Darknet
 from lmnet.utils.executor import prepare_dirs
 from lmnet.pre_processor import Resize
+from lmnet.common import Tasks
 from executor.train import start_training
 
 
@@ -50,6 +51,7 @@ def test_training():
     config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
+    config.TASK = Tasks.CLASSIFICATION
 
     # network model config
     config.NETWORK = EasyDict()

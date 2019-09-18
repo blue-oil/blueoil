@@ -30,6 +30,7 @@ from lmnet.post_processor import (
     ExcludeLowScoreBox,
     NMS,
 )
+from lmnet.common import Tasks
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 # Set test environment
@@ -713,6 +714,7 @@ def test_training():
     config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
+    config.TASK = Tasks.OBJECT_DETECTION
 
     # network model config
     config.NETWORK = EasyDict()
