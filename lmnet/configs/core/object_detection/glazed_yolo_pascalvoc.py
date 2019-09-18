@@ -100,7 +100,8 @@ NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 step_per_epoch = int(16551 / BATCH_SIZE)
 NETWORK.LEARNING_RATE_KWARGS = {
     "values": [5e-4, 2e-3, 2e-2, 5e-3, 5e-4, 5e-5],
-    "boundaries": [step_per_epoch * 3, step_per_epoch * 5, step_per_epoch * 80, step_per_epoch * 120, step_per_epoch * 140],
+    "boundaries": [step_per_epoch * 3, step_per_epoch * 5, step_per_epoch * 80, step_per_epoch * 120,
+                   step_per_epoch * 140],
 }
 
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
