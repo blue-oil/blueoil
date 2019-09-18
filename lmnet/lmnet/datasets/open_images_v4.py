@@ -118,7 +118,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
     @property
     @functools.lru_cache(maxsize=None)
     def _target_labels(self):
-        """Map of {csv raw label name: Be mapped taregt label name}. """
+        """Map of {csv raw label name: Be mapped target label name}. """
 
         target_labels = dict(self._make_target_labels())
         return target_labels
