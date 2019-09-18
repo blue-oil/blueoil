@@ -178,7 +178,8 @@ class SegnetBase(Base):
                 weight = (all_size - num_label) / all_size
                 loss_weight.append(weight)
 
-            loss_weight = tf.Print(loss_weight, loss_weight, message="loss_weight:")
+            if self.is_debug:
+                loss_weight = tf.Print(loss_weight, loss_weight, message="loss_weight:")
 
             reshape_output = tf.reshape(output, (-1, self.num_classes))
 
