@@ -190,7 +190,7 @@ class TrainTunable(Trainable):
 
         self.global_step = tf.Variable(0, name="global_step", trainable=False)
         self.is_training_placeholder = tf.placeholder(tf.bool, name="is_training_placeholder")
-        self.images_placeholder, self.labels_placeholder = model.placeholderes()
+        self.images_placeholder, self.labels_placeholder = model.placeholders()
 
         output = model.inference(self.images_placeholder, self.is_training_placeholder)
         if model_class.__module__.startswith("lmnet.networks.object_detection"):
