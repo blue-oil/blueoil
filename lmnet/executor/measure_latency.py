@@ -61,7 +61,7 @@ def _measure_time(config, restore_path, step_size):
 
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, labels_placeholder = model.placeholderes()
+        images_placeholder, labels_placeholder = model.placeholders()
         output = model.inference(images_placeholder, is_training)
 
         init_op = tf.global_variables_initializer()

@@ -68,7 +68,7 @@ class YoloV1(BaseNetwork):
             yolo=self,
         )
 
-    def placeholderes(self):
+    def placeholders(self):
         """placeholders"""
 
         images_placeholder = tf.placeholder(

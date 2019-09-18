@@ -132,7 +132,7 @@ class YoloV2(BaseNetwork):
         self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
         self.before_last_activation = self.activation
 
-    def placeholderes(self):
+    def placeholders(self):
         """placeholders"""
 
         if self.is_dynamic_image_size:

@@ -40,7 +40,7 @@ class Base(BaseNetwork):
 
         self.weight_decay_rate = weight_decay_rate
 
-    def placeholderes(self):
+    def placeholders(self):
         """Placeholders.
 
         Return placeholders.
