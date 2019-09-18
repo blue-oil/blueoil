@@ -23,6 +23,7 @@ from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
 from lmnet.networks.object_detection.yolo_v1 import YoloV1
 from lmnet.utils.executor import prepare_dirs
 from lmnet.pre_processor import ResizeWithGtBoxes
+from lmnet.common import Tasks
 from executor.train import start_training
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
@@ -279,6 +280,7 @@ def test_training():
     config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
+    config.TASK = Tasks.OBJECT_DETECTION
 
     # network model config
     config.NETWORK = EasyDict()
