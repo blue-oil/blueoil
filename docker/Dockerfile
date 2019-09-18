@@ -120,6 +120,10 @@ RUN mkdir /tmp/openmpi && \
 RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
     mkdir -p /var/run/sshd
 
+# set g++-4.9 as default to build Horovod with TensorFlow 1.14.0.
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 10
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 10
+
 # Set env to install horovod with nccl and tensorflow option
 ENV HOROVOD_GPU_ALLREDUCE NCCL
 ENV HOROVOD_WITH_TENSORFLOW 1
