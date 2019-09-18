@@ -135,6 +135,10 @@ RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs && \
     pip install -r /tmp/requirements/dist.requirements.txt && \
     ldconfig
 
+# change default back to gcc-5/g++-5
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 10
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 10
+
 # Configure OpenMPI to run good defaults:
 #   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0 --mca btl_vader_single_copy_mechanism none
 RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf && \
