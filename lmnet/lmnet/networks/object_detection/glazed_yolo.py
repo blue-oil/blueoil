@@ -153,7 +153,6 @@ class GlazedYolo(YoloV2):
             # currently, only NHWC format is supported
             sys.exit(-1)
 
-
         glaze_block = partial(_glaze_block, is_training=is_training,
                               activation=self.activation, data_format=self.data_format, channel_coeff=1)
 
