@@ -144,7 +144,7 @@ class Graph(object):
         """Check whether all operators defined in this graph.
 
         Currently it checks:
-        - for all operartors op, forall input in op.inputs, input.outputs includes op.
+        - for all operators op, for all input in op.inputs, input.outputs includes op.
 
         Returns
         -------
