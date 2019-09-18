@@ -42,7 +42,7 @@ class Base(BaseNetwork):
         else:
             self.label_colors = label_colors
 
-    def placeholderes(self):
+    def placeholders(self):
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 3) \
             if self.data_format == 'NHWC' else (self.batch_size, 3, self.image_size[0], self.image_size[1])
         images_placeholder = tf.placeholder(

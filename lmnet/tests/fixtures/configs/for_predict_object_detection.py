@@ -56,8 +56,6 @@ KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 100
 SUMMARISE_STEPS = 100
 
-# distributed training
-IS_DISTRIBUTION = False
 
 # pretrain
 IS_PRETRAIN = False
