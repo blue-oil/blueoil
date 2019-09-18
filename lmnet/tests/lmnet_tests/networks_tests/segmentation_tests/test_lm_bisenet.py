@@ -30,6 +30,7 @@ from lmnet.post_processor import (
 )
 from lmnet.pre_processor import Resize
 from lmnet.utils.executor import prepare_dirs
+from lmnet.common import Tasks
 
 
 # Apply reset_default_graph() and set_test_environment() in conftest.py to all tests in this file.
@@ -56,6 +57,7 @@ def test_training():
     config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
+    config.TASK = Tasks.SEMANTIC_SEGMENTATION
 
     # network model config
     config.NETWORK = EasyDict()
