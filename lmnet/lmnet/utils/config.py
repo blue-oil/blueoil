@@ -169,12 +169,12 @@ def _save_meta_yaml(output_dir, config):
         return dumper.represent_list(data)
 
     def processor_representer(dumper, data):
-        """From Processor instance to dictonary of classname and instance property's key and value.
+        """From Processor instance to dictionary of classname and instance property's key and value.
 
-        Acccording to pickle manner, use __reduce_ex__() to get instance property.
+        According to pickle manner, use __reduce_ex__() to get instance property.
         """
 
-        # state is dictonary of Processor instances property's key and value.
+        # state is dictionary of Processor instances property's key and value.
         # Ref: https://docs.python.org/3/library/pickle.html#data-stream-format
         _, _, state, _, _ = data.__reduce_ex__(4)
 

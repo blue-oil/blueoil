@@ -58,7 +58,7 @@ class YoloV2(BaseNetwork):
         """
         Args:
             num_max_boxes: Number of input ground truth boxes size.
-            anchors: list of (anchor_w, anchor_h). Anchors are assumed to be parcentage of cell size.
+            anchors: list of (anchor_w, anchor_h). Anchors are assumed to be percentage of cell size.
                 cell size (image size/32) is the spatial size of the final convolutional features.
             leaky_relu_scale: Scale of leaky relu.
             object_scale: Scale of object loss.
@@ -67,13 +67,13 @@ class YoloV2(BaseNetwork):
             coordinate_scale: Scale of coordinate loss.
             loss_iou_threshold: Loss iou threshold.
             weight_decay_rate: Decay rate of weight.
-            score_threshold: Exculde lower socre boxes than this threshold in post process.
+            score_threshold: Exclude lower score boxes than this threshold in post process.
             nms_iou_threshold: Non max suppression IOU threshold in post process.
             nms_max_output_size: Non max suppression's max output boxes number per class in post process.
             loss_warmup_steps: Step size for encourage predictions to match anchor on training.
             is_dynamic_image_size: Be able to dynamic change image size.
             use_cross_entropy_loss(bool): Use cross entropy loss instead of mean square error of class loss.
-            change_base_output(bool): If it is ture, the output of network be activated with softmax and sigmoid.
+            change_base_output(bool): If it is true, the output of network be activated with softmax and sigmoid.
         """
         super().__init__(
             *args,
@@ -93,7 +93,7 @@ class YoloV2(BaseNetwork):
         self.change_base_output = change_base_output
 
         # Assert image size can mod `32`.
-        # TODO(wakisaka): Be enable to cnahge `32`. it depends on pooling times.
+        # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
         assert self.image_size[0] % 32 == 0
         assert self.image_size[1] % 32 == 0
 
@@ -132,7 +132,7 @@ class YoloV2(BaseNetwork):
         self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
         self.before_last_activation = self.activation
 
-    def placeholderes(self):
+    def placeholders(self):
         """placeholders"""
 
         if self.is_dynamic_image_size:
@@ -381,7 +381,7 @@ class YoloV2(BaseNetwork):
     def convert_boxes_space_from_real_to_yolo(self, boxes):
         """Convert boxes space size from real to yolo.
 
-        Real space boxes coodinates are in the interval [0, image_size].
+        Real space boxes coordinates are in the interval [0, image_size].
         Yolo space boxes x,y are in the interval [-1, 1]. w,h are in the interval [-inf, +inf].
 
         Args:
@@ -418,7 +418,7 @@ class YoloV2(BaseNetwork):
     def convert_boxes_space_from_yolo_to_real(self, predict_boxes):
         """Convert predict boxes space size from yolo to real.
 
-        Real space boxes coodinates are in the interval [0, image_size].
+        Real space boxes coordinates are in the interval [0, image_size].
         Yolo space boxes x,y are in the interval [-1, 1]. w,h are in the interval [-inf, +inf].
 
         Args:
@@ -529,7 +529,7 @@ class YoloV2(BaseNetwork):
         Args:
             output: Tensor of inference() outputs.
 
-        Retrun:
+        Return:
             List of predict_boxes Tensor.
             The Shape is [batch_size, num_predicted_boxes, 6(x, y, w, h, class_id, score)].
             The score be calculated by for each class probability and confidence.
@@ -692,9 +692,9 @@ class YoloV2(BaseNetwork):
 
                 return outputs
             else:
-                # tf.extract_image_patches() raise error with images_placehodler `None` shape as dynamic image.
+                # tf.extract_image_patches() raise error with images_placeholder `None` shape as dynamic image.
                 # Github issue: https://github.com/leapmindadmin/lmnet/issues/17
-                # Currently, I didn't try to space_to_depth with images_placehodler `None` shape as dynamic image.
+                # Currently, I didn't try to space_to_depth with images_placeholder `None` shape as dynamic image.
                 if use_space_to_depth:
 
                     outputs = tf.space_to_depth(inputs, stride, data_format=data_format)
@@ -738,7 +738,7 @@ class YoloV2(BaseNetwork):
         elif self.data_format == "NHWC":
             channel_data_format = "channels_last"
         else:
-            raise RuntimeError("data format {} shodul be in ['NCHW', 'NHWC]'.".format(self.data_format))
+            raise RuntimeError("data format {} should be in ['NCHW', 'NHWC]'.".format(self.data_format))
 
         self.block_1 = darknet_block(
             "block_1",
@@ -1089,7 +1089,7 @@ class YoloV2Loss:
 
         intersection = mask * inter_square
 
-        # calculate the boxs1 square and boxs2 square
+        # calculate the boxes1 square and boxes2 square
         square1 = (boxes[:, :, :, 2] - boxes[:, :, :, 0]) * (boxes[:, :, :, 3] - boxes[:, :, :, 1])
         square2 = (box[2] - box[0]) * (box[3] - box[1])
 
@@ -1195,19 +1195,19 @@ class YoloV2Loss:
 
         return iou
 
-    def __calculate_truth_and_maskes(
+    def __calculate_truth_and_masks(
             self, gt_boxes_list, predict_boxes, num_cell, image_size, global_step,
             predict_classes=None, predict_confidence=None
     ):
-        """Calculate truth and maskes for loss function from gt boxes and predict boxes.
+        """Calculate truth and masks for loss function from gt boxes and predict boxes.
 
-        1. When global steps is less than warmup_steps, set cell_gt_boxes and coordinate_maskes
+        1. When global steps is less than warmup_steps, set cell_gt_boxes and coordinate_masks
         to manage coordinate loss for early training steps to encourage predictions to match anchor.
 
-        2. About not dummy gt_boxes, calculate between gt boxes and anchor iou, and select best ahcnor.
+        2. About not dummy gt_boxes, calculate between gt boxes and anchor iou, and select best anchor.
 
         3. In the best anchor, create cell_gt_boxes from the gt_boxes
-        and calculate truth_confidence and assign maskes ture.
+        and calculate truth_confidence and assign masks true.
 
         Args:
             gt_boxes_list(np.ndarray): The ground truth boxes. Shape is
@@ -1223,11 +1223,11 @@ class YoloV2Loss:
         Return:
             cell_gt_boxes: The cell anchor corresponding gt_boxes from gt_boxes_list. Dummy cell gt boxes are zeros.
                 shape is [batch_size, num_cell, num_cell, box_per_cell, 5(center_x, center_y, w, h, class_id)].
-            truth_confidence: The confidence values each for cell anchos.
+            truth_confidence: The confidence values each for cell anchors.
                 Tensor shape is [batch_size, num_cell, num_cell, box_per_cell, 1].
-            object_maskes: The cell anchor that has gt boxes is 1, none is 0.
+            object_masks: The cell anchor that has gt boxes is 1, none is 0.
                 Tensor shape is [batch_size, num_cell, num_cell, box_per_cell, 1].
-            coordinate_maskes: the cell anchor that has gt boxes is 1, none is 0.
+            coordinate_masks: the cell anchor that has gt boxes is 1, none is 0.
                 Tensor [batch_size, num_cell, num_cell, box_per_cell, 1].
         """
         num_cell_y = num_cell[0]
@@ -1235,8 +1235,8 @@ class YoloV2Loss:
 
         cell_gt_boxes = np.zeros((self.batch_size, num_cell_y, num_cell_x, self.boxes_per_cell, 5), dtype=np.float32)
         truth_confidence = np.zeros((self.batch_size, num_cell_y, num_cell_x, self.boxes_per_cell, 1), dtype=np.float32)
-        object_maskes = np.zeros((self.batch_size, num_cell_y, num_cell_x, self.boxes_per_cell, 1), dtype=np.int64)
-        coordinate_maskes = np.zeros((self.batch_size, num_cell_y, num_cell_x, self.boxes_per_cell, 1), dtype=np.int64)
+        object_masks = np.zeros((self.batch_size, num_cell_y, num_cell_x, self.boxes_per_cell, 1), dtype=np.int64)
+        coordinate_masks = np.zeros((self.batch_size, num_cell_y, num_cell_x, self.boxes_per_cell, 1), dtype=np.int64)
 
         # for debug:
         num_gt_boxes = 0
@@ -1265,7 +1265,7 @@ class YoloV2Loss:
             cell_gt_boxes[:, :, :, :, 3] = stride_y * offset_h
             cell_gt_boxes[:, :, :, :, 4] = -1
 
-            coordinate_maskes[:] = 1  # True
+            coordinate_masks[:] = 1  # True
 
         for batch_index in range(self.batch_size):
 
@@ -1316,9 +1316,9 @@ class YoloV2Loss:
                     truth_confidence[batch_index, cell_y_index, cell_x_index, best_anchor_index, :] = iou
 
                     # the box of cell object_mask is assigned 1.0(True),
-                    object_maskes[batch_index, cell_y_index, cell_x_index, best_anchor_index, :] = 1  # True
+                    object_masks[batch_index, cell_y_index, cell_x_index, best_anchor_index, :] = 1  # True
 
-                    coordinate_maskes[batch_index, cell_y_index, cell_x_index, best_anchor_index, :] = 1  # True
+                    coordinate_masks[batch_index, cell_y_index, cell_x_index, best_anchor_index, :] = 1  # True
 
                     if self.is_debug:
                         print("best_anchor_index", best_anchor_index)
@@ -1347,11 +1347,11 @@ class YoloV2Loss:
 
             print(message)
 
-        return cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes
+        return cell_gt_boxes, truth_confidence, object_masks, coordinate_masks
 
-    def _calculate_truth_and_maskes(self, gt_boxes_list, predict_boxes, global_step,
-                                    predict_classes=None, predict_confidence=None):
-        """Calculate truth and maskes for loss function from gt boxes and predict boxes.
+    def _calculate_truth_and_masks(self, gt_boxes_list, predict_boxes, global_step,
+                                   predict_classes=None, predict_confidence=None):
+        """Calculate truth and masks for loss function from gt boxes and predict boxes.
 
         Args:
             gt_boxes_list: The ground truth boxes. Tensor shape is
@@ -1365,30 +1365,30 @@ class YoloV2Loss:
         Return:
             cell_gt_boxes: The cell anchor corresponding gt_boxes from gt_boxes_list. Dummy cell gt boxes are zeros.
                 shape is [batch_size, num_cell, num_cell, box_per_cell, 5(center_x, center_y, w, h, class_id)].
-            truth_confidence: The confidence values each for cell anchos.
+            truth_confidence: The confidence values each for cell anchors.
                 Tensor shape is [batch_size, num_cell, num_cell, box_per_cell, 1].
-            object_maskes: The cell anchor that has gt boxes is 1, none is 0.
+            object_masks: The cell anchor that has gt boxes is 1, none is 0.
                 Tensor shape is [batch_size, num_cell, num_cell, box_per_cell, 1].
-            coordinate_maskes: the cell anchor that has gt boxes is 1, none is 0.
+            coordinate_masks: the cell anchor that has gt boxes is 1, none is 0.
                 Tensor [batch_size, num_cell, num_cell, box_per_cell, 1].
         """
         if self.is_debug:
-            cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes = tf.py_func(
-                self.__calculate_truth_and_maskes,
+            cell_gt_boxes, truth_confidence, object_masks, coordinate_masks = tf.py_func(
+                self.__calculate_truth_and_masks,
                 [gt_boxes_list, predict_boxes, self.num_cell, self.image_size, global_step,
                  predict_classes, predict_confidence],
                 [tf.float32, tf.float32, tf.int64, tf.int64]
             )
         else:
-            cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes = tf.py_func(
-                self.__calculate_truth_and_maskes,
+            cell_gt_boxes, truth_confidence, object_masks, coordinate_masks = tf.py_func(
+                self.__calculate_truth_and_masks,
                 [gt_boxes_list, predict_boxes, self.num_cell, self.image_size, global_step],
                 [tf.float32, tf.float32, tf.int64, tf.int64]
             )
 
-        object_maskes = tf.cast(object_maskes, tf.float32)
-        coordinate_maskes = tf.cast(coordinate_maskes, tf.float32)
-        return cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes
+        object_masks = tf.cast(object_masks, tf.float32)
+        coordinate_masks = tf.cast(coordinate_masks, tf.float32)
+        return cell_gt_boxes, truth_confidence, object_masks, coordinate_masks
 
     def _weight_decay_loss(self):
         """L2 weight decay (regularization) loss."""
@@ -1412,7 +1412,7 @@ class YoloV2Loss:
             global_step: integer tensor.
 
         Returns:
-            loss: loss value scalr tensor.
+            loss: loss value scalar tensor.
         """
         with tf.name_scope("loss"):
             if self.is_debug:
@@ -1449,8 +1449,8 @@ class YoloV2Loss:
             # object_mask: [batch_size, num_cell, num_cell, box_per_cell, 1]
             # coordinate_mask: [batch_size, num_cell, num_cell, box_per_cell, 1]
             cell_gt_boxes, truth_confidence, object_mask, coordinate_mask =\
-                self._calculate_truth_and_maskes(gt_boxes, predict_boxes, global_step,
-                                                 predict_classes, predict_confidence)
+                self._calculate_truth_and_masks(gt_boxes, predict_boxes, global_step,
+                                                predict_classes, predict_confidence)
 
             # for class loss
             truth_classes = tf.cast(cell_gt_boxes[:, :, :, :, 4], tf.int32)
@@ -1541,11 +1541,11 @@ class YoloV2Loss:
 
 
 def summary_boxes(tag, images, boxes, image_size, max_outputs=3, data_format="NHWC"):
-    """Draw bounding boxes images on Tensroboard.
+    """Draw bounding boxes images on Tensorboard.
 
     Args:
     tag: name of summary tag.
-    images: Tesnsor of images [batch_size, height, widths, 3].
+    images: Tensor of images [batch_size, height, widths, 3].
     boxes: Tensor of boxes. assumed shape is [batch_size, num_boxes, 4(y1, x1, y2, x2)].
     image_size: python list image size [height, width].
     """
@@ -1568,7 +1568,7 @@ def summary_boxes(tag, images, boxes, image_size, max_outputs=3, data_format="NH
 
 
 def format_XYWH_to_CXCYWH(boxes, axis=1):
-    """Format form (x, y, w, h) to (center_x, center_y, w, h) along specific dimention.
+    """Format form (x, y, w, h) to (center_x, center_y, w, h) along specific dimension.
 
     Args:
     boxes :a Tensor include boxes. [:, 4(x, y, w, h)]
@@ -1584,7 +1584,7 @@ def format_XYWH_to_CXCYWH(boxes, axis=1):
 
 
 def format_CXCYWH_to_XYWH(boxes, axis=1):
-    """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimention.
+    """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimension.
 
     Args:
     boxes: A tensor include boxes. [:, 4(x, y, w, h)]
@@ -1600,7 +1600,7 @@ def format_CXCYWH_to_XYWH(boxes, axis=1):
 
 
 def format_CXCYWH_to_YX(inputs, axis=1):
-    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimention.
+    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimension.
 
     Args:
       inputs: a Tensor include boxes.
@@ -1618,7 +1618,7 @@ def format_CXCYWH_to_YX(inputs, axis=1):
 
 
 def format_XYWH_to_YX(inputs, axis=1):
-    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimention.
+    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimension.
 
     Args:
       inputs: a Tensor include boxes.

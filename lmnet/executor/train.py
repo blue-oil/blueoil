@@ -102,7 +102,7 @@ def start_training(config):
         global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training_placeholder = tf.placeholder(tf.bool, name="is_training_placeholder")
 
-        images_placeholder, labels_placeholder = model.placeholderes()
+        images_placeholder, labels_placeholder = model.placeholders()
 
         output = model.inference(images_placeholder, is_training_placeholder)
         if ModelClass.__module__.startswith("lmnet.networks.object_detection"):
