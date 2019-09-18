@@ -92,10 +92,15 @@ class YoloV2(BaseNetwork):
         self.is_dynamic_image_size = is_dynamic_image_size
         self.change_base_output = change_base_output
 
-        # Assert image size can mod `32`.
-        # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
-        assert self.image_size[0] % 32 == 0
-        assert self.image_size[1] % 32 == 0
+
+        if hasattr(self, 'downsampling_rate'):
+            downsampling_rate = self.downsampling_rate
+        else:
+            downsampling_rate = 32
+
+        # Assert image size can mod by downsampling_rate.
+        assert self.image_size[0] % downsampling_rate == 0
+        assert self.image_size[1] % downsampling_rate == 0
 
         if self.is_dynamic_image_size:
             self.image_size = tf.tuple([
@@ -104,11 +109,11 @@ class YoloV2(BaseNetwork):
 
             # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
             # Number of cell is the spatial dimension of the final convolutional features.
-            image_size0 = self.image_size[0] / 32
-            image_size1 = self.image_size[1] / 32
+            image_size0 = self.image_size[0] / self.downsampling_rate
+            image_size1 = self.image_size[1] / self.downsampling_rate
             self.num_cell = tf.tuple([tf.cast(image_size0, tf.int32), tf.cast(image_size1, tf.int32)])
         else:
-            self.num_cell = self.image_size[0] // 32, self.image_size[1] // 32
+            self.num_cell = self.image_size[0] // downsampling_rate, self.image_size[1] // downsampling_rate
 
         self.loss_function = YoloV2Loss(
             is_debug=self.is_debug,
@@ -1394,11 +1399,9 @@ class YoloV2Loss:
         """L2 weight decay (regularization) loss."""
         losses = []
         for var in tf.trainable_variables():
-
             # exclude batch norm variable
             if "conv/kernel" in var.name:
                 losses.append(tf.nn.l2_loss(var))
-
         return tf.add_n(losses) * self.weight_decay_rate
 
     def __call__(self, predict_classes, predict_confidence, predict_boxes, gt_boxes, global_step):
