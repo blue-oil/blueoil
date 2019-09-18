@@ -14,9 +14,10 @@
 # limitations under the License.
 # =============================================================================
 from functools import partial
+import sys
+
 import tensorflow as tf
 
-from lmnet.blocks import darknet
 from lmnet.layers import conv2d
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
 
@@ -30,6 +31,7 @@ def _batch_norm(inputs, is_training):
         activation_fn=None,
         center=True,
         scale=True)
+
 
 def _glaze_block(
         name,
@@ -87,6 +89,7 @@ def _glaze_block(
             return h
     else:
         return h
+
 
 class GlazedYolo(YoloV2):
     """YOLOv2 + BlazeFace + MixConv + Group Convolution

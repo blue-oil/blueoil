@@ -92,7 +92,6 @@ class YoloV2(BaseNetwork):
         self.is_dynamic_image_size = is_dynamic_image_size
         self.change_base_output = change_base_output
 
-
         if hasattr(self, 'downsampling_rate'):
             downsampling_rate = self.downsampling_rate
         else:
