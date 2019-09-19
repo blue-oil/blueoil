@@ -479,7 +479,7 @@ class Operator(object):
     def run_forward(self) -> np.ndarray:
         """Run the operator, calculate and set the result.
 
-        This is actually an abstract method and should be overrode.
+        This is actually an abstract method and should be overridden.
         """
         raise NotImplementedError(
             f'operator {self.op_type} does not have runtime implementation yet.')
