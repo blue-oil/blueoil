@@ -776,7 +776,7 @@ class View(object):
     def raise_invalid_args_exception(self, op, input_ops, output_ops):
         error_message = self.format_string(
             f"""
-            InvalidArgsEeception: name: {op.name}, op: {op.op_type},
+            InvalidArgsException: name: {op.name}, op: {op.op_type},
             This op was taken {len(input_ops)} inputs and {len(input_ops)} outputs ops!!!
             """
         )

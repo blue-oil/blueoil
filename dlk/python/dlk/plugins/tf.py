@@ -379,8 +379,8 @@ class Importer(object):
 
     def __init__(self, tf_mp) -> None:  # type: ignore
         """Init the graph.
-        Prameters
-        ---------
+        Parameters
+        ----------
         tf_mp : GraphDef
             GraphDef object
         """
