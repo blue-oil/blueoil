@@ -101,7 +101,7 @@ def _export(config, restore_path, image_path):
 
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, _ = model.placeholderes()
+        images_placeholder, _ = model.placeholders()
         model.inference(images_placeholder, is_training)
         init_op = tf.global_variables_initializer()
 

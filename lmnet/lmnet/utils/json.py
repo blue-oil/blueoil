@@ -31,7 +31,7 @@ class JsonOutput():
     """Create callable instance to output predictions json object from post processed tensor(np.ndarray).
 
     The output predictions json format depends on task type.
-    Plsease see [Output Data Specification](https://github.com/LeapMind/lmnet/wiki/Output-Data-Specification).
+    Please see [Output Data Specification](https://github.com/LeapMind/lmnet/wiki/Output-Data-Specification).
     """
 
     def __init__(self, task, classes, image_size, data_format):

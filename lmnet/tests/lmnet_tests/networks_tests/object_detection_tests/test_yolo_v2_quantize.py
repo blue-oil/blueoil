@@ -26,6 +26,7 @@ from lmnet.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
+from lmnet.common import Tasks
 from executor.train import start_training
 
 
@@ -51,6 +52,7 @@ def test_training():
     config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
+    config.TASK = Tasks.OBJECT_DETECTION
 
     # network model config
     config.NETWORK = EasyDict()
