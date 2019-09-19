@@ -20,8 +20,8 @@ from easydict import EasyDict
 
 from lmnet.common import Tasks
 from lmnet.data_processor import Sequence
-from lmnet.networks.optical_flow_estimation.flownet_s_v2 import (
-    FlowNetSV2
+from lmnet.networks.optical_flow_estimation.flownet_s_v3 import (
+    FlowNetSV3
 )
 from lmnet.datasets.optical_flow_estimation import (
     FlyingChairs, ChairsSDHom
@@ -34,7 +34,7 @@ from lmnet.networks.optical_flow_estimation.pre_processor import (
     DevideBy255
 )
 
-NETWORK_CLASS = FlowNetSV2
+NETWORK_CLASS = FlowNetSV3
 DATASET_CLASS = FlyingChairs
 
 IMAGE_SIZE = [384, 512]
