@@ -28,7 +28,7 @@ from lmnet.datasets.optical_flow_estimation import (
 )
 from lmnet.networks.optical_flow_estimation.data_augmentor import (
     Brightness, Color, Contrast, Gamma, GaussianBlur, GaussianNoise, Hue,
-    FlipLeftRight, FlipTopBottom, Scale, Rotate, Translate
+    FlipLeftRight, FlipTopBottom, Identity, Scale, Rotate, Translate
 )
 from lmnet.networks.optical_flow_estimation.pre_processor import (
     DevideBy255
@@ -124,6 +124,7 @@ DATASET.AUGMENTOR = Sequence([
     # Geometric transformation
     # FlipLeftRight(0.5),
     # FlipTopBottom(0.5),
+    Identity(0.05)
     Translate(-0.2, 0.2),
     Rotate(-17, +17),
     Scale(1.0, 2.0),

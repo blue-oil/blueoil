@@ -62,37 +62,13 @@ def rescale_frame(frame, ratio):
 
 
 def main_process(config, restore_path):
-    ModelClass = config.NETWORK_CLASS
-    network_kwargs = dict(
-        (key.lower(), val) for key, val in config.NETWORK.items())
-    network_kwargs["batch_size"] = 1
-    image_size = (384, 512, 3)
-
     # initializing camera
     cap = init_camera(480, 640)
 
-    # initializing tf model
-    graph = tf.Graph()
-    with graph.as_default():
-        model = ModelClass(
-            classes=config.CLASSES,
-            is_debug=config.IS_DEBUG,
-            disable_load_op_library=True,
-            **network_kwargs
-        )
-        is_training = tf.constant(False, name="is_training")
-        images_placeholder, _ = model.placeholders()
-        output_op = model.inference(images_placeholder, is_training)
-        init_op = tf.global_variables_initializer()
-        saver = tf.train.Saver(max_to_keep=None)
-    session_config = tf.ConfigProto()
-    sess = tf.Session(graph=graph, config=session_config)
-    sess.run(init_op)
-    saver.restore(sess, restore_path)
-
     # initializing worker and variables
-    diff_step = 1
+    diff_step = 10
     frame_list = collections.deque(maxlen=300)
+    image_size = (384, 512, 3)
     input_image = np.zeros(
         (1, *image_size[:2], image_size[-1] * 2)).astype(np.uint8)
     output_flow = np.zeros((1, *image_size[:2], 2))
@@ -108,6 +84,47 @@ def main_process(config, restore_path):
             frame_list.append(rescale_frame(frame[:, ::-1, :], 0.8))
             time.sleep(max(0.0, 1.0 / 30 - (time.time() - begin)))
 
+    # initializing model
+    _file_name, file_ext = os.path.splitext(restore_path)
+    if file_ext == ".pb":
+        graph = tf.Graph()
+        with graph.as_default():
+            with open(restore_path, 'rb') as f:
+                graph_def = tf.GraphDef()
+                graph_def.ParseFromString(f.read())
+                tf.import_graph_def(graph_def, name="")
+            images_placeholder = graph.get_tensor_by_name(
+                'images_placeholder:0')
+            output_op = graph.get_tensor_by_name('output:0')
+            init_op = tf.global_variables_initializer()
+        session_config = tf.ConfigProto()
+        session_config.gpu_options.allow_growth = True
+        sess = tf.Session(graph=graph, config=session_config)
+        sess.run(init_op)
+    else:
+        ModelClass = config.NETWORK_CLASS
+        network_kwargs = dict(
+            (key.lower(), val) for key, val in config.NETWORK.items())
+        network_kwargs["batch_size"] = 1
+        graph = tf.Graph()
+        with graph.as_default():
+            model = ModelClass(
+                classes=config.CLASSES,
+                is_debug=config.IS_DEBUG,
+                disable_load_op_library=True,
+                **network_kwargs
+            )
+            is_training = tf.constant(False, name="is_training")
+            init_op = tf.global_variables_initializer()
+            images_placeholder, _ = model.placeholders()
+            output_op = model.inference(images_placeholder, is_training)
+            saver = tf.train.Saver(max_to_keep=None)
+        session_config = tf.ConfigProto()
+        session_config.gpu_options.allow_growth = True
+        sess = tf.Session(graph=graph, config=session_config)
+        sess.run(init_op)
+        saver.restore(sess, restore_path)
+
     def _inference():
         time_list = collections.deque(maxlen=10)
         while True:
@@ -116,35 +133,30 @@ def main_process(config, restore_path):
             input_image[0, ..., :3] = frame_list[-1]
             feed_dict = {images_placeholder: input_image}
             output_flow[:] = sess.run(output_op, feed_dict=feed_dict)
+            output_image[:] = flow_to_image(output_flow[0])
             time_list.append(time.time() - begin)
             print("\033[KFPS: {:.3f}".format(
                 np.mean(1 / np.array(time_list))), end="\r")
-
-    def _post_process():
-        while True:
-            output_image[:] = flow_to_image(output_flow[0])
 
     t1 = threading.Thread(target=_get_frame)
     t1.setDaemon(True)
     t2 = threading.Thread(target=_inference)
     t2.setDaemon(True)
-    t3 = threading.Thread(target=_post_process)
-    t3.setDaemon(True)
     t1.start()
     t2.start()
-    t3.start()
 
     while True:
         # cv2.imshow("raw", input_image[0, ..., :3])
-        # cv2.imshow("comp", np.concatenate([
-        #     input_image[0, ..., :3], input_image[0, ..., 3:]], axis=1))
+        cv2.imshow("comp", np.mean([
+            input_image[0, ..., :3],
+            input_image[0, ..., 3:]], axis=0).astype(np.uint8))
         _pre = frame_list[-diff_step].astype(np.float)
         _post = frame_list[-1].astype(np.float)
-        # diff = np.abs(_pre - _post).astype(np.uint8)
         diff = np.mean([_pre, _post], axis=0).astype(np.uint8)
-        # diff = np.mean([
-        #     frame_list[_diff_step * _ - 1] for _ in range(5)],
-        #     axis=0).astype(np.uint8)
+        # diff = np.mean(
+        #     list(frame_list)[::-diff_step][:10], axis=0).astype(np.uint8)
+        # output_image_overwrap = np.mean(
+        #     [input_image[0, ..., 3:], output_image], axis=0).astype(np.uint8)
         cv2.imshow("diff", diff)
         cv2.imshow("output", output_image)
         key = cv2.waitKey(2)
@@ -155,14 +167,13 @@ def main_process(config, restore_path):
 def init_process(experiment_id, config_file, restore_path):
     environment.init(experiment_id)
     config = config_util.load_from_experiment()
+    print(config)
     if config_file:
         config = config_util.merge(config, config_util.load(config_file))
 
     if restore_path is None:
         restore_file = search_restore_filename(environment.CHECKPOINTS_DIR)
         restore_path = os.path.join(environment.CHECKPOINTS_DIR, restore_file)
-    if not os.path.exists("{}.index".format(restore_path)):
-        raise Exception("restore file {} dont exists.".format(restore_path))
     print("Restore from {}".format(restore_path))
 
     return config, restore_path

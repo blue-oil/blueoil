@@ -224,6 +224,23 @@ class FlipLeftRight(Augmentor):
             "image": image, "label": label}, **kwargs)
 
 
+class Identity(Augmentor):
+    """
+    create the pair of images with no change
+    args: probability
+        Probability for applying this process.
+    """
+    def __init__(self, prob=0.1):
+        self.prob = prob
+
+    def __call__(self, image, label, **kwargs):
+        if np.random.rand() < self.prob:
+            image[..., :3] = image[..., 3:]
+            label[:] = 0.0
+        return dict({
+            "image": image, "label": label}, **kwargs)
+
+
 class Rotate(Augmentor):
     """
     Rotating image
