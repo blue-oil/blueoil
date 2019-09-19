@@ -27,7 +27,7 @@ pytestmark = pytest.mark.usefixtures("reset_default_graph")
 
 def test_resize_with_joints():
 
-    image = np.zeros(shape=(5, 5, 3))
+    image = np.zeros(shape=(5, 5, 3), dtype=np.uint8)
     joints = np.ones(shape=(1, 3))
 
     # x
