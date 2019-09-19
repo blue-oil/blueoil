@@ -56,7 +56,7 @@ def test_mscoco_2017_single_pose_estimation():
         assert labels.shape[2] == image_size[1] // stride
         assert labels.shape[3] == 17
 
-    dataset = MscocoSinglePersonKeypoints(subset="valid",
+    dataset = MscocoSinglePersonKeypoints(subset="validation",
                                           batch_size=batch_size,
                                           pre_processor=pre_processor)
     dataset = DatasetIterator(dataset)
