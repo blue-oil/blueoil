@@ -16,9 +16,10 @@
 import numpy as np
 import pytest
 
-from lmnet.pre_processor import ResizeWithJoints
+from lmnet.pre_processor import ResizeWithJoints, JointsToGaussianHeatmap
 from lmnet.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
 from lmnet.datasets.dataset_iterator import DatasetIterator
+from lmnet.data_processor import Sequence
 
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
@@ -26,12 +27,18 @@ pytestmark = pytest.mark.usefixtures("set_test_environment")
 
 
 def test_mscoco_2017_single_pose_estimation():
+
     batch_size = 1
     image_size = [256, 320]
+    stride = 2
+
+    pre_processor = Sequence([ResizeWithJoints(image_size=image_size),
+                              JointsToGaussianHeatmap(image_size=image_size,
+                                                      stride=stride)])
 
     dataset = MscocoSinglePersonKeypoints(subset="train",
                                           batch_size=batch_size,
-                                          pre_processor=ResizeWithJoints(image_size))
+                                          pre_processor=pre_processor)
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
@@ -45,12 +52,13 @@ def test_mscoco_2017_single_pose_estimation():
 
         assert isinstance(labels, np.ndarray)
         assert labels.shape[0] == batch_size
-        assert labels.shape[1] == 17
-        assert labels.shape[2] == 3
+        assert labels.shape[1] == image_size[0] // stride
+        assert labels.shape[2] == image_size[1] // stride
+        assert labels.shape[3] == 17
 
     dataset = MscocoSinglePersonKeypoints(subset="valid",
                                           batch_size=batch_size,
-                                          pre_processor=ResizeWithJoints(image_size))
+                                          pre_processor=pre_processor)
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
@@ -64,5 +72,6 @@ def test_mscoco_2017_single_pose_estimation():
 
         assert isinstance(labels, np.ndarray)
         assert labels.shape[0] == batch_size
-        assert labels.shape[1] == 17
-        assert labels.shape[2] == 3
+        assert labels.shape[1] == image_size[0] // stride
+        assert labels.shape[2] == image_size[1] // stride
+        assert labels.shape[3] == 17

@@ -68,7 +68,7 @@ def test_resize_with_joints():
     resizer_10x20 = ResizeWithJoints(image_size)
 
     # No joints will be provided on inference time.
-    resized = resizer_10x20(image=image)
+    resized = resizer_10x20(image=image, joints=joints)
     resized_image = resized["image"]
     resized_joints = resized["joints"]
 
@@ -78,7 +78,7 @@ def test_resize_with_joints():
 
     assert resized_joints[0, 0] == 8
     assert resized_joints[0, 1] == 6
-    assert resized_joints[0, 2] == joints[2]
+    assert resized_joints[0, 2] == joints[0, 2]
 
 
 def test_joints_to_gaussian_heatmap():
