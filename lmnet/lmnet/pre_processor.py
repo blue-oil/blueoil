@@ -313,7 +313,7 @@ def joints_to_gaussian_heatmap(joints, image_size,
     return heatmap
 
 
-class PerImageLinerQuantize(Processor):
+class PerImageLinearQuantize(Processor):
     """Linear quantize per image.
 
     Use :func:`~per_image_linear_quantize` inside.
