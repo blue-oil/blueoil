@@ -51,7 +51,7 @@ class BaseNetwork(object):
     ):
 
         if data_format not in ["NCHW", "NHWC"]:
-            raise RuntimeError("data format {} shodul be in ['NCHW', 'NHWC]'.".format(data_format))
+            raise RuntimeError("data format {} should be in ['NCHW', 'NHWC]'.".format(data_format))
 
         self.is_debug = is_debug
         self.optimizer_class = optimizer_class

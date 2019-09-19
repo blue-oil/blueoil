@@ -686,6 +686,17 @@ class View(object):
                 func_DepthToSpace({args1}{args2});
                 """
             )
+        elif self.op.op_type == 'ResizeNearestNeighbor':
+
+            inputs_string = self.inputs_to_string(input_ops)
+
+            args1 = f"{inputs_string}, {op.name}"
+
+            return self.format_string(
+                f"""
+                func_ResizeNearestNeighbor({args1});
+                """
+            )
         elif self.op.op_type == 'Split':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
