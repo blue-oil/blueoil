@@ -133,10 +133,6 @@ COPY requirements.txt /tmp/requirements.txt
 
 WORKDIR /home/lmnet
 
-# install coco by source
-COPY third_party third_party
-RUN cd third_party/coco/PythonAPI && pip install --no-cache-dir -e .
-
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY lmnet lmnet

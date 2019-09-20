@@ -15,9 +15,6 @@ services:
       - ${DATA_DIR:-/storage/dataset}:/storage/dataset
       - ${OUTPUT_DIR:-./saved}:/storage/lmnet/saved
 
-      # In order to avoid override installed coco, Ignore to volume /home/lmnet/third_party/coco/PythonAPI
-      - /home/lmnet/third_party/coco/PythonAPI
-
       # for x11
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ~/.Xauthority:/root/.Xauthority:rw
