@@ -129,11 +129,11 @@ def main_process(config, restore_path):
         time_list = collections.deque(maxlen=10)
         while True:
             begin = time.time()
-            input_image[0, ..., 3:] = frame_list[-diff_step]
-            input_image[0, ..., :3] = frame_list[-1]
+            input_image[0, ..., :3] = frame_list[-diff_step]
+            input_image[0, ..., 3:] = frame_list[-1]
             feed_dict = {images_placeholder: input_image}
             output_flow[:] = sess.run(output_op, feed_dict=feed_dict)
-            output_image[:] = flow_to_image(output_flow[0])
+            output_image[:] = flow_to_image(-output_flow[0][..., [1, 0]])
             time_list.append(time.time() - begin)
             print("\033[KFPS: {:.3f}".format(
                 np.mean(1 / np.array(time_list))), end="\r")

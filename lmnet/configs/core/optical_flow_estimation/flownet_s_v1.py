@@ -124,7 +124,6 @@ DATASET.AUGMENTOR = Sequence([
     # Geometric transformation
     # FlipLeftRight(0.5),
     # FlipTopBottom(0.5),
-    Identity(0.05)
     Translate(-0.2, 0.2),
     Rotate(-17, +17),
     Scale(1.0, 2.0),

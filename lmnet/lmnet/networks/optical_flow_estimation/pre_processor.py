@@ -45,3 +45,23 @@ class DevideBy255(Processor):
         image = image.astype(np.float32)
         image *= self._coef
         return dict({'image': image}, **kwargs)
+
+
+class DiscretizeFlow(Processor):
+    def __init__(self, radius=10.0, split_num=10, dtype=np.uint16, **kwargs):
+        self.radius = radius
+        self.split_num = split_num
+        self.dtype = dtype
+
+    def __call__(self, image, label, **kwargs):
+        class_num = self.split_num + 1
+        rad = np.linalg.norm(label, axis=2)
+        arg = np.arctan2(-label[..., 1], -label[..., 0]) + np.pi
+        arg /= (2 * np.pi)
+        discretized_label = (arg * self.split_num).astype(self.dtype)
+        discretized_label %= self.split_num
+        discretized_label += 1
+        discretized_label[rad < self.radius] = 0
+        discretized_label = np.eye(
+            class_num, dtype=self.dtype)[discretized_label]
+        return dict({'image': image, 'label': discretized_label}, **kwargs)
