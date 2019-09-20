@@ -17,13 +17,13 @@ import os
 import shutil
 
 import click
-import tensorflow as tf
 import numpy as np
 import PIL.Image
+import tensorflow as tf
 
-from lmnet.utils import executor, config as config_util
 from lmnet import environment
-
+from lmnet.utils import config as config_util
+from lmnet.utils import executor
 
 DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),

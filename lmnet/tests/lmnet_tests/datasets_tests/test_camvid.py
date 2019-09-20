@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import pytest
 import numpy as np
+import pytest
 from PIL import Image
+
 from lmnet.datasets.camvid import Camvid, CamvidCustom, get_image
 from lmnet.datasets.dataset_iterator import DatasetIterator
 

@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import pytest
+
 from lmnet.datasets.cityscapes import Cityscapes
 from lmnet.datasets.dataset_iterator import DatasetIterator
 

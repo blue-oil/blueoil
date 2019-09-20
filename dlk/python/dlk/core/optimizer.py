@@ -16,14 +16,15 @@
 """Module of optimization passes."""
 import math
 import warnings
+from collections import defaultdict
+from typing import Any, List, cast
+
 import numpy as np
 
+from core.data_types import QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, Int32, PackedUint32, Uint32
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from core.operators import Constant, Operator, Conv, Lookup
-from core.data_types import Uint32, Int32, QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, PackedUint32, QUANTIZED_PACKED_KERNEL
-from typing import cast, List, Any
-from collections import defaultdict
+from core.operators import Constant, Conv, Lookup, Operator
 from modules.packer import Packer
 
 

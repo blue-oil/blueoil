@@ -20,9 +20,7 @@ import numpy as np
 import PIL.Image
 from pycocotools.coco import COCO
 
-from lmnet.datasets.base import SegmentationBase
-from lmnet.datasets.base import ObjectDetectionBase
-
+from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 
 DEFAULT_CLASSES = [
         'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',

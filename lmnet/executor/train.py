@@ -13,20 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
 import math
+import os
 
 import click
 import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 from tensorflow.keras.utils import Progbar
 
-from lmnet.utils import executor, module_loader, config as config_util, horovod as horovod_util
 from lmnet import environment
+from lmnet.common import Tasks
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
-from lmnet.common import Tasks
+from lmnet.utils import config as config_util
+from lmnet.utils import executor
+from lmnet.utils import horovod as horovod_util
+from lmnet.utils import module_loader
 
 
 def _save_checkpoint(saver, sess, global_step, step):

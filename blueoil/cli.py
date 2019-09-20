@@ -14,15 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from datetime import datetime
 import os
+from datetime import datetime
 
 import click
 import yaml
 
+from blueoil.blueoil_convert import run as run_convert
 from blueoil.blueoil_init import ask_questions, save_config
 from blueoil.blueoil_train import run as run_train
-from blueoil.blueoil_convert import run as run_convert
 from executor.predict import run as run_predict
 
 

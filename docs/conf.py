@@ -32,6 +32,10 @@
 
 import os
 import sys
+
+from recommonmark.parser import CommonMarkParser
+from recommonmark.transform import AutoStructify
+
 sys.path.insert(0, os.path.abspath('../lmnet'))
 
 
@@ -71,12 +75,10 @@ templates_path = ['_templates']
 #
 source_suffix = ['.rst', '.md']
 
-from recommonmark.parser import CommonMarkParser
 source_parsers = {
     '.md' : 'recommonmark.parser.CommonMarkParser'
 }
 
-from recommonmark.transform import AutoStructify
 
 github_doc_root = 'https://github.com/blue-oil/blueoil/tree/master/docs/'
 
