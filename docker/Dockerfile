@@ -51,6 +51,10 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# alias python2 to python3
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
+
 # install aarch64 cross compile environment
 RUN apt-get update && apt-get install -y crossbuild-essential-arm64
 
