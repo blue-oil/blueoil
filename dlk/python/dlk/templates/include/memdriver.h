@@ -22,25 +22,31 @@ limitations under the License.
 #include <fcntl.h>
 #include <unistd.h>
 #include <memory>
+#include <system_error>
 
-struct FDDeleter {
-  using pointer = int;
-  void operator()(pointer fd) {
+class FDManager {
+ public:
+  FDManager() : fd(-1) {}
+  FDManager(int fd) : fd(fd) {}
+  ~FDManager() {
     if (fd >= 0) {
       close(fd);
     }
   }
+  operator int() const { return fd; }
+ private:
+  int fd;
 };
 
 class SimpleMappedMem {
  public:
   SimpleMappedMem(std::size_t base, std::size_t size) : length(0) {
-    std::unique_ptr<int, FDDeleter> fd(open("/dev/mem", O_RDWR | O_SYNC));
-    if (fd.get() == -1) {
+    FDManager fd(open("/dev/mem", O_RDWR | O_SYNC));
+    if (fd == -1) {
       return;
     }
     int rw = PROT_READ | PROT_WRITE;
-    ptr = mmap(nullptr, size, rw, MAP_SHARED, fd.get(), base);
+    ptr = mmap(nullptr, size, rw, MAP_SHARED, fd, base);
     if (ptr == MAP_FAILED) {
       throw std::system_error(errno, std::generic_category());
     }
@@ -80,8 +86,8 @@ public:
     aligned_size = g_paddr - aligned_paddr + (g_count * g_size);
     aligned_size = (aligned_size + 4096 - 1) & ~(4096 - 1);
 
-    std::unique_ptr<int, FDDeleter> fd(open("/dev/mem", O_RDWR));
-    if (fd.get() == -1) {
+    FDManager fd(open("/dev/mem", O_RDWR));
+    if (fd == -1) {
       return;
     }
 
@@ -89,7 +95,7 @@ public:
                          aligned_size,
                          PROT_READ | PROT_WRITE,
                          MAP_SHARED,
-                         fd.get(), aligned_paddr);
+                         fd, aligned_paddr);
 
     if (aligned_vaddr == MAP_FAILED) {
       printf("Error mapping address %lx\n", aligned_paddr);
