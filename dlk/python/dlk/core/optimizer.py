@@ -504,7 +504,7 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             width = qtz.width
             depth = qtz.channel
             depth_upper = (depth + b - 1) // b
-            qtz.update_shape([height, width, depth_upper, 2, b], "ChHWBCl")
+            qtz.update_shape([depth_upper, height, width, 2, b], "ChHWBCl")
 
 
 def pass_fix_qtz_types_and_format(graph) -> None:
