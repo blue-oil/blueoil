@@ -21,6 +21,14 @@ limitations under the License.
 #include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <memory>
+
+struct FDDeleter {
+  using pointer = int;
+  void operator()(int fd) {
+    close(fd);
+  }
+};
 
 class MappedMem
 {
@@ -42,15 +50,16 @@ public:
     aligned_size = g_paddr - aligned_paddr + (g_count * g_size);
     aligned_size = (aligned_size + 4096 - 1) & ~(4096 - 1);
 
-    int fd = -1;
-    if ((fd = open("/dev/mem", O_RDWR, 0)) < 0)
+    std::unique_ptr<int, FDDeleter> fd(open("/dev/mem", O_RDWR));
+    if (fd.get() == -1) {
       return;
+    }
 
     aligned_vaddr = mmap(nullptr,
                          aligned_size,
                          PROT_READ | PROT_WRITE,
                          MAP_SHARED,
-                         fd, aligned_paddr);
+                         fd.get(), aligned_paddr);
 
     if (aligned_vaddr == MAP_FAILED) {
       printf("Error mapping address %lx\n", aligned_paddr);
@@ -58,7 +67,6 @@ public:
     }
 
     mem = (memtype *)((uint32_t)aligned_vaddr + (uint32_t)(g_paddr - aligned_paddr));
-    close(fd);
   }
 
   ~MappedMem()
