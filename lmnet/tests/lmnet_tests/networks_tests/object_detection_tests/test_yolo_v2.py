@@ -20,7 +20,7 @@ import tensorflow as tf
 
 from executor.train import start_training
 from lmnet import environment
-from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
+from lmnet.datasets.mscoco import MscocoObjectDetection
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
 from lmnet.utils.executor import prepare_dirs
 from lmnet.pre_processor import ResizeWithGtBoxes
@@ -703,7 +703,7 @@ def test_training():
     config = EasyDict()
 
     config.NETWORK_CLASS = YoloV2
-    config.DATASET_CLASS = LmThingsOnATable
+    config.DATASET_CLASS = MscocoObjectDetection
 
     config.IS_DEBUG = False
     config.IMAGE_SIZE = [128, 160]
