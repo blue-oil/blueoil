@@ -19,7 +19,6 @@ import shutil
 import click
 import tensorflow as tf
 import numpy as np
-import PIL.Image
 
 from lmnet.pre_processor import load_image
 from lmnet.utils import executor, config as config_util

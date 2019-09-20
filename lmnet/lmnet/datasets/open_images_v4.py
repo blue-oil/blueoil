@@ -199,7 +199,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
         target_file = files[i]
         gt_boxes = gt_boxes_list[i]
 
-        image = self._get_image(target_file)
+        image = load_image(target_file)
         height = image.shape[0]
         width = image.shape[1]
 

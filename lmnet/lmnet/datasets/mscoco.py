@@ -17,12 +17,11 @@ import functools
 import os.path
 
 import numpy as np
-import PIL.Image
 from pycocotools.coco import COCO
 
+from lmnet.pre_processor import load_image
 from lmnet.datasets.base import SegmentationBase
 from lmnet.datasets.base import ObjectDetectionBase
-from lmnet.pre_processor import load_image
 
 
 DEFAULT_CLASSES = [
@@ -252,7 +251,7 @@ class MscocoObjectDetection(ObjectDetectionBase):
 
     def __getitem__(self, i, type=None):
         target_file = self.files[i]
-        image = self._get_image(target_file)
+        image = load_image(target_file)
 
         gt_boxes = self.annotations[i]
         gt_boxes = np.array(gt_boxes)
