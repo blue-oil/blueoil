@@ -25,15 +25,45 @@ limitations under the License.
 
 struct FDDeleter {
   using pointer = int;
-  void operator()(int fd) {
-    close(fd);
+  void operator()(pointer fd) {
+    if (fd >= 0) {
+      close(fd);
+    }
   }
+};
+
+class SimpleMappedMem {
+ public:
+  SimpleMappedMem(std::size_t base, std::size_t size) : length(0) {
+    std::unique_ptr<int, FDDeleter> fd(open("/dev/mem", O_RDWR | O_SYNC));
+    if (fd.get() == -1) {
+      return;
+    }
+    int rw = PROT_READ | PROT_WRITE;
+    ptr = mmap(nullptr, size, rw, MAP_SHARED, fd.get(), base);
+    if (ptr == MAP_FAILED) {
+      throw std::system_error(errno, std::generic_category());
+    }
+    length = size;
+  }
+  ~SimpleMappedMem() {
+    if (ptr != MAP_FAILED) {
+      munmap(ptr, length);
+    }
+  }
+  void* get() const { return ptr; }
+ private:
+  void* ptr;
+  std::size_t length;
 };
 
 class MappedMem
 {
 public:
   using memtype = volatile void;
+  MappedMem() = delete;
+  MappedMem(const MappedMem &) = delete;
+  MappedMem& operator=(const MappedMem &) = delete;
 
   MappedMem(unsigned long g_paddr,
             uint32_t g_count,
@@ -139,12 +169,6 @@ public:
   {
     return mem;
   }
-
-
-private:
-  MappedMem();
-  MappedMem(const MappedMem &);
-  MappedMem& operator=(const MappedMem &);
 
 private:
   memtype *mem;
