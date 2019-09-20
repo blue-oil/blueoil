@@ -20,7 +20,7 @@ from easydict import EasyDict
 from executor.train import start_training
 from lmnet import environment
 from lmnet.common import Tasks
-from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
+from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBox
 from lmnet.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
 from lmnet.pre_processor import ResizeWithGtBoxes
 from lmnet.quantizations import binary_channel_wise_mean_scaling_quantizer, linear_mid_tread_half_quantizer
@@ -37,7 +37,7 @@ def test_training():
     config = EasyDict()
 
     config.NETWORK_CLASS = YoloV2Quantize
-    config.DATASET_CLASS = LmThingsOnATable
+    config.DATASET_CLASS = OpenImagesV4BoundingBox
 
     config.IS_DEBUG = False
     config.IMAGE_SIZE = [128, 160]
