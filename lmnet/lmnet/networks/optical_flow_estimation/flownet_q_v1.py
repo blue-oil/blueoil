@@ -21,11 +21,11 @@ from lmnet.networks.base import BaseNetwork
 from .flowlib import flow_to_image
 
 
-class FlowNetSV3(BaseNetwork):
+class FlowNetQV1(BaseNetwork):
     """
-    FlowNetS v3 for optical flow estimation.
+    FlowNetQ v1 for optical flow estimation.
     """
-    version = 2.00
+    version = 1.00
 
     def __init__(self, *args, weight_decay_rate=0.0004,
                  disable_load_op_library=False, **kwargs):
@@ -161,25 +161,29 @@ class FlowNetSV3(BaseNetwork):
             # pytorch uses padding = 1 = (3 -1) // 2. So it is 'SAME'.
             conved = tf.layers.conv2d(
                 inputs,
-                2,
+                self.num_classes,
                 kernel_size=3,
                 strides=1,
                 padding='SAME',
                 use_bias=True
             )
 
-            # batch_normed = tf.contrib.layers.batch_norm(
-            #     conved,
-            #     is_training=is_training,
-            #     data_format=self.data_format,
-            # )
-            #
-            # if activation is None:
-            #     output = self.activation(batch_normed)
-            # else:
-            #     output = activation(batch_normed)
-            # return output
-            return conved
+            batch_normed = tf.contrib.layers.batch_norm(
+                conved,
+                decay=0.99,
+                scale=True,
+                center=True,
+                updates_collections=None,
+                is_training=is_training,
+                data_format=self.data_format,
+            )
+
+            if activation is None:
+                output = self.activation(batch_normed)
+            else:
+                output = activation(batch_normed)
+            return output
+            # return conved
 
     def _upsample_flow(self, name, inputs, is_training, activation=None):
         # TODO Think: tf uses bias but pytorch did not
@@ -467,8 +471,8 @@ class FlowNetSV3(BaseNetwork):
         return total_loss
 
 
-class FlowNetSV3Quantized(FlowNetSV3):
-    """ Quantized FlowNet s v3 network.
+class FlowNetQV1Quantized(FlowNetQV1):
+    """ Quantized FlowNet q v1 network.
     """
 
     def __init__(
