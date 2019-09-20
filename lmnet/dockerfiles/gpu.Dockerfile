@@ -60,11 +60,6 @@ WORKDIR /home/lmnet
 # Install requirements
 RUN pip install -r /tmp/gpu.requirements.txt
 
-# Build coco. It needs numpy.
-COPY third_party third_party
-# https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
-RUN cd third_party/coco/PythonAPI && pip install -e .
-
 # For development 
 RUN apt-get update && apt-get install -y \
     x11-apps \
