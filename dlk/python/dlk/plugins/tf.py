@@ -364,7 +364,6 @@ class Importer(object):
         self.node_dic: Dict[str, Any] = {}
         node_obj: Any = None
         for node in self.tf_gp.node:
-            # print(node)
             if node.op == 'Const' or node.op == 'Placeholder':
                 node_obj = Input(node)
                 self.in_lst.append(node_obj)
@@ -403,8 +402,6 @@ class Importer(object):
         else:  # Input, Output or Constant
             shape: List[int] = list(map(int, node.get_shape()))
             dtype = node.get_dtype()
-
-            # print(node.op_type, ' name:', node.name, ' shape:', shape)
 
             if isinstance(node, Input):
                 if node.is_placeholder:  # op_type = 'Input'
@@ -584,10 +581,6 @@ class Importer(object):
             message = f'Operator {op_type} is not supported.'
             raise UnsupportedNode(message)
 
-        # else:
-        #     print(op_type)  # debug
-
-        # Create new op accordingly for the tf ops
         new_op: Operator
 
         def get_inputs(cdef: Type[Operator], current_node: Any) -> Dict[str, Operator]:
@@ -617,9 +610,6 @@ class Importer(object):
 
         if True in (d < 0 for d in shape):
             shape = [1]
-
-        # debug msgs
-        # print(node.op_type, ' name:', node.name, ' shape:', shape, ' inputs:', node.inputs)
 
         if op_type == 'Conv':
             strides = node.attribute('strides')[0][1:3]
