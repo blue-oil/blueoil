@@ -28,6 +28,7 @@ limitations under the License.
 #include "quantizer.h"
 #include "pack_input_to_qwords.h"
 #include "time_measurement.h"
+#include "tensor_convert.h"
 #ifdef USE_NEON
   #include <arm_neon.h>
 #endif
@@ -152,6 +153,7 @@ void func_QTZ_linear_mid_tread_half_body(
 }
 
 static const auto output_not_packed = std::make_unique<QUANTIZED_NOT_PACKED[]>(MAX_SIZE_INPUTS_PER_LAYER);
+static const auto output_packed = std::make_unique<QUANTIZED_PACKED[]>(MAX_SIZE_QINPUTS_PER_LAYER);
 
 void func_QTZ_linear_mid_tread_half(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
@@ -182,6 +184,23 @@ void func_QTZ_linear_mid_tread_half(
   pack_input(output_not_packed.get(), in_height, in_width, in_depth, nbit(), output.data());
 
   Measurement::Stop();
+}
+
+void func_QTZ_linear_mid_tread_half(
+    const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_INT, MemoryLayout::Atom>& nbit,
+    const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output) {
+  const auto out_shape = output.get_shape();
+  const auto out_height = out_shape[1];
+  const auto out_width = out_shape[2];
+  const auto out_depth = out_shape[0];
+  TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>::tensor_info_t<std::size_t> shape = {
+    out_height, out_width, out_depth, nbit(), QUANTIZED_PACKED::BitCount
+  };
+  TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl> tmp(output_packed.get(), shape);
+  func_QTZ_linear_mid_tread_half(input, nbit, max_value, tmp);
+  convert_tensor(tmp, output);
 }
 
 void func_QTZ_linear_mid_tread_half(
