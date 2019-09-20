@@ -88,33 +88,6 @@ DLK_OPERATOR_MAP: Dict[str, str] = {
 
 
 class Node(object):
-    ATTRIBUTE_TYPE_MAP = {
-        0: 'UNDEFINED',
-        1: 'FLOAT',
-        2: 'INT',
-        3: 'STRING',
-        4: 'TENSOR',
-        5: 'GRAPH',
-        6: 'FLOATS',
-        7: 'INTS',
-        8: 'STRINGS',
-        9: 'TENSORS',
-        10: 'GRAPHS',
-    }
-
-    ATTRIBUTE_VALUE_MAP = {
-        1: 's',
-        2: 'i',
-        3: 'f',
-        4: 'b',
-        5: 'type',
-        6: 'shape',
-        7: 'tensor',
-        8: 'list',
-        9: 'func',
-        10: 'placeholder',
-    }
-
     def __init__(self, op_nd) -> None:  # type: ignore
         self.nd_ = op_nd
         self.attributes = []  # type: ignore
