@@ -91,14 +91,9 @@ RUN apt-get update && apt-get install -y g++-5-arm-linux-gnueabihf && \
 
 # Install requirements
 COPY lmnet/*requirements.txt /tmp/requirements/
-RUN pip install -r /tmp/requirements/gpu.requirements.txt
+RUN pip install --upgrade -r /tmp/requirements/gpu.requirements.txt
 # In order to install blueoil requirements `prompt_toolkit==1.0.15`, uninstall prompt-toolkit v2.0 that depends on `pdb==0.10.2`.
 RUN pip uninstall -y prompt-toolkit
-
-# Build coco. It needs numpy.
-COPY lmnet/third_party /home/blueoil/lmnet/third_party
-# https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
-RUN cd /home/blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
 
 # Install requirements for OpenMPI and Horovod
 
