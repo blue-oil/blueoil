@@ -86,9 +86,9 @@ def _show_image(image):
 
 
 def _image():
-    image = PIL.Image.open("tests/fixtures/sample_images/cat.jpg")
+    image = load_image("tests/fixtures/sample_images/cat.jpg")
 
-    return np.array(image)
+    return image
 
 
 def test_sequence():

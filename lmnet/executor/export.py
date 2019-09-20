@@ -21,6 +21,7 @@ import tensorflow as tf
 import numpy as np
 import PIL.Image
 
+from lmnet.pre_processor import load_image
 from lmnet.utils import executor, config as config_util
 from lmnet import environment
 
@@ -29,16 +30,6 @@ DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     "export_inference_test_data_images",
     "5605039097_05baa93bfd_m.jpg")
-
-
-# TODO(wakisaka): duplicated function with executor/measure_latency.py
-def _load_image(filename):
-    """ Returns numpy array of an image """
-    tmp_image = PIL.Image.open(filename)
-    tmp_image = tmp_image.convert("RGB")
-    raw_image = np.array(tmp_image)
-
-    return raw_image
 
 
 # TODO(wakisaka): duplicated function with executor/measure_latency.py
@@ -124,7 +115,7 @@ def _export(config, restore_path, image_path):
         if not os.path.exists(npy_output_dir):
             os.makedirs(npy_output_dir)
 
-        raw_image = _load_image(image_path)
+        raw_image = load_image(image_path)
         image = _pre_process(raw_image, config.PRE_PROCESSOR, config.DATA_FORMAT)
         images = np.expand_dims(image, axis=0)
         feed_dict = {

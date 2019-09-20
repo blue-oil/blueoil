@@ -18,7 +18,6 @@ from abc import abstractmethod
 import os
 
 import numpy as np
-import PIL
 
 from lmnet import environment
 
@@ -159,12 +158,6 @@ class ObjectDetectionBase(Base, metaclass=ABCMeta):
             results.append(gt_boxes)
 
         return np.array(results)
-
-    def _get_image(self, target_file):
-        image = PIL.Image.open(target_file)
-        image = image.convert("RGB")
-        image = np.array(image)
-        return image
 
 
 class DistributionInterface(metaclass=ABCMeta):

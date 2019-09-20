@@ -23,9 +23,9 @@ import re
 
 
 import numpy as np
-import PIL
 
 from lmnet import data_processor
+from lmnet.pre_processor import load_image
 from lmnet.datasets.base import Base, StoragePathCustomizable
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.utils.random import train_test_split
@@ -266,10 +266,8 @@ class OpenImagesV4Classification(OpenImagesV4):
         files, labels = self.files_and_annotations
 
         filename = files[i]
-        image = PIL.Image.open(filename)
-        # sometime image data be gray.
-        image = image.convert("RGB")
-        image = np.array(image)
+
+        image = load_image(filename)
 
         label = data_processor.binarize(labels[i], self.num_classes)
         label = np.reshape(label, (self.num_classes))

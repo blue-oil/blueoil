@@ -20,8 +20,8 @@ import os
 import os.path
 
 import numpy as np
-import PIL.Image
 
+from lmnet.pre_processor import load_image
 from lmnet.datasets.base import Base, StoragePathCustomizable
 from lmnet import data_processor
 from lmnet.utils.random import train_test_split
@@ -107,21 +107,10 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
         return label
 
-    def get_image(self, filename):
-        """Returns numpy array of an image"""
-        image = PIL.Image.open(filename)
-
-        #  sometime image data is gray.
-        image = image.convert("RGB")
-
-        image = np.array(image)
-
-        return image
-
     def __getitem__(self, i, type=None):
         target_file = self.files[i]
 
-        image = self.get_image(target_file)
+        image = load_image(target_file)
         label = self.get_label(target_file)
 
         label = data_processor.binarize(label, self.num_classes)

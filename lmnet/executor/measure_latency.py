@@ -21,20 +21,10 @@ import click
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 import numpy as np
-import PIL.Image
 
+from lmnet.pre_processor import load_image
 from lmnet.utils import executor, config as config_util
 from lmnet import environment
-
-
-# TODO(wakisaka): duplicated function with executor/export.py
-def _load_image(filename):
-    """ Returns numpy array of an image """
-    tmp_image = PIL.Image.open(filename)
-    tmp_image = tmp_image.convert("RGB")
-    raw_image = np.array(tmp_image)
-
-    return raw_image
 
 
 # TODO(wakisaka): duplicated function with executor/export.py
@@ -95,7 +85,7 @@ def _measure_time(config, restore_path, step_size):
     for test_step in range(step_size):
         index = test_step % len(image_files)
         image_file = image_files[index]
-        raw_image = _load_image(image_file)
+        raw_image = load_image(image_file)
 
         start_overall = time.time()
 

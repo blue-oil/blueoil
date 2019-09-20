@@ -20,9 +20,9 @@ import math
 
 import click
 import numpy as np
-import PIL.Image
 import tensorflow as tf
 
+from lmnet.pre_processor import load_image
 from lmnet.utils import config as config_util
 from lmnet.utils.executor import search_restore_filename
 from lmnet.utils.json import JsonOutput, ImageFromJson
@@ -41,9 +41,7 @@ def _get_images(filenames, pre_processor, data_format):
         if filename == DUMMY_FILENAME:
             raw_image = np.zeros((64, 64, 3), dtype=np.uint8)
         else:
-            tmp_image = PIL.Image.open(filename)
-            tmp_image = tmp_image.convert("RGB")
-            raw_image = np.array(tmp_image)
+            raw_image = load_image(filename)
 
         image = pre_processor(image=raw_image)['image']
         if data_format == 'NCHW':
