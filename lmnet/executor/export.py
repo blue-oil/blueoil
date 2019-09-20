@@ -51,7 +51,8 @@ def _pre_process(raw_image, pre_processor, data_format):
 
 def _save_npy(image_path, output_dir, image, raw_image, all_outputs, image_size):
     shutil.copy(image_path, os.path.join(output_dir))
-    shutil.copy(image_path, os.path.join(output_dir, "raw_image.png"))
+    tmp_image = PIL.Image.open(image_path)
+    tmp_image.save(os.path.join(output_dir, "raw_image.png"))
     np.save(os.path.join(output_dir, "raw_image.npy"), raw_image)
 
     np.save(os.path.join(output_dir, "preprocessed_image.npy"), image)
