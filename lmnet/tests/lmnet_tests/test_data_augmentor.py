@@ -23,7 +23,8 @@ import pytest
 from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.pre_processor import (
-    ResizeWithGtBoxes
+    ResizeWithGtBoxes,
+    load_image
 )
 from lmnet.data_processor import (
     Sequence
