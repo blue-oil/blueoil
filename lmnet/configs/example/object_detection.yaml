@@ -52,7 +52,7 @@ DATASET:
       - 128
       - 128
     - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:lmnet.datasets.mscoco.MscocoObjectDetection ''
+DATASET_CLASS: !!python/name:lmnet.datasets.open_images_v4.OpenImagesV4BoundingBox ''
 DATA_FORMAT: NCHW
 IMAGE_SIZE:
 - 128
