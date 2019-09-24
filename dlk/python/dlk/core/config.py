@@ -15,6 +15,7 @@
 # =============================================================================
 """Configuration module."""
 import os
+
 import env
 from core.data_types import Uint32
 

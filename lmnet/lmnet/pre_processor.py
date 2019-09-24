@@ -16,9 +16,7 @@
 import numpy as np
 import PIL.Image
 
-from lmnet.data_processor import (
-    Processor,
-)
+from lmnet.data_processor import Processor
 
 
 def resize(image, size=[256, 256]):

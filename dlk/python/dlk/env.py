@@ -15,7 +15,6 @@
 # =============================================================================
 from os import path
 
-
 MAX_CPU_COUNT = 8
 
 ROOT_DIR = path.abspath(path.dirname(__file__))

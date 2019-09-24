@@ -13,17 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
 import math
+import os
 
 import click
 import tensorflow as tf
 
-from lmnet.utils import executor, module_loader, config as config_util
 from lmnet import environment
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from lmnet.utils import config as config_util
+from lmnet.utils import executor, module_loader
 
 
 def setup_dataset(config, subset, seed):

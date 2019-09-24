@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
 import itertools
+import os
 
 import click
-from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
-from tensorboard.backend.event_processing.io_wrapper import GetLogdirSubdirectories
 import pandas as pd
 import pytablewriter
+from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+from tensorboard.backend.event_processing.io_wrapper import GetLogdirSubdirectories
 
 from lmnet import environment
 

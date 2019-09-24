@@ -13,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from .binary import binary_mean_scaling_quantizer, binary_channel_wise_mean_scaling_quantizer
+from .binary import binary_channel_wise_mean_scaling_quantizer, binary_mean_scaling_quantizer
 from .linear import linear_mid_tread_half_quantizer

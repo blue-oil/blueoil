@@ -18,12 +18,11 @@ import os
 import os.path
 
 import numpy as np
-import PIL
 import pandas as pd
+import PIL
 
-
-from lmnet.datasets.base import Base
 from lmnet import data_processor
+from lmnet.datasets.base import Base
 
 
 class Ilsvrc2012(Base):

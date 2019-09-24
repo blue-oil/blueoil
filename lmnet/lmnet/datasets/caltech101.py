@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from lmnet.datasets.image_folder import ImageFolderBase
 import functools
 import os
 import os.path
+
+from lmnet.datasets.image_folder import ImageFolderBase
 
 
 class Caltech101(ImageFolderBase):
