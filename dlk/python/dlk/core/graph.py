@@ -15,10 +15,10 @@
 # =============================================================================
 """Graph module."""
 from collections import OrderedDict, defaultdict
-from typing import cast, Any, Dict, List, Optional, Set, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, cast
 
-from core.operators import Conv, Operator
 from core.graph_pattern_matching import sort_graph
+from core.operators import Conv, Operator
 
 
 class Graph(object):
@@ -144,7 +144,7 @@ class Graph(object):
         """Check whether all operators defined in this graph.
 
         Currently it checks:
-        - for all operartors op, forall input in op.inputs, input.outputs includes op.
+        - for all operators op, for all input in op.inputs, input.outputs includes op.
 
         Returns
         -------

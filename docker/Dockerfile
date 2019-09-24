@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 # Install dependencies for Pillow, Scipy and matplotlib for display, and requirements for pyenv and pyenv virtualenv installation
+# g++-4.9 is required to build Horovod with TensorFlow 1.14.0. For more detail, see https://github.com/horovod/horovod/issues/1232
 RUN apt-get update && apt-get install -y \
     python3-pil \
     libjpeg8-dev \
@@ -47,6 +48,7 @@ RUN apt-get update && apt-get install -y \
     libncursesw5-dev \
     xz-utils \
     tk-dev \
+    g++-4.9 \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

@@ -13,20 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from abc import ABCMeta
 import os
 import pprint
+from abc import ABCMeta
 
-from easydict import EasyDict
 import yaml
-from yaml.representer import Representer
+from easydict import EasyDict
 from tensorflow import gfile
+from yaml.representer import Representer
 
+from lmnet import environment
 from lmnet.common import Tasks
 from lmnet.data_processor import Processor, Sequence
 from lmnet.utils import module_loader
-from lmnet import environment
-
 
 PARAMS_FOR_EXPORT = [
     "DATA_FORMAT",

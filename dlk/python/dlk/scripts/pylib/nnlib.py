@@ -14,8 +14,8 @@
 # limitations under the License.
 # =============================================================================
 import ctypes as ct
-import numpy as np
 
+import numpy as np
 from numpy.ctypeslib import ndpointer
 
 

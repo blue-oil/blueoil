@@ -32,8 +32,8 @@ Methods:
     twn_weight_quantizer
 """
 
+from .binary import binary_channel_wise_mean_scaling_quantizer, binary_mean_scaling_quantizer
 from .linear import linear_mid_tread_half_quantizer
-from .binary import binary_mean_scaling_quantizer, binary_channel_wise_mean_scaling_quantizer
 from .ternary import ttq_weight_quantizer, twn_weight_quantizer
 
 __all__ = [

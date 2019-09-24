@@ -17,10 +17,11 @@
 import os
 import unittest
 
-from scripts import generate_project as gp
 from nose2.tools import params
 
+from scripts import generate_project as gp
 from testcase_dlk_base import TestCaseDLKBase
+
 
 def params_generate():
     flags_hq_thskip = [(False, False), (True, True), (False, True)]

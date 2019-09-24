@@ -16,14 +16,15 @@
 """Module of optimization passes."""
 import math
 import warnings
+from collections import defaultdict
+from typing import Any, List, cast
+
 import numpy as np
 
+from core.data_types import QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, Int32, PackedUint32, Uint32
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from core.operators import Constant, Operator, Conv, Lookup
-from core.data_types import Uint32, Int32, QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, PackedUint32, QUANTIZED_PACKED_KERNEL
-from typing import cast, List, Any
-from collections import defaultdict
+from core.operators import Constant, Conv, Lookup, Operator
 from modules.packer import Packer
 
 
@@ -504,7 +505,25 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             width = qtz.width
             depth = qtz.channel
             depth_upper = (depth + b - 1) // b
-            qtz.update_shape([height, width, depth_upper, 2, b], "HWChBCl")
+            qtz.update_shape([height, width, depth_upper, 2, b], "ChHWBCl")
+
+
+def pass_fix_qtz_types_and_format(graph) -> None:
+    """output of QTZ_linear_mid_tread_half is:
+        PackedUint32 type, ChHWBCl layout
+
+    Parameters
+    ----------
+    graph : Graph
+        The input graph. It will be modified in-place.
+    """
+    exec_list = sort_graph(graph)
+    for m in exec_list:
+        if m.op_type == 'QTZ_linear_mid_tread_half' and m.dimension != 'ChHWBCl':
+            m.dtype = PackedUint32()
+            b = 32
+            shape = [(m.channel + b - 1) // b, m.height, m.width, 2, b]
+            m.update_shape(shape, 'ChHWBCl')
 
 
 def pass_propagate_datatypes(graph) -> None:

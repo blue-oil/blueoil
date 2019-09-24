@@ -17,19 +17,19 @@ import os
 import shutil
 
 import click
-import tensorflow as tf
 import numpy as np
 import PIL.Image
+import tensorflow as tf
 
-from lmnet.utils import executor, config as config_util
 from lmnet import environment
+from lmnet.utils import config as config_util
+from lmnet.utils import executor
 
-
-# DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
-#     os.path.dirname(os.path.realpath(__file__)),
-#     "export_inference_test_data_images",
-#     "5605039097_05baa93bfd_m.jpg")
-DEFAULT_INFERENCE_TEST_DATA_IMAGE = None
+DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "export_inference_test_data_images",
+    "FlyingChairs.jpg")
+# DEFAULT_INFERENCE_TEST_DATA_IMAGE = None
 
 
 # TODO(wakisaka): duplicated function with executor/measure_latency.py
@@ -38,7 +38,8 @@ def _load_image(filename):
     tmp_image = PIL.Image.open(filename)
     tmp_image = tmp_image.convert("RGB")
     raw_image = np.array(tmp_image)
-
+    raw_image = np.concatenate([tmp_image, tmp_image], axis=2)
+    # raw_image = np.random.randint(low=0, high=256, size=(384, 512, 6))
     return raw_image
 
 
@@ -52,7 +53,8 @@ def _pre_process(raw_image, pre_processor, data_format):
 
 def _save_npy(image_path, output_dir, image, raw_image, all_outputs, image_size):
     shutil.copy(image_path, os.path.join(output_dir))
-    shutil.copy(image_path, os.path.join(output_dir, "raw_image.png"))
+    tmp_image = PIL.Image.open(image_path)
+    tmp_image.save(os.path.join(output_dir, "raw_image.png"))
     np.save(os.path.join(output_dir, "raw_image.npy"), raw_image)
 
     np.save(os.path.join(output_dir, "preprocessed_image.npy"), image)

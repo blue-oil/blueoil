@@ -13,18 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import glob
 import os
 import time
-import glob
 
 import click
-import tensorflow as tf
-from tensorflow.python.client import device_lib
 import numpy as np
 import PIL.Image
+import tensorflow as tf
+from tensorflow.python.client import device_lib
 
-from lmnet.utils import executor, config as config_util
 from lmnet import environment
+from lmnet.utils import config as config_util
+from lmnet.utils import executor
 
 
 # TODO(wakisaka): duplicated function with executor/export.py

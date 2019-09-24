@@ -14,8 +14,9 @@
 # limitations under the License.
 # =============================================================================
 import copy
-from core.data_types import *
 from textwrap import dedent
+
+from core.data_types import *
 
 
 class View(object):
@@ -646,14 +647,11 @@ class View(object):
 
             inputs_string = self.inputs_to_string(concat_input)
 
-            depth_list = ', '.join(map(lambda x: str(x.channel), concat_input.values()))
-
             return self.format_string(
                 f"""
                 const TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {input_list_name}[] = \
                 {{ {inputs_string} }};
-                T_UINT {depth_list_name}[] = {{ {depth_list} }};
-                func_ConcatOnDepth({input_list_name}, {depth_list_name}, {number_of_inputs}, {op.name});
+                func_ConcatOnDepth({input_list_name}, {number_of_inputs}, {op.name});
                 """
             )
         elif self.op.op_type == 'Maximum':
@@ -776,7 +774,7 @@ class View(object):
     def raise_invalid_args_exception(self, op, input_ops, output_ops):
         error_message = self.format_string(
             f"""
-            InvalidArgsEeception: name: {op.name}, op: {op.op_type},
+            InvalidArgsException: name: {op.name}, op: {op.op_type},
             This op was taken {len(input_ops)} inputs and {len(input_ops)} outputs ops!!!
             """
         )

@@ -15,8 +15,8 @@
 # limitations under the License.
 # =============================================================================
 import importlib
-import os
 import importlib.util
+import os
 
 
 def load_module(module_file_path):

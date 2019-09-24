@@ -17,10 +17,8 @@ from __future__ import division
 
 import numpy as np
 
-from lmnet.data_processor import (
-    Processor,
-)
 from lmnet.data_augmentor import iou
+from lmnet.data_processor import Processor
 
 
 def _softmax(x):

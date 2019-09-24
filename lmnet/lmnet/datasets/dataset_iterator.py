@@ -13,20 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
 import os
 import queue
-import time
 import threading
 import traceback
+import time
+from multiprocessing import Pool
 
 import numpy as np
 import tensorflow as tf
-from multiprocessing import Pool
 
+from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 from lmnet.datasets.tfds import TFDSMixin
-from lmnet.datasets.base import SegmentationBase, ObjectDetectionBase
-
 
 _dataset = None
 

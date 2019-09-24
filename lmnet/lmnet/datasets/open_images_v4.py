@@ -14,20 +14,18 @@
 # limitations under the License.
 # =============================================================================
 import csv
-from collections import OrderedDict
 import functools
 import json
 import os
 import os.path
 import re
-
+from collections import OrderedDict
 
 import numpy as np
 import PIL
 
 from lmnet import data_processor
-from lmnet.datasets.base import Base, StoragePathCustomizable
-from lmnet.datasets.base import ObjectDetectionBase
+from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
 from lmnet.utils.random import train_test_split
 
 

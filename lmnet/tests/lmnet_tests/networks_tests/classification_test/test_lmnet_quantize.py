@@ -13,21 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
 import pytest
 import tensorflow as tf
+from easydict import EasyDict
 
+from executor.train import start_training
 from lmnet import environment
+from lmnet.common import Tasks
 from lmnet.datasets.image_folder import ImageFolderBase
 from lmnet.networks.classification.lmnet_quantize import LmnetQuantize
-from lmnet.utils.executor import prepare_dirs
 from lmnet.pre_processor import Resize
-from lmnet.quantizations import (
-    binary_mean_scaling_quantizer,
-    linear_mid_tread_half_quantizer,
-)
-from lmnet.common import Tasks
-from executor.train import start_training
+from lmnet.quantizations import binary_mean_scaling_quantizer, linear_mid_tread_half_quantizer
+from lmnet.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 # Set test environment

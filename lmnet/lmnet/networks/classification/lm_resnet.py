@@ -14,10 +14,11 @@
 # limitations under the License.
 # =============================================================================
 import functools
+
 import tensorflow as tf
 
-from lmnet.networks.classification.base import Base
 from lmnet.layers import fully_connected
+from lmnet.networks.classification.base import Base
 
 
 class LmResnet(Base):
