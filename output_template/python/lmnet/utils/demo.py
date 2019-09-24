@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
+import time
 from itertools import product as itr_prod
+from threading import Thread
+
+import cv2
+import numpy as np
 
 # HACK: cross py2-py3 compatible version
 try:
@@ -26,11 +28,7 @@ try:
 except ImportError:
     from Queue import Queue
 
-from threading import Thread
 
-import cv2
-import numpy as np
-import time
 
 COLORS = [tuple(p) for p in itr_prod([0, 180, 255], repeat=3)]
 COLORS = COLORS[1:]

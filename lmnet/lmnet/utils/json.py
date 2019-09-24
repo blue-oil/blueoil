@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
-from io import BytesIO
 import base64
-from datetime import datetime, timezone
 import json
+import os
+from datetime import datetime, timezone
+from io import BytesIO
 
 import numpy as np
 import PIL.Image

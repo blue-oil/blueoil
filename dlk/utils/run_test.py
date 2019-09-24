@@ -13,11 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import numpy as np
-import click
-
 from pathlib import Path
+
+import click
+import numpy as np
 from PIL import Image
+
 from scripts.pylib.nnlib import NNLib as NNLib
 
 

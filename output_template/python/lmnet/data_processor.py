@@ -13,12 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from abc import ABCMeta
-from abc import abstractmethod
 import pprint
-import six
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
+import six
 
 
 class Sequence:

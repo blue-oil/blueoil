@@ -14,13 +14,12 @@
 # limitations under the License.
 # =============================================================================
 """Utility functions."""
+import importlib
 import os
+import shutil
 from os import path
 from pathlib import Path
-import shutil
-import importlib
 from typing import Any, Generator, List, Mapping, Union
-
 
 JSON = Union[str, int, float, bool, None, Mapping[str, 'JSON'], List['JSON']]  # type: ignore
 

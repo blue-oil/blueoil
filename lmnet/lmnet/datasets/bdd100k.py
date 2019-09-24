@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import functools
-
-from os.path import join, splitext, basename
 import glob
+import json
+from os.path import basename, join, splitext
 
 import numpy as np
-import json
 
 from lmnet.datasets.base import ObjectDetectionBase
 

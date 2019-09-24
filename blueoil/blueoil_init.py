@@ -20,11 +20,9 @@ from collections import OrderedDict
 import whaaaaat
 from jinja2 import Environment, FileSystemLoader
 
-from lmnet.data_processor import Processor
 import lmnet.data_augmentor as augmentor
-
 from blueoil.vars import TEMPLATE_DIR
-
+from lmnet.data_processor import Processor
 
 task_type_choices = [
     'classification',

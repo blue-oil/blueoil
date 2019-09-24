@@ -13,15 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import base64
 import json
 from io import BytesIO
-import base64
 
 import numpy as np
 import PIL.Image
 
-from lmnet.utils.json import JsonOutput
 from lmnet.common import Tasks
+from lmnet.utils.json import JsonOutput
 
 
 def test_classification_json():
