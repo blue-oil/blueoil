@@ -16,10 +16,8 @@
 import numpy as np
 import tensorflow as tf
 
-
 from lmnet.layers import conv2d, fully_connected, max_pooling2d
-from lmnet.metrics.mean_average_precision import tp_fp_in_the_image
-from lmnet.metrics.mean_average_precision import average_precision
+from lmnet.metrics.mean_average_precision import average_precision, tp_fp_in_the_image
 from lmnet.networks.base import BaseNetwork
 
 
@@ -68,7 +66,7 @@ class YoloV1(BaseNetwork):
             yolo=self,
         )
 
-    def placeholderes(self):
+    def placeholders(self):
         """placeholders"""
 
         images_placeholder = tf.placeholder(
@@ -672,10 +670,10 @@ class YoloV1Loss:
         Return:
         cell_gt_boxes: Tensor [batch_size, cell_size, cell_size, 4(center_x, center_y, w, h)].
             copy from non dummy gt boxes coodinate to corresponding cell.
-        object_maskes: Tensor [batch_size, cell_size, cell_size, 1]. the cell that has gt boxes is 1, none is 0.
+        object_masks: Tensor [batch_size, cell_size, cell_size, 1]. the cell that has gt boxes is 1, none is 0.
         """
         cell_gt_boxes = []
-        object_maskes = []
+        object_masks = []
         for batch_index in range(self.batch_size):
             i = tf.constant(0)
             gt_boxes = gt_boxes_list[batch_index, :, :]
@@ -689,12 +687,12 @@ class YoloV1Loss:
             )
 
             cell_gt_boxes.append(result_cell_gt_box)
-            object_maskes.append(result_object_mask)
+            object_masks.append(result_object_mask)
 
         cell_gt_boxes = tf.stack(cell_gt_boxes)
-        object_maskes = tf.stack(object_maskes)
+        object_masks = tf.stack(object_masks)
 
-        return cell_gt_boxes, object_maskes
+        return cell_gt_boxes, object_masks
 
     def __call__(self, predict_classes, predict_confidence, predict_boxes, gt_boxes):
         """Loss function.
@@ -830,7 +828,7 @@ def summary_boxes(tag, images, boxes, image_size, max_outputs=3):
 
 
 def format_XYWH_to_CXCYWH(boxes, axis=1):
-    """Format form (x, y, w, h) to (center_x, center_y, w, h) along specific dimention.
+    """Format form (x, y, w, h) to (center_x, center_y, w, h) along specific dimension.
 
     Args:
     boxes :a Tensor include boxes. [:, 4(x, y, w, h)]
@@ -846,7 +844,7 @@ def format_XYWH_to_CXCYWH(boxes, axis=1):
 
 
 def format_CXCYWH_to_XYWH(boxes, axis=1):
-    """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimention.
+    """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimension.
 
     Args:
     boxes: A tensor include boxes. [:, 4(x, y, w, h)]
@@ -862,7 +860,7 @@ def format_CXCYWH_to_XYWH(boxes, axis=1):
 
 
 def format_CXCYWH_to_YX(inputs, axis=1):
-    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimention.
+    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimension.
 
     Args:
       inputs: a Tensor include boxes.
@@ -880,7 +878,7 @@ def format_CXCYWH_to_YX(inputs, axis=1):
 
 
 def format_XYWH_to_YX(inputs, axis=1):
-    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimention.
+    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimension.
 
     Args:
       inputs: a Tensor include boxes.

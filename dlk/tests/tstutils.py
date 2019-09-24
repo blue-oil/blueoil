@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import unittest
+import os
 import subprocess
 import time
-import os
+import unittest
 from os.path import join
 
 from tstconf import DO_CLEANUP
@@ -195,4 +195,3 @@ def setup_de10nano(hw_path: str, output_path: str, testcase=None):
         return False
 
     return True
-

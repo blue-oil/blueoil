@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
-from io import BytesIO
 import base64
-from datetime import datetime, timezone
 import json
+import os
+from datetime import datetime, timezone
+from io import BytesIO
 
 import numpy as np
 import PIL.Image
@@ -31,7 +31,7 @@ class JsonOutput():
     """Create callable instance to output predictions json object from post processed tensor(np.ndarray).
 
     The output predictions json format depends on task type.
-    Plsease see [Output Data Specification](https://github.com/LeapMind/lmnet/wiki/Output-Data-Specification).
+    Please see [Output Data Specification](https://github.com/LeapMind/lmnet/wiki/Output-Data-Specification).
     """
 
     def __init__(self, task, classes, image_size, data_format):

@@ -17,8 +17,8 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.networks.segmentation.base import Base
 from lmnet.blocks import conv_bn_act, densenet_group
+from lmnet.networks.segmentation.base import Base
 
 
 class LMBiSeNet(Base):
@@ -224,7 +224,7 @@ class LMBiSeNet(Base):
                 h = x.get_shape()[1].value
                 w = x.get_shape()[2].value
                 x = tf.layers.average_pooling2d(name="gap", inputs=x, pool_size=[h, w], padding="VALID", strides=1)
-                # conv_1, conv_2 need to float convolution because our FPGA IP support only 32x channles.
+                # conv_1, conv_2 need to float convolution because our FPGA IP support only 32x channels.
                 x = self._block('float_conv_1', x, fusion_channel, 1, activation=tf.nn.relu)
                 x = self._block('float_conv_2', x, fusion_channel, 1, activation=self.attention_act)
 
@@ -364,9 +364,9 @@ class LMBiSeNetQuantize(LMBiSeNet):
     ``weight_quantizer``, ``weight_quantizer_kwargs``.
 
     Args:
-        activation_quantizer (callable): Weight quantizater. See more at `lmnet.quantizations`.
+        activation_quantizer (callable): Weight quantizer. See more at `lmnet.quantizations`.
         activation_quantizer_kwargs (dict): Kwargs for `activation_quantizer`.
-        weight_quantizer (callable): Activation quantizater. See more at `lmnet.quantizations`.
+        weight_quantizer (callable): Activation quantizer. See more at `lmnet.quantizations`.
         weight_quantizer_kwargs (dict): Kwargs for `weight_quantizer`.
     """
 

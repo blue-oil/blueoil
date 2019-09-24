@@ -14,12 +14,14 @@
 # limitations under the License.
 # =============================================================================
 """Test file for dynamic creation of operators."""
+import importlib
 import unittest
+from typing import List
+
+import numpy as np
+
 from core.data_types import Float32
 from core.operators import Constant
-import numpy as np
-import importlib
-from typing import List
 
 
 class TestDynamicCreateOp(unittest.TestCase):

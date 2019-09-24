@@ -14,16 +14,16 @@
 # limitations under the License.
 # =============================================================================
 import functools
-from glob import glob
 import imghdr
 import os
 import os.path
+from glob import glob
 
 import numpy as np
 
+from lmnet import data_processor
 from lmnet.utils.image import load_image
 from lmnet.datasets.base import Base, StoragePathCustomizable
-from lmnet import data_processor
 from lmnet.utils.random import train_test_split
 
 

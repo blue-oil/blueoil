@@ -428,7 +428,7 @@ Go to project root and run following commands:
 - pytest: `tox -e pytest`
 
 If your code was running in `docker`, go to project root and run:
-- all: `docker-compose run --rm tensorflow tox -e py35`
+- all: `docker-compose run --rm tensorflow tox -e py36`
 - flake8: `docker-compose run --rm tensorflow tox -e flake8`
 - pytest: `docker-compose run --rm tensorflow tox -e pytest`
 

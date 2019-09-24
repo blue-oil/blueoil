@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 from typing import List
+
 import numpy as np
 
 
@@ -282,4 +283,3 @@ class QUANTIZED_PACKED_KERNEL(Primitive, int):
     @classmethod
     def nptype(cls):
         return np.uint32
-
