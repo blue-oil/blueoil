@@ -241,14 +241,14 @@ bool Network::init()
   {{ '\n' -}}
 
 #if defined RUN_ON_FPGA
-  SimpleMappedMem kernel_mmap(KERNEL_ADDR, total_kernel_size);
+  MappedMem kernel_mmap(KERNEL_ADDR, total_kernel_size);
   auto kernel_buffer = reinterpret_cast<uint8_t*>(kernel_mmap.get());
   {% for qconv in graph.convs(quantized_only=True) -%}
   {%    set kernel = qconv.input_nodes[1] -%}
   std::memcpy(kernel_buffer + {{qconv.name}}_kernel_offset, {{kernel.name}}.data(), {{qconv.name}}_kernel_size);
   {% endfor -%}
 
-  SimpleMappedMem thresholds_mmap(THRESHOLD_ADDR, total_thresholds_size);
+  MappedMem thresholds_mmap(THRESHOLD_ADDR, total_thresholds_size);
   auto thresholds_buffer = reinterpret_cast<uint8_t*>(thresholds_mmap.get());
   {% for qconv in graph.convs(quantized_only=True) -%}
       {% if qconv.has_thresholds -%}
