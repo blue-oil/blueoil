@@ -704,10 +704,14 @@ class View(object):
 
             ns = op.num_splits
 
+            depth_list_name = op.name + '_outputs_depth'
+            depth_list = ', '.join(map(str, [op.channel for _ in range(ns)]))
+
             return self.format_string(
                 f"""
                 TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}[] = {{ {outputs_string} }};
-                func_Split({inputs_string}, {op.name}, {ns});
+                T_UINT {depth_list_name}[] = {{ {depth_list} }};
+                func_Split({inputs_string}, {op.name}, {depth_list_name}, {ns});
                 """
             )
         elif self.op.op_type == 'Pad':
