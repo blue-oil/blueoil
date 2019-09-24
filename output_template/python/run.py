@@ -20,7 +20,7 @@ import sys
 
 from lmnet.nnlib import NNLib as NNLib
 
-from lmnet.pre_processor import load_image
+from lmnet.utils.image import load_image
 from lmnet.common import Tasks
 from lmnet.utils.output import JsonOutput, ImageFromJson
 from lmnet.utils.config import (

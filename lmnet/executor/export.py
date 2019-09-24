@@ -20,7 +20,7 @@ import click
 import tensorflow as tf
 import numpy as np
 
-from lmnet.pre_processor import load_image
+from lmnet.utils.image import load_image
 from lmnet.utils import executor, config as config_util
 from lmnet import environment
 

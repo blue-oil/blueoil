@@ -18,7 +18,7 @@ import functools
 
 import numpy as np
 
-from lmnet.pre_processor import load_image
+from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase
 
 

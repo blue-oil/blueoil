@@ -22,7 +22,7 @@ import tensorflow as tf
 from tensorflow.python.client import device_lib
 import numpy as np
 
-from lmnet.pre_processor import load_image
+from lmnet.utils.image import load_image
 from lmnet.utils import executor, config as config_util
 from lmnet import environment
 
