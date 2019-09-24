@@ -18,11 +18,11 @@ import json
 import os.path
 
 import numpy as np
-import PIL
 import pandas as pd
+import PIL
 
-from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
 from lmnet import data_processor
+from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
 from lmnet.utils.random import shuffle, train_test_split
 
 

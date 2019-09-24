@@ -13,23 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
 import numpy as np
 import pytest
 import tensorflow as tf
+from easydict import EasyDict
 
 from executor.train import start_training
 from lmnet import environment
+from lmnet.common import Tasks
+from lmnet.data_processor import Sequence
 from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
-from lmnet.utils.executor import prepare_dirs
+from lmnet.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
 from lmnet.pre_processor import ResizeWithGtBoxes
-from lmnet.data_processor import Sequence
-from lmnet.post_processor import (
-    FormatYoloV2,
-    ExcludeLowScoreBox,
-    NMS,
-)
+from lmnet.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 # Set test environment
@@ -267,7 +264,7 @@ def test_offset_boxes():
     assert np.all(offset_h.eval()[:, :, :, 1] == anchors[1][1])
 
 
-def test_calculate_truth_and_maskes():
+def test_calculate_truth_and_masks():
 
     model = YoloV2(
         anchors=[(1.0, 1.0), (1.5, 1.5)],
@@ -445,7 +442,7 @@ def test_calculate_truth_and_maskes():
         ],
     ])
 
-    expected_object_maskes = [
+    expected_object_masks = [
         [
             [
                 [[0.],
@@ -599,17 +596,17 @@ def test_calculate_truth_and_maskes():
     gt_boxes_list = tf.convert_to_tensor(gt_boxes_list, dtype=tf.float32)
     # TODO(wakisaka): prepare numpy predict_boxes.
     predict_boxes = tf.convert_to_tensor(expected_cell_gt_boxes, dtype=tf.float32)
-    cell_gt_boxes, truth_confidence, object_maskes, coordinate_maskes =\
-        model.loss_function._calculate_truth_and_maskes(gt_boxes_list, predict_boxes, global_step=0)
+    cell_gt_boxes, truth_confidence, object_masks, coordinate_masks =\
+        model.loss_function._calculate_truth_and_masks(gt_boxes_list, predict_boxes, global_step=0)
 
     tf.InteractiveSession()
     cell_gt_boxes_val = cell_gt_boxes.eval()
-    object_maskes_val = object_maskes.eval()
-    coordinate_maskes_val = coordinate_maskes.eval()
+    object_masks_val = object_masks.eval()
+    coordinate_masks_val = coordinate_masks.eval()
 
     assert np.all(cell_gt_boxes_val == expected_cell_gt_boxes)
-    assert np.all(object_maskes_val == expected_object_maskes)
-    assert np.all(coordinate_maskes_val == expected_object_maskes)
+    assert np.all(object_masks_val == expected_object_masks)
+    assert np.all(coordinate_masks_val == expected_object_masks)
 
 
 def test_convert_boxes_space_inverse():
@@ -713,6 +710,7 @@ def test_training():
     config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
+    config.TASK = Tasks.OBJECT_DETECTION
 
     # network model config
     config.NETWORK = EasyDict()
@@ -782,7 +780,7 @@ def test_yolov2_post_process():
 
 if __name__ == '__main__':
     test_offset_boxes()
-    test_calculate_truth_and_maskes()
+    test_calculate_truth_and_masks()
     test_convert_boxes_space_inverse()
     test_reorg()
     test_training()

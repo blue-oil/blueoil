@@ -13,19 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from glob import glob
 import imghdr
 import os
+from glob import glob
 
 import numpy as np
 import pytest
 
 from lmnet import environment
-from lmnet.pre_processor import Resize
-from lmnet.datasets.image_folder import (
-    ImageFolderBase,
-)
 from lmnet.datasets.dataset_iterator import DatasetIterator
+from lmnet.datasets.image_folder import ImageFolderBase
+from lmnet.pre_processor import Resize
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")

@@ -152,7 +152,7 @@ void conv_general(
             if (inside_row && inside_col) {
               unsigned k_idx = current_kernel_index + kernel_offset;
 
-              T in_data = input(0, row, col, kz);;
+              T in_data = input(0, row, col, kz);
               T k_data = kernels(kernel_id, ki, kj, kz);
 
               out += in_data * k_data;

@@ -14,8 +14,9 @@
 # limitations under the License.
 # =============================================================================
 import copy
-from core.data_types import *
 from textwrap import dedent
+
+from core.data_types import *
 
 
 class View(object):
@@ -686,6 +687,17 @@ class View(object):
                 func_DepthToSpace({args1}{args2});
                 """
             )
+        elif self.op.op_type == 'ResizeNearestNeighbor':
+
+            inputs_string = self.inputs_to_string(input_ops)
+
+            args1 = f"{inputs_string}, {op.name}"
+
+            return self.format_string(
+                f"""
+                func_ResizeNearestNeighbor({args1});
+                """
+            )
         elif self.op.op_type == 'Split':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
@@ -765,7 +777,7 @@ class View(object):
     def raise_invalid_args_exception(self, op, input_ops, output_ops):
         error_message = self.format_string(
             f"""
-            InvalidArgsEeception: name: {op.name}, op: {op.op_type},
+            InvalidArgsException: name: {op.name}, op: {op.op_type},
             This op was taken {len(input_ops)} inputs and {len(input_ops)} outputs ops!!!
             """
         )

@@ -16,9 +16,7 @@
 import numpy as np
 import PIL.Image
 
-from lmnet.data_processor import (
-    Processor,
-)
+from lmnet.data_processor import Processor
 
 
 def resize(image, size=[256, 256]):
@@ -200,10 +198,10 @@ def per_image_linear_quantize(image, bit):
     min_value = np.min(image)
     max_value = np.max(image)
 
-    return _liner_quantize(image, bit, min_value, max_value)
+    return _linear_quantize(image, bit, min_value, max_value)
 
 
-def _liner_quantize(x, bit, value_min, value_max):
+def _linear_quantize(x, bit, value_min, value_max):
     x = np.clip(x, value_min, value_max)
     value_range = value_max - value_min
     x = (x - value_min) / value_range
@@ -213,7 +211,7 @@ def _liner_quantize(x, bit, value_min, value_max):
     return result * value_range + value_min
 
 
-class PerImageLinerQuantize(Processor):
+class PerImageLinearQuantize(Processor):
     """Linear quantize per image.
 
     Use :func:`~per_image_linear_quantize` inside.
