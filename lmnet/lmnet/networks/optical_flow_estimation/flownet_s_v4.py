@@ -174,7 +174,7 @@ class FlowNetSV4(BaseNetwork):
 
             conved = tf.layers.conv2d(
                 inputs,
-                2,
+                32,
                 kernel_size=3,
                 strides=1,
                 padding='SAME',
