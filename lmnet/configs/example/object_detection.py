@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
-from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
+from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     ResizeWithGtBoxes,
@@ -45,7 +45,7 @@ from lmnet.quantizations import (
 IS_DEBUG = False
 
 NETWORK_CLASS = YoloV2Quantize
-DATASET_CLASS = LmThingsOnATable
+DATASET_CLASS = OpenImagesV4BoundingBoxBase
 
 IMAGE_SIZE = [128, 128]
 BATCH_SIZE = 8

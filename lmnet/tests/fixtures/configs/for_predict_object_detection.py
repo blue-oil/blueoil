@@ -17,7 +17,7 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
+from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
 from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
@@ -41,7 +41,7 @@ from lmnet.quantizations import (
 IS_DEBUG = False
 
 NETWORK_CLASS = LMFYoloQuantize
-DATASET_CLASS = LmThingsOnATable
+DATASET_CLASS = OpenImagesV4BoundingBoxBase
 
 
 IMAGE_SIZE = [64, 96]
