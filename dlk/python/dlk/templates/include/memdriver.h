@@ -24,11 +24,11 @@ limitations under the License.
 #include <memory>
 #include <system_error>
 
-class FDManager {
+class FileDescriptor {
  public:
-  FDManager() : fd(-1) {}
-  FDManager(int fd) : fd(fd) {}
-  ~FDManager() {
+  FileDescriptor() : fd(-1) {}
+  FileDescriptor(int fd) : fd(fd) {}
+  ~FileDescriptor() {
     if (fd >= 0) {
       close(fd);
     }
@@ -41,7 +41,7 @@ class FDManager {
 class MappedMem {
  public:
   MappedMem(std::size_t base, std::size_t size) : length(0) {
-    FDManager fd(open("/dev/mem", O_RDWR | O_SYNC));
+    FileDescriptor fd(open("/dev/mem", O_RDWR | O_SYNC));
     if (fd == -1) {
       return;
     }
