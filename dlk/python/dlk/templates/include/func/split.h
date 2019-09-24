@@ -37,7 +37,7 @@ void func_Split(const TensorView<T, MemoryLayout::NHWC>& input,
 
   for(T_UINT i = 0; i < in_height * in_width; i++){
     for(T_UINT n = 0; n < num_split; n++){
-      for(T_UINT d = 0; d < out_depth; d++){
+      for(T_UINT d = 0; d < depths[n]; d++){
         outputs[n].data()[output_index[n]++] = input.data()[input_index++];
       }
     }
