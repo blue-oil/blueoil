@@ -13,16 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from multiprocessing import Pool
-import time
-import threading
-import numpy as np
 import os
 import queue
-import tensorflow as tf
-from lmnet.datasets.tfds import TFDSMixin
-from lmnet.datasets.base import SegmentationBase, ObjectDetectionBase
+import threading
+import time
+from multiprocessing import Pool
 
+import numpy as np
+import tensorflow as tf
+
+from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
+from lmnet.datasets.tfds import TFDSMixin
 
 _dataset = None
 

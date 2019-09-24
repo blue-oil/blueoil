@@ -14,8 +14,9 @@
 # limitations under the License.
 # =============================================================================
 import copy
-from core.data_types import *
 from textwrap import dedent
+
+from core.data_types import *
 
 
 class View(object):

@@ -15,9 +15,8 @@
 # =============================================================================
 import os
 
-import PIL.Image
 import numpy as np
-
+import PIL.Image
 
 OUTPUT_DIR = 'tests'
 

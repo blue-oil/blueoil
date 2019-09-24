@@ -13,18 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from datetime import datetime
-from glob import glob
 import os
-import time
-from unittest import TestCase
+import shutil
 import subprocess
 import tempfile
-import shutil
+import time
+from datetime import datetime
+from glob import glob
+from unittest import TestCase
 
+from tstconf import DO_CLEANUP, DO_CLEANUP_OLDBUILD, FPGA_FILES, HOURS_ELAPSED_TO_ERASE, PROJECT_TAG
 from tstutils import setup_de10nano
-from tstconf import PROJECT_TAG, DO_CLEANUP, DO_CLEANUP_OLDBUILD, HOURS_ELAPSED_TO_ERASE, FPGA_FILES
-
 
 SECOND_PER_HOUR = 3600
 

@@ -13,21 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from glob import glob
 import imghdr
-import os
 import math
+import os
+from glob import glob
 
 import click
 import numpy as np
 import PIL.Image
 import tensorflow as tf
 
+from lmnet import environment
 from lmnet.utils import config as config_util
 from lmnet.utils.executor import search_restore_filename
-from lmnet.utils.json import JsonOutput, ImageFromJson
-from lmnet import environment
-
+from lmnet.utils.json import ImageFromJson, JsonOutput
 
 DUMMY_FILENAME = "DUMMY_FILE"
 

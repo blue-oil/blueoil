@@ -13,11 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import numpy as np
 from sys import argv
-from PIL import Image
-from scripts.pylib.nnlib import NNLib as NNLib
 
+import numpy as np
+from PIL import Image
+
+from scripts.pylib.nnlib import NNLib as NNLib
 
 input_image_path = argv[1]
 lib_path = argv[2]

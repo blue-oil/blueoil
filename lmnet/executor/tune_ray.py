@@ -13,21 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
-import six
 import math
-import click
-import tensorflow as tf
 import multiprocessing
+import os
 
+import click
+import six
+import tensorflow as tf
 from easydict import EasyDict
-from lmnet.utils import executor, config as config_util
+
+import ray
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
-
-import ray
-from ray.tune import run_experiments, register_trainable, Trainable
+from lmnet.utils import config as config_util
+from lmnet.utils import executor
+from ray.tune import Trainable, register_trainable, run_experiments
 from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.suggest import HyperOptSearch
 

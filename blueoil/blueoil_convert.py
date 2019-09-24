@@ -14,14 +14,14 @@
 # limitations under the License.
 # =============================================================================
 import os
-import click
-import subprocess
 import shutil
+import subprocess
 
-from executor.export import run as run_export
-from scripts.generate_project import run as run_generate_project
+import click
 
 from blueoil.vars import OUTPUT_TEMPLATE_DIR
+from executor.export import run as run_export
+from scripts.generate_project import run as run_generate_project
 
 
 def create_output_directory(output_root_dir, output_template_dir=None):
