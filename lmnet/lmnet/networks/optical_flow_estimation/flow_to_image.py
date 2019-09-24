@@ -14,6 +14,8 @@
 # limitations under the License.
 # =============================================================================
 
+__all__ = ["color_function", "flow_to_image", "discretized_flow_to_image"]
+
 import numpy as np
 from scipy.interpolate import interp1d
 
@@ -58,16 +60,16 @@ def make_color_wheel():
 
 color_table = make_color_wheel()
 color_function = interp1d(
-    np.linspace(-np.pi, np.pi, color_table.shape[0]), color_table, axis=0)
+    np.linspace(0, 2 * np.pi, color_table.shape[0]), color_table, axis=0)
 
 
-def flow_to_image(flow):
+def flow_to_image(flow, threshold=10.0):
     # idxUnknow = (abs(u) > UNKNOWN_FLOW_THRESH) | (abs(v) > UNKNOWN_FLOW_THRESH)
     nan_index = np.isnan(flow).any(axis=2)
     rad = np.linalg.norm(flow, axis=2)
     rad[nan_index] = 0.0
-    rad *= (1 / max(1e-15, np.max(rad)))
-    arg = np.arctan2(-flow[..., 1], -flow[..., 0])
+    rad *= (1 / max(threshold, np.max(rad)))
+    arg = np.arctan2(-flow[..., 1], -flow[..., 0]) + np.pi
     image = color_function(arg)
     height, width, channels = image.shape
 
@@ -78,3 +80,11 @@ def flow_to_image(flow):
     image = image.astype(np.uint8)
     image[image > 255] = 255
     return image
+
+
+def discretized_flow_to_image(dflow, split_num):
+    x = np.arange(0, 1 + split_num) / split_num
+    cmap = color_function(2 * np.pi * x)
+    cmap[0] = 255
+    cmap = cmap.astype(np.uint8)
+    return cmap[np.argmax(dflow, axis=2)]

@@ -20,8 +20,8 @@ from easydict import EasyDict
 
 from lmnet.common import Tasks
 from lmnet.data_processor import Sequence
-from lmnet.networks.optical_flow_estimation.flownet_s_v1 import (
-    FlowNetSV1
+from lmnet.networks.optical_flow_estimation.flownet_q_v1 import (
+    FlowNetQV1
 )
 from lmnet.datasets.optical_flow_estimation import (
     FlyingChairs, ChairsSDHom
@@ -31,15 +31,22 @@ from lmnet.networks.optical_flow_estimation.data_augmentor import (
     FlipLeftRight, FlipTopBottom, Identity, Scale, Rotate, Translate
 )
 from lmnet.networks.optical_flow_estimation.pre_processor import (
-    DevideBy255
+    DevideBy255, DiscretizeFlow
 )
 
-NETWORK_CLASS = FlowNetSV1
+NETWORK_CLASS = FlowNetQV1
 DATASET_CLASS = FlyingChairs
 
 IMAGE_SIZE = [384, 512]
 DATA_FORMAT = "NHWC"
 TASK = Tasks.OPTICAL_FLOW_ESTIMATION
+
+# NOTE (by ki-42) the number of the label should be SPLIT_NUM + 1
+THRESHOLD_RADIUS = 10.0
+SPLIT_NUM = 10
+DATASET_CLASS.classes = [_ for _ in range(SPLIT_NUM + 1)]
+NETWORK_CLASS.split_num = SPLIT_NUM
+NETWORK_CLASS.threshold_radius = THRESHOLD_RADIUS
 CLASSES = DATASET_CLASS.classes
 
 IS_DEBUG = False
@@ -47,7 +54,7 @@ MAX_STEPS = 1200000
 SAVE_CHECKPOINT_STEPS = 5000
 KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 250
-SUMMARISE_STEPS = 1000
+SUMMARISE_STEPS = 250
 BATCH_SIZE = 8
 
 # for debugging
@@ -70,6 +77,7 @@ IS_DISTRIBUTION = False
 
 PRE_PROCESSOR = Sequence([
     DevideBy255(),
+    DiscretizeFlow(THRESHOLD_RADIUS, SPLIT_NUM)
 ])
 POST_PROCESSOR = None
 
@@ -78,7 +86,9 @@ NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"beta1": 0.9, "beta2": 0.999}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 NETWORK.LEARNING_RATE_KWARGS = {
-    "values": [0.0001, 0.00005, 0.000025, 0.0000125, 0.00000625],
+    # "values": [0.0001, 0.00005, 0.000025, 0.0000125, 0.00000625],
+    # "boundaries": [400000, 600000, 800000, 1000000],
+    "values": [0.001, 0.0005, 0.00025, 0.000125, 0.0000625],
     "boundaries": [400000, 600000, 800000, 1000000],
 }
 NETWORK.WEIGHT_DECAY_RATE = 0.0004
@@ -96,7 +106,7 @@ DATASET.TRAIN_QUEUE_SIZE = 1000
 DATASET.VALIDATION_ENABLE_PREFETCH = True
 DATASET.VALIDATION_PRE_LOAD = False
 DATASET.VALIDATION_PROCESS_NUM = 1
-DATASET.VALIDATION_QUEUE_SIZE = 500
+DATASET.VALIDATION_QUEUE_SIZE = 250
 DATASET.VALIDATION_RATE = 0.1
 DATASET.VALIDATION_SEED = 2019
 
@@ -124,9 +134,9 @@ DATASET.AUGMENTOR = Sequence([
     # Geometric transformation
     # FlipLeftRight(0.5),
     # FlipTopBottom(0.5),
-    Translate(-0.2, 0.2),
-    Rotate(-17, +17),
-    Scale(1.0, 2.0),
+    Translate(-0.1, 0.1),
+    Rotate(-5, +5),
+    # Scale(1.0, 2.0),
     # Pixel-wise augmentation
     Brightness(0.6, 1.4),
     Contrast(0.2, 1.4),
