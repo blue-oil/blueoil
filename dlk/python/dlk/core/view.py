@@ -30,7 +30,10 @@ class View(object):
 
     @property
     def shape(self):
-        return '*'.join(map(lambda x: str(x), self.op.shape))
+        if self.op.dtype == Float32():
+            return '*'.join(map(lambda x: str(x), self.op.shape))
+        else:
+            return '*'.join(map(lambda x: str(x), self.op.shape[:-1]))
 
     @property
     def shape_list(self):
