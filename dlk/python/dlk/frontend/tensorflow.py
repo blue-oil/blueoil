@@ -14,11 +14,14 @@
 # limitations under the License.
 # =============================================================================
 """Module of TensorFlow IO."""
-from .base import BaseIO
+from os import path
+
+from tensorflow.core.framework import graph_pb2
+
 from core.model import Model
 from plugins.tf import Importer
-from tensorflow.core.framework import graph_pb2
-from os import path
+
+from .base import BaseIO
 
 
 class TensorFlowIO(BaseIO):

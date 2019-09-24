@@ -19,8 +19,8 @@
 import functools
 import glob
 import os.path
-import numpy as np
 
+import numpy as np
 from PIL import Image
 
 from lmnet.datasets.base import SegmentationBase

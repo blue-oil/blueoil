@@ -14,19 +14,20 @@
 # limitations under the License.
 # =============================================================================
 # check Python version
-import sys
 # Assuming the Python version is correct from here
 import os
-import pip
-import subprocess
 import shutil
+import subprocess
+import sys
+from distutils.core import setup
 from pathlib import Path
+
+import pip
 from setuptools import Extension
-from setuptools.command.test import test
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
+from setuptools.command.test import test
 
-from distutils.core import setup
 from python.dlk import __version__
 
 CURRENT_PYTHON = sys.version_info[:3]

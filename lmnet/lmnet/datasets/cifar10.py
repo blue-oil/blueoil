@@ -14,13 +14,13 @@
 # limitations under the License.
 # =============================================================================
 import functools
-import pickle
 import os
+import pickle
 
 import numpy as np
 
-from lmnet.datasets.base import Base
 from lmnet import data_processor
+from lmnet.datasets.base import Base
 from lmnet.utils.random import shuffle
 
 

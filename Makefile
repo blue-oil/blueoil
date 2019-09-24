@@ -33,7 +33,7 @@ test-semantic-segmentation: build
 	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task semantic_segmentation --additional_test
 
 .PHONY: test-lmnet
-test-lmnet: test-lmnet-pep8 test-lmnet-main test-lmnet-check-dataset-storage
+test-lmnet: test-lmnet-pep8 test-lmnet-main
 
 .PHONY: test-lmnet-pep8
 test-lmnet-pep8: build

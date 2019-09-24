@@ -48,7 +48,7 @@ def setup():
     # import mpi4py
     from mpi4py import MPI
     comm = MPI.COMM_WORLD
-    # check size and rank are syncronized
+    # check size and rank are synchronized
     assert horovod_num_worker == comm.Get_size()
     assert horovod_rank == comm.Get_rank()
     return hvd
