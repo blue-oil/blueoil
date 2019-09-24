@@ -16,5 +16,4 @@
 from ._version import __version__
 from .env import *
 
-
 __all__ = ['MAX_CPU_COUNT']

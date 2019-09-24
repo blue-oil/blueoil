@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from lmnet.utils import config as config_util
-
 from easydict import EasyDict
+
+from lmnet.utils import config as config_util
 
 
 def test_merge():

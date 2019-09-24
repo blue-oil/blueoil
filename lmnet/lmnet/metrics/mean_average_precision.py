@@ -18,9 +18,8 @@ import re
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.ops import metrics_impl
-from tensorflow.python.ops import variable_scope
 from tensorflow.python.framework import ops
+from tensorflow.python.ops import metrics_impl, variable_scope
 
 
 # ===========================================================================

@@ -15,8 +15,8 @@
 # limitations under the License.
 # =============================================================================
 import importlib
-import os
 import importlib.util
+import os
 
 
 def load_module(module_file_path):
@@ -58,7 +58,7 @@ def _load_class_from_name(name, base_dir):
     """dynamically load a class object from name.
 
     Args:
-        name: class name fllowing python module loader rule.
+        name: class name following python module loader rule.
         base_dir: base directory of class name.
 
     e.g. `name` is dir1.module, load dir1.module.Module .

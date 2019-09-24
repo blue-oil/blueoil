@@ -15,10 +15,12 @@
 # =============================================================================
 """Test file for Graph."""
 import unittest
+
+import numpy as np
+
 from core.data_types import Float32
 from core.graph import Graph
-from core.operators import Conv, Input, Output, Constant
-import numpy as np
+from core.operators import Constant, Conv, Input, Output
 
 
 class TestGraph(unittest.TestCase):

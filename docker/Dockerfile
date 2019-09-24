@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 # Install dependencies for Pillow, Scipy and matplotlib for display, and requirements for pyenv and pyenv virtualenv installation
+# g++-4.9 is required to build Horovod with TensorFlow 1.14.0. For more detail, see https://github.com/horovod/horovod/issues/1232
 RUN apt-get update && apt-get install -y \
     python3-pil \
     libjpeg8-dev \
@@ -47,6 +48,7 @@ RUN apt-get update && apt-get install -y \
     libncursesw5-dev \
     xz-utils \
     tk-dev \
+    g++-4.9 \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -123,10 +125,11 @@ ENV HOROVOD_GPU_ALLREDUCE NCCL
 ENV HOROVOD_WITH_TENSORFLOW 1
 
 ENV CUDA_HOME /usr/local/cuda-10.0
-ENV LD_LIBRARY_PATH /usr/local/cuda-10.0/compat/:/usr/local/cuda-10.0/targets/x86_64-linux/lib/:$LD_LIBRARY_PATH
 
-# Install requirements for distributed training
-RUN pip install -r /tmp/requirements/dist.requirements.txt
+# Install requirements for distributed training temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs && \
+    pip install -r /tmp/requirements/dist.requirements.txt && \
+    ldconfig
 
 # Configure OpenMPI to run good defaults:
 #   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0 --mca btl_vader_single_copy_mechanism none

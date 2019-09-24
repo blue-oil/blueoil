@@ -17,10 +17,8 @@ from __future__ import division
 
 import numpy as np
 
-from lmnet.data_processor import (
-    Processor,
-)
 from lmnet.data_augmentor import iou
+from lmnet.data_processor import Processor
 
 
 def _softmax(x):
@@ -29,7 +27,7 @@ def _softmax(x):
 
 
 def format_cxcywh_to_xywh(boxes, axis=1):
-    """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimention.
+    """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimension.
 
     Args:
     boxes: A tensor include boxes. [:, 4(x, y, w, h)]
@@ -63,7 +61,7 @@ class FormatYoloV2(Processor):
     def sigmoid(x):
         return 1 / (1 + np.exp(-x))
 
-    def _sprit_prediction(self, outputs):
+    def _split_prediction(self, outputs):
         """Separate combined final convolution outputs to predictions.
 
         Args:
@@ -119,7 +117,7 @@ class FormatYoloV2(Processor):
     def _convert_boxes_space_from_yolo_to_real(self, predict_boxes):
         """Convert predict boxes space size from yolo to real.
 
-        Real space boxes coodinates are in the interval [0, image_size].
+        Real space boxes coordinates are in the interval [0, image_size].
         Yolo space boxes x,y are in the interval [-1, 1]. w,h are in the interval [-inf, +inf].
 
         Args:
@@ -184,7 +182,7 @@ class FormatYoloV2(Processor):
         if self.data_format == "NCHW":
             outputs = np.transpose(outputs, [0, 2, 3, 1])
 
-        predict_classes, predict_confidence, predict_boxes = self._sprit_prediction(outputs)
+        predict_classes, predict_confidence, predict_boxes = self._split_prediction(outputs)
 
         predict_classes = _softmax(predict_classes)
         predict_confidence = self.sigmoid(predict_confidence)
@@ -201,8 +199,8 @@ class FormatYoloV2(Processor):
 
         results = []
         for class_id in range(self.num_classes):
-            precit_prob = predict_classes[:, :, :, :, class_id]
-            predict_score = precit_prob * predict_confidence[:, :, :, :, 0]
+            predict_prob = predict_classes[:, :, :, :, class_id]
+            predict_score = predict_prob * predict_confidence[:, :, :, :, 0]
 
             result = np.stack([
                 predict_boxes[:, :, :, :, 0],
@@ -318,7 +316,7 @@ class NMS(Processor):
 class Bilinear(Processor):
     """Bilinear
 
-    Change feature map spatial size with bilinear method, currenly support only up-sampling.
+    Change feature map spatial size with bilinear method, currently support only up-sampling.
     """
 
     def __init__(self, size, data_format="NHWC", compatible_tensorflow_v1=True):
@@ -327,7 +325,7 @@ class Bilinear(Processor):
             size (list): Target size [height, width].
             data_format (string): currently support only "NHWC".
             compatible_tensorflow_v1 (bool): When the flag is True, it is compatible with tensorflow v1 resize function. Otherwise tensorflow v2 and Pillow resize function.
-                Tensorflow v1 image resize function `tf.image.resize_bilinear()` which has the bug of calculataion of center pixel. The bug is fixed in tensorflow v2 `tf.image.resize()` which given the same result as Pillow's resize.
+                Tensorflow v1 image resize function `tf.image.resize_bilinear()` which has the bug of calculation of center pixel. The bug is fixed in tensorflow v2 `tf.image.resize()` which given the same result as Pillow's resize.
                 See also https://github.com/tensorflow/tensorflow/issues/6720 and https://github.com/tensorflow/tensorflow/commit/3ae2c6691b7c6e0986d97b150c9283e5cc52c15f
         """ # NOQA
 
@@ -340,7 +338,7 @@ class Bilinear(Processor):
     def __call__(self, outputs, **kwargs):
         """
         Args:
-            outputs (numpy.ndarray): 4-D ndarray of network outputs to be resized cahnnel-wise.
+            outputs (numpy.ndarray): 4-D ndarray of network outputs to be resized channel-wise.
 
         Returns:
             all args (dict):
