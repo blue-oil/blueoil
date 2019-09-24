@@ -35,8 +35,8 @@ from multiprocessing import Pool
 from lmnet import environment
 from lmnet.utils import config as config_util
 from lmnet.utils.executor import search_restore_filename
-# from lmnet.networks.optical_flow_estimation.flow_to_image import flow_to_image
-from lmnet.networks.optical_flow_estimation.flowlib import flow_to_image
+from lmnet.networks.optical_flow_estimation.flow_to_image import flow_to_image
+# from lmnet.networks.optical_flow_estimation.flowlib import flow_to_image
 
 
 '''

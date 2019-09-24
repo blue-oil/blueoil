@@ -18,7 +18,7 @@ import functools
 import tensorflow as tf
 
 from lmnet.networks.base import BaseNetwork
-from .flowlib import flow_to_image
+from .flow_to_image import discretized_flow_to_image
 
 
 class FlowNetQV1(BaseNetwork):
@@ -26,6 +26,8 @@ class FlowNetQV1(BaseNetwork):
     FlowNetQ v1 for optical flow estimation.
     """
     version = 1.00
+    split_num = None
+    threshold_radius = None
 
     def __init__(self, *args, weight_decay_rate=0.0004,
                  disable_load_op_library=False, **kwargs):
@@ -167,21 +169,21 @@ class FlowNetQV1(BaseNetwork):
                 padding='SAME',
                 use_bias=True
             )
-
-            batch_normed = tf.contrib.layers.batch_norm(
-                conved,
-                decay=0.99,
-                scale=True,
-                center=True,
-                updates_collections=None,
-                is_training=is_training,
-                data_format=self.data_format,
-            )
-
-            if activation is None:
-                output = self.activation(batch_normed)
-            else:
-                output = activation(batch_normed)
+            output = tf.nn.softmax(conved, axis=3)
+            # batch_normed = tf.contrib.layers.batch_norm(
+            #     conved,
+            #     decay=0.99,
+            #     scale=True,
+            #     center=True,
+            #     updates_collections=None,
+            #     is_training=is_training,
+            #     data_format=self.data_format,
+            # )
+            #
+            # if activation is None:
+            #     output = self.activation(batch_normed)
+            # else:
+            #     output = activation(batch_normed)
             return output
             # return conved
 
@@ -220,8 +222,22 @@ class FlowNetQV1(BaseNetwork):
             # return conved
 
     def _downsample(self, name, inputs, size):
+        # with tf.variable_scope(name):
+        #     return self.downsample_so.downsample(inputs, size)
         with tf.variable_scope(name):
-            return self.downsample_so.downsample(inputs, size)
+            return tf.image.resize_images(
+                inputs, size, method=tf.image.ResizeMethod.NEAREST_NEIGHBOR,
+            )
+
+    def _cross_entropy(self, outputs, labels):
+        batch_size, height, width, _ = outputs.get_shape().as_list()
+        with tf.name_scope(None, "cross_entorpy", (outputs, labels)):
+            # TODO I don't think the two lines below is necessary.
+            # output = tf.to_float(output)
+            # labels = tf.to_float(labels)
+            loss = tf.nn.softmax_cross_entropy_with_logits_v2(
+                labels, outputs, axis=3)
+            return tf.reduce_mean(loss)
 
     def _average_endpoint_error(self, output, labels):
         """
@@ -288,9 +304,6 @@ class FlowNetQV1(BaseNetwork):
 
         concat2 = tf.concat([conv_dict['conv2'], deconv2, upsample_flow3], axis=3)
         predict_flow2 = self._predict_flow('predict_flow2', concat2, is_training)
-
-        # TODO why * 20.0? Wait for issue or email reply
-        predict_flow2 = predict_flow2 * 20.0
 
         # TODO should we move upsampling to post-process?
         # TODO Reason not to move: we need variable flow for both training (for tf.summary) and not training.
@@ -364,18 +377,26 @@ class FlowNetQV1(BaseNetwork):
         # Visualize output flow in TensorBoard with color encoding.
         # We visualize the first (0) and second (1) flow in each batch.
         output_flow_0 = output[0, :, :, :]
-        output_flow_0 = tf.py_func(flow_to_image, [output_flow_0], tf.uint8)
+        output_flow_0 = tf.py_func(
+            discretized_flow_to_image,
+            [output_flow_0, self.split_num], tf.uint8)
         output_flow_1 = output[1, :, :, :]
-        output_flow_1 = tf.py_func(flow_to_image, [output_flow_1], tf.uint8)
+        output_flow_1 = tf.py_func(
+            discretized_flow_to_image,
+            [output_flow_1, self.split_num], tf.uint8)
         output_flow_img = tf.stack([output_flow_0, output_flow_1], 0)
         tf.summary.image('output_flow', output_flow_img, max_outputs=2)
 
         # Visualize labels flow in TensorBoard with color encoding.
         # We visualize the first (0) and second (1) flow in each batch.
         labels_flow_0 = labels[0, :, :, :]
-        labels_flow_0 = tf.py_func(flow_to_image, [labels_flow_0], tf.uint8)
+        labels_flow_0 = tf.py_func(
+            discretized_flow_to_image,
+            [labels_flow_0, self.split_num], tf.uint8)
         labels_flow_1 = labels[1, :, :, :]
-        labels_flow_1 = tf.py_func(flow_to_image, [labels_flow_1], tf.uint8)
+        labels_flow_1 = tf.py_func(
+            discretized_flow_to_image,
+            [labels_flow_1, self.split_num], tf.uint8)
         labels_flow_img = tf.stack([labels_flow_0, labels_flow_1], 0)
         tf.summary.image('labels_flow', labels_flow_img, max_outputs=2)
 
@@ -388,7 +409,8 @@ class FlowNetQV1(BaseNetwork):
             tf.placeholder: Placeholders.
         """
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 6) \
-            if self.data_format == 'NHWC' else (self.batch_size, 6, self.image_size[0], self.image_size[1])
+            if self.data_format == 'NHWC' else \
+            (self.batch_size, 6, self.image_size[0], self.image_size[1])
         images_placeholder = tf.placeholder(
             tf.float32,
             shape=shape,
@@ -396,7 +418,9 @@ class FlowNetQV1(BaseNetwork):
 
         labels_placeholder = tf.placeholder(
             tf.float32,
-            shape=(self.batch_size, self.image_size[0], self.image_size[1], 2),
+            shape=(
+                self.batch_size, self.image_size[0],
+                self.image_size[1], self.num_classes),
             name="labels_placeholder")
 
         return images_placeholder, labels_placeholder
@@ -424,45 +448,51 @@ class FlowNetQV1(BaseNetwork):
         predict_flow6 = base_dict['predict_flow6']
         size = [predict_flow6.shape[1], predict_flow6.shape[2]]
         downsampled_flow6 = self._downsample("downsampled_flow6", labels, size)
-        avg_epe_predict_flow6 = self._average_endpoint_error(downsampled_flow6, predict_flow6)
-        tf.summary.scalar("avg_epe_predict_flow6", avg_epe_predict_flow6)
-        losses.append(avg_epe_predict_flow6)
+        cross_entropy_flow6 = self._cross_entropy(
+            downsampled_flow6, predict_flow6)
+        tf.summary.scalar("cross_entropy_flow6", cross_entropy_flow6)
+        losses.append(cross_entropy_flow6)
 
         # L2 loss between predict_flow5 (weighted w/ 0.08)
         predict_flow5 = base_dict['predict_flow5']
         size = [predict_flow5.shape[1], predict_flow5.shape[2]]
         downsampled_flow5 = self._downsample("downsampled_flow5", labels, size)
-        avg_epe_predict_flow5 = self._average_endpoint_error(downsampled_flow5, predict_flow5)
-        tf.summary.scalar("avg_epe_predict_flow5", avg_epe_predict_flow5)
-        losses.append(avg_epe_predict_flow5)
+        cross_entropy_flow5 = self._cross_entropy(
+            downsampled_flow5, predict_flow5)
+        tf.summary.scalar("cross_entropy_flow5", cross_entropy_flow5)
+        losses.append(cross_entropy_flow5)
 
         # L2 loss between predict_flow4 (weighted w/ 0.02)
         predict_flow4 = base_dict['predict_flow4']
         size = [predict_flow4.shape[1], predict_flow4.shape[2]]
         downsampled_flow4 = self._downsample("downsampled_flow4", labels, size)
-        avg_epe_predict_flow4 = self._average_endpoint_error(downsampled_flow4, predict_flow4)
-        tf.summary.scalar("avg_epe_predict_flow4", avg_epe_predict_flow4)
-        losses.append(avg_epe_predict_flow4)
+        cross_entropy_flow4 = self._cross_entropy(
+            downsampled_flow4, predict_flow4)
+        tf.summary.scalar("cross_entropy_flow4", cross_entropy_flow4)
+        losses.append(cross_entropy_flow4)
 
         # L2 loss between predict_flow3 (weighted w/ 0.01)
         predict_flow3 = base_dict['predict_flow3']
         size = [predict_flow3.shape[1], predict_flow3.shape[2]]
         downsampled_flow3 = self._downsample("downsampled_flow3", labels, size)
-        avg_epe_predict_flow3 = self._average_endpoint_error(downsampled_flow3, predict_flow3)
-        tf.summary.scalar("avg_epe_predict_flow3", avg_epe_predict_flow3)
-        losses.append(avg_epe_predict_flow3)
+        cross_entropy_flow3 = self._cross_entropy(
+            downsampled_flow3, predict_flow3)
+        tf.summary.scalar("cross_entropy_flow3", cross_entropy_flow3)
+        losses.append(cross_entropy_flow3)
 
         # L2 loss between predict_flow2 (weighted w/ 0.005)
         predict_flow2 = base_dict['predict_flow2']
         size = [predict_flow2.shape[1], predict_flow2.shape[2]]
         downsampled_flow2 = self._downsample("downsampled_flow2", labels, size)
-        avg_epe_predict_flow2 = self._average_endpoint_error(downsampled_flow2, predict_flow2)
-        tf.summary.scalar("avg_epe_predict_flow2", avg_epe_predict_flow2)
-        losses.append(avg_epe_predict_flow2)
+        cross_entropy_flow2 = self._cross_entropy(
+            downsampled_flow2, predict_flow2)
+        tf.summary.scalar("cross_entropy_flow2", cross_entropy_flow2)
+        losses.append(cross_entropy_flow2)
 
         # TODO put weight in config file?
         # This adds the weighted loss to the loss collection
-        weighted_epe = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
+        weighted_epe = tf.losses.compute_weighted_loss(
+            losses, [0.5, 0.25, 0.125, 0.0625, 0.003125])
         tf.summary.scalar("weighted_epe", weighted_epe)
 
         # Return the total loss: weighted epe + regularization terms defined in the base function
