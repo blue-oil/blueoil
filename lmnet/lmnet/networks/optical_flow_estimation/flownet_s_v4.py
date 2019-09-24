@@ -288,7 +288,9 @@ class FlowNetSV4(BaseNetwork):
         # https://stackoverflow.com/questions/51077930/tf-image-resize-bilinear-when-align-corners-false
         # https://github.com/tensorflow/tensorflow/issues/6720#issuecomment-298190596
         flow = tf.image.resize_nearest_neighbor(
-            predict_flow2, tf.stack([height, width]), align_corners=True)
+            predict_flow2, (height // 2, width // 2), align_corners=True)
+        flow = tf.image.resize_nearest_neighbor(
+            flow, (height , width), align_corners=True)
 
         # TODO Check if returning dict causes memory error. Maybe we can return a tensor when not training?
         return {

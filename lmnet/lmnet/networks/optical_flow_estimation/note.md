@@ -39,3 +39,7 @@ CUDA_VISIBLE_DEVICES=XXX python lmnet/executor/export.py -i YYY --restore_path Z
 cd dlk
 PYTHONPATH=python/dlk python python/dlk/scripts/generate_project.py -i minimal_graph_with_shape.pb -o ../tmp/ -p XXX -hq -ts
 ```
+
+```
+FLAG=-DFUNC_TIME_MEASUREMENT
+```
