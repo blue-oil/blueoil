@@ -15,10 +15,12 @@
 # =============================================================================
 """Test file for operators."""
 import unittest
-from core.data_types import Float32
-from core.operators import Input, MaxPool, Operator, Constant, Conv
-import numpy as np
 from typing import Dict
+
+import numpy as np
+
+from core.data_types import Float32
+from core.operators import Constant, Conv, Input, MaxPool, Operator
 
 
 class TestOperators(unittest.TestCase):

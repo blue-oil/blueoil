@@ -17,9 +17,9 @@
 
 import unittest
 
-from modules.packer import Packer
-
 import numpy as np
+
+from modules.packer import Packer
 
 
 class TestPacker(unittest.TestCase):

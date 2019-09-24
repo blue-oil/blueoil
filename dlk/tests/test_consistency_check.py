@@ -14,12 +14,14 @@
 # limitations under the License.
 # =============================================================================
 """Test file for consistency checking in core.operators"""
-import unittest
-from core.data_types import Float32
-from core.operators import Operator, Input, Constant, Add, MaxPool, Conv
-import numpy as np
 import importlib
+import unittest
 from typing import List, cast
+
+import numpy as np
+
+from core.data_types import Float32
+from core.operators import Add, Constant, Conv, Input, MaxPool, Operator
 
 
 class TestConsistencyCheck(unittest.TestCase):

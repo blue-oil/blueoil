@@ -52,7 +52,7 @@ public:
                          MAP_SHARED,
                          fd, aligned_paddr);
 
-    if (aligned_vaddr == nullptr) {
+    if (aligned_vaddr == MAP_FAILED) {
       printf("Error mapping address %lx\n", aligned_paddr);
       return;
     }

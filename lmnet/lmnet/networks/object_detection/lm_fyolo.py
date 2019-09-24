@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 from functools import partial
+
 import tensorflow as tf
 
 from lmnet.blocks import darknet

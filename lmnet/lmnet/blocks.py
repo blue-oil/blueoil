@@ -14,7 +14,8 @@
 # limitations under the License.
 # =============================================================================
 import tensorflow as tf
-from lmnet.layers import conv2d, batch_norm
+
+from lmnet.layers import batch_norm, conv2d
 
 
 # TODO(wakisaka): should be replace to conv_bn_act().
