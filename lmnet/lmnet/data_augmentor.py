@@ -14,15 +14,14 @@
 # limitations under the License.
 # =============================================================================
 # -*- coding:utf-8 -*-
+import math
 import random
 from random import randint
 
 import numpy as np
-import math
 from PIL import Image, ImageEnhance, ImageFilter
 
-from lmnet import data_processor
-from lmnet import pre_processor
+from lmnet import data_processor, pre_processor
 
 
 class Blur(data_processor.Processor):

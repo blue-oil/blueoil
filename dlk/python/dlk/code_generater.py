@@ -13,18 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import shutil
+from collections import defaultdict
 from os import path
 from pathlib import Path
-import shutil
+from typing import cast
 
 import utils
-from template import Template
-
 from core.config import Config
 from core.graph import Graph
 from core.operators import Conv
-from typing import cast
-from collections import defaultdict
+from template import Template
 
 
 class CodeGenerater(object):

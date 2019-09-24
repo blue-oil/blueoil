@@ -17,13 +17,13 @@ import os
 import shutil
 
 import click
-import tensorflow as tf
 import numpy as np
 import PIL.Image
+import tensorflow as tf
 
-from lmnet.utils import executor, config as config_util
 from lmnet import environment
-
+from lmnet.utils import config as config_util
+from lmnet.utils import executor
 
 DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -51,7 +51,8 @@ def _pre_process(raw_image, pre_processor, data_format):
 
 def _save_all_operation_outputs(image_path, output_dir, image, raw_image, all_outputs, image_size):
     shutil.copy(image_path, os.path.join(output_dir))
-    shutil.copy(image_path, os.path.join(output_dir, "raw_image.png"))
+    tmp_image = PIL.Image.open(image_path)
+    tmp_image.save(os.path.join(output_dir, "raw_image.png"))
     np.save(os.path.join(output_dir, "raw_image.npy"), raw_image)
 
     np.save(os.path.join(output_dir, "preprocessed_image.npy"), image)

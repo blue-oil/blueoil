@@ -14,10 +14,11 @@
 # limitations under the License.
 # =============================================================================
 """Parameter module."""
-from core.data_types import *
-from core.config import Config
-from core.operators import Conv
 from typing import List
+
+from core.config import Config
+from core.data_types import *
+from core.operators import Conv
 
 
 class Params(object):

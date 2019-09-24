@@ -14,13 +14,15 @@
 # limitations under the License.
 # =============================================================================
 """Definition of operators."""
-import functools
 import copy
+import functools
+from abc import abstractmethod
 from itertools import dropwhile
-from typing import cast, Any, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional, cast
+
 from core.view import View
 from utils import classproperty
-from abc import abstractmethod
+
 from .data_types import *
 
 if TYPE_CHECKING:

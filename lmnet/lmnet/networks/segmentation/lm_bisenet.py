@@ -17,8 +17,8 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.networks.segmentation.base import Base
 from lmnet.blocks import conv_bn_act, densenet_group
+from lmnet.networks.segmentation.base import Base
 
 
 class LMBiSeNet(Base):

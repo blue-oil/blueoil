@@ -15,11 +15,10 @@
 # =============================================================================
 """Test file for lm_xxxx binaries."""
 import os
-from os.path import join
 import unittest
+from os.path import join
 
 from scripts import generate_project as gp
-
 from testcase_dlk_base import TestCaseDLKBase
 from tstutils import run_and_check
 
