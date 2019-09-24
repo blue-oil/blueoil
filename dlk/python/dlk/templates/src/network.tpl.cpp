@@ -63,26 +63,8 @@ limitations under the License.
 #include "operators.h"
 
 #ifdef RUN_ON_FPGA
-#include <sys/mman.h>
-#include <cstdint>
-#include <fcntl.h>
-#include <unistd.h>
+#include "memdriver.h"
 #endif
-
-namespace {
-
-uint8_t* mapPhysicalMemory(size_t base, size_t size) {
-    int fd = open("/dev/mem", O_RDWR | O_SYNC, 0);
-    if (fd == -1)
-        throw std::system_error(errno, std::generic_category());
-    int rw = PROT_READ | PROT_WRITE;
-    auto* mapped_base = reinterpret_cast<uint8_t*>(mmap(nullptr, size, rw, MAP_SHARED, fd, base));
-    if (mapped_base == MAP_FAILED)
-        throw std::system_error(errno, std::generic_category());
-    return mapped_base;
-}
-
-} // namespace
 
 {% if config.debug -%}
 #include "c2numpy.h"
@@ -259,13 +241,15 @@ bool Network::init()
   {{ '\n' -}}
 
 #if defined RUN_ON_FPGA
-  auto* kernel_buffer = mapPhysicalMemory(KERNEL_ADDR, total_kernel_size);
+  MappedMem kernel_mmap(KERNEL_ADDR, total_kernel_size);
+  auto kernel_buffer = reinterpret_cast<uint8_t*>(kernel_mmap.get());
   {% for qconv in graph.convs(quantized_only=True) -%}
   {%    set kernel = qconv.input_nodes[1] -%}
   std::memcpy(kernel_buffer + {{qconv.name}}_kernel_offset, {{kernel.name}}.data(), {{qconv.name}}_kernel_size);
   {% endfor -%}
 
-  auto* thresholds_buffer = mapPhysicalMemory(THRESHOLD_ADDR, total_thresholds_size);
+  MappedMem thresholds_mmap(THRESHOLD_ADDR, total_thresholds_size);
+  auto thresholds_buffer = reinterpret_cast<uint8_t*>(thresholds_mmap.get());
   {% for qconv in graph.convs(quantized_only=True) -%}
       {% if qconv.has_thresholds -%}
           {% set thresholds = qconv.thresholds -%}
