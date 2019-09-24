@@ -56,7 +56,7 @@ void func_ConcatOnDepth(const TensorView<T, MemoryLayout::HWChBCl> inputs[],
 
   T_UINT depths[32];
   for (T_UINT n = 0; n < n_inputs; ++n) {
-    depths[n] = inputs[n].get_shape()[3];
+    depths[n] = inputs[n].get_shape()[2];
   }
 
   T_UINT index = 0;
@@ -85,7 +85,7 @@ void func_ConcatOnDepth(const TensorView<T, MemoryLayout::ChHWBCl> inputs[],
 
   T_UINT depths[32];
   for (T_UINT n = 0; n < n_inputs; ++n) {
-    depths[n] = inputs[n].get_shape()[3];
+    depths[n] = inputs[n].get_shape()[0];
   }
 
   T_UINT index = 0;
