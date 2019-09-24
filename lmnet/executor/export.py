@@ -17,6 +17,7 @@ import os
 import shutil
 
 import click
+import PIL
 import numpy as np
 import tensorflow as tf
 
