@@ -23,7 +23,7 @@ CUDA_VISIBLE_DEVICES=XXX pytest tests/lmnet_tests/networks_tests/optical_flow_es
 ## training commands
 
 ```
-CUDA_VISIBLE_DEVICES=XXX DATASET_DIR=/home/blueiol/dataset/ python lmnet/executor/train.py -c lmnet/configs/core/optical_flow_estimation/flownet_s_v1.py -i ZZZ
+CUDA_VISIBLE_DEVICES=XXX python lmnet/executor/train.py -c lmnet/configs/core/optical_flow_estimation/flownet_s_v1.py -i ZZZ
 ```
 
 
