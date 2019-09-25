@@ -40,6 +40,13 @@ cd dlk
 PYTHONPATH=python/dlk python python/dlk/scripts/generate_project.py -i minimal_graph_with_shape.pb -o ../tmp/ -p XXX -hq -ts
 ```
 
+## Make .so file 
 ```
-FLAG=-DFUNC_TIME_MEASUREMENT
+make -j8 lib_XXX
+```
+
+## Make .elf file 
+```
+cmake .. -DUSE_AVX=1
+make -j8 lm
 ```
