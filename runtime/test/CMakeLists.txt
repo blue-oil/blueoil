@@ -17,6 +17,7 @@ endmacro(blueoil_unittest)
 
 blueoil_unittest(tensor)
 blueoil_unittest(image)
+blueoil_unittest(npy)
 if(USE_OPENCV)
   blueoil_unittest(opencv)
   blueoil_unittest(load)
