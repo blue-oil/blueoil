@@ -24,17 +24,6 @@ namespace de10_nano {
 //
 // TCA
 //
-uint8_t* mapPhysicalMemory(size_t base, size_t size) {
-    int fd = open("/dev/mem", O_RDWR | O_SYNC, 0);
-    if (fd == -1)
-        throw std::system_error(errno, std::generic_category());
-    int rw = PROT_READ | PROT_WRITE;
-    auto* mapped_base = reinterpret_cast<uint8_t*>(mmap(nullptr, size, rw, MAP_SHARED, fd, base));
-    if (mapped_base == MAP_FAILED)
-        throw std::system_error(errno, std::generic_category());
-    return mapped_base;
-}
-
 struct Csr {
     static constexpr uint32_t start = 0;
     static constexpr uint32_t admaInputAddress = 1;
@@ -275,10 +264,8 @@ void RunTCA(unsigned long input_addr, unsigned long output_addr, unsigned long k
 
   unsigned use_threshold = (thresholds_addr != 0) ? 1 : 0;
 
-  static volatile uint32_t* csr = nullptr;
-  if (csr == nullptr) {
-    csr = reinterpret_cast<uint32_t*>(mapPhysicalMemory(HPS_TO_FPGA_LW_BASE, 0xFF));
-  }
+  static MappedMem csr_mmap(HPS_TO_FPGA_LW_BASE, 0xFF);
+  static volatile uint32_t* csr = reinterpret_cast<uint32_t*>(csr_mmap.get());
     auto tileWidth = 32u;
     auto tileHeight = 32u;
     auto p = calcParameters(in_h, in_w, in_c, tileWidth, tileHeight, out_c, k_h, k_w, input_addr, kernel_addr, thresholds_addr, output_addr, use_threshold == 1);
