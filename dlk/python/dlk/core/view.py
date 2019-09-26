@@ -30,10 +30,10 @@ class View(object):
 
     @property
     def shape(self):
-        if self.op.dtype == Float32():
-            return '*'.join(map(lambda x: str(x), self.op.shape))
+        if self.op.dtype == QUANTIZED_PACKED():
+            return '*'.join(map(lambda x: str(x), self.op.shape)) + f' / (sizeof({self.op.dtype.cpptype()}) * CHAR_BIT)'
         else:
-            return '*'.join(map(lambda x: str(x), self.op.shape[:-1]))
+            return '*'.join(map(lambda x: str(x), self.op.shape))
 
     @property
     def shape_list(self):
