@@ -21,7 +21,7 @@ from lmnet.networks.base import BaseNetwork
 from .flowlib import flow_to_image
 
 
-class FlowNetSV4(BaseNetwork):
+class LmFlowNetS(BaseNetwork):
     """
     FlowNetS v4 for optical flow estimation.
     """
@@ -52,12 +52,15 @@ class FlowNetSV4(BaseNetwork):
 
     def _space_to_depth(self, name, inputs, block_size):
         if self.data_format != 'NHWC':
-            inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
+            inputs = tf.transpose(
+                inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
 
-        output = tf.space_to_depth(inputs, block_size=block_size, name=name + "_space_to_depth")
+        output = tf.space_to_depth(
+            inputs, block_size=block_size, name=name + "_space_to_depth")
 
         if self.data_format != 'NHWC':
-            output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
+            output = tf.transpose(
+                output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
     def _conv_bn_act(self, name, inputs, filters, is_training,
@@ -138,7 +141,8 @@ class FlowNetSV4(BaseNetwork):
 
             _, height, width, _ = inputs.get_shape().as_list()
 
-            inputs = tf.image.resize_nearest_neighbor(inputs, (height * 2, width * 2), align_corners=True, name=name)
+            inputs = tf.image.resize_nearest_neighbor(
+                inputs, (height * 2, width * 2), align_corners=True, name=name)
 
             conved = tf.layers.conv2d(
                 inputs,
@@ -191,7 +195,8 @@ class FlowNetSV4(BaseNetwork):
 
             _, height, width, _ = inputs.get_shape().as_list()
 
-            inputs = tf.image.resize_nearest_neighbor(inputs, (height * 2, width * 2), align_corners=True, name=name)
+            inputs = tf.image.resize_nearest_neighbor(
+                inputs, (height * 2, width * 2), align_corners=True, name=name)
 
             conved = tf.layers.conv2d(
                 inputs,
@@ -253,7 +258,8 @@ class FlowNetSV4(BaseNetwork):
         conv4_1 = self._conv_bn_act('conv4_1', x, 512, is_training)
         x = self._conv_bn_act('conv5', conv4_1, 512, is_training, strides=2)
         conv5_1 = self._conv_bn_act('conv5_1', x, 512, is_training)  # 12x16
-        x = self._conv_bn_act('conv6', conv5_1, 1024, is_training, strides=2)  # 12x16
+        x = self._conv_bn_act('conv6', conv5_1, 1024,
+                              is_training, strides=2)  # 12x16
         conv6_1 = self._conv_bn_act('conv6_1', x, 1024, is_training)  # 6x8
 
         return {
@@ -265,27 +271,41 @@ class FlowNetSV4(BaseNetwork):
         }
 
     def _refinement_block(self, images, conv_dict, is_training):
-        predict_flow6 = self._predict_flow('predict_flow6', conv_dict['conv6_1'], is_training)
-        upsample_flow6 = self._upsample_flow('upsample_flow6', predict_flow6, is_training)
-        deconv5 = self._deconv('deconv5', conv_dict['conv6_1'], 512, is_training)
+        predict_flow6 = self._predict_flow(
+            'predict_flow6', conv_dict['conv6_1'], is_training)
+        upsample_flow6 = self._upsample_flow(
+            'upsample_flow6', predict_flow6, is_training)
+        deconv5 = self._deconv(
+            'deconv5', conv_dict['conv6_1'], 512, is_training)
 
         # Same order as pytorch and tf
-        concat5 = tf.concat([conv_dict['conv5_1'], deconv5, upsample_flow6], axis=3)
-        predict_flow5 = self._predict_flow('predict_flow5', concat5, is_training)
-        upsample_flow5 = self._upsample_flow('upsample_flow5', predict_flow5, is_training)
+        concat5 = tf.concat(
+            [conv_dict['conv5_1'], deconv5, upsample_flow6], axis=3)
+        predict_flow5 = self._predict_flow(
+            'predict_flow5', concat5, is_training)
+        upsample_flow5 = self._upsample_flow(
+            'upsample_flow5', predict_flow5, is_training)
         deconv4 = self._deconv('deconv4', concat5, 256, is_training)
 
-        concat4 = tf.concat([conv_dict['conv4_1'], deconv4, upsample_flow5], axis=3)
-        predict_flow4 = self._predict_flow('predict_flow4', concat4, is_training)
-        upsample_flow4 = self._upsample_flow('upsample_flow4', predict_flow4, is_training)
+        concat4 = tf.concat(
+            [conv_dict['conv4_1'], deconv4, upsample_flow5], axis=3)
+        predict_flow4 = self._predict_flow(
+            'predict_flow4', concat4, is_training)
+        upsample_flow4 = self._upsample_flow(
+            'upsample_flow4', predict_flow4, is_training)
         deconv3 = self._deconv('deconv3', concat4, 128, is_training)
 
-        concat3 = tf.concat([conv_dict['conv3_1'], deconv3, upsample_flow4], axis=3)
-        predict_flow3 = self._predict_flow('predict_flow3', concat3, is_training)
-        upsample_flow3 = self._upsample_flow('upsample_flow3', predict_flow3, is_training)
-        deconv2 = self._deconv('deconv2', concat3, 64, is_training, activation=self.activation_before_last_layer)
+        concat3 = tf.concat(
+            [conv_dict['conv3_1'], deconv3, upsample_flow4], axis=3)
+        predict_flow3 = self._predict_flow(
+            'predict_flow3', concat3, is_training)
+        upsample_flow3 = self._upsample_flow(
+            'upsample_flow3', predict_flow3, is_training)
+        deconv2 = self._deconv('deconv2', concat3, 64, is_training,
+                               activation=self.activation_before_last_layer)
 
-        concat2 = tf.concat([conv_dict['conv2'], deconv2, upsample_flow3], axis=3)
+        concat2 = tf.concat(
+            [conv_dict['conv2'], deconv2, upsample_flow3], axis=3)
 
         _, _, _, channels = concat2.get_shape().as_list()
         cast_conv = tf.layers.conv2d(
@@ -300,7 +320,8 @@ class FlowNetSV4(BaseNetwork):
             kernel_initializer=tf.initializers.constant(20)
         )
 
-        predict_flow2 = self._predict_flow('predict_flow2', cast_conv, is_training)
+        predict_flow2 = self._predict_flow(
+            'predict_flow2', cast_conv, is_training)
 
         # TODO should we move upsampling to post-process?
         # TODO Reason not to move: we need variable flow for both training (for tf.summary) and not training.
@@ -311,7 +332,7 @@ class FlowNetSV4(BaseNetwork):
         flow = tf.image.resize_nearest_neighbor(
             predict_flow2, (height // 2, width // 2), align_corners=True)
         flow = tf.image.resize_nearest_neighbor(
-            flow, (height , width), align_corners=True)
+            flow, (height, width), align_corners=True)
 
         # TODO Check if returning dict causes memory error. Maybe we can return a tensor when not training?
         return {
@@ -364,7 +385,8 @@ class FlowNetSV4(BaseNetwork):
         """
         super().summary(output, labels)
 
-        images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
+        images = self.images if self.data_format == 'NHWC' else tf.transpose(
+            self.images, perm=[0, 2, 3, 1])
 
         # Visualize input images in TensorBoard.
         # Split a batch of two stacked images into two batch of unstacked, separate images.
@@ -436,7 +458,8 @@ class FlowNetSV4(BaseNetwork):
         predict_flow6 = base_dict['predict_flow6']
         size = [predict_flow6.shape[1], predict_flow6.shape[2]]
         downsampled_flow6 = self._downsample("downsampled_flow6", labels, size)
-        avg_epe_predict_flow6 = self._average_endpoint_error(downsampled_flow6, predict_flow6)
+        avg_epe_predict_flow6 = self._average_endpoint_error(
+            downsampled_flow6, predict_flow6)
         tf.summary.scalar("avg_epe_predict_flow6", avg_epe_predict_flow6)
         losses.append(avg_epe_predict_flow6)
 
@@ -444,7 +467,8 @@ class FlowNetSV4(BaseNetwork):
         predict_flow5 = base_dict['predict_flow5']
         size = [predict_flow5.shape[1], predict_flow5.shape[2]]
         downsampled_flow5 = self._downsample("downsampled_flow5", labels, size)
-        avg_epe_predict_flow5 = self._average_endpoint_error(downsampled_flow5, predict_flow5)
+        avg_epe_predict_flow5 = self._average_endpoint_error(
+            downsampled_flow5, predict_flow5)
         tf.summary.scalar("avg_epe_predict_flow5", avg_epe_predict_flow5)
         losses.append(avg_epe_predict_flow5)
 
@@ -452,7 +476,8 @@ class FlowNetSV4(BaseNetwork):
         predict_flow4 = base_dict['predict_flow4']
         size = [predict_flow4.shape[1], predict_flow4.shape[2]]
         downsampled_flow4 = self._downsample("downsampled_flow4", labels, size)
-        avg_epe_predict_flow4 = self._average_endpoint_error(downsampled_flow4, predict_flow4)
+        avg_epe_predict_flow4 = self._average_endpoint_error(
+            downsampled_flow4, predict_flow4)
         tf.summary.scalar("avg_epe_predict_flow4", avg_epe_predict_flow4)
         losses.append(avg_epe_predict_flow4)
 
@@ -460,7 +485,8 @@ class FlowNetSV4(BaseNetwork):
         predict_flow3 = base_dict['predict_flow3']
         size = [predict_flow3.shape[1], predict_flow3.shape[2]]
         downsampled_flow3 = self._downsample("downsampled_flow3", labels, size)
-        avg_epe_predict_flow3 = self._average_endpoint_error(downsampled_flow3, predict_flow3)
+        avg_epe_predict_flow3 = self._average_endpoint_error(
+            downsampled_flow3, predict_flow3)
         tf.summary.scalar("avg_epe_predict_flow3", avg_epe_predict_flow3)
         losses.append(avg_epe_predict_flow3)
 
@@ -468,13 +494,15 @@ class FlowNetSV4(BaseNetwork):
         predict_flow2 = base_dict['predict_flow2']
         size = [predict_flow2.shape[1], predict_flow2.shape[2]]
         downsampled_flow2 = self._downsample("downsampled_flow2", labels, size)
-        avg_epe_predict_flow2 = self._average_endpoint_error(downsampled_flow2, predict_flow2)
+        avg_epe_predict_flow2 = self._average_endpoint_error(
+            downsampled_flow2, predict_flow2)
         tf.summary.scalar("avg_epe_predict_flow2", avg_epe_predict_flow2)
         losses.append(avg_epe_predict_flow2)
 
         # TODO put weight in config file?
         # This adds the weighted loss to the loss collection
-        weighted_epe = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
+        weighted_epe = tf.losses.compute_weighted_loss(
+            losses, [0.32, 0.08, 0.02, 0.01, 0.005])
         tf.summary.scalar("weighted_epe", weighted_epe)
 
         # Return the total loss: weighted epe + regularization terms defined in the base function
@@ -483,7 +511,7 @@ class FlowNetSV4(BaseNetwork):
         return total_loss
 
 
-class FlowNetSV4Quantized(FlowNetSV4):
+class LmFlowNetSQuantized(LmFlowNetS):
     """ Quantized FlowNet s v4 network.
     """
 
@@ -530,7 +558,8 @@ class FlowNetSV4Quantized(FlowNetSV4):
         if quantize_activation_before_last_layer:
             self.activation_before_last_layer = self.activation
         else:
-            self.activation_before_last_layer = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
+            self.activation_before_last_layer = lambda x: tf.nn.leaky_relu(
+                x, alpha=0.1, name="leaky_relu")
 
     @staticmethod
     def _quantized_variable_getter(

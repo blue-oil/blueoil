@@ -20,8 +20,8 @@ from easydict import EasyDict
 
 from lmnet.common import Tasks
 from lmnet.data_processor import Sequence
-from lmnet.networks.optical_flow_estimation.flownet_s_v3 import (
-    FlowNetSV3Quantized
+from lmnet.networks.optical_flow_estimation.lm_flownet_s import (
+    LmFlowNetS
 )
 from lmnet.datasets.optical_flow_estimation import (
     FlyingChairs, ChairsSDHom
@@ -33,12 +33,8 @@ from lmnet.networks.optical_flow_estimation.data_augmentor import (
 from lmnet.networks.optical_flow_estimation.pre_processor import (
     DevideBy255
 )
-from lmnet.quantizations import (
-    binary_channel_wise_mean_scaling_quantizer,
-    linear_mid_tread_half_quantizer,
-)
 
-NETWORK_CLASS = FlowNetSV3Quantized
+NETWORK_CLASS = LmFlowNetS
 DATASET_CLASS = FlyingChairs
 
 IMAGE_SIZE = [384, 512]
@@ -47,11 +43,11 @@ TASK = Tasks.OPTICAL_FLOW_ESTIMATION
 CLASSES = DATASET_CLASS.classes
 
 IS_DEBUG = False
-MAX_STEPS = 500
-SAVE_CHECKPOINT_STEPS = 50
-KEEP_CHECKPOINT_MAX = 5
-TEST_STEPS = 20
-SUMMARISE_STEPS = 10
+MAX_STEPS = 1200000
+SAVE_CHECKPOINT_STEPS = 5000
+KEEP_CHECKPOINT_MAX = 20
+TEST_STEPS = 250
+SUMMARISE_STEPS = 1000
 BATCH_SIZE = 8
 
 # for debugging
@@ -82,21 +78,13 @@ NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"beta1": 0.9, "beta2": 0.999}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 NETWORK.LEARNING_RATE_KWARGS = {
-    "values": [0.0000125, 0.0001],
-    "boundaries": [100],
+    "values": [0.0001, 0.00005, 0.000025, 0.0000125, 0.00000625],
+    "boundaries": [400000, 600000, 800000, 1000000],
 }
 NETWORK.WEIGHT_DECAY_RATE = 0.0004
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
-NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
-NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
-    'bit': 2,
-    'max_value': 2.0
-}
-NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
-NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
-NETWORK.QUANTIZE_ACTIVATION_BEFORE_LAST_LAYER = False
 
 # dataset
 DATASET = EasyDict()
@@ -104,8 +92,9 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.TRAIN_ENABLE_PREFETCH = True
 DATASET.TRAIN_PROCESS_NUM = 10
-DATASET.TRAIN_QUEUE_SIZE = 100
-DATASET.VALIDATION_ENABLE_PREFETCH = True
+DATASET.TRAIN_QUEUE_SIZE = 1000
+DATASET.VALIDATION_ENABLE_PREFETCH = False
+DATASET.VALIDATION_PRE_LOAD = False
 DATASET.VALIDATION_PROCESS_NUM = 1
 DATASET.VALIDATION_QUEUE_SIZE = 500
 DATASET.VALIDATION_RATE = 0.1
