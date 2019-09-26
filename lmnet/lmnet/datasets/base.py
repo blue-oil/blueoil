@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from abc import ABCMeta
-from abc import abstractmethod
 import os
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
-import PIL
 
 from lmnet import environment
 
@@ -159,12 +157,6 @@ class ObjectDetectionBase(Base, metaclass=ABCMeta):
             results.append(gt_boxes)
 
         return np.array(results)
-
-    def _get_image(self, target_file):
-        image = PIL.Image.open(target_file)
-        image = image.convert("RGB")
-        image = np.array(image)
-        return image
 
 
 class KeypointsDetectionBase(Base, metaclass=ABCMeta):

@@ -13,16 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from multiprocessing import Pool
-import time
-import threading
-import numpy as np
 import os
 import queue
-import tensorflow as tf
-from lmnet.datasets.tfds import TFDSMixin
-from lmnet.datasets.base import SegmentationBase, ObjectDetectionBase, KeypointsDetectionBase
+import threading
+import time
+from multiprocessing import Pool
 
+import numpy as np
+import tensorflow as tf
+
+from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase, KeypointsDetectionBase
+from lmnet.datasets.tfds import TFDSMixin
 
 _dataset = None
 
@@ -68,7 +69,7 @@ def _apply_augmentations(dataset, image, label):
     else:
         label = sample['label']
 
-    # FIXME(tokunaga): dataset should not have thier own data format
+    # FIXME(tokunaga): dataset should not have their own data format
     if dataset.data_format == "NCHW":
         image = np.transpose(image, [2, 0, 1])
 
@@ -181,7 +182,7 @@ class _SimpleDatasetReader:
         self.data_ids = []
 
     def _gen_ids(self, size):
-        """Generate ids which's length is `size`."""
+        """Generate ids which length is `size`."""
         for _ in range(0, size):
             # when data_ids is empty, fill and shuffle.
             if len(self.data_ids) == 0:

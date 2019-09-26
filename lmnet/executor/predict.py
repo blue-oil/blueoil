@@ -13,21 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from glob import glob
 import imghdr
-import os
 import math
+import os
+from glob import glob
 
 import click
 import numpy as np
-import PIL.Image
 import tensorflow as tf
 
+from lmnet import environment
+from lmnet.utils.image import load_image
 from lmnet.utils import config as config_util
 from lmnet.utils.executor import search_restore_filename
-from lmnet.utils.json import JsonOutput, ImageFromJson
-from lmnet import environment
-
+from lmnet.utils.json import ImageFromJson, JsonOutput
 
 DUMMY_FILENAME = "DUMMY_FILE"
 
@@ -41,9 +40,7 @@ def _get_images(filenames, pre_processor, data_format):
         if filename == DUMMY_FILENAME:
             raw_image = np.zeros((64, 64, 3), dtype=np.uint8)
         else:
-            tmp_image = PIL.Image.open(filename)
-            tmp_image = tmp_image.convert("RGB")
-            raw_image = np.array(tmp_image)
+            raw_image = load_image(filename)
 
         image = pre_processor(image=raw_image)['image']
         if data_format == 'NCHW':
@@ -105,7 +102,7 @@ def _run(input_dir, output_dir, config, restore_path, save_images):
 
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, _ = model.placeholderes()
+        images_placeholder, _ = model.placeholders()
         output_op = model.inference(images_placeholder, is_training)
 
         init_op = tf.global_variables_initializer()

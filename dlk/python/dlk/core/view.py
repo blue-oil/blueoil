@@ -14,8 +14,9 @@
 # limitations under the License.
 # =============================================================================
 import copy
-from core.data_types import *
 from textwrap import dedent
+
+from core.data_types import *
 
 
 class View(object):
@@ -29,7 +30,10 @@ class View(object):
 
     @property
     def shape(self):
-        return '*'.join(map(lambda x: str(x), self.op.shape))
+        if self.op.dtype == QUANTIZED_PACKED():
+            return '*'.join(map(lambda x: str(x), self.op.shape)) + f' / (sizeof({self.op.dtype.cpptype()}) * CHAR_BIT)'
+        else:
+            return '*'.join(map(lambda x: str(x), self.op.shape))
 
     @property
     def shape_list(self):
@@ -646,14 +650,11 @@ class View(object):
 
             inputs_string = self.inputs_to_string(concat_input)
 
-            depth_list = ', '.join(map(lambda x: str(x.channel), concat_input.values()))
-
             return self.format_string(
                 f"""
                 const TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {input_list_name}[] = \
                 {{ {inputs_string} }};
-                T_UINT {depth_list_name}[] = {{ {depth_list} }};
-                func_ConcatOnDepth({input_list_name}, {depth_list_name}, {number_of_inputs}, {op.name});
+                func_ConcatOnDepth({input_list_name}, {number_of_inputs}, {op.name});
                 """
             )
         elif self.op.op_type == 'Maximum':
@@ -686,6 +687,17 @@ class View(object):
                 func_DepthToSpace({args1}{args2});
                 """
             )
+        elif self.op.op_type == 'ResizeNearestNeighbor':
+
+            inputs_string = self.inputs_to_string(input_ops)
+
+            args1 = f"{inputs_string}, {op.name}"
+
+            return self.format_string(
+                f"""
+                func_ResizeNearestNeighbor({args1});
+                """
+            )
         elif self.op.op_type == 'Split':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
@@ -695,10 +707,14 @@ class View(object):
 
             ns = op.num_splits
 
+            depth_list_name = op.name + '_outputs_depth'
+            depth_list = ', '.join(map(str, [op.channel for _ in range(ns)]))
+
             return self.format_string(
                 f"""
                 TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}[] = {{ {outputs_string} }};
-                func_Split({inputs_string}, {op.name}, {ns});
+                T_UINT {depth_list_name}[] = {{ {depth_list} }};
+                func_Split({inputs_string}, {op.name}, {depth_list_name}, {ns});
                 """
             )
         elif self.op.op_type == 'Pad':
@@ -765,7 +781,7 @@ class View(object):
     def raise_invalid_args_exception(self, op, input_ops, output_ops):
         error_message = self.format_string(
             f"""
-            InvalidArgsEeception: name: {op.name}, op: {op.op_type},
+            InvalidArgsException: name: {op.name}, op: {op.op_type},
             This op was taken {len(input_ops)} inputs and {len(input_ops)} outputs ops!!!
             """
         )

@@ -60,6 +60,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     git \
     wget \
+    g++-4.9 \
     ca-certificates \
     libjpeg-dev \
     libpng-dev

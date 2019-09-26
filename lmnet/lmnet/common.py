@@ -15,8 +15,8 @@
 # =============================================================================
 from __future__ import division
 
-from enum import Enum
 import math
+from enum import Enum
 
 
 class Tasks(Enum):

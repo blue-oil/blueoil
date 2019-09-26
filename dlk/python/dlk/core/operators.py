@@ -13,14 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""Defenition of operators."""
-import functools
+"""Definition of operators."""
 import copy
+import functools
+from abc import abstractmethod
 from itertools import dropwhile
-from typing import cast, Any, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional, cast
+
 from core.view import View
 from utils import classproperty
-from abc import abstractmethod
+
 from .data_types import *
 
 if TYPE_CHECKING:
@@ -443,9 +445,9 @@ class Operator(object):
 
     def transpose(self, perm: List[int]) -> None:
         """Transpose the shape and format. This operation is destructive."""
-        self._assert(len(set(perm)) == len(self._shape), "Illegal permutation spacified.")
-        self._assert(max(perm) == len(self._shape) - 1, "Illegal permutation spacified.")
-        self._assert(min(perm) == 0, "Illegal permutation spacified.")
+        self._assert(len(set(perm)) == len(self._shape), "Illegal permutation specified.")
+        self._assert(max(perm) == len(self._shape) - 1, "Illegal permutation specified.")
+        self._assert(min(perm) == 0, "Illegal permutation specified.")
 
         # change the shape
         new_shape: List[int] = [self._shape[i] for i in perm]
@@ -472,17 +474,17 @@ class Operator(object):
     def run(self, **kwargs) -> Dict:
         """The intermediate runtime, run the operator with external data
 
-        This is actually an abstract method and should be overrided.
+        This is actually an abstract method and should be overridden.
         """
         raise NotImplementedError('run is not implemented yet')
 
     def run_forward(self) -> np.ndarray:
         """Run the operator, calculate and set the result.
 
-        This is actually an abstract method and should be overrided.
+        This is actually an abstract method and should be overridden.
         """
         raise NotImplementedError(
-            f'operator {self.op_type} does not have runtime implemenatation yet.')
+            f'operator {self.op_type} does not have runtime implementation yet.')
 
     @property
     def _dispatch_name(self) -> str:
@@ -493,7 +495,7 @@ class Operator(object):
                     attrs: Dict[str, Any]) -> List[int]:
         """Infer its output shape from inputs' shapes.
 
-        This is actually an abstract method and should be overrided.
+        This is actually an abstract method and should be overridden.
         """
         raise NotImplementedError(f'operator {cls.__name__} cannot infer its shape.')
 
@@ -642,7 +644,7 @@ class Output(Variable):
                  input_ops: Ops,
                  dimension_format: str = ''
                  ) -> None:
-        """Init the ouput variable."""
+        """Init the output variable."""
         data = np.zeros(shape, dtype=dtype.nptype())
         super().__init__(name, shape, dtype, input_ops, data, dimension_format=dimension_format)
 
@@ -745,7 +747,7 @@ class Quantizer(Operator):
     def binarizer(self, data: np.ndarray) -> np.ndarray:
         """Maps the quantized values into >= 0 integer values.
 
-        This is actually an abstract method and should be overrided.
+        This is actually an abstract method and should be overridden.
         """
         raise NotImplementedError(
             f'operator {self.op_type} need to implement the binarizer method')
@@ -757,7 +759,7 @@ class QTZ_binary_mean_scaling(Quantizer):
     Input
     -----
     input
-        Input tensor, which must have float falues.
+        Input tensor, which must have float values.
 
     Output
     ------
@@ -965,7 +967,7 @@ class Conv(Operator):
         Output data tensor that contains the result of the convolution.
         The output dimensions are functions of the kernel size, stride size, and pad lengths.
 
-    Attributes (Optional constructer parameters)
+    Attributes (Optional constructor parameters)
     ----------
     kernel_shape : list of ints
         The shape of the convolution kernel. If not present, should be inferred from input W.
@@ -1254,7 +1256,7 @@ class Conv(Operator):
         stride_H = strides[0]
         H, rest_H = divmod((input_H - window_H), stride_H)
         H += 1
-        # assert rest_H == 0, f'differfence in height: {rest_H} at {cls.__name__}'
+        # assert rest_H == 0, f'difference in height: {rest_H} at {cls.__name__}'
 
         # W
         pads_W = pads[1] + pads[3]
@@ -1263,7 +1265,7 @@ class Conv(Operator):
         stride_W = strides[1]
         W, rest_W = divmod((input_W - window_W), stride_W)
         W += 1
-        # assert rest_W == 0, f'differfence in width: {rest_W} at {cls.__name__}'
+        # assert rest_W == 0, f'difference in width: {rest_W} at {cls.__name__}'
 
         NCHW = [N, C, H, W]
         return [NCHW[i] for i in [format.index(s) for s in 'NCHW']]
@@ -1642,7 +1644,7 @@ class Pool(Operator):
         self._assert(len(self.kernel_dim_format) == self.kernel_dims,
                      'Illegal kernel dimension format.')
         self._assert(len(self._pads) == self.kernel_dims + 2, 'Illegal pad definitions.')
-        self._assert(len(self.strides) == self.kernel_dims, 'Illigal stride definitions.')
+        self._assert(len(self.strides) == self.kernel_dims, 'Illegal stride definitions.')
 
         # check the shape consistency
         if self.kernel_index_H is not None and self.index_H is not None:
@@ -1713,7 +1715,7 @@ class Pool(Operator):
         stride_H = strides[0]
         H, rest_H = divmod((input_H - window_H), stride_H)
         H += 1
-        assert rest_H == 0, f'differfence in height: {rest_H} at {cls.__name__}'
+        assert rest_H == 0, f'difference in height: {rest_H} at {cls.__name__}'
 
         # W
         pads_W = pads[1] + pads[3]
@@ -1722,7 +1724,7 @@ class Pool(Operator):
         stride_W = strides[1]
         W, rest_W = divmod((input_W - window_W), stride_W)
         W += 1
-        assert rest_W == 0, f'differfence in width: {rest_W} at {cls.__name__}'
+        assert rest_W == 0, f'difference in width: {rest_W} at {cls.__name__}'
 
         NCHW = [N, C, H, W]
         perm = [format.index(s) for s in 'NCHW']
@@ -2385,7 +2387,7 @@ class QTZ_binary_channel_wise_mean_scaling(Quantizer):
     Input
     -----
     input
-        Input tensor, which must have float falues.
+        Input tensor, which must have float values.
 
     Output
     ------
@@ -2686,7 +2688,7 @@ class Split(Operator):
     axis : integer
         Axis to split on
 
-    split : list of interger
+    split : list of integer
         Length of each output
 
     """
@@ -2741,7 +2743,7 @@ class Split(Operator):
                      
     @property
     def preserve_quantization(self) -> bool:
-        return False
+        return True
                      
 
 class Pad(Operator):

@@ -18,9 +18,9 @@ import click
 import os
 import sys
 
-from PIL import Image
 from lmnet.nnlib import NNLib as NNLib
 
+from lmnet.utils.image import load_image
 from lmnet.common import Tasks
 from lmnet.utils.output import JsonOutput, ImageFromJson
 from lmnet.utils.config import (
@@ -77,10 +77,8 @@ def _run(model, input_image, config):
             """ % (filename, file_extension))
 
     # load the image
-    img = Image.open(input_image).convert("RGB")
+    data = load_image(input_image)
 
-    # convert into numpy array
-    data = np.asarray(img)
     raw_image = data
 
     # pre process for image

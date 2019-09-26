@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import numpy as np
-import click
 import re
 from pathlib import Path
+
+import click
+import numpy as np
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

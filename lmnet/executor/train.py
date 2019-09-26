@@ -13,19 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
 import math
+import os
 
 import click
 import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 from tensorflow.keras.utils import Progbar
 
-from lmnet.utils import executor, module_loader, config as config_util, horovod as horovod_util
 from lmnet import environment
+from lmnet.common import Tasks
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from lmnet.utils import config as config_util
+from lmnet.utils import executor
+from lmnet.utils import horovod as horovod_util
+from lmnet.utils import module_loader
 
 
 def _save_checkpoint(saver, sess, global_step, step):
@@ -85,7 +89,7 @@ def start_training(config):
 
     graph = tf.Graph()
     with graph.as_default():
-        if ModelClass.__module__.startswith("lmnet.networks.object_detection"):
+        if config.TASK == Tasks.OBJECT_DETECTION:
             model = ModelClass(
                 classes=train_dataset.classes,
                 num_max_boxes=train_dataset.num_max_boxes,
@@ -102,10 +106,10 @@ def start_training(config):
         global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training_placeholder = tf.placeholder(tf.bool, name="is_training_placeholder")
 
-        images_placeholder, labels_placeholder = model.placeholderes()
+        images_placeholder, labels_placeholder = model.placeholders()
 
         output = model.inference(images_placeholder, is_training_placeholder)
-        if ModelClass.__module__.startswith("lmnet.networks.object_detection"):
+        if config.TASK == Tasks.OBJECT_DETECTION:
             loss = model.loss(output, labels_placeholder, global_step)
         else:
             loss = model.loss(output, labels_placeholder)
