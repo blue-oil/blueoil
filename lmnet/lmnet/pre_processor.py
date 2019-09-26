@@ -237,7 +237,7 @@ def _linear_quantize(x, bit, value_min, value_max):
     result = np.round(x * n) / n
     return result * value_range + value_min
 
-  
+
 def joints_to_gaussian_heatmap(joints, image_size,
                                num_joints=17, stride=1,
                                sigma=2, max_value=10):
@@ -310,7 +310,7 @@ def joints_to_gaussian_heatmap(joints, image_size,
 
     return heatmap
 
-  
+
 class PerImageLinearQuantize(Processor):
     """Linear quantize per image.
 
