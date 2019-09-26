@@ -19,10 +19,10 @@ import os.path
 
 import numpy as np
 import pandas as pd
-import PIL
 
 from lmnet import data_processor
 from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
+from lmnet.utils.image import load_image
 from lmnet.utils.random import shuffle, train_test_split
 
 
@@ -198,16 +198,10 @@ class ClassificationBase(DeltaMarkMixin, StoragePathCustomizable, Base):
 
         return [self.classes.index(category) for category in category_names]
 
-    def _get_image(self, target_file):
-        image = PIL.Image.open(target_file)
-        image = image.convert("RGB")
-        image = np.array(image)
-        return image
-
     def __getitem__(self, i, type=None):
         files, labels = self.files_and_annotations
 
-        image = self._get_image(files[i])
+        image = load_image(files[i])
 
         label = data_processor.binarize(labels[i], self.num_classes)
         label = np.reshape(label, (self.num_classes))
@@ -303,7 +297,7 @@ class ObjectDetectionBase(DeltaMarkMixin, StoragePathCustomizable, ObjectDetecti
         files, annotations = self.files_and_annotations
 
         target_file = files[i]
-        image = self._get_image(target_file)
+        image = load_image(target_file)
 
         gt_boxes = annotations[i]
         gt_boxes = np.array(gt_boxes)
