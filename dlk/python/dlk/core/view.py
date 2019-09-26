@@ -30,7 +30,10 @@ class View(object):
 
     @property
     def shape(self):
-        return '*'.join(map(lambda x: str(x), self.op.shape))
+        if self.op.dtype == QUANTIZED_PACKED():
+            return '*'.join(map(lambda x: str(x), self.op.shape)) + f' / (sizeof({self.op.dtype.cpptype()}) * CHAR_BIT)'
+        else:
+            return '*'.join(map(lambda x: str(x), self.op.shape))
 
     @property
     def shape_list(self):

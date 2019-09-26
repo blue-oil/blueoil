@@ -6,6 +6,7 @@ from os.path import basename, join, splitext
 
 import numpy as np
 
+from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase
 
 
@@ -112,7 +113,7 @@ class BDD100K(ObjectDetectionBase):
     def __getitem__(self, i, type=None):
         image_file_path = self.paths[i]
 
-        image = self._get_image(image_file_path)
+        image = load_image(image_file_path)
 
         gt_boxes = self.bboxs[i]
         gt_boxes = np.array(gt_boxes)

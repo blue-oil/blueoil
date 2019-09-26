@@ -17,6 +17,7 @@ import functools
 
 import numpy as np
 
+from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.datasets.pascalvoc_2012 import Pascalvoc2012
@@ -117,7 +118,7 @@ class Pascalvoc20072012(ObjectDetectionBase):
 
     def __getitem__(self, i, type=None):
         target_file = self.files[i]
-        image = self._get_image(target_file)
+        image = load_image(target_file)
 
         gt_boxes = self.annotations[i]
         gt_boxes = np.array(gt_boxes)
