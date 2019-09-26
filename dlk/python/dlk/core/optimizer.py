@@ -505,7 +505,7 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             width = qtz.width
             depth = qtz.channel
             depth_upper = (depth + b - 1) // b
-            qtz.update_shape([height, width, depth_upper, 2, b], "ChHWBCl")
+            qtz.update_shape([depth_upper, height, width, 2, b], "ChHWBCl")
 
 
 def pass_fix_qtz_types_and_format(graph) -> None:
@@ -579,7 +579,7 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
 
     def output_dtype_changer(node, otype):
         for n in node.input_nodes:
-            if n.op_type == 'Conv' and n.is_quantized:
+            if (n.op_type == 'Conv' and n.is_quantized) or n.op_type == 'QTZ_linear_mid_tread_half':
                 n.restore_shape()
                 n.dtype = otype
                 return

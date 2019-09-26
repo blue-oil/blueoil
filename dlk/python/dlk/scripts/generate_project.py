@@ -65,8 +65,7 @@ def optimize_graph_step(model: Model, config: Config) -> None:
         pass_quantize_convolutions(graph)
         pass_fix_qtz_types_and_format(graph)
 
-    if config.threshold_skipping:
-        pass_propagate_output_type_backward(graph)
+    pass_propagate_output_type_backward(graph)
     pass_propagate_datatypes(graph)
     pass_propagate_format(graph)
 

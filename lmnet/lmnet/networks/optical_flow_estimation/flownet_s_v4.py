@@ -257,12 +257,12 @@ class FlowNetSV4(BaseNetwork):
         concat4 = tf.concat([conv_dict['conv4_1'], deconv4, upsample_flow5], axis=3)
         predict_flow4 = self._predict_flow('predict_flow4', concat4, is_training)
         upsample_flow4 = self._upsample_flow('upsample_flow4', predict_flow4, is_training)
-        deconv3 = self._deconv('deconv3', concat4, 256, is_training)
+        deconv3 = self._deconv('deconv3', concat4, 128, is_training)
 
         concat3 = tf.concat([conv_dict['conv3_1'], deconv3, upsample_flow4], axis=3)
         predict_flow3 = self._predict_flow('predict_flow3', concat3, is_training)
         upsample_flow3 = self._upsample_flow('upsample_flow3', predict_flow3, is_training)
-        deconv2 = self._deconv('deconv2', concat3, 256, is_training, activation=self.activation_before_last_layer)
+        deconv2 = self._deconv('deconv2', concat3, 64, is_training, activation=self.activation_before_last_layer)
 
         concat2 = tf.concat([conv_dict['conv2'], deconv2, upsample_flow3], axis=3)
 
@@ -288,7 +288,9 @@ class FlowNetSV4(BaseNetwork):
         # https://stackoverflow.com/questions/51077930/tf-image-resize-bilinear-when-align-corners-false
         # https://github.com/tensorflow/tensorflow/issues/6720#issuecomment-298190596
         flow = tf.image.resize_nearest_neighbor(
-            predict_flow2, tf.stack([height, width]), align_corners=True)
+            predict_flow2, (height // 2, width // 2), align_corners=True)
+        flow = tf.image.resize_nearest_neighbor(
+            flow, (height , width), align_corners=True)
 
         # TODO Check if returning dict causes memory error. Maybe we can return a tensor when not training?
         return {
