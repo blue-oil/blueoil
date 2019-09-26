@@ -21,11 +21,11 @@ from lmnet.networks.base import BaseNetwork
 from .flowlib import flow_to_image
 
 
-class LmFlowNetS(BaseNetwork):
+class LmFlowNetSV1(BaseNetwork):
     """
-    FlowNetS v4 for optical flow estimation.
+    LmFlowNet S V1 for optical flow estimation.
     """
-    version = 4.00
+    version = 1.00
 
     def __init__(self, *args, weight_decay_rate=0.0004,
                  disable_load_op_library=False, **kwargs):
@@ -511,8 +511,8 @@ class LmFlowNetS(BaseNetwork):
         return total_loss
 
 
-class LmFlowNetSQuantized(LmFlowNetS):
-    """ Quantized FlowNet s v4 network.
+class LmFlowNetSV1Quantized(LmFlowNetSV1):
+    """ Quantized LmFlowNet S V1.
     """
 
     def __init__(
