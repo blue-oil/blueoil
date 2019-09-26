@@ -1169,9 +1169,12 @@ class Importer(object):
                 dimension_format=current_format,
             )
         elif op_type == 'Mean':
+
+            axis = list(input_ops[input_ops_order[-1]].data)
             keepdims = node.attribute('keep_dims')[0]
+
             if not shape:
-                attributes = {'keep_dims': keepdims}
+                attributes = {'keep_dims': keepdims, 'axis': axis}
                 shape = infer_shape(attributes)
 
             new_op = Mean(
@@ -1181,7 +1184,12 @@ class Importer(object):
                 input_ops,
                 dimension_format=current_format,
                 keepdims=keepdims,
+                axis=axis,
             )
+
+            input_axis_name = input_ops_order[-1]
+            nodes_to_remove.append(new_op.input_ops[input_axis_name])
+            new_op.remove_input(input_axis_name)
         else:
             raise UnsupportedNode(
                 f'TensorFlow importer cannot convert {op_type} operator node!')

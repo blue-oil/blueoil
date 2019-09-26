@@ -3139,9 +3139,11 @@ class Mean(Operator):
                  dtype: DataType,
                  input_ops: Ops,
                  dimension_format: str = 'NHWC',
-                 keepdims: bool = True) -> None:
+                 keepdims: bool = True,
+                 axis: List[int] = None) -> None:
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
         self._keepdims = keepdims
+        self._axis = axis
 
     def _check_consistency(self) -> None:
         super()._check_consistency()
@@ -3156,9 +3158,27 @@ class Mean(Operator):
 
     def run_forward(self) -> np.ndarray:
         a_data = self.input_ops['input'].data
-        b_data = self.input_ops['axis'].data
+        b_data = self._axis
         self._data = np.mean(a_data, axis=tuple(b_data), keepdims=self._keepdims)
         return self._data
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        in_shape = lists['input']
+        axis = attrs['axis']
+
+        if attrs['keep_dims']:
+            out_shape = in_shape
+            for dim in axis:
+                out_shape[dim] = 1
+            return out_shape
+        else:
+            out_shape = []
+            for dim in range(len(in_shape)):
+                if dim not in axis:
+                    out_shape.append(in_shape[dim])
+            return out_shape
 
     @property
     def preserve_quantization(self) -> bool:

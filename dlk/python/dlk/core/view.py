@@ -358,14 +358,14 @@ class View(object):
             )
 
         elif self.op.op_type == 'Mean':
-            if len(input_ops) != 2:
+            if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(input_ops)
 
-            a_op = input_ops['input']
-            ih = a_op.height
-            iw = a_op.width
+            in_op = input_ops['input']
+            ih = in_op.height
+            iw = in_op.width
 
             return self.format_string(
                 f"""
