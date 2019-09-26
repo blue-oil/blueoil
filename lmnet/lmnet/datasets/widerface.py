@@ -18,6 +18,7 @@ import os
 
 import numpy as np
 
+from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase
 
 
@@ -140,7 +141,7 @@ class WiderFace(ObjectDetectionBase):
     def __getitem__(self, i, type=None):
         target_file = os.path.join(self.img_dir, self.paths[i])
 
-        image = self._get_image(target_file)
+        image = load_image(target_file)
 
         gt_boxes = self.bboxs[i]
         gt_boxes = np.array(gt_boxes)
