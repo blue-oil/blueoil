@@ -76,7 +76,15 @@ class FlowNetSV4(BaseNetwork):
             _, _, _, channels = inputs.get_shape().as_list()
             q, r = divmod(channels, 8)
             if r != 0:
-                inputs = tf.layers.conv2d(inputs, filters=8 * (q + 1), kernel_size=1, padding='SAME')
+                inputs = tf.layers.conv2d(
+                    inputs,
+                    filters=8 * (q + 1),
+                    kernel_size=1,
+                    padding='SAME',
+                    use_bias=False,
+                    trainable=False,
+                    kernel_initializer=tf.initializers.constant(1)
+                )
             inputs = self._space_to_depth(name, inputs, strides)
             strides = 1
 
@@ -144,10 +152,23 @@ class FlowNetSV4(BaseNetwork):
                     self.weight_decay_rate)
             )
 
-            if activation is None:
-                output = self.activation(conved)
+            if self.use_batch_norm:
+                batch_normed = tf.contrib.layers.batch_norm(
+                    conved,
+                    decay=0.99,
+                    scale=True,
+                    center=True,
+                    updates_collections=None,
+                    is_training=is_training,
+                    data_format=self.data_format,
+                )
             else:
-                output = activation(conved)
+                batch_normed = conved
+
+            if activation is None:
+                output = self.activation(batch_normed)
+            else:
+                output = activation(batch_normed)
             return output
 
     def _predict_flow(self, name, inputs, is_training, activation=None):
@@ -267,19 +288,19 @@ class FlowNetSV4(BaseNetwork):
         concat2 = tf.concat([conv_dict['conv2'], deconv2, upsample_flow3], axis=3)
 
         _, _, _, channels = concat2.get_shape().as_list()
-        predict_flow2_1 = tf.layers.conv2d(
+        cast_conv = tf.layers.conv2d(
             concat2,
             channels,
             kernel_size=1,
             strides=1,
             padding='SAME',
-            name='predict_flow2_1'
+            name='cast_conv',
+            use_bias=False,
+            trainable=False,
+            kernel_initializer=tf.initializers.constant(20)
         )
 
-        predict_flow2 = self._predict_flow('predict_flow2', predict_flow2_1, is_training)
-
-        # TODO why * 20.0? Wait for issue or email reply
-        predict_flow2 = predict_flow2 * 20.0
+        predict_flow2 = self._predict_flow('predict_flow2', cast_conv, is_training)
 
         # TODO should we move upsampling to post-process?
         # TODO Reason not to move: we need variable flow for both training (for tf.summary) and not training.
