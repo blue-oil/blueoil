@@ -205,13 +205,6 @@ class KeypointsDetectionBase(Base, metaclass=ABCMeta):
 
         return cropped_image, new_joints
 
-    @staticmethod
-    def _get_image(target_file):
-        image = PIL.Image.open(target_file)
-        image = image.convert("RGB")
-        image = np.array(image)
-        return image
-
 
 class DistributionInterface(metaclass=ABCMeta):
 

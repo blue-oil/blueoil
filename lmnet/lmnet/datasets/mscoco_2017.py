@@ -18,6 +18,7 @@ import os.path
 import numpy as np
 from pycocotools.coco import COCO
 
+from lmnet.utils.image import load_image
 from lmnet.datasets.base import KeypointsDetectionBase
 
 
@@ -151,7 +152,7 @@ class MscocoSinglePersonKeypoints(KeypointsDetectionBase):
             cropped_image: a numpy array of shape (height, width, 3).
             joints: a numpy array of shape (17, 3), which has local coordinates in cropped_image.
         """
-        full_image = self._get_image(self.files[item])
+        full_image = load_image(self.files[item])
         box = self.box_list[item]
         joints = self.joints_list[item]
 
