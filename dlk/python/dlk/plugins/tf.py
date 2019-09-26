@@ -88,36 +88,9 @@ DLK_OPERATOR_MAP: Dict[str, str] = {
 
 
 class Node(object):
-    ATTRIBUTE_TYPE_MAP = {
-        0: 'UNDEFINED',
-        1: 'FLOAT',
-        2: 'INT',
-        3: 'STRING',
-        4: 'TENSOR',
-        5: 'GRAPH',
-        6: 'FLOATS',
-        7: 'INTS',
-        8: 'STRINGS',
-        9: 'TENSORS',
-        10: 'GRAPHS',
-    }
-
-    ATTRIBUTE_VALUE_MAP = {
-        1: 's',
-        2: 'i',
-        3: 'f',
-        4: 'b',
-        5: 'type',
-        6: 'shape',
-        7: 'tensor',
-        8: 'list',
-        9: 'func',
-        10: 'placeholder',
-    }
-
-    def __init__(self, op_nd) -> None:  # type: ignore
+    def __init__(self, op_nd) -> None:
         self.nd_ = op_nd
-        self.attributes = []  # type: ignore
+        self.attributes = []
         for key in self.nd_.attr.keys():
             self.attributes.append(key)
 
@@ -178,7 +151,7 @@ class Node(object):
 
         return out_shapes[0]
 
-    def get_format(self):  # type: ignore
+    def get_format(self):
         """Get the output data format info."""
         if self.nd_.attr.get('data_format') and self.op_type != 'BiasAdd':
             return self.nd_.attr.get('data_format').s.decode(encoding='utf-8')
@@ -243,7 +216,7 @@ class Input(object):
     }
     DATA_TYPE_MAP = {v: k for k, v in types_pb2.DataType.items()}
 
-    def __init__(self, in_nd) -> None:  # type: ignore
+    def __init__(self, in_nd) -> None:
         self.in_ = in_nd
         if not self.is_placeholder:
             self.tensor = self.in_.attr.get('value').tensor
@@ -279,9 +252,9 @@ class Input(object):
         if DLK_DTYPE_MAP[dtype_str] is None:
             raise UnsupportedDataType(f'Type {dtype_str} is not supported.')
 
-        return DLK_DTYPE_MAP[dtype_str]  # type: ignore
+        return DLK_DTYPE_MAP[dtype_str]
 
-    def get_data(self):  # type: ignore
+    def get_data(self):
         """Get data in numpy format."""
         if self.is_placeholder:
             raise ValueError(
@@ -311,7 +284,7 @@ class Input(object):
 
 
 class Output(object):
-    def __init__(self, out_nd) -> None:  # type: ignore
+    def __init__(self, out_nd) -> None:
         self.out_ = out_nd
 
     @property
@@ -351,7 +324,7 @@ class Output(object):
         dtype_str = Input.DATA_TYPE_MAP[dtype_idx]
         if DLK_DTYPE_MAP[dtype_str] is None:
             raise UnsupportedDataType(f'Type {dtype_str} is not supported.')
-        return DLK_DTYPE_MAP[dtype_str]  # type: ignore
+        return DLK_DTYPE_MAP[dtype_str]
 
     def get_shape(self) -> List[str]:
         """Get shape info."""
@@ -370,14 +343,14 @@ class Output(object):
 class Importer(object):
 
     @classmethod
-    def make_graph(cls, tf_mp) -> Graph:  # type: ignore
+    def make_graph(cls, tf_mp) -> Graph:
         importer = Importer(tf_mp)
         graph = Graph()
 
         importer.add_all_nodes(graph)
         return graph
 
-    def __init__(self, tf_mp) -> None:  # type: ignore
+    def __init__(self, tf_mp) -> None:
         """Init the graph.
         Parameters
         ----------
@@ -391,7 +364,6 @@ class Importer(object):
         self.node_dic: Dict[str, Any] = {}
         node_obj: Any = None
         for node in self.tf_gp.node:
-            # print(node)
             if node.op == 'Const' or node.op == 'Placeholder':
                 node_obj = Input(node)
                 self.in_lst.append(node_obj)
@@ -430,8 +402,6 @@ class Importer(object):
         else:  # Input, Output or Constant
             shape: List[int] = list(map(int, node.get_shape()))
             dtype = node.get_dtype()
-
-            # print(node.op_type, ' name:', node.name, ' shape:', shape)
 
             if isinstance(node, Input):
                 if node.is_placeholder:  # op_type = 'Input'
@@ -611,10 +581,6 @@ class Importer(object):
             message = f'Operator {op_type} is not supported.'
             raise UnsupportedNode(message)
 
-        # else:
-        #     print(op_type)  # debug
-
-        # Create new op accordingly for the tf ops
         new_op: Operator
 
         def get_inputs(cdef: Type[Operator], current_node: Any) -> Dict[str, Operator]:
@@ -635,7 +601,7 @@ class Importer(object):
 
         def infer_dtype() -> DataType:
             if node.get_dtype() is not None:
-                return node.get_dtype()  # type: ignore
+                return node.get_dtype()
             else:
                 return list(input_ops.values())[0].dtype
 
@@ -644,9 +610,6 @@ class Importer(object):
 
         if True in (d < 0 for d in shape):
             shape = [1]
-
-        # debug msgs
-        # print(node.op_type, ' name:', node.name, ' shape:', shape, ' inputs:', node.inputs)
 
         if op_type == 'Conv':
             strides = node.attribute('strides')[0][1:3]

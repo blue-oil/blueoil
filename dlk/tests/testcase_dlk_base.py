@@ -34,6 +34,7 @@ def rmdir(path) -> None:
     except FileNotFoundError:
         pass
 
+
 class TestCaseDLKBase(TestCase):
     """
     This is base class TestCase which have
@@ -67,17 +68,10 @@ class TestCaseDLKBase(TestCase):
                     rmdir(dirname)
                     print(f'Old directory {dirname} deleted')
 
-        commit_tag = ''
-        try:
-            git_log_output = subprocess.check_output(["git", "log", "-n", "1"], universal_newlines=True)
-            commit_tag = "commit" + git_log_output[7:15]
-        except:
-            pass
-
         datetimetag = datetime.now().strftime("%Y%m%d%H%M")
         classtag = self.__class__.__name__
 
-        prefix = "-".join([prefix0, commit_tag, classtag, datetimetag]) + "-"
+        prefix = "-".join([prefix0, classtag, datetimetag]) + "-"
         self.build_dir = tempfile.mkdtemp(prefix=prefix)
 
     def tearDown(self) -> None:
