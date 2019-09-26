@@ -34,7 +34,7 @@ from lmnet.datasets.optical_flow_estimation import (
 )
 
 
-def init_camera(camera_height, camera_width, device_id=0):
+def init_camera(camera_height, camera_width, device_id):
     cap = cv2.VideoCapture(device_id)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
@@ -51,10 +51,10 @@ def rescale_frame(frame, ratio):
 
 def run_demo(func_inference, func_args=[], func_kwargs={},
              diff_step=5, window_name="output", full_screen=True,
-             movie_path=None, demo_name="output"):
+             movie_path=None, demo_name="output", device_id=0):
     # initializing worker and variables
     store_num = diff_step + 10
-    cap = init_camera(480, 640, 0)
+    cap = init_camera(480, 640, device_id=device_id)
     time_list = collections.deque(maxlen=5)
     frame_list = collections.deque(maxlen=store_num)
     image_size = (384, 512, 3)
