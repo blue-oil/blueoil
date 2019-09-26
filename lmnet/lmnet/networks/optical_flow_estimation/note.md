@@ -39,3 +39,16 @@ CUDA_VISIBLE_DEVICES=XXX python lmnet/executor/export.py -i YYY --restore_path Z
 cd dlk
 PYTHONPATH=python/dlk python python/dlk/scripts/generate_project.py -i minimal_graph_with_shape.pb -o ../tmp/ -p XXX -hq -ts
 ```
+
+## makefile
+```
+export OMP_NUM_THREADS=20
+make lib_x86_avx -j8
+```
+
+```
+mkdir build
+cd build
+cmake .. -DUSE_AVX=1
+make -j8 lm
+```
