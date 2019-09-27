@@ -43,8 +43,8 @@ IS_DEBUG = False
 NETWORK_CLASS = LMFYolo
 DATASET_CLASS = BDD100KObjectDetection
 
-IMAGE_SIZE = [320, 320]
-BATCH_SIZE = 18
+IMAGE_SIZE = [320, 640]
+BATCH_SIZE = 10
 DATA_FORMAT = "NHWC"
 TASK = Tasks.OBJECT_DETECTION
 CLASSES = DATASET_CLASS.classes
@@ -53,8 +53,8 @@ MAX_STEPS = 1000000
 SAVE_CHECKPOINT_STEPS = 10000
 KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 1000
-SUMMARISE_STEPS = 100
-
+SUMMARISE_STEPS = 1000
+IS_DISTRIBUTION = False
 
 # for debug
 # IS_DEBUG = True
@@ -74,8 +74,11 @@ PRE_PROCESSOR = Sequence([
     DivideBy255()
 ])
 anchors = [
-    (1.3221, 1.73145), (3.19275, 4.00944), (5.05587,
-                                            8.09892), (9.47112, 4.84053), (11.2364, 10.0071)
+    (1.3221, 1.73145),
+    (3.19275, 4.00944),
+    (5.05587, 8.09892),
+    (9.47112, 4.84053),
+    (11.2364, 10.0071)
 ]
 score_threshold = 0.05
 nms_iou_threshold = 0.5
@@ -97,11 +100,14 @@ NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 # In the origianl yolov2 Paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
-# Train data num per epoch is 16551
-step_per_epoch = int(16551 / BATCH_SIZE)
+# Train data num per epoch is 69863
+step_per_epoch = int(69863 / BATCH_SIZE)
 NETWORK.LEARNING_RATE_KWARGS = {
-    "values": [1e-4, 2e-2, 5e-3, 5e-4],
-    "boundaries": [step_per_epoch, step_per_epoch * 80, step_per_epoch * 120],
+    "values": [1e-4, 2e-3, 5e-4, 5e-5, 5e-6],
+    "boundaries": [step_per_epoch,
+                   step_per_epoch * 20,
+                   step_per_epoch * 50,
+                   step_per_epoch * 80],
 }
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
@@ -116,7 +122,7 @@ NETWORK.WEIGHT_DECAY_RATE = 0.0005
 NETWORK.SCORE_THRESHOLD = score_threshold
 NETWORK.NMS_IOU_THRESHOLD = nms_iou_threshold
 NETWORK.NMS_MAX_OUTPUT_SIZE = nms_max_output_size
-NETWORK.LOSS_WARMUP_STEPS = int(8000 / BATCH_SIZE)
+NETWORK.LOSS_WARMUP_STEPS = int(step_per_epoch)
 
 # dataset
 DATASET = EasyDict()
