@@ -30,7 +30,8 @@ import numpy as np
 import PIL.Image
 import PIL.ImageDraw
 
-from lmnet.datasets.bdd100k import BDD100K
+from lmnet.datasets.bdd100k import BDD100KObjectDetection
+from lmnet.datasets.bdd100k import BDD100KSegmentation
 from lmnet.datasets.caltech101 import Caltech101
 from lmnet.datasets.camvid import Camvid
 from lmnet.datasets.cifar10 import Cifar10
@@ -860,27 +861,27 @@ def test_widerface():
         assert labels.shape[2] == 5
 
 
-def test_bdd100k():
+def test_bdd100k_object_detection():
     batch_size = 3
-    image_size = [320, 320]
+    image_size = [320, 640]
 
     num_max_boxes = 100
 
     num_train = 70000
     num_val = 10000
 
-    dataset = BDD100K(batch_size=batch_size,
-                      max_boxes=num_max_boxes,
-                      pre_processor=ResizeWithGtBoxes(image_size))
+    dataset = BDD100KObjectDetection(batch_size=batch_size,
+                                     max_boxes=num_max_boxes,
+                                     pre_processor=ResizeWithGtBoxes(image_size))
     dataset = DatasetIterator(dataset)
 
     assert dataset.num_max_boxes == num_max_boxes
     assert dataset.num_per_epoch == num_train
 
-    val_dataset = BDD100K(subset="validation",
-                          batch_size=batch_size,
-                          max_boxes=num_max_boxes,
-                          pre_processor=ResizeWithGtBoxes(image_size))
+    val_dataset = BDD100KObjectDetection(subset="validation",
+                                         batch_size=batch_size,
+                                         max_boxes=num_max_boxes,
+                                         pre_processor=ResizeWithGtBoxes(image_size))
     val_dataset = DatasetIterator(val_dataset)
     assert val_dataset.num_per_epoch == num_val
 
@@ -913,6 +914,26 @@ def test_bdd100k():
         assert labels.shape[2] == 5
 
 
+def test_bdd100k_segmentation():
+    batch_size = 3
+    image_size = [320, 640]
+    dataset = BDD100KSegmentation(batch_size=batch_size, pre_processor=ResizeWithMask(image_size))
+    dataset = DatasetIterator(dataset)
+
+    for _ in range(STEP_SIZE):
+        images, labels = dataset.feed()
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == batch_size
+        assert images.shape[1] == image_size[0]
+        assert images.shape[2] == image_size[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == batch_size
+        assert labels.shape[1] == image_size[0]
+        assert labels.shape[2] == image_size[1]
+
+
 if __name__ == '__main__':
     test_caltech101()
     test_cifar10()
@@ -930,4 +951,5 @@ if __name__ == '__main__':
     test_mscoco_2017_single_pose_estimation()
     test_ilsvrc_2012()
     test_widerface()
-    test_bdd100k()
+    test_bdd100k_object_detection()
+    test_bdd100k_segmentation()
