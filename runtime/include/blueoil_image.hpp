@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef RUNTIME_INCLUDE_BLUEOIL_IMAGE_HPP_
 #define RUNTIME_INCLUDE_BLUEOIL_IMAGE_HPP_
 
+#include <string>
 #include "blueoil.hpp"
 
 namespace blueoil {

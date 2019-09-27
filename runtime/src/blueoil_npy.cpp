@@ -20,7 +20,8 @@ limitations under the License.
 #include <sstream>
 #include <string>
 #include <cstring>
-
+#include <utility>
+#include <vector>
 
 #include "blueoil.hpp"
 #include "blueoil_npy.hpp"

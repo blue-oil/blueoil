@@ -16,6 +16,7 @@ limitations under the License.
 #include <iostream>
 #include <cmath>
 #include <cassert>
+#include <string>
 
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
@@ -47,7 +48,7 @@ Tensor LoadImage(const std::string filename) {
   blueoil::Tensor tensor({0});
 #ifdef USE_OPENCV
   cv::Mat img = cv::imread(filename, 1);  // 1:force to RGB format
-  if (! img.empty()) {
+  if (!img.empty()) {
     return blueoil::opencv::Tensor_fromCVMat(img);
   }
 #elif USE_PNG
