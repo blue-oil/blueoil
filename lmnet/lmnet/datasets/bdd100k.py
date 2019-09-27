@@ -3,10 +3,9 @@ import os
 import json
 import glob
 import functools
-
 import numpy as np
-from PIL import Image
 
+from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 
 
@@ -149,7 +148,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
     def __getitem__(self, i, type=None):
         image_file_path = self.paths[i]
 
-        image = self._get_image(image_file_path)
+        image = load_image(image_file_path)
 
         gt_boxes = self.bboxs[i]
         gt_boxes = np.array(gt_boxes)
@@ -275,8 +274,8 @@ class BDD100KSegmentation(SegmentationBase):
 
     def __getitem__(self, i):
         imgs, labels = self.files_and_annotations()
-        img = Image.open(imgs[i])
-        label = Image.open(labels[i])
+        img = load_image(imgs[i])
+        label = load_image(labels[i])
 
         return np.array(img), np.array(label)
 
