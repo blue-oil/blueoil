@@ -24,7 +24,6 @@ from jinja2 import Environment, FileSystemLoader
 from tensorflow import gfile
 
 from lmnet.utils.module_loader import load_class
-from blueoil.vars import TEMPLATE_DIR # TODO(suttang@): 差し替え TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 
 
 _TASK_TYPE_TEMPLATE_FILE = {
@@ -306,13 +305,14 @@ def _blueoil_to_lmnet(blueoil_config):
 
 
 def _save(lmnet_config):
-    env = Environment(loader=FileSystemLoader(os.path.join(TEMPLATE_DIR, 'lmnet'), encoding='utf8'))
+    blueoil_dir = os.path.dirname(os.path.abspath(__file__))
+    template_dir = os.path.join(blueoil_dir, 'templates', 'lmnet')
 
-    template_file = lmnet_config["template_file"]
-
-    tpl = env.get_template(template_file)
+    env = Environment(loader=FileSystemLoader(template_dir, encoding='utf8'))
+    tpl = env.get_template(lmnet_config["template_file"])
 
     applied = tpl.render(lmnet_config)
+
     with NamedTemporaryFile(
             prefix="blueoil_config_{}".format(lmnet_config['model_name']),
             suffix=".py", delete=False, mode="w") as fp:
