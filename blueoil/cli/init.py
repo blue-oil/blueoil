@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import os
 import inspect
 import re
 from collections import OrderedDict
@@ -22,8 +23,6 @@ from jinja2 import Environment, FileSystemLoader
 
 from lmnet.data_processor import Processor
 import lmnet.data_augmentor as augmentor
-
-from blueoil.vars import TEMPLATE_DIR # TODO(suttang@): 差し替え TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 
 
 task_type_choices = [
@@ -189,7 +188,10 @@ def image_size_filter(raw):
 
 
 def save_config(blueoil_config, output=None):
-    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR, encoding='utf8'))
+    blueoil_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    template_dir = os.path.join(blueoil_dir, 'templates')
+
+    env = Environment(loader=FileSystemLoader(template_dir, encoding='utf8'))
     tpl = env.get_template('blueoil-config.tpl.yml')
 
     applied = tpl.render(blueoil_config)
@@ -324,6 +326,7 @@ def ask_questions():
         'default': learning_rate_schedule_map["constant"],
     }
     _tmp_learning_rate_schedule = prompt(learning_rate_schedule_question)
+
     for key, value in learning_rate_schedule_map.items():
         if value == _tmp_learning_rate_schedule:
             learning_rate_schedule = key
