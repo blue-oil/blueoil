@@ -21,10 +21,9 @@ import PIL.ImageDraw
 import pytest
 
 from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
+from lmnet.utils.image import load_image
 from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.pre_processor import (
-    ResizeWithGtBoxes
-)
+from lmnet.pre_processor import ResizeWithGtBoxes
 from lmnet.data_processor import (
     Sequence
 )
@@ -86,9 +85,9 @@ def _show_image(image):
 
 
 def _image():
-    image = PIL.Image.open("tests/fixtures/sample_images/cat.jpg")
+    image = load_image("tests/fixtures/sample_images/cat.jpg")
 
-    return np.array(image)
+    return image
 
 
 def test_sequence():
