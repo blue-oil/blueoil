@@ -21,7 +21,7 @@ from easydict import EasyDict
 from executor.train import start_training
 from lmnet import environment
 from lmnet.common import Tasks
-from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBox
+from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.networks.object_detection.yolo_v1 import YoloV1
 from lmnet.pre_processor import ResizeWithGtBoxes
 from lmnet.utils.executor import prepare_dirs
@@ -269,7 +269,7 @@ def test_training():
     config = EasyDict()
 
     config.NETWORK_CLASS = YoloV1
-    config.DATASET_CLASS = OpenImagesV4BoundingBox
+    config.DATASET_CLASS = Pascalvoc2007
 
     config.IS_DEBUG = False
     config.IMAGE_SIZE = [70, 70]
