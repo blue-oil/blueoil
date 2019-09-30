@@ -24,7 +24,7 @@ from jinja2 import Environment, FileSystemLoader
 from tensorflow import gfile
 
 from lmnet.utils.module_loader import load_class
-from blueoil.vars import TEMPLATE_DIR
+from blueoil.vars import TEMPLATE_DIR # TODO(suttang@): 差し替え TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 
 
 _TASK_TYPE_TEMPLATE_FILE = {
