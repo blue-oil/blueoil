@@ -20,18 +20,12 @@ import shutil
 from executor.export import run as run_export
 from scripts.generate_project import run as run_generate_project
 
-from blueoil.vars import OUTPUT_TEMPLATE_DIR # TODO(suttang@): 差し替え
-# OUTPUT_TEMPLATE_DIR = os.environ.get(
-#     'OUTPUT_TEMPLATE_DIR',
-#     os.path.join(os.path.dirname(BASE_DIR), 'output_template')
-# )
-
-
 
 def create_output_directory(output_root_dir, output_template_dir=None):
     """Create output directory from template."""
 
-    template_dir = OUTPUT_TEMPLATE_DIR if not output_template_dir else output_template_dir
+    blueoil_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    template_dir = os.path.join(blueoil_dir, 'templates') if not output_template_dir else output_template_dir
     # Recreate output_root_dir from template
     if os.path.exists(output_root_dir):
         shutil.rmtree(output_root_dir)
