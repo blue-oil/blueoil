@@ -15,6 +15,7 @@ limitations under the License.
 
 #include <iostream>
 #include <vector>
+#include <climits>
 #include <cstring>
 #include <cstdio>
 #include <ctime>
