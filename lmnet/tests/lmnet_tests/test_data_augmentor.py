@@ -20,7 +20,7 @@ import PIL.Image
 import PIL.ImageDraw
 import pytest
 
-from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBoxBaseBase
+from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
 from lmnet.utils.image import load_image
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.pre_processor import ResizeWithGtBoxes
