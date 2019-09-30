@@ -22,7 +22,7 @@ from executor.train import start_training
 from lmnet import environment
 from lmnet.common import Tasks
 from lmnet.data_processor import Sequence
-from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
+from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBox
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
 from lmnet.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
 from lmnet.pre_processor import ResizeWithGtBoxes
@@ -699,7 +699,7 @@ def test_training():
     config = EasyDict()
 
     config.NETWORK_CLASS = YoloV2
-    config.DATASET_CLASS = OpenImagesV4BoundingBoxBase
+    config.DATASET_CLASS = OpenImagesV4BoundingBox
 
     config.IS_DEBUG = False
     config.IMAGE_SIZE = [128, 160]
