@@ -35,8 +35,26 @@ constexpr std::size_t index_channels_high(const MemoryLayout layout) {
   }
 }
 
+constexpr std::size_t index_height(const MemoryLayout layout) {
+  switch (layout) {
+    case MemoryLayout::ChHWBCl: return 1;
+    case MemoryLayout::HWChBCl: return 0;
+    case MemoryLayout::NHWC: return 1;
+    default: return 0;
+  }
+}
+
+constexpr std::size_t index_width(const MemoryLayout layout) {
+  switch (layout) {
+    case MemoryLayout::ChHWBCl: return 2;
+    case MemoryLayout::HWChBCl: return 1;
+    case MemoryLayout::NHWC: return 2;
+    default: return 0;
+  }
+}
+
 template<class T>
-T access_ChHWBCl(const TensorView<T, MemoryLayout::ChHWBCl>& tensor,
+T& access_ChHWBCl(const TensorView<T, MemoryLayout::ChHWBCl>& tensor,
     const std::size_t ch,
     const std::size_t h,
     const std::size_t w,
@@ -45,7 +63,7 @@ T access_ChHWBCl(const TensorView<T, MemoryLayout::ChHWBCl>& tensor,
 }
 
 template<class T>
-T access_ChHWBCl(const TensorView<T, MemoryLayout::HWChBCl>& tensor,
+T& access_ChHWBCl(const TensorView<T, MemoryLayout::HWChBCl>& tensor,
     const std::size_t ch,
     const std::size_t h,
     const std::size_t w,
@@ -54,134 +72,84 @@ T access_ChHWBCl(const TensorView<T, MemoryLayout::HWChBCl>& tensor,
 }
 
 template<class T>
-T access_HWChBCl(const TensorView<T, MemoryLayout::ChHWBCl>& tensor,
-    const std::size_t h,
-    const std::size_t w,
-    const std::size_t ch,
-    const std::size_t digit) {
-  return tensor(ch, h, w, digit, 0);
-}
-
-template<class T>
-T access_HWChBCl(const TensorView<T, MemoryLayout::HWChBCl>& tensor,
-    const std::size_t h,
-    const std::size_t w,
-    const std::size_t ch,
-    const std::size_t digit) {
-  return tensor(h, w, ch, digit, 0);
-}
-
-template<class T>
-T access_NHWC(const TensorView<T, MemoryLayout::NHWC>& tensor,
+T& access_NHWC(const TensorView<T, MemoryLayout::NHWC>& tensor,
     const std::size_t h,
     const std::size_t w,
     const std::size_t ch) {
   return tensor(0, h, w, ch);
 }
 
-template <typename TOut, std::size_t I, typename... TInputs>
+template <typename TOut, MemoryLayout output_layout, std::size_t I, typename... TInputs>
 class ConcatOnDepth;
 
-template <typename TOut, std::size_t I, typename Enable, typename... TInputs>
+template <typename TOut, MemoryLayout output_layout, std::size_t I, typename Enable, typename... TInputs>
 struct ConcatOnDepthImpl;
 
-template <typename TOut, std::size_t I, typename...TInputs>
-struct ConcatOnDepthImpl<TOut, I, typename std::enable_if<(I < sizeof...(TInputs))>::type, TInputs...> {
+template <typename TQOut, MemoryLayout output_layout, std::size_t I, typename...TInputs>
+struct ConcatOnDepthImpl<QuantizedPacked<TQOut>, output_layout, I, typename std::enable_if<(I < sizeof...(TInputs))>::type, TInputs...> {
   void operator()(const std::tuple<TInputs...>& inputs,
       const std::size_t stride_depth,
       const std::size_t offset_depth,
-      const TensorView<TOut, MemoryLayout::ChHWBCl>& output) {
+      const TensorView<QuantizedPacked<TQOut>, output_layout>& output) {
     const auto shape = output.get_shape();
-    const auto out_height = shape[1];
-    const auto out_width = shape[2];
+    const auto out_height = shape[index_height(output_layout)];
+    const auto out_width = shape[index_width(output_layout)];
     const auto bits = shape[3];
     const auto input = std::get<I>(inputs);
-    const auto index = index_channels_high(decltype(input)::layout);
-    const auto depth = input.get_shape()[index];
+    const auto index_ic = index_channels_high(decltype(input)::layout);
+    const auto depth = input.get_shape()[index_ic];
     for (std::size_t d = 0; d < depth; ++d) {
       for (std::size_t h = 0; h < out_height; ++h) {
         for (std::size_t w = 0; w < out_width; ++w) {
           for (std::size_t digit = 0; digit < bits; ++digit) {
-            output(offset_depth + d, h, w, digit, 0)
+            access_ChHWBCl(output, offset_depth + d, h, w, digit)
               = access_ChHWBCl(input, d, h, w, digit);
           }
         }
       }
     }
-    ConcatOnDepth<TOut, I+1, TInputs...> func;
-    func(inputs, stride_depth, offset_depth + depth, output);
-  }
-  void operator()(const std::tuple<TInputs...>& inputs,
-      const std::size_t stride_depth,
-      const std::size_t offset_depth,
-      const TensorView<TOut, MemoryLayout::HWChBCl>& output) {
-    const auto shape = output.get_shape();
-    const auto out_height = shape[0];
-    const auto out_width = shape[1];
-    const auto bits = shape[3];
-    const auto input = std::get<I>(inputs);
-    const auto index = index_channels_high(decltype(input)::layout);
-    const auto depth = input.get_shape()[index];
-    for (std::size_t d = 0; d < depth; ++d) {
-      for (std::size_t h = 0; h < out_height; ++h) {
-        for (std::size_t w = 0; w < out_width; ++w) {
-          for (std::size_t digit = 0; digit < bits; ++digit) {
-            output(h, w, offset_depth + d, digit, 0)
-              = access_HWChBCl(input, h, w, d, digit);
-          }
-        }
-      }
-    }
-    ConcatOnDepth<TOut, I+1, TInputs...> func;
-    func(inputs, stride_depth, offset_depth + depth, output);
-  }
-  void operator()(const std::tuple<TInputs...>& inputs,
-      const std::size_t stride_depth,
-      const std::size_t offset_depth,
-      const TensorView<TOut, MemoryLayout::NHWC>& output) {
-    const auto shape = output.get_shape();
-    const auto out_height = shape[1];
-    const auto out_width = shape[2];
-    const auto input = std::get<I>(inputs);
-    const auto index = index_channels_high(decltype(input)::layout);
-    const auto depth = input.get_shape()[index];
-    for (std::size_t d = 0; d < depth; ++d) {
-      for (std::size_t h = 0; h < out_height; ++h) {
-        for (std::size_t w = 0; w < out_width; ++w) {
-            output(0, h, w, offset_depth + d)
-              = access_NHWC(input, h, w, d);
-        }
-      }
-    }
-    ConcatOnDepth<TOut, I+1, TInputs...> func;
+    ConcatOnDepth<QuantizedPacked<TQOut>, output_layout, I+1, TInputs...> func;
     func(inputs, stride_depth, offset_depth + depth, output);
   }
 };
 
-template <typename TOut, std::size_t I, typename...TInputs>
-struct ConcatOnDepthImpl<TOut, I, typename std::enable_if<!(I < sizeof...(TInputs))>::type, TInputs...> {
+template <MemoryLayout output_layout, std::size_t I, typename...TInputs>
+struct ConcatOnDepthImpl<float, output_layout, I, typename std::enable_if<(I < sizeof...(TInputs))>::type, TInputs...> {
   void operator()(const std::tuple<TInputs...>& inputs,
       const std::size_t stride_depth,
       const std::size_t offset_depth,
-      const TensorView<TOut, MemoryLayout::ChHWBCl>& output) {
-    // nothing to do
+      const TensorView<float, output_layout>& output) {
+    const auto shape = output.get_shape();
+    const auto out_height = shape[index_height(output_layout)];
+    const auto out_width = shape[index_width(output_layout)];
+    const auto input = std::get<I>(inputs);
+    const auto index = index_channels_high(decltype(input)::layout);
+    const auto depth = input.get_shape()[index];
+    for (std::size_t h = 0; h < out_height; ++h) {
+      for (std::size_t w = 0; w < out_width; ++w) {
+        for (std::size_t d = 0; d < depth; ++d) {
+          access_NHWC(output, h, w, offset_depth + d)
+            = access_NHWC(input, h, w, d);
+        }
+      }
+    }
+    ConcatOnDepth<float, output_layout, I+1, TInputs...> func;
+    func(inputs, stride_depth, offset_depth + depth, output);
   }
+};
+
+template <typename TOut, MemoryLayout output_layout, std::size_t I, typename...TInputs>
+struct ConcatOnDepthImpl<TOut, output_layout, I, typename std::enable_if<!(I < sizeof...(TInputs))>::type, TInputs...> {
   void operator()(const std::tuple<TInputs...>& inputs,
       const std::size_t stride_depth,
       const std::size_t offset_depth,
-      const TensorView<TOut, MemoryLayout::HWChBCl>& output) {
-    // nothing to do
-  }
-  void operator()(const std::tuple<TInputs...>& inputs,
-      const std::size_t stride_depth,
-      const std::size_t offset_depth,
-      const TensorView<TOut, MemoryLayout::NHWC>& output) {
+      const TensorView<TOut, output_layout>& output) {
     // nothing to do
   }
 };
 
-template <typename TOut, std::size_t I, typename... TInputs>
-class ConcatOnDepth : public ConcatOnDepthImpl<TOut, I, void, TInputs...> {};
+template <typename TOut, MemoryLayout output_layout, std::size_t I, typename... TInputs>
+class ConcatOnDepth : public ConcatOnDepthImpl<TOut, output_layout, I, void, TInputs...> {};
 
 } // namespace impl
 } // namespace detail
@@ -193,7 +161,7 @@ void func_ConcatOnDepth(const std::tuple<TInputs...>& inputs,
   const auto shape = output.get_shape();
   const auto index = dlk::impl::index_channels_high(output_layout);
   const auto depth = shape[index];
-  dlk::impl::ConcatOnDepth<TOut, 0, TInputs...> func;
+  dlk::impl::ConcatOnDepth<TOut, output_layout, 0, TInputs...> func;
   func(inputs, depth, 0, output);
   Measurement::Stop();
 }
