@@ -14,7 +14,6 @@
 # limitations under the License.
 # =============================================================================
 import os
-import click
 import subprocess
 import shutil
 
@@ -156,23 +155,3 @@ def run(experiment_id, restore_path, output_template_dir=None):
     make_all(project_dir, output_directories.get("library_dir"))
 
     return output_root_dir
-
-
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option(
-    "-i",
-    "--experiment_id",
-    help="id of this experiment.",
-    required=True,
-)
-@click.option(
-    "--restore_path",
-    help="restore ckpt file base path. e.g. saved/experiment/checkpoints/save.ckpt-10001",
-    default=None,
-)
-def main(experiment_id, restore_path):
-    run(experiment_id, restore_path)
-
-
-if __name__ == '__main__':
-    main()

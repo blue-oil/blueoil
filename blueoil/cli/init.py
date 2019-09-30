@@ -373,17 +373,3 @@ please modify manually after config exported.)"
         if k != 'r' and not k.endswith("question"):
             r[k] = v
     return r
-
-
-def main():
-    blueoil_config = ask_questions()
-    config_filename = save_config(blueoil_config)
-
-    print('')
-    print('A new configuration file generated: %s' % (config_filename))
-    print('  - Your next step is training.')
-    print('  - You can customize some miscellaneous settings according to the comment.')
-
-
-if __name__ == '__main__':
-    main()
