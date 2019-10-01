@@ -30,7 +30,10 @@ class View(object):
 
     @property
     def shape(self):
-        return '*'.join(map(lambda x: str(x), self.op.shape))
+        if self.op.dtype == QUANTIZED_PACKED():
+            return '*'.join(map(lambda x: str(x), self.op.shape)) + f' / (sizeof({self.op.dtype.cpptype()}) * CHAR_BIT)'
+        else:
+            return '*'.join(map(lambda x: str(x), self.op.shape))
 
     @property
     def shape_list(self):
@@ -704,10 +707,14 @@ class View(object):
 
             ns = op.num_splits
 
+            depth_list_name = op.name + '_outputs_depth'
+            depth_list = ', '.join(map(str, [op.channel for _ in range(ns)]))
+
             return self.format_string(
                 f"""
                 TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}[] = {{ {outputs_string} }};
-                func_Split({inputs_string}, {op.name}, {ns});
+                T_UINT {depth_list_name}[] = {{ {depth_list} }};
+                func_Split({inputs_string}, {op.name}, {depth_list_name}, {ns});
                 """
             )
         elif self.op.op_type == 'Pad':

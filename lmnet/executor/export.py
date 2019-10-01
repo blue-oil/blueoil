@@ -17,11 +17,12 @@ import os
 import shutil
 
 import click
+import PIL
 import numpy as np
-import PIL.Image
 import tensorflow as tf
 
 from lmnet import environment
+from lmnet.utils.image import load_image
 from lmnet.utils import config as config_util
 from lmnet.utils import executor
 
@@ -30,17 +31,6 @@ DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
     "export_inference_test_data_images",
     "FlyingChairs.jpg")
 # DEFAULT_INFERENCE_TEST_DATA_IMAGE = None
-
-
-# TODO(wakisaka): duplicated function with executor/measure_latency.py
-def _load_image(filename):
-    """ Returns numpy array of an image """
-    tmp_image = PIL.Image.open(filename)
-    tmp_image = tmp_image.convert("RGB")
-    raw_image = np.array(tmp_image)
-    raw_image = np.concatenate([tmp_image, tmp_image], axis=2)
-    # raw_image = np.random.randint(low=0, high=256, size=(384, 512, 6))
-    return raw_image
 
 
 # TODO(wakisaka): duplicated function with executor/measure_latency.py
@@ -127,7 +117,7 @@ def _export(config, restore_path, image_path):
         if not os.path.exists(npy_output_dir):
             os.makedirs(npy_output_dir)
 
-        raw_image = _load_image(image_path)
+        raw_image = load_image(image_path)
         image = _pre_process(raw_image, config.PRE_PROCESSOR, config.DATA_FORMAT)
         images = np.expand_dims(image, axis=0)
         feed_dict = {

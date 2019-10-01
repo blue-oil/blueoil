@@ -19,9 +19,9 @@ import os.path
 
 import numpy as np
 import pandas as pd
-import PIL
 
 from lmnet import data_processor
+from lmnet.utils.image import load_image
 from lmnet.datasets.base import Base
 
 
@@ -88,10 +88,8 @@ class Ilsvrc2012(Base):
     def __getitem__(self, i, type=None):
         filename = self.files[i]
 
-        image = PIL.Image.open(filename)
-        # sometime image data be gray.
-        image = image.convert("RGB")
-        image = np.array(image)
+        image = load_image(filename)
+
         label = data_processor.binarize(self.annotations[i], self.num_classes)
         label = np.reshape(label, (self.num_classes))
         return (image, label)
