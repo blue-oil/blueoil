@@ -80,8 +80,10 @@ def run_demo(func_inference, func_args=[], func_kwargs={},
                 begin = time.time()
                 input_image[0, ..., :3] = frame_list[-diff_step]
                 input_image[0, ..., 3:] = frame_list[-1]
-                output_image[:] = func_inference(
-                    input_image, *func_args, **func_kwargs)
+                print(input_image.shape)
+                # output_image[:] = func_inference(
+                #     input_image, *func_args, **func_kwargs)
+                output_image[:] = func_inference(input_image)
                 time_list.append(time.time() - begin)
             except ValueError:
                 pass

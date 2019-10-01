@@ -19,9 +19,7 @@ import sys
 import cv2
 import time
 import math
-import click
 import socket
-import warnings
 import argparse
 import threading
 import collections
@@ -29,10 +27,6 @@ import numpy as np
 import ctypes as ct
 
 sys.path.extend(["./lmnet", "/dlk/python/dlk"])
-
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=FutureWarning)
-    import tensorflow as tf
 
 from io import BytesIO
 from scipy import ndimage
@@ -125,26 +119,32 @@ class NNLib(object):
         return tuple(s)
 
     def run(self, tensor):
-        input = tensor.flatten().astype(np.float32)
-        output = np.zeros((self.get_output_shape()), np.float32)
+        _in_data = tensor.flatten().astype(np.float32)
+        _out_data = np.zeros((self.get_output_shape()), np.float32)
 
         self.lib.network_run(
             self.nnlib,
-            input,
-            output)
+            _in_data,
+            _out_data)
 
-        return output
+        return _out_data
 
 
 if __name__ == '__main__':
     model = NNLib()
-    resp = model.load(args.model_path)
-    print(resp)
+    res1 = model.load(args.model_path)
+    res2 = model.init()
+    print(res1, res2)
     print(model.get_input_shape())
     print(model.get_output_shape())
+    output_flow = model.run(np.random.randn(
+        *model.get_input_shape()).astype(np.float32))
+    print(output_flow)
 
     def _inference(input_data):
-        output_flow = model.run(input_data / 255.0)
+        _x = (input_data / 255.0).astype(np.float32)
+        print(_x.shape)
+        output_flow = model.run(_x)
         return flow_to_image(-output_flow[0][..., [1, 0]])
 
     window_name = os.path.basename(args.model_path)

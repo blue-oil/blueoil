@@ -13,17 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
 import functools
 
 import tensorflow as tf
 
 from lmnet.networks.base import BaseNetwork
-from .flowlib import flow_to_image
+from .flow_to_image import flow_to_image
 
 
-class FlowNetSV2(BaseNetwork):
+class FlowNetSV3(BaseNetwork):
     """
-    FlowNetS v2 for optical flow estimation.
+    FlowNetS v3 for optical flow estimation.
     """
     version = 2.00
 
@@ -54,7 +55,7 @@ class FlowNetSV2(BaseNetwork):
         if self.data_format != 'NHWC':
             inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
 
-        output = tf.space_to_depth(inputs, block_size=block_size, name=name)
+        output = tf.space_to_depth(inputs, block_size=block_size, name=name + "_space_to_depth")
 
         if self.data_format != 'NHWC':
             output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
@@ -64,7 +65,7 @@ class FlowNetSV2(BaseNetwork):
         if self.data_format != 'NHWC':
             inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
 
-        output = tf.depth_to_space(inputs, block_size=block_size, name=name)
+        output = tf.depth_to_space(inputs, block_size=block_size, name=name + "_depth_to_space")
 
         if self.data_format != 'NHWC':
             output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
@@ -104,6 +105,10 @@ class FlowNetSV2(BaseNetwork):
             if self.use_batch_norm:
                 batch_normed = tf.contrib.layers.batch_norm(
                     conved,
+                    decay=0.99,
+                    scale=True,
+                    center=True,
+                    updates_collections=None,
                     is_training=is_training,
                     data_format=self.data_format,
                 )
@@ -122,37 +127,29 @@ class FlowNetSV2(BaseNetwork):
 
             return output
 
-    def _deconv(self, name, inputs, filters, activation=None):
+    def _deconv(self, name, inputs, filters, is_training, activation=None):
         # The paper and pytorch used LeakyReLU(0.1,inplace=True) but tf did not. I decide to still use it.
         with tf.variable_scope(name):
             # tf only allows 'SAME' or 'VALID' padding.
             # In conv2d_transpose, h = h1 * stride if padding == 'Same'
             # https://datascience.stackexchange.com/questions/26451/how-to-calculate-the-output-shape-of-conv2d-transpose
             # TODO in flownet2-tf, he typed 'biases_initializer'=None. I don't know if it worked.
-            conved = tf.layers.conv2d_transpose(
+
+            _, height, width, _ = inputs.get_shape().as_list()
+
+            inputs = tf.image.resize_nearest_neighbor(inputs, (height * 2, width * 2), align_corners=True, name=name)
+
+            conved = tf.layers.conv2d(
                 inputs,
                 filters,
-                kernel_size=4,
-                strides=2,
+                kernel_size=3,
+                strides=1,
                 padding='SAME',
                 use_bias=True,
                 bias_initializer=None,
                 kernel_regularizer=tf.contrib.layers.l2_regularizer(
                     self.weight_decay_rate)
             )
-            # inputs = self._depth_to_space(name, inputs, 2)
-            #
-            # conved = tf.layers.conv2d(
-            #     inputs,
-            #     filters,
-            #     kernel_size=3,
-            #     strides=1,
-            #     padding='SAME',
-            #     use_bias=True,
-            #     bias_initializer=None,
-            #     kernel_regularizer=tf.contrib.layers.l2_regularizer(
-            #         self.weight_decay_rate)
-            # )
 
             if activation is None:
                 output = self.activation(conved)
@@ -160,10 +157,10 @@ class FlowNetSV2(BaseNetwork):
                 output = activation(conved)
             return output
 
-    def _predict_flow(self, name, inputs):
+    def _predict_flow(self, name, inputs, is_training, activation=None):
         with tf.variable_scope(name):
             # pytorch uses padding = 1 = (3 -1) // 2. So it is 'SAME'.
-            return tf.layers.conv2d(
+            conved = tf.layers.conv2d(
                 inputs,
                 2,
                 kernel_size=3,
@@ -172,30 +169,51 @@ class FlowNetSV2(BaseNetwork):
                 use_bias=True
             )
 
-    def _upsample_flow(self, name, inputs):
+            # batch_normed = tf.contrib.layers.batch_norm(
+            #     conved,
+            #     is_training=is_training,
+            #     data_format=self.data_format,
+            # )
+            #
+            # if activation is None:
+            #     output = self.activation(batch_normed)
+            # else:
+            #     output = activation(batch_normed)
+            # return output
+            return conved
+
+    def _upsample_flow(self, name, inputs, is_training, activation=None):
         # TODO Think: tf uses bias but pytorch did not
         with tf.variable_scope(name):
-            return tf.layers.conv2d_transpose(
+
+            _, height, width, _ = inputs.get_shape().as_list()
+
+            inputs = tf.image.resize_nearest_neighbor(inputs, (height * 2, width * 2), align_corners=True, name=name)
+
+            conved = tf.layers.conv2d(
                 inputs,
                 2,
-                kernel_size=4,
-                strides=2,
+                kernel_size=3,
+                strides=1,
                 padding='SAME',
                 use_bias=False
             )
-            # inputs = tf.concat([inputs, inputs], 3)
-            #
-            # inputs = self._depth_to_space(name, inputs, 2)
-            #
-            # conved = tf.layers.conv2d(
-            #     inputs,
-            #     2,
-            #     kernel_size=3,
-            #     strides=1,
-            #     padding='SAME',
-            #     use_bias=False
-            # )
-            #
+
+            batch_normed = tf.contrib.layers.batch_norm(
+                conved,
+                decay=0.99,
+                scale=True,
+                center=True,
+                updates_collections=None,
+                is_training=is_training,
+                data_format=self.data_format,
+            )
+
+            if activation is None:
+                output = self.activation(batch_normed)
+            else:
+                output = activation(batch_normed)
+            return output
             # return conved
 
     def _downsample(self, name, inputs, size):
@@ -245,28 +263,39 @@ class FlowNetSV2(BaseNetwork):
         }
 
     def _refinement_block(self, images, conv_dict, is_training):
-        predict_flow6 = self._predict_flow('predict_flow6', conv_dict['conv6_1'])
-        upsample_flow6 = self._upsample_flow('upsample_flow6', predict_flow6)
-        deconv5 = self._deconv('deconv5', conv_dict['conv6_1'], 512)
+        predict_flow6 = self._predict_flow('predict_flow6', conv_dict['conv6_1'], is_training)
+        upsample_flow6 = self._upsample_flow('upsample_flow6', predict_flow6, is_training)
+        deconv5 = self._deconv('deconv5', conv_dict['conv6_1'], 512, is_training)
 
         # Same order as pytorch and tf
         concat5 = tf.concat([conv_dict['conv5_1'], deconv5, upsample_flow6], axis=3)
-        predict_flow5 = self._predict_flow('predict_flow5', concat5)
-        upsample_flow5 = self._upsample_flow('upsample_flow5', predict_flow5)
-        deconv4 = self._deconv('deconv4', concat5, 256)
+        predict_flow5 = self._predict_flow('predict_flow5', concat5, is_training)
+        upsample_flow5 = self._upsample_flow('upsample_flow5', predict_flow5, is_training)
+        deconv4 = self._deconv('deconv4', concat5, 256, is_training)
 
         concat4 = tf.concat([conv_dict['conv4_1'], deconv4, upsample_flow5], axis=3)
-        predict_flow4 = self._predict_flow('predict_flow4', concat4)
-        upsample_flow4 = self._upsample_flow('upsample_flow4', predict_flow4)
-        deconv3 = self._deconv('deconv3', concat4, 128)
+        predict_flow4 = self._predict_flow('predict_flow4', concat4, is_training)
+        upsample_flow4 = self._upsample_flow('upsample_flow4', predict_flow4, is_training)
+        deconv3 = self._deconv('deconv3', concat4, 256, is_training)
 
         concat3 = tf.concat([conv_dict['conv3_1'], deconv3, upsample_flow4], axis=3)
-        predict_flow3 = self._predict_flow('predict_flow3', concat3)
-        upsample_flow3 = self._upsample_flow('upsample_flow3', predict_flow3)
-        deconv2 = self._deconv('deconv2', concat3, 64, activation=self.activation_before_last_layer)
+        predict_flow3 = self._predict_flow('predict_flow3', concat3, is_training)
+        upsample_flow3 = self._upsample_flow('upsample_flow3', predict_flow3, is_training)
+        deconv2 = self._deconv('deconv2', concat3, 256, is_training, activation=self.activation_before_last_layer)
 
         concat2 = tf.concat([conv_dict['conv2'], deconv2, upsample_flow3], axis=3)
-        predict_flow2 = self._predict_flow('predict_flow2', concat2)
+
+        _, _, _, channels = concat2.get_shape().as_list()
+        predict_flow2_1 = tf.layers.conv2d(
+            concat2,
+            channels,
+            kernel_size=1,
+            strides=1,
+            padding='SAME',
+            name='predict_flow2_1'
+        )
+
+        predict_flow2 = self._predict_flow('predict_flow2', predict_flow2_1, is_training)
 
         # TODO why * 20.0? Wait for issue or email reply
         predict_flow2 = predict_flow2 * 20.0
@@ -277,7 +306,7 @@ class FlowNetSV2(BaseNetwork):
         # Reasons to use align_corners=True:
         # https://stackoverflow.com/questions/51077930/tf-image-resize-bilinear-when-align-corners-false
         # https://github.com/tensorflow/tensorflow/issues/6720#issuecomment-298190596
-        flow = tf.image.resize_bilinear(
+        flow = tf.image.resize_nearest_neighbor(
             predict_flow2, tf.stack([height, width]), align_corners=True)
 
         # TODO Check if returning dict causes memory error. Maybe we can return a tensor when not training?
@@ -450,8 +479,8 @@ class FlowNetSV2(BaseNetwork):
         return total_loss
 
 
-class FlowNetSV2Quantized(FlowNetSV2):
-    """ Quantized FlowNet s v2 network.
+class FlowNetSV3Quantized(FlowNetSV3):
+    """ Quantized FlowNet s v3 network.
     """
 
     def __init__(
