@@ -13,9 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include <thread>
-#include <vector>
-
 #include "global.h"
 #include "matrix_view.h"
 #include "matrix/shift_add.h"
@@ -24,6 +21,8 @@ limitations under the License.
 
 #ifdef USE_NEON
   #include <arm_neon.h>
+#elif defined USE_AVX
+  #include <x86intrin.h>
 #endif
 
 namespace dlk {
@@ -56,49 +55,38 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
   Measurement::Stop();
 
   Measurement::Start("matrix_shift_add_f2");
+#pragma omp parallel for
+  for (int k = 0; k < h * w; ++k) {
+    for (unsigned int i = 0; i < (kh * kw); ++i) {
+      int offset = calc_offset(i, w);
+      if ((k - offset < 0) || (k - offset >= (h * w))) {
+        continue;
+      }
 
-  unsigned int chunk_size = (h * w) / static_cast<unsigned int>(std::thread::hardware_concurrency());
-  if (chunk_size == 0) {
-    chunk_size += 1;
-  }
-
-  std::vector<std::thread> threads;
-  for (unsigned int begin = 0; begin < (h * w); begin += chunk_size) {
-    threads.emplace_back(std::thread([buf, begin, chunk_size, h, w, p, &result] {
-          const int kh = p.kernel_height;
-          const int kw = p.kernel_width;
-          const int oc = p.output_channels;
-          for (int k = begin; k < std::min(begin + chunk_size, static_cast<unsigned int>(h * w)); ++k) {
-            for (unsigned int i = 0; i < (kh * kw); ++i) {
-              int offset = calc_offset(i, w);
-              if ((k - offset < 0) || (k - offset >= (h * w))) {
-                continue;
-              }
-
-              float* r = result.data(0, k);
-              float* b = buf.data(i*oc, k - offset);
+      float* r = result.data(0, k);
+      float* b = buf.data(i*oc, k - offset);
 
 
-              unsigned int j = 0;
+      unsigned int j = 0;
 #ifdef USE_NEON
-              for (; j + 3 < oc; j += 4) {
-                float32x4_t b_ = vld1q_f32(b+j);
-                float32x4_t r_ = vld1q_f32(r+j);
-                float32x4_t r__ = vaddq_f32(b_, r_);
-                vst1q_f32(r+j, r__);
-              }
+      for (; j + 3 < oc; j += 4) {
+        float32x4_t b_ = vld1q_f32(b+j);
+        float32x4_t r_ = vld1q_f32(r+j);
+        float32x4_t r__ = vaddq_f32(b_, r_);
+        vst1q_f32(r+j, r__);
+      }
+#elif defined USE_AVX
+      for (; j + 7 < oc; j += 8) {
+        auto vb = _mm256_loadu_ps(b+j);
+        auto vr = _mm256_loadu_ps(r+j);
+        auto res = _mm256_add_ps(vr, vb);
+        _mm256_storeu_ps(r+j, res);
+      }
 #endif
-              for (; j < oc; ++j) {
-                r[j] += b[j];
-              }
-            }
-          }
-        }));
-  }
-
-  for (auto& th: threads) {
-    if (th.joinable())
-      th.join();
+      for (; j < oc; ++j) {
+        r[j] += b[j];
+      }
+    }
   }
 
   Measurement::Stop();
@@ -133,48 +121,38 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 
   Measurement::Start("matrix_shift_add_i2");
 
-  unsigned int chunk_size = (h * w) / static_cast<unsigned int>(std::thread::hardware_concurrency());
-  if (chunk_size == 0) {
-    chunk_size += 1;
-  }
+#pragma omp parallel for
+  for (int k = 0; k < h * w; ++k) {
+    for (unsigned int i = 0; i < kh * kw; ++i) {
+      int offset = calc_offset(i, w);
+      if ((k - offset < 0) || (k - offset >= h * w)) {
+        continue;
+      }
 
-  std::vector<std::thread> threads;
-  for (unsigned int begin = 0; begin < h * w; begin += chunk_size) {
-    threads.emplace_back(std::thread([buf, begin, chunk_size, h, w, p, &result] {
-          const int kh = p.kernel_height;
-          const int kw = p.kernel_width;
-          const int oc = p.output_channels;
-          for (int k = begin; k < std::min(begin + chunk_size, static_cast<unsigned int>(h * w)); ++k) {
-            for (unsigned int i = 0; i < kh * kw; ++i) {
-              int offset = calc_offset(i, w);
-              if ((k - offset < 0) || (k - offset >= h * w)) {
-                continue;
-              }
-
-              int32_t* r = result.data(0, k);
-              int32_t* b = buf.data(i*oc, k - offset);
+      int32_t* r = result.data(0, k);
+      int32_t* b = buf.data(i*oc, k - offset);
 
 
-              unsigned int j = 0;
+      unsigned int j = 0;
 #ifdef USE_NEON
-              for (; j + 3 < oc; j += 4) {
-                int32x4_t b_ = vld1q_s32(b+j);
-                int32x4_t r_ = vld1q_s32(r+j);
-                int32x4_t r__ = vaddq_s32(b_, r_);
-                vst1q_s32(r+j, r__);
-              }
+      for (; j + 3 < oc; j += 4) {
+        int32x4_t b_ = vld1q_s32(b+j);
+        int32x4_t r_ = vld1q_s32(r+j);
+        int32x4_t r__ = vaddq_s32(b_, r_);
+        vst1q_s32(r+j, r__);
+      }
+#elif defined USE_AVX
+      for (; j + 7 < oc; j += 8) {
+        auto vb = _mm256_loadu_si256(reinterpret_cast<__m256i*>(b+j));
+        auto vr = _mm256_loadu_si256(reinterpret_cast<__m256i*>(r+j));
+        auto res = _mm256_add_epi32(vr, vb);
+        _mm256_storeu_si256(reinterpret_cast<__m256i*>(r+j), res);
+      }
 #endif
-              for (; j < oc; ++j) {
-                r[j] += b[j];
-              }
-            }
-          }
-    }));
-  }
-
-  for (auto& th: threads) {
-    if (th.joinable())
-      th.join();
+      for (; j < oc; ++j) {
+        r[j] += b[j];
+      }
+    }
   }
 
   Measurement::Stop();
