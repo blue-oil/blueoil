@@ -37,7 +37,7 @@ from lmnet.networks.optical_flow_estimation.flow_to_image import flow_to_image
 
 parser = argparse.ArgumentParser()
 parser.add_argument('model_path', type=str)
-parser.add_argument('--diff_step', type=str, default=5)
+parser.add_argument('--diff_step', type=int, default=5)
 args = parser.parse_args()
 
 
@@ -131,24 +131,32 @@ class NNLib(object):
 
 
 if __name__ == '__main__':
+    def status_info(t):
+        return "success" if t else "fail"
+
     model = NNLib()
-    res1 = model.load(args.model_path)
-    res2 = model.init()
-    print(res1, res2)
-    print(model.get_input_shape())
-    print(model.get_output_shape())
-    output_flow = model.run(np.random.randn(
-        *model.get_input_shape()).astype(np.float32))
-    print(output_flow)
+    res = model.load(args.model_path)
+    print("load model: {}".format(status_info(res)))
+    res = model.init()
+    print("init model: {}".format(status_info(res)))
+
+    input_shape = model.get_input_shape()
+    output_shape = model.get_output_shape()
+    print("input shape: {}".format(input_shape))
+    print("output shape: {}".format(output_shape))
+
+    test_flow = model.run(np.random.randn(*input_shape).astype(np.float32))
+    print("shape test: {}".format(status_info(test_flow.shape == output_shape)))
+    print("value test: {}".format(status_info(np.any(np.isnan(test_flow)))))
 
     def _inference(input_data):
         _x = (input_data / 255.0).astype(np.float32)
-        print(_x.shape)
         output_flow = model.run(_x)
         return flow_to_image(-output_flow[0][..., [1, 0]])
 
     window_name = os.path.basename(args.model_path)
     run_demo(
         _inference, diff_step=args.diff_step,
-        window_name=window_name
+        window_name=window_name,
+        input_image_size=(input_shape[1], input_shape[2], 3)
     )

@@ -20,8 +20,8 @@ from easydict import EasyDict
 
 from lmnet.common import Tasks
 from lmnet.data_processor import Sequence
-from lmnet.networks.optical_flow_estimation.lm_flownet_v2 import (
-    LmFlowNetV2, LmFlowNetV2Quantized
+from lmnet.networks.optical_flow_estimation.lm_flownet_v1 import (
+    LmFlowNetV1Quantized
 )
 from lmnet.datasets.optical_flow_estimation import (
     FlyingChairs, ChairsSDHom
@@ -38,7 +38,7 @@ from lmnet.quantizations import (
     linear_mid_tread_half_quantizer,
 )
 
-NETWORK_CLASS = LmFlowNetV2Quantized
+NETWORK_CLASS = LmFlowNetV1Quantized
 DATASET_CLASS = FlyingChairs
 
 IMAGE_SIZE = [192, 256]
@@ -107,8 +107,7 @@ DATASET.HALF_SIZE = True
 DATASET.TRAIN_ENABLE_PREFETCH = True
 DATASET.TRAIN_PROCESS_NUM = 10
 DATASET.TRAIN_QUEUE_SIZE = 1000
-DATASET.VALIDATION_ENABLE_PREFETCH = False
-DATASET.VALIDATION_PRE_LOAD = False
+DATASET.VALIDATION_ENABLE_PREFETCH = True
 DATASET.VALIDATION_PROCESS_NUM = 1
 DATASET.VALIDATION_QUEUE_SIZE = 500
 DATASET.VALIDATION_RATE = 0.1

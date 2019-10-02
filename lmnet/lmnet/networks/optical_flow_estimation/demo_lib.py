@@ -34,8 +34,8 @@ from lmnet.datasets.optical_flow_estimation import (
 )
 
 
-def init_camera(camera_height, camera_width, device_id):
-    cap = cv2.VideoCapture(device_id)
+def init_camera(camera_height, camera_width, camera_id):
+    cap = cv2.VideoCapture(camera_id)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
     cap.set(cv2.CAP_PROP_FPS, 10)
@@ -49,29 +49,50 @@ def rescale_frame(frame, ratio):
     return cv2.resize(frame, shape, interpolation=cv2.INTER_AREA)
 
 
-def run_demo(func_inference, func_args=[], func_kwargs={},
-             diff_step=5, window_name="output", full_screen=True,
-             movie_path=None, demo_name="output", device_id=0):
+def run_demo(
+        func_inference, func_args=[], func_kwargs={},
+        input_image_size=(384, 512, 3), diff_step=5, window_name="output",
+        full_screen=True, movie_path=None, demo_name="output", camera_id=0):
+
     # initializing worker and variables
     store_num = diff_step + 10
-    cap = init_camera(480, 640, device_id=device_id)
+    camera_image_size = (480, 640)
+    cap = init_camera(
+        camera_image_size[0], camera_image_size[1], camera_id=camera_id)
     time_list = collections.deque(maxlen=5)
+    time_list.append(1.0)
     frame_list = collections.deque(maxlen=store_num)
-    image_size = (384, 512, 3)
     input_image = np.zeros(
-        (1, *image_size[:2], image_size[-1] * 2), dtype=np.uint8)
-    output_image = np.zeros(image_size, dtype=np.uint8)
+        (1, input_image_size[0], input_image_size[1], input_image_size[2] * 2),
+        dtype=np.uint8)
+    output_image = np.zeros(input_image_size, dtype=np.uint8)
+    camera_to_input_scale = input_image_size[0] / camera_image_size[0]
+
+    # display image (9 * 16 size)
+    display_image_size = (9 * 64, 16 * 64, 3)
     display_image = np.zeros(
-        (9 * 64, 16 * 64, 3), dtype=np.uint8)
+        display_image_size, dtype=np.uint8)
+    input_to_display_scale = (
+        (display_image_size[0] / input_image_size[0]) / 3,
+        (display_image_size[0] / input_image_size[0]) / 3,
+        1.0
+    )
+    output_to_display_scale = (
+        display_image_size[0] / input_image_size[0],
+        display_image_size[0] / input_image_size[0],
+        1.0
+    )
+
     for _ in range(store_num):
-        frame_list.append(np.zeros(image_size).astype(np.uint8))
+        frame_list.append(np.zeros(input_image_size).astype(np.uint8))
 
     def _get_frame():
         while True:
             begin = time.time()
             res, frame = cap.read()
             assert res, "Something wrong occurs with camera!"
-            frame_list.append(rescale_frame(frame[:, ::-1, :], 0.8))
+            frame_list.append(
+                rescale_frame(frame[:, ::-1, :], camera_to_input_scale))
             time.sleep(max(0.0, 1.0 / 30 - (time.time() - begin)))
 
     def _get_output():
@@ -80,9 +101,6 @@ def run_demo(func_inference, func_args=[], func_kwargs={},
                 begin = time.time()
                 input_image[0, ..., :3] = frame_list[-diff_step]
                 input_image[0, ..., 3:] = frame_list[-1]
-                print(input_image.shape)
-                # output_image[:] = func_inference(
-                #     input_image, *func_args, **func_kwargs)
                 output_image[:] = func_inference(input_image)
                 time_list.append(time.time() - begin)
             except ValueError:
@@ -95,8 +113,8 @@ def run_demo(func_inference, func_args=[], func_kwargs={},
     t2.setDaemon(True)
     t2.start()
 
-    size_h1 = int(output_image.shape[0] * 1.5)
-    size_w1 = int(output_image.shape[1] * 1.5)
+    size_h1 = display_image_size[0]
+    size_w1 = int(display_image_size[0] * 4 / 3)
     size_w2 = int(size_w1 / 3)
     size_h2 = int(size_h1 / 3)
     color_map = np.dstack(
@@ -135,7 +153,6 @@ def run_demo(func_inference, func_args=[], func_kwargs={},
             display_image, fps_text, (10, 25),
             cv2.FONT_HERSHEY_PLAIN, 1.6, (0, 0, 0), 2)
 
-        # title_1
         cv2.putText(
             display_image, "input1", (size_w1 + 10, 25),
             cv2.FONT_HERSHEY_PLAIN, 1.6, (255, 255, 255), 2)
@@ -152,10 +169,12 @@ def run_demo(func_inference, func_args=[], func_kwargs={},
         begin = time.time()
         _pre = frame_list[-diff_step].astype(np.float)
         _post = frame_list[-1].astype(np.float)
+        display_image[:size_h2, size_w1:] = ndimage.zoom(
+            _pre, input_to_display_scale, order=0)
+        display_image[size_h2:2 * size_h2, size_w1:] = ndimage.zoom(
+            _post, input_to_display_scale, order=0)
         display_image[:size_h1, :size_w1] = ndimage.zoom(
-            np.array(output_image), [1.5, 1.5, 1], order=0)
-        display_image[:size_h2, size_w1:] = _pre[::2, ::2]
-        display_image[size_h2:2 * size_h2, size_w1:] = _post[::2, ::2]
+            np.array(output_image), output_to_display_scale, order=0)
         add_text_info()
         cv2.imshow(window_name, display_image)
         if movie_path is not None:

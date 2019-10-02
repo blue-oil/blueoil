@@ -70,6 +70,7 @@ def flow_to_image(flow, threshold=10.0):
     rad[nan_index] = 0.0
     rad *= (1 / max(threshold, np.max(rad)))
     arg = np.arctan2(-flow[..., 1], -flow[..., 0]) + np.pi
+    arg[np.isnan(arg)] = 0.0
     image = color_function(arg)
     height, width, channels = image.shape
 

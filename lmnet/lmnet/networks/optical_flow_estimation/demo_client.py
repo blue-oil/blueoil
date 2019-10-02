@@ -43,7 +43,7 @@ parser.add_argument('--host', type=str, required=True)
 parser.add_argument('--port', type=int, default=12345)
 parser.add_argument('--demo_name', type=str, default="output")
 parser.add_argument('--diff_step', type=int, default=5)
-parser.add_argument('--device_id', type=int, default=0)
+parser.add_argument('--camera_id', type=int, default=0)
 parser.add_argument('--movie_path', type=str, default=None)
 parser.add_argument('--disable_full_screen', action="store_false")
 args = parser.parse_args()
@@ -79,6 +79,6 @@ if __name__ == '__main__':
         send_and_receive, func_args=[client_info, True],
         diff_step=args.diff_step, window_name=window_name,
         movie_path=args.movie_path, full_screen=args.disable_full_screen,
-        demo_name=args.demo_name, device_id=args.device_id
+        demo_name=args.demo_name, camera_id=args.camera_id
     )
     # run_test(send_and_receive, func_args=[client_info, False])

@@ -24,20 +24,19 @@ from .flow_to_image import flow_to_image
 
 class LmFlowNetV1(BaseNetwork):
     """
-    LmFlowNet S V1 for optical flow estimation.
+    LmFlowNet V1 for optical flow estimation.
     """
     version = 1.00
 
-    def __init__(self, *args, weight_decay_rate=0.0004, div_flow=20.0,
-                 disable_load_op_library=False, **kwargs):
+    def __init__(
+            self, *args, weight_decay_rate=0.0004, div_flow=20.0, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # TODO PyCharm warning. I think we should define self.images first here. Check other networks.
+        # TODO PyCharm warning.
+        # I think we should define self.images first here. Check other networks.
         self.images = None
         self.base_dict = None
         self.activation_first_layer = lambda x: tf.nn.leaky_relu(
             x, alpha=0.1, name="leaky_relu")
-        # self.activation is quantizable
         self.activation = lambda x: tf.nn.leaky_relu(
             x, alpha=0.1, name="leaky_relu")
         self.activation_before_last_layer = self.activation
@@ -45,12 +44,6 @@ class LmFlowNetV1(BaseNetwork):
         self.div_flow = div_flow
         self.use_batch_norm = True
         self.custom_getter = None
-
-        # TODO Where should I put the c files and where do we compile custom ops?
-        if not disable_load_op_library:
-            self.downsample_so = tf.load_op_library(
-                tf.resource_loader.get_path_to_datafile("downsample.so")
-            )
 
     def _space_to_depth(self, name, inputs, block_size):
         if self.data_format != 'NHWC':
@@ -65,9 +58,10 @@ class LmFlowNetV1(BaseNetwork):
                 output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
-    def _conv_bn_act(self, name, inputs, filters, is_training,
-                     kernel_size=3, strides=1, enable_detail_summary=False, activation=None
-                     ):
+    def _conv_bn_act(
+            self, name, inputs, filters, is_training,
+            kernel_size=3, strides=1, enable_detail_summary=False,
+            activation=None):
         if self.data_format == "NCHW":
             channel_data_format = "channels_first"
         elif self.data_format == "NHWC":
@@ -78,18 +72,6 @@ class LmFlowNetV1(BaseNetwork):
                     self.data_format))
 
         if strides > 1:
-            _, _, _, channels = inputs.get_shape().as_list()
-            q, r = divmod(channels, 8)
-            if r != 0:
-                inputs = tf.layers.conv2d(
-                    inputs,
-                    filters=8 * (q + 1),
-                    kernel_size=1,
-                    padding='SAME',
-                    # use_bias=False,
-                    # trainable=False,
-                    # kernel_initializer=tf.initializers.constant(1.0)
-                )
             inputs = self._space_to_depth(name, inputs, strides)
             strides = 1
 
@@ -134,7 +116,8 @@ class LmFlowNetV1(BaseNetwork):
             return output
 
     def _deconv(self, name, inputs, filters, is_training, activation=None):
-        # The paper and pytorch used LeakyReLU(0.1,inplace=True) but tf did not. I decide to still use it.
+        # The paper and pytorch used LeakyReLU(0.1,inplace=True) but tf did not.
+        # I decide to still use it.
         with tf.variable_scope(name):
             # tf only allows 'SAME' or 'VALID' padding.
             # In conv2d_transpose, h = h1 * stride if padding == 'Same'
@@ -188,7 +171,6 @@ class LmFlowNetV1(BaseNetwork):
                 padding='SAME',
                 use_bias=True
             )
-
             return conved
 
     def _upsample_flow(self, name, inputs, is_training, activation=None):
@@ -202,7 +184,7 @@ class LmFlowNetV1(BaseNetwork):
 
             conved = tf.layers.conv2d(
                 inputs,
-                32,
+                2,
                 kernel_size=3,
                 strides=1,
                 padding='SAME',
@@ -227,29 +209,26 @@ class LmFlowNetV1(BaseNetwork):
 
     def _downsample(self, name, inputs, size):
         with tf.variable_scope(name):
-            return self.downsample_so.downsample(inputs, size)
+            return tf.image.resize_images(
+                inputs, size, method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
     def _average_endpoint_error(self, output, labels):
         """
-        Given labels and outputs of size (batch_size, height, width, 2), calculates average endpoint error:
+        Given labels and outputs of size (batch_size, height, width, 2),
+            calculates average endpoint error:
             sqrt{sum_across_the_2_channels[(X - Y)^2]}
         """
-        batch_size, height, width, _ = output.get_shape().as_list()
+        # batch_size, height, width, _ = output.get_shape().as_list()
         with tf.name_scope(None, "average_endpoint_error", (output, labels)):
-            # TODO I don't think the two lines below is necessary.
-            # output = tf.to_float(output)
-            # labels = tf.to_float(labels)
             output.get_shape().assert_is_compatible_with(labels.get_shape())
 
             squared_difference = tf.square(tf.subtract(output, labels))
             loss = tf.reduce_sum(squared_difference, axis=3, keepdims=True)
             loss = tf.sqrt(loss)
-            return tf.reduce_sum(loss) / (height * width * batch_size)
+            return tf.reduce_mean(loss)
 
     def _contractive_block(self, images, is_training):
-        # TODO tf version uses padding=VALID and pad to match the original caffe code.
-        # Can DLK handle this?
-        # pytorch version uses (kernel_size-1) // 2, which is equal to 'SAME' in tf
+        # NOTE tf version uses padding=VALID and pad to match the original caffe code.
         x = self._conv_bn_act('conv1', images, 64, is_training, strides=2,
                               activation=self.activation_first_layer)
         conv2 = self._conv_bn_act('conv2', x, 128, is_training, strides=2,
@@ -280,7 +259,6 @@ class LmFlowNetV1(BaseNetwork):
         deconv5 = self._deconv(
             'deconv5', conv_dict['conv6_1'], 512, is_training)
 
-        # Same order as pytorch and tf
         concat5 = tf.concat(
             [conv_dict['conv5_1'], deconv5, upsample_flow6], axis=3)
         predict_flow5 = self._predict_flow(
@@ -317,9 +295,6 @@ class LmFlowNetV1(BaseNetwork):
             strides=1,
             padding='SAME',
             name='cast_conv',
-            # use_bias=False,
-            # trainable=False,
-            # kernel_initializer=tf.initializers.constant(1.0)
         )
 
         predict_flow2 = self._predict_flow(
@@ -329,8 +304,9 @@ class LmFlowNetV1(BaseNetwork):
         predict_flow2 = predict_flow2 * self.div_flow
 
         # TODO should we move upsampling to post-process?
-        # TODO Reason not to move: we need variable flow for both training (for tf.summary) and not training.
+        # Reason not to move: we need variable flow for both training (for tf.summary) and not training.
         _, height, width, _ = images.get_shape().as_list()
+
         # Reasons to use align_corners=True:
         # https://stackoverflow.com/questions/51077930/tf-image-resize-bilinear-when-align-corners-false
         # https://github.com/tensorflow/tensorflow/issues/6720#issuecomment-298190596
@@ -348,10 +324,6 @@ class LmFlowNetV1(BaseNetwork):
             'predict_flow2': predict_flow2,
             'flow': flow
         }
-
-    # TODO Perhaps we don't need this.
-    # def _post_process(self, predict_flow2, height, width):
-    #     pass
 
     def base(self, images, is_training, *args, **kwargs):
         """Base network.
@@ -508,7 +480,6 @@ class LmFlowNetV1(BaseNetwork):
         # This adds the weighted loss to the loss collection
         weighted_epe = tf.losses.compute_weighted_loss(
             losses, [0.32, 0.08, 0.02, 0.01, 0.005])
-        tf.summary.scalar("weighted_epe", weighted_epe)
 
         # Return the total loss: weighted epe + regularization terms defined in the base function
         total_loss = tf.losses.get_total_loss()
@@ -516,8 +487,8 @@ class LmFlowNetV1(BaseNetwork):
         return total_loss
 
 
-class LmFlowNetSV1Quantized(LmFlowNetSV1):
-    """ Quantized LmFlowNet S V1.
+class LmFlowNetV1Quantized(LmFlowNetV1):
+    """ Quantized LmFlowNet V1.
     """
 
     def __init__(

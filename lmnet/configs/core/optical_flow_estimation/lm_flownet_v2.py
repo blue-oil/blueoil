@@ -34,7 +34,7 @@ from lmnet.networks.optical_flow_estimation.pre_processor import (
     DevideBy255
 )
 
-NETWORK_CLASS = LmFlowNetV1
+NETWORK_CLASS = LmFlowNetV2
 DATASET_CLASS = FlyingChairs
 
 IMAGE_SIZE = [192, 256]

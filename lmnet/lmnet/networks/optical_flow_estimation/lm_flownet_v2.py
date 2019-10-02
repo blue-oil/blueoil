@@ -24,7 +24,7 @@ from .flow_to_image import flow_to_image
 
 class LmFlowNetV2(BaseNetwork):
     """
-    LmFlowNet S V1 for optical flow estimation.
+    LmFlowNet V2 for optical flow estimation.
     """
     version = 1.00
 
@@ -260,34 +260,32 @@ class LmFlowNetV2(BaseNetwork):
         conv4_1 = self._conv_bn_act('conv4_1', x, 512, is_training)
         x = self._conv_bn_act('conv5', conv4_1, 512, is_training, strides=2)
         conv5_1 = self._conv_bn_act('conv5_1', x, 512, is_training)  # 12x16
-        x = self._conv_bn_act('conv6', conv5_1, 1024,
-                              is_training, strides=2)  # 12x16
-        conv6_1 = self._conv_bn_act('conv6_1', x, 1024, is_training)  # 6x8
+        # x = self._conv_bn_act('conv6', conv5_1, 1024,
+        #                       is_training, strides=2)  # 12x16
+        # conv6_1 = self._conv_bn_act('conv6_1', x, 1024, is_training)  # 6x8
 
         return {
             'conv2': conv2,
             'conv3_1': conv3_1,
             'conv4_1': conv4_1,
             'conv5_1': conv5_1,
-            'conv6_1': conv6_1,
+            # 'conv6_1': conv6_1,
         }
 
     def _refinement_block(self, images, conv_dict, is_training):
-        predict_flow6 = self._predict_flow(
-            'predict_flow6', conv_dict['conv6_1'], is_training)
-        upsample_flow6 = self._upsample_flow(
-            'upsample_flow6', predict_flow6, is_training)
-        deconv5 = self._deconv(
-            'deconv5', conv_dict['conv6_1'], 512, is_training)
+        # predict_flow6 = self._predict_flow(
+        #     'predict_flow6', conv_dict['conv6_1'], is_training)
+        # upsample_flow6 = self._upsample_flow(
+        #     'upsample_flow6', predict_flow6, is_training)
+        # deconv5 = self._deconv(
+        #     'deconv5', conv_dict['conv6_1'], 512, is_training)
 
-        # Same order as pytorch and tf
-        concat5 = tf.concat(
-            [conv_dict['conv5_1'], deconv5, upsample_flow6], axis=3)
         predict_flow5 = self._predict_flow(
-            'predict_flow5', concat5, is_training)
+            'predict_flow5', conv_dict['conv5_1'], is_training)
         upsample_flow5 = self._upsample_flow(
             'upsample_flow5', predict_flow5, is_training)
-        deconv4 = self._deconv('deconv4', concat5, 256, is_training)
+        deconv4 = self._deconv(
+            'deconv4', conv_dict['conv5_1'], 256, is_training)
 
         concat4 = tf.concat(
             [conv_dict['conv4_1'], deconv4, upsample_flow5], axis=3)
@@ -341,7 +339,7 @@ class LmFlowNetV2(BaseNetwork):
 
         # TODO Check if returning dict causes memory error. Maybe we can return a tensor when not training?
         return {
-            'predict_flow6': predict_flow6,
+            # 'predict_flow6': predict_flow6,
             'predict_flow5': predict_flow5,
             'predict_flow4': predict_flow4,
             'predict_flow3': predict_flow3,
@@ -460,13 +458,13 @@ class LmFlowNetV2(BaseNetwork):
         base_dict = self.base_dict
 
         # L2 loss between predict_flow6 (weighted w/ 0.32)
-        predict_flow6 = base_dict['predict_flow6']
-        size = [predict_flow6.shape[1], predict_flow6.shape[2]]
-        downsampled_flow6 = self._downsample("downsampled_flow6", labels, size)
-        avg_epe_predict_flow6 = self._average_endpoint_error(
-            downsampled_flow6, predict_flow6)
-        tf.summary.scalar("avg_epe_predict_flow6", avg_epe_predict_flow6)
-        losses.append(avg_epe_predict_flow6)
+        # predict_flow6 = base_dict['predict_flow6']
+        # size = [predict_flow6.shape[1], predict_flow6.shape[2]]
+        # downsampled_flow6 = self._downsample("downsampled_flow6", labels, size)
+        # avg_epe_predict_flow6 = self._average_endpoint_error(
+        #     downsampled_flow6, predict_flow6)
+        # tf.summary.scalar("avg_epe_predict_flow6", avg_epe_predict_flow6)
+        # losses.append(avg_epe_predict_flow6)
 
         # L2 loss between predict_flow5 (weighted w/ 0.08)
         predict_flow5 = base_dict['predict_flow5']
@@ -507,7 +505,7 @@ class LmFlowNetV2(BaseNetwork):
         # TODO put weight in config file?
         # This adds the weighted loss to the loss collection
         weighted_epe = tf.losses.compute_weighted_loss(
-            losses, [0.32, 0.08, 0.02, 0.01, 0.005])
+            losses, [0.08, 0.02, 0.01, 0.005])
         tf.summary.scalar("weighted_epe", weighted_epe)
 
         # Return the total loss: weighted epe + regularization terms defined in the base function
