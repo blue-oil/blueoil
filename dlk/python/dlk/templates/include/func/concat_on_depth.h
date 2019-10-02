@@ -54,7 +54,7 @@ constexpr std::size_t index_width(const MemoryLayout layout) {
 }
 
 template<class T>
-T& access_ChHWBCl(const TensorView<T, MemoryLayout::ChHWBCl>& tensor,
+T& access(const TensorView<T, MemoryLayout::ChHWBCl>& tensor,
     const std::size_t ch,
     const std::size_t h,
     const std::size_t w,
@@ -63,7 +63,7 @@ T& access_ChHWBCl(const TensorView<T, MemoryLayout::ChHWBCl>& tensor,
 }
 
 template<class T>
-T& access_ChHWBCl(const TensorView<T, MemoryLayout::HWChBCl>& tensor,
+T& access(const TensorView<T, MemoryLayout::HWChBCl>& tensor,
     const std::size_t ch,
     const std::size_t h,
     const std::size_t w,
@@ -72,7 +72,7 @@ T& access_ChHWBCl(const TensorView<T, MemoryLayout::HWChBCl>& tensor,
 }
 
 template<class T>
-T& access_NHWC(const TensorView<T, MemoryLayout::NHWC>& tensor,
+T& access(const TensorView<T, MemoryLayout::NHWC>& tensor,
     const std::size_t h,
     const std::size_t w,
     const std::size_t ch) {
@@ -102,8 +102,8 @@ struct ConcatOnDepthImpl<QuantizedPacked<TQOut>, output_layout, I, typename std:
       for (std::size_t h = 0; h < out_height; ++h) {
         for (std::size_t w = 0; w < out_width; ++w) {
           for (std::size_t digit = 0; digit < bits; ++digit) {
-            access_ChHWBCl(output, offset_depth + d, h, w, digit)
-              = access_ChHWBCl(input, d, h, w, digit);
+            access(output, offset_depth + d, h, w, digit)
+              = access(input, d, h, w, digit);
           }
         }
       }
@@ -128,8 +128,8 @@ struct ConcatOnDepthImpl<float, output_layout, I, typename std::enable_if<(I < s
     for (std::size_t h = 0; h < out_height; ++h) {
       for (std::size_t w = 0; w < out_width; ++w) {
         for (std::size_t d = 0; d < depth; ++d) {
-          access_NHWC(output, h, w, offset_depth + d)
-            = access_NHWC(input, h, w, d);
+          access(output, h, w, offset_depth + d)
+            = access(input, h, w, d);
         }
       }
     }
