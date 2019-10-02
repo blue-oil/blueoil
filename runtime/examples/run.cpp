@@ -19,25 +19,15 @@ limitations under the License.
 
 #include "blueoil.hpp"
 
-// TODO: delete this func. it is for debug.
-blueoil::Tensor RandomImage(int height, int width, int channel) {
-    blueoil::Tensor t({height, width, channel});
-    std::vector<float>& data = t.data();
-    unsigned seed = 0;
 
-    for (size_t i = 0; i < data.size(); ++i) {
-        const float f_rand = static_cast <float> (rand_r(&seed)) / static_cast <float> (RAND_MAX) * 255;
-        data[i] = f_rand;
-    }
+int main(int argc, char **argv) {
+  if (argc < 2) {
+    std::cerr << "Usage: a.out <imagefile>" << std::endl;
+    std::cerr << "ex) a.out raw_image.npy" << std::endl;
+    std::exit(1);
+  }
 
-    return t;
-}
-
-
-
-int main() {
   std::string meta_yaml = "meta.yaml";
-
   blueoil::Predictor predictor = blueoil::Predictor(meta_yaml);
 
   std::cout << "classes: " << std::endl;
@@ -51,14 +41,16 @@ int main() {
   for (int j : predictor.expected_input_shape) {
     std::cout << j << "\n";
   }
-
-  blueoil::Tensor random_image = RandomImage(256, 256, 3);
+  std::string imagefile = argv[1];
+  blueoil::Tensor image = blueoil::Tensor_loadImage(imagefile);
 
   std::cout << "Run" << std::endl;
-  blueoil::Tensor output =  predictor.Run(random_image);
+  blueoil::Tensor output =  predictor.Run(image);
 
   std::cout << "Results !" << std::endl;
   for (float j : output.data()) {
     std::cout << j << std::endl;
   }
+
+  std::exit(0);
 }
