@@ -43,7 +43,6 @@ RUN apt-get update && apt-get install -y \
     libreadline-dev \
     libsqlite3-dev \
     wget \
-    curl \
     libncurses5-dev \
     libncursesw5-dev \
     xz-utils \
