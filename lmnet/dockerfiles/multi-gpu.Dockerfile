@@ -49,8 +49,8 @@ RUN ln -s /usr/bin/pip3 /usr/bin/pip
 
 # Install NCCL
 RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
-ENV NCCL_VERSION=2.1.15-1+cuda8.0
-RUN apt-get update && apt-get install -y --no-install-recommends \
+ENV NCCL_VERSION=2.4.8-1+cuda10.0
+RUN apt-get update && apt-get install -y --no-install-recommends --allow-change-held-packages \
     libnccl2=$NCCL_VERSION \
     libnccl-dev=$NCCL_VERSION
 
@@ -59,9 +59,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
     git \
-    curl \
-    vim \
     wget \
+    g++-4.9 \
     ca-certificates \
     libjpeg-dev \
     libpng-dev
@@ -69,20 +68,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install OpenMPI
 RUN mkdir /tmp/openmpi && \
     cd /tmp/openmpi && \
-    wget https://www.open-mpi.org/software/ompi/v3.0/downloads/openmpi-3.0.0.tar.gz && \
-    tar zxf openmpi-3.0.0.tar.gz && \
-    cd openmpi-3.0.0 && \
+    wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-4.0.1.tar.gz && \
+    tar zxf openmpi-4.0.1.tar.gz && \
+    cd openmpi-4.0.1 && \
     ./configure --enable-orterun-prefix-by-default && \
     make -j $(nproc) all && \
     make install && \
     ldconfig && \
     rm -rf /tmp/openmpi
-
-# Create a wrapper for OpenMPI to allow running as root by default
-RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real && \
-    echo '#!/bin/bash' > /usr/local/bin/mpirun && \
-    echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun && \
-    chmod a+x /usr/local/bin/mpirun
 
 # Install OpenSSH for MPI to communicate between containers
 RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
@@ -106,7 +99,7 @@ RUN pip install -r /tmp/gpu.requirements.txt
 ENV HOROVOD_GPU_ALLREDUCE NCCL
 ENV HOROVOD_WITH_TENSORFLOW 1
 # Set temporarily CUDA stubs to install Horovod
-RUN ldconfig /usr/local/cuda-8.0/targets/x86_64-linux/lib/stubs
+RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs
 # Install requirements for distributed training
 RUN pip install -r /tmp/dist.requirements.txt
 # Unset temporarily CUDA stubs

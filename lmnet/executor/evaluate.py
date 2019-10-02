@@ -13,15 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
 import math
+import os
 
 import click
 import tensorflow as tf
 
-from lmnet.utils import executor, module_loader, config as config_util
 from lmnet import environment
+from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.dataset_iterator import DatasetIterator
+from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from lmnet.utils import config as config_util
+from lmnet.utils import executor, module_loader
+
+
+def setup_dataset(config, subset, seed):
+    DatasetClass = config.DATASET_CLASS
+    dataset_kwargs = {key.lower(): val for key, val in config.DATASET.items()}
+
+    # If there is a settings for TFDS, TFDS dataset class will be used.
+    tfds_kwargs = dataset_kwargs.pop("tfds_kwargs", {})
+    if tfds_kwargs:
+        if issubclass(DatasetClass, ObjectDetectionBase):
+            DatasetClass = TFDSObjectDetection
+        else:
+            DatasetClass = TFDSClassification
+
+    dataset = DatasetClass(subset=subset, **dataset_kwargs, **tfds_kwargs)
+    enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
+    return DatasetIterator(dataset, seed=seed, enable_prefetch=enable_prefetch)
 
 
 def evaluate(config, restore_path):
@@ -36,15 +56,14 @@ def evaluate(config, restore_path):
 
     DatasetClass = config.DATASET_CLASS
     ModelClass = config.NETWORK_CLASS
-    network_kwargs = dict((key.lower(), val) for key, val in config.NETWORK.items())
-    dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+    network_kwargs = {key.lower(): val for key, val in config.NETWORK.items()}
 
     if "test" in DatasetClass.available_subsets:
         subset = "test"
     else:
         subset = "validation"
 
-    validation_dataset = DatasetIterator(DatasetClass(subset=subset, **dataset_kwargs), seed=0)
+    validation_dataset = setup_dataset(config, subset, seed=0)
 
     graph = tf.Graph()
     with graph.as_default():
@@ -67,7 +86,7 @@ def evaluate(config, restore_path):
         global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, labels_placeholder = model.placeholderes()
+        images_placeholder, labels_placeholder = model.placeholders()
 
         output = model.inference(images_placeholder, is_training)
 

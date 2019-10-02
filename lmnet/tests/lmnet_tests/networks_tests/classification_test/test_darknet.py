@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
 import pytest
 import tensorflow as tf
+from easydict import EasyDict
 
+from executor.train import start_training
 from lmnet import environment
+from lmnet.common import Tasks
 from lmnet.datasets.image_folder import ImageFolderBase
 from lmnet.networks.classification.darknet import Darknet
-from lmnet.utils.executor import prepare_dirs
 from lmnet.pre_processor import Resize
-from executor.train import start_training
-
+from lmnet.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 # Set test environment
@@ -50,7 +50,7 @@ def test_training():
     config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
-    config.IS_DISTRIBUTION = False
+    config.TASK = Tasks.CLASSIFICATION
 
     # network model config
     config.NETWORK = EasyDict()

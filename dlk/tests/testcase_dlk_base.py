@@ -13,18 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from datetime import datetime
-from glob import glob
 import os
-import time
-from unittest import TestCase
+import shutil
 import subprocess
 import tempfile
-import shutil
+import time
+from datetime import datetime
+from glob import glob
+from unittest import TestCase
 
+from tstconf import DO_CLEANUP, DO_CLEANUP_OLDBUILD, FPGA_FILES, HOURS_ELAPSED_TO_ERASE, PROJECT_TAG
 from tstutils import setup_de10nano
-from tstconf import PROJECT_TAG, DO_CLEANUP, DO_CLEANUP_OLDBUILD, HOURS_ELAPSED_TO_ERASE, FPGA_FILES
-
 
 SECOND_PER_HOUR = 3600
 
@@ -34,6 +33,7 @@ def rmdir(path) -> None:
         shutil.rmtree(path)
     except FileNotFoundError:
         pass
+
 
 class TestCaseDLKBase(TestCase):
     """
@@ -68,17 +68,10 @@ class TestCaseDLKBase(TestCase):
                     rmdir(dirname)
                     print(f'Old directory {dirname} deleted')
 
-        commit_tag = ''
-        try:
-            git_log_output = subprocess.check_output(["git", "log", "-n", "1"], universal_newlines=True)
-            commit_tag = "commit" + git_log_output[7:15]
-        except:
-            pass
-
         datetimetag = datetime.now().strftime("%Y%m%d%H%M")
         classtag = self.__class__.__name__
 
-        prefix = "-".join([prefix0, commit_tag, classtag, datetimetag]) + "-"
+        prefix = "-".join([prefix0, classtag, datetimetag]) + "-"
         self.build_dir = tempfile.mkdtemp(prefix=prefix)
 
     def tearDown(self) -> None:

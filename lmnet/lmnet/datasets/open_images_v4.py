@@ -14,20 +14,18 @@
 # limitations under the License.
 # =============================================================================
 import csv
-from collections import OrderedDict
 import functools
 import json
 import os
 import os.path
 import re
-
+from collections import OrderedDict
 
 import numpy as np
-import PIL
 
 from lmnet import data_processor
-from lmnet.datasets.base import Base, StoragePathCustomizable
-from lmnet.datasets.base import ObjectDetectionBase
+from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
+from lmnet.utils.image import load_image
 from lmnet.utils.random import train_test_split
 
 
@@ -118,7 +116,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
     @property
     @functools.lru_cache(maxsize=None)
     def _target_labels(self):
-        """Map of {csv raw label name: Be mapped taregt label name}. """
+        """Map of {csv raw label name: Be mapped target label name}. """
 
         target_labels = dict(self._make_target_labels())
         return target_labels
@@ -199,7 +197,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
         target_file = files[i]
         gt_boxes = gt_boxes_list[i]
 
-        image = self._get_image(target_file)
+        image = load_image(target_file)
         height = image.shape[0]
         width = image.shape[1]
 
@@ -266,10 +264,8 @@ class OpenImagesV4Classification(OpenImagesV4):
         files, labels = self.files_and_annotations
 
         filename = files[i]
-        image = PIL.Image.open(filename)
-        # sometime image data be gray.
-        image = image.convert("RGB")
-        image = np.array(image)
+
+        image = load_image(filename)
 
         label = data_processor.binarize(labels[i], self.num_classes)
         label = np.reshape(label, (self.num_classes))

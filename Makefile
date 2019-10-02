@@ -33,7 +33,7 @@ test-semantic-segmentation: build
 	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task semantic_segmentation --additional_test
 
 .PHONY: test-lmnet
-test-lmnet: test-lmnet-pep8 test-lmnet-main test-lmnet-check-dataset-storage
+test-lmnet: test-lmnet-pep8 test-lmnet-main
 
 .PHONY: test-lmnet-pep8
 test-lmnet-pep8: build
@@ -56,7 +56,7 @@ test-dlk: test-dlk-pep8 test-dlk-main
 .PHONY: test-dlk-pep8
 test-dlk-pep8: build
 	# Check dlk PEP8
-	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pycodestyle --ignore=W --max-line-length=120 --exclude='*static/pb*','*docs/*','*.eggs*','*tvm/*','*tests/*','backends/*' ."
+	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pycodestyle --ignore=W --max-line-length=120 --exclude='*static/pb*','*docs/*','*.eggs*','*tests/*','backends/*' ."
 
 .PHONY: test-dlk-main
 test-dlk-main: build

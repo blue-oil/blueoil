@@ -15,6 +15,7 @@ limitations under the License.
 
 #include <iostream>
 #include <vector>
+#include <climits>
 #include <cstring>
 #include <cstdio>
 #include <ctime>
@@ -63,34 +64,16 @@ limitations under the License.
 #include "operators.h"
 
 #ifdef RUN_ON_FPGA
-#include <sys/mman.h>
-#include <cstdint>
-#include <fcntl.h>
-#include <unistd.h>
+#include "memdriver.h"
 #endif
-
-namespace {
-
-uint8_t* mapPhysicalMemory(size_t base, size_t size) {
-    int fd = open("/dev/mem", O_RDWR | O_SYNC, 0);
-    if (fd == -1)
-        throw std::system_error(errno, std::generic_category());
-    int rw = PROT_READ | PROT_WRITE;
-    auto* mapped_base = reinterpret_cast<uint8_t*>(mmap(nullptr, size, rw, MAP_SHARED, fd, base));
-    if (mapped_base == MAP_FAILED)
-        throw std::system_error(errno, std::generic_category());
-    return mapped_base;
-}
-
-} // namespace
 
 {% if config.debug -%}
 #include "c2numpy.h"
 
-void save_float32_data(const std::string &name, uint32_t size, float *data, float scale)
+void save_float32_data(const std::string &name, uint32_t size, uint32_t postfix, float *data, float scale)
 {
   c2numpy_writer writer;
-  c2numpy_init(&writer, name.c_str(), 1<<31);
+  c2numpy_init(&writer, name.c_str(), postfix, 1<<31);
   c2numpy_addcolumn(&writer, "data", C2NUMPY_FLOAT32);
   c2numpy_addcolumn(&writer, "scale", C2NUMPY_FLOAT32);
 
@@ -101,10 +84,10 @@ void save_float32_data(const std::string &name, uint32_t size, float *data, floa
   c2numpy_close(&writer);
 }
 
-void save_int32_data(const std::string &name, uint32_t size, int32_t *data, float scale)
+void save_int32_data(const std::string &name, uint32_t size, uint32_t postfix, int32_t *data, float scale)
 {
   c2numpy_writer writer;
-  c2numpy_init(&writer, name.c_str(), 1<<31);
+  c2numpy_init(&writer, name.c_str(), postfix, 1<<31);
   c2numpy_addcolumn(&writer, "data", C2NUMPY_INT32);
   c2numpy_addcolumn(&writer, "scale", C2NUMPY_FLOAT32);
 
@@ -115,10 +98,10 @@ void save_int32_data(const std::string &name, uint32_t size, int32_t *data, floa
   c2numpy_close(&writer);
 }
 
-void save_int16_data(const std::string &name, uint32_t size, int16_t *data, float scale)
+void save_int16_data(const std::string &name, uint32_t size, uint32_t postfix, int16_t *data, float scale)
 {
   c2numpy_writer writer;
-  c2numpy_init(&writer, name.c_str(), 1<<31);
+  c2numpy_init(&writer, name.c_str(), postfix, 1<<31);
   c2numpy_addcolumn(&writer, "data", C2NUMPY_INT16);
   c2numpy_addcolumn(&writer, "scale", C2NUMPY_FLOAT32);
 
@@ -129,10 +112,10 @@ void save_int16_data(const std::string &name, uint32_t size, int16_t *data, floa
   c2numpy_close(&writer);
 }
 
-void save_uint32_data(const std::string &name, uint32_t size, uint32_t *data, float scale)
+void save_uint32_data(const std::string &name, uint32_t size, uint32_t postfix, uint32_t *data, float scale)
 {
   c2numpy_writer writer;
-  c2numpy_init(&writer, name.c_str(), 1<<31);
+  c2numpy_init(&writer, name.c_str(), postfix, 1<<31);
   c2numpy_addcolumn(&writer, "data", C2NUMPY_UINT32);
   c2numpy_addcolumn(&writer, "scale", C2NUMPY_FLOAT32);
 
@@ -259,10 +242,20 @@ bool Network::init()
   {{ '\n' -}}
 
 #if defined RUN_ON_FPGA
-  auto* kernel_buffer = mapPhysicalMemory(KERNEL_ADDR, total_kernel_size);
+  MappedMem kernel_mmap(KERNEL_ADDR, total_kernel_size);
+  auto kernel_buffer = reinterpret_cast<uint8_t*>(kernel_mmap.get());
   {% for qconv in graph.convs(quantized_only=True) -%}
   {%    set kernel = qconv.input_nodes[1] -%}
   std::memcpy(kernel_buffer + {{qconv.name}}_kernel_offset, {{kernel.name}}.data(), {{qconv.name}}_kernel_size);
+  {% endfor -%}
+
+  MappedMem thresholds_mmap(THRESHOLD_ADDR, total_thresholds_size);
+  auto thresholds_buffer = reinterpret_cast<uint8_t*>(thresholds_mmap.get());
+  {% for qconv in graph.convs(quantized_only=True) -%}
+      {% if qconv.has_thresholds -%}
+          {% set thresholds = qconv.thresholds -%}
+  std::memcpy(thresholds_buffer + {{qconv.name}}_thresholds_offset, const_cast<T_INT16*>({{qconv.name}}_thresholds), {{qconv.name}}_thresholds_size);
+      {% endif -%}
   {% endfor -%}
 #endif // RUN_ON_FPGA
 
@@ -360,11 +353,18 @@ bool Network::run(float *network_input, float *network_output)
     {# Temporary: better access to the quantizer #}
 
     {% if node.dtype.cpptype() in ['int', 'int32_t'] -%}
-      save_int32_data("debug/{{ node.name }}", {{ node.view.shape }}, {{ node.name }}, 3.0 / 2.0 );
+      save_int32_data("debug/{{ node.name }}", {{ node.view.shape }}, 0, {{ node.name }}.data(), 3.0 / 2.0 );
     {% elif node.dtype.cpptype() in ['unsigned', 'uint32_t'] -%}
-      save_uint32_data("debug/{{ node.name }}", {{ node.view.shape }}, {{ node.name }}, 1.0);
+      save_uint32_data("debug/{{ node.name }}", {{ node.view.shape }}, 0, {{ node.name }}.data(), 1.0);
     {% elif node.dtype.cpptype() == 'float' -%}
-      save_float32_data("debug/{{ node.name }}", {{ node.view.shape }}, {{ node.name }}, 1.0);
+      {% if node.output_ops.keys()|length > 1 %}
+        {% for k in node.output_ops.keys() -%}
+          save_float32_data("debug/{{ node.name }}", {{ node.view.shape }}, {{ loop.index0 }}, {{ node.name }}[{{ loop.index0 }}].data(), 1.0);
+          {{ '\n' -}}
+        {%- endfor %}
+      {% else %}
+        save_float32_data("debug/{{ node.name }}", {{ node.view.shape }}, 0, {{ node.name }}.data(), 1.0);
+      {% endif %}
     {% endif %}
   {% endif %}
 

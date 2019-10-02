@@ -17,12 +17,10 @@ import functools
 import os.path
 
 import numpy as np
-import PIL.Image
 from pycocotools.coco import COCO
 
-from lmnet.datasets.base import SegmentationBase
-from lmnet.datasets.base import ObjectDetectionBase
-
+from lmnet.utils.image import load_image
+from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 
 DEFAULT_CLASSES = [
         'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
@@ -114,20 +112,6 @@ class MscocoSegmentation(SegmentationBase):
 
         return label
 
-    def _image(self, filename, convert_rgb=True):
-        """Returns numpy array of an image"""
-        image = PIL.Image.open(filename)
-
-        #  sometime image data is gray.
-        if convert_rgb:
-            image = image.convert("RGB")
-        else:
-            image = image.convert("L")
-
-        image = np.array(image)
-
-        return image
-
     def _image_file_from_image_id(self, image_id):
         image = self.coco.loadImgs(image_id)
         return os.path.join(self.image_dir, image[0]["file_name"])
@@ -135,7 +119,7 @@ class MscocoSegmentation(SegmentationBase):
     def __getitem__(self, i, type=None):
         image_id = self._image_ids[i]
         image_file = self._image_file_from_image_id(image_id)
-        image = self._image(image_file)
+        image = load_image(image_file)
 
         label = self._label_from_image_id(image_id)
 
@@ -265,7 +249,7 @@ class MscocoObjectDetection(ObjectDetectionBase):
 
     def __getitem__(self, i, type=None):
         target_file = self.files[i]
-        image = self._get_image(target_file)
+        image = load_image(target_file)
 
         gt_boxes = self.annotations[i]
         gt_boxes = np.array(gt_boxes)

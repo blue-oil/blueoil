@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 The Blueoil Authors. All Rights Reserved.
+# Copyright 2019 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,22 +14,21 @@
 # limitations under the License.
 # =============================================================================
 # -*- coding:utf-8 -*-
+import math
 import random
 from random import randint
 
 import numpy as np
-import math
 from PIL import Image, ImageEnhance, ImageFilter
 
-from lmnet import data_processor
-from lmnet import pre_processor
+from lmnet import data_processor, pre_processor
 
 
 class Blur(data_processor.Processor):
     """Gaussian blur filter.
 
     Reference:
-        http://pillow.readthedocs.io/en/4.3.x/Referenceserence/ImageFilter.html#PIL.ImageFilter.GaussianBlur
+        https://pillow.readthedocs.io/en/stable/reference/ImageFilter.html#PIL.ImageFilter.GaussianBlur
 
     Args:
         value (int | list | tuple): Blur radius. Default is random number from 0 to 1. References default is 2.
@@ -67,7 +66,7 @@ class Brightness(data_processor.Processor):
     """Adjust image brightness.
 
     Reference:
-        http://pillow.readthedocs.io/en/4.2.x/Referenceserence/ImageEnhance.html#PIL.ImageEnhance.Brightness
+        https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html#PIL.ImageEnhance.PIL.ImageEnhance.Brightness
 
     Args:
         value (int | list | tuple): An enhancement factor of 0.0 gives a black image.
@@ -107,7 +106,7 @@ class Color(data_processor.Processor):
     """Adjust image color.
 
     Reference:
-        http://pillow.readthedocs.io/en/4.2.x/Referenceserence/ImageEnhance.html#PIL.ImageEnhance.Color
+        https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html#PIL.ImageEnhance.PIL.ImageEnhance.Color
 
     Args:
         value (int | list | tuple): An enhancement factor of 0.0 gives a black and white image.
@@ -147,7 +146,7 @@ class Contrast(data_processor.Processor):
     """Adjust image contrast.
 
     Reference:
-        http://pillow.readthedocs.io/en/4.2.x/Referenceserence/ImageEnhance.html#PIL.ImageEnhance.Contrast
+        https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html#PIL.ImageEnhance.PIL.ImageEnhance.Contrast
 
     Args:
         value (int | list | tuple): An enhancement factor of 0.0 gives a solid grey image.

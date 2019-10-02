@@ -14,7 +14,8 @@
 # limitations under the License.
 # =============================================================================
 import tensorflow as tf
-from lmnet.layers import conv2d, batch_norm
+
+from lmnet.layers import batch_norm, conv2d
 
 
 # TODO(wakisaka): should be replace to conv_bn_act().
@@ -41,7 +42,7 @@ def darknet(name, inputs, filters, kernel_size, is_training=tf.constant(False), 
                       activation=None, use_bias=False, data_format=channel_data_format,
                       kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),)  # he initializer
 
-        # TODO(wakisaka): Should be the same as darknet batrch norm.
+        # TODO(wakisaka): Should be the same as darknet batch norm.
         # https://github.com/tensorflow/tensorflow/blob/r1.1/tensorflow/contrib/layers/python/layers/layers.py
         # https://github.com/pjreddie/darknet/blob/8215a8864d4ad07e058acafd75b2c6ff6600b9e8/src/batchnorm_layer.c#L135
         batch_normed = batch_norm("bn", conv, is_training=is_training, decay=0.99, scale=True, center=True,
@@ -154,7 +155,7 @@ def conv_bn_act(
         is_training (tf.constant): Flag if training or not for batch norm.
         activation (callable): Activation function.
         batch_norm_decay (float): Batch norm decay rate.
-        data_format (string):  Fromat for inputs data. NHWC or NCHW.
+        data_format (string):  Format for inputs data. NHWC or NCHW.
         enable_detail_summary (bool): Flag for summarize feature maps for each operation on tensorboard.
     Returns:
         output (tf.Tensor): Output of this block.
@@ -276,7 +277,7 @@ def densenet_group(
         data_format="NHWC",
         enable_detail_summary=False,
 ):
-    """Group of Densent blocks.
+    """Group of Densenet blocks.
 
     paper: https://arxiv.org/abs/1608.06993
     In the original paper, this method is called `Dense block` which consists of some 1x1 and 3x3 conv blocks
@@ -286,7 +287,7 @@ def densenet_group(
     Args:
         name (str): Block name, as scope name.
         inputs (tf.Tensor): Inputs.
-        num_blocks (int): Number of dense blocks which consits of 1x1 and 3x3 cov.
+        num_blocks (int): Number of dense blocks which consist of 1x1 and 3x3 conv.
         growth_rate (int): How many filters (out channel) to add each layer.
         bottleneck_rate (int): The factor to be calculated bottle-neck 1x1 conv output channel.
             `bottleneck_channel = growth_rate * bottleneck_rate`.
@@ -296,7 +297,7 @@ def densenet_group(
         activation (callable): Activation function.
         batch_norm_decay (float): Batch norm decay rate.
         enable_detail_summary (bool): Flag for summarize feature maps for each operation on tensorboard.
-        data_format (string):  Fromat for inputs data. NHWC or NCHW.
+        data_format (string):  Format for inputs data. NHWC or NCHW.
     Returns:
         tf.Tensor: Output of current  block.
     """

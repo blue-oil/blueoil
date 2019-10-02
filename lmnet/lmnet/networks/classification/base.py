@@ -40,7 +40,7 @@ class Base(BaseNetwork):
 
         self.weight_decay_rate = weight_decay_rate
 
-    def placeholderes(self):
+    def placeholders(self):
         """Placeholders.
 
         Return placeholders.
@@ -97,7 +97,7 @@ class Base(BaseNetwork):
         """
 
         with tf.name_scope("loss"):
-            labels = tf.to_float(labels)
+            labels = tf.cast(labels, tf.float32)
             cross_entropy = -tf.reduce_sum(
                 labels * tf.log(tf.clip_by_value(softmax, 1e-10, 1.0)),
                 axis=[1]
@@ -126,7 +126,7 @@ class Base(BaseNetwork):
 
         results = []
 
-        # shpae: [batch_size, height, width, num_classes]
+        # shape: [batch_size, height, width, num_classes]
         heatmap = tf.image.resize_images(
             target_feature_map, [self.image_size[0], self.image_size[1]],
             method=tf.image.ResizeMethod.BICUBIC,
@@ -137,7 +137,7 @@ class Base(BaseNetwork):
 
         for i, class_name in enumerate(self.classes):
             class_heatmap = heatmap[:, :, :, i]
-            indices = tf.to_int32(tf.round(class_heatmap * 255))
+            indices = tf.cast(tf.round(class_heatmap * 255), tf.int32)
             color_map = cm.jet
             # Init color map for useing color lookup table(_lut).
             color_map._init()
@@ -192,7 +192,7 @@ class Base(BaseNetwork):
            labels: onehot labels tensor. shape is (batch_num, num_classes)
         """
         with tf.name_scope("metrics_calc"):
-            labels = tf.to_float(labels)
+            labels = tf.cast(labels, tf.float32)
 
             if self.is_debug:
                 labels = tf.Print(labels, [tf.shape(labels), tf.argmax(labels, 1)], message="labels:", summarize=200)

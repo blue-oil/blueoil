@@ -15,8 +15,8 @@
 # =============================================================================
 import tensorflow as tf
 
-from lmnet.networks.base import BaseNetwork
 from lmnet.common import get_color_map
+from lmnet.networks.base import BaseNetwork
 
 
 class Base(BaseNetwork):
@@ -42,7 +42,7 @@ class Base(BaseNetwork):
         else:
             self.label_colors = label_colors
 
-    def placeholderes(self):
+    def placeholders(self):
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 3) \
             if self.data_format == 'NHWC' else (self.batch_size, 3, self.image_size[0], self.image_size[1])
         images_placeholder = tf.placeholder(
@@ -76,7 +76,7 @@ class Base(BaseNetwork):
 
     def _summary_labels(self, labels):
 
-        tf.summary.image("labels", tf.to_float(tf.expand_dims(labels, axis=3)))
+        tf.summary.image("labels", tf.cast(tf.expand_dims(labels, axis=3), tf.float32))
 
         labels = self._color_labels(labels, name="labels_color")
 
@@ -165,20 +165,21 @@ class SegnetBase(Base):
 
         Args:
            output: Tensor of network output. shape is (batch_size, output_height, output_width, num_classes).
-           labels: Tensor of grayscale imnage gt labels. shape is (batch_size, height, width).
+           labels: Tensor of grayscale image gt labels. shape is (batch_size, height, width).
         """
         if self.data_format == 'NCHW':
             output = tf.transpose(output, perm=[0, 2, 3, 1])
         with tf.name_scope("loss"):
             # calculate loss weights for each class.
             loss_weight = []
-            all_size = tf.to_float(tf.reduce_prod(tf.shape(labels)))
+            all_size = tf.cast(tf.reduce_prod(tf.shape(labels)), tf.float32)
             for class_index in range(self.num_classes):
-                num_label = tf.reduce_sum(tf.to_float(tf.equal(labels, class_index)))
+                num_label = tf.reduce_sum(tf.cast(tf.equal(labels, class_index), tf.float32))
                 weight = (all_size - num_label) / all_size
                 loss_weight.append(weight)
 
-            loss_weight = tf.Print(loss_weight, loss_weight, message="loss_weight:")
+            if self.is_debug:
+                loss_weight = tf.Print(loss_weight, loss_weight, message="loss_weight:")
 
             reshape_output = tf.reshape(output, (-1, self.num_classes))
 

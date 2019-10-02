@@ -30,24 +30,22 @@ import numpy as np
 import PIL.Image
 import PIL.ImageDraw
 
-from lmnet.pre_processor import Resize, ResizeWithMask, ResizeWithGtBoxes
-from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
-from lmnet.datasets.pascalvoc_2012 import Pascalvoc2012
-from lmnet.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
+from lmnet.datasets.bdd100k import BDD100K
 from lmnet.datasets.caltech101 import Caltech101
-from lmnet.datasets.cifar10 import Cifar10
 from lmnet.datasets.camvid import Camvid
+from lmnet.datasets.cifar10 import Cifar10
 from lmnet.datasets.cityscapes import Cityscapes
+from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.ilsvrc_2012 import Ilsvrc2012
 from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
-from lmnet.datasets.mscoco import (
-    MscocoSegmentation,
-    MscocoObjectDetection as MscocoObjectDetection,
-    MscocoObjectDetectionPerson as MscocoObjectDetectionPerson,
-)
+from lmnet.datasets.mscoco import MscocoObjectDetection as MscocoObjectDetection
+from lmnet.datasets.mscoco import MscocoObjectDetectionPerson as MscocoObjectDetectionPerson
+from lmnet.datasets.mscoco import MscocoSegmentation
+from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
+from lmnet.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
+from lmnet.datasets.pascalvoc_2012 import Pascalvoc2012
 from lmnet.datasets.widerface import WiderFace
-from lmnet.datasets.bdd100k import BDD100K
-from lmnet.datasets.dataset_iterator import DatasetIterator
+from lmnet.pre_processor import Resize, ResizeWithGtBoxes, ResizeWithMask
 
 IS_DEBUG = False
 

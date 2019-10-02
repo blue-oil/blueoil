@@ -17,10 +17,11 @@
 import os
 import unittest
 
-from scripts import generate_project as gp
 from nose2.tools import params
 
+from scripts import generate_project as gp
 from testcase_dlk_base import TestCaseDLKBase
+
 
 def params_generate():
     flags_hq_thskip = [(False, False), (True, True), (False, True)]
@@ -46,8 +47,6 @@ class TestGenerateProject(TestCaseDLKBase):
                activate_hard_quantization=flag_hq,
                threshold_skipping=flag_thskip,
                num_pe=16,
-               use_tvm=False,
-               use_onnx=False,
                debug=False,
                cache_dma=False
                )

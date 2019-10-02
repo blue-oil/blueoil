@@ -14,10 +14,14 @@ limitations under the License.
 ==============================================================================*/
 
 #include <cmath>
+#include <memory>
 
 #include "global.h"
 #include "func/batch_normalization.h"
 #include "time_measurement.h"
+
+static const auto scale = std::make_unique<float[]>(MAX_IN_C);
+static const auto shift = std::make_unique<float[]>(MAX_IN_C);
 
 void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_FLOAT, MemoryLayout::C>& gamma,
@@ -32,10 +36,6 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
   const unsigned out_width = output.get_shape()[2];
   const unsigned out_depth = output.get_shape()[3];
 
-  // temporary fix: will be replaced by pre-allocated one
-  T_FLOAT *scale = new float[out_depth];
-  T_FLOAT *shift = new float[out_depth];
-
   for (T_UINT i = 0; i < out_depth; i++)
     scale[i] = gamma(i) * (1.0 / std::sqrt(variance(i) + epsilon));
 
@@ -49,9 +49,6 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
       }
     }
   }
-
-  delete[] scale;
-  delete[] shift;
 
   Measurement::Stop();
 }

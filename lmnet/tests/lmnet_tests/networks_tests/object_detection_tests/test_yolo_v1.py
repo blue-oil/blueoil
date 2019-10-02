@@ -13,17 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
 import numpy as np
-import tensorflow as tf
 import pytest
+import tensorflow as tf
+from easydict import EasyDict
 
+from executor.train import start_training
 from lmnet import environment
+from lmnet.common import Tasks
 from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
 from lmnet.networks.object_detection.yolo_v1 import YoloV1
-from lmnet.utils.executor import prepare_dirs
 from lmnet.pre_processor import ResizeWithGtBoxes
-from executor.train import start_training
+from lmnet.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 # Set test environment
@@ -279,7 +280,7 @@ def test_training():
     config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
-    config.IS_DISTRIBUTION = False
+    config.TASK = Tasks.OBJECT_DETECTION
 
     # network model config
     config.NETWORK = EasyDict()

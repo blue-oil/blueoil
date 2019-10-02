@@ -16,14 +16,15 @@
 """Module of optimization passes."""
 import math
 import warnings
+from collections import defaultdict
+from typing import Any, List, cast
+
 import numpy as np
 
+from core.data_types import QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, Int32, PackedUint32, Uint32
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from core.operators import Constant, Operator, Conv, Lookup
-from core.data_types import Uint32, Int32, QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, PackedUint32, QUANTIZED_PACKED_KERNEL
-from typing import cast, List, Any
-from collections import defaultdict
+from core.operators import Constant, Conv, Lookup, Operator
 from modules.packer import Packer
 
 
@@ -623,10 +624,8 @@ def pass_lookup(graph: Graph) -> None:
         idx = 0
         for p in qtz_data:
             data = packer.run(p.astype(np.float32), p.shape).flatten()
-            # lsb[idx] = data[0] & 0x0000FFFF
-            # msb[idx] = data[1] & 0x0000FFFF
-            lsb[idx] = data[0] & 0x000003FF
-            msb[idx] = data[1] & 0x000003FF
+            lsb[idx] = data[0]
+            msb[idx] = data[1]
 
             idx += 1
 

@@ -29,4 +29,3 @@ source $SOCEDS_DEST_ROOT/env.sh
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intelFPGA_lite/17.1/quartus/linux64
 
-export PATH=$PATH:/opt/llvm/bin

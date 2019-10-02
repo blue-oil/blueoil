@@ -13,20 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from abc import ABCMeta
 import os
 import pprint
+from abc import ABCMeta
 
-from easydict import EasyDict
 import yaml
-from yaml.representer import Representer
+from easydict import EasyDict
 from tensorflow import gfile
+from yaml.representer import Representer
 
+from lmnet import environment
 from lmnet.common import Tasks
 from lmnet.data_processor import Processor, Sequence
 from lmnet.utils import module_loader
-from lmnet import environment
-
 
 PARAMS_FOR_EXPORT = [
     "DATA_FORMAT",
@@ -60,7 +59,6 @@ REQUIEMNT_PARAMS_FOR_TRAINING = REQUIEMNT_PARAMS_FOR_INFERENCE + [
     "PRETRAIN_VARS",
     "PRETRAIN_DIR",
     "PRETRAIN_FILE",
-    "IS_DISTRIBUTION",
 ]
 
 
@@ -97,10 +95,10 @@ def check_config(config, mode="inference"):
         if isinstance(key, tuple):
             keys = key
             if not any([key in config for key in keys]):
-                raise KeyError("config file should be included {} parameter".format(" or ".join(keys)))
+                raise KeyError("config file should include {} parameter".format(" or ".join(keys)))
         else:
             if key not in config:
-                raise KeyError("config file should be included {} parameter".format(key))
+                raise KeyError("config file should include {} parameter".format(key))
 
 
 def load(config_file):
@@ -170,12 +168,12 @@ def _save_meta_yaml(output_dir, config):
         return dumper.represent_list(data)
 
     def processor_representer(dumper, data):
-        """From Processor instance to dictonary of classname and instance property's key and value.
+        """From Processor instance to dictionary of classname and instance property's key and value.
 
-        Acccording to pickle manner, use __reduce_ex__() to get instance property.
+        According to pickle manner, use __reduce_ex__() to get instance property.
         """
 
-        # state is dictonary of Processor instances property's key and value.
+        # state is dictionary of Processor instances property's key and value.
         # Ref: https://docs.python.org/3/library/pickle.html#data-stream-format
         _, _, state, _, _ = data.__reduce_ex__(4)
 

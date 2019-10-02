@@ -15,8 +15,8 @@
 # =============================================================================
 import tensorflow as tf
 
-from lmnet.networks.classification.base import Base
 from lmnet.layers import average_pooling2d, batch_norm, conv2d, fully_connected
+from lmnet.networks.classification.base import Base
 
 
 class Resnet(Base):
@@ -166,7 +166,7 @@ class Resnet(Base):
            output: softmaxed tensor from base. shape is (batch_num, num_classes)
            labels: onehot labels tensor. shape is (batch_num, num_classes)
         """
-        labels = tf.to_float(labels)
+        labels = tf.cast(labels, tf.float32)
 
         if self.is_debug:
             labels = tf.Print(labels, [tf.shape(labels), tf.argmax(labels, 1)], message="labels:", summarize=200)

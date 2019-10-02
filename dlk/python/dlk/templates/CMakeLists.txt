@@ -32,6 +32,7 @@ file(GLOB SRC_LIB_ALL "src/inputs/*.cpp")
 list(APPEND SRC_LIB_ALL
     src/func/average_pool.cpp
     src/func/conv2d.cpp
+    src/func/lookup.cpp
     src/func/max_pool.cpp
     src/func/pad.cpp
     src/func/matmul.cpp
@@ -39,10 +40,12 @@ list(APPEND SRC_LIB_ALL
     src/func/softmax.cpp
     src/func/unpooling.cpp
     src/matrix/shift_add.cpp
+    src/matrix/multiplication.cpp
     src/network_c_interface.cpp
     src/network.cpp
     src/pack_input_to_qwords.cpp
     src/time_measurement.cpp
+    src/quantizer.cpp
 )
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/src/scaling_factors.cpp)
@@ -54,20 +57,17 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/src/thresholds.cpp)
 endif()
 
 if(RUN_ON_FPGA)
-    list(APPEND SRC_LIB_ALL src/pack2b_neonv7.S)
     list(APPEND SRC_LIB_ALL src/func/arm_neon/batch_normalization.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/fpga/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pop_count.cpp)
-    list(APPEND SRC_LIB_ALL src/matrix/arm_neon/quantized_multiplication.cpp)
 elseif(USE_NEON)
-    list(APPEND SRC_LIB_ALL src/pack2b_neonv7.S)
     list(APPEND SRC_LIB_ALL src/func/arm_neon/batch_normalization.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/quantized_conv2d_tiling.cpp)
-    list(APPEND SRC_LIB_ALL src/func/impl/generic/quantized_conv2d_kn2row.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pop_count.cpp)
-    list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pack_16bit.cpp)
-    list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/apply_thresholds.cpp)
-    list(APPEND SRC_LIB_ALL src/matrix/arm_neon/quantized_multiplication.cpp)
+elseif(USE_AVX)
+    list(APPEND SRC_LIB_ALL src/func/x86_avx/batch_normalization.cpp)
+    list(APPEND SRC_LIB_ALL src/func/impl/x86_avx/quantized_conv2d_tiling.cpp)
+    list(APPEND SRC_LIB_ALL src/func/impl/generic/pop_count.cpp)
 else()
     list(APPEND SRC_LIB_ALL src/func/generic/batch_normalization.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/generic/quantized_conv2d_kn2row.cpp)
@@ -90,7 +90,12 @@ macro(add_dlk_target_compile_properties target)
     target_include_directories(${target} PUBLIC include)
     if(USE_NEON)
         target_compile_definitions(${target} PUBLIC -DUSE_NEON)
-        target_compile_options(${target} PUBLIC -mcpu=cortex-a9 -mfpu=neon -mthumb -fopenmp)
+        target_compile_options(${target} PUBLIC -fopenmp)
+        target_link_libraries(${target} PUBLIC -fopenmp)
+    endif()
+    if(USE_AVX)
+        target_compile_definitions(${target} PUBLIC -DUSE_AVX)
+        target_compile_options(${target} PUBLIC -mavx2 -mfma -fopenmp)
         target_link_libraries(${target} PUBLIC -fopenmp)
     endif()
     if(RUN_ON_FPGA)
@@ -98,6 +103,7 @@ macro(add_dlk_target_compile_properties target)
     endif()
     if(AARCH32)
         target_compile_definitions(${target} PUBLIC -DAARCH32)
+        target_compile_options(${target} PUBLIC -mcpu=cortex-a9 -mfpu=neon -mthumb)
     endif()
 endmacro()
 

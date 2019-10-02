@@ -19,8 +19,9 @@ import os
 import click
 import tensorflow as tf
 
-from lmnet.utils import executor, config as config_util
 from lmnet import environment
+from lmnet.utils import config as config_util
+from lmnet.utils import executor
 
 
 def _profile(config, restore_path, bit, unquant_layers):
@@ -45,9 +46,9 @@ def _profile(config, restore_path, bit, unquant_layers):
 
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, _ = model.placeholderes()
-        output = model.inference(images_placeholder, is_training)
-        model.summary(output)
+        images_placeholder, _ = model.placeholders()
+        model.inference(images_placeholder, is_training)
+
         init_op = tf.global_variables_initializer()
         saver = tf.train.Saver(max_to_keep=50)
 

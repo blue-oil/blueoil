@@ -16,10 +16,8 @@
 import numpy as np
 import tensorflow as tf
 
-
 from lmnet.layers import conv2d, fully_connected, max_pooling2d
-from lmnet.metrics.mean_average_precision import tp_fp_in_the_image
-from lmnet.metrics.mean_average_precision import average_precision
+from lmnet.metrics.mean_average_precision import average_precision, tp_fp_in_the_image
 from lmnet.networks.base import BaseNetwork
 
 
@@ -68,7 +66,7 @@ class YoloV1(BaseNetwork):
             yolo=self,
         )
 
-    def placeholderes(self):
+    def placeholders(self):
         """placeholders"""
 
         images_placeholder = tf.placeholder(
@@ -156,7 +154,7 @@ class YoloV1(BaseNetwork):
         gt_boxes :3D tensor [batch_size, max_num_boxes, 5(x, y, w, h, class_id)]
         """
         axis = 2
-        gt_boxes = tf.to_float(gt_boxes)
+        gt_boxes = tf.cast(gt_boxes, tf.float32)
         gt_boxes_without_label = gt_boxes[:, :, :4]
         gt_boxes_only_label = tf.reshape(gt_boxes[:, :, 4], [self.batch_size, -1, 1])
         gt_boxes_without_label = format_XYWH_to_CXCYWH(gt_boxes_without_label, axis=axis)
@@ -378,7 +376,7 @@ class YoloV1(BaseNetwork):
                     masked_boxes[:, 1],
                     masked_boxes[:, 2],
                     masked_boxes[:, 3],
-                    tf.to_float(masked_classes),
+                    tf.cast(masked_classes, tf.float32),
                     masked_class_probability,
                 ], axis=1)
 
@@ -595,7 +593,7 @@ class YoloV1Loss:
         # calculate intersection. [batch_size, cell_size, cell_size, boxes_per_cell, 2]
         inter = right_bottom - left_top
         inter_square = inter[:, :, :, :, 0] * inter[:, :, :, :, 1]
-        mask = tf.to_float(inter[:, :, :, :, 0] > 0) * tf.to_float(inter[:, :, :, :, 1] > 0)
+        mask = tf.cast(inter[:, :, :, :, 0] > 0, tf.float32) * tf.cast(inter[:, :, :, :, 1] > 0, tf.float32)
 
         intersection = mask * inter_square
 
@@ -618,7 +616,7 @@ class YoloV1Loss:
         # exclude dummy. class id `-1` is dummy.
         gt_mask = tf.not_equal(gt_boxes[:, 4], -1)
 
-        result = i < tf.reduce_sum(tf.to_int32(gt_mask))
+        result = i < tf.reduce_sum(tf.cast(gt_mask, tf.int32))
 
         return result
 
@@ -635,8 +633,8 @@ class YoloV1Loss:
         center_y = gt_boxes[i, 1]
         center_x = gt_boxes[i, 0]
 
-        cell_y_index = tf.to_int32(tf.floor((center_y / self.image_size[1]) * self.cell_size))
-        cell_x_index = tf.to_int32(tf.floor((center_x / self.image_size[0]) * self.cell_size))
+        cell_y_index = tf.cast(tf.floor((center_y / self.image_size[1]) * self.cell_size), tf.int32)
+        cell_x_index = tf.cast(tf.floor((center_x / self.image_size[0]) * self.cell_size), tf.int32)
 
         boxes = []
         mask_list = []
@@ -672,10 +670,10 @@ class YoloV1Loss:
         Return:
         cell_gt_boxes: Tensor [batch_size, cell_size, cell_size, 4(center_x, center_y, w, h)].
             copy from non dummy gt boxes coodinate to corresponding cell.
-        object_maskes: Tensor [batch_size, cell_size, cell_size, 1]. the cell that has gt boxes is 1, none is 0.
+        object_masks: Tensor [batch_size, cell_size, cell_size, 1]. the cell that has gt boxes is 1, none is 0.
         """
         cell_gt_boxes = []
-        object_maskes = []
+        object_masks = []
         for batch_index in range(self.batch_size):
             i = tf.constant(0)
             gt_boxes = gt_boxes_list[batch_index, :, :]
@@ -689,12 +687,12 @@ class YoloV1Loss:
             )
 
             cell_gt_boxes.append(result_cell_gt_box)
-            object_maskes.append(result_object_mask)
+            object_masks.append(result_object_mask)
 
         cell_gt_boxes = tf.stack(cell_gt_boxes)
-        object_maskes = tf.stack(object_maskes)
+        object_masks = tf.stack(object_masks)
 
-        return cell_gt_boxes, object_maskes
+        return cell_gt_boxes, object_masks
 
     def __call__(self, predict_classes, predict_confidence, predict_boxes, gt_boxes):
         """Loss function.
@@ -709,7 +707,7 @@ class YoloV1Loss:
             cell_gt_boxes, object_mask = self._gt_boxes_to_cell(gt_boxes)
 
             # for class loss
-            truth_classes = tf.to_int32(cell_gt_boxes[:, :, :, 4])
+            truth_classes = tf.cast(cell_gt_boxes[:, :, :, 4], tf.int32)
             truth_classes = tf.one_hot(truth_classes, self.num_classes)
 
             # resize to real space.
@@ -830,7 +828,7 @@ def summary_boxes(tag, images, boxes, image_size, max_outputs=3):
 
 
 def format_XYWH_to_CXCYWH(boxes, axis=1):
-    """Format form (x, y, w, h) to (center_x, center_y, w, h) along specific dimention.
+    """Format form (x, y, w, h) to (center_x, center_y, w, h) along specific dimension.
 
     Args:
     boxes :a Tensor include boxes. [:, 4(x, y, w, h)]
@@ -846,7 +844,7 @@ def format_XYWH_to_CXCYWH(boxes, axis=1):
 
 
 def format_CXCYWH_to_XYWH(boxes, axis=1):
-    """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimention.
+    """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimension.
 
     Args:
     boxes: A tensor include boxes. [:, 4(x, y, w, h)]
@@ -862,7 +860,7 @@ def format_CXCYWH_to_XYWH(boxes, axis=1):
 
 
 def format_CXCYWH_to_YX(inputs, axis=1):
-    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimention.
+    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimension.
 
     Args:
       inputs: a Tensor include boxes.
@@ -880,7 +878,7 @@ def format_CXCYWH_to_YX(inputs, axis=1):
 
 
 def format_XYWH_to_YX(inputs, axis=1):
-    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimention.
+    """Format from (x, y, w, h) to (y1, x1, y2, x2) boxes along specific dimension.
 
     Args:
       inputs: a Tensor include boxes.

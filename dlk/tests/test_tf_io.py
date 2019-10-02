@@ -13,10 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-"""Test file for OnnxIO."""
 import functools
 import unittest
-from os import path, makedirs
+from os import makedirs, path
 from typing import List
 
 import numpy as np
@@ -25,7 +24,7 @@ from core import Operator
 from core.data_types import Float32
 from core.graph import Graph
 from core.model import Model
-from core.operators import Input, Output, Constant, Conv
+from core.operators import Constant, Conv, Input, Output
 from frontend import TensorFlowIO
 from scripts.simple_model import make_simple_model as make_model
 

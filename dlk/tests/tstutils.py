@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import unittest
+import os
 import subprocess
 import time
-import os
+import unittest
 from os.path import join
 
 from tstconf import DO_CLEANUP
@@ -76,21 +76,21 @@ def run_and_check(command, cwd, file_stdout=None, file_stderr=None, testcase=Non
 
     try:
         if not ignore_returncode:
-            testcase.assertTrue(proc.returncode == 0)
+            testcase.assertEqual(proc.returncode, 0)
 
         if check_stdout_include:
             for key in check_stdout_include:
-                testcase.assertTrue(key in out)
+                testcase.assertIn(key, out)
         if check_stdout_block:
             for key in check_stdout_block:
-                testcase.assertFalse(key in out)
+                testcase.assertNotIn(key, out)
 
         if check_stderr_include:
             for key in check_stderr_include:
-                testcase.assertTrue(key in err)
+                testcase.assertIn(key, err)
         if check_stderr_block:
             for key in check_stderr_block:
-                testcase.assertFalse(key in err)
+                testcase.assertNotIn(key, err)
     except AssertionError:
         print("---begining of stdout---")
         print(out)
@@ -195,4 +195,3 @@ def setup_de10nano(hw_path: str, output_path: str, testcase=None):
         return False
 
     return True
-

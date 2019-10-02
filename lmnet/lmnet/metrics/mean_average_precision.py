@@ -18,9 +18,8 @@ import re
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.ops import metrics_impl
-from tensorflow.python.ops import variable_scope
 from tensorflow.python.framework import ops
+from tensorflow.python.ops import metrics_impl, variable_scope
 
 
 # ===========================================================================
@@ -86,8 +85,8 @@ def _streaming_tp_fp_array(
                                        [num_gt_boxes, tp, fp, scores]):
         tp = tf.cast(tp, tf.bool)
         fp = tf.cast(fp, tf.bool)
-        scores = tf.to_float(scores)
-        num_gt_boxes = tf.to_int64(num_gt_boxes)
+        scores = tf.cast(scores, tf.float32)
+        num_gt_boxes = tf.cast(num_gt_boxes, tf.int64)
 
         # Reshape TP and FP tensors and clean away 0 class values.
         tp = tf.reshape(tp, [-1])
