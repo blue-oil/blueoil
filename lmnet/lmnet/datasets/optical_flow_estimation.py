@@ -104,11 +104,11 @@ class OpticalFlowEstimationBase(Base):
 
     def __init__(
             self, *args, validation_rate=0.1, validation_seed=1234,
-            pre_load=False, half_size=False, **kwargs):
+            pre_load=False, slice_step=1, **kwargs):
         super().__init__(*args, **kwargs,)
         self.fetch_file_list()
         self.split_file_list(validation_rate, validation_seed)
-        self.half_size = half_size
+        self.slice_step = slice_step
         if pre_load:
             self.pre_load()
 
@@ -118,13 +118,10 @@ class OpticalFlowEstimationBase(Base):
         image_a = _open_image_file(image_a_path)
         image_b = _open_image_file(image_b_path)
         flow = self.flow_loader(flow_path)
-        if self.half_size:
-            return np.concatenate(
-                [image_a, image_b], axis=2).astype(np.uint8)[::2, ::2], \
-                flow[::2, ::2]
-        else:
-            return np.concatenate(
-                [image_a, image_b], axis=2).astype(np.uint8), flow
+        return np.concatenate(
+            [image_a, image_b], axis=2).astype(np.uint8)[
+                ::self.slice_step, ::self.slice_step], \
+            flow[::self.slice_step, ::self.slice_step]
 
     def __len__(self):
         return self.num_per_epoch

@@ -22,17 +22,16 @@ from lmnet.networks.base import BaseNetwork
 from .flow_to_image import flow_to_image
 
 
-class LmFlowNetV1(BaseNetwork):
+class LmFlowNet(BaseNetwork):
     """
-    LmFlowNet V1 for optical flow estimation.
+    LmFlowNet for optical flow estimation.
     """
     version = 1.00
 
     def __init__(
-            self, *args, weight_decay_rate=0.0004, div_flow=20.0, **kwargs):
+            self, *args, weight_decay_rate=0.0004,
+            div_flow=20.0, conv_depth=6, **kwargs):
         super().__init__(*args, **kwargs)
-        # TODO PyCharm warning.
-        # I think we should define self.images first here. Check other networks.
         self.images = None
         self.base_dict = None
         self.activation_first_layer = lambda x: tf.nn.leaky_relu(
@@ -42,6 +41,7 @@ class LmFlowNetV1(BaseNetwork):
         self.activation_before_last_layer = self.activation
         self.weight_decay_rate = weight_decay_rate
         self.div_flow = div_flow
+        self.conv_depth = conv_depth
         self.use_batch_norm = True
         self.custom_getter = None
 
@@ -72,6 +72,15 @@ class LmFlowNetV1(BaseNetwork):
                     self.data_format))
 
         if strides > 1:
+            # _, _, _, channels = inputs.get_shape().as_list()
+            # q, r = divmod(channels, 8)
+            # if r != 0:
+            #     inputs = tf.layers.conv2d(
+            #         inputs,
+            #         filters=8 * (q + 1),
+            #         kernel_size=1,
+            #         padding='SAME',
+            #     )
             inputs = self._space_to_depth(name, inputs, strides)
             strides = 1
 
@@ -228,68 +237,57 @@ class LmFlowNetV1(BaseNetwork):
             return tf.reduce_mean(loss)
 
     def _contractive_block(self, images, is_training):
-        # NOTE tf version uses padding=VALID and pad to match the original caffe code.
-        x = self._conv_bn_act('conv1', images, 64, is_training, strides=2,
-                              activation=self.activation_first_layer)
-        conv2 = self._conv_bn_act('conv2', x, 128, is_training, strides=2,
-                                  activation=self.activation_before_last_layer)
-        x = self._conv_bn_act('conv3', conv2, 256, is_training, strides=2)
-        conv3_1 = self._conv_bn_act('conv3_1', x, 256, is_training)
-        x = self._conv_bn_act('conv4', conv3_1, 512, is_training, strides=2)
-        conv4_1 = self._conv_bn_act('conv4_1', x, 512, is_training)
-        x = self._conv_bn_act('conv5', conv4_1, 512, is_training, strides=2)
-        conv5_1 = self._conv_bn_act('conv5_1', x, 512, is_training)  # 12x16
-        x = self._conv_bn_act('conv6', conv5_1, 1024,
-                              is_training, strides=2)  # 12x16
-        conv6_1 = self._conv_bn_act('conv6_1', x, 1024, is_training)  # 6x8
+        # NOTE: tf version uses padding=VALID and pad
+        # to match the original caffe code.
+        contractive_dict = {}
+        default_conv_channel = [64, 128, 256, 512, 512, 1024, 1024, 1024]
+        conv1 = self._conv_bn_act(
+            'conv1', images, default_conv_channel[0], is_training, strides=2,
+            activation=self.activation_first_layer)
+        conv2 = self._conv_bn_act(
+            'conv2', conv1, default_conv_channel[1], is_training, strides=2,
+            activation=self.activation_before_last_layer)
+        contractive_dict['conv2'] = conv2
 
-        return {
-            'conv2': conv2,
-            'conv3_1': conv3_1,
-            'conv4_1': conv4_1,
-            'conv5_1': conv5_1,
-            'conv6_1': conv6_1,
-        }
+        conv_pre = conv2
+        for _ in range(2, self.conv_depth):
+            name1 = 'conv{}'.format(_ + 1)
+            name2 = 'conv{}_1'.format(_ + 1)
+            num_channel = default_conv_channel[_]
+            convx = self._conv_bn_act(
+                name1, conv_pre, num_channel, is_training, strides=2)
+            contractive_dict[name2] = self._conv_bn_act(
+                name2, convx, num_channel, is_training)
+            conv_pre = contractive_dict[name2]
+        return contractive_dict
 
     def _refinement_block(self, images, conv_dict, is_training):
-        predict_flow6 = self._predict_flow(
-            'predict_flow6', conv_dict['conv6_1'], is_training)
-        upsample_flow6 = self._upsample_flow(
-            'upsample_flow6', predict_flow6, is_training)
-        deconv5 = self._deconv(
-            'deconv5', conv_dict['conv6_1'], 512, is_training)
+        refinement_dict = {}
+        concat = None
+        default_deconv_channel = [0, 0, 64, 128, 256, 512, 512, 512]
+        for _ in reversed(range(2, self.conv_depth)):
+            conv_name = 'conv{}_1'.format(_ + 1)
+            predict_name = 'predict_flow{}'.format(_ + 1)
+            upsample_name = 'upsample_flow{}'.format(_ + 1)
+            deconv_name = 'deconv{}'.format(_)
+            num_channel = default_deconv_channel[_]
+            if concat is None:
+                concat = conv_dict[conv_name]
+            else:
+                concat = tf.concat(
+                    [conv_dict[conv_name], deconv, upsample_flow], axis=3)
+            refinement_dict[predict_name] = self._predict_flow(
+                predict_name, concat, is_training)
+            upsample_flow = self._upsample_flow(
+                upsample_name, refinement_dict[predict_name], is_training)
+            deconv = self._deconv(
+                deconv_name, concat, num_channel, is_training)
 
-        concat5 = tf.concat(
-            [conv_dict['conv5_1'], deconv5, upsample_flow6], axis=3)
-        predict_flow5 = self._predict_flow(
-            'predict_flow5', concat5, is_training)
-        upsample_flow5 = self._upsample_flow(
-            'upsample_flow5', predict_flow5, is_training)
-        deconv4 = self._deconv('deconv4', concat5, 256, is_training)
-
-        concat4 = tf.concat(
-            [conv_dict['conv4_1'], deconv4, upsample_flow5], axis=3)
-        predict_flow4 = self._predict_flow(
-            'predict_flow4', concat4, is_training)
-        upsample_flow4 = self._upsample_flow(
-            'upsample_flow4', predict_flow4, is_training)
-        deconv3 = self._deconv('deconv3', concat4, 128, is_training)
-
-        concat3 = tf.concat(
-            [conv_dict['conv3_1'], deconv3, upsample_flow4], axis=3)
-        predict_flow3 = self._predict_flow(
-            'predict_flow3', concat3, is_training)
-        upsample_flow3 = self._upsample_flow(
-            'upsample_flow3', predict_flow3, is_training)
-        deconv2 = self._deconv('deconv2', concat3, 64, is_training,
-                               activation=self.activation_before_last_layer)
-
-        concat2 = tf.concat(
-            [conv_dict['conv2'], deconv2, upsample_flow3], axis=3)
-
-        _, _, _, channels = concat2.get_shape().as_list()
+        concat = tf.concat(
+            [conv_dict['conv2'], deconv, upsample_flow], axis=3)
+        _, _, _, channels = concat.get_shape().as_list()
         cast_conv = tf.layers.conv2d(
-            concat2,
+            concat,
             channels,
             kernel_size=1,
             strides=1,
@@ -299,9 +297,8 @@ class LmFlowNetV1(BaseNetwork):
 
         predict_flow2 = self._predict_flow(
             'predict_flow2', cast_conv, is_training)
-
-        # TODO why * 20.0? Wait for issue or email reply
         predict_flow2 = predict_flow2 * self.div_flow
+        refinement_dict['predict_flow2'] = predict_flow2
 
         # TODO should we move upsampling to post-process?
         # Reason not to move: we need variable flow for both training (for tf.summary) and not training.
@@ -314,16 +311,8 @@ class LmFlowNetV1(BaseNetwork):
             predict_flow2, (height // 2, width // 2), align_corners=True)
         flow = tf.image.resize_nearest_neighbor(
             flow, (height, width), align_corners=True)
-
-        # TODO Check if returning dict causes memory error. Maybe we can return a tensor when not training?
-        return {
-            'predict_flow6': predict_flow6,
-            'predict_flow5': predict_flow5,
-            'predict_flow4': predict_flow4,
-            'predict_flow3': predict_flow3,
-            'predict_flow2': predict_flow2,
-            'flow': flow
-        }
+        refinement_dict['flow'] = flow
+        return refinement_dict
 
     def base(self, images, is_training, *args, **kwargs):
         """Base network.
@@ -431,63 +420,29 @@ class LmFlowNetV1(BaseNetwork):
         losses = []
         base_dict = self.base_dict
 
-        # L2 loss between predict_flow6 (weighted w/ 0.32)
-        predict_flow6 = base_dict['predict_flow6']
-        size = [predict_flow6.shape[1], predict_flow6.shape[2]]
-        downsampled_flow6 = self._downsample("downsampled_flow6", labels, size)
-        avg_epe_predict_flow6 = self._average_endpoint_error(
-            downsampled_flow6, predict_flow6)
-        tf.summary.scalar("avg_epe_predict_flow6", avg_epe_predict_flow6)
-        losses.append(avg_epe_predict_flow6)
+        default_weight_list = [0, 0.005, 0.01, 0.02, 0.08, 0.32, 0.32, 0.32]
+        for _ in range(1, self.conv_depth):
+            ave_epe_name = "ave_epe_predict_flow{}".format(_ + 1)
+            predict_name = "predict_flow{}".format(_ + 1)
+            downsampled_name = "downsampled_flow{}".format(_ + 1)
 
-        # L2 loss between predict_flow5 (weighted w/ 0.08)
-        predict_flow5 = base_dict['predict_flow5']
-        size = [predict_flow5.shape[1], predict_flow5.shape[2]]
-        downsampled_flow5 = self._downsample("downsampled_flow5", labels, size)
-        avg_epe_predict_flow5 = self._average_endpoint_error(
-            downsampled_flow5, predict_flow5)
-        tf.summary.scalar("avg_epe_predict_flow5", avg_epe_predict_flow5)
-        losses.append(avg_epe_predict_flow5)
+            predict_flow = base_dict[predict_name]
+            size = [predict_flow.shape[1], predict_flow.shape[2]]
+            downsampled_flow = self._downsample(
+                downsampled_name, labels, size)
+            losses.append(self._average_endpoint_error(
+                downsampled_flow, predict_flow))
+            tf.summary.scalar(ave_epe_name, losses[-1])
 
-        # L2 loss between predict_flow4 (weighted w/ 0.02)
-        predict_flow4 = base_dict['predict_flow4']
-        size = [predict_flow4.shape[1], predict_flow4.shape[2]]
-        downsampled_flow4 = self._downsample("downsampled_flow4", labels, size)
-        avg_epe_predict_flow4 = self._average_endpoint_error(
-            downsampled_flow4, predict_flow4)
-        tf.summary.scalar("avg_epe_predict_flow4", avg_epe_predict_flow4)
-        losses.append(avg_epe_predict_flow4)
-
-        # L2 loss between predict_flow3 (weighted w/ 0.01)
-        predict_flow3 = base_dict['predict_flow3']
-        size = [predict_flow3.shape[1], predict_flow3.shape[2]]
-        downsampled_flow3 = self._downsample("downsampled_flow3", labels, size)
-        avg_epe_predict_flow3 = self._average_endpoint_error(
-            downsampled_flow3, predict_flow3)
-        tf.summary.scalar("avg_epe_predict_flow3", avg_epe_predict_flow3)
-        losses.append(avg_epe_predict_flow3)
-
-        # L2 loss between predict_flow2 (weighted w/ 0.005)
-        predict_flow2 = base_dict['predict_flow2']
-        size = [predict_flow2.shape[1], predict_flow2.shape[2]]
-        downsampled_flow2 = self._downsample("downsampled_flow2", labels, size)
-        avg_epe_predict_flow2 = self._average_endpoint_error(
-            downsampled_flow2, predict_flow2)
-        tf.summary.scalar("avg_epe_predict_flow2", avg_epe_predict_flow2)
-        losses.append(avg_epe_predict_flow2)
-
-        # TODO put weight in config file?
-        # This adds the weighted loss to the loss collection
         weighted_epe = tf.losses.compute_weighted_loss(
-            losses, [0.32, 0.08, 0.02, 0.01, 0.005])
+            losses, default_weight_list[1:self.conv_depth])
 
-        # Return the total loss: weighted epe + regularization terms defined in the base function
         total_loss = tf.losses.get_total_loss()
         tf.summary.scalar("total_loss", total_loss)
         return total_loss
 
 
-class LmFlowNetV1Quantized(LmFlowNetV1):
+class LmFlowNetQuantized(LmFlowNet):
     """ Quantized LmFlowNet V1.
     """
 
