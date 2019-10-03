@@ -19,10 +19,10 @@ import numpy as np
 from pycocotools.coco import COCO
 
 from lmnet.utils.image import load_image
-from lmnet.datasets.base import KeypointsDetectionBase
+from lmnet.datasets.base import KeypointDetectionBase
 
 
-class MscocoSinglePersonKeypoints(KeypointsDetectionBase):
+class MscocoSinglePersonKeypoints(KeypointDetectionBase):
     """
     MSCOCO_2017 dataset loader for single-person pose estimation.
 

@@ -22,7 +22,7 @@ from multiprocessing import Pool
 import numpy as np
 import tensorflow as tf
 
-from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase, KeypointsDetectionBase
+from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase, KeypointDetectionBase
 from lmnet.datasets.tfds import TFDSMixin
 
 _dataset = None
@@ -47,7 +47,7 @@ def _apply_augmentations(dataset, image, label):
         sample['mask'] = label
     elif issubclass(dataset.__class__, ObjectDetectionBase):
         sample['gt_boxes'] = label
-    elif issubclass(dataset.__class__, KeypointsDetectionBase):
+    elif issubclass(dataset.__class__, KeypointDetectionBase):
         sample['joints'] = label
     else:
         sample['label'] = label
@@ -64,7 +64,7 @@ def _apply_augmentations(dataset, image, label):
         label = sample['mask']
     elif issubclass(dataset.__class__, ObjectDetectionBase):
         label = sample['gt_boxes']
-    elif issubclass(dataset.__class__, KeypointsDetectionBase):
+    elif issubclass(dataset.__class__, KeypointDetectionBase):
         label = sample['heatmap']
     else:
         label = sample['label']

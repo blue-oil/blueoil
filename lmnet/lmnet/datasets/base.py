@@ -159,7 +159,7 @@ class ObjectDetectionBase(Base, metaclass=ABCMeta):
         return np.array(results)
 
 
-class KeypointsDetectionBase(Base, metaclass=ABCMeta):
+class KeypointDetectionBase(Base, metaclass=ABCMeta):
 
     @staticmethod
     def crop_from_full_image(full_image, box, joints):
