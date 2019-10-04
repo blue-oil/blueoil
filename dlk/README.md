@@ -20,7 +20,7 @@ dlk contains following 3 separable steps.
 - **python**: Python scripts here
   - **dlk**
 - **src**: C++ code here
-- **docs**: More detailed [documentations](http://192.168.1.200/dlk-docs/index.html)
+- **docs**: See docs
 - **examples**: Test examples include the DNN graph and npy test files
 - **tests**: Test scripts automatically run by CI
 
@@ -78,7 +78,7 @@ The description of each step in the script are available below, which means you
 can run separately each of them.
 
 ## Note for the lm_x86 / lm_arm / lm_fpga binaries (only for v0.5.0)
-Older versions of DLK supported command-line executables like `lm_x86`, `lm_arm`, and `lm_fpga`, but currently these binaries are not supported.   
+Older versions of DLK supported command-line executables like `lm_x86`, `lm_arm`, and `lm_fpga`, but currently these binaries are not supported.
 From the next version, we will support these binaries again.
 
 
@@ -135,7 +135,7 @@ PYTHONPATH=python/dlk python setup.py test
 ```
 
 # Development
-This project follow [LeapMind python coding philosophy](https://github.com/LeapMind/intro/wiki/Philosophy-of-python-coding) which contains custom `pycodestyle` rule.  
+This project follow [LeapMind python coding philosophy](https://github.com/LeapMind/intro/wiki/Philosophy-of-python-coding) which contains custom `pycodestyle` rule.
 Please enable it before you start to edit.
 I recommend you to activate auto-checking in your editor.
 
