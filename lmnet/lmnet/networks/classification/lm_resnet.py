@@ -74,6 +74,7 @@ class LmResnet(Base):
     def basicblock(self, x, out_ch, strides, training):
         """Basic building block of single residual function"""
         in_ch = x.get_shape().as_list()[1 if self.data_format in ['NCHW', 'channels_first'] else 3]
+
         shortcut = x
 
         x = self._batch_norm(x, training)
@@ -85,11 +86,12 @@ class LmResnet(Base):
 
         x = self._conv2d_fix_padding(x, out_ch, 3, 1)
 
-        if in_ch != out_ch:
+        if strides == 2:
             shortcut = tf.nn.avg_pool(shortcut, ksize=[1, strides, strides, 1],
                                       strides=[1, strides, strides, 1], padding='VALID')
             shortcut = tf.pad(shortcut, [[0, 0], [0, 0], [0, 0],
-                              [(out_ch - in_ch) // 2, (out_ch - in_ch) // 2]])
+                              [(out_ch - in_ch) // 2, (out_ch - in_ch + 1) // 2]])
+
         return shortcut + x
 
     def resnet_group(self, x, out_ch, count, strides, training, name):
