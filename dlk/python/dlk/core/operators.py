@@ -351,26 +351,6 @@ class Operator(object):
         return len(self._shape)
 
     @property
-    def shape(self) -> List[int]:
-        return self._shape
-
-    @shape.setter
-    def shape(self, v: List[int]) -> None:
-        self._shape = v
-
-    @property
-    def dtype(self) -> DataType:
-        return self._dtype
-
-    @dtype.setter
-    def dtype(self, v: DataType) -> None:
-        self._dtype = v
-
-    @property
-    def ndims(self) -> int:
-        return len(self._shape)
-
-    @property
     def dimension(self) -> str:
         """Return dimension in string.
 
