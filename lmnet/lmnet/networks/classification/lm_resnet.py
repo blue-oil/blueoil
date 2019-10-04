@@ -89,6 +89,7 @@ class LmResnet(Base):
         if strides == 2:
             shortcut = tf.nn.avg_pool(shortcut, ksize=[1, strides, strides, 1],
                                       strides=[1, strides, strides, 1], padding='VALID')
+        if in_ch != out_ch:
             shortcut = tf.pad(shortcut, [[0, 0], [0, 0], [0, 0],
                               [(out_ch - in_ch) // 2, (out_ch - in_ch + 1) // 2]])
 
