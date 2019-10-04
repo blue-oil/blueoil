@@ -165,7 +165,7 @@ WORKDIR /home/blueoil
 
 # For development
 RUN apt-get update && apt-get install -y \
-     x11-apps imagemagick
+     x11-apps
 
 RUN  apt-get clean && \
      rm -rf /var/lib/apt/lists/*
