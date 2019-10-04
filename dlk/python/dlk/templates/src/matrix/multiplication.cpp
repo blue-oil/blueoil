@@ -103,9 +103,9 @@ void matrix_multiplication_impl(
       for (; k < B.rows(); ++k) {
         for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
           if (j + j2 >= B.cols()) {
-            B_buf[j * B.rows() + k * regblock_m + j2] = 0;
+            *B_buf_ptr++ = 0;
           } else {
-            B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+            *B_buf_ptr++ = B(k, j + j2);
           }
         }
       }
@@ -113,9 +113,9 @@ void matrix_multiplication_impl(
       for (std::size_t k = 0; k < B.rows(); ++k) {
         for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
           if (j + j2 >= B.cols()) {
-            B_buf[j * B.rows() + k * regblock_m + j2] = 0;
+            *B_buf_ptr++ = 0;
           } else {
-            B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+            *B_buf_ptr++ = B(k, j + j2);
           }
         }
       }
