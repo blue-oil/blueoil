@@ -38,10 +38,9 @@ from lmnet.data_augmentor import (
     Hue,
     Pad,
     RandomPatchCut,
-    SSDRandomCrop,
-    iou,
-    _crop_boxes,
+    SSDRandomCrop
 )
+from lmnet.utils.box import iou, crop_boxes
 
 
 # Apply reset_default_graph() and set_test_environment() in conftest.py to all tests in this file.
