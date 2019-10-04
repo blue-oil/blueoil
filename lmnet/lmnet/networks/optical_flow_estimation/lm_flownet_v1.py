@@ -72,15 +72,15 @@ class LmFlowNet(BaseNetwork):
                     self.data_format))
 
         if strides > 1:
-            # _, _, _, channels = inputs.get_shape().as_list()
-            # q, r = divmod(channels, 8)
-            # if r != 0:
-            #     inputs = tf.layers.conv2d(
-            #         inputs,
-            #         filters=8 * (q + 1),
-            #         kernel_size=1,
-            #         padding='SAME',
-            #     )
+            _, _, _, channels = inputs.get_shape().as_list()
+            q, r = divmod(channels, 8)
+            if r != 0:
+                inputs = tf.layers.conv2d(
+                    inputs,
+                    filters=8 * (q + 1),
+                    kernel_size=1,
+                    padding='SAME',
+                )
             inputs = self._space_to_depth(name, inputs, strides)
             strides = 1
 

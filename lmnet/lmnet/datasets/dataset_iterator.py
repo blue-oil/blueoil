@@ -81,13 +81,13 @@ def _process_one_data(i):
 def _concat_data(data_list):
     images, labels = zip(*data_list)
     if any([_image.shape != images[0].shape for _image in images]):
-        print("[Warn] invalid image_list type detected!")
-        print([_image.shape for _image in images])
+        # print("[Warn] invalid image_list type detected!")
+        # print([_image.shape for _image in images])
         return None
 
     if any([_label.shape != labels[0].shape for _label in labels]):
-        print("[Warn] invalid image_list type detected!")
-        print([_label.shape for _label in labels])
+        # print("[Warn] invalid image_list type detected!")
+        # print([_label.shape for _label in labels])
         return None
 
     images = np.array(images)
@@ -298,7 +298,7 @@ class DatasetIterator:
 
     def __next__(self):
         if self.enable_prefetch:
-            print("\033[K remaining queue size: {}".format(
+            print("\033[0K remaining queue size: {}".format(
                 self.prefetch_result_queue.qsize()), end="\r")
             (images, labels) = self.prefetch_result_queue.get()
         else:

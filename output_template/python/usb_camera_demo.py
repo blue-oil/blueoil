@@ -227,7 +227,7 @@ def run_classification(config):
 
     cv2.destroyAllWindows()
 
-    
+
 def run_sementic_segmentation(config):
     global nn
     camera_width = 320

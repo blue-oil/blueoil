@@ -150,8 +150,7 @@ if __name__ == '__main__':
     print("value test: {}".format(status_info(np.any(np.isnan(test_flow)))))
 
     def _inference(input_data):
-        _x = (input_data / 255.0).astype(np.float32)
-        output_flow = model.run(_x)
+        output_flow = model.run(input_data / 255.0)
         return flow_to_image(-output_flow[0][..., [1, 0]])
 
     window_name = os.path.basename(args.model_path)
