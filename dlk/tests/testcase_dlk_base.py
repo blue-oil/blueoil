@@ -42,17 +42,6 @@ class TestCaseDLKBase(TestCase):
     """
     build_dir = None
 
-    @classmethod
-    def setUpClass(TestCaseDLKBase):
-        # Setup the board. For now, DE10 Nano board
-        output_path = '/tmp'
-        hw_path = os.path.abspath(os.path.join('..', FPGA_FILES))
-
-        board_available = setup_de10nano(hw_path, output_path)
-
-        if not board_available:
-            raise Exception('Not FPGA found: cannot test')
-
     def setUp(self) -> None:
         """
         Cleanup old build directory and make build directory
@@ -77,3 +66,22 @@ class TestCaseDLKBase(TestCase):
     def tearDown(self) -> None:
         if DO_CLEANUP:
             rmdir(self.build_dir)
+
+
+class TestCaseFPGABase(TestCaseDLKBase):
+    """
+    This is base class for FPGA TestCase which have
+    Setup and TearDown method.
+    """
+    build_dir = None
+
+    @classmethod
+    def setUpClass(cls):
+        # Setup the board. For now, DE10 Nano board
+        output_path = '/tmp'
+        hw_path = os.path.abspath(os.path.join('..', FPGA_FILES))
+
+        board_available = setup_de10nano(hw_path, output_path)
+
+        if not board_available:
+            raise Exception('Not FPGA found: cannot test')
