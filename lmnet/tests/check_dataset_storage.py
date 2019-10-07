@@ -37,7 +37,6 @@ from lmnet.datasets.cifar10 import Cifar10
 from lmnet.datasets.cityscapes import Cityscapes
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.ilsvrc_2012 import Ilsvrc2012
-from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
 from lmnet.datasets.mscoco import MscocoObjectDetection as MscocoObjectDetection
 from lmnet.datasets.mscoco import MscocoObjectDetectionPerson as MscocoObjectDetectionPerson
 from lmnet.datasets.mscoco import MscocoSegmentation
@@ -589,30 +588,6 @@ def test_cityscapes():
         assert labels.shape[2] == image_size[1]
 
 
-def test_lm_things_of_a_table():
-    batch_size = 3
-    image_size = [256, 512]
-    dataset = LmThingsOnATable(batch_size=batch_size,
-                               pre_processor=ResizeWithGtBoxes(image_size))
-    dataset = DatasetIterator(dataset)
-
-    num_max_boxes = LmThingsOnATable.count_max_boxes()
-
-    for _ in range(STEP_SIZE):
-        images, labels = dataset.feed()
-
-        assert isinstance(images, np.ndarray)
-        assert images.shape[0] == batch_size
-        assert images.shape[1] == image_size[0]
-        assert images.shape[2] == image_size[1]
-        assert images.shape[3] == 3
-
-        assert isinstance(labels, np.ndarray)
-        assert labels.shape[0] == batch_size
-        assert labels.shape[1] == num_max_boxes
-        assert labels.shape[2] == 5
-
-
 def test_mscoco_segmentation():
     batch_size = 3
     image_size = [256, 512]
@@ -900,7 +875,6 @@ if __name__ == '__main__':
     test_pascalvoc_2012()
     test_pascalvoc_2007_2012()
     test_pascalvoc_2007_2012_no_skip_difficult()
-    test_lm_things_of_a_table()
     test_mscoco_segmentation()
     test_mscoco_object_detection()
     test_mscoco_object_detection_person()
