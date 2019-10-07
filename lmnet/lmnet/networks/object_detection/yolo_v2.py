@@ -248,7 +248,6 @@ class YoloV2(BaseNetwork):
             for overlap_thresh in thresholds:
                 average_precisions = []
                 for class_id, class_name in enumerate(self.classes):
-                    class_name = class_name.replace(' ', '_')
                     tps = []
                     fps = []
                     scores = []

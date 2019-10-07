@@ -58,7 +58,7 @@ class BaseNetwork(object):
         self.optimizer_kwargs = optimizer_kwargs if optimizer_kwargs is not None else {'learning_rate': 0.01}
         self.learning_rate_func = learning_rate_func
         self.learning_rate_kwargs = learning_rate_kwargs if learning_rate_kwargs is not None else {}
-        self.classes = classes
+        self.classes = list(map(lambda _class: _class.replace(' ', '_'), classes))
         self.num_classes = len(classes)
         self.image_size = image_size
         self.batch_size = batch_size
