@@ -211,13 +211,14 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                   const auto nk38 = vreinterpretq_u8_u32(nk3);
                   const auto in_index = (row + kr) * (TileWidth + kw - 1) * InBitChUnroll
                     + (col + kc) * InBitChUnroll;
-                  const auto in0 = vdupq_n_u32(in_tile[in_index + 0].Raw());
+                  const auto in = vld1_u32(reinterpret_cast<uint32_t*>(&in_tile[in_index]));
+                  const auto in0 = vdupq_lane_u32(in, 0);
                   const auto in08 = vreinterpretq_u8_u32(in0);
                   xnorsum00 += vcntq_u8(in08 ^ nk08);
                   xnorsum10 += vcntq_u8(in08 ^ nk18);
                   xnorsum20 += vcntq_u8(in08 ^ nk28);
                   xnorsum30 += vcntq_u8(in08 ^ nk38);
-                  const auto in1 = vdupq_n_u32(in_tile[in_index + 1].Raw());
+                  const auto in1 = vdupq_lane_u32(in, 1);
                   const auto in18 = vreinterpretq_u8_u32(in1);
                   xnorsum01 += vcntq_u8(in18 ^ nk08);
                   xnorsum11 += vcntq_u8(in18 ^ nk18);
@@ -451,7 +452,8 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                   const auto nk18 = vreinterpretq_u8_u32(nk1);
                   const auto nk28 = vreinterpretq_u8_u32(nk2);
                   const auto nk38 = vreinterpretq_u8_u32(nk3);
-                  const auto inl1 = vdupq_n_u32(in_tile[in_index + (kc + 1) * InBitChUnroll + 0].Raw());
+                  const auto in1 = vld1_u32(reinterpret_cast<uint32_t*>(&in_tile[in_index + (kc + 1) * InBitChUnroll]));
+                  const auto inl1 = vdupq_lane_u32(in1, 0);
                   const auto inl18 = vreinterpretq_u8_u32(inl1);
                   xnorsum000 += vcntq_u8(inl08 ^ nk08);
                   xnorsum010 += vcntq_u8(inl08 ^ nk18);
@@ -462,7 +464,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                   xnorsum120 += vcntq_u8(inl18 ^ nk28);
                   xnorsum130 += vcntq_u8(inl18 ^ nk38);
                   inl08 = inl18;
-                  const auto inh1 = vdupq_n_u32(in_tile[in_index + (kc + 1) * InBitChUnroll + 1].Raw());
+                  const auto inh1 = vdupq_lane_u32(in1, 1);
                   const auto inh18 = vreinterpretq_u8_u32(inh1);
                   xnorsum001 += vcntq_u8(inh08 ^ nk08);
                   xnorsum011 += vcntq_u8(inh08 ^ nk18);
