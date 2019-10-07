@@ -267,21 +267,24 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
         }
       }
       if (p.thresholds != nullptr) {
-#define APPLY(k) \
-  const auto d##k = vld1q_s16(out_tile + buf_index + 8 * k); \
+#define LOAD_TH(k) \
   const auto ts##k = vld4q_s16(buf_th.get() + NUM_OF_A2W1_THRESHOLD * (out_ch_high * OutChUnroll2 + Om + 8 * k)); \
-  const auto f##k##0 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[0])) & ts##k.val[3]; \
-  const auto f##k##1 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[1])) & ts##k.val[3]; \
-  const auto f##k##2 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[2])) & ts##k.val[3]; \
   const auto is_neg##k = vreinterpretq_s16_u16(vcltq_s16(ts##k.val[3], vdupq_n_s16(0))); \
-  const auto tmp##k = f##k##0 + f##k##1 + f##k##2 + is_neg##k; \
   const auto m2_##k = vsubq_s16(ts##k.val[3], vdupq_n_s16(2)); \
-  const auto is_const##k = vcgeq_s16(m2_##k, vdupq_n_s16(0)); \
-  const auto res##k = vreinterpretq_u8_s16(vbslq_s16(is_const##k, m2_##k, tmp##k));
+  const auto is_const##k = vcgeq_s16(m2_##k, vdupq_n_s16(0));
+        LOAD_TH(0)
+        LOAD_TH(1)
         for (unsigned int row = 0; row < TileHeight; ++row) {
           if (row_high + row >= out_height) break;
           for (unsigned int col = 0; col < TileWidth; ++col) {
             if (col_high + col >= out_width) break;
+#define APPLY(k) \
+  const auto d##k = vld1q_s16(out_tile + buf_index + 8 * k); \
+  const auto f##k##0 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[0])) & ts##k.val[3]; \
+  const auto f##k##1 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[1])) & ts##k.val[3]; \
+  const auto f##k##2 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[2])) & ts##k.val[3]; \
+  const auto tmp##k = f##k##0 + f##k##1 + f##k##2 + is_neg##k; \
+  const auto res##k = vreinterpretq_u8_s16(vbslq_s16(is_const##k, m2_##k, tmp##k));
             const auto buf_index = row * TileWidth * OutChUnroll
                 + col * OutChUnroll;
             APPLY(0)
@@ -550,21 +553,24 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
         }
       }
       if (p.thresholds != nullptr) {
-#define APPLY(k) \
-  const auto d##k = vld1q_s16(out_tile + buf_index + 8 * k); \
+#define LOAD_TH(k) \
   const auto ts##k = vld4q_s16(buf_th.get() + NUM_OF_A2W1_THRESHOLD * (out_ch_high * OutChUnroll2 + Om + 8 * k)); \
-  const auto f##k##0 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[0])) & ts##k.val[3]; \
-  const auto f##k##1 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[1])) & ts##k.val[3]; \
-  const auto f##k##2 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[2])) & ts##k.val[3]; \
   const auto is_neg##k = vreinterpretq_s16_u16(vcltq_s16(ts##k.val[3], vdupq_n_s16(0))); \
-  const auto tmp##k = f##k##0 + f##k##1 + f##k##2 + is_neg##k; \
   const auto m2_##k = vsubq_s16(ts##k.val[3], vdupq_n_s16(2)); \
-  const auto is_const##k = vcgeq_s16(m2_##k, vdupq_n_s16(0)); \
-  const auto res##k = vreinterpretq_u8_s16(vbslq_s16(is_const##k, m2_##k, tmp##k));
+  const auto is_const##k = vcgeq_s16(m2_##k, vdupq_n_s16(0));
+        LOAD_TH(0)
+        LOAD_TH(1)
         for (std::size_t row = 0; row < TileHeight; ++row) {
           if (row_high + row >= out_height) break;
           for (std::size_t col = 0; col < TileWidth; ++col) {
             if (col_high + col >= out_width) break;
+#define APPLY(k) \
+  const auto d##k = vld1q_s16(out_tile + buf_index + 8 * k); \
+  const auto f##k##0 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[0])) & ts##k.val[3]; \
+  const auto f##k##1 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[1])) & ts##k.val[3]; \
+  const auto f##k##2 = vreinterpretq_s16_u16(vcgeq_s16(d##k, ts##k.val[2])) & ts##k.val[3]; \
+  const auto tmp##k = f##k##0 + f##k##1 + f##k##2 + is_neg##k; \
+  const auto res##k = vreinterpretq_u8_s16(vbslq_s16(is_const##k, m2_##k, tmp##k));
             const auto buf_index = row * TileWidth * OutChUnroll
                 + col * OutChUnroll;
             APPLY(0)
