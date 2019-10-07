@@ -417,6 +417,7 @@ class TestCodeGeneration(TestCaseDLKBase):
     @params(*get_configurations())
     def test_all_configuration(self, i, configuration) -> None:
 
+        print(f"\nCode generation test: ID: {i}, Testcase: {configuration}")
         #  TODO consider better implementation
         this_test_level = configuration.get("test_level", 0)
         if this_test_level < CURRENT_TEST_LEVEL:
