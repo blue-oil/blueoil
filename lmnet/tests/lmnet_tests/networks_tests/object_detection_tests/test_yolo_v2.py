@@ -22,7 +22,7 @@ from executor.train import start_training
 from lmnet import environment
 from lmnet.common import Tasks
 from lmnet.data_processor import Sequence
-from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
+from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
 from lmnet.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
 from lmnet.pre_processor import ResizeWithGtBoxes
@@ -699,7 +699,7 @@ def test_training():
     config = EasyDict()
 
     config.NETWORK_CLASS = YoloV2
-    config.DATASET_CLASS = LmThingsOnATable
+    config.DATASET_CLASS = Pascalvoc2007
 
     config.IS_DEBUG = False
     config.IMAGE_SIZE = [128, 160]
