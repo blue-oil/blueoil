@@ -440,8 +440,9 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
               for (std::size_t kr = 0; kr < kh_s; ++kr) {
                 const auto in_index = (row + kr) * (TileWidth + kw_s - 1) * InBitChUnroll
                     + col * InBitChUnroll;
-                const auto inl0 = vdupq_n_u32(in_tile[in_index + 0].Raw());
-                const auto inh0 = vdupq_n_u32(in_tile[in_index + 1].Raw());
+                const auto in0 = vld1_u32(reinterpret_cast<uint32_t*>(&in_tile[in_index]));
+                const auto inl0 = vdupq_lane_u32(in0, 0);
+                const auto inh0 = vdupq_lane_u32(in0, 1);
                 auto inl08 = vreinterpretq_u8_u32(inl0);
                 auto inh08 = vreinterpretq_u8_u32(inh0);
                 for (std::size_t kc = 0; kc < kw_s; ++kc) {
