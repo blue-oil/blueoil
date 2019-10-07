@@ -194,6 +194,13 @@ def dict_codegen_segmentation_x86() -> dict:
             }
 
 
+def dict_codegen_segmentation_fpga() -> dict:
+    """Test parameters for testing code generation for segmentation on FPGA"""
+    return updated_dict(dict_codegen_segmentation_x86(),
+                        {'cpu_name':'arm_fpga', 'prefix': 'fpga_seg', 'hard_quantize': True, 'need_arm_compiler': True})
+
+
+
 def get_configurations():
     configurations = [
         # Classification / x86
@@ -332,6 +339,15 @@ def get_configurations():
         updated_dict(dict_codegen_object_detection_widerface_1x1_fpga(),
                      {'cache_dma': True, 'threshold_skipping': True}),
 
+        # Segmentation on FPGA
+        dict_codegen_segmentation_fpga(),
+        updated_dict(dict_codegen_segmentation_fpga(),
+                     {'cache_dma': True, 'threshold_skipping': False}),
+        updated_dict(dict_codegen_segmentation_fpga(),
+                     {'cache_dma': False, 'threshold_skipping': True}),
+        updated_dict(dict_codegen_segmentation_fpga(),
+                     {'cache_dma': True, 'threshold_skipping': True}),
+
         # Classification ARM
         updated_dict(dict_codegen_classification_fpga(),
                      {'cpu_name': 'arm', 'prefix': 'arm_cls', 'hard_quantize': False,
@@ -379,6 +395,17 @@ def get_configurations():
                      {'cpu_name':'arm', 'prefix': 'arm_det_wf', 'hard_quantize': False, 'threshold_skipping': True}),
         updated_dict(dict_codegen_object_detection_widerface_fpga(),
                      {'cpu_name':'arm', 'prefix': 'arm_det_wf', 'hard_quantize': True, 'threshold_skipping': True}),
+
+        # Segmentation ARM
+        updated_dict(dict_codegen_segmentation_fpga(),
+                     {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': False, 'threshold_skipping': False}),
+        updated_dict(dict_codegen_segmentation_fpga(),
+                     {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(dict_codegen_segmentation_fpga(),
+                     {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': False, 'threshold_skipping': True}),
+        updated_dict(dict_codegen_segmentation_fpga(),
+                     {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': True, 'threshold_skipping': True}),
+
    ]
 
     return [(i, configuration) for i, configuration in enumerate(configurations)]
