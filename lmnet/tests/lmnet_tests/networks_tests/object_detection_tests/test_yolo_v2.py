@@ -736,7 +736,7 @@ def test_yolov2_post_process():
 
     image_size = [96, 64]
     batch_size = 2
-    classes = range(5)
+    classes = Pascalvoc2007.classes
     anchors = [(0.1, 0.2), (1.2, 1.1)]
     data_format = "NHWC"
     score_threshold = 0.25
