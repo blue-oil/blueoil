@@ -343,19 +343,19 @@ def test_crop_boxes():
 
     # When crop rect is external boxes, raise error.
     crop_rect = [0, 0, 5, 100]
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         cropped = crop_boxes(boxes, crop_rect)
 
     crop_rect = [0, 0, 100, 5]
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         cropped = crop_boxes(boxes, crop_rect)
 
     crop_rect = [95, 0, 5, 5]
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         cropped = crop_boxes(boxes, crop_rect)
 
     crop_rect = [30, 85, 5, 5]
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         cropped = crop_boxes(boxes, crop_rect)
 
 
