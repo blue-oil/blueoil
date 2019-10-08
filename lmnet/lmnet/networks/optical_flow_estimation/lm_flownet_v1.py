@@ -34,10 +34,9 @@ class LmFlowNet(BaseNetwork):
         super().__init__(*args, **kwargs)
         self.images = None
         self.base_dict = None
-        self.activation_first_layer = lambda x: tf.nn.leaky_relu(
-            x, alpha=0.1, name="leaky_relu")
         self.activation = lambda x: tf.nn.leaky_relu(
             x, alpha=0.1, name="leaky_relu")
+        self.activation_first_layer = self.activation
         self.activation_before_last_layer = self.activation
         self.weight_decay_rate = weight_decay_rate
         self.div_flow = div_flow
@@ -58,10 +57,23 @@ class LmFlowNet(BaseNetwork):
                 output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
+    def _depth_to_space(self, name, inputs, block_size):
+        if self.data_format != 'NHWC':
+            inputs = tf.transpose(
+                inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
+
+        output = tf.depth_to_space(
+            inputs, block_size=block_size, name=name + "_depth_to_space")
+
+        if self.data_format != 'NHWC':
+            output = tf.transpose(
+                output, perm=['NHWC'.find(d) for d in self.data_format])
+        return output
+
     def _conv_bn_act(
             self, name, inputs, filters, is_training,
             kernel_size=3, strides=1, enable_detail_summary=False,
-            activation=None):
+            activation=None, skip_batch_norm=False, skip_activation=False):
         if self.data_format == "NCHW":
             channel_data_format = "channels_first"
         elif self.data_format == "NHWC":
@@ -72,17 +84,7 @@ class LmFlowNet(BaseNetwork):
                     self.data_format))
 
         if strides > 1:
-            _, _, _, channels = inputs.get_shape().as_list()
-            q, r = divmod(channels, 8)
-            if r != 0:
-                inputs = tf.layers.conv2d(
-                    inputs,
-                    filters=8 * (q + 1),
-                    kernel_size=1,
-                    padding='SAME',
-                )
             inputs = self._space_to_depth(name, inputs, strides)
-            strides = 1
 
         # TODO Think: pytorch used batch_norm but tf did not.
         # pytorch: if batch_norm no bias else use bias.
@@ -92,14 +94,14 @@ class LmFlowNet(BaseNetwork):
                 filters=filters,
                 kernel_size=kernel_size,
                 padding='SAME',
-                strides=strides,
+                strides=1,
                 use_bias=False,
                 data_format=channel_data_format,
                 kernel_regularizer=tf.contrib.layers.l2_regularizer(
                     self.weight_decay_rate)
             )
 
-            if self.use_batch_norm:
+            if self.use_batch_norm and (not skip_batch_norm):
                 batch_normed = tf.contrib.layers.batch_norm(
                     conved,
                     decay=0.99,
@@ -112,10 +114,13 @@ class LmFlowNet(BaseNetwork):
             else:
                 batch_normed = conved
 
-            if activation is None:
-                output = self.activation(batch_normed)
+            if skip_activation:
+                output = batch_normed
             else:
-                output = activation(batch_normed)
+                if activation is None:
+                    output = self.activation(batch_normed)
+                else:
+                    output = activation(batch_normed)
 
             if enable_detail_summary:
                 tf.summary.histogram('conv_output', conved)
@@ -190,6 +195,7 @@ class LmFlowNet(BaseNetwork):
 
             inputs = tf.image.resize_nearest_neighbor(
                 inputs, (height * 2, width * 2), align_corners=True, name=name)
+            # inputs = self._depth_to_space(name, inputs, 2)
 
             conved = tf.layers.conv2d(
                 inputs,
@@ -283,8 +289,12 @@ class LmFlowNet(BaseNetwork):
             deconv = self._deconv(
                 deconv_name, concat, num_channel, is_training)
 
-        concat = tf.concat(
-            [conv_dict['conv2'], deconv, upsample_flow], axis=3)
+        if self.conv_depth == 2:
+            concat = conv_dict['conv2']
+        else:
+            concat = tf.concat(
+                [conv_dict['conv2'], deconv, upsample_flow], axis=3)
+
         _, _, _, channels = concat.get_shape().as_list()
         cast_conv = tf.layers.conv2d(
             concat,
@@ -388,7 +398,8 @@ class LmFlowNet(BaseNetwork):
             tf.placeholder: Placeholders.
         """
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 6) \
-            if self.data_format == 'NHWC' else (self.batch_size, 6, self.image_size[0], self.image_size[1])
+            if self.data_format == 'NHWC' \
+            else (self.batch_size, 6, self.image_size[0], self.image_size[1])
         images_placeholder = tf.placeholder(
             tf.float32,
             shape=shape,
@@ -409,12 +420,13 @@ class LmFlowNet(BaseNetwork):
     # TODO the _output is not used because we need dictionary from self.base_dict
     # _output can only be a tensor, which is the flow
     def loss(self, _output, labels):
-        """loss.
-
+        """
         Params:
            output: A dictionary of tensors.
-           Each tensor is a network output. shape is (batch_size, output_height, output_width, num_classes).
-           labels: Tensor of optical flow labels. shape is (batch_size, height, width, 2).
+           Each tensor is a network output.
+           Shape is (batch_size, output_height, output_width, num_classes).
+           labels: Tensor of optical flow labels.
+           Shape is (batch_size, height, width, 2).
         """
 
         losses = []
@@ -450,6 +462,7 @@ class LmFlowNetQuantized(LmFlowNet):
             self,
             quantize_first_convolution=False,
             quantize_last_convolution=False,
+            quantize_activation_first_layer=False,
             quantize_activation_before_last_layer=False,
             activation_quantizer=None,
             activation_quantizer_kwargs=None,
@@ -463,9 +476,9 @@ class LmFlowNetQuantized(LmFlowNet):
             quantize_first_convolution(bool): use quantization in first conv.
             quantize_last_convolution(bool): use quantization in last conv.
             weight_quantizer (callable): weight quantizer.
-            weight_quantize_kwargs(dict): Initialize kwargs for weight quantizer.
+            weight_quantize_kwargs(dict): Kwargs for weight quantizer.
             activation_quantizer (callable): activation quantizer
-            activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
+            activation_quantize_kwargs(dict): Kwargs for activation quantizer.
         """
 
         super().__init__(
@@ -475,16 +488,27 @@ class LmFlowNetQuantized(LmFlowNet):
 
         self.quantize_first_convolution = quantize_first_convolution
         self.quantize_last_convolution = quantize_last_convolution
-        self.quantize_activation_before_last_layer = quantize_activation_before_last_layer
+        self.quantize_activation_first_layer = \
+            quantize_activation_first_layer
+        self.quantize_activation_before_last_layer = \
+            quantize_activation_before_last_layer
 
-        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
+        activation_quantizer_kwargs = \
+            activation_quantizer_kwargs if not None else {}
+        weight_quantizer_kwargs = \
+            weight_quantizer_kwargs if not None else {}
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)
 
         self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
         self.activation = activation_quantizer(**activation_quantizer_kwargs)
+
+        if quantize_activation_first_layer:
+            self.activation_first_layer = self.activation
+        else:
+            self.activation_first_layer = lambda x: tf.nn.leaky_relu(
+                x, alpha=0.1, name="leaky_relu")
 
         if quantize_activation_before_last_layer:
             self.activation_before_last_layer = self.activation
@@ -514,6 +538,7 @@ class LmFlowNetQuantized(LmFlowNet):
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
+        print(var.op.name)
         with tf.variable_scope(name):
             if "kernel" == var.op.name.split("/")[-1]:
 
@@ -524,7 +549,8 @@ class LmFlowNetQuantized(LmFlowNet):
                 if not quantize_last_convolution:
                     if var.op.name.startswith("predict_flow2/"):
                         return var
-
+                    # if var.op.name.startswith("predict_flow2/"):
+                    #     return var
                 # Apply weight quantize to variable whose last word of name is "kernel".
                 quantized_kernel = weight_quantization(var)
                 tf.summary.histogram("quantized_kernel", quantized_kernel)
