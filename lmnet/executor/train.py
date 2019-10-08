@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import math
+
 import os
+import sys
+import time
+import math
 
 import click
 import tensorflow as tf
@@ -440,3 +443,5 @@ def main(network, dataset, config_file, experiment_id, recreate):
 
 if __name__ == '__main__':
     main()
+    time.sleep(3)
+    sys.exit()
