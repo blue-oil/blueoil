@@ -10,7 +10,9 @@ def iou(boxes, box):
     Returns:
         iou: shape is [num_boxes]
     """
-    assert boxes.size != 0, "Cannot calculate if ground truth boxes is zero"
+
+    if boxes.size == 0:
+        raise ValueError("Cannot calculate if ground truth boxes is zero")
 
     # format boxes (left, top, right, bottom)
     boxes = np.stack([
@@ -48,14 +50,18 @@ def iou(boxes, box):
 
 
 def fill_dummy_boxes(gt_boxes, num_max_boxes):
+
     dummy_gt_box = [0, 0, 0, 0, -1]
+
     if len(gt_boxes) == 0:
         gt_boxes = np.array(dummy_gt_box * num_max_boxes)
         return gt_boxes.reshape([num_max_boxes, 5])
-    elif len(gt_boxes) < num_max_boxes:
+
+    if len(gt_boxes) < num_max_boxes:
         diff = num_max_boxes - len(gt_boxes)
         gt_boxes = np.append(gt_boxes, [dummy_gt_box] * diff, axis=0)
         return gt_boxes
+
     return gt_boxes
 
 
@@ -69,10 +75,18 @@ def crop_boxes(boxes, crop_rect):
         cropped_boxes: shape is [num_boxes, 5(x, y, w, h, class)]
     """
     # check crop_rect overlap with boxes.
-    assert not ((crop_rect[0] + crop_rect[2]) < boxes[:, 0]).any()
-    assert not ((crop_rect[1] + crop_rect[3]) < boxes[:, 1]).any()
-    assert not (crop_rect[0] > (boxes[:, 0] + boxes[:, 2])).any()
-    assert not (crop_rect[1] > (boxes[:, 1] + boxes[:, 3])).any()
+    if ((crop_rect[0] + crop_rect[2]) < boxes[:, 0]).any():
+        raise ValueError("Crop_rect does not overlap with some boxes."
+                         "Increasing x or w of crop_rect may be helpful.")
+    if ((crop_rect[1] + crop_rect[3]) < boxes[:, 1]).any():
+        raise ValueError("Crop_rect does not overlap with some boxes."
+                         "Increasing y or h of crop_rect may be helpful.")
+    if (crop_rect[0] > (boxes[:, 0] + boxes[:, 2])).any():
+        raise ValueError("Crop_rect does not overlap with some boxes."
+                         "Decreasing x of crop_rect may be helpful.")
+    if (crop_rect[1] > (boxes[:, 1] + boxes[:, 3])).any():
+        raise ValueError("Crop_rect does not overlap with some boxes."
+                         "Decreasing y of crop_rect may be helpful.")
 
     # format to xmin, ymin, xmax, ymax
     cropped_boxes = np.stack([

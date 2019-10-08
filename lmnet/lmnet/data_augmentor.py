@@ -22,9 +22,7 @@ import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
 
 from lmnet import data_processor, pre_processor
-from lmnet.utils.box import fill_dummy_boxes
-from lmnet.utils.box import crop_boxes
-from lmnet.utils.box import iou
+from lmnet.utils.box import fill_dummy_boxes, crop_boxes, iou
 
 
 class Blur(data_processor.Processor):
