@@ -398,13 +398,15 @@ def get_configurations():
 
         # Segmentation ARM
         updated_dict(dict_codegen_segmentation_fpga(),
-                     {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': False, 'threshold_skipping': False}),
-        updated_dict(dict_codegen_segmentation_fpga(),
                      {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': True, 'threshold_skipping': False}),
         updated_dict(dict_codegen_segmentation_fpga(),
-                     {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': False, 'threshold_skipping': True}),
-        updated_dict(dict_codegen_segmentation_fpga(),
                      {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': True, 'threshold_skipping': True}),
+        # FIXME: Cannot run library with hard_quantize=False for segmentation task.
+        # Issue link: https://github.com/blue-oil/blueoil/issues/512
+        # updated_dict(dict_codegen_segmentation_fpga(),
+        #             {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': False, 'threshold_skipping': False}),
+        # updated_dict(dict_codegen_segmentation_fpga(),
+        #             {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': False, 'threshold_skipping': True}),
 
    ]
 
