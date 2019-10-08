@@ -78,9 +78,9 @@ void matrix_multiplication_impl(
   const auto B_col_blocks = (B.cols() + regblock_m - 1) / regblock_m;
   float *B_buf_ptr = B_buf.get();
   for (std::size_t j = 0; j < B.cols(); j += regblock_m) {
-    if (B.cols() - j >= regblock_m) {
+    if (j + regblock_m <= B.cols()) {
       std::size_t k = 0;
-      for (; k < B.rows(); k += regblock_m) {
+      for (; k + regblock_m <= B.rows(); k += regblock_m) {
         const auto im0 = vld1q_f32(B.data(k, j + 0));
         const auto im1 = vld1q_f32(B.data(k, j + 1));
         const auto im2 = vld1q_f32(B.data(k, j + 2));
@@ -103,9 +103,9 @@ void matrix_multiplication_impl(
       for (; k < B.rows(); ++k) {
         for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
           if (j + j2 >= B.cols()) {
-            B_buf[j * B.rows() + k * regblock_m + j2] = 0;
+            *B_buf_ptr++ = 0;
           } else {
-            B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+            *B_buf_ptr++ = B(k, j + j2);
           }
         }
       }
@@ -113,9 +113,9 @@ void matrix_multiplication_impl(
       for (std::size_t k = 0; k < B.rows(); ++k) {
         for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
           if (j + j2 >= B.cols()) {
-            B_buf[j * B.rows() + k * regblock_m + j2] = 0;
+            *B_buf_ptr++ = 0;
           } else {
-            B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+            *B_buf_ptr++ = B(k, j + j2);
           }
         }
       }
