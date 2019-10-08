@@ -104,7 +104,7 @@ def train(config, experiment_id=None):
     '-p',
     '--checkpoint',
     help='Checkpoint name. e.g. save.ckpt-10001',
-    required=True,
+    default=None,
 )
 @click.option(
     '-t',
@@ -115,7 +115,11 @@ def train(config, experiment_id=None):
 )
 def convert(experiment_id, checkpoint, template):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
-    restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
+
+    if checkpoint is None:
+        restore_path = None
+    else:
+        restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
 
     export_output_root_dir = run_convert(experiment_id, restore_path, template)
 
