@@ -165,6 +165,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
               notsum[out_ch] += pop_count(notk[notk_index]);
             }
           }
+          notsum[out_ch] *= 3;
         }
         for (unsigned int in_bit_ch_high = 0; in_bit_ch_high < in_bitwidth; in_bit_ch_high += InBitChUnroll) {
           tiling_input_elem_t in_tile[(TileHeightMax + khMax - 1)*(TileWidthMax + kwMax - 1)*InBitChUnroll];
@@ -256,10 +257,8 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
               auto tmp1 = vld1q_s16(&out_tile[out_index + 8]);
               const auto nsum0 = vld1q_s16(&notsum[0]);
               const auto nsum1 = vld1q_s16(&notsum[8]);
-              tmp0 += vshlq_s16(sum010 - nsum0, vdupq_n_s16(in_bit_ch_high))
-                + vshlq_s16(sum011 - nsum0, vdupq_n_s16(in_bit_ch_high + 1));
-              tmp1 += vshlq_s16(sum230 - nsum1, vdupq_n_s16(in_bit_ch_high))
-                + vshlq_s16(sum231 - nsum1, vdupq_n_s16(in_bit_ch_high + 1));
+              tmp0 += sum010 + vaddq_s16(sum011, sum011) - nsum0;
+              tmp1 += sum230 + vaddq_s16(sum231, sum231) - nsum1;
               vst1q_s16(&out_tile[out_index + 0], tmp0);
               vst1q_s16(&out_tile[out_index + 8], tmp1);
             }
