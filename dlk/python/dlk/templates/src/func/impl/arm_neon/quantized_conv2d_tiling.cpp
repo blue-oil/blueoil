@@ -559,9 +559,8 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
             const auto a = vuzpq_u8(res0, res1).val[0];
             const auto am = vmulq_u8(vshrq_n_u8(a, 1), coeff);
             const auto al = vmulq_u8(vandq_u8(a, vdupq_n_u8(0x01)), coeff);
-            const auto bm = vpadd_u8(vget_low_u8(am), vget_high_u8(am));
-            const auto bl = vpadd_u8(vget_low_u8(al), vget_high_u8(al));
-            const auto c = vpadd_u8(bl, bm);
+            const auto b = vpaddq_u8(al, am);
+            const auto c = vpadd_u8(vget_low_u8(b), vget_high_u8(b));
             const auto d = vpadd_u8(c, vdup_n_u8(0));
             const auto ts_index = row * TileWidth * 2
                 + col * 2 + Om / OutChUnroll;
