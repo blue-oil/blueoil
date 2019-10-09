@@ -397,6 +397,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
               notsum[out_ch] += pop_count(notk[notk_index]);
             }
           }
+          notsum[out_ch] *= 3;
         }
         for (std::size_t in_bit_ch_high = 0; in_bit_ch_high < in_bitwidth; in_bit_ch_high += InBitChUnroll) {
           tiling_input_elem_t in_tile[(TileHeightMax + khMax - 1)*(TileWidthMax + kwMax - 1)*InBitChUnroll];
@@ -481,46 +482,30 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                   inh08 = inh18;
                 }
               }
-              const auto psum0000 = vpaddlq_u8(xnorsum000);
-              const auto psum0010 = vpaddlq_u8(xnorsum010);
-              const auto psum0020 = vpaddlq_u8(xnorsum020);
-              const auto psum0030 = vpaddlq_u8(xnorsum030);
-              const auto psum0001 = vpaddlq_u8(xnorsum001);
-              const auto psum0011 = vpaddlq_u8(xnorsum011);
-              const auto psum0021 = vpaddlq_u8(xnorsum021);
-              const auto psum0031 = vpaddlq_u8(xnorsum031);
-              const auto psum0100 = vpaddlq_u8(xnorsum100);
-              const auto psum0110 = vpaddlq_u8(xnorsum110);
-              const auto psum0120 = vpaddlq_u8(xnorsum120);
-              const auto psum0130 = vpaddlq_u8(xnorsum130);
-              const auto psum0101 = vpaddlq_u8(xnorsum101);
-              const auto psum0111 = vpaddlq_u8(xnorsum111);
-              const auto psum0121 = vpaddlq_u8(xnorsum121);
-              const auto psum0131 = vpaddlq_u8(xnorsum131);
-              const auto psum1000 = vreinterpretq_u16_u32(vpaddlq_u16(psum0000));
-              const auto psum1010 = vreinterpretq_u16_u32(vpaddlq_u16(psum0010));
-              const auto psum1020 = vreinterpretq_u16_u32(vpaddlq_u16(psum0020));
-              const auto psum1030 = vreinterpretq_u16_u32(vpaddlq_u16(psum0030));
-              const auto psum1001 = vreinterpretq_u16_u32(vpaddlq_u16(psum0001));
-              const auto psum1011 = vreinterpretq_u16_u32(vpaddlq_u16(psum0011));
-              const auto psum1021 = vreinterpretq_u16_u32(vpaddlq_u16(psum0021));
-              const auto psum1031 = vreinterpretq_u16_u32(vpaddlq_u16(psum0031));
-              const auto psum1100 = vreinterpretq_u16_u32(vpaddlq_u16(psum0100));
-              const auto psum1110 = vreinterpretq_u16_u32(vpaddlq_u16(psum0110));
-              const auto psum1120 = vreinterpretq_u16_u32(vpaddlq_u16(psum0120));
-              const auto psum1130 = vreinterpretq_u16_u32(vpaddlq_u16(psum0130));
-              const auto psum1101 = vreinterpretq_u16_u32(vpaddlq_u16(psum0101));
-              const auto psum1111 = vreinterpretq_u16_u32(vpaddlq_u16(psum0111));
-              const auto psum1121 = vreinterpretq_u16_u32(vpaddlq_u16(psum0121));
-              const auto psum1131 = vreinterpretq_u16_u32(vpaddlq_u16(psum0131));
-              const auto usum0010 = vuzpq_u16(psum1000, psum1010).val[0];
-              const auto usum0230 = vuzpq_u16(psum1020, psum1030).val[0];
-              const auto usum0011 = vuzpq_u16(psum1001, psum1011).val[0];
-              const auto usum0231 = vuzpq_u16(psum1021, psum1031).val[0];
-              const auto usum1010 = vuzpq_u16(psum1100, psum1110).val[0];
-              const auto usum1230 = vuzpq_u16(psum1120, psum1130).val[0];
-              const auto usum1011 = vuzpq_u16(psum1101, psum1111).val[0];
-              const auto usum1231 = vuzpq_u16(psum1121, psum1131).val[0];
+              const auto psum000 = vpaddlq_u8(xnorsum000);
+              const auto psum010 = vpaddlq_u8(xnorsum010);
+              const auto psum020 = vpaddlq_u8(xnorsum020);
+              const auto psum030 = vpaddlq_u8(xnorsum030);
+              const auto psum001 = vpaddlq_u8(xnorsum001);
+              const auto psum011 = vpaddlq_u8(xnorsum011);
+              const auto psum021 = vpaddlq_u8(xnorsum021);
+              const auto psum031 = vpaddlq_u8(xnorsum031);
+              const auto psum100 = vpaddlq_u8(xnorsum100);
+              const auto psum110 = vpaddlq_u8(xnorsum110);
+              const auto psum120 = vpaddlq_u8(xnorsum120);
+              const auto psum130 = vpaddlq_u8(xnorsum130);
+              const auto psum101 = vpaddlq_u8(xnorsum101);
+              const auto psum111 = vpaddlq_u8(xnorsum111);
+              const auto psum121 = vpaddlq_u8(xnorsum121);
+              const auto psum131 = vpaddlq_u8(xnorsum131);
+              const auto usum0010 = vpaddq_u16(psum000, psum010);
+              const auto usum0230 = vpaddq_u16(psum020, psum030);
+              const auto usum0011 = vpaddq_u16(psum001, psum011);
+              const auto usum0231 = vpaddq_u16(psum021, psum031);
+              const auto usum1010 = vpaddq_u16(psum100, psum110);
+              const auto usum1230 = vpaddq_u16(psum120, psum130);
+              const auto usum1011 = vpaddq_u16(psum101, psum111);
+              const auto usum1231 = vpaddq_u16(psum121, psum131);
               const auto sum0010 = vreinterpretq_s16_u16(usum0010);
               const auto sum0230 = vreinterpretq_s16_u16(usum0230);
               const auto sum0011 = vreinterpretq_s16_u16(usum0011);
@@ -537,14 +522,10 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
               auto tmp11 = vld1q_s16(&out_tile[out_index + 1 * OutChUnroll + 8]);
               const auto nsum0 = vld1q_s16(&notsum[ 0]);
               const auto nsum1 = vld1q_s16(&notsum[ 8]);
-              tmp00 += vshlq_s16(sum0010 - nsum0, vdupq_n_s16(in_bit_ch_high))
-                + vshlq_s16(sum0011 - nsum0, vdupq_n_s16(in_bit_ch_high + 1));
-              tmp01 += vshlq_s16(sum0230 - nsum1, vdupq_n_s16(in_bit_ch_high))
-                + vshlq_s16(sum0231 - nsum1, vdupq_n_s16(in_bit_ch_high + 1));
-              tmp10 += vshlq_s16(sum1010 - nsum0, vdupq_n_s16(in_bit_ch_high))
-                + vshlq_s16(sum1011 - nsum0, vdupq_n_s16(in_bit_ch_high + 1));
-              tmp11 += vshlq_s16(sum1230 - nsum1, vdupq_n_s16(in_bit_ch_high))
-                + vshlq_s16(sum1231 - nsum1, vdupq_n_s16(in_bit_ch_high + 1));
+              tmp00 += sum0010 + vaddq_s16(sum0011, sum0011) - nsum0;
+              tmp01 += sum0230 + vaddq_s16(sum0231, sum0231) - nsum1;
+              tmp10 += sum1010 + vaddq_s16(sum1011, sum1011) - nsum0;
+              tmp11 += sum1230 + vaddq_s16(sum1231, sum1231) - nsum1;
               vst1q_s16(&out_tile[out_index + 0 * OutChUnroll + 0], tmp00);
               vst1q_s16(&out_tile[out_index + 0 * OutChUnroll + 8], tmp01);
               vst1q_s16(&out_tile[out_index + 1 * OutChUnroll + 0], tmp10);
