@@ -29,8 +29,11 @@ class LmFlowNet(BaseNetwork):
     version = 1.00
 
     def __init__(
-            self, *args, weight_decay_rate=0.0004,
-            div_flow=20.0, conv_depth=6, **kwargs):
+            self, *args, conv_depth=6, div_flow=20.0,
+            weight_decay_rate=0.0004,
+            default_conv_channel=[64, 128, 256, 512, 512, 1024, 1024, 1024],
+            default_deconv_channel=[64, 128, 256, 512, 512, 512],
+            **kwargs):
         super().__init__(*args, **kwargs)
         self.images = None
         self.base_dict = None
@@ -43,6 +46,8 @@ class LmFlowNet(BaseNetwork):
         self.conv_depth = conv_depth
         self.use_batch_norm = True
         self.custom_getter = None
+        self.default_conv_channel = default_conv_channel
+        self.default_deconv_channel = default_deconv_channel
 
     def _space_to_depth(self, name, inputs, block_size):
         if self.data_format != 'NHWC':
@@ -246,20 +251,19 @@ class LmFlowNet(BaseNetwork):
         # NOTE: tf version uses padding=VALID and pad
         # to match the original caffe code.
         contractive_dict = {}
-        default_conv_channel = [64, 128, 256, 512, 512, 1024, 1024, 1024]
         conv1 = self._conv_bn_act(
-            'conv1', images, default_conv_channel[0], is_training, strides=2,
-            activation=self.activation_first_layer)
+            'conv1', images, self.default_conv_channel[0], is_training,
+            strides=2, activation=self.activation_first_layer)
         conv2 = self._conv_bn_act(
-            'conv2', conv1, default_conv_channel[1], is_training, strides=2,
-            activation=self.activation_before_last_layer)
+            'conv2', conv1, self.default_conv_channel[1], is_training,
+            strides=2, activation=self.activation_before_last_layer)
         contractive_dict['conv2'] = conv2
 
         conv_pre = conv2
         for _ in range(2, self.conv_depth):
             name1 = 'conv{}'.format(_ + 1)
             name2 = 'conv{}_1'.format(_ + 1)
-            num_channel = default_conv_channel[_]
+            num_channel = self.default_conv_channel[_]
             convx = self._conv_bn_act(
                 name1, conv_pre, num_channel, is_training, strides=2)
             contractive_dict[name2] = self._conv_bn_act(
@@ -270,13 +274,12 @@ class LmFlowNet(BaseNetwork):
     def _refinement_block(self, images, conv_dict, is_training):
         refinement_dict = {}
         concat = None
-        default_deconv_channel = [0, 0, 64, 128, 256, 512, 512, 512]
         for _ in reversed(range(2, self.conv_depth)):
             conv_name = 'conv{}_1'.format(_ + 1)
             predict_name = 'predict_flow{}'.format(_ + 1)
             upsample_name = 'upsample_flow{}'.format(_ + 1)
             deconv_name = 'deconv{}'.format(_)
-            num_channel = default_deconv_channel[_]
+            num_channel = self.default_deconv_channel[_ - 2]
             if concat is None:
                 concat = conv_dict[conv_name]
             else:

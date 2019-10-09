@@ -302,8 +302,6 @@ class DatasetIterator:
 
     def __next__(self):
         if self.enable_prefetch:
-            print("\033[0K remaining queue size: {}".format(
-                self.prefetch_result_queue.qsize()), end="\r")
             (images, labels) = self.prefetch_result_queue.get()
         else:
             images, labels = self.reader.read()
@@ -311,6 +309,21 @@ class DatasetIterator:
 
     def feed(self):
         return self.__next__()
+
+    def queue_size(self):
+        if self.enable_prefetch:
+            return self.prefetch_result_queue.qsize()
+
+    def queue_max_size(self):
+        if self.enable_prefetch:
+            return self.prefetch_result_queue.qsize()
+
+    def print_info(self):
+        if self.enable_prefetch:
+            queue_size = self.prefetch_result_queue.qsize()
+            print("\033[70G\033[0K remaining queue size: {}".format(
+                queue_size), end="\r")
+            return queue_size
 
     def __len__(self):
         return len(self.dataset)

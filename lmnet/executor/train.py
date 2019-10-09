@@ -233,6 +233,7 @@ def start_training(config):
     progbar = Progbar(max_steps)
     if rank == 0:
         progbar.update(last_step)
+        train_dataset.print_info()
     for step in range(last_step, max_steps):
 
         images, labels = train_dataset.feed()
@@ -377,6 +378,11 @@ def start_training(config):
 
         if rank == 0:
             progbar.update(step + 1)
+            res = train_dataset.print_info()
+            # if res is not None:
+            #     if res == 0:
+            #         while train_dataset.print_info() < 1000:
+            #             time.sleep(0.1)
     # training loop end.
     print("Done")
 
