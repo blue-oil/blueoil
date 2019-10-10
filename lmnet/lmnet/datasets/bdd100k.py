@@ -277,7 +277,7 @@ class BDD100KSegmentation(SegmentationBase):
         img = load_image(imgs[i])
         label = load_image(labels[i])
 
-        return np.array(img), np.array(label)
+        return img, label
 
     def __len__(self):
         return len(self.files_and_annotations()[0])
