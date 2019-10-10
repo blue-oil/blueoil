@@ -127,7 +127,7 @@ def train(config, experiment_id=None):
     default=None,
 )
 
-def convert(experiment_id, checkpoint, template):
+def convert(experiment_id, checkpoint, template, image_size, project_name):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
 
     if checkpoint is None:
