@@ -17,13 +17,13 @@ import argparse
 import importlib
 import os
 import re
+import importlib
 from tempfile import NamedTemporaryFile
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from tensorflow import gfile
 
-from blueoil.vars import TEMPLATE_DIR
 from lmnet.utils.module_loader import load_class
 
 _TASK_TYPE_TEMPLATE_FILE = {

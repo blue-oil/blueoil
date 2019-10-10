@@ -20,9 +20,11 @@ from collections import OrderedDict
 import whaaaaat
 from jinja2 import Environment, FileSystemLoader
 
-import lmnet.data_augmentor as augmentor
-from blueoil.vars import TEMPLATE_DIR
 from lmnet.data_processor import Processor
+import lmnet.data_augmentor as augmentor
+
+from blueoil.vars import TEMPLATE_DIR # TODO(suttang@): 差し替え TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+
 
 task_type_choices = [
     'classification',
