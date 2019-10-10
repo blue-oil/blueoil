@@ -14,9 +14,10 @@
 # limitations under the License.
 # =============================================================================
 import os
-import click
 import subprocess
 import shutil
+
+import click
 
 from executor.export import run as run_export
 from scripts.generate_project import run as run_generate_project
@@ -110,7 +111,11 @@ def make_all(project_dir, output_dir):
     os.chdir(running_dir)
 
 
-def run(experiment_id, restore_path, output_template_dir=None):
+def run(experiment_id,
+        restore_path,
+        output_template_dir=None,
+        image_size=(None, None),
+        project_name=None):
     """Convert from trained model.
 
     Returns:
@@ -119,12 +124,12 @@ def run(experiment_id, restore_path, output_template_dir=None):
     """
 
     # Export model
-    export_dir = run_export(experiment_id, restore_path=restore_path)
+    export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size)
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")
-    dest_dir_path = export_dir
-    project_name = "project"
+    if not project_name:
+        project_name = "project"
     activate_hard_quantization = True
     threshold_skipping = True
     cache_dma = True
@@ -132,7 +137,7 @@ def run(experiment_id, restore_path, output_template_dir=None):
     # Generate project
     run_generate_project(
         input_path=input_pb_path,
-        dest_dir_path=dest_dir_path,
+        dest_dir_path=export_dir,
         project_name=project_name,
         activate_hard_quantization=activate_hard_quantization,
         threshold_skipping=threshold_skipping,
@@ -151,7 +156,7 @@ def run(experiment_id, restore_path, output_template_dir=None):
 
     # Make
     project_dir_name = "{}.prj".format(project_name)
-    project_dir = os.path.join(dest_dir_path, project_dir_name)
+    project_dir = os.path.join(export_dir, project_dir_name)
     make_all(project_dir, output_directories.get("library_dir"))
 
     return output_root_dir

@@ -17,7 +17,6 @@ import argparse
 import importlib
 import os
 import re
-import importlib
 from tempfile import NamedTemporaryFile
 
 import yaml
