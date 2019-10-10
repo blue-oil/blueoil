@@ -21,18 +21,17 @@ import shutil
 from executor.export import run as run_export
 from scripts.generate_project import run as run_generate_project
 
-from blueoil.vars import OUTPUT_TEMPLATE_DIR # TODO(suttang@): 差し替え
-# OUTPUT_TEMPLATE_DIR = os.environ.get(
-#     'OUTPUT_TEMPLATE_DIR',
-#     os.path.join(os.path.dirname(BASE_DIR), 'output_template')
-# )
-
-
 
 def create_output_directory(output_root_dir, output_template_dir=None):
     """Create output directory from template."""
 
-    template_dir = OUTPUT_TEMPLATE_DIR if not output_template_dir else output_template_dir
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    env_output_template_dir = os.environ.get(
+        "OUTPUT_TEMPLATE_DIR",
+        os.path.join(os.path.dirname(base_dir), "output_template"),
+    )
+    template_dir = env_output_template_dir if not output_template_dir else output_template_dir
+
     # Recreate output_root_dir from template
     if os.path.exists(output_root_dir):
         shutil.rmtree(output_root_dir)
@@ -103,7 +102,7 @@ def make_all(project_dir, output_dir):
             os.environ["CXXFLAGS"] = cxxflags_cache
 
         subprocess.run(("make", "clean", "--quiet"))
-        subprocess.run(("make",  target, "-j4", "--quiet"))
+        subprocess.run(("make", target, "-j4", "--quiet"))
         strip_binary(output)
         output_file_path = os.path.join(output_dir, output)
         os.rename(output, output_file_path)
@@ -156,23 +155,3 @@ def run(experiment_id, restore_path, output_template_dir=None):
     make_all(project_dir, output_directories.get("library_dir"))
 
     return output_root_dir
-
-
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option(
-    "-i",
-    "--experiment_id",
-    help="id of this experiment.",
-    required=True,
-)
-@click.option(
-    "--restore_path",
-    help="restore ckpt file base path. e.g. saved/experiment/checkpoints/save.ckpt-10001",
-    default=None,
-)
-def main(experiment_id, restore_path):
-    run(experiment_id, restore_path)
-
-
-if __name__ == '__main__':
-    main()
