@@ -1,1 +1,1 @@
-docker build -t ubuntu1804 .
+docker build -t ubuntu_make_img .
