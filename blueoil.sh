@@ -234,7 +234,7 @@ function blueoil_predict(){
 	docker run ${LMNET_DOCKER_OPTIONS} \
 		-v ${PREDICT_INPUT_DIR}:${PREDICT_INPUT_DIR} \
 		-v ${PREDICT_OUTPUT_DIR}:${PREDICT_OUTPUT_DIR} ${DOCKER_IMAGE} \
-		python lmnet/executor/predict.py -in ${PREDICT_INPUT_DIR} -o ${PREDICT_OUTPUT_DIR} -i ${EXPERIMENT_ID} ${RESTORE_OPTION}
+		python lmnet/executor/predict.py -i ${PREDICT_INPUT_DIR} -o ${PREDICT_OUTPUT_DIR} -e ${EXPERIMENT_ID} ${RESTORE_OPTION}
 	error_exit $? "Failed to predict from images"
 
 	echo "Result files are created: ${PREDICT_OUTPUT_DIR}"
@@ -282,6 +282,7 @@ case "$1" in
 		blueoil_convert $2 $3 $4
 		exit 0;;
 	"predict" )
+		echo $2 $3 $4 $5
 		check_num_args $# -lt 5
 		check_num_args $# -gt 6
 		check_files_and_directories $2 $3 $4 $5
