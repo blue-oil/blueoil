@@ -115,8 +115,6 @@ class Base(BaseNetwork):
                 pred = tf.equal(output_argmax, i)
                 truth = tf.equal(labels, i)
 
-                class_name = class_name.replace(' ', '_')
-
                 true_positive, true_positive_update = tf.metrics.true_positives(truth, pred, name=class_name)
                 false_positive, false_positive_update = tf.metrics.false_positives(truth, pred, name=class_name)
                 false_negative, false_negative_update = tf.metrics.false_negatives(truth, pred, name=class_name)

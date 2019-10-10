@@ -20,10 +20,10 @@ from easydict import EasyDict
 from executor.train import start_training
 from lmnet import environment
 from lmnet.common import Tasks
-from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
-from lmnet.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
-from lmnet.pre_processor import ResizeWithGtBoxes
-from lmnet.quantizations import binary_channel_wise_mean_scaling_quantizer, linear_mid_tread_half_quantizer
+from lmnet.datasets.image_folder import ImageFolderBase
+from lmnet.networks.classification.lm_resnet import LmResnetQuantize
+from lmnet.pre_processor import Resize
+from lmnet.quantizations import binary_mean_scaling_quantizer, linear_mid_tread_half_quantizer
 from lmnet.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
@@ -31,16 +31,19 @@ from lmnet.utils.executor import prepare_dirs
 pytestmark = pytest.mark.usefixtures("reset_default_graph", "set_test_environment")
 
 
-def test_training():
-    """Test only no error raised."""
+class Dummy(ImageFolderBase):
+    extend_dir = "dummy_classification"
 
+
+def test_training():
+    """Test only that no error raised."""
     config = EasyDict()
 
-    config.NETWORK_CLASS = YoloV2Quantize
-    config.DATASET_CLASS = Pascalvoc2007
+    config.NETWORK_CLASS = LmResnetQuantize
+    config.DATASET_CLASS = Dummy
 
     config.IS_DEBUG = False
-    config.IMAGE_SIZE = [128, 160]
+    config.IMAGE_SIZE = [32, 32]
     config.BATCH_SIZE = 2
     config.TEST_STEPS = 1
     config.MAX_STEPS = 2
@@ -48,7 +51,7 @@ def test_training():
     config.KEEP_CHECKPOINT_MAX = 5
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
-    config.TASK = Tasks.OBJECT_DETECTION
+    config.TASK = Tasks.CLASSIFICATION
 
     # network model config
     config.NETWORK = EasyDict()
@@ -59,17 +62,17 @@ def test_training():
     config.NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
     config.NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
         'bit': 2,
-        'max_value': 2.0
+        'max_value': 2
     }
-    config.NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
+    config.NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
     config.NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
-    # daasegt config
+    # dataset config
     config.DATASET = EasyDict()
-    config.DATASET.PRE_PROCESSOR = ResizeWithGtBoxes(config.IMAGE_SIZE)
+    config.DATASET.PRE_PROCESSOR = Resize(config.IMAGE_SIZE)
     config.DATASET.BATCH_SIZE = config.BATCH_SIZE
 
-    environment.init("test_yolov_2_quantize")
+    environment.init("test_lm_resnet_quantize")
     prepare_dirs(recreate=True)
     start_training(config)
 
