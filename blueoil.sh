@@ -178,7 +178,7 @@ function blueoil_train(){
 
         # grep is to filter out annoying "Read -1... " error message. For more detail, see https://github.com/horovod/horovod/issues/503
 	docker run ${LMNET_DOCKER_OPTIONS} ${DOCKER_IMAGE} \
-		${HOROVOD_PREFIX} python blueoil/cmd/main.py train -c ${GUEST_CONFIG_DIR}/${YML_CONFIG_FILE_NAME} -i ${EXPERIMENT_ID} |& grep -v "Read -1"
+		${HOROVOD_PREFIX} python blueoil/cmd/main.py train -c ${GUEST_CONFIG_DIR}/${YML_CONFIG_FILE_NAME} -e ${EXPERIMENT_ID} |& grep -v "Read -1"
 	error_exit $? "Training exited with a non-zero status"
 
 	if [ ! -f ${OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/checkpoint ]; then
@@ -210,7 +210,7 @@ function blueoil_convert(){
 	echo "#### Generate output files ####"
 
 	docker run ${LMNET_DOCKER_OPTIONS} ${DOCKER_IMAGE} \
-		python blueoil/cmd/main.py convert -i ${EXPERIMENT_ID} ${RESTORE_OPTION}
+		python blueoil/cmd/main.py convert -e ${EXPERIMENT_ID} ${RESTORE_OPTION}
 	error_exit $? "Failed to generate output files"
 
 	# Set path for DLK
