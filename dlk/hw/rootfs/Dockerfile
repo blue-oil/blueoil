@@ -28,6 +28,6 @@ RUN apt-get install -y qemu-user-static
 RUN apt-get install -y vim
 RUN cp /usr/bin/qemu-aarch64-static /build/rootfs/usr/bin/
 COPY ./setting_after_chroot.sh /build/rootfs
-#RUN cp setting_after_chroot.sh /build/rootfs/
-RUN chroot /build/rootfs /bin/bash /setting_after_chroot.sh
+###RUN cp setting_after_chroot.sh /build/rootfs/
+#RUN chroot /build/rootfs /bin/bash /setting_after_chroot.sh
 
