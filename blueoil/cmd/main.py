@@ -150,7 +150,7 @@ def convert(experiment_id, checkpoint, template):
     '-p',
     '--checkpoint',
     help='Checkpoint name. e.g. save.ckpt-10001',
-    required=True,
+    default=None,
 )
 @click.option(
     "--save_images/--no_save_images",
@@ -159,7 +159,11 @@ def convert(experiment_id, checkpoint, template):
 )
 def predict(input, output, experiment_id, checkpoint, save_images):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
-    restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
+
+    if checkpoint is None:
+        restore_path = None
+    else:
+        restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
 
     run_predict(input, output, experiment_id, None, restore_path, save_images)
 
