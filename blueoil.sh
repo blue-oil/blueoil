@@ -282,7 +282,6 @@ case "$1" in
 		blueoil_convert $2 $3 $4
 		exit 0;;
 	"predict" )
-		echo $2 $3 $4 $5
 		check_num_args $# -lt 5
 		check_num_args $# -gt 6
 		check_files_and_directories $2 $3 $4 $5
