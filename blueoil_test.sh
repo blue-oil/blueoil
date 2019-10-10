@@ -25,7 +25,7 @@ fi
 TEST_LOG_NO=0
 FAILED_TEST_NO=""
 
-# list of avairable optimizers listed in blueoil_init.py
+# list of avairable optimizers listed in cmd/main.py init
 OPTIMIZSERS=("Momentum" "Adam")
 
 function usage_exit(){
