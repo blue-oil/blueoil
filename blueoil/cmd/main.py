@@ -20,9 +20,9 @@ import os
 import click
 import yaml
 
-from blueoil.cli.init import ask_questions, save_config
-from blueoil.cli.train import run as run_train
-from blueoil.cli.convert import run as run_convert
+from blueoil.cmd.init import ask_questions, save_config
+from blueoil.cmd.train import run as run_train
+from blueoil.cmd.convert import run as run_convert
 from executor.predict import run as run_predict
 
 
