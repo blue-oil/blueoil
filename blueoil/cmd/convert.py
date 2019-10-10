@@ -14,8 +14,8 @@
 # limitations under the License.
 # =============================================================================
 import os
-import subprocess
 import shutil
+import subprocess
 
 import click
 

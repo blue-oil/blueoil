@@ -25,6 +25,7 @@ from tensorflow import gfile
 
 from lmnet.utils.module_loader import load_class
 
+
 _TASK_TYPE_TEMPLATE_FILE = {
     "classification": "classification.tpl.py",
     "object_detection": "object_detection.tpl.py",
