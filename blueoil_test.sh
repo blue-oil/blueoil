@@ -182,6 +182,7 @@ function init_test(){
         send \"\n\"
         expect \"Next step:\"
     " >> ${TEST_LOG_FILE} 2>&1
+    sleep 1
     @ 0 ls config/${CONFIG_NAME}.yml
     # Wait for complete ${RUN_SCRIPT} init
     sleep 1
