@@ -105,3 +105,5 @@ ENV/
 /dataset/
 /config/
 /tmp/
+.DS_Store
+.idea

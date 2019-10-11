@@ -1408,6 +1408,7 @@ class QTZ_linear_mid_tread_half(Quantizer):
                  dimension_format: str = 'NHWC') -> None:
         """Init this quantization operator."""
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+        self._original_shape = shape
 
     def _check_consistency(self) -> None:
         super()._check_consistency()
@@ -1478,6 +1479,9 @@ class QTZ_linear_mid_tread_half(Quantizer):
     def binarizer(self, data: np.ndarray) -> np.ndarray:
         """Maps the quantized values into >= 0 integer values."""
         return data
+
+    def restore_shape(self):
+        self.update_shape(self._original_shape, 'NHWC')
 
 
 class Add(Operator):
