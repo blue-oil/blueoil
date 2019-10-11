@@ -15,7 +15,6 @@
 # =============================================================================
 import os
 
-import click
 from tensorflow import gfile
 
 from blueoil.generate_lmnet_config import generate
