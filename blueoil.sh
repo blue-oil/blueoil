@@ -197,7 +197,7 @@ function set_variables_for_restore(){
 	set_lmnet_docker_options
 
 	if [ ${CHECKPOINT_NO} -gt 0 ]; then
-		RESTORE_OPTION="--restore_path ${GUEST_OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/save.ckpt-${CHECKPOINT_NO}"
+		RESTORE_OPTION="--checkpoint save.ckpt-${CHECKPOINT_NO}"
 		if [ ! -f ${OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/save.ckpt-${CHECKPOINT_NO}.index ]; then
 			error_exit 1 "Invalid number of checkpoint, there is no checkpoints ${OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/save.ckpt-${CHECKPOINT_NO}"
 		fi
