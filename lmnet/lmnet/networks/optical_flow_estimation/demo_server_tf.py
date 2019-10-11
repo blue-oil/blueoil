@@ -35,10 +35,11 @@ with warnings.catch_warnings():
 
 from io import BytesIO
 
+from flow_to_image import flow_to_image
+
 from lmnet import environment
 from lmnet.utils import config as config_util
 from lmnet.utils.executor import search_restore_filename
-from lmnet.networks.optical_flow_estimation.flow_to_image import flow_to_image
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--host', type=str, default=socket.gethostname())
@@ -46,7 +47,7 @@ parser.add_argument('--port', type=int, default=12345)
 parser.add_argument('-i', '--experiment_id', type=str, required=True)
 parser.add_argument('--restore_path', type=str, default=None)
 parser.add_argument('--config_file', type=str, default=None)
-parser.add_argument('--return_flow', action="store_true")
+parser.add_argument('--return_image', action="store_true")
 parser.add_argument('--threshold', type=float, default=10.0)
 args = parser.parse_args()
 
@@ -78,37 +79,36 @@ class Inference(object):
         saver.restore(self.sess, restore_path)
 
     def __call__(self, input_data):
-        feed_dict = {self.images_placeholder: input_data * (1 / 255.0)}
-        output_flow = self.sess.run(
-            self.output_op, feed_dict=feed_dict)
-        # begin = time.time()
-        # print("\033[Ktime: {:.4f}".format(time.time() - begin))
-        if args.return_flow:
-            return output_flow
-        else:
-            return flow_to_image(
-                -output_flow[0][..., [1, 0]], threshold=args.threshold)
+        _x = (input_data / 255.0).astype(np.float32)
+        t_begin = time.time()
+        output = self.model.run(_x)
+        calc_time = time.time() - t_begin
+        if args.return_image:
+            output = flow_to_image(
+                -output[0][..., [1, 0]], threshold=args.threshold)
+        return output, calc_time
 
 
 def receive_and_send(connection, process_func):
-    with connection as c:
-        data_buffer = b""
-        while True:
-            received_buffer = c.recv(8192)
-            if not received_buffer:
-                break
-            data_buffer += received_buffer
-            if data_buffer[-7:] == b"__end__":
-                break
-        try:
-            input_data = np.load(BytesIO(data_buffer))['input']
-            output_data = process_func(input_data)
-            f = BytesIO()
-            np.savez_compressed(f, output=output_data)
-            f.seek(0)
-            c.sendall(f.read())
-        except ValueError:
-            pass
+    c = connection
+    data_buffer = b""
+    while True:
+        received_buffer = c.recv(8192)
+        if not received_buffer:
+            break
+        data_buffer += received_buffer
+        if data_buffer[-7:] == b"__end__":
+            break
+    try:
+        input_data = np.load(BytesIO(data_buffer))['input']
+        output_data, calc_time = process_func(input_data)
+        f = BytesIO()
+        np.savez_compressed(f, output=output_data, calc_time=calc_time)
+        f.seek(0)
+        c.sendall(f.read())
+    except ValueError:
+        pass
+    c.close()
 
 
 def run_server(server_info, experiment_id, config_file, restore_path):

@@ -33,11 +33,11 @@ with warnings.catch_warnings():
 from glob import glob
 from multiprocessing import Pool
 
+from demo_lib import run_demo
+
 from lmnet import environment
 from lmnet.utils import config as config_util
 from lmnet.utils.executor import search_restore_filename
-from lmnet.networks.optical_flow_estimation.demo_lib import run_demo
-from lmnet.networks.optical_flow_estimation.flow_to_image import flow_to_image
 
 
 '''
@@ -100,9 +100,11 @@ class Inference(object):
 
     def __call__(self, input_data):
         feed_dict = {self.images_placeholder: input_data * (1 / 255.0)}
-        output_flow = self.sess.run(
+        t_begin = time.time()
+        output = self.sess.run(
             self.output_op, feed_dict=feed_dict)
-        return flow_to_image(-output_flow[0][..., [1, 0]])
+        calc_time = time.time() - t_begin
+        return output, calc_time
 
 
 if __name__ == '__main__':

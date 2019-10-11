@@ -23,7 +23,7 @@ import pickle
 import functools
 import numpy as np
 
-import PIL
+from PIL import Image
 
 from lmnet import data_processor
 from lmnet.datasets.base import Base
@@ -57,7 +57,7 @@ def train_valid_split(arr, validation_rate=0.25, seed=None):
 
 
 def _open_image_file(file_name, dtype=np.uint8):
-    return np.array(PIL.Image.open(file_name), dtype=dtype)
+    return np.array(Image.open(file_name), dtype=dtype)
 
 
 def _open_flo_file(file_name, dtype=np.float32):

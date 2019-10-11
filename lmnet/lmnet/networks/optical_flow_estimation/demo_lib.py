@@ -14,6 +14,8 @@
 # limitations under the License.
 # =============================================================================
 
+from __future__ import print_function
+
 __all__ = ["run_demo", "run_test"]
 
 import os
@@ -21,24 +23,26 @@ import sys
 import cv2
 import time
 import math
+import signal
 import threading
 import collections
 import numpy as np
 from scipy import ndimage
 
-sys.path.extend(["./lmnet", "/dlk/python/dlk"])
-
-from lmnet.networks.optical_flow_estimation.flow_to_image import flow_to_image
-from lmnet.datasets.optical_flow_estimation import (
-    FlyingChairs, ChairsSDHom
-)
+from flow_to_image import flow_to_image
 
 
 def init_camera(camera_height, camera_width, camera_id):
-    cap = cv2.VideoCapture(camera_id)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
-    cap.set(cv2.CAP_PROP_FPS, 10)
+    if hasattr(cv2, 'cv'):
+        cap = cv2.VideoCapture(camera_id)
+        cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
+        cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
+        cap.set(cv2.cv.CV_CAP_PROP_FPS, 10)
+    else:
+        cap = cv2.VideoCapture(camera_id)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
+        cap.set(cv2.CAP_PROP_FPS, 10)
     return cap
 
 
@@ -52,34 +56,39 @@ def rescale_frame(frame, ratio):
 def run_demo(
         func_inference, func_args=[], func_kwargs={},
         input_image_size=(384, 512, 3), diff_step=5, window_name="output",
-        full_screen=True, movie_path=None, demo_name="output", camera_id=0):
+        full_screen=True, movie_path=None, demo_name="output", camera_id=0,
+        video_fps=10.0):
 
     # initializing worker and variables
     store_num = diff_step + 10
     camera_image_size = (480, 640)
     cap = init_camera(
         camera_image_size[0], camera_image_size[1], camera_id=camera_id)
-    time_list = collections.deque(maxlen=5)
-    time_list.append(1.0)
+    calc_time_list = collections.deque(maxlen=5)
+    calc_time_list.append(1.0)
+    view_time_list = collections.deque(maxlen=5)
+    view_time_list.append(1.0)
     frame_list = collections.deque(maxlen=store_num)
     input_image = np.zeros(
         (1, input_image_size[0], input_image_size[1], input_image_size[2] * 2),
         dtype=np.uint8)
+    output_flow = np.zeros(
+        (1, input_image_size[0], input_image_size[1], 2), dtype=np.float32)
     output_image = np.zeros(input_image_size, dtype=np.uint8)
-    camera_to_input_scale = input_image_size[0] / camera_image_size[0]
+    camera_to_input_scale = 1.0 * input_image_size[0] / camera_image_size[0]
 
     # display image (9 * 16 size)
     display_image_size = (9 * 64, 16 * 64, 3)
     display_image = np.zeros(
         display_image_size, dtype=np.uint8)
     input_to_display_scale = (
-        (display_image_size[0] / input_image_size[0]) / 3,
-        (display_image_size[0] / input_image_size[0]) / 3,
+        (1.0 * display_image_size[0] / input_image_size[0]) / 3,
+        (1.0 * display_image_size[0] / input_image_size[0]) / 3,
         1.0
     )
     output_to_display_scale = (
-        display_image_size[0] / input_image_size[0],
-        display_image_size[0] / input_image_size[0],
+        1.0 * display_image_size[0] / input_image_size[0],
+        1.0 * display_image_size[0] / input_image_size[0],
         1.0
     )
 
@@ -98,11 +107,16 @@ def run_demo(
     def _get_output():
         while True:
             try:
-                begin = time.time()
+                t_begin = time.time()
                 input_image[0, ..., :3] = frame_list[-diff_step]
                 input_image[0, ..., 3:] = frame_list[-1]
-                output_image[:] = func_inference(input_image)
-                time_list.append(time.time() - begin)
+                output_flow[:], calc_time = func_inference(
+                    input_image, *func_args, **func_kwargs)
+                output_image[:] = flow_to_image(
+                    -output_flow[0][..., [1, 0]], threshold=10.0)
+                view_time = time.time() - t_begin
+                calc_time_list.append(calc_time)
+                view_time_list.append(view_time)
             except ValueError:
                 pass
 
@@ -126,8 +140,14 @@ def run_demo(
 
     if full_screen:
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-        cv2.setWindowProperty(
-            window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        if hasattr(cv2, 'cv'):
+            cv2.setWindowProperty(
+                window_name, cv2.WND_PROP_FULLSCREEN,
+                cv2.cv.CV_WINDOW_FULLSCREEN)
+        else:
+            cv2.setWindowProperty(
+                window_name, cv2.WND_PROP_FULLSCREEN,
+                cv2.WINDOW_FULLSCREEN)
 
     if movie_path is not None:
         from skvideo.io import FFmpegWriter
@@ -135,20 +155,22 @@ def run_demo(
         out = FFmpegWriter(
             movie_path,
             inputdict={
-                '-r': str(10), '-s': '{}x{}'.format(*movie_shape[::-1])},
-            outputdict={
-                # '-r': str(10),
-                # '-c:v': 'libx264',
-                # '-crf': str(17),
-                # '-preset': 'ultrafast',
-                # '-pix_fmt': 'yuv444p'
-            }
+                '-r': str(video_fps),
+                '-s': '{}x{}'.format(*movie_shape[::-1])},
+            # outputdict={
+            #     '-r': str(10),
+            #     '-c:v': 'libx264',
+            #     '-crf': str(17),
+            #     '-preset': 'ultrafast',
+            #     '-pix_fmt': 'yuv444p'}
         )
 
     def add_text_info():
         # FPS infomation
-        fps = 1 / np.mean(time_list)
-        fps_text = "{} (FPS: {:.2f})".format(demo_name, fps)
+        view_fps = 1 / np.mean(view_time_list)
+        calc_fps = 1 / np.mean(calc_time_list)
+        fps_text = "{} (FPS: {:>5.2f}/{:>5.2f})".format(
+            demo_name, view_fps, calc_fps)
         cv2.putText(
             display_image, fps_text, (10, 25),
             cv2.FONT_HERSHEY_PLAIN, 1.6, (0, 0, 0), 2)
@@ -166,7 +188,7 @@ def run_demo(
             cv2.FONT_HERSHEY_PLAIN, 1.6, (0, 0, 0), 2)
 
     while True:
-        begin = time.time()
+        t_begin = time.time()
         _pre = frame_list[-diff_step].astype(np.float)
         _post = frame_list[-1].astype(np.float)
         display_image[:size_h2, size_w1:] = ndimage.zoom(
@@ -179,14 +201,22 @@ def run_demo(
         cv2.imshow(window_name, display_image)
         if movie_path is not None:
             out.writeFrame(display_image[..., ::-1])
-            time.sleep(max(0.0, 0.1 - (time.time() - begin)))
-            print(time.time() - begin)
+            t_sleep = max(0.0, (1.0 / video_fps) - (time.time() - t_begin))
+            print(t_sleep)
+            time.sleep(t_sleep)
         key = cv2.waitKey(2)
         if key == 27:
             break
+    # signal.signal(signal.SIGALRM, _render)
+    # signal.setitimer(signal.ITIMER_REAL, 1.0 / video_fps, 1.0 / video_fps)
 
 
-def run_test(func_inference, func_args=[], func_kwargs={}):
+def run_test(func_inference, split_step=1, func_args=[], func_kwargs={}):
+    sys.path.extend(["./lmnet", "/dlk/python/dlk"])
+    from lmnet.datasets.optical_flow_estimation import (
+        FlyingChairs, ChairsSDHom
+    )
+
     dataset = FlyingChairs(
         subset="validation", validation_rate=0.1, validation_seed=2019)
 
@@ -197,12 +227,19 @@ def run_test(func_inference, func_args=[], func_kwargs={}):
         )
 
     epe_list = []
-    for _i in range(100):
+    calc_time_list = []
+    for _i in range(1000):
         input_image, target_flow = dataset[_i]
-        output_flow = func_inference(
-            input_image[np.newaxis], *func_args, **func_kwargs)
-        epe_list.append(calc_epe(output_flow, target_flow))
-        print("epe: {:.3f}".format(epe_list[-1]))
+        output_flow, calc_time = func_inference(
+            input_image[::split_step, ::split_step, :][np.newaxis],
+            *func_args, **func_kwargs)
+        epe_list.append(calc_epe(
+            output_flow, target_flow[::split_step, ::split_step]))
+        calc_time_list.append(calc_time)
+        print("epe: {:.3f} | calc_time {:.3f}".format(
+            epe_list[-1], calc_time_list[-1]))
 
     print("mean: {:.3f}, std: {:.3f}".format(
         np.mean(epe_list), np.std(epe_list)))
+    print("time: {:.3f}±{:.3f}".format(
+        np.mean(calc_time_list), np.std(calc_time_list)))
