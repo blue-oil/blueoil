@@ -45,7 +45,6 @@ void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
   // assertions
   assert(ih * iw == oh * ow);
   assert(kh == 3 && kw == 3);
-  assert(MAX_SIZE_KN2ROW_BUFFER_PER_LAYER >= oc * kh * kw * ih * iw);
 
   // need to initialize output
   std::memset(output.data(), 0, oc * ih * iw * sizeof(U));
