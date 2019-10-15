@@ -76,7 +76,8 @@ template<typename T>
 void matrix_shift_add(MatrixView<T, MatrixOrder::ColMajor>& buf,
                       MatrixView<T, MatrixOrder::ColMajor>& result,
                       const struct convolution_parameters& p,
-                      const std::size_t block_offset) {
+                      const int block_offset) {
+  fprintf(stderr, "BAD\n");
   Measurement::Start("matrix_shift_add1");
 
   const int h = p.input_height;
@@ -127,12 +128,12 @@ template<>
 void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
                       MatrixView<int32_t, MatrixOrder::ColMajor>& result,
                       const struct convolution_parameters& p,
-                      const std::size_t block_offset);
+                      const int block_offset);
 template<>
 void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
                       MatrixView<float, MatrixOrder::ColMajor>& result,
                       const struct convolution_parameters& p,
-                      const std::size_t block_offset);
+                      const int block_offset);
 
 } // namespace dlk
 
