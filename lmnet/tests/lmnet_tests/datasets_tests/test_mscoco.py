@@ -19,5 +19,8 @@ from lmnet.datasets.mscoco import MscocoObjectDetection, DEFAULT_CLASSES
 def test_mscoco_object_detection_optional_classes_instantiate():
     classes = [DEFAULT_CLASSES[0]]
     MscocoObjectDetection.classes = classes
-    dataset = MscocoObjectDetection(subset='train')
+    try:
+        MscocoObjectDetection()
+    except Exception:
+        assert False
     assert True
