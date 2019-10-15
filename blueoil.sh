@@ -98,7 +98,7 @@ function blueoil_init(){
 	docker run ${SHARED_DOCKER_OPTIONS} -i \
 		-v ${CONFIG_DIR}:${GUEST_CONFIG_DIR} ${DOCKER_IMAGE} \
 		/bin/bash -c \
-		"python blueoil/blueoil_init.py && mv *.yml ${GUEST_CONFIG_DIR}"
+		"python blueoil/cmd/main.py init && mv *.yml ${GUEST_CONFIG_DIR}"
 	error_exit $? "Failed to generate config"
 
 	YML_CONFIG_FILE=$(ls -t ${CONFIG_DIR}/*.yml | head -1)
@@ -178,7 +178,7 @@ function blueoil_train(){
 
         # grep is to filter out annoying "Read -1... " error message. For more detail, see https://github.com/horovod/horovod/issues/503
 	docker run ${LMNET_DOCKER_OPTIONS} ${DOCKER_IMAGE} \
-		${HOROVOD_PREFIX} python blueoil/blueoil_train.py -c ${GUEST_CONFIG_DIR}/${YML_CONFIG_FILE_NAME} -i ${EXPERIMENT_ID} |& grep -v "Read -1"
+		${HOROVOD_PREFIX} python blueoil/cmd/main.py train -c ${GUEST_CONFIG_DIR}/${YML_CONFIG_FILE_NAME} -e ${EXPERIMENT_ID} |& grep -v "Read -1"
 	error_exit $? "Training exited with a non-zero status"
 
 	if [ ! -f ${OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/checkpoint ]; then
@@ -197,7 +197,7 @@ function set_variables_for_restore(){
 	set_lmnet_docker_options
 
 	if [ ${CHECKPOINT_NO} -gt 0 ]; then
-		RESTORE_OPTION="--restore_path ${GUEST_OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/save.ckpt-${CHECKPOINT_NO}"
+		RESTORE_OPTION="--checkpoint save.ckpt-${CHECKPOINT_NO}"
 		if [ ! -f ${OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/save.ckpt-${CHECKPOINT_NO}.index ]; then
 			error_exit 1 "Invalid number of checkpoint, there is no checkpoints ${OUTPUT_DIR}/${EXPERIMENT_ID}/checkpoints/save.ckpt-${CHECKPOINT_NO}"
 		fi
@@ -210,7 +210,7 @@ function blueoil_convert(){
 	echo "#### Generate output files ####"
 
 	docker run ${LMNET_DOCKER_OPTIONS} ${DOCKER_IMAGE} \
-		python blueoil/blueoil_convert.py -i ${EXPERIMENT_ID} ${RESTORE_OPTION}
+		python blueoil/cmd/main.py convert -e ${EXPERIMENT_ID} ${RESTORE_OPTION}
 	error_exit $? "Failed to generate output files"
 
 	# Set path for DLK
@@ -234,7 +234,7 @@ function blueoil_predict(){
 	docker run ${LMNET_DOCKER_OPTIONS} \
 		-v ${PREDICT_INPUT_DIR}:${PREDICT_INPUT_DIR} \
 		-v ${PREDICT_OUTPUT_DIR}:${PREDICT_OUTPUT_DIR} ${DOCKER_IMAGE} \
-		python lmnet/executor/predict.py -in ${PREDICT_INPUT_DIR} -o ${PREDICT_OUTPUT_DIR} -i ${EXPERIMENT_ID} ${RESTORE_OPTION}
+		python blueoil/cmd/main.py predict -i ${PREDICT_INPUT_DIR} -o ${PREDICT_OUTPUT_DIR} -e ${EXPERIMENT_ID} ${RESTORE_OPTION}
 	error_exit $? "Failed to predict from images"
 
 	echo "Result files are created: ${PREDICT_OUTPUT_DIR}"
