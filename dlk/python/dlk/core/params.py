@@ -105,6 +105,10 @@ class Params(object):
             return 0
 
     @property
+    def max_size_kn2row_col_block(self) -> int:
+        return 256
+
+    @property
     def max_size_kn2row_buffer_per_layer(self) -> int:
         convs: List[Conv] = self.graph.convs()
 
@@ -112,7 +116,7 @@ class Params(object):
             [(
                 x.kernel_height *
                 x.kernel_width *
-                x.height * x.width *
+                min(self.max_size_kn2row_col_block, x.height * x.width) *
                 x.channel
             ) for x in convs if not x.is_quantized]
 
