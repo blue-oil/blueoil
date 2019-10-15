@@ -140,7 +140,6 @@ def dict_codegen_segmentation_fpga() -> dict:
                         {'cpu_name':'arm_fpga', 'prefix': 'fpga_seg', 'hard_quantize': True, 'need_arm_compiler': True})
 
 
-
 def get_configurations():
     configurations = [
         # Classification / x86
@@ -305,7 +304,6 @@ def get_configurations():
         #             {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': False, 'threshold_skipping': False}),
         # updated_dict(dict_codegen_segmentation_fpga(),
         #             {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': False, 'threshold_skipping': True}),
-
    ]
 
     return [(i, configuration) for i, configuration in enumerate(configurations)]
