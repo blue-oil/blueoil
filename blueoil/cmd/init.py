@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import os
 import inspect
 import re
 from collections import OrderedDict
@@ -21,8 +22,8 @@ import whaaaaat
 from jinja2 import Environment, FileSystemLoader
 
 import lmnet.data_augmentor as augmentor
-from blueoil.vars import TEMPLATE_DIR
 from lmnet.data_processor import Processor
+
 
 task_type_choices = [
     'classification',
@@ -98,8 +99,8 @@ object_detection_dataset_formats = [
 
 semantic_segmentation_dataset_formats = [
     {
-        'name': "CamvidCustom",
-        'desc': "CamVid base cumstom format",
+        'name': 'CamvidCustom',
+        'desc': 'CamVid base cumstom format',
     },
 ]
 
@@ -187,7 +188,10 @@ def image_size_filter(raw):
 
 
 def save_config(blueoil_config, output=None):
-    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR, encoding='utf8'))
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    template_dir = os.path.join(base_dir, "templates")
+
+    env = Environment(loader=FileSystemLoader(template_dir, encoding='utf8'))
     tpl = env.get_template('blueoil-config.tpl.yml')
 
     applied = tpl.render(blueoil_config)
@@ -280,8 +284,8 @@ def ask_questions():
         'name': 'value',
         'message': 'image size (integer x integer):',
         'default': '128x128',
-        "filter": image_size_filter,
-        "validate": generate_image_size_validate(network_name),
+        'filter': image_size_filter,
+        'validate': generate_image_size_validate(network_name),
     }
     image_size = prompt(image_size_question)
 
@@ -298,8 +302,7 @@ def ask_questions():
         'type': 'rawlist',
         'name': 'value',
         'message': 'select optimizer:',
-        'choices': ['Momentum',
-                    'Adam'],
+        'choices': ['Momentum', 'Adam'],
         'default': 'Momentum'
     }
     training_optimizer = prompt(training_optimizer_question)
@@ -371,17 +374,3 @@ please modify manually after config exported.)"
         if k != 'r' and not k.endswith("question"):
             r[k] = v
     return r
-
-
-def main():
-    blueoil_config = ask_questions()
-    config_filename = save_config(blueoil_config)
-
-    print('')
-    print('A new configuration file generated: %s' % (config_filename))
-    print('  - Your next step is training.')
-    print('  - You can customize some miscellaneous settings according to the comment.')
-
-
-if __name__ == '__main__':
-    main()
