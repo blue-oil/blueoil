@@ -30,8 +30,7 @@ namespace dlk {
 template<>
 void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
                       MatrixView<float, MatrixOrder::ColMajor>& result,
-                      const struct convolution_parameters& p,
-                      const int block_offset) {
+                      const struct convolution_parameters& p) {
   Measurement::Start("matrix_shift_add_f1");
 
   const int h = p.input_height;
@@ -39,19 +38,15 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
   const int oc = p.output_channels;
   const int kh = p.kernel_height;
   const int kw = p.kernel_width;
-  const auto col_block = buf.cols();
 
   // only 3x3 kernel is supported.
   assert(kh == 3 && kw == 3);
 
-  for (unsigned int j = 0; j < col_block; ++j) {
-    const bool is_first = is_first_column(j + block_offset, w);
-    const bool is_last = is_last_column(j + block_offset, w);
-    if (!is_first && !is_last) continue;
+  for (unsigned int j = 0; j < buf.cols(); ++j) {
     for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first && is_cfi(i, p.output_channels)) {
+      if (is_first_column(j, w) && is_cfi(i, p.output_channels)) {
         buf.set(i, j, 0);
-      } else if (is_last && is_adg(i, p.output_channels)) {
+      } else if (is_last_column(j, w) && is_adg(i, p.output_channels)) {
         buf.set(i, j, 0);
       }
     }
@@ -60,20 +55,16 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
   Measurement::Stop();
 
   Measurement::Start("matrix_shift_add_f2");
-
-  const auto res_col_start = std::max(0, block_offset - w - 1);
-  const auto res_col_end = std::min(h * w, block_offset + col_block + w + 1);
 #pragma omp parallel for
-  for (int k = res_col_start; k < res_col_end; ++k) {
-    const auto buf_k = k - block_offset;
-    for (unsigned int i = 0; i < kh * kw; ++i) {
+  for (int k = 0; k < h * w; ++k) {
+    for (unsigned int i = 0; i < (kh * kw); ++i) {
       int offset = calc_offset(i, w);
-      if ((buf_k - offset < 0) || (buf_k - offset >= col_block)) {
+      if ((k - offset < 0) || (k - offset >= (h * w))) {
         continue;
       }
 
       float* r = result.data(0, k);
-      float* b = buf.data(i*oc, buf_k - offset);
+      float* b = buf.data(i*oc, k - offset);
 
 
       unsigned int j = 0;
@@ -104,8 +95,7 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
 template<>
 void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
                       MatrixView<int32_t, MatrixOrder::ColMajor>& result,
-                      const struct convolution_parameters& p,
-                      const int block_offset) {
+                      const struct convolution_parameters& p) {
   Measurement::Start("matrix_shift_add_i1");
 
   const int h = p.input_height;
@@ -113,16 +103,15 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
   const int oc = p.output_channels;
   const int kh = p.kernel_height;
   const int kw = p.kernel_width;
-  const auto col_block = buf.cols();
 
   // only 3x3 kernel is supported.
   assert(kh == 3 && kw == 3);
 
-  for (unsigned int j = 0; j < col_block; ++j) {
+  for (unsigned int j = 0; j < buf.cols(); ++j) {
     for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first_column(j + block_offset, w) && is_cfi(i, p.output_channels)) {
+      if (is_first_column(j, w) && is_cfi(i, p.output_channels)) {
         buf.set(i, j, 0);
-      } else if (is_last_column(j + block_offset, w) && is_adg(i, p.output_channels)) {
+      } else if (is_last_column(j, w) && is_adg(i, p.output_channels)) {
         buf.set(i, j, 0);
       }
     }
@@ -132,19 +121,16 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
 
   Measurement::Start("matrix_shift_add_i2");
 
-  const auto res_col_start = std::max(0, block_offset - w - 1);
-  const auto res_col_end = std::min(h * w, block_offset + col_block + w + 1);
 #pragma omp parallel for
-  for (int k = res_col_start; k < res_col_end; ++k) {
-    const auto buf_k = k - block_offset;
+  for (int k = 0; k < h * w; ++k) {
     for (unsigned int i = 0; i < kh * kw; ++i) {
       int offset = calc_offset(i, w);
-      if ((buf_k - offset < 0) || (buf_k - offset >= col_block)) {
+      if ((k - offset < 0) || (k - offset >= h * w)) {
         continue;
       }
 
       int32_t* r = result.data(0, k);
-      int32_t* b = buf.data(i*oc, buf_k - offset);
+      int32_t* b = buf.data(i*oc, k - offset);
 
 
       unsigned int j = 0;
