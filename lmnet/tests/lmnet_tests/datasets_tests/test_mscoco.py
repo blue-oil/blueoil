@@ -21,6 +21,6 @@ def test_mscoco_object_detection_optional_classes_instantiate():
     MscocoObjectDetection.classes = classes
     try:
         MscocoObjectDetection()
+        assert True
     except Exception:
         assert False
-    assert True
