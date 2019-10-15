@@ -119,13 +119,10 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
   assert(kh == 3 && kw == 3);
 
   for (unsigned int j = 0; j < col_block; ++j) {
-    const bool is_first = is_first_column(j + block_offset, w);
-    const bool is_last = is_last_column(j + block_offset, w);
-    if (!is_first && !is_last) continue;
     for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first && is_cfi(i, p.output_channels)) {
+      if (is_first_column(j + block_offset, w) && is_cfi(i, p.output_channels)) {
         buf.set(i, j, 0);
-      } else if (is_last && is_adg(i, p.output_channels)) {
+      } else if (is_last_column(j + block_offset, w) && is_adg(i, p.output_channels)) {
         buf.set(i, j, 0);
       }
     }
