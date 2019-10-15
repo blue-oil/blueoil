@@ -650,9 +650,6 @@ class View(object):
             inputs_string = self.inputs_to_string(input_ops)
             shape_string = self.shape_to_string(op.shape)
 
-            input_list_name = op.name + '_inputs'
-            depth_list_name = op.name + '_inputs_depth'
-
             number_of_inputs = len(input_ops)
             concat_input = {}
             for k, v in input_ops.items():
@@ -663,9 +660,7 @@ class View(object):
 
             return self.format_string(
                 f"""
-                const TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {input_list_name}[] = \
-                {{ {inputs_string} }};
-                func_ConcatOnDepth({input_list_name}, {number_of_inputs}, {op.name});
+                func_ConcatOnDepth(std::make_tuple({inputs_string}), {op.name});
                 """
             )
         elif self.op.op_type == 'Maximum':

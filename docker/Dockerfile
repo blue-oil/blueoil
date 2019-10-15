@@ -43,7 +43,6 @@ RUN apt-get update && apt-get install -y \
     libreadline-dev \
     libsqlite3-dev \
     wget \
-    curl \
     libncurses5-dev \
     libncursesw5-dev \
     xz-utils \
@@ -163,10 +162,3 @@ COPY lmnet /home/blueoil/lmnet
 
 ENV PYTHONPATH $PYTHONPATH:/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk
 WORKDIR /home/blueoil
-
-# For development
-RUN apt-get update && apt-get install -y \
-     x11-apps imagemagick
-
-RUN  apt-get clean && \
-     rm -rf /var/lib/apt/lists/*

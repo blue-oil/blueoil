@@ -14,12 +14,16 @@ limitations under the License.
 ==============================================================================*/
 
 #include <cmath>
+#include <memory>
 
 #include "global.h"
 #include "func/batch_normalization.h"
 #include "time_measurement.h"
 
 #include <arm_neon.h>
+
+static const auto scale = std::make_unique<float[]>(MAX_IN_C);
+static const auto shift = std::make_unique<float[]>(MAX_IN_C);
 
 void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_FLOAT, MemoryLayout::C>& gamma,
@@ -35,9 +39,6 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
   T_UINT out_width = out_shape[2];
   T_UINT out_depth = out_shape[3];
 
-  // temporary fix: will be replaced by pre-allocated one
-  T_FLOAT *scale = new float[out_depth];
-  T_FLOAT *shift = new float[out_depth];
   T_UINT size = out_height * out_width;
 
   float32x4_t eps_batch = vdupq_n_f32(epsilon);
@@ -69,27 +70,15 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
 // TODO(nlpng): remove use of OpenMP library
 #pragma omp parallel for
   for (T_UINT f = 0; f < size; f++) {
-
     T_FLOAT *in_temp = input.data() + f * out_depth;
     T_FLOAT *out_temp = output.data() + f * out_depth;
 
     T_UINT d = 0;
     for (; d + 3 < out_depth; d += 4) {
-#ifdef AARCH32
-      asm volatile("vldmia %0, {d16,d17}    \t\n" // q8(d16,d17) scale
-                   "vldmia %1, {d18,d19}    \t\n" // q9(d18,d19) shift
-                   "vldmia %2, {d20,d21}    \t\n" // q10(d20,d21) input
-                   "vmla.f32 q9, q10, q8    \t\n"
-                   "vstmia %3, {d18,d19}    \t\n"
-                   :
-                   : "r"(&scale[d]), "r"(&shift[d]), "r"(in_temp), "r"(out_temp)
-                   : "memory", "q8", "q9", "q10");
-#else
-      const auto scale_v = vld1q_f32(scale + d);
-      const auto shift_v = vld1q_f32(shift + d);
+      const auto scale_v = vld1q_f32(scale.get() + d);
+      const auto shift_v = vld1q_f32(shift.get() + d);
       const auto in_v = vld1q_f32(in_temp);
       vst1q_f32(out_temp, vmlaq_f32(shift_v, in_v, scale_v));
-#endif
       in_temp += 4;
       out_temp += 4;
     }
@@ -98,9 +87,6 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
       *out_temp++ = *in_temp++ * scale[d] + shift[d];
     }
   }
-
-  delete[] scale;
-  delete[] shift;
 
   Measurement::Stop();
 }

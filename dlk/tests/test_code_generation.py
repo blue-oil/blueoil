@@ -35,9 +35,9 @@ from tstutils import updated_dict, run_and_check, TEST_LEVEL_FUTURE_TARGET, FPGA
 
 
 def dict_codegen_classification_x86() -> dict:
-    """Test parameters for testing code generation for classification on CPU (float only)"""
-    return {'model_path': os.path.join('examples', 'classification', 'lmnet_quantize_cifar10'),
-            'expected_output_set_name': 'cat.jpg',
+    """Test parameters for testing code generation for classification on CPU """
+    return {'model_path': os.path.join('examples', 'classification', 'lmnet_quantize_cifar10_space_to_depth'),
+            'expected_output_set_name': '1000_dog.png',
             'prefix': 'cls',
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '133_output:0.npy',
@@ -56,34 +56,6 @@ def dict_codegen_resnet_classification_x86() -> dict:
             'output_npy_name': '368_output:0.npy',
             'hard_quantize': False,
             'threshold_skipping': False,
-            'use_avx': False
-            }
-
-
-def dict_codegen_group_conv_classification_x86() -> dict:
-    """Test parameters for testing code generation for classification on CPU"""
-    return {'model_path': os.path.join('examples', 'classification', 'lmnet_v1_group_conv'),
-            'expected_output_set_name': 'horse.png',
-            'prefix': 'gconv_cls',
-            'input_name': '000_images_placeholder:0.npy',
-            'output_npy_name': '149_output:0.npy',
-            'hard_quantize': False,
-            'threshold_skipping': False,
-            'use_avx': False
-            }
-
-
-def dict_codegen_classification_cpu_hq_ts() -> dict:
-    """Test parameters for testing code generation for classification on CPU with both hard quantize
-       and threshold-skipping
-    """
-    return {'model_path': os.path.join('examples', 'classification', 'lmnet_quantize_cifar10_space_to_depth'),
-            'expected_output_set_name': '1000_dog.png',
-            'prefix': 'ts_cls',
-            'input_name': '000_images_placeholder:0.npy',
-            'output_npy_name': '133_output:0.npy',
-            'hard_quantize': True,
-            'threshold_skipping': True,
             'use_avx': False
             }
 
@@ -136,38 +108,6 @@ def dict_codegen_object_detection_fpga() -> dict:
             }
 
 
-def dict_codegen_object_detection_widerface_fpga() -> dict:
-    """Test parameters for testing code generation for object detection on FPGA
-    """
-    return {'model_path': os.path.join('examples', 'object_detection', 'widerface_320'),
-            'expected_output_set_name': 'network_input_output',
-            'prefix': 'fpga_detection_widerface',
-            'input_name': '000_images_placeholder:0.npy',
-            'output_npy_name': '337_output:0.npy',
-            'hard_quantize': True,
-            'threshold_skipping': False,
-            'cpu_name': 'arm_fpga',
-            'need_arm_compiler': True,
-            'cache_dma': False,
-            }
-
-
-def dict_codegen_object_detection_widerface_1x1_fpga() -> dict:
-    """Test parameters for testing code generation for object detection on FPGA
-    """
-    return {'model_path': os.path.join('examples', 'object_detection', 'widerface_v5'),
-            'expected_output_set_name': 'network_input_output',
-            'prefix': 'fpga_detection_widerface_1x1',
-            'input_name': '000_images_placeholder:0.npy',
-            'output_npy_name': '337_output:0.npy',
-            'hard_quantize': True,
-            'threshold_skipping': False,
-            'cpu_name': 'arm_fpga',
-            'need_arm_compiler': True,
-            'cache_dma': False,
-            }
-
-
 def dict_codegen_object_detection_x86() -> dict:
     """Test parameters for testing code generation for object detection on CPU"""
     return {'model_path': os.path.join('examples', 'object_detection', 'fyolo_quantize_4_v4'),
@@ -194,6 +134,12 @@ def dict_codegen_segmentation_x86() -> dict:
             }
 
 
+def dict_codegen_segmentation_fpga() -> dict:
+    """Test parameters for testing code generation for segmentation on FPGA"""
+    return updated_dict(dict_codegen_segmentation_x86(),
+                        {'cpu_name':'arm_fpga', 'prefix': 'fpga_seg', 'hard_quantize': True, 'need_arm_compiler': True})
+
+
 def get_configurations():
     configurations = [
         # Classification / x86
@@ -208,17 +154,11 @@ def get_configurations():
                      {'hard_quantize': True, "input_name": 'preprocessed_image.npy',
                       "use_run_test_script": True, "from_npy": True}),
 
-        # Classification group convolution / x86
-        dict_codegen_group_conv_classification_x86(),
-        updated_dict(dict_codegen_group_conv_classification_x86(), {'hard_quantize': True}),
-
         # Classification resnet / x86
         dict_codegen_resnet_classification_x86(),
         updated_dict(dict_codegen_resnet_classification_x86(), {'hard_quantize': True}),
         updated_dict(dict_codegen_resnet_classification_x86(),
                      {'hard_quantize': True, 'threshold_skipping': True}),
-
-        dict_codegen_classification_cpu_hq_ts(),
 
         # Detection / x86
         dict_codegen_object_detection_x86(),
@@ -249,12 +189,6 @@ def get_configurations():
                       "input_name": 'preprocessed_image.npy',
                       "use_run_test_script": True, "from_npy": True}),
 
-        # Classification group convolution / x86 AVX
-        updated_dict(dict_codegen_group_conv_classification_x86(), {'use_avx': True}),
-        updated_dict(dict_codegen_group_conv_classification_x86(),
-                     {'hard_quantize': True,
-                      'use_avx': True}),
-
         # Classification resnet / x86 AVX
         updated_dict(dict_codegen_resnet_classification_x86(), {'use_avx': True}),
         updated_dict(dict_codegen_resnet_classification_x86(),
@@ -264,8 +198,6 @@ def get_configurations():
                      {'hard_quantize': True,
                       'use_avx': True,
                       'threshold_skipping': True}),
-
-        updated_dict(dict_codegen_classification_cpu_hq_ts(), {'use_avx': True}),
 
         # Detection / x86 AVX
         updated_dict(dict_codegen_object_detection_x86(), {'use_avx': True}),
@@ -314,22 +246,13 @@ def get_configurations():
         updated_dict(dict_codegen_object_detection_fpga(),
                      {'cache_dma': True, 'threshold_skipping': True}),
 
-        # Detection WiderFace on FPGA
-        dict_codegen_object_detection_widerface_fpga(),
-        updated_dict(dict_codegen_object_detection_widerface_fpga(),
-                     {'cache_dma': False, 'threshold_skipping': True}),
-        updated_dict(dict_codegen_object_detection_widerface_fpga(),
+        # Segmentation on FPGA
+        dict_codegen_segmentation_fpga(),
+        updated_dict(dict_codegen_segmentation_fpga(),
                      {'cache_dma': True, 'threshold_skipping': False}),
-        updated_dict(dict_codegen_object_detection_widerface_fpga(),
-                     {'cache_dma': True, 'threshold_skipping': True}),
-
-        # Detection WiderFace 1x1 on FPGA
-        dict_codegen_object_detection_widerface_1x1_fpga(),
-        updated_dict(dict_codegen_object_detection_widerface_1x1_fpga(),
+        updated_dict(dict_codegen_segmentation_fpga(),
                      {'cache_dma': False, 'threshold_skipping': True}),
-        updated_dict(dict_codegen_object_detection_widerface_1x1_fpga(),
-                     {'cache_dma': True, 'threshold_skipping': False}),
-        updated_dict(dict_codegen_object_detection_widerface_1x1_fpga(),
+        updated_dict(dict_codegen_segmentation_fpga(),
                      {'cache_dma': True, 'threshold_skipping': True}),
 
         # Classification ARM
@@ -370,15 +293,17 @@ def get_configurations():
         updated_dict(dict_codegen_object_detection_fpga(),
                      {'cpu_name':'arm', 'prefix': 'arm_det', 'hard_quantize': True, 'threshold_skipping': True}),
 
-        # Detection WiderFace ARM
-        updated_dict(dict_codegen_object_detection_widerface_fpga(),
-                     {'cpu_name':'arm', 'prefix': 'arm_det_wf', 'hard_quantize': False, 'threshold_skipping': False}),
-        updated_dict(dict_codegen_object_detection_widerface_fpga(),
-                     {'cpu_name':'arm', 'prefix': 'arm_det_wf', 'hard_quantize': True, 'threshold_skipping': False}),
-        updated_dict(dict_codegen_object_detection_widerface_fpga(),
-                     {'cpu_name':'arm', 'prefix': 'arm_det_wf', 'hard_quantize': False, 'threshold_skipping': True}),
-        updated_dict(dict_codegen_object_detection_widerface_fpga(),
-                     {'cpu_name':'arm', 'prefix': 'arm_det_wf', 'hard_quantize': True, 'threshold_skipping': True}),
+        # Segmentation ARM
+        updated_dict(dict_codegen_segmentation_fpga(),
+                     {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(dict_codegen_segmentation_fpga(),
+                     {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': True, 'threshold_skipping': True}),
+        # FIXME: Cannot run library with hard_quantize=False for segmentation task.
+        # Issue link: https://github.com/blue-oil/blueoil/issues/512
+        # updated_dict(dict_codegen_segmentation_fpga(),
+        #             {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': False, 'threshold_skipping': False}),
+        # updated_dict(dict_codegen_segmentation_fpga(),
+        #             {'cpu_name':'arm', 'prefix': 'arm_seg', 'hard_quantize': False, 'threshold_skipping': True}),
    ]
 
     return [(i, configuration) for i, configuration in enumerate(configurations)]
@@ -390,6 +315,7 @@ class TestCodeGeneration(TestCaseDLKBase):
     @params(*get_configurations())
     def test_all_configuration(self, i, configuration) -> None:
 
+        print(f"\nCode generation test: ID: {i}, Testcase: {configuration}")
         #  TODO consider better implementation
         this_test_level = configuration.get("test_level", 0)
         if this_test_level < CURRENT_TEST_LEVEL:
