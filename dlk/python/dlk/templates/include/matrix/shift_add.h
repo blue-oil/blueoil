@@ -111,7 +111,7 @@ void matrix_shift_add(MatrixView<T, MatrixOrder::ColMajor>& buf,
         continue;
       }
 
-      T* r = result.data(0, k + offset);
+      T* r = result.data(0, true_k + offset);
       T* b = buf.data(i*oc, k);
 
       for (unsigned int j = 0; j < oc; ++j) {
