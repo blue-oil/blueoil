@@ -118,7 +118,7 @@ class Params(object):
                 x.kernel_width *
                 min(self.max_size_kn2row_col_block, x.height * x.width) *
                 x.channel
-            ) for x in convs if not x.is_quantized]
+            ) for x in convs]
 
         return max(kn2row_buffer_sizes) if kn2row_buffer_sizes else 0
 
