@@ -25,7 +25,7 @@ fi
 TEST_LOG_NO=0
 FAILED_TEST_NO=""
 
-# list of avairable optimizers listed in blueoil_init.py
+# list of avairable optimizers listed in cmd/main.py init
 OPTIMIZSERS=("Momentum" "Adam")
 
 function usage_exit(){
@@ -182,6 +182,7 @@ function init_test(){
         send \"\n\"
         expect \"Next step:\"
     " >> ${TEST_LOG_FILE} 2>&1
+    sleep 1
     @ 0 ls config/${CONFIG_NAME}.yml
     # Wait for complete ${RUN_SCRIPT} init
     sleep 1
