@@ -6,6 +6,7 @@ services:
       dockerfile: ./docker/Dockerfile
       # https://docs.nvidia.com/deeplearning/frameworks/user-guide/index.html#run_tf_cifar10
       shm_size: "1gb"
+    image: blueoil_${USER}
     ulimits:
       memlock: -1
       stack: 67108864
