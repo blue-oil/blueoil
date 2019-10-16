@@ -77,7 +77,6 @@ void matrix_shift_add(MatrixView<T, MatrixOrder::ColMajor>& buf,
                       MatrixView<T, MatrixOrder::ColMajor>& result,
                       const struct convolution_parameters& p,
                       const int block_offset) {
-  fprintf(stderr, "BAD\n");
   Measurement::Start("matrix_shift_add1");
 
   const int h = p.input_height;
