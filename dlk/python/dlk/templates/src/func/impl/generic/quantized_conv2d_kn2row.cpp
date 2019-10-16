@@ -31,6 +31,8 @@ namespace dlk {
 
 namespace impl {
 
+static const auto kn2row_buf = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_SIZE_KN2ROW_BUFFER_PER_LAYER);
+
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
                                   const kernel_t& kernel,
                                   const binary_convolution_parameters &p) {
@@ -50,24 +52,29 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
 
   Measurement::Start("quantized-kn2row");
 
-  auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
-      kernel.data(), oc * kh * kw, ic / 32);
-  auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
-      input.data(), ic / 16, ih * iw);
-  auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
-      p.device_output_buf, oc, ih * iw);
-
   if (kh == kw && kw == 3) {
-    unsigned bufsize = oc * kh * kw * ih * iw;
-    BIN_CONV_OUTPUT *kn2row_buf = new BIN_CONV_OUTPUT[bufsize]();
-    auto buf_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
-        kn2row_buf, oc * kh * kw, ih * iw);
-
-    quantized_matrix_multiplication(kernel_, input_, buf_);
+    auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
+        kernel.data(), oc * kh * kw, ic / 32);
+    auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
+        p.device_output_buf, oc, ih * iw);
     std::fill(p.device_output_buf, p.device_output_buf + oc * oh * ow, 0);
-    matrix_shift_add(buf_, output_, p.normal_conv_params);
-    delete[] kn2row_buf;
+    for (std::size_t offset = 0; offset < ih * iw; offset += MAX_SIZE_KN2ROW_COL_BLOCK) {
+      const auto col_block = std::min(reinterpret_cast<std::size_t>(MAX_SIZE_KN2ROW_COL_BLOCK), ih * iw - offset);
+      auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
+          input.data() + offset, ic / 16, col_block);
+      auto buf_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
+          kn2row_buf.get(), oc * kh * kw, col_block);
+
+      quantized_matrix_multiplication(kernel_, input_, buf_);
+      matrix_shift_add(buf_, output_, p.normal_conv_params, offset);
+    }
   } else if (kh == kw && kw == 1) {
+    auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
+        kernel.data(), oc * kh * kw, ic / 32);
+    auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
+        input.data(), ic / 16, ih * iw);
+    auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
+        p.device_output_buf, oc, ih * iw);
     quantized_matrix_multiplication(kernel_, input_, output_);
   } else {
     std::cerr << "Only 1x1 or 3x3 convolutions are supported." << std::endl;
