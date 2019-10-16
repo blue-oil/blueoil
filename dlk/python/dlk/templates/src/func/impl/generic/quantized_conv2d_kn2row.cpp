@@ -52,11 +52,11 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
 
   Measurement::Start("quantized-kn2row");
 
+  auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
+      p.device_output_buf, oc, ih * iw);
   if (kh == kw && kw == 3) {
     auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
         kernel.data(), oc * kh * kw, ic / 32);
-    auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
-        p.device_output_buf, oc, ih * iw);
     std::fill(p.device_output_buf, p.device_output_buf + oc * oh * ow, 0);
     for (std::size_t offset = 0; offset < ih * iw; offset += MAX_SIZE_KN2ROW_COL_BLOCK) {
       const auto col_block = std::min(static_cast<std::size_t>(MAX_SIZE_KN2ROW_COL_BLOCK), ih * iw - offset);
