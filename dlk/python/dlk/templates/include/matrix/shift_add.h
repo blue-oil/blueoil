@@ -104,7 +104,7 @@ void matrix_shift_add(MatrixView<T, MatrixOrder::ColMajor>& buf,
 
   Measurement::Start("matrix_shift_add2");
 
-  for (int k = 0; k < h * w; ++k) {
+  for (int k = 0; k < col_block; ++k) {
     const auto true_k = k + block_offset;
     for (unsigned int i = 0; i < kh * kw; ++i) {
       int offset = calc_offset(i, w);
