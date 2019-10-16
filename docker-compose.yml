@@ -1,0 +1,20 @@
+version: "3.6"
+services:
+  blueoil:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+      # https://docs.nvidia.com/deeplearning/frameworks/user-guide/index.html#run_tf_cifar10
+      shm_size: "1gb"
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    working_dir: /home/blueoil
+    volumes:
+      - ./:/home/blueoil
+      - ${DATA_DIR:-/storage/dataset}:/storage/dataset
+    environment:
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+      - DATA_DIR=/storage/dataset
+      - OUTPUT_DIR=/home/blueoil/saved
+      - PYTHONPATH=/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk
