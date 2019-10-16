@@ -61,7 +61,7 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
     for (std::size_t offset = 0; offset < ih * iw; offset += MAX_SIZE_KN2ROW_COL_BLOCK) {
       const auto col_block = std::min(static_cast<std::size_t>(MAX_SIZE_KN2ROW_COL_BLOCK), ih * iw - offset);
       auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
-          input.data() + offset, ic / 16, col_block);
+          input.data() + offset * ic / 16, ic / 16, col_block);
       auto buf_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
           kn2row_buf.get(), oc * kh * kw, col_block);
 
