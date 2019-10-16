@@ -16,6 +16,9 @@
 from lmnet.datasets.mscoco import MscocoObjectDetection, DEFAULT_CLASSES
 
 
+pytestmark = pytest.mark.usefixtures("set_test_environment")
+
+
 def test_mscoco_object_detection_optional_classes_instantiate():
     classes = [DEFAULT_CLASSES[0]]
     MscocoObjectDetection.classes = classes
