@@ -392,6 +392,8 @@ class TestCodeGenerationX8664(TestCodeGenerationBase):
 class TestCodeGenerationArm(TestCodeGenerationBase):
     """Test class for code generation testing."""
 
+    fpga_setup = True
+
     @params(*get_configurations_arm())
     def test_code_generation(self, i, configuration) -> None:
         self.run_test_all_configuration(i, configuration)
@@ -399,6 +401,8 @@ class TestCodeGenerationArm(TestCodeGenerationBase):
 
 class TestCodeGenerationArmFpga(TestCodeGenerationBase):
     """Test class for code generation testing."""
+
+    fpga_setup = True
 
     @params(*get_configurations_arm_fpga())
     def test_code_generation(self, i, configuration) -> None:
