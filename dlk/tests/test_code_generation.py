@@ -386,8 +386,11 @@ class TestCodeGenerationBase(TestCaseDLKBase):
             elif cpu_name == 'arm' or cpu_name == 'arm_fpga':
                 percent_failed = \
                     self.run_library_on_remote(FPGA_HOST, output_path, generated_lib, input_path, expected_output_path)
-            else:
+            elif cpu_name == 'aarch64':
+                # Skip run library test, it will run on another test.
                 return
+            else:
+                self.fail("Unexpected cpu_name: %s" % cpu_name)
         else:
             percent_failed = self.run_library_using_script(generated_lib, input_path, expected_output_path,
                                                            from_npy)
