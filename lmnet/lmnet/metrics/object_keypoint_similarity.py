@@ -73,6 +73,7 @@ def _compute_oks(joints_gt, joints_pred, image_size=(160, 160)):
 
     x_gt = joints_gt[:, 0]
     y_gt = joints_gt[:, 1]
+    # visibility of ground-truth joints
     v_gt = joints_gt[:, 2]
 
     x_pred = joints_pred[:, 0]
