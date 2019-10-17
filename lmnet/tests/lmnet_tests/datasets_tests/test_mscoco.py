@@ -15,15 +15,43 @@
 # =============================================================================
 import pytest
 
-from lmnet.datasets.mscoco import MscocoObjectDetection, DEFAULT_CLASSES
+from lmnet.datasets.mscoco import MscocoObjectDetection
 
 
 pytestmark = pytest.mark.usefixtures("set_test_environment")
 
 
+# TODO
+def test_mscoco_segmentation():
+    pass
+
+
+@pytest.mark.parametrize(
+    "subset, num_classes, files, annotations", [
+        ('train', 80, [
+            'tests/fixtures/datasets/MSCOCO/train2014/COCO_train2014_000000000001.jpg',
+            'tests/fixtures/datasets/MSCOCO/train2014/COCO_train2014_000000000002.jpg',
+        ], [
+            # [x, y, w, h, class_id]
+            [[0, 0, 3, 3, 0], [7, 7, 3, 3, 0]], [[3, 3, 3, 3, 0], [6, 6, 3, 3, 0]]
+        ]),
+        ('validation', 80, [
+            'tests/fixtures/datasets/MSCOCO/val2014/COCO_val2014_000000000001.jpg',
+            'tests/fixtures/datasets/MSCOCO/val2014/COCO_val2014_000000000002.jpg',
+        ], [
+            [[0, 0, 3, 3, 0], [7, 7, 3, 3, 0]], [[3, 3, 3, 3, 0], [6, 6, 3, 3, 0]]
+        ]),
+    ]
+)
+def test_mscoco_object_detection(subset, num_classes, files, annotations):
+    dataset = MscocoObjectDetection(subset=subset)
+
+    assert dataset.num_classes == num_classes
+    assert (files, annotations) == dataset._files_and_annotations()
+
+
 def test_mscoco_object_detection_optional_classes_instantiate():
-    classes = [DEFAULT_CLASSES[0]]
-    MscocoObjectDetection.classes = classes
+    MscocoObjectDetection.classes = ['person']
     try:
         MscocoObjectDetection()
         assert True

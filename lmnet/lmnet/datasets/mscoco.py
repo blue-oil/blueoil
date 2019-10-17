@@ -251,7 +251,7 @@ class MscocoObjectDetection(ObjectDetectionBase):
         return files, gt_boxes_list
 
     def _init_files_and_annotations(self):
-            self.files, self.annotations = self._files_and_annotations()
+        self.files, self.annotations = self._files_and_annotations()
 
     def __getitem__(self, i, type=None):
         target_file = self.files[i]
