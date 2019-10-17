@@ -53,9 +53,9 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
 
   auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
       p.device_output_buf, oc, ih * iw);
+  auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
+      kernel.data(), oc * kh * kw, ic / 32);
   if (kh == kw && kw == 3) {
-    auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
-        kernel.data(), oc * kh * kw, ic / 32);
     std::fill(p.device_output_buf, p.device_output_buf + oc * oh * ow, 0);
     for (std::size_t offset = 0; offset < ih * iw; offset += MAX_SIZE_KN2ROW_COL_BLOCK) {
       const auto col_block = std::min(static_cast<std::size_t>(MAX_SIZE_KN2ROW_COL_BLOCK), ih * iw - offset);
@@ -68,8 +68,6 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
       matrix_shift_add(buf_, output_, p.normal_conv_params, offset);
     }
   } else if (kh == kw && kw == 1) {
-    auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
-        kernel.data(), oc * kh * kw, ic / 32);
     auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
         input.data(), ic / 16, ih * iw);
     auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
