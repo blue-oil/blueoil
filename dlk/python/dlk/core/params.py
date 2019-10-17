@@ -88,23 +88,6 @@ class Params(object):
         return int(max([node_max, self.graph.get_inputs()[0].size]))
 
     @property
-    def max_size_im2col_inputs_per_layer(self):
-        convs = self.graph.convs()
-
-        im2col_input_sizes = \
-            [(
-                x.kernel_height *
-                x.kernel_width *
-                x.input_ops['X'].channel *
-                x.height * x.width
-            ) for x in convs]
-
-        if len(im2col_input_sizes) != 0:
-            return max(im2col_input_sizes)
-        else:
-            return 0
-
-    @property
     def max_size_kn2row_col_block(self) -> int:
         return 256
 
@@ -121,10 +104,6 @@ class Params(object):
             ) for x in convs]
 
         return max(kn2row_buffer_sizes) if kn2row_buffer_sizes else 0
-
-    @property
-    def max_size_im2col_qinputs_per_layer(self):
-        return int(self.max_size_im2col_inputs_per_layer / self.num_qinputs_in_qword)
 
     @property
     def max_size_outputs_per_layer(self):

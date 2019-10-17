@@ -48,7 +48,6 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
   T_UINT kw = p.normal_conv_params.kernel_width;
 
   assert(ih * iw == oh * ow);
-  assert(MAX_SIZE_IM2COL_INPUTS_PER_LAYER >= ic * kh * kw * ih * iw);
 
   Measurement::Start("quantized-kn2row");
 
