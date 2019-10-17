@@ -17,6 +17,6 @@ services:
       - ${OUTPUT_DIR:-./saved}:/home/blueoil/saved
     environment:
       - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
-      - DATA_DIR=/storage/dataset
+      - DATA_DIR=/home/blueoil/dataset
       - OUTPUT_DIR=/home/blueoil/saved
       - PYTHONPATH=/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk
