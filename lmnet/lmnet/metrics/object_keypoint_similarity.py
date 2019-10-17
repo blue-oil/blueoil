@@ -23,7 +23,7 @@ kpt_oks_sigmas = np.array([.26, .25, .25, .35, .35,
 variances = (kpt_oks_sigmas * 2) ** 2
 
 
-def compute_oks_batch(joints_gt, joints_pred, image_size=(160, 160)):
+def compute_object_keypoint_similarity(joints_gt, joints_pred, image_size=(160, 160)):
     """
     Compute a object keypoint similarity for a batch of examples.
     Args:
@@ -36,13 +36,14 @@ def compute_oks_batch(joints_gt, joints_pred, image_size=(160, 160)):
 
     """
 
-    num_batch = joints_gt.shape[0]
+    batch_size = joints_gt.shape[0]
 
     oks_batch = 0
+    # count of valid joints in a batch
     count = 0
 
-    for i in range(num_batch):
-        oks = compute_oks(joints_gt[i], joints_pred[i], image_size=image_size)
+    for i in range(batch_size):
+        oks = _compute_oks(joints_gt[i], joints_pred[i], image_size=image_size)
         if oks != -1:
             oks_batch += oks
             count += 1
@@ -55,7 +56,7 @@ def compute_oks_batch(joints_gt, joints_pred, image_size=(160, 160)):
     return np.float32(oks_batch)
 
 
-def compute_oks(joints_gt, joints_pred, image_size=(160, 160)):
+def _compute_oks(joints_gt, joints_pred, image_size=(160, 160)):
     """
     Compute a object keypoint similarity for one example.
     Args:

@@ -16,7 +16,7 @@
 import pytest
 import numpy as np
 
-from lmnet.metrics.object_keypoint_similarity import compute_oks, compute_oks_batch
+from lmnet.metrics.object_keypoint_similarity import compute_object_keypoint_similarity, _compute_oks
 
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
@@ -45,7 +45,7 @@ def test_compute_oks():
 
     expected = 0.2358359
 
-    result = compute_oks(joints_gt, joints_pred, image_size)
+    result = _compute_oks(joints_gt, joints_pred, image_size)
 
     assert np.allclose(result, expected)
 
@@ -69,7 +69,7 @@ def test_compute_oks():
 
     expected = -1
 
-    result = compute_oks(joints_gt, joints_pred, image_size)
+    result = _compute_oks(joints_gt, joints_pred, image_size)
 
     assert np.allclose(result, expected)
 
@@ -92,13 +92,13 @@ def test_compute_oks():
     joints_pred2[0, 1] = 78
     joints_pred2[0, 2] = 1
 
-    result1 = compute_oks(joints_gt, joints_pred1, image_size)
-    result2 = compute_oks(joints_gt, joints_pred2, image_size)
+    result1 = _compute_oks(joints_gt, joints_pred1, image_size)
+    result2 = _compute_oks(joints_gt, joints_pred2, image_size)
 
     assert result2 > result1
 
 
-def test_compute_oks_batch():
+def test_compute_object_keypoint_similarity():
 
     # case1
 
@@ -116,7 +116,7 @@ def test_compute_oks_batch():
 
     expected = 0.2358359
 
-    result = compute_oks_batch(joints_gt, joints_pred, image_size)
+    result = compute_object_keypoint_similarity(joints_gt, joints_pred, image_size)
 
     assert np.allclose(result, expected)
 
@@ -144,7 +144,7 @@ def test_compute_oks_batch():
 
     expected = 0.61791795
 
-    result = compute_oks_batch(joints_gt, joints_pred, image_size)
+    result = compute_object_keypoint_similarity(joints_gt, joints_pred, image_size)
 
     assert np.allclose(result, expected)
 
@@ -169,7 +169,7 @@ def test_compute_oks_batch():
     joints_pred[1, 0, 2] = 1
 
     try:
-        compute_oks_batch(joints_gt, joints_pred, image_size)
+        compute_object_keypoint_similarity(joints_gt, joints_pred, image_size)
     except ValueError:
         pass
 
@@ -177,4 +177,4 @@ def test_compute_oks_batch():
 if __name__ == '__main__':
 
     test_compute_oks()
-    test_compute_oks_batch()
+    test_compute_object_keypoint_similarity()
