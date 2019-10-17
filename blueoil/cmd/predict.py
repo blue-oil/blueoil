@@ -21,9 +21,6 @@ from executor.predict import run as run_predict
 def predict(input, output, experiment_id, checkpoint=None, save_images=True):
     """Predict input images."""
 
-    # import pdb
-    # pdb.set_trace()
-
     output_dir = os.environ.get("OUTPUT_DIR", "saved")
 
     if checkpoint is None:

@@ -78,7 +78,6 @@ def train(config, experiment_id=None):
             checkpoint_name
         ))
     except Exception as err:
-        # TODO(suttang): handling
         click.echo(err.args, err=True)
         exit(1)
 
