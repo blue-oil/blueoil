@@ -41,9 +41,13 @@ class TestCaseDLKBase(TestCase):
     Setup and TearDown method which is common in dlk project.
     """
     build_dir = None
+    fpga_setup = False
 
     @classmethod
-    def setUpClass(TestCaseDLKBase):
+    def setUpClass(cls):
+        if not cls.fpga_setup:
+            return
+
         # Setup the board. For now, DE10 Nano board
         output_path = '/tmp'
         hw_path = os.path.abspath(os.path.join('..', FPGA_FILES))
