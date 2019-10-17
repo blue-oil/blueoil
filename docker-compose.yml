@@ -13,7 +13,8 @@ services:
     working_dir: /home/blueoil
     volumes:
       - ./:/home/blueoil
-      - ${DATA_DIR:-/storage/dataset}:/storage/dataset
+      - ${DATA_DIR}:/home/blueoil/dataset
+      - ${OUTPUT_DIR:-./saved}:/home/blueoil/saved
     environment:
       - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
       - DATA_DIR=/storage/dataset
