@@ -14,8 +14,10 @@
 # limitations under the License.
 # =============================================================================
 import os
+from datetime import datetime
 
 from tensorflow import gfile
+import yaml
 
 from blueoil.generate_lmnet_config import generate
 from executor.train import run as run_train
@@ -58,3 +60,23 @@ def save_config_file(config_file, dest_dir):
         config_file,
         config_file_dest
     )
+
+
+def train(config, experiment_id=None):
+    if not experiment_id:
+        experiment_id = 'train_{:%Y%m%d%H%M%S}'.format(datetime.now())
+
+    run(config, experiment_id)
+
+    output_dir = os.environ.get('OUTPUT_DIR', 'saved')
+    experiment_dir = os.path.join(output_dir, experiment_id)
+    checkpoint = os.path.join(experiment_dir, 'checkpoints', 'checkpoint')
+
+    if not os.path.isfile(checkpoint):
+        raise Exception('Checkpoints are not created in {}'.format(experiment_dir))
+
+    with open(checkpoint) as stream:
+        data = yaml.load(stream)
+    checkpoint_name = os.path.basename(data['model_checkpoint_path'])
+
+    return experiment_id, checkpoint_name
