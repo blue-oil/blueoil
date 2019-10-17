@@ -358,7 +358,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         elif cpu_name == 'arm_fpga':
             cmake_defs += [cmake_use_arm, cmake_use_neon, cmake_use_fpga]
         elif cpu_name == 'x86_64':
-            if use_avx == True:
+            if use_avx:
                 cmake_defs += [cmake_use_avx]
 
         run_and_check(['cmake'] + cmake_defs + ['.'],
