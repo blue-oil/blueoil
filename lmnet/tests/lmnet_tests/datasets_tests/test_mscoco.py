@@ -21,9 +21,7 @@ from lmnet.datasets.mscoco import MscocoObjectDetection
 pytestmark = pytest.mark.usefixtures("set_test_environment")
 
 
-# TODO
-def test_mscoco_segmentation():
-    pass
+# TODO(takecore): test segmentation
 
 
 @pytest.mark.parametrize(

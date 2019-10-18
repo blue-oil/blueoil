@@ -1,11 +1,11 @@
 {
   "info": {
-    "description": "This is stable 1.0 version of the 2014 MS COCO dataset.",
-    "url": "http://mscoco.org",
-    "version": "1.0",
-    "year": 2014,
-    "contributor": "Microsoft COCO group",
-    "date_created": "2015-01-27 09:11:52.357475"
+    "description": "",
+    "url": "",
+    "version": "",
+    "year": 2019,
+    "contributor": "",
+    "date_created": "2019-10-18 00:00:00"
   },
   "images": [
     {
