@@ -76,6 +76,10 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
         "dataset_module": "camvid",
         "dataset_class": "CamvidCustom",
     },
+    "DIV2K": {
+        "dataset_module": "div2k",
+        "dataset_class": "Div2k",
+    }
 }
 
 
@@ -126,7 +130,6 @@ def _blueoil_to_lmnet(blueoil_config):
         "summarise_steps": 100,
     }
     dataset = {}
-
 
     model_name = blueoil_config["model_name"]
 
