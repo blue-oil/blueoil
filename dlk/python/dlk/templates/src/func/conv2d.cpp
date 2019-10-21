@@ -45,7 +45,6 @@ void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
   // assertions
   assert(ih * iw == oh * ow);
   assert(kh == 3 && kw == 3);
-  assert(MAX_SIZE_KN2ROW_BUFFER_PER_LAYER >= oc * kh * kw * ih * iw);
 
   // need to initialize output
   std::memset(output.data(), 0, oc * ih * iw * sizeof(U));
@@ -61,12 +60,15 @@ void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
   Measurement::Stop();
 
   auto kernels_ = dlk::MatrixView<T, dlk::MatrixOrder::RowMajor>(kernels.data(), oc * kh * kw, ic);
-  auto input_ = dlk::MatrixView<T, dlk::MatrixOrder::ColMajor>(input.data(), ic, p.input_height * p.input_width);
-  auto buf_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(buf, oc * kh * kw, p.input_height * p.input_width);
   auto output_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(output.data(), oc, p.input_height * p.input_width);
+  for (std::size_t offset = 0; offset < ih * iw; offset += MAX_SIZE_KN2ROW_COL_BLOCK) {
+    auto col_block = std::min(static_cast<std::size_t>(MAX_SIZE_KN2ROW_COL_BLOCK), ih * iw - offset);
+    auto input_ = dlk::MatrixView<T, dlk::MatrixOrder::ColMajor>(input.data() + ic * offset, ic, col_block);
+    auto buf_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(buf, oc * kh * kw, col_block);
 
-  dlk::matrix_multiplication(kernels_, input_, buf_);
-  dlk::matrix_shift_add(buf_, output_, p);
+    dlk::matrix_multiplication(kernels_, input_, buf_);
+    dlk::matrix_shift_add(buf_, output_, p, offset);
+  }
 
   Measurement::Stop();
 }
