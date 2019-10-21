@@ -34,8 +34,7 @@ constexpr std::size_t ceil_mod(const std::size_t n, const std::size_t mod) {
 }
 
 static constexpr std::size_t align_margin = 32 / sizeof(float);
-static constexpr std::size_t KMAX = 3;
-static constexpr std::size_t B_buf_size = MAX_IN_C * ceil_mod(MAX_IN_C * KMAX * KMAX, 8) + align_margin;
+static constexpr std::size_t B_buf_size = MAX_SIZE_INPUTS_PER_LAYER + MAX_IN_C * 8 + align_margin;
 static const auto B_buf = std::make_unique<float[]>(B_buf_size);
 
 void matrix_multiplication_col3(
