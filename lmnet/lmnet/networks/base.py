@@ -40,6 +40,7 @@ class BaseNetwork(object):
     def __init__(
             self,
             is_debug=False,
+            global_step=None,
             optimizer_class=tf.train.GradientDescentOptimizer,
             optimizer_kwargs=None,
             learning_rate_func=None,
@@ -54,6 +55,7 @@ class BaseNetwork(object):
             raise RuntimeError("data format {} should be in ['NCHW', 'NHWC]'.".format(data_format))
 
         self.is_debug = is_debug
+        self.global_step = global_step
         self.optimizer_class = optimizer_class
         self.optimizer_kwargs = optimizer_kwargs if optimizer_kwargs is not None else {'learning_rate': 0.01}
         self.learning_rate_func = learning_rate_func
@@ -124,7 +126,7 @@ class BaseNetwork(object):
         """
         raise NotImplemented()
 
-    def optimizer(self, global_step):
+    def optimizer(self):
         assert ("learning_rate" in self.optimizer_kwargs.keys()) or \
                (self.learning_rate_func is not None)
 
@@ -134,12 +136,12 @@ class BaseNetwork(object):
         else:
             if self.learning_rate_func is tf.train.piecewise_constant:
                 learning_rate = self.learning_rate_func(
-                    x=global_step,
+                    x=self.global_step,
                     **self.learning_rate_kwargs
                 )
             else:
                 learning_rate = self.learning_rate_func(
-                    global_step=global_step,
+                    global_step=self.global_step,
                     **self.learning_rate_kwargs
                 )
 
@@ -148,12 +150,11 @@ class BaseNetwork(object):
 
         return self.optimizer_class(**self.optimizer_kwargs)
 
-    def train(self, loss, optimizer, global_step=tf.Variable(0, trainable=False), var_list=[]):
+    def train(self, loss, optimizer, var_list=[]):
         """Train.
 
         Args:
            loss: loss function of this network.
-           global_step: tensorflow's global_step
         """
         # TODO(wenhao): revert when support `tf.layers.batch_normalization`
         # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -164,7 +165,7 @@ class BaseNetwork(object):
 
             gradients = optimizer.compute_gradients(loss, var_list=var_list)
 
-            train_op = optimizer.apply_gradients(gradients, global_step=global_step)
+            train_op = optimizer.apply_gradients(gradients, global_step=self.global_step)
 
         # Add histograms for all gradients for every layer.
         for grad, var in gradients:

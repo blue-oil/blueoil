@@ -89,35 +89,35 @@ def start_training(config):
 
     graph = tf.Graph()
     with graph.as_default():
+        global_step = tf.Variable(0, name="global_step", trainable=False)
+
         if config.TASK == Tasks.OBJECT_DETECTION:
             model = ModelClass(
                 classes=train_dataset.classes,
                 num_max_boxes=train_dataset.num_max_boxes,
                 is_debug=config.IS_DEBUG,
+                global_step=global_step,
                 **network_kwargs,
             )
         else:
             model = ModelClass(
                 classes=train_dataset.classes,
                 is_debug=config.IS_DEBUG,
+                global_step=global_step,
                 **network_kwargs,
             )
 
-        global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training_placeholder = tf.placeholder(tf.bool, name="is_training_placeholder")
 
         images_placeholder, labels_placeholder = model.placeholders()
 
         output = model.inference(images_placeholder, is_training_placeholder)
-        if config.TASK == Tasks.OBJECT_DETECTION:
-            loss = model.loss(output, labels_placeholder, global_step)
-        else:
-            loss = model.loss(output, labels_placeholder)
-        opt = model.optimizer(global_step)
+        loss = model.loss(output, labels_placeholder)
+        opt = model.optimizer()
         if use_horovod:
             # add Horovod Distributed Optimizer
             opt = hvd.DistributedOptimizer(opt)
-        train_op = model.train(loss, opt, global_step)
+        train_op = model.train(loss, opt)
         metrics_ops_dict, metrics_update_op = model.metrics(output, labels_placeholder)
         # TODO(wakisaka): Deal with many networks.
         model.summary(output, labels_placeholder)
