@@ -419,3 +419,74 @@ class Softmax(Processor):
     def __call__(self, outputs, **kwargs):
         results = _softmax(outputs)
         return dict({'outputs': results}, **kwargs)
+
+
+class FormatJoints(Processor):
+
+    def __init__(self, num_dimensions=2, stride=2, confidence_threshold=0.1):
+        """
+        Args:
+            num_dimensions: int, it only supports 2 for now.
+            stride: int, stride = image_height / heatmap_height.
+            confidence_threshold: float, [0, 1], ratio of threshold_value and max_value.
+        """
+        self.num_dimensions = num_dimensions
+        self.stride = stride
+        self.confidence_threshold = confidence_threshold
+
+    def __call__(self, outputs, *args, **kwargs):
+        """
+        Args:
+            outputs: output heatmaps, a numpy array of shape (batch_size, height, width, num_joints).
+
+        Returns:
+            all args (dict):
+                outputs: joints, a numpy array of shape (batch_size, num_joints, num_dimensions + 1).
+
+        """
+
+        batch_size = outputs.shape[0]
+        num_joints = outputs.shape[3]
+
+        joints = np.zeros((batch_size, num_joints, self.num_dimensions + 1), dtype=np.float32)
+
+        for i in range(batch_size):
+            joints[i] = gaussian_heatmap_to_joints(outputs[i],
+                                                   num_dimensions=self.num_dimensions,
+                                                   stride=self.stride,
+                                                   confidence_threshold=self.confidence_threshold)
+
+        return dict({'outputs': joints}, **kwargs)
+
+
+def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=2, confidence_threshold=0.1):
+    """
+    Extract joints from gaussian heatmap. Current version only supports 2D pose estimation.
+    Args:
+        heatmap: a numpy array of shape (height, width, num_joints).
+        num_dimensions: int, it only supports 2 for now.
+        stride: int, stride = image_height / heatmap_height.
+        confidence_threshold: float, [0, 1], ratio of threshold_value and max_value.
+
+    Returns:
+        joints: a numpy array of shape (num_joints, num_dimensions + 1).
+
+    """
+
+    height, width, num_joints = heatmap.shape
+
+    threshold_value = 10 * confidence_threshold
+
+    joints = np.zeros((num_joints, num_dimensions + 1), dtype=np.float32)
+
+    for i in range(num_joints):
+        argm = np.argmax(heatmap[:, :, i])
+        y, x = np.unravel_index(argm, (height, width))
+        max_value = heatmap[y, x, i]
+        if max_value < threshold_value:
+            continue
+        joints[i, 0] = x * stride
+        joints[i, 1] = y * stride
+        joints[i, 2] = 1
+
+    return joints
