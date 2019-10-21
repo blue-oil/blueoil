@@ -744,7 +744,7 @@ class View(object):
 
             return self.format_string(f"""func_Lookup({inputs_string}, {op.name});""")
 
-        raise TypeError(f"{self.op.op_type} is not supported in view.py!")
+        raise TypeError(f"{self.op.op_type} is not supported in View.run().")
 
     def render_alias(self, op, input_ops, output_ops):
         if len(input_ops) != 1:
