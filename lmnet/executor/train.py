@@ -109,10 +109,8 @@ def start_training(config):
         images_placeholder, labels_placeholder = model.placeholders()
 
         output = model.inference(images_placeholder, is_training_placeholder)
-        if config.TASK == Tasks.OBJECT_DETECTION:
-            loss = model.loss(output, labels_placeholder, global_step)
-        else:
-            loss = model.loss(output, labels_placeholder)
+        loss = model.loss(output, labels_placeholder, global_step)
+
         opt = model.optimizer(global_step)
         if use_horovod:
             # add Horovod Distributed Optimizer
