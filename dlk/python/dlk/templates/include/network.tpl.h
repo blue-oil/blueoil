@@ -66,7 +66,7 @@ private:
     const T_INT output_rank = {{ graph_output.rank }};
     const T_INT output_shape[{{ graph_output.rank }}] = { {{ graph_output.view.shape_list }} };
 
-    const int max_device_input_elems = MAX_SIZE_IM2COL_QINPUTS_PER_LAYER;
+    const int max_device_input_elems = MAX_SIZE_QINPUTS_PER_LAYER;
     const int max_device_output_elems = MAX_SIZE_OUTPUTS_PER_LAYER;
 
     DMA_Buffer dma_input_buffer;
