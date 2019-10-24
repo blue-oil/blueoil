@@ -126,9 +126,8 @@ struct Base<QuantizedPacked<T>> {
 ********************************************************/
 #define MAX_SIZE_INPUTS_PER_LAYER {{ params.max_size_inputs_per_layer }}
 #define MAX_SIZE_QINPUTS_PER_LAYER {{ params.max_size_qinputs_per_layer }}
-#define MAX_SIZE_IM2COL_INPUTS_PER_LAYER {{ params.max_size_im2col_inputs_per_layer }}
-#define MAX_SIZE_IM2COL_QINPUTS_PER_LAYER {{ params.max_size_im2col_qinputs_per_layer }}
 #define MAX_SIZE_KN2ROW_BUFFER_PER_LAYER {{ params.max_size_kn2row_buffer_per_layer }}
+#define MAX_SIZE_KN2ROW_COL_BLOCK {{ params.max_size_kn2row_col_block }}
 
 #define MAX_SIZE_KERNELS_PER_LAYER {{ params.max_size_kernels_per_layer }}
 #define MAX_SIZE_QKERNELS_PER_LAYER {{ params.max_size_qkernels_per_layer }}
