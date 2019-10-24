@@ -17,3 +17,16 @@ steps:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
     artifact_paths:
     - "output/TestCodeGenerationAarch64/**/*"
+  - wait
+  - command: |
+      buildkite-agent artifact download "output/TestCodeGenerationAarch64/*" ./ --build ${BUILDKITE_BUILD_ID}
+      python3 tests/device_tests/test_device.py
+    label: "dlk: run binary on aarch64"
+    agents:
+    - "agent-type=raspberry-pi"
+    - "env=staging"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+      DEVICE_TEST_INPUT_PATH: './output/TestCodeGenerationAarch64'
+      PYTHONPATH: 'dlk/python/dlk/scripts/pylib'
