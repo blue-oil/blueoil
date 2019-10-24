@@ -42,66 +42,6 @@ inline void convert_tensor(const TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>&
           after(dh, r, c, dl) = before(r, c, dh * channel_low + dl);
 }
 
-inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& before,
-    const dlk::impl::dim2col_input_t& after,
-    const binary_convolution_parameters& p) {
-  const auto& np = p.normal_conv_params;
-  const auto in_shape = before.get_shape();
-  const auto in_height = in_shape[1];
-  const auto in_width = in_shape[2];
-  const auto in_channel = in_shape[0];
-  const auto bits = in_shape[3];
-  const auto out_height = np.output_height;
-  const auto out_width = np.output_width;
-  const auto kh = np.kernel_height;
-  const auto kw = np.kernel_width;
-  const auto pad = np.padding;
-  for (T_INT i = 0; i < out_height; ++i)
-    for (T_INT j = 0; j < out_width; ++j)
-      for (T_INT k = 0; k < in_channel; ++k)
-        for (T_INT d = 0; d < bits; ++d)
-          for (T_INT kr = 0; kr < kh; ++kr)
-            for (T_INT kc = 0; kc < kw; ++kc) {
-              const auto r = i + kr - pad;
-              const auto c = j + kc - pad;
-              if (r >= 0 && r < in_height && c >= 0 && c < in_width) {
-                after(i * out_width + j, k, d, 0) = before(k, r, c, d, 0);
-              } else {
-                after(i * out_width + j, k, d, 0) = QUANTIZED_PACKED(0);
-              }
-            }
-}
-
-inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& before,
-    const dlk::impl::dim2col_input_t& after,
-    const binary_convolution_parameters& p) {
-  const auto& np = p.normal_conv_params;
-  const auto in_shape = before.get_shape();
-  const auto in_height = in_shape[0];
-  const auto in_width = in_shape[1];
-  const auto in_channel = in_shape[2];
-  const auto bits = in_shape[3];
-  const auto out_height = np.output_height;
-  const auto out_width = np.output_width;
-  const auto kh = np.kernel_height;
-  const auto kw = np.kernel_width;
-  const auto pad = np.padding;
-  for (T_INT i = 0; i < out_height; ++i)
-    for (T_INT j = 0; j < out_width; ++j)
-      for (T_INT k = 0; k < in_channel; ++k)
-        for (T_INT d = 0; d < bits; ++d)
-          for (T_INT kr = 0; kr < kh; ++kr)
-            for (T_INT kc = 0; kc < kw; ++kc) {
-              const auto r = i + kr - pad;
-              const auto c = j + kc - pad;
-              if (r >= 0 && r < in_height && c >= 0 && c < in_width) {
-                after(i * out_width + j, k, d, 0) = before(r, c, k, d, 0);
-              } else {
-                after(i * out_width + j, k, d, 0) = QUANTIZED_PACKED(0);
-              }
-            }
-}
-
 inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& before,
     const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& after) {
   const auto in_shape = before.get_shape();
