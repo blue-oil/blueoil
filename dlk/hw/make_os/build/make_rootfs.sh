@@ -36,8 +36,8 @@ if [ -e $BUILD_DIR/$OUTPUT_FNAME ]; then
 fi
 
 # Make rootfs
-debootstrap --arch=arm64 --keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg --verbose --foreign bionic $ROOTFS_DIR
-cp /usr/bin/qemu-aarch64-static $ROOTFS_DIR/usr/bin/
+debootstrap --arch=$DEBOOTSTRAP_ARCH --keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg --verbose --foreign bionic $ROOTFS_DIR
+cp /usr/bin/qemu-${QEMU_ARCH}-static $ROOTFS_DIR/usr/bin/
 cp $BUILD_DIR/setting_after_chroot.sh $ROOTFS_DIR
 chroot $ROOTFS_DIR /bin/bash /setting_after_chroot.sh
 
