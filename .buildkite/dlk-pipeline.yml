@@ -1,4 +1,12 @@
 steps:
+  - command: "make test-dlk-pep8"
+    label: "dlk: pep8"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: "make test-dlk-main"
     label: "dlk: main"
     agents:
@@ -9,11 +17,3 @@ steps:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
     artifact_paths:
     - "output/TestCodeGenerationAarch64/**/*"
-  - command: "make test-dlk-pep8"
-    label: "dlk: pep8"
-    agents:
-    - "agent-type=normal"
-    - "env=production"
-    timeout_in_minutes: "30"
-    env:
-      BUILDKITE_CLEAN_CHECKOUT: 'true'
