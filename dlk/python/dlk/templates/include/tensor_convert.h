@@ -20,7 +20,6 @@ limitations under the License.
 #include "tensor_view.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
 #include "func/impl/quantized_conv2d_tiling.h"
-#include "func/impl/quantized_conv2d_dim2col.h"
 #ifdef USE_NEON
 #include <arm_neon.h>
 #endif
@@ -160,12 +159,6 @@ inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHW
 inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& before,
     const dlk::impl::tiling_input_t& after) {
   dlk::impl::pack_input_for_tiling(before, after);
-}
-
-inline void convert_tensor(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& before,
-    const dlk::impl::dim2col_input_t& after,
-    const binary_convolution_parameters& p) {
-  dlk::impl::im2col(before, after, p);
 }
 
 template <typename T, MemoryLayout layout>
