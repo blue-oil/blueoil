@@ -91,7 +91,7 @@ RUN apt-get update && apt-get install -y g++-5-arm-linux-gnueabihf && \
     ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
 
 # Install requirements
-COPY lmnet/*requirements.txt /tmp/requirements/
+COPY ./*requirements.txt /tmp/requirements/
 RUN pip install -r /tmp/requirements/gpu.requirements.txt
 
 # Build coco. It needs numpy.
