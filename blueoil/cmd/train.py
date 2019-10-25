@@ -15,7 +15,6 @@
 # =============================================================================
 import os
 
-import click
 from tensorflow import gfile
 
 from blueoil.generate_lmnet_config import generate
@@ -45,7 +44,7 @@ def run(blueoil_config_file, experiment_id):
 
 def save_config_file(config_file, dest_dir):
     if not gfile.Exists(dest_dir):
-        gfile.MkDir(dest_dir)
+        gfile.MakeDirs(dest_dir)
 
     config_file_dest = os.path.join(dest_dir, 'blueoil_config.yaml')
 
@@ -59,25 +58,3 @@ def save_config_file(config_file, dest_dir):
         config_file,
         config_file_dest
     )
-
-
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option(
-    "-c",
-    "--config_file",
-    help="config file path for this training",
-    required=True,
-)
-@click.option(
-    "-i",
-    "--experiment_id",
-    help="id of this training",
-    default="experiment",
-    required=True,
-)
-def main(config_file, experiment_id):
-    run(config_file, experiment_id)
-
-
-if __name__ == '__main__':
-    main()
