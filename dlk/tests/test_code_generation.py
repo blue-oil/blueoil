@@ -90,83 +90,145 @@ def dict_codegen_segmentation(cpu_name) -> dict:
             }
 
 
-def get_configurations_by_test_cases(test_cases, configuration):
-
-    return [updated_dict(configuration,test_case) for test_case in test_cases]
-
-
-def get_configurations_by_architecture(test_cases, cpu_name):
-    configurations = []
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_classification(cpu_name)))
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_classification_resnet(cpu_name)))
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_object_detection(cpu_name)))
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_segmentation(cpu_name)))
-
-    return configurations
-
-
 def get_configurations_x86_64():
     cpu_name = "x86_64"
-    test_cases = [
-        {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': True},
-        {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': False},
-        {'use_avx': True, 'hard_quantize': False, 'threshold_skipping': False},
-        {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': True},
-        {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': False},
-        {'use_avx': False, 'hard_quantize': False, 'threshold_skipping': False},
+    cls_base = dict_codegen_classification(cpu_name)
+    cls_resnet_base = dict_codegen_classification_resnet(cpu_name)
+    det_base = dict_codegen_object_detection(cpu_name)
+    seg_base = dict_codegen_segmentation(cpu_name)
+    configurations = [
+        # classification lmnet_quantize
+        updated_dict(cls_base, {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(cls_base, {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(cls_base, {'use_avx': True, 'hard_quantize': False, 'threshold_skipping': False}),
+        updated_dict(cls_base, {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(cls_base, {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(cls_base, {'use_avx': False, 'hard_quantize': False, 'threshold_skipping': False}),
+        # classification resnet_quantize
+        updated_dict(cls_resnet_base, {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(cls_resnet_base, {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(cls_resnet_base, {'use_avx': True, 'hard_quantize': False, 'threshold_skipping': False}),
+        updated_dict(cls_resnet_base, {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(cls_resnet_base, {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(cls_resnet_base, {'use_avx': False, 'hard_quantize': False, 'threshold_skipping': False}),
+        # object_detection fyolo_quantize
+        updated_dict(det_base, {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(det_base, {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(det_base, {'use_avx': True, 'hard_quantize': False, 'threshold_skipping': False}),
+        updated_dict(det_base, {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(det_base, {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(det_base, {'use_avx': False, 'hard_quantize': False, 'threshold_skipping': False}),
+        # segmentation lm_segnet_v1_quantize
+        updated_dict(seg_base, {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(seg_base, {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(seg_base, {'use_avx': True, 'hard_quantize': False, 'threshold_skipping': False}),
+        updated_dict(seg_base, {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(seg_base, {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(seg_base, {'use_avx': False, 'hard_quantize': False, 'threshold_skipping': False}),
+        # additional tests of use_run_test_script=True
+        updated_dict(cls_base, {'use_run_test_script': True, 'use_avx': True, 'input_name': 'raw_image.png', 'test_level': TEST_LEVEL_FUTURE_TARGET}),
+        updated_dict(cls_base, {'use_run_test_script': True, 'use_avx': True, 'input_name': 'preprocessed_image.npy', 'from_npy': True}),
+        updated_dict(cls_base, {'use_run_test_script': True, 'use_avx': False, 'input_name': 'raw_image.png', 'test_level': TEST_LEVEL_FUTURE_TARGET}),
+        updated_dict(cls_base, {'use_run_test_script': True, 'use_avx': False, 'input_name': 'preprocessed_image.npy', 'from_npy': True}),
     ]
-    configurations = get_configurations_by_architecture(test_cases, cpu_name)
-
-    additional_test_configuration = updated_dict(dict_codegen_classification(cpu_name),
-                                                 {'use_run_test_script': True})
-    additional_test_cases = [
-        {'use_avx': True, 'input_name': 'raw_image.png', 'test_level': TEST_LEVEL_FUTURE_TARGET},
-        {'use_avx': True, 'input_name': 'preprocessed_image.npy', 'from_npy': True},
-        {'use_avx': False, 'input_name': 'raw_image.png', 'test_level': TEST_LEVEL_FUTURE_TARGET},
-        {'use_avx': False, 'input_name': 'preprocessed_image.npy', 'from_npy': True},
-    ]
-    configurations.extend(get_configurations_by_test_cases(additional_test_cases, additional_test_configuration))
 
     return [(i, configuration) for i, configuration in enumerate(configurations)]
 
 
 def get_configurations_arm():
     cpu_name = "arm"
-    test_cases = [
-        {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': True},
-        {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': False},
+    cls_base = dict_codegen_classification(cpu_name)
+    cls_resnet_base = dict_codegen_classification_resnet(cpu_name)
+    det_base = dict_codegen_object_detection(cpu_name)
+    seg_base = dict_codegen_segmentation(cpu_name)
+    configurations = [
+        # classification lmnet_quantize
+        updated_dict(cls_base, {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(cls_base, {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(cls_base, {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True}),
+        updated_dict(cls_base, {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False}),
+        # classification resnet_quantize
+        updated_dict(cls_resnet_base, {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(cls_resnet_base, {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(cls_resnet_base, {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True}),
+        updated_dict(cls_resnet_base, {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False}),
+        # object_detection fyolo_quantize
+        updated_dict(det_base, {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(det_base, {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(det_base, {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True}),
+        updated_dict(det_base, {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False}),
+        # segmentation lm_segnet_v1_quantize
+        updated_dict(seg_base, {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(seg_base, {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': False}),
         # FIXME: Cannot run library with hard_quantize=False for segmentation task.
         # Issue link: https://github.com/blue-oil/blueoil/issues/512
-        # {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True},
-        # {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False},
+        # updated_dict(seg_base, {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True}),
+        # updated_dict(seg_base, {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False}),
     ]
-    configurations = get_configurations_by_architecture(test_cases, cpu_name)
 
     return [(i, configuration) for i, configuration in enumerate(configurations)]
 
 
 def get_configurations_arm_fpga():
     cpu_name = "arm_fpga"
-    test_cases = [
-        {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': True},
-        {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': False},
-        {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': True},
-        {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': False},
+    cls_base = dict_codegen_classification(cpu_name)
+    cls_resnet_base = dict_codegen_classification_resnet(cpu_name)
+    det_base = dict_codegen_object_detection(cpu_name)
+    seg_base = dict_codegen_segmentation(cpu_name)
+    configurations = [
+        # classification lmnet_quantize
+        updated_dict(cls_base, {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': True}),
+        updated_dict(cls_base, {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': False}),
+        updated_dict(cls_base, {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': True}),
+        updated_dict(cls_base, {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': False}),
+        # classification resnet_quantize
+        updated_dict(cls_resnet_base, {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': True}),
+        updated_dict(cls_resnet_base, {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': False}),
+        updated_dict(cls_resnet_base, {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': True}),
+        updated_dict(cls_resnet_base, {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': False}),
+        # object_detection fyolo_quantize
+        updated_dict(det_base, {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': True}),
+        updated_dict(det_base, {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': False}),
+        updated_dict(det_base, {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': True}),
+        updated_dict(det_base, {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': False}),
+        # segmentation lm_segnet_v1_quantize
+        updated_dict(seg_base, {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': True}),
+        updated_dict(seg_base, {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': False}),
+        updated_dict(seg_base, {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': True}),
+        updated_dict(seg_base, {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': False}),
     ]
-    configurations = get_configurations_by_architecture(test_cases, cpu_name)
 
     return [(i, configuration) for i, configuration in enumerate(configurations)]
 
 
 def get_configurations_aarch64():
     cpu_name = "aarch64"
-    test_cases = [
-        {'hard_quantize': True, 'threshold_skipping': True},
-        {'hard_quantize': True, 'threshold_skipping': False},
-        {'hard_quantize': False, 'threshold_skipping': True},
-        {'hard_quantize': False, 'threshold_skipping': False},
+    cls_base = dict_codegen_classification(cpu_name)
+    cls_resnet_base = dict_codegen_classification_resnet(cpu_name)
+    det_base = dict_codegen_object_detection(cpu_name)
+    seg_base = dict_codegen_segmentation(cpu_name)
+    configurations = [
+        # classification lmnet_quantize
+        updated_dict(cls_base, {'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(cls_base, {'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(cls_base, {'hard_quantize': False, 'threshold_skipping': True}),
+        updated_dict(cls_base, {'hard_quantize': False, 'threshold_skipping': False}),
+        # classification resnet_quantize
+        updated_dict(cls_resnet_base, {'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(cls_resnet_base, {'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(cls_resnet_base, {'hard_quantize': False, 'threshold_skipping': True}),
+        updated_dict(cls_resnet_base, {'hard_quantize': False, 'threshold_skipping': False}),
+        # object_detection fyolo_quantize
+        updated_dict(det_base, {'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(det_base, {'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(det_base, {'hard_quantize': False, 'threshold_skipping': True}),
+        updated_dict(det_base, {'hard_quantize': False, 'threshold_skipping': False}),
+        # segmentation lm_segnet_v1_quantize
+        updated_dict(seg_base, {'hard_quantize': True, 'threshold_skipping': True}),
+        updated_dict(seg_base, {'hard_quantize': True, 'threshold_skipping': False}),
+        updated_dict(seg_base, {'hard_quantize': False, 'threshold_skipping': True}),
+        updated_dict(seg_base, {'hard_quantize': False, 'threshold_skipping': False}),
     ]
-    configurations = get_configurations_by_architecture(test_cases, cpu_name)
 
     return [(i, configuration) for i, configuration in enumerate(configurations)]
 
