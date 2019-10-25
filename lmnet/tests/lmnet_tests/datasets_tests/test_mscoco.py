@@ -49,9 +49,7 @@ def test_mscoco_object_detection(subset, num_classes, files, annotations):
 
 
 def test_mscoco_object_detection_optional_classes_instantiate():
+    '''Test override classes and instantiate
+    '''
     MscocoObjectDetection.classes = ['person']
-    try:
-        MscocoObjectDetection()
-        assert True
-    except Exception:
-        assert False
+    MscocoObjectDetection()
