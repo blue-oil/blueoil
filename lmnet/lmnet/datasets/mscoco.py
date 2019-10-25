@@ -225,8 +225,8 @@ class MscocoObjectDetection(ObjectDetectionBase):
     @functools.lru_cache(maxsize=None)
     def _gt_boxes_from_image_id(self, image_id):
         """Return gt boxes list ([[x, y, w, h, class_id]]) of a image."""
-        classes = tuple(class_name for class_name in self.classes if class_name is not "__background__")
-        class_ids = self.coco.getCatIds(catNms=classes)
+        classes = set(class_name for class_name in self.classes if class_name is not "__background__")
+        class_ids = set(self.coco.getCatIds(catNms=classes))
 
         boxes = []
         annotation_ids = self.coco.getAnnIds(imgIds=[image_id], iscrowd=None)
