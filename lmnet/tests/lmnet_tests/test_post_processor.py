@@ -23,7 +23,7 @@ from lmnet.post_processor import (
     ExcludeLowScoreBox,
     NMS,
     Bilinear,
-    FormatJoints
+    GaussianHeatmapToJoints
 )
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
@@ -301,7 +301,7 @@ def test_resize_bilinear_pillow():
     assert np.allclose(out, expect, atol=1e-4, rtol=1e-4)
 
 
-def test_format_joints():
+def test_gaussian_heatmap_to_joints():
 
     from lmnet.pre_processor import JointsToGaussianHeatmap
 
@@ -310,6 +310,7 @@ def test_format_joints():
     num_dimensions = 2
     stride = 1
     confidence_threshold = 0.5
+    max_value = 10
     num_joints = 17
 
     input_joints = np.array([[1, 1, 1],
@@ -331,11 +332,12 @@ def test_format_joints():
                              [17, 17, 0]])
 
     pre_process = JointsToGaussianHeatmap(image_size, num_joints=num_joints,
-                                          stride=1, sigma=3, max_value=10)
+                                          stride=1, sigma=3, max_value=max_value)
 
-    post_process = FormatJoints(num_dimensions=num_dimensions,
-                                stride=stride,
-                                confidence_threshold=confidence_threshold)
+    post_process = GaussianHeatmapToJoints(num_dimensions=num_dimensions,
+                                           stride=stride,
+                                           confidence_threshold=confidence_threshold,
+                                           max_value=max_value)
 
     heatmap = pre_process(joints=input_joints)["heatmap"]
     heatmap = np.expand_dims(heatmap, axis=0)
@@ -355,4 +357,4 @@ if __name__ == '__main__':
     test_nms_max_output_size()
     test_resize_bilinear()
     test_resize_bilinear_pillow()
-    test_format_joints()
+    test_gaussian_heatmap_to_joints()

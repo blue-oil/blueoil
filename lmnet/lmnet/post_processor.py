@@ -421,21 +421,29 @@ class Softmax(Processor):
         return dict({'outputs': results}, **kwargs)
 
 
-class FormatJoints(Processor):
+class GaussianHeatmapToJoints(Processor):
 
-    def __init__(self, num_dimensions=2, stride=2, confidence_threshold=0.1):
+    """GaussianHeatmapToJoints
+
+    Extract joints from gaussian heatmap. Current version only supports 2D pose estimation.
+    """
+
+    def __init__(self, num_dimensions=2, stride=2, confidence_threshold=0.1, max_value=10):
         """
         Args:
             num_dimensions: int, it only supports 2 for now.
             stride: int, stride = image_height / heatmap_height.
             confidence_threshold: float, [0, 1], ratio of threshold_value and max_value.
+            max_value: int, max value of gauusian heatmap.
         """
         self.num_dimensions = num_dimensions
         self.stride = stride
         self.confidence_threshold = confidence_threshold
+        self.max_value = max_value
 
     def __call__(self, outputs, *args, **kwargs):
         """
+        Extract joints from gaussian heatmap. Current version only supports 2D pose estimation.
         Args:
             outputs: output heatmaps, a numpy array of shape (batch_size, height, width, num_joints).
 
@@ -454,19 +462,20 @@ class FormatJoints(Processor):
             joints[i] = gaussian_heatmap_to_joints(outputs[i],
                                                    num_dimensions=self.num_dimensions,
                                                    stride=self.stride,
-                                                   confidence_threshold=self.confidence_threshold)
+                                                   confidence_threshold=self.confidence_threshold,
+                                                   max_value=self.max_value)
 
         return dict({'outputs': joints}, **kwargs)
 
 
-def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=2, confidence_threshold=0.1):
+def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=2, confidence_threshold=0.1, max_value=10):
     """
-    Extract joints from gaussian heatmap. Current version only supports 2D pose estimation.
     Args:
         heatmap: a numpy array of shape (height, width, num_joints).
         num_dimensions: int, it only supports 2 for now.
         stride: int, stride = image_height / heatmap_height.
         confidence_threshold: float, [0, 1], ratio of threshold_value and max_value.
+        max_value: int, max value of gauusian heatmap.
 
     Returns:
         joints: a numpy array of shape (num_joints, num_dimensions + 1).
@@ -475,7 +484,7 @@ def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=2, confidence_t
 
     height, width, num_joints = heatmap.shape
 
-    threshold_value = 10 * confidence_threshold
+    threshold_value = max_value * confidence_threshold
 
     joints = np.zeros((num_joints, num_dimensions + 1), dtype=np.float32)
 
