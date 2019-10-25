@@ -1,0 +1,31 @@
+CLASSES:
+- sky
+- building
+- pole
+- road
+- pavement
+- tree
+- signsymbol
+- fence
+- car
+- pedestrian
+- bicyclist
+DATA_FORMAT: NHWC
+IMAGE_SIZE:
+- 352
+- 480
+POST_PROCESSOR:
+- Bilinear:
+    compatible_tensorflow_v1: true
+    data_format: NHWC
+    size:
+    - 352
+    - 480
+- Softmax: null
+PRE_PROCESSOR:
+- Resize:
+    size:
+    - 352
+    - 480
+- PerImageStandardization: null
+TASK: IMAGE.SEMANTIC_SEGMENTATION
