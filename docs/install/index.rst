@@ -9,4 +9,5 @@ As of right now, the only officialy supported OS is Ubuntu 16.04.
    :maxdepth: 1
 
    install
+.. make_rootfs.md
 
