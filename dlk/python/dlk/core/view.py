@@ -30,7 +30,10 @@ class View(object):
 
     @property
     def shape(self):
-        return '*'.join(map(lambda x: str(x), self.op.shape))
+        if self.op.dtype == QUANTIZED_PACKED():
+            return '*'.join(map(lambda x: str(x), self.op.shape)) + f' / (sizeof({self.op.dtype.cpptype()}) * CHAR_BIT)'
+        else:
+            return '*'.join(map(lambda x: str(x), self.op.shape))
 
     @property
     def shape_list(self):
@@ -636,9 +639,6 @@ class View(object):
             inputs_string = self.inputs_to_string(input_ops)
             shape_string = self.shape_to_string(op.shape)
 
-            input_list_name = op.name + '_inputs'
-            depth_list_name = op.name + '_inputs_depth'
-
             number_of_inputs = len(input_ops)
             concat_input = {}
             for k, v in input_ops.items():
@@ -647,14 +647,9 @@ class View(object):
 
             inputs_string = self.inputs_to_string(concat_input)
 
-            depth_list = ', '.join(map(lambda x: str(x.channel), concat_input.values()))
-
             return self.format_string(
                 f"""
-                const TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {input_list_name}[] = \
-                {{ {inputs_string} }};
-                T_UINT {depth_list_name}[] = {{ {depth_list} }};
-                func_ConcatOnDepth({input_list_name}, {depth_list_name}, {number_of_inputs}, {op.name});
+                func_ConcatOnDepth(std::make_tuple({inputs_string}), {op.name});
                 """
             )
         elif self.op.op_type == 'Maximum':
@@ -707,10 +702,14 @@ class View(object):
 
             ns = op.num_splits
 
+            depth_list_name = op.name + '_outputs_depth'
+            depth_list = ', '.join(map(str, [op.channel for _ in range(ns)]))
+
             return self.format_string(
                 f"""
                 TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}[] = {{ {outputs_string} }};
-                func_Split({inputs_string}, {op.name}, {ns});
+                T_UINT {depth_list_name}[] = {{ {depth_list} }};
+                func_Split({inputs_string}, {op.name}, {depth_list_name}, {ns});
                 """
             )
         elif self.op.op_type == 'Pad':

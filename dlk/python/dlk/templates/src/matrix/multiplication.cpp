@@ -34,8 +34,7 @@ constexpr std::size_t ceil_mod(const std::size_t n, const std::size_t mod) {
 }
 
 static constexpr std::size_t align_margin = 32 / sizeof(float);
-static constexpr std::size_t KMAX = 3;
-static constexpr std::size_t B_buf_size = MAX_IN_C * ceil_mod(MAX_IN_C * KMAX * KMAX, 8) + align_margin;
+static constexpr std::size_t B_buf_size = MAX_SIZE_INPUTS_PER_LAYER + MAX_IN_C * 8 + align_margin;
 static const auto B_buf = std::make_unique<float[]>(B_buf_size);
 
 void matrix_multiplication_col3(
@@ -78,9 +77,9 @@ void matrix_multiplication_impl(
   const auto B_col_blocks = (B.cols() + regblock_m - 1) / regblock_m;
   float *B_buf_ptr = B_buf.get();
   for (std::size_t j = 0; j < B.cols(); j += regblock_m) {
-    if (B.cols() - j >= regblock_m) {
+    if (j + regblock_m <= B.cols()) {
       std::size_t k = 0;
-      for (; k < B.rows(); k += regblock_m) {
+      for (; k + regblock_m <= B.rows(); k += regblock_m) {
         const auto im0 = vld1q_f32(B.data(k, j + 0));
         const auto im1 = vld1q_f32(B.data(k, j + 1));
         const auto im2 = vld1q_f32(B.data(k, j + 2));
@@ -103,9 +102,9 @@ void matrix_multiplication_impl(
       for (; k < B.rows(); ++k) {
         for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
           if (j + j2 >= B.cols()) {
-            B_buf[j * B.rows() + k * regblock_m + j2] = 0;
+            *B_buf_ptr++ = 0;
           } else {
-            B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+            *B_buf_ptr++ = B(k, j + j2);
           }
         }
       }
@@ -113,9 +112,9 @@ void matrix_multiplication_impl(
       for (std::size_t k = 0; k < B.rows(); ++k) {
         for (std::size_t j2 = 0; j2 < regblock_m; ++j2) {
           if (j + j2 >= B.cols()) {
-            B_buf[j * B.rows() + k * regblock_m + j2] = 0;
+            *B_buf_ptr++ = 0;
           } else {
-            B_buf[j * B.rows() + k * regblock_m + j2] = B(k, j + j2);
+            *B_buf_ptr++ = B(k, j + j2);
           }
         }
       }

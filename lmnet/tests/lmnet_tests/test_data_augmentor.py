@@ -20,11 +20,10 @@ import PIL.Image
 import PIL.ImageDraw
 import pytest
 
-from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
+from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
+from lmnet.utils.image import load_image
 from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.pre_processor import (
-    ResizeWithGtBoxes
-)
+from lmnet.pre_processor import ResizeWithGtBoxes
 from lmnet.data_processor import (
     Sequence
 )
@@ -86,9 +85,9 @@ def _show_image(image):
 
 
 def _image():
-    image = PIL.Image.open("tests/fixtures/sample_images/cat.jpg")
+    image = load_image("tests/fixtures/sample_images/cat.jpg")
 
-    return np.array(image)
+    return image
 
 
 def test_sequence():
@@ -100,7 +99,7 @@ def test_sequence():
         SSDRandomCrop(),
     ])
 
-    dataset = LmThingsOnATable(
+    dataset = Pascalvoc2007(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
         augmentor=augmentor,
     )
@@ -114,7 +113,7 @@ def test_sequence():
 def test_blur():
     batch_size = 3
     image_size = [256, 512]
-    dataset = LmThingsOnATable(
+    dataset = Pascalvoc2007(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
         augmentor=Blur((0, 1)),
     )
@@ -128,7 +127,7 @@ def test_blur():
 def test_brightness():
     batch_size = 3
     image_size = [256, 512]
-    dataset = LmThingsOnATable(
+    dataset = Pascalvoc2007(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
         augmentor=Brightness(),
     )
@@ -142,7 +141,7 @@ def test_brightness():
 def test_color():
     batch_size = 3
     image_size = [256, 512]
-    dataset = LmThingsOnATable(
+    dataset = Pascalvoc2007(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
         augmentor=Color((0.0, 2.0)),
     )
@@ -156,7 +155,7 @@ def test_color():
 def test_contrast():
     batch_size = 3
     image_size = [256, 512]
-    dataset = LmThingsOnATable(
+    dataset = Pascalvoc2007(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
         augmentor=Contrast((0.0, 2.0)),
     )
@@ -184,7 +183,7 @@ def test_crop():
 def test_filp_left_right():
     batch_size = 3
     image_size = [256, 512]
-    dataset = LmThingsOnATable(
+    dataset = Pascalvoc2007(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
         augmentor=FlipLeftRight(),
     )
@@ -198,7 +197,7 @@ def test_filp_left_right():
 def test_filp_top_bottom():
     batch_size = 3
     image_size = [256, 512]
-    dataset = LmThingsOnATable(
+    dataset = Pascalvoc2007(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
         augmentor=FlipTopBottom(),
     )
@@ -212,7 +211,7 @@ def test_filp_top_bottom():
 def test_hue():
     batch_size = 3
     image_size = [256, 512]
-    dataset = LmThingsOnATable(
+    dataset = Pascalvoc2007(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
         augmentor=Hue((-10, 10)),
     )
@@ -271,7 +270,7 @@ def test_random_patch_cut():
 def test_ssd_random_crop():
     batch_size = 3
     image_size = [256, 512]
-    dataset = LmThingsOnATable(
+    dataset = Pascalvoc2007(
         batch_size=batch_size, pre_processor=ResizeWithGtBoxes(image_size),
         augmentor=SSDRandomCrop(),
     )
