@@ -198,7 +198,7 @@ class MscocoObjectDetection(ObjectDetectionBase):
     def _image_ids(self):
         """Return all files and gt_boxes list."""
         classes = [class_name for class_name in self.classes if class_name is not "__background__"]
-        target_class_ids = self.coco.getCatIds(catNms=classes)
+        target_class_ids = set(self.coco.getCatIds(catNms=classes))
         image_ids = []
         for target_class_id in target_class_ids:
             target_image_ids = self.coco.getImgIds(catIds=[target_class_id])
@@ -225,7 +225,7 @@ class MscocoObjectDetection(ObjectDetectionBase):
     @functools.lru_cache(maxsize=None)
     def _gt_boxes_from_image_id(self, image_id):
         """Return gt boxes list ([[x, y, w, h, class_id]]) of a image."""
-        classes = set(class_name for class_name in self.classes if class_name is not "__background__")
+        classes = [class_name for class_name in self.classes if class_name is not "__background__"]
         class_ids = set(self.coco.getCatIds(catNms=classes))
 
         boxes = []
