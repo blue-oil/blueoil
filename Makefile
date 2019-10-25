@@ -69,11 +69,11 @@ os-docker:
 
 .PHONY: rootfs32
 rootfs32:
-	docker run -v dlk/hw/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh 32
+	docker run -v `pwd`/dlk/hw/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh 32
 
 .PHONY: rootfs64
 rootfs64:
-	docker run -v dlk/hw/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh 64
+	docker run -v `pwd`/dlk/hw/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh 64
 
 .PHONY: clean
 clean:
