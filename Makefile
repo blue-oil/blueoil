@@ -68,11 +68,11 @@ os-docker:
 	docker build -t $(IMAGE_NAME)_os -f dlk/hw/make_os/Dockerfile . #--no-cache=true
 
 .PHONY: rootfs32
-rootfs32:
+rootfs32: os-docker
 	docker run -v `pwd`/dlk/hw/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh 32
 
 .PHONY: rootfs64
-rootfs64:
+rootfs64: os-docker
 	docker run -v `pwd`/dlk/hw/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh 64
 
 .PHONY: clean
