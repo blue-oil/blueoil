@@ -21,9 +21,6 @@ from lmnet.datasets.div2k import Div2k
 
 
 def test_train_files(set_test_environment):
-    dataset = Div2k("train")
-    files = sorted(dataset.files)
-
     expected = [
         "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0001.png",
         "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0002.png",
@@ -31,14 +28,10 @@ def test_train_files(set_test_environment):
         "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0004.png",
         "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0005.png",
     ]
-
-    assert files == expected
+    assert sorted(Div2k("train").files) == expected
 
 
 def test_validation_files(set_test_environment):
-    dataset = Div2k("validation")
-    files = sorted(dataset.files)
-
     expected = [
         "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0001.png",
         "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0002.png",
@@ -46,28 +39,21 @@ def test_validation_files(set_test_environment):
         "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0004.png",
         "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0005.png",
     ]
-
-    assert files == expected
+    assert sorted(Div2k("validation").files) == expected
 
 
 def test_length(set_test_environment):
-    dataset = Div2k("train")
     expected = 5
-
-    assert len(dataset) == expected
+    assert len(Div2k("train")) == expected
 
 
 def test_num_per_epoch(set_test_environment):
-    dataset = Div2k("train")
     expected = 5
-
-    assert dataset.num_per_epoch == expected
+    assert Div2k("train").num_per_epoch == expected
 
 
 def test_get_item(set_test_environment):
-    dataset = Div2k("train")
-
-    assert all([isinstance(image, np.ndarray) for image, _ in dataset])
+    assert all(isinstance(image, np.ndarray) for image, _ in Div2k("train"))
 
 
 @pytest.mark.parametrize("subset", ["train", "validation"])
