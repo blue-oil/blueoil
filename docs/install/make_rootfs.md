@@ -9,13 +9,7 @@ This document explains scripts to generate rootfs for ARM CPU and how to use tho
 
 ## How to run the script
 
-Making docker is necessary before you actually run the command to generate rootfs.
-
-```
-make os-docker
-```
-
-After this, the operation is defferent between 32bit and 64bit.
+The operation is defferent between 32bit and 64bit.
 
 In case you want to make 32bit rootfs, please perfome commands below:
 
