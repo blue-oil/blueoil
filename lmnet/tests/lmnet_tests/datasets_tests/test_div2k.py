@@ -13,13 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
-from glob import glob
-
 import numpy as np
 import pytest
 
-from lmnet import environment
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.div2k import Div2k
 
