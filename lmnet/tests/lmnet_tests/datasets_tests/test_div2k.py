@@ -24,41 +24,54 @@ from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.div2k import Div2k
 
 
-@pytest.mark.parametrize("type", [
-    {"subset": "train", "dir": "DIV2K_train_HR"},
-    {"subset": "validation", "dir": "DIV2K_valid_HR"},
-])
-def test_files(set_test_environment, type):
-    dataset = Div2k(type["subset"])
+def test_train_files(set_test_environment):
+    dataset = Div2k("train")
     files = sorted(dataset.files)
 
-    dataset_files = os.path.join(environment.DATA_DIR, "DIV2K/{}/*.png".format(type["dir"]))
-    expected = sorted(glob(dataset_files))
+    expected = [
+        "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0001.png",
+        "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0002.png",
+        "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0003.png",
+        "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0004.png",
+        "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0005.png",
+    ]
 
     assert files == expected
 
 
-@pytest.mark.parametrize("subset", ["train", "validation"])
-def test_length(set_test_environment, subset):
-    dataset = Div2k(subset)
+def test_validation_files(set_test_environment):
+    dataset = Div2k("validation")
+    files = sorted(dataset.files)
 
-    assert len(dataset.files) == len(dataset)
+    expected = [
+        "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0001.png",
+        "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0002.png",
+        "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0003.png",
+        "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0004.png",
+        "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0005.png",
+    ]
+
+    assert files == expected
 
 
-@pytest.mark.parametrize("subset", ["train", "validation"])
-def test_num_per_epoch(set_test_environment, subset):
-    dataset = Div2k(subset)
+def test_length(set_test_environment):
+    dataset = Div2k("train")
+    expected = 5
 
-    assert len(dataset.files) == dataset.num_per_epoch
+    assert len(dataset) == expected
 
 
-@pytest.mark.parametrize("subset", ["train", "validation"])
-def test_get_item(set_test_environment, subset):
-    dataset = Div2k(subset)
+def test_num_per_epoch(set_test_environment):
+    dataset = Div2k("train")
+    expected = 5
 
-    for i in range(len(dataset)):
-        image, _ = dataset[i]
-        assert isinstance(image, np.ndarray)
+    assert dataset.num_per_epoch == expected
+
+
+def test_get_item(set_test_environment):
+    dataset = Div2k("train")
+
+    assert all([isinstance(image, np.ndarray) for image, _ in dataset])
 
 
 @pytest.mark.parametrize("subset", ["train", "validation"])
