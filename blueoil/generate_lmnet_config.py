@@ -131,6 +131,7 @@ def _blueoil_to_lmnet(blueoil_config):
     }
     dataset = {}
 
+
     model_name = blueoil_config["model_name"]
 
     template_file = _TASK_TYPE_TEMPLATE_FILE[blueoil_config["task_type"]]
