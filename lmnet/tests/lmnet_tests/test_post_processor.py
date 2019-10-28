@@ -310,7 +310,6 @@ def test_gaussian_heatmap_to_joints():
     num_dimensions = 2
     stride = 1
     confidence_threshold = 0.5
-    max_value = 10
     num_joints = 17
 
     input_joints = np.array([[1, 1, 1],
@@ -332,12 +331,11 @@ def test_gaussian_heatmap_to_joints():
                              [17, 17, 0]])
 
     pre_process = JointsToGaussianHeatmap(image_size, num_joints=num_joints,
-                                          stride=1, sigma=3, max_value=max_value)
+                                          stride=1, sigma=3)
 
     post_process = GaussianHeatmapToJoints(num_dimensions=num_dimensions,
                                            stride=stride,
-                                           confidence_threshold=confidence_threshold,
-                                           max_value=max_value)
+                                           confidence_threshold=confidence_threshold)
 
     heatmap = pre_process(joints=input_joints)["heatmap"]
     heatmap = np.expand_dims(heatmap, axis=0)

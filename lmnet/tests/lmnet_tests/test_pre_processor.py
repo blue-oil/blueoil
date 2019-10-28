@@ -107,7 +107,7 @@ def test_joints_to_gaussian_heatmap():
                              [17, 17, 0]])
 
     pre_process = JointsToGaussianHeatmap(image_size, num_joints=num_joints,
-                                          stride=stride, sigma=2, max_value=10)
+                                          stride=stride, sigma=2)
 
     heatmap = pre_process(joints=input_joints)["heatmap"]
 
