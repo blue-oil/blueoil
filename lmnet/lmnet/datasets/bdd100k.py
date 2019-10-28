@@ -171,39 +171,46 @@ class BDD100KSegmentation(SegmentationBase):
     label_dir = 'labels'  # labels : gray scale labels
     classes = [
         "unlabeled",
-        "ego vehicle",
-        "rectification boarder",
-        "out of roi",
-        "static",
         "dynamic",
+        "ego_vehicle",
         "ground",
-        "road",
-        "sidewalk",
+        "static",
         "parking",
         "rail track",
-        "building",
-        "wall",
-        "fence",
-        "guard rail",
+        "road",
+        "sidewalk",
         "bridge",
+        "building",
+        "fence",
+        "garage",
+        "guard rail",
         "tunnel",
+        "wall",
+        "banner",
+        "billboard",
+        "lane divider",
+        "parking_sign",
         "pole",
         "polegroup",
-        "traffic light",
-        "traffic sign",
-        "vegetation",
+        "street_light"
+        "traffic_cone",
+        "traffic_device",
+        "traffic_light",
+        "traffic_sign",
+        "traffic_sign_frame",
         "terrain",
+        "vegetation",
         "sky",
         "person",
         "rider",
-        "car",
-        "truck",
+        "bicycle",
         "bus",
+        "car",
         "caravan",
+        "motorcycle",
         "trailer",
         "train",
-        "motorcycle",
-        "bicycle",
+        "truck"
     ]
     num_classes = len(classes)
 
@@ -213,47 +220,53 @@ class BDD100KSegmentation(SegmentationBase):
     @property
     def label_colors(self):
         unlabeled = [0, 0, 0]
+        dynamic = [111,74, 0]
         ego_vehicle = [0, 0, 0]
-        rectification_boarder = [0, 0, 0]
-        out_of_roi = [0, 0, 0]
-        static = [0, 0, 0]
-        dynamic = [111, 74, 0]
         ground = [81, 0, 81]
-        road = [128, 64, 128]
-        sidewalk = [244, 35, 232]
+        static = [0, 0, 0]
         parking = [250, 170, 160]
         rail_track = [230, 150, 140]
-        building = [70, 70, 70]
-        wall = [102, 102, 156]
-        fence = [190, 153, 153]
-        guard_rail = [180, 165, 180]
+        road = [128, 64, 128]
+        sidewalk = [244, 35, 232]
         bridge = [150, 100, 100]
+        building = [70, 70, 70]
+        fence = [190, 153, 153]
+        garage = [180, 100, 180]
+        guard_rail = [180, 165, 180]
         tunnel = [150, 120, 90]
+        wall = [102, 102, 156]
+        banner = [250, 170, 100]
+        billboard = [220, 220, 250]
+        lane_divider = [255, 165, 0]
+        parking_sign = [220, 20, 60]
         pole = [153, 153, 153]
         polegroup = [153, 153, 153]
+        street_light = [220, 220, 100]
+        traffic_cone = [255, 70, 0]
+        traffic_device = [220, 220, 220]
         traffic_light = [250, 170, 30]
         traffic_sign = [220, 220, 0]
-        vegetation = [107, 142, 35]
+        traffic_sign_frame = [250, 170, 250]
         terrain = [152, 251, 152]
+        vegetation = [107, 152, 35]
         sky = [70, 130, 180]
         person = [220, 20, 60]
         rider = [255, 0, 0]
-        car = [0, 0, 142]
-        truck = [0, 0, 70]
+        bicycle = [119, 11, 32]
         bus = [0, 60, 100]
+        car = [0, 0, 142]
         caravan = [0, 0, 90]
+        motorcycle = [0, 0, 230]
         trailer = [0, 0, 110]
         train = [0, 80, 100]
-        motorcycle = [0, 0, 230]
-        bicycle = [119, 11, 32]
+        truck = [0, 0, 70]
 
         return np.array([
-            unlabeled, ego_vehicle, rectification_boarder, out_of_roi, static,
-            dynamic, ground, road, sidewalk, parking, rail_track, building,
-            wall, fence, guard_rail, bridge, tunnel, pole, polegroup,
-            traffic_light, traffic_sign, vegetation, terrain, sky, person,
-            rider, car, truck, bus, caravan, trailer, train, motorcycle,
-            bicycle])
+            unlabeled, dynamic ,ego_vehicle, ground, static, parking, rail_track, road, sidewalk, bridge,
+            building, fence, garage, guard_rail, tunnel, wall, banner, billboard, lane_divider, parking_sign,
+            pole, polegroup, street_light, traffic_cone, traffic_device, traffic_light, traffic_sign,
+            traffic_sign_frame, terrain, vegetation, sky, person, rider, bicycle, bus, car, caravan,
+            motorcycle, trailer, train, truck])
 
     @functools.lru_cache(maxsize=None)
     def files_and_annotations(self):
