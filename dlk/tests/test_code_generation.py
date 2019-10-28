@@ -158,6 +158,19 @@ def get_configurations_arm_fpga():
     return [(i, configuration) for i, configuration in enumerate(configurations)]
 
 
+def get_configurations_aarch64():
+    cpu_name = "aarch64"
+    test_cases = [
+        {'hard_quantize': True, 'threshold_skipping': True},
+        {'hard_quantize': True, 'threshold_skipping': False},
+        {'hard_quantize': False, 'threshold_skipping': True},
+        {'hard_quantize': False, 'threshold_skipping': False},
+    ]
+    configurations = get_configurations_by_architecture(test_cases, cpu_name)
+
+    return [(i, configuration) for i, configuration in enumerate(configurations)]
+
+
 class TestCodeGenerationBase(TestCaseDLKBase):
     """Test class for code generation testing."""
 
@@ -171,6 +184,17 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         else:
             raise unittest.SkipTest(
                 f'test level of this test: {this_test_level}, current test level: {CURRENT_TEST_LEVEL}')
+
+    def save_output(self, test_id, library, input_npy, expected_output_npy):
+        save_dir = os.path.join(self.class_output_dir, str(test_id))
+        os.makedirs(save_dir, exist_ok=True)
+        shutil.copyfile(library, os.path.join(save_dir, 'lib.so'))
+        shutil.copyfile(input_npy, os.path.join(save_dir, 'input.npy'))
+        shutil.copyfile(expected_output_npy, os.path.join(save_dir, 'expected.npy'))
+        # change mode for docker use case with root user
+        os.chmod(save_dir, 0o777)
+        for f in os.listdir(save_dir):
+            os.chmod(os.path.join(save_dir, f), 0o777)
 
     def run_library(self, library, input_npy, expected_output_npy):
 
@@ -331,18 +355,22 @@ class TestCodeGenerationBase(TestCaseDLKBase):
 
         self.assertTrue(os.path.exists(project_dir))
 
-        cmake_use_arm =  '-DTOOLCHAIN_NAME=linux_arm'
+        cmake_use_aarch64 = '-DTOOLCHAIN_NAME=linux_aarch64'
+        cmake_use_arm = '-DTOOLCHAIN_NAME=linux_arm'
         cmake_use_neon = '-DUSE_NEON=1'
         cmake_use_fpga = '-DRUN_ON_FPGA=1'
-        cmake_use_avx =  '-DUSE_AVX=1'
+        cmake_use_avx = '-DUSE_AVX=1'
 
         cmake_defs = []
-        if cpu_name == 'arm':
+        if cpu_name == 'aarch64':
+            cmake_defs += [cmake_use_aarch64, cmake_use_neon]
+        elif cpu_name == 'arm':
             cmake_defs += [cmake_use_arm, cmake_use_neon]
-        if cpu_name == 'arm_fpga':
+        elif cpu_name == 'arm_fpga':
             cmake_defs += [cmake_use_arm, cmake_use_neon, cmake_use_fpga]
-        if use_avx == True:
-            cmake_defs += [cmake_use_avx]
+        elif cpu_name == 'x86_64':
+            if use_avx:
+                cmake_defs += [cmake_use_avx]
 
         run_and_check(['cmake'] + cmake_defs + ['.'],
                       project_dir,
@@ -366,9 +394,15 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         if not use_run_test_script:
             if cpu_name == 'x86_64':
                 percent_failed = self.run_library(generated_lib, input_path, expected_output_path)
-            else:
+            elif cpu_name == 'arm' or cpu_name == 'arm_fpga':
                 percent_failed = \
                     self.run_library_on_remote(FPGA_HOST, output_path, generated_lib, input_path, expected_output_path)
+            elif cpu_name == 'aarch64':
+                # Skip run library test, it will run on another test by using saved output files.
+                self.save_output(test_id, generated_lib, input_path, expected_output_path)
+                return
+            else:
+                self.fail("Unexpected cpu_name: %s" % cpu_name)
         else:
             percent_failed = self.run_library_using_script(generated_lib, input_path, expected_output_path,
                                                            from_npy)
@@ -405,6 +439,14 @@ class TestCodeGenerationArmFpga(TestCodeGenerationBase):
     fpga_setup = True
 
     @params(*get_configurations_arm_fpga())
+    def test_code_generation(self, i, configuration) -> None:
+        self.run_test_all_configuration(i, configuration)
+
+
+class TestCodeGenerationAarch64(TestCodeGenerationBase):
+    """Test class for code generation testing for aarch64."""
+
+    @params(*get_configurations_aarch64())
     def test_code_generation(self, i, configuration) -> None:
         self.run_test_all_configuration(i, configuration)
 
