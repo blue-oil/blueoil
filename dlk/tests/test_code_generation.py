@@ -135,10 +135,8 @@ def get_configurations_arm():
     test_cases = [
         {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': True},
         {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': False},
-        # FIXME: Cannot run library with hard_quantize=False for segmentation task.
-        # Issue link: https://github.com/blue-oil/blueoil/issues/512
-        # {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True},
-        # {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False},
+        {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True},
+        {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False},
     ]
     configurations = get_configurations_by_architecture(test_cases, cpu_name)
 
