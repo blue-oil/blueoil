@@ -91,14 +91,14 @@ def run_all_steps(dirs, config_file):
         'models',
         'lib',
     )
-    assert os.path.join(lib_dir, 'lib_aarch64.so')
-    assert os.path.join(lib_dir, 'lib_arm.so')
-    assert os.path.join(lib_dir, 'lib_fpga.so')
-    assert os.path.join(lib_dir, 'lib_x86.so')
-    assert os.path.join(lib_dir, 'lm_aarch64.elf')
-    assert os.path.join(lib_dir, 'lm_arm.elf')
-    assert os.path.join(lib_dir, 'lm_fpga.elf')
-    assert os.path.join(lib_dir, 'lm_x86.elf')
+    assert os.path.exists(os.path.join(lib_dir, 'lib_aarch64.so'))
+    assert os.path.exists(os.path.join(lib_dir, 'lib_arm.so'))
+    assert os.path.exists(os.path.join(lib_dir, 'lib_fpga.so'))
+    assert os.path.exists(os.path.join(lib_dir, 'lib_x86.so'))
+    assert os.path.exists(os.path.join(lib_dir, 'lm_aarch64.elf'))
+    assert os.path.exists(os.path.join(lib_dir, 'lm_arm.elf'))
+    assert os.path.exists(os.path.join(lib_dir, 'lm_fpga.elf'))
+    assert os.path.exists(os.path.join(lib_dir, 'lm_x86.elf'))
 
     # Predict
     predict_input_dir = os.path.join(dirs["blueoil_dir"], "lmnet/tests/fixtures/sample_images")
