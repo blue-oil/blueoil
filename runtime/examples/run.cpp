@@ -16,18 +16,35 @@ limitations under the License.
 #include <string>
 #include <iostream>
 #include <vector>
+#include <cstring>
 
 #include "blueoil.hpp"
 
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
-    std::cerr << "Usage: a.out <imagefile>" << std::endl;
-    std::cerr << "ex) a.out raw_image.npy" << std::endl;
+  std::string imagefile, meta_yaml;
+
+  for (int i = 1 ; i < (argc-1); i++) {
+    char *arg = argv[i];
+    char *arg2 = argv[i+1];
+    if ((arg[0] == '-') && (std::strlen(arg) == 2) && (arg2[0] != '-')) {
+      switch (arg[1]) {
+        case 'i':  // image file (ex. raw_image.npy)
+          imagefile = std::string(arg2);
+          break;
+        case 'c':  // config file (meta.yaml)
+          meta_yaml = std::string(arg2);
+          break;
+      }
+    }
+  }
+
+  if (imagefile.empty() || meta_yaml.empty()) {
+    std::cerr << "Usage: a.out -i <imagefile> -c <configfile>" << std::endl;
+    std::cerr << "ex) a.out -i raw_image.npy -c meta.yaml" << std::endl;
     std::exit(1);
   }
 
-  std::string meta_yaml = "meta.yaml";
   blueoil::Predictor predictor = blueoil::Predictor(meta_yaml);
 
   std::cout << "classes: " << std::endl;
@@ -41,7 +58,6 @@ int main(int argc, char **argv) {
   for (int j : predictor.expected_input_shape) {
     std::cout << j << "\n";
   }
-  std::string imagefile = argv[1];
   blueoil::Tensor image = blueoil::Tensor_loadImage(imagefile);
 
   std::cout << "Run" << std::endl;
