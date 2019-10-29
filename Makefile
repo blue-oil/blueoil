@@ -1,6 +1,7 @@
 IMAGE_NAME:=blueoil_$$(id -un)
 BUILD_VERSION:=$(shell git describe --tags --always --dirty --match="v*" 2> /dev/null || cat $(CURDIR/.version 2> /dev/null || echo v0))
 DOCKER_OPT:=--runtime=nvidia
+CWD:=$$(pwd)
 
 default: build
 
@@ -61,7 +62,7 @@ test-dlk-pep8: build
 .PHONY: test-dlk-main
 test-dlk-main: build
 	# Run dlk test
-	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
+	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -v $(CWD)/output:/home/blueoil/dlk/output -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
 
 .PHONY: clean
 clean:
