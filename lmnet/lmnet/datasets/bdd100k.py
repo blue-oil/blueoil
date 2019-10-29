@@ -192,7 +192,7 @@ class BDD100KSegmentation(SegmentationBase):
         "parking_sign",
         "pole",
         "polegroup",
-        "street_light"
+        "street_light",
         "traffic_cone",
         "traffic_device",
         "traffic_light",
