@@ -21,7 +21,7 @@ from lmnet.networks.base import BaseNetwork
 
 class Base(BaseNetwork):
     """base network for classification
-
+    
     This base network is for classification.
     Every classification's network class should extend this class.
 
@@ -42,11 +42,12 @@ class Base(BaseNetwork):
 
     def placeholders(self):
         """Placeholders.
-
+        
         Return placeholders.
 
         Returns:
             tf.placeholder: Placeholders.
+
         """
 
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 3) \
@@ -66,8 +67,10 @@ class Base(BaseNetwork):
     def inference(self, images, is_training):
         """inference.
 
-        Params:
-           images: images tensor. shape is (batch_num, height, width, channel)
+        Args:
+            images: images tensor. shape is (batch_num, height, width, channel)
+            is_training:
+
         """
         base = self.base(images, is_training)
         softmax = tf.nn.softmax(base)
@@ -91,9 +94,11 @@ class Base(BaseNetwork):
     def loss(self, softmax, labels):
         """loss.
 
-        Params:
-           output: softmaxed tensor from base. shape is (batch_num, num_classes)
-           labels: onehot labels tensor. shape is (batch_num, num_classes)
+        Args:
+            output: softmaxed tensor from base. shape is (batch_num, num_classes)
+            labels: onehot labels tensor. shape is (batch_num, num_classes)
+            softmax: 
+
         """
 
         with tf.name_scope("loss"):
@@ -121,6 +126,7 @@ class Base(BaseNetwork):
 
         Args:
             target_feature_map (Tensor): Tensor to be generate heatmap. shape is [batch_size, h, w, num_classes].
+
         """
         assert target_feature_map.get_shape()[3].value == self.num_classes
 
@@ -174,6 +180,7 @@ class Base(BaseNetwork):
             softmax (Tensor): class predictions from the softmax. Shape is [batch_size, num_classes].
             labels (Tensor): onehot ground truth labels. Shape is [batch_size, num_classes].
             k (Int): number of top predictions to use.
+
         """
 
         argmax_labels = tf.cast(tf.argmax(labels, 1), tf.int32)
@@ -187,9 +194,10 @@ class Base(BaseNetwork):
     def metrics(self, softmax, labels):
         """metrics.
 
-        Params:
-           softmax: probabilities applied softmax. shape is (batch_num, num_classes)
-           labels: onehot labels tensor. shape is (batch_num, num_classes)
+        Args:
+            softmax: probabilities applied softmax. shape is (batch_num, num_classes)
+            labels: onehot labels tensor. shape is (batch_num, num_classes)
+
         """
         with tf.name_scope("metrics_calc"):
             labels = tf.cast(labels, tf.float32)

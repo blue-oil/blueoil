@@ -116,7 +116,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
     @property
     @functools.lru_cache(maxsize=None)
     def _target_labels(self):
-        """Map of {csv raw label name: Be mapped target label name}. """
+        """Map of {csv raw label name: Be mapped target label name}."""
 
         target_labels = dict(self._make_target_labels())
         return target_labels
@@ -277,7 +277,7 @@ class OpenImagesV4Classification(OpenImagesV4):
 
 class OpenImagesV4BoundingBoxBase(StoragePathCustomizable, OpenImagesV4BoundingBox):
     """Abstract class of dataset Open Images v4 format dataset.
-
+    
     structure like
         $DATA_DIR/extend_dir/class-descriptions.csv
         $DATA_DIR/extend_dir/annotations-bbox.csv
@@ -286,7 +286,7 @@ class OpenImagesV4BoundingBoxBase(StoragePathCustomizable, OpenImagesV4BoundingB
         $DATA_DIR/extend_dir/images/123.jpg
         $DATA_DIR/extend_dir/images/023.jpg
         $DATA_DIR/extend_dir/images/wwww.jpg
-
+    
     When child class has `validation_extend_dir`, the `validation` subset consists from the folders.
         $DATA_DIR/validation_extend_dir/annotations-bbox.csv
         $DATA_DIR/validation_extend_dir/images/xxxa.jpeg
@@ -294,6 +294,7 @@ class OpenImagesV4BoundingBoxBase(StoragePathCustomizable, OpenImagesV4BoundingB
         $DATA_DIR/validation_extend_dir/images/123.jpg
         $DATA_DIR/validation_extend_dir/images/023.jpg
         $DATA_DIR/validation_extend_dir/images/wwww.jpg
+
     """
 
     task_extend = ""
