@@ -220,7 +220,7 @@ class BDD100KSegmentation(SegmentationBase):
     @property
     def label_colors(self):
         unlabeled = [0, 0, 0]
-        dynamic = [111,74, 0]
+        dynamic = [111, 74, 0]
         ego_vehicle = [0, 0, 0]
         ground = [81, 0, 81]
         static = [0, 0, 0]
@@ -262,7 +262,7 @@ class BDD100KSegmentation(SegmentationBase):
         truck = [0, 0, 70]
 
         return np.array([
-            unlabeled, dynamic ,ego_vehicle, ground, static, parking, rail_track, road, sidewalk, bridge,
+            unlabeled, dynamic, ego_vehicle, ground, static, parking, rail_track, road, sidewalk, bridge,
             building, fence, garage, guard_rail, tunnel, wall, banner, billboard, lane_divider, parking_sign,
             pole, polegroup, street_light, traffic_cone, traffic_device, traffic_light, traffic_sign,
             traffic_sign_frame, terrain, vegetation, sky, person, rider, bicycle, bus, car, caravan,

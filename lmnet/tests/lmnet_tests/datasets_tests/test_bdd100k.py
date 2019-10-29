@@ -60,9 +60,9 @@ def test_bdd100k_seg():
     test_dataset = DummyBDD100KSeg(subset="validation", batch_size=batch_size)
     test_iterator = DatasetIterator(test_dataset)
 
-    assert train_dataset.num_classes == 34
+    assert train_dataset.num_classes == 41
     colors = train_dataset.label_colors
-    assert len(colors) == 34
+    assert len(colors) == 41
 
     train_image_files, train_label_files = train_iterator.feed()
     assert train_image_files.shape[0] == batch_size
