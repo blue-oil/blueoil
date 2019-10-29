@@ -24,7 +24,7 @@ limitations under the License.
 #ifdef USE_OPENCV
 #include "blueoil_opencv.hpp"
 #endif
-#ifdef USE_PNG
+#ifdef USE_LIBPNG
 #include "blueoil_png.hpp"
 #endif
 
@@ -51,9 +51,9 @@ Tensor LoadImage(const std::string filename) {
   if (!img.empty()) {
     return blueoil::opencv::Tensor_fromCVMat(img);
   }
-#elif USE_PNG
+#elif USE_LIBPNG
   tensor = blueoil::png::Tensor_fromPNGFile(filename);
-  if (tensor.shape[0] > 0) {
+  if (tensor.shape()[0] > 0) {
     return tensor;
   }
 #endif
