@@ -71,14 +71,13 @@ def _save_images(output_dir, filename_images):
 
 def _run(model, image_data, config):
     filename, file_extension = os.path.splitext(model)
-    supported_files = ['.so', '.pb', '.elf']
+    supported_files = ['.so', '.pb']
 
     if file_extension not in supported_files:
         raise Exception("""
             Unknown file type. Got %s%s.
             Please check the model file (-m).
-            Only .pb (protocol buffer), .so (shared object)
-            or .elf (linux executable) file is supported.file is supported.
+            Only .pb (protocol buffer), .so (shared object) file is supported.
             """ % (filename, file_extension))
 
     if file_extension == '.so':  # Shared library
@@ -92,9 +91,6 @@ def _run(model, image_data, config):
         from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
         nn.init()
-
-    elif file_extension == '.elf':  # Linux executable
-        pass # TODO: kchygoe imprement
 
     # run the graph
     output = nn.run(image_data)
@@ -171,7 +167,6 @@ def run_prediction_with_bench(input_image, model, config_file, max_percent_incor
         logger.error('Please check usage with --help option')
         exit(1)
     config = load_yaml(config_file)
-    logger.warn("trial: {}".format(trial))
 
     # load the image
     image_data = load_image(input_image)
@@ -192,7 +187,6 @@ def run_prediction_with_bench(input_image, model, config_file, max_percent_incor
     output, bench_post = _timerfunc(_post_process, (output, config.POST_PROCESSOR), trial)
 
     logging.info('Output: (after post process)\n{}'.format(output))
-
 
     # json output
     json_output = JsonOutput(
@@ -249,7 +243,7 @@ def run_prediction_with_bench(input_image, model, config_file, max_percent_incor
 )
 @click.option(
     "--bench",
-    help="Enable Benchmark",
+    help="Enable Benchmark mode",
     is_flag=True,
     default=False,
 )
@@ -262,7 +256,7 @@ def run_prediction_with_bench(input_image, model, config_file, max_percent_incor
 def main(input_image, model, config_file, bench, trial):
     _check_deprecated_arguments()
     if bench is True:
-        logger.info("Beanchmark is triggered with {} times trial".format(trial))
+        logger.info("Beanchmark mode is triggered with {} times trial".format(trial))
         run_prediction_with_bench(input_image, model, config_file, trial=trial)
     else:
         run_prediction(input_image, model, config_file)
