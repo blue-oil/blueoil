@@ -96,10 +96,11 @@ def _load_yaml(blueoil_config_filename):
     """load blueoil config yaml
 
     Args:
-        blueoil_config_filename(str): File path of blueoil config yaml file.
+        blueoil_config_filename (str): File path of blueoil config yaml file.
 
     Returns:
-        blueoil_config(dict): dict of blueoil config.
+        dict: blueoil config.
+
     """
     if not gfile.Exists(blueoil_config_filename):
         FileNotFoundError("File not found: {}".format(blueoil_config_filename))
@@ -118,10 +119,11 @@ def _blueoil_to_lmnet(blueoil_config):
     """
 
     Args:
-        blueoil_config(dict):
+        blueoil_config(dict): 
 
     Returns:
-        lmnet_config(dict):
+        dict: 
+
     """
 
     # default setting

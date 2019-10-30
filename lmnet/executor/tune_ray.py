@@ -39,13 +39,15 @@ else:
 
 
 def subproc_call(cmd, timeout=None):
-    """
-    Execute a command with timeout, and return both STDOUT/STDERR.
+    """Execute a command with timeout, and return both STDOUT/STDERR.
+
     Args:
-        cmd(str): the command to execute.
-        timeout(float): timeout in seconds.
+        cmd (str): the command to execute.
+        timeout (float): timeout in seconds.
+
     Returns:
-        output(bytes), retcode(int). If timeout, retcode is -1.
+        output (bytes), retcode(int): If timeout, retcode is -1.
+
     """
     try:
         output = subprocess.check_output(
@@ -69,6 +71,7 @@ def get_num_gpu():
     """
     Returns:
         int: #available GPUs in CUDA_VISIBLE_DEVICES, or in the system.
+
     """
 
     def warn_return(ret, message):
@@ -155,7 +158,7 @@ def setup_dataset(config, subset, rank):
 
 
 class TrainTunable(Trainable):
-    """ TrainTunable class interfaces with Ray framework """
+    """TrainTunable class interfaces with Ray framework"""
     def _setup(self, config):
         self.lm_config = config_util.load(self.config['lm_config'])
         executor.init_logging(self.lm_config)

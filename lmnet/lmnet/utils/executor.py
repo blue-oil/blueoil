@@ -106,12 +106,13 @@ def save_pb_file(sess, output_dir, output_node_names=["output"], pb_name="minima
 def prepare_metrics(metrics_ops_dict):
     """Create summary_op and placeholders for training metrics.
 
-    Params:
+    Args:
         metrics_ops_dict (dict): dict of name and metrics_op.
 
     Returns:
         metrics_summary_op: summary op of metrics.
         metrics_placeholders: list of metrics placeholder.
+
     """
     with tf.name_scope("metrics"):
         metrics_placeholders = []
