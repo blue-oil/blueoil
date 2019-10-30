@@ -41,41 +41,37 @@ $ cd examples
 $ cp -R ../build/output/* ./
 $ cmake .
 $ make
-$ ./a.out
+$ ./a.out -i cat.npy -c meta.yaml
 classes:
-0
-1
-2
-3
-4
-5
-6
-7
-8
-9
+airplane
+automobile
+bird
+cat
+deer
+dog
+frog
+horse
+ship
+truck
 task: IMAGE.CLASSIFICATION
 expected input shape:
 1
-128
-128
+32
+32
 3
 Run
 Results !
-0.100382
-0.0998879
-0.101126
-0.098727
-0.100418
-0.0999296
-0.100612
-0.0995238
-0.0996848
-0.0997096
+0.000105945
+6.23502e-05
+0.0323531
+0.00360625
+0.0124029
+0.000231775
+0.951004
+8.7062e-05
+9.84179e-05
+4.80589e-05
 ```
-
-Currentlly pre/post-process functions are NOT correctly implemented. 
-The value of Results! 0.100382, 0.0998879 will be changed after correct implementation.
-
 
 # Unit tests
 
