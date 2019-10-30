@@ -558,20 +558,16 @@ class Importer(object):
     def create_new_node(self, node: Node, op_dic: Dict[str, Operator], current_format: str,
                         input_format_list: List[str], nodes_to_remove) -> Operator:
         """Create a new operator node. This might be tooooo long code...
-        Parameters
-        ----------
-        node : Node
-            TF node corresponding to the operator
-        op_dic : Dict from str to Operator
-            Dict of preceding operators
-        current_format : Dict from str to str
-            Dict of data format of current node
-        input_format_list : Dict from str to str
-            Dict of data format of corresponding inputs of current node
-        Returns
-        -------
-        new_op : Operator
-            Newly created dlk operator
+
+        Args:
+            node (Node): TF node corresponding to the operator
+            op_dic (dict): Dict of preceding operators
+            current_format (dict): Dict of data format of current node
+            input_format_list (dict): Dict of data format of corresponding inputs of
+                current node
+
+        Returns:
+            Operator: Newly created dlk operator
         """
         op_type = self.convert_operator(node.op_type)
         try:
