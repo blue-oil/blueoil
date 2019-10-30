@@ -33,12 +33,13 @@ class JsonOutput():
     Plsease see [Output Data Specification](https://github.com/LeapMind/lmnet/wiki/Output-Data-Specification).
     """
 
-    def __init__(self, task, classes, image_size, data_format):
+    def __init__(self, task, classes, image_size, data_format, bench=None):
         assert task in Tasks
         self.task = task
         self.classes = classes
         self.image_size = image_size
         self.data_format = data_format
+        self.bench = bench
 
     def _classification(self, outputs, raw_images, image_files):
         assert outputs.shape == (len(image_files), len(self.classes))
@@ -158,6 +159,9 @@ class JsonOutput():
             "date": datetime.now().isoformat(),
             "results": [],
         }
+
+        if self.bench is not None and type(self.bench) is dict:
+            result_json.update({"benchmark": self.bench})
 
         if self.task == Tasks.CLASSIFICATION:
 
