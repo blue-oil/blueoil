@@ -154,9 +154,10 @@ def generate_image_size_validate(network_name):
     """Generate image_size_validate depending on task_type.
 
     Args:
-        network_name(string): network name.
+        network_name (string): network name.
 
-    Return: validate funciton.
+    Returns: validate funciton.
+
     """
     max_size = IMAGE_SIZE_VALIDATION[network_name]["max_size"]
     divider = IMAGE_SIZE_VALIDATION[network_name]["divider"]
@@ -198,7 +199,7 @@ def save_config(blueoil_config, output=None):
 
     if not output:
         output = blueoil_config['model_name'] + ".yml"
-    
+
     with open(output, 'w') as fp:
         fp.write(applied)
     return output

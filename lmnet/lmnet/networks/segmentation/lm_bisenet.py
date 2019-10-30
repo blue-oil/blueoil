@@ -359,9 +359,8 @@ class LMBiSeNet(Base):
 
 
 class LMBiSeNetQuantize(LMBiSeNet):
-    """
-    Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
-    ``weight_quantizer``, ``weight_quantizer_kwargs``.
+    """Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
+       ``weight_quantizer``, ``weight_quantizer_kwargs``.
 
     Args:
         activation_quantizer (callable): Weight quantizer. See more at `lmnet.quantizations`.

@@ -46,8 +46,10 @@ class LmnetMulti:
     def inference(self, images, is_training):
         """inference.
 
-        Params:
-           images: images tensor. shape is (batch_num, height, width, channel)
+        Args:
+            images: images tensor. shape is (batch_num, height, width, channel)
+            is_training:
+
         """
         base = self.base(images, is_training)
         softmax = tf.sigmoid(base)
@@ -58,9 +60,10 @@ class LmnetMulti:
     def loss(self, output, labels):
         """loss.
 
-        Params:
-           output: network output sigmoided tensor.
-           labels:  multi label encoded tensor. shape is (batch_num, num_classes)
+        Args:
+            output: network output sigmoided tensor.
+            labels:  multi label encoded tensor. shape is (batch_num, num_classes)
+
         """
 
         with tf.name_scope("loss"):

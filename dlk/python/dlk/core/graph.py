@@ -70,7 +70,12 @@ class Graph(object):
         return op
 
     def add_op_and_inputs(self, op: Operator) -> Operator:
-        """Add an operator and its inputs recursively."""
+        """Add an operator and its inputs recursively.
+
+        Args:
+            op (Operator): 
+
+        """
         self.add_op(op)
         for i in op.input_ops.values():
             self.add_op_and_inputs(i)
@@ -113,27 +118,25 @@ class Graph(object):
     def find_node_by_op_type(self, op_type: str) -> List[Operator]:
         """Find nodes which op_type is specified by the argument.
 
-        Parameters
-        ----------
-        op_type : str
-            Operator type of the nodes
+        Args:
+            op_type (str): Operator type of the nodes
 
-        Returns
-        -------
-        ops : list of str
-            Operators that have the op_type
-
+        Returns:
+            list[str]: Operators that have the op_type
+        
         """
         return list(self.__op_type_list[op_type])
 
     def convs(self, quantized_only: bool = False) -> List[Conv]:
         """Return the list of conv operators in this graph.
 
-        Parameters
-        ----------
-        quantized_only : bool
-            Flag that represents if the operators are only quantized ones
+        Args:
+            quantized_only (bool): Flag that represents if the operators are only
+                quantized ones (Default value = False)
 
+        Returns:
+            list:
+        
         """
 
         return list(cast(List['Conv'], self.__op_type_list['Conv'])) \
@@ -142,15 +145,15 @@ class Graph(object):
 
     def check_nodes(self) -> bool:
         """Check whether all operators defined in this graph.
-
+        
         Currently it checks:
         - for all operators op, for all input in op.inputs, input.outputs includes op.
 
-        Returns
-        -------
-        result : bool
-            Whether the graph passes the test.
+        Args:
 
+        Returns:
+            bool: Whether the graph passes the test.
+        
         """
         # check the input-output consistency
         for op_name in self.__ops:
