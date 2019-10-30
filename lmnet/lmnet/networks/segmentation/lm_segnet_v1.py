@@ -93,7 +93,7 @@ class LmSegnetV1(SegnetBase):
 
 class LmSegnetV1Quantize(LmSegnetV1):
     """LM original quantize semantic segmentation network.
-    
+
     Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
     ``weight_quantizer``, ``weight_quantizer_kwargs``.
 
@@ -135,7 +135,7 @@ class LmSegnetV1Quantize(LmSegnetV1):
     @staticmethod
     def _quantized_variable_getter(getter, name, weight_quantization=None, *args, **kwargs):
         """Get the quantized variables.
-        
+
         Use if to choose or skip the target should be quantized.
 
         Args:

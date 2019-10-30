@@ -23,7 +23,7 @@ def max_unpool_with_argmax(x, argmax, ksize, data_format='NHWC'):
        Computes a partial inverse of MaxPoolWithArgmax.
        This function returns max unpooled tensor.
        If data format is `NCHW`, pre-transpose and post-transpose would be added.
-    
+
        The function name in graph is `io.leapmind.MaxUnpoolWithArgmax`.
 
     Args:

@@ -200,7 +200,7 @@ def resize_with_joints(image, joints, image_size):
 
 def per_image_standardization(image):
     """Image standardization per image.
-    
+
     https://www.tensorflow.org/api_docs/python/image/image_adjustments#per_image_standardization
 
     Args:
@@ -220,7 +220,7 @@ def per_image_standardization(image):
 
 def per_image_linear_quantize(image, bit):
     r"""Linear quantize per image.
-    
+
     .. math::
         \mathbf{Y} =
             \frac{\text{round}\big(\frac{\mathbf{X}}{max\_value} \cdot (2^{bit}-1)\big)}{2^{bit}-1} \cdot max\_value
@@ -249,7 +249,7 @@ def joints_to_gaussian_heatmap(joints, image_size,
                                num_joints=17, stride=1,
                                sigma=2, max_value=10):
     """Convert joints to gaussian heatmap which can be learned by networks.
-    
+
     References:
         https://github.com/Microsoft/human-pose-estimation.pytorch
 
@@ -319,7 +319,7 @@ def joints_to_gaussian_heatmap(joints, image_size,
 
 class PerImageLinearQuantize(Processor):
     """Linear quantize per image.
-    
+
     Use :func:`~per_image_linear_quantize` inside.
 
     Args:
@@ -337,7 +337,7 @@ class PerImageLinearQuantize(Processor):
 
 class PerImageStandardization(Processor):
     """Standardization per image.
-    
+
     Use :func:`~per_image_standardization` inside.
 
     """
@@ -349,7 +349,7 @@ class PerImageStandardization(Processor):
 
 class Resize(Processor):
     """Resize image.
-    
+
     Use :func:`~resize` inside.
 
     Args:
@@ -369,7 +369,7 @@ class Resize(Processor):
 
 class ResizeWithGtBoxes(Processor):
     """Resize image with gt boxes.
-    
+
     Use :func:`~resize_with_gt_boxes` inside.
 
     Args:
@@ -387,7 +387,7 @@ class ResizeWithGtBoxes(Processor):
 
 class ResizeWithMask(Processor):
     """Resize image and mask.
-    
+
     Use :func:`~resize` inside.
 
     Args:

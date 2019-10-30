@@ -21,7 +21,7 @@ from lmnet.networks.base import BaseNetwork
 
 class Base(BaseNetwork):
     """base network for classification
-    
+
     This base network is for classification.
     Every classification's network class should extend this class.
 
@@ -42,7 +42,7 @@ class Base(BaseNetwork):
 
     def placeholders(self):
         """Placeholders.
-        
+
         Return placeholders.
 
         Returns:
@@ -95,9 +95,8 @@ class Base(BaseNetwork):
         """loss.
 
         Args:
-            output: softmaxed tensor from base. shape is (batch_num, num_classes)
+            softmax: softmaxed tensor from base. shape is (batch_num, num_classes)
             labels: onehot labels tensor. shape is (batch_num, num_classes)
-            softmax: 
 
         """
 

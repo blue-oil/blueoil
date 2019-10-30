@@ -34,7 +34,7 @@ def init_logging(config):
 
 def prepare_dirs(recreate=False):
     """Prepare config dirs
-    
+
     When recreate is True, if previous execution exists, remove them and recreate.
     When recreate is False, remain previous execution.
     """

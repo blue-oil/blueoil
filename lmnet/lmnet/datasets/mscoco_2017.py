@@ -24,7 +24,7 @@ from lmnet.datasets.base import KeypointDetectionBase
 
 class MscocoSinglePersonKeypoints(KeypointDetectionBase):
     """MSCOCO_2017 dataset loader for single-person pose estimation.
-    
+
     References:
         https://github.com/dmlc/gluon-cv/blob/master/gluoncv/data/mscoco/keypoints.py
 

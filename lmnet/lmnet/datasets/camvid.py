@@ -45,7 +45,7 @@ def get_image(filename, convert_rgb=True, ignore_class_idx=None):
 
 class CamvidBase(SegmentationBase):
     """Base class for CamVid and the variant dataset formats.
-    
+
     http://www0.cs.ucl.ac.uk/staff/G.Brostow/papers/Brostow_2009-PRL.pdf
     https://github.com/alexgkendall/SegNet-Tutorial/tree/master/CamVid
     """
@@ -114,7 +114,7 @@ class CamvidBase(SegmentationBase):
 
 class Camvid(CamvidBase):
     """CamVid
-    
+
     Original CamVid dataset format.
     http://www0.cs.ucl.ac.uk/staff/G.Brostow/papers/Brostow_2009-PRL.pdf
     https://github.com/alexgkendall/SegNet-Tutorial/tree/master/CamVid
@@ -208,7 +208,7 @@ class Camvid(CamvidBase):
 
 class CamvidCustom(StoragePathCustomizable, CamvidBase):
     """CamvidCustom
-    
+
     CamVid base custom dataset format.
     """
 

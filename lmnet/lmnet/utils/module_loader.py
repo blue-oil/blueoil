@@ -23,7 +23,7 @@ def load_module(module_file_path):
     """dynamically load a module from the file path.
 
     Args:
-        module_file_path: 
+        module_file_path:
 
     Returns:
         module: module object
@@ -116,7 +116,7 @@ def load_dataset_class(name):
 
     Returns:
         lmnet.datasets.Base: dataset class object
-        
+
     """
     base_dir = os.path.join("lmnet", "datasets")
     dataset_class = _load_class_from_name(name, base_dir)

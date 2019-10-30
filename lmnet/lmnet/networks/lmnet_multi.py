@@ -48,7 +48,7 @@ class LmnetMulti:
 
         Args:
             images: images tensor. shape is (batch_num, height, width, channel)
-            is_training: 
+            is_training:
 
         """
         base = self.base(images, is_training)
