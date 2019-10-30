@@ -1,12 +1,10 @@
 #!/bin/bash
 
-/debootstrap/debootstrap --second-stage # After chroot
-echo "ubuntu" > /etc/hostname # After chroot
-useradd ubuntu --create-home --shell /bin/bash # After chroot
-echo 'ubuntu:ubuntu' | chpasswd # After chroot
-echo "ubuntu  ALL=(ALL)  ALL" >> /etc/sudoers # This enable user to sudo
+# This script should be run after chroot
+/debootstrap/debootstrap --second-stage
+echo "ubuntu" > /etc/hostname
+useradd ubuntu --create-home --shell /bin/bash
+echo 'ubuntu:ubuntu' | chpasswd
+echo "ubuntu  ALL=(ALL)  ALL" >> /etc/sudoers # This enables user to sudo
 
-# TODO
-
-#Install Network tools (ifup, ifdown, Network Manager...)
-#Copy .bashrc # Is this really necessary ?
+# TODO: Install Network tools (ifup, ifdown, Network Manager...)

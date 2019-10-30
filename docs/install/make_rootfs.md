@@ -16,8 +16,8 @@ In case you want to make 32bit rootfs, please perfome commands below:
 ```
 # For 32bit
 cd blueoil
-make rootfs32
-# You can see the generated rootfs at blueoil/dlk/hw/make_os/build/rootfs32.tgz
+make rootfs-armhf
+# You can see the generated rootfs at blueoil/dlk/hw/make_os/build/rootfs_armhf.tgz
 ```
 
 In case you want to make 64bit rootfs, please perfome commands below:
@@ -25,7 +25,7 @@ In case you want to make 64bit rootfs, please perfome commands below:
 ```
 # For 64bit
 cd blueoil
-make rootfs64
-# You can see the generated rootfs at blueoil/dlk/hw/make_os/build/rootfs64.tgz
+make rootfs-arm64
+# You can see the generated rootfs at blueoil/dlk/hw/make_os/build/rootfs_arm64.tgz
 ```
 

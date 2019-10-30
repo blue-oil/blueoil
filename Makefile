@@ -63,16 +63,16 @@ test-dlk-main: build
 	# Run dlk test
 	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
 
-.PHONY: os-docker
-os-docker:
+.PHONY: rootfs-docker
+rootfs-docker:
 	docker build -t $(IMAGE_NAME)_os -f dlk/hw/make_os/Dockerfile . #--no-cache=true
 
-.PHONY: rootfs32
-rootfs32: os-docker
+.PHONY: rootfs-armhf
+rootfs-armhf: rootfs-docker 
 	docker run -v `pwd`/dlk/hw/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh 32
 
-.PHONY: rootfs64
-rootfs64: os-docker
+.PHONY: rootfs-arm64
+rootfs-arm64: rootfs-docker
 	docker run -v `pwd`/dlk/hw/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh 64
 
 .PHONY: clean

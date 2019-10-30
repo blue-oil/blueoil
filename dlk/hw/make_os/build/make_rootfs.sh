@@ -10,14 +10,14 @@ BIT_32_OR_64=$1
 if [ $1 = 32 ]; then
 	DEBOOTSTRAP_ARCH=armhf
 	QEMU_ARCH=arm
-	OUTPUT_FNAME=rootfs32.tgz
+	OUTPUT_FNAME=rootfs_armhf.tgz
 elif [ $1 = 64 ]; then
 	DEBOOTSTRAP_ARCH=arm64
 	QEMU_ARCH=aarch64
-	OUTPUT_FNAME=rootfs64.tgz
+	OUTPUT_FNAME=rootfs_arm64.tgz
 else
 	echo "Error: Argumnet should be 32 or 64"
-	exit 0
+	exit 1
 fi
 
 BUILD_DIR=/build
@@ -26,13 +26,13 @@ ROOTFS_DIR=$BUILD_DIR/rootfs
 # Chcek if the $ROOTFS_DIR exists or not
 if [ -d $ROOTFS_DIR ]; then
 	echo "Error: $ROOTFS_DIR already exists"
-	exit 0
+	exit 1
 fi
 
 # Check if $ROOTFS_DIR/$OUTPUT_NAME exists or not
 if [ -e $BUILD_DIR/$OUTPUT_FNAME ]; then
 	echo "Error: $BUILD_DIR/$OUTPUT_FNAME already exists"
-	exit 0
+	exit 1
 fi
 
 # Make rootfs
