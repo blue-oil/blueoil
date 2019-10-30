@@ -26,7 +26,7 @@ from lmnet import environment
 from lmnet.utils.image import load_image
 from lmnet.utils import config as config_util
 from lmnet.utils.executor import search_restore_filename
-from lmnet.utils.json import ImageFromJson, JsonOutput
+from lmnet.utils.predict_output import ImageFromJson, JsonOutput
 
 DUMMY_FILENAME = "DUMMY_FILE"
 
