@@ -84,7 +84,7 @@ class Base(metaclass=ABCMeta):
     @abstractmethod
     def num_per_epoch(self):
         """Returns the number of datas in the data subset."""
-        pass
+        raise DeprecationWarning()
 
     @property
     @abstractmethod
@@ -95,7 +95,7 @@ class Base(metaclass=ABCMeta):
     @property
     @abstractmethod
     def __len__(self):
-        """returns the number of items in the dataset."""
+        """returns the number of datas in the dataset."""
         raise NotImplementedError()
 
 
