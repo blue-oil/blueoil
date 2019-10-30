@@ -162,9 +162,10 @@ class Resnet(Base):
     def loss(self, softmax, labels):
         """loss.
 
-        Params:
-           output: softmaxed tensor from base. shape is (batch_num, num_classes)
-           labels: onehot labels tensor. shape is (batch_num, num_classes)
+        Args:
+            output: softmaxed tensor from base. shape is (batch_num, num_classes)
+            labels: onehot labels tensor. shape is (batch_num, num_classes)
+
         """
         labels = tf.cast(labels, tf.float32)
 

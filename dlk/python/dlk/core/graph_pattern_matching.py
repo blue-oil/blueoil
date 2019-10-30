@@ -19,15 +19,13 @@
 def sort_graph(graph):
     """Helper function to topologically sort a given graph.
 
-    Parameters
-    ----------
-    graph : Graph
-        The input graph to be sorted. It is not modified.
+    Args:
+        graph (Graph): The input graph to be sorted. It is not modified.
 
-    Returns
-    -------
-    result : [Operator]
-        A list of Operator. Each element of the list is a reference to a Operator object.
+    Returns:
+        list(Operator): A list of Operator. Each element of the list is a reference to
+            a Operator object.
+    
     """
     exec_list = list()
     input_nodes = list()
@@ -52,16 +50,12 @@ def sort_graph(graph):
 def top_order(output_node, exec_list, visited):
     """It topologically sorts a given graph.
 
-    Parameters
-    ----------
-    output_node : Operator
-        The starting node. First one in the ordered list.
-
-    exec_list : [Operator]
-        The ordered list. Note that this is an output parameter.
-
-    visited : [str]
-        List of already visited nodes.
+    Args:
+        output_node (Operator): The starting node. First one in the ordered list.
+        exec_list (list[operator]): The ordered list. Note that this is an output
+            parameter.
+        visited: (list[str]): List of already visited nodes.
+    
     """
     if visited[output_node.name]:
         return
@@ -75,20 +69,17 @@ def top_order(output_node, exec_list, visited):
 def get_nodes_in_branch(starting_node, stop_node, node_list):
     """Helper function that gives us all nodes in a branch defined by a given node.
        The starting node will be the output node of the branch.
-
+    
        Note that there is an optional stop node. stop_node is allowed to be None.
 
-    Parameters
-    ----------
-    starting_node : Operator
-        The starting node. This node is the output node of the defined branch.
+    Args:
+        starting_node (Operator): The starting node. This node is the output node of
+            the defined branch.
+        stop_node (Operator): The last node in the path. If stop_node is None then this
+            function will give us every node above starting_node.
+        node_list (list[Operator]): The list of nodes contained in the branch. Note
+            that this is an output parameter.
 
-    stop_node : Operator
-        The last node in the path. If stop_node is None then this function will give us every node above
-        starting_node.
-
-    node_list : [Operator]
-        The list of nodes contained in the branch. Note that this is an output parameter.
     """
     if starting_node == stop_node:
         return
