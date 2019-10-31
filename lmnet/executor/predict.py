@@ -26,7 +26,7 @@ from lmnet import environment
 from lmnet.utils.image import load_image
 from lmnet.utils import config as config_util
 from lmnet.utils.executor import search_restore_filename
-from lmnet.utils.json import ImageFromJson, JsonOutput
+from lmnet.utils.predict_output import ImageFromJson, JsonOutput
 
 DUMMY_FILENAME = "DUMMY_FILE"
 
@@ -225,13 +225,11 @@ def run(input_dir, output_dir, experiment_id, config_file, restore_path, save_im
 )
 def main(input_dir, output_dir, experiment_id, config_file, restore_path, save_images):
     """Make predictions from input dir images by using trained model.
-
-\b
-Save the predictions npy, json, images results to output dir.
-npy: `{output_dir}/npy/{batch number}.npy`
-json: `{output_dir}/json/{batch number}.json`
-images: `{output_dir}/images/{some type}/{input image file name}`
-"""
+        Save the predictions npy, json, images results to output dir.
+        npy: `{output_dir}/npy/{batch number}.npy`
+        json: `{output_dir}/json/{batch number}.json`
+        images: `{output_dir}/images/{some type}/{input image file name}`
+    """
 
     run(input_dir, output_dir, experiment_id, config_file, restore_path, save_images)
 

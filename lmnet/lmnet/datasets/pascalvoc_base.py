@@ -109,8 +109,9 @@ class PascalvocBase(ObjectDetectionBase):
         Args:
             xml_file: file name for bounding box annotation xml
 
-        Return:
-           gt boxes list [[x, y, w, h, class_id]].
+        Returns:
+            list: gt boxes list [[x, y, w, h, class_id]].
+
         """
         tree = ET.parse(xml_file)
         root = tree.getroot()
