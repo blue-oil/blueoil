@@ -100,7 +100,7 @@ def _run(model, image_data, config):
 
 def _timerfunc(func, extraArgs, trial):
     runtime = 0.
-    for i in range(0, trial):
+    for i in range(trial):
         start = time.process_time()
         value = func(*extraArgs)
         end = time.process_time()
@@ -111,61 +111,16 @@ def _timerfunc(func, extraArgs, trial):
     return value, runtime / trial
 
 
-def run_prediction(input_image, model, config_file, max_percent_incorrect_values=0.1):
+def run_prediction(input_image, model, config_file, max_percent_incorrect_values=0.1, bench=False, trial=1):
     if not input_image or not model or not config_file:
         logger.error('Please check usage with --help option')
         exit(1)
 
-    config = load_yaml(config_file)
+    if bench is False:
+        trial = 1
+    else:
+        logger.info("Beanchmark mode is triggered with {} times trial".format(trial))
 
-    # load the image
-    image_data = load_image(input_image)
-    raw_image = image_data
-
-    # pre process for image
-    image_data = _pre_process(image_data, config.PRE_PROCESSOR, config.DATA_FORMAT)
-
-    # add the batch dimension
-    image_data = np.expand_dims(image_data, axis=0)
-
-    # run the model
-    output = _run(model, image_data, config)
-
-    logging.info('Output: (before post process)\n{}'.format(output))
-
-    # pre process for output
-    output = _post_process(output, config.POST_PROCESSOR)
-
-    logging.info('Output: (after post process)\n{}'.format(output))
-
-    # json output
-    json_output = JsonOutput(
-        task=Tasks(config.TASK),
-        classes=config.CLASSES,
-        image_size=config.IMAGE_SIZE,
-        data_format=config.DATA_FORMAT,
-    )
-
-    image_from_json = ImageFromJson(
-        task=Tasks(config.TASK),
-        classes=config.CLASSES,
-        image_size=config.IMAGE_SIZE,
-    )
-
-    output_dir = "output"
-    outputs = output
-    raw_images = [raw_image]
-    image_files = [input_image]
-    json_obj = json_output(outputs, raw_images, image_files)
-    _save_json(output_dir, json_obj)
-    filename_images = image_from_json(json_obj, raw_images, image_files)
-    _save_images(output_dir, filename_images)
-
-
-def run_prediction_with_bench(input_image, model, config_file, max_percent_incorrect_values=0.1, trial=1):
-    if not input_image or not model or not config_file:
-        logger.error('Please check usage with --help option')
-        exit(1)
     config = load_yaml(config_file)
 
     # load the image
@@ -181,12 +136,12 @@ def run_prediction_with_bench(input_image, model, config_file, max_percent_incor
     # run the model to inference
     output, bench_inference = _timerfunc(_run, (model, image_data, config), trial)
 
-    logging.info('Output: (before post process)\n{}'.format(output))
+    logger.info('Output: (before post process)\n{}'.format(output))
 
     # pre process for output
     output, bench_post = _timerfunc(_post_process, (output, config.POST_PROCESSOR), trial)
 
-    logging.info('Output: (after post process)\n{}'.format(output))
+    logger.info('Output: (after post process)\n{}'.format(output))
 
     # json output
     json_output = JsonOutput(
@@ -195,6 +150,7 @@ def run_prediction_with_bench(input_image, model, config_file, max_percent_incor
         image_size=config.IMAGE_SIZE,
         data_format=config.DATA_FORMAT,
         bench={
+            "total": (bench_pre + bench_post + bench_inference) / trial,
             "pre": bench_pre / trial,
             "post": bench_post / trial,
             "inference": bench_inference / trial,
@@ -215,6 +171,9 @@ def run_prediction_with_bench(input_image, model, config_file, max_percent_incor
     _save_json(output_dir, json_obj)
     filename_images = image_from_json(json_obj, raw_images, image_files)
     _save_images(output_dir, filename_images)
+    logger.info("Benchmark avg result(sec) for {} trials: pre_process: {}  inference: {} post_process: {}  Total: {}"
+                .format(trial, bench_pre / trial, bench_inference / trial, bench_post / trial,
+                        (bench_pre + bench_post + bench_inference) / trial,))
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
@@ -255,17 +214,13 @@ def run_prediction_with_bench(input_image, model, config_file, max_percent_incor
 )
 def main(input_image, model, config_file, bench, trial):
     _check_deprecated_arguments()
-    if bench is True:
-        logger.info("Beanchmark mode is triggered with {} times trial".format(trial))
-        run_prediction_with_bench(input_image, model, config_file, trial=trial)
-    else:
-        run_prediction(input_image, model, config_file)
+    run_prediction(input_image, model, config_file, bench, trial)
 
 
 def _check_deprecated_arguments():
     argument_list = sys.argv
     if '-l' in argument_list:
-        logging.info("Deprecated warning: -l is deprecated please use -m instead")
+        logger.info("Deprecated warning: -l is deprecated please use -m instead")
 
 
 if __name__ == "__main__":
