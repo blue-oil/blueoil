@@ -30,15 +30,11 @@ class TensorFlowIO(BaseIO):
     def read(self, pb_path: str) -> Model:
         """Read TF file and load model.
 
-        Parameters
-        ----------
-        pb_path : str
-            Path to TF file
+        Args:
+            pb_path (str): Path to TF file
 
-        Returns
-        -------
-        model : Model
-            Loaded model
+        Returns:
+            Model: Loaded model
 
         """
         model = Model()

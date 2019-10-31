@@ -25,7 +25,13 @@ from lmnet.utils import horovod as horovod_util
 
 
 def run(blueoil_config_file, experiment_id):
-    """Train from blueoil config."""
+    """Train from blueoil config.
+
+    Args:
+        blueoil_config_file: 
+        experiment_id: 
+
+    """
 
     if horovod_util.is_enabled():
         horovod_util.setup()

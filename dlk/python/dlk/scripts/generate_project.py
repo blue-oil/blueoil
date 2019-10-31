@@ -43,14 +43,13 @@ ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '../../..'))
 def optimize_graph_step(model: Model, config: Config) -> None:
     """Optimize graph in the model.
 
-    Parameters
-    ----------
-    model : Model
-        Model that contains the graph
+    Args:
+        model (Model): Model that contains the graph
+        config (Config): Collection of configurations
 
-    config : Config
-        Collection of configurations
+    Returns:
 
+    
     """
     graph: Graph = model.graph
     pass_remove_identities(graph)
@@ -75,14 +74,10 @@ def optimize_graph_step(model: Model, config: Config) -> None:
 def generate_code_step(model: Model, config: Config) -> None:
     """Generate code for the model.
 
-    Parameters
-    ----------
-    model : Model
-        Model the code generation is based on
-
-    config : Config
-        Collection of configurations
-
+    Args:
+        model (Model): Model the code generation is based on
+        config (Config): Collection of configurations
+    
     """
     graph: Graph = model.graph
     params = Params(graph, config)

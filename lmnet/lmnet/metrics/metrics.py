@@ -20,13 +20,14 @@ import tensorflow as tf
 def tp_tn_fp_fn_for_each(output, labels, threshold=0.5):
     """Calculate True Positive, True Negative, False Positive, False Negative.
 
-    Return:
-       shape is [4(tp, tn, fp, fn), num_class]
-
     Args:
         output: network output sigmoided tensor. shape is [batch_size, num_class]
         labels: multi label encoded bool tensor. shape is [batch_size, num_class]
         threshold: python float
+
+    Returns:
+        shape is [4(tp, tn, fp, fn), num_class]
+
     """
     predicted = tf.greater_equal(output, threshold)
     gt_positive = tf.reduce_sum(tf.cast(labels, tf.int32), 0, keep_dims=True)
@@ -49,6 +50,7 @@ def tp_tn_fp_fn(output, labels, threshold=0.5):
         output: network output sigmoided tensor. shape is [batch_size, num_class]
         labels: multi label encoded bool tensor. shape is [batch_size, num_class]
         threshold: python float
+
     """
     predicted = tf.greater_equal(output, threshold)
 

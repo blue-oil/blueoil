@@ -23,16 +23,16 @@ from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 
 DEFAULT_CLASSES = [
-        'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
-        'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-        'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
-        'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
-        'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
-        'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
-        'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
-        'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
-        'teddy bear', 'hair drier', 'toothbrush'
-    ]
+    'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
+    'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+    'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+    'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
+    'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+    'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+    'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
+    'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
+    'teddy bear', 'hair drier', 'toothbrush'
+]
 
 
 # TODO(wakisaka): shuffle
@@ -225,10 +225,16 @@ class MscocoObjectDetection(ObjectDetectionBase):
     @functools.lru_cache(maxsize=None)
     def _gt_boxes_from_image_id(self, image_id):
         """Return gt boxes list ([[x, y, w, h, class_id]]) of a image."""
+        classes = [class_name for class_name in self.classes if class_name is not "__background__"]
+        class_ids = set(self.coco.getCatIds(catNms=classes))
+
         boxes = []
         annotation_ids = self.coco.getAnnIds(imgIds=[image_id], iscrowd=None)
         annotations = self.coco.loadAnns(annotation_ids)
         for annotation in annotations:
+            if annotation['category_id'] not in class_ids:
+                continue
+
             class_id = self.coco_category_id_to_lmnet_class_id(annotation['category_id'])
             box = annotation["bbox"] + [class_id]
             boxes.append(box)
@@ -245,7 +251,7 @@ class MscocoObjectDetection(ObjectDetectionBase):
         return files, gt_boxes_list
 
     def _init_files_and_annotations(self):
-            self.files, self.annotations = self._files_and_annotations()
+        self.files, self.annotations = self._files_and_annotations()
 
     def __getitem__(self, i, type=None):
         target_file = self.files[i]
