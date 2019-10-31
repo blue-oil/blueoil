@@ -241,8 +241,7 @@ def _linear_quantize(x, bit, value_min, value_max):
 def joints_to_gaussian_heatmap(joints, image_size,
                                num_joints=17, stride=1,
                                sigma=2):
-    """
-    Convert joints to gaussian heatmap which can be learned by networks.
+    """Convert joints to gaussian heatmap which can be learned by networks.
 
     References:
         https://github.com/Microsoft/human-pose-estimation.pytorch
@@ -306,7 +305,7 @@ def joints_to_gaussian_heatmap(joints, image_size,
     if am > 0:
         heatmap /= am
 
-    # 10 is max value of a ground-truth gaussian heatmap.
+    # 10 is scaling factor of a ground-truth gaussian heatmap.
     heatmap *= 10
 
     return heatmap
@@ -434,8 +433,7 @@ class LetterBoxes(Processor):
 
 
 class JointsToGaussianHeatmap(Processor):
-    """
-    Convert joints to gaussian heatmap which can be learned by networks.
+    """Convert joints to gaussian heatmap which can be learned by networks.
 
     Use :func:`~joints_to_gaussian_heatmap` inside.
 

@@ -440,8 +440,7 @@ class GaussianHeatmapToJoints(Processor):
         self.confidence_threshold = confidence_threshold
 
     def __call__(self, outputs, *args, **kwargs):
-        """
-        Extract joints from gaussian heatmap. Current version only supports 2D pose estimation.
+        """Extract joints from gaussian heatmap. Current version only supports 2D pose estimation.
         Args:
             outputs: output heatmaps, a numpy array of shape (batch_size, height, width, num_joints).
 
@@ -480,7 +479,7 @@ def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=2, confidence_t
 
     height, width, num_joints = heatmap.shape
 
-    # 10 is max value of a ground-truth gaussian heatmap.
+    # 10 is scaling factor of a ground-truth gaussian heatmap.
     threshold_value = 10 * confidence_threshold
 
     joints = np.zeros((num_joints, num_dimensions + 1), dtype=np.float32)
