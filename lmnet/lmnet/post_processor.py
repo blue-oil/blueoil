@@ -480,9 +480,8 @@ def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=2, confidence_t
 
     height, width, num_joints = heatmap.shape
 
-    # max value of gaussian heatmap.
-    max_value = 10
-    threshold_value = max_value * confidence_threshold
+    # 10 is max value of a ground-truth gaussian heatmap.
+    threshold_value = 10 * confidence_threshold
 
     joints = np.zeros((num_joints, num_dimensions + 1), dtype=np.float32)
 

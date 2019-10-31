@@ -306,9 +306,8 @@ def joints_to_gaussian_heatmap(joints, image_size,
     if am > 0:
         heatmap /= am
 
-    # max value of gaussian heatmap.
-    max_value = 10
-    heatmap *= max_value
+    # 10 is max value of a ground-truth gaussian heatmap.
+    heatmap *= 10
 
     return heatmap
 
