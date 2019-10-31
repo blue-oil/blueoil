@@ -91,8 +91,8 @@ RUN apt-get update && apt-get install -y g++-5-arm-linux-gnueabihf && \
     ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
 
 # Install requirements
-COPY ./*requirements.txt /home/blueoil/
-RUN pip install -r /home/blueoil/gpu.requirements.txt
+COPY ./*requirements.txt /tmp/requirements/
+RUN pip install -r /tmp/requirements/gpu.requirements.txt
 
 # Build coco. It needs numpy.
 COPY lmnet/third_party /home/blueoil/lmnet/third_party
@@ -125,7 +125,7 @@ ENV CUDA_HOME /usr/local/cuda-10.0
 
 # Install requirements for distributed training temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs && \
-    pip install -r /home/blueoil/dist.requirements.txt && \
+    pip install -r /tmp/requirements/dist.requirements.txt && \
     ldconfig
 
 # Configure OpenMPI to run good defaults:
