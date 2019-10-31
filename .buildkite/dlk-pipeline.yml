@@ -4,7 +4,7 @@ steps:
     agents:
     - "agent-type=fpga"
     - "env=production"
-    timeout_in_minutes: "40"
+    timeout_in_minutes: "60"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
     artifact_paths:

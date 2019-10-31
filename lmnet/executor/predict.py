@@ -193,13 +193,11 @@ def run(input_dir, output_dir, experiment_id, config_file, restore_path, save_im
 )
 def main(input_dir, output_dir, experiment_id, config_file, restore_path, save_images):
     """Make predictions from input dir images by using trained model.
-
-\b
-Save the predictions npy, json, images results to output dir.
-npy: `{output_dir}/npy/{batch number}.npy`
-json: `{output_dir}/json/{batch number}.json`
-images: `{output_dir}/images/{some type}/{input image file name}`
-"""
+        Save the predictions npy, json, images results to output dir.
+        npy: `{output_dir}/npy/{batch number}.npy`
+        json: `{output_dir}/json/{batch number}.json`
+        images: `{output_dir}/images/{some type}/{input image file name}`
+    """
 
     run(input_dir, output_dir, experiment_id, config_file, restore_path, save_images)
 
