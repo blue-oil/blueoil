@@ -1,9 +1,12 @@
+import logging
 import os
 
 import numpy as np
 
 from lmnet.utils.predict_output.output import ImageFromJson
 from lmnet.utils.predict_output.output import JsonOutput
+
+logger = logging.getLogger(__name__)
 
 
 class OutputWriter():
@@ -52,7 +55,8 @@ def save_npy(dest, outputs, step):
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
     np.save(filepath, outputs)
-    print("save npy: {}".format(filepath))
+
+    logging.info("save npy: {}".format(filepath))
 
 
 def save_json(dest, json, step):
@@ -76,7 +80,7 @@ def save_json(dest, json, step):
     with open(filepath, "w") as f:
         f.write(json)
 
-    print("save json: {}".format(filepath))
+    logging.info("save json: {}".format(filepath))
 
 
 def save_materials(dest, materials, step):
@@ -100,4 +104,4 @@ def save_materials(dest, materials, step):
 
         content.save(filepath)
 
-        print("save image: {}".format(filepath))
+        logging.info("save image: {}".format(filepath))
