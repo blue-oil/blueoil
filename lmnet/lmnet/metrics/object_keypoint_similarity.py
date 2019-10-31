@@ -24,8 +24,8 @@ variances = (kpt_oks_sigmas * 2) ** 2
 
 
 def compute_object_keypoint_similarity(joints_gt, joints_pred, image_size=(160, 160)):
-    """
-    Compute a object keypoint similarity for a batch of examples.
+    """Compute a object keypoint similarity for a batch of examples.
+
     Args:
         joints_gt: a numpy array of shape (batch_size, num_joints, 3).
         joints_pred: a numpy array of shape (batch_size, num_joints, 3).
@@ -57,8 +57,8 @@ def compute_object_keypoint_similarity(joints_gt, joints_pred, image_size=(160, 
 
 
 def _compute_oks(joints_gt, joints_pred, image_size=(160, 160)):
-    """
-    Compute a object keypoint similarity for one example.
+    """Compute a object keypoint similarity for one example.
+
     Args:
         joints_gt: a numpy array of shape (num_joints, 3).
         joints_pred: a numpy array of shape (num_joints, 3).
