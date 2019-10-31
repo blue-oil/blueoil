@@ -95,7 +95,7 @@ class Base(metaclass=ABCMeta):
     @property
     @abstractmethod
     def __len__(self):
-        """returns the number of datas in the dataset."""
+        """returns the number of items in the dataset."""
         raise NotImplementedError()
 
 
