@@ -433,7 +433,7 @@ class GaussianHeatmapToJoints(Processor):
         Args:
             num_dimensions: int, it only supports 2 for now.
             stride: int, stride = image_height / heatmap_height.
-            confidence_threshold: float, [0, 1], ratio of threshold_value and max_value.
+            confidence_threshold: float, value range is [0, 1].
         """
         self.num_dimensions = num_dimensions
         self.stride = stride
@@ -470,7 +470,7 @@ def gaussian_heatmap_to_joints(heatmap, num_dimensions=2, stride=2, confidence_t
         heatmap: a numpy array of shape (height, width, num_joints).
         num_dimensions: int, it only supports 2 for now.
         stride: int, stride = image_height / heatmap_height.
-        confidence_threshold: float, [0, 1], ratio of threshold_value and max_value.
+        confidence_threshold: float, value range is [0, 1].
 
     Returns:
         joints: a numpy array of shape (num_joints, num_dimensions + 1).
