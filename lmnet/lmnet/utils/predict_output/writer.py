@@ -16,7 +16,7 @@ class OutputWriter():
            numpy array, JSON, and images if you want.
 
         Args:
-            dest (str): paht to save file
+            dest (str): path to save file
             outputs (np.ndarray): save ndarray
             raw_images (np.ndarray): image ndarray
             image_files (list[str]): list of file names.
@@ -83,7 +83,7 @@ def save_materials(dest, materials, step):
     """Save materials to disk.
 
     Args:
-        dest (string): path to save file
+        dest (str): path to save file
         materials (list[(str, PIL.Image)]): image data, str in tuple is filename.
         step (int): value of training step
 
