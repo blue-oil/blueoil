@@ -21,9 +21,9 @@ limitations under the License.
 
 namespace dlk {
 
+// buf size must be larger than m.rows() * m.cols() * sizeof(T)
 template<typename T>
-MatrixView<T, MatrixOrder::ColMajor> row_major_to_col_major(MatrixView<T, MatrixOrder::RowMajor>& m) {
-  T* buf = new T[m.rows()*m.cols()];
+MatrixView<T, MatrixOrder::ColMajor> row_major_to_col_major(MatrixView<T, MatrixOrder::RowMajor>& m, T* buf) {
   auto buf_mv = MatrixView<T, MatrixOrder::RowMajor>(buf, m.cols(), m.rows());
   matrix_transpose(m, buf_mv);
 
