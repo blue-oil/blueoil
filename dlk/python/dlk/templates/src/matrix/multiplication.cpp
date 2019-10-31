@@ -17,7 +17,6 @@ limitations under the License.
 #include <memory>
 #include "global.h"
 #include "matrix/row_major_to_col_major.h"
-#include "matrix/col_major_to_row_major.h"
 
 #ifdef USE_NEON
   #include <arm_neon.h>
@@ -42,7 +41,8 @@ void matrix_multiplication_col3(
   MatrixView<float, MatrixOrder::ColMajor>& B,
   MatrixView<float, MatrixOrder::ColMajor>& C) {
 #ifdef USE_NEON
-  auto A_colm = row_major_to_col_major(A);
+  const auto A_colm_buf = std::make_unique<float[]>(A.rows() * A.cols());
+  auto A_colm = row_major_to_col_major(A, A_colm_buf.get());
   for (std::size_t i = 0; i < B.cols(); ++i) {
     float32x4_t rhs0 = vdupq_n_f32((float)(*B.data(0, i)));
     float32x4_t rhs1 = vdupq_n_f32((float)(*B.data(1, i)));
@@ -61,9 +61,6 @@ void matrix_multiplication_col3(
       vst1q_f32(C.data(j, i), r);
     }
   }
-  // FIXME: hacky way to prevent memory leak
-  delete [] A_colm.data();
-
 #endif
 }
 

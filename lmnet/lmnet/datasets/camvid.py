@@ -44,8 +44,7 @@ def get_image(filename, convert_rgb=True, ignore_class_idx=None):
 
 
 class CamvidBase(SegmentationBase):
-    """
-    Base class for CamVid and the variant dataset formats.
+    """Base class for CamVid and the variant dataset formats.
 
     http://www0.cs.ucl.ac.uk/staff/G.Brostow/papers/Brostow_2009-PRL.pdf
     https://github.com/alexgkendall/SegNet-Tutorial/tree/master/CamVid

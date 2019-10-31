@@ -57,17 +57,13 @@ def get_files_generator(src_dir_path: str, excepts: str = '') -> Generator[str, 
 def dynamic_class_load(path: str) -> Any:
     """Load a class defined by the argument.
 
-    Parameters
-    ----------
-    path : str
-        The full pathname that represents the class to be loaeded.
-        (Actually I don't know how to call it in Python.)
+    Args:
+        path (str): The full pathname that represents the class to be loaeded.
+            (Actually I don't know how to call it in Python.)
 
-    Returns
-    -------
-    cls : Any
-        The class to be loaded.
-
+    Returns:
+        Any: The class to be loaded.
+    
     """
     pathes = path.split('.')
     class_name = pathes.pop()

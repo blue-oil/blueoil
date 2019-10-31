@@ -30,8 +30,9 @@ def format_cxcywh_to_xywh(boxes, axis=1):
     """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimension.
 
     Args:
-    boxes: A tensor include boxes. [:, 4(x, y, w, h)]
-    axis: Which dimension of the inputs Tensor is boxes.
+        boxes: A tensor include boxes. [:, 4(x, y, w, h)]
+        axis: Which dimension of the inputs Tensor is boxes.
+
     """
     results = np.split(boxes, [1, 2, 3, 4], axis=axis)
     center_x, center_y, w, h = results[0], results[1], results[2], results[3]
@@ -43,7 +44,7 @@ def format_cxcywh_to_xywh(boxes, axis=1):
 
 class FormatYoloV2(Processor):
     """Yolov2 postprocess.
-    Format outputs of yolov2 last convolution to object detection style.
+       Format outputs of yolov2 last convolution to object detection style.
     """
 
     def __init__(self, image_size, classes, anchors, data_format):
@@ -69,9 +70,10 @@ class FormatYoloV2(Processor):
                 shape is [batch_size, num_cell[0], num_cell[1],  (num_classes + 5) * boxes_per_cell]
 
         Returns:
-            predict_classes(Tensor): [batch_size, num_cell[0], num_cell[1], boxes_per_cell, num_classes]
-            predict_confidence(Tensor): [batch_size, num_cell[0], num_cell[1], boxes_per_cell, 1]
-            predict_boxes(Tensor): [batch_size, num_cell[0], num_cell[1], boxes_per_cell, 4(center_x, center_y, w, h)]
+            Tensor: [batch_size, num_cell[0], num_cell[1], boxes_per_cell, num_classes]
+            Tensor: [batch_size, num_cell[0], num_cell[1], boxes_per_cell, 1]
+            Tensor: [batch_size, num_cell[0], num_cell[1], boxes_per_cell, 4(center_x, center_y, w, h)]
+
         """
         batch_size = len(outputs)
         num_cell_y, num_cell_x = self.num_cell[0], self.num_cell[1]
@@ -91,9 +93,10 @@ class FormatYoloV2(Processor):
         Return yolo space offset of x and y and w and h.
 
         Args:
-            batch_size(int): batch size
+            batch_size (int): batch size
             num_cell_y: Number of cell y. The spatial dimension of the final convolutional features.
             num_cell_x: Number of cell x. The spatial dimension of the final convolutional features.
+
         """
 
         offset_y = np.arange(num_cell_y)
@@ -127,6 +130,7 @@ class FormatYoloV2(Processor):
         Returns:
             resized_boxes: 5D np.ndarray,
                            shape is [batch_size, num_cell, num_cell, boxes_per_cell, 4(center_x, center_y, w, h)].
+
         """
         batch_size = len(predict_boxes)
         image_size_h, image_size_w = self.image_size[0], self.image_size[1]
@@ -169,11 +173,13 @@ class FormatYoloV2(Processor):
                     num_cell[0],
                     num_cell[1],
                 ]
+
         Returns:
-            all args (dict): Contains processed outputs.
+            dict: Contains processed outputs.
                 outputs: Object detection formatted list op np.ndarray.
                 List is [predict_boxes(np.ndarray), predict_boxes(np.ndarray), ...] which length is batch size.
                 Each predict_boxes shape is [num_predict_boxes, 6(x(left), y(top), w, h, class_id, score)]
+
         """
 
         num_cell_y, num_cell_x = self.num_cell[0], self.num_cell[1]
@@ -245,10 +251,10 @@ class NMS(Processor):
     def __init__(self, classes, iou_threshold, max_output_size=100, per_class=True):
         """
         Args:
-            classes(list): List of class names.
-            iou_threshold(float): The threshold for deciding whether boxes overlap with respect to IOU.
-            max_output_size(int): The maximum number of boxes to be selected
-            per_class(boolean): Whether or not, NMS respect to per class.
+            classes (list): List of class names.
+            iou_threshold (float): The threshold for deciding whether boxes overlap with respect to IOU.
+            max_output_size (int): The maximum number of boxes to be selected
+            per_class (boolean): Whether or not, NMS respect to per class.
         """
 
         self.classes = classes
@@ -287,7 +293,7 @@ class NMS(Processor):
                 boxes[image_id] is np.array, the shape is (num_boxes, 6[x(left), y(top), h, w, class_id, sore])
 
         Returns:
-            all args (dict): Contains boxes list (list).
+            dict: Contains boxes list (list).
                 outputs: The boxes list of predict boxes for each image.
                     The format is [boxes, boxes, boxes, ...]. len(boxes) == batch_size.
                     boxes[image_id] is np.array, the shape is (num_boxes, 6[x(left), y(top), h, w, class_id, sore])
@@ -341,8 +347,8 @@ class Bilinear(Processor):
             outputs (numpy.ndarray): 4-D ndarray of network outputs to be resized channel-wise.
 
         Returns:
-            all args (dict):
-                outputs (numpy.ndarray): resized outputs. 4-D ndarray.
+            dict: outputs (numpy.ndarray): resized outputs. 4-D ndarray.
+
         """
         output_height = self.size[0]
         output_width = self.size[1]

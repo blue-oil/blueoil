@@ -10,6 +10,7 @@ services:
     ulimits:
       memlock: -1
       stack: 67108864
+    network_mode: "host"
     working_dir: /home/blueoil
     volumes:
       - ./:/home/blueoil

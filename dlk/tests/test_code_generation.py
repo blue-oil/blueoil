@@ -135,10 +135,8 @@ def get_configurations_arm():
     test_cases = [
         {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': True},
         {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': False},
-        # FIXME: Cannot run library with hard_quantize=False for segmentation task.
-        # Issue link: https://github.com/blue-oil/blueoil/issues/512
-        # {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True},
-        # {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False},
+        {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True},
+        {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False},
     ]
     configurations = get_configurations_by_architecture(test_cases, cpu_name)
 
@@ -184,6 +182,17 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         else:
             raise unittest.SkipTest(
                 f'test level of this test: {this_test_level}, current test level: {CURRENT_TEST_LEVEL}')
+
+    def save_output(self, test_id, library, input_npy, expected_output_npy):
+        save_dir = os.path.join(self.class_output_dir, str(test_id))
+        os.makedirs(save_dir, exist_ok=True)
+        shutil.copyfile(library, os.path.join(save_dir, 'lib.so'))
+        shutil.copyfile(input_npy, os.path.join(save_dir, 'input.npy'))
+        shutil.copyfile(expected_output_npy, os.path.join(save_dir, 'expected.npy'))
+        # change mode for docker use case with root user
+        os.chmod(save_dir, 0o777)
+        for f in os.listdir(save_dir):
+            os.chmod(os.path.join(save_dir, f), 0o777)
 
     def run_library(self, library, input_npy, expected_output_npy):
 
@@ -387,7 +396,8 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                 percent_failed = \
                     self.run_library_on_remote(FPGA_HOST, output_path, generated_lib, input_path, expected_output_path)
             elif cpu_name == 'aarch64':
-                # Skip run library test, it will run on another test.
+                # Skip run library test, it will run on another test by using saved output files.
+                self.save_output(test_id, generated_lib, input_path, expected_output_path)
                 return
             else:
                 self.fail("Unexpected cpu_name: %s" % cpu_name)
