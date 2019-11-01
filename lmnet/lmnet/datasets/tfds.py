@@ -68,9 +68,7 @@ def _format_object_detection_record(record, image_size, num_max_boxes):
 
 
 class TFDSMixin:
-    """
-    A Mixin to compose dataset classes for TFDS.
-    """
+    """A Mixin to compose dataset classes for TFDS."""
     available_subsets = ["train", "validation"]
     extend_dir = None
 
@@ -123,9 +121,8 @@ class TFDSMixin:
         return self.num_per_epoch
 
     def _init_available_splits(self):
-        """
-        Initializing available splits dictionary depending on
-        what kind of splits the dataset has.
+        """Initializing available splits dictionary depending on
+           what kind of splits the dataset has.
         """
         self.available_splits = {}
         if tfds.Split.TRAIN not in self.info.splits:
@@ -148,23 +145,25 @@ class TFDSMixin:
             raise ValueError("Datasets need to have a split \"VALIDATION\" or \"TEST\".")
 
     def _validate_feature_structure(self):
-        """
-        Checking if the given dataset has a valid feature structure.
+        """Checking if the given dataset has a valid feature structure.
+
         This method will raise a ValueError if the structure is invalid.
+
+        Args:
+
+        Returns:
+
         """
         raise NotImplementedError()
 
     def _format_dataset(self):
-        """
-        Converting the format of loaded dataset.
-        """
+        """Converting the format of loaded dataset."""
         raise NotImplementedError()
 
 
 class TFDSClassification(TFDSMixin, Base):
-    """
-    A dataset class for loading TensorFlow Datasets for classification.
-    TensorFlow Datasets which have "label" and "image" features can be loaded by this class.
+    """A dataset class for loading TensorFlow Datasets for classification.
+       TensorFlow Datasets which have "label" and "image" features can be loaded by this class.
     """
     builder_class = ClassificationBuilder
 
@@ -200,9 +199,8 @@ class TFDSClassification(TFDSMixin, Base):
 
 
 class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
-    """
-    A dataset class for loading TensorFlow Datasets for object detection.
-    TensorFlow Datasets which have "objects" and "image" features can be loaded by this class.
+    """A dataset class for loading TensorFlow Datasets for object detection.
+       TensorFlow Datasets which have "objects" and "image" features can be loaded by this class.
     """
     builder_class = ObjectDetectionBuilder
 

@@ -112,7 +112,7 @@ class TestDynamicCreateOp(unittest.TestCase):
         print("Dynamic binary operator load test passed!")
 
     def test_dynamic_create_batchnorm(self) -> None:
-        """Test code for n-ary operators (BatchNormalization). """
+        """Test code for n-ary operators (BatchNormalization)."""
         x = Constant(
             'const',
             Float32(),
