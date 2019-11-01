@@ -65,15 +65,15 @@ test-dlk-main: build
 
 .PHONY: rootfs-docker
 rootfs-docker:
-	docker build -t $(IMAGE_NAME)_os -f dlk/hw/make_os/Dockerfile . #--no-cache=true
+	docker build -t $(IMAGE_NAME)_os -f docker/Dockerfile_make_os . #--no-cache=true
 
 .PHONY: rootfs-armhf
 rootfs-armhf: rootfs-docker 
-	docker run -v `pwd`/dlk/hw/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh armhf
+	docker run -v `pwd`/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh armhf
 
 .PHONY: rootfs-arm64
 rootfs-arm64: rootfs-docker
-	docker run -v `pwd`/dlk/hw/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh arm64
+	docker run -v `pwd`/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh arm64
 
 .PHONY: clean
 clean:
