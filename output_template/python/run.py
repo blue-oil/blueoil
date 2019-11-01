@@ -55,7 +55,7 @@ def _save_json(output_dir, json_obj):
         os.makedirs(dirname)
     with open(output_file_name, "w") as json_file:
         json_file.write(json_obj)
-    logging.info("save json: {}".format(output_file_name))
+    logger.info("save json: {}".format(output_file_name))
 
 
 def _save_images(output_dir, filename_images):
@@ -66,7 +66,7 @@ def _save_images(output_dir, filename_images):
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         image.save(output_file_name)
-        logging.info("save image: {}".format(output_file_name))
+        logger.info("save image: {}".format(output_file_name))
 
 
 def _run(model, image_data, config):
@@ -111,15 +111,10 @@ def _timerfunc(func, extraArgs, trial):
     return value, runtime / trial
 
 
-def run_prediction(input_image, model, config_file, max_percent_incorrect_values=0.1, bench=False, trial=1):
+def run_prediction(input_image, model, config_file, max_percent_incorrect_values=0.1, trial=1):
     if not input_image or not model or not config_file:
         logger.error('Please check usage with --help option')
         exit(1)
-
-    if bench is False:
-        trial = 1
-    else:
-        logger.info("Beanchmark mode is triggered with {} times trial".format(trial))
 
     config = load_yaml(config_file)
 
@@ -201,26 +196,20 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
     help="Config file Path",
 )
 @click.option(
-    "--bench",
-    help="Enable Benchmark mode",
-    is_flag=True,
-    default=False,
-)
-@click.option(
     "--trial",
     help="# of trial for Benchmark",
     type=click.INT,
     default=1,
 )
-def main(input_image, model, config_file, bench, trial):
+def main(input_image, model, config_file, trial):
     _check_deprecated_arguments()
-    run_prediction(input_image, model, config_file, bench, trial)
+    run_prediction(input_image, model, config_file, trial)
 
 
 def _check_deprecated_arguments():
     argument_list = sys.argv
     if '-l' in argument_list:
-        logger.info("Deprecated warning: -l is deprecated please use -m instead")
+        logger.warn("Deprecated warning: -l is deprecated please use -m instead")
 
 
 if __name__ == "__main__":
