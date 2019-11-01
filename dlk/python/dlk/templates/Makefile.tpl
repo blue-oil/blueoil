@@ -4,12 +4,8 @@ INPUTS_SRC_DIR := ./src/inputs
 DLK_TEST_SRC_DIR := ./src/test_data
 
 LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
-{%- if config.activate_hard_quantization %}
-    $(SRC_DIR)/scaling_factors.cpp \
-{%- endif %}
-{%- if config.threshold_skipping %}
-    $(SRC_DIR)/thresholds.cpp \
-{%- endif %}
+		$(wildcard $(SRC_DIR)/scaling_factors.cpp) \
+		$(wildcard $(SRC_DIR)/thresholds.cpp) \
     $(SRC_DIR)/func/average_pool.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
