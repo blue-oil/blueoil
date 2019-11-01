@@ -1,6 +1,6 @@
 FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu16.04 AS base
 
-MAINTAINER admin@blueoil.org
+LABEL maintainer="admin@blueoil.org"
 
 # TensorBoard
 EXPOSE 6006
@@ -90,10 +90,6 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
     echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf && \
     echo "btl_tcp_if_exclude = lo,docker0" >> /usr/local/etc/openmpi-mca-params.conf
 
-# Set env to install horovod with nccl and tensorflow option
-ENV HOROVOD_GPU_ALLREDUCE=NCCL \
-    HOROVOD_WITH_TENSORFLOW=1
-
 RUN pip install -U pip setuptools
 
 FROM base AS blueoil-base
@@ -105,6 +101,10 @@ RUN pip install -r /home/blueoil/gpu.requirements.txt
 COPY lmnet/third_party /home/blueoil/lmnet/third_party
 # https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
 RUN cd /home/blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
+
+# Set env to install horovod with nccl and tensorflow option
+ENV HOROVOD_GPU_ALLREDUCE=NCCL \
+    HOROVOD_WITH_TENSORFLOW=1
 
 # Install requirements for distributed training temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs && \
