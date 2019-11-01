@@ -1,8 +1,3 @@
-DEVICE := CycloneV
-CLOCK  := {{ config.ip_frequency }}
-
-COMPONENTS := --component binary_convolution_hls
-
 SRC_DIR := ./src
 MAINS_DIR := ./mains
 INPUTS_SRC_DIR := ./src/inputs
@@ -76,7 +71,6 @@ LIB_OBJ := $(patsubst %.cpp, %.o, $(LIB_SRC))
 OBJ := $(patsubst %.cpp, %.o, $(SRC))
 
 INCLUDES := -I./include
-HLS_INCLUDE := -I./hls/include
 
 
 TARGETS_X86  := lm_x86
@@ -112,12 +106,7 @@ ARS_ARM     := ar_arm
 ARS_FPGA    := ar_fpga
 
 
-RM_TARGETS_LIST := hls_simulation \
-                   hls_synthesis \
-                   derive_threshold
 RM       := rm -rf
-
-HLS_INSTALL_DIR := $(shell which i++ | sed 's|/bin/i++||g')
 
 .PHONY: clean
 clean:
