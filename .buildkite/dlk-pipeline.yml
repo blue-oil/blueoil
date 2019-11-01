@@ -24,7 +24,7 @@ steps:
     label: "dlk: run binary on aarch64"
     agents:
     - "agent-type=raspberry-pi"
-    - "env=staging"
+    - "env=production"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
