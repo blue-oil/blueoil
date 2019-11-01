@@ -2,21 +2,21 @@
 
 if [ $# -ne 1 ]; then
 	echo "Error: Number of argument should be 1"
-	exit 0
+	exit 1 
 fi
 
 BIT_32_OR_64=$1
 
-if [ $1 = 32 ]; then
+if [ $1 = "armhf" ]; then
 	DEBOOTSTRAP_ARCH=armhf
 	QEMU_ARCH=arm
 	OUTPUT_FNAME=rootfs_armhf.tgz
-elif [ $1 = 64 ]; then
+elif [ $1 = "arm64" ]; then
 	DEBOOTSTRAP_ARCH=arm64
 	QEMU_ARCH=aarch64
 	OUTPUT_FNAME=rootfs_arm64.tgz
 else
-	echo "Error: Argumnet should be 32 or 64"
+	echo "Error: Argumnet should be armhf or arm64"
 	exit 1
 fi
 
