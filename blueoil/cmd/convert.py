@@ -52,20 +52,20 @@ def create_output_directory(output_root_dir, output_template_dir=None):
     return output_directories
 
 
-def get_output_directories(output_roor_dir):
+def get_output_directories(output_root_dir):
     """
 
     Args:
-        output_roor_dir: 
+        output_root_dir:
 
     Returns:
 
     """
 
-    model_dir = os.path.join(output_roor_dir, "models")
+    model_dir = os.path.join(output_root_dir, "models")
     library_dir = os.path.join(model_dir, "lib")
     output_directories = dict(
-        root_dir=output_roor_dir,
+        root_dir=output_root_dir,
         model_dir=model_dir,
         library_dir=library_dir,
     )
