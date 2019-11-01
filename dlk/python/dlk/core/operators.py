@@ -3035,6 +3035,10 @@ class Prod(Operator):
     def is_monotonic(self) -> bool:
         return False
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Shape(Operator):
     r"""Shape operator.
@@ -3059,4 +3063,8 @@ class Shape(Operator):
 
     @property
     def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
         return False
