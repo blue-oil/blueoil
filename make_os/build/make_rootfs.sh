@@ -25,13 +25,13 @@ ROOTFS_DIR=$BUILD_DIR/rootfs
 
 # Chcek if the $ROOTFS_DIR exists or not
 if [ -d $ROOTFS_DIR ]; then
-	echo "Error: $ROOTFS_DIR already exists"
+	echo "Error: $ROOTFS_DIR on docker environment already exists"
 	exit 1
 fi
 
 # Check if $ROOTFS_DIR/$OUTPUT_NAME exists or not
 if [ -e $BUILD_DIR/$OUTPUT_FNAME ]; then
-	echo "Error: $BUILD_DIR/$OUTPUT_FNAME already exists"
+	echo "Error: $BUILD_DIR/$OUTPUT_FNAME on docker environment already exists"
 	exit 1
 fi
 
