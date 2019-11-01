@@ -32,6 +32,7 @@ enum class MemoryLayout {
   OHWC, // Output Channel, Height, Width, Input Channel
   WNC, // Width, Batch, Channel
   HWNC, // Height, Width, Batch, Channel
+  HWOC, // Height, Width, Output Channel, Input Channel
   ChHWCl, // Channel (Higher dimension), Height, Width, Channel (Lower dimension)
   HWChBCl, // Height, Width, Channel (Higher dimension), Bit digit, Channel (Lower dimension)
   ChHWBCl, // Channel (Higher dimension), Height, Width, Bit digit, Channel (Lower dimension)
@@ -54,6 +55,7 @@ constexpr std::size_t get_dim(const MemoryLayout& layout) {
     case MemoryLayout::OHWC: return 4;
     case MemoryLayout::WNC: return 3;
     case MemoryLayout::HWNC: return 4;
+    case MemoryLayout::HWOC: return 4;
     case MemoryLayout::ChHWCl: return 4;
     case MemoryLayout::HWChBCl: return 5;
     case MemoryLayout::ChHWBCl: return 5;
@@ -246,9 +248,9 @@ class TensorView<QuantizedPacked<T>, memory_layout> {
 #ifdef RUN_ON_FPGA
 using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>;
 #elif defined USE_NEON || defined USE_AVX
-using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::NHWC>;
+using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OHWC>;
 #else
-using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWNC>;
+using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWOC>;
 #endif
 
 #endif
