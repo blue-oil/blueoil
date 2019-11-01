@@ -282,7 +282,7 @@ def learning_settings_to_yaml(index):
     fp.write(str(trainer_epochs[index]))
     # trainer optimizer comment
     fp.write(str(trainer_optimizer_comment))
-    # trainer optimizer 
+    # trainer optimizer
     fp.write(str(trainer_optimizers[index]))
     # trainer lr schedule comment
     fp.write(str(trainer_lr_schedule_comment))
