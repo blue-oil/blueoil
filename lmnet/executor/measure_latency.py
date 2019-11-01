@@ -57,7 +57,7 @@ def _measure_time(config, restore_path, step_size):
 
         init_op = tf.global_variables_initializer()
 
-        saver = tf.train.Saver()
+        saver = tf.compat.v1.train.Saver()
 
     session_config = None  # tf.ConfigProto(log_device_placement=True)
     # session_config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions.ON_1

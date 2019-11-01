@@ -104,7 +104,7 @@ def start_training(config):
             )
 
         global_step = tf.Variable(0, name="global_step", trainable=False)
-        is_training_placeholder = tf.placeholder(tf.bool, name="is_training_placeholder")
+        is_training_placeholder = tf.compat.v1.placeholder(tf.bool, name="is_training_placeholder")
 
         images_placeholder, labels_placeholder = model.placeholders()
 
@@ -122,7 +122,7 @@ def start_training(config):
         # TODO(wakisaka): Deal with many networks.
         model.summary(output, labels_placeholder)
 
-        summary_op = tf.summary.merge_all()
+        summary_op = tf.compat.v1.summary.merge_all()
 
         metrics_summary_op, metrics_placeholders = executor.prepare_metrics(metrics_ops_dict)
 
@@ -133,9 +133,9 @@ def start_training(config):
             bcast_global_variables_op = hvd.broadcast_global_variables(0)
 
         if use_train_validation_saving:
-            saver = tf.train.Saver(max_to_keep=1)
+            saver = tf.compat.v1.train.Saver(max_to_keep=1)
         else:
-            saver = tf.train.Saver(max_to_keep=config.KEEP_CHECKPOINT_MAX)
+            saver = tf.compat.v1.train.Saver(max_to_keep=config.KEEP_CHECKPOINT_MAX)
 
         if config.IS_PRETRAIN:
             all_vars = tf.global_variables()
@@ -145,7 +145,7 @@ def start_training(config):
             print("pretrain_vars", [
                 var.name for var in pretrain_var_list
             ])
-            pretrain_saver = tf.train.Saver(pretrain_var_list, name="pretrain_saver")
+            pretrain_saver = tf.compat.v1.train.Saver(pretrain_var_list, name="pretrain_saver")
 
     if use_horovod:
         # For distributed training
@@ -305,8 +305,8 @@ def start_training(config):
                 )
                 pb_name = "minimal_graph_with_shape_{}.pb".format(step + 1)
                 pbtxt_name = "minimal_graph_with_shape_{}.pbtxt".format(step + 1)
-                tf.train.write_graph(minimal_graph, environment.CHECKPOINTS_DIR, pb_name, as_text=False)
-                tf.train.write_graph(minimal_graph, environment.CHECKPOINTS_DIR, pbtxt_name, as_text=True)
+                tf.io.write_graph(minimal_graph, environment.CHECKPOINTS_DIR, pb_name, as_text=False)
+                tf.io.write_graph(minimal_graph, environment.CHECKPOINTS_DIR, pbtxt_name, as_text=True)
 
         if step == 0 or (step + 1) % config.TEST_STEPS == 0:
             # init metrics values

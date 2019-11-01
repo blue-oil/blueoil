@@ -16,7 +16,7 @@
 import os
 
 import tensorflow as tf
-from tensorflow import gfile
+from tensorflow.io import gfile
 
 from lmnet import environment
 
@@ -99,7 +99,7 @@ def convert_variables_to_constants(sess, output_node_names=["output"]):
 
 def save_pb_file(sess, output_dir, output_node_names=["output"], pb_name="minimal_graph_with_shape.pb"):
     minimal_graph_def = convert_variables_to_constants(sess, output_node_names)
-    tf.train.write_graph(minimal_graph_def, output_dir, pb_name, as_text=False)
+    tf.io.write_graph(minimal_graph_def, output_dir, pb_name, as_text=False)
     return pb_name
 
 
@@ -118,10 +118,10 @@ def prepare_metrics(metrics_ops_dict):
         metrics_placeholders = []
         metrics_summaries = []
         for (metrics_key, metrics_op) in metrics_ops_dict.items():
-            metrics_placeholder = tf.placeholder(
+            metrics_placeholder = tf.compat.v1.placeholder(
                 tf.float32, name="{}_placeholder".format(metrics_key)
             )
-            summary = tf.summary.scalar(metrics_key, metrics_placeholder)
+            summary = tf.compat.v1.summary.scalar(metrics_key, metrics_placeholder)
             metrics_placeholders.append(metrics_placeholder)
             metrics_summaries.append(summary)
 

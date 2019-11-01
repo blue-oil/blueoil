@@ -40,7 +40,7 @@ class BaseNetwork(object):
     def __init__(
             self,
             is_debug=False,
-            optimizer_class=tf.train.GradientDescentOptimizer,
+            optimizer_class=tf.compat.v1.GradientDescentOptimizer,
             optimizer_kwargs=None,
             learning_rate_func=None,
             learning_rate_kwargs=None,
@@ -83,7 +83,7 @@ class BaseNetwork(object):
         Return placeholders.
 
         Returns:
-            tf.placeholder: Placeholders.
+            tf.compat.v1.placeholder: Placeholders.
 
         """
         raise NotImplemented()
@@ -107,10 +107,10 @@ class BaseNetwork(object):
             labels: labels tensor.
 
         """
-        var_list = tf.trainable_variables()
+        var_list = tf.compat.v1.trainable_variables()
         # Add histograms for all trainable variables like weights in every layer.
         for var in var_list:
-            tf.summary.histogram(var.op.name, var)
+            tf.compat.v1.summary.histogram(var.op.name, var)
 
     def inference(self, images, is_training):
         """Inference.
@@ -150,7 +150,7 @@ class BaseNetwork(object):
                     **self.learning_rate_kwargs
                 )
 
-        tf.summary.scalar("learning_rate", learning_rate)
+        tf.compat.v1.summary.scalar("learning_rate", learning_rate)
         self.optimizer_kwargs["learning_rate"] = learning_rate
 
         return self.optimizer_class(**self.optimizer_kwargs)
@@ -168,7 +168,7 @@ class BaseNetwork(object):
         # with tf.control_dependencies(update_ops):
         with tf.name_scope("train"):
             if var_list == []:
-                var_list = tf.trainable_variables()
+                var_list = tf.compat.v1.trainable_variables()
 
             gradients = optimizer.compute_gradients(loss, var_list=var_list)
 
@@ -177,6 +177,6 @@ class BaseNetwork(object):
         # Add histograms for all gradients for every layer.
         for grad, var in gradients:
             if grad is not None:
-                tf.summary.histogram(var.op.name + "/gradients", grad)
+                tf.compat.v1.summary.histogram(var.op.name + "/gradients", grad)
 
         return train_op

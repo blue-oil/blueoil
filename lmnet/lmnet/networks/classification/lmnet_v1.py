@@ -165,7 +165,7 @@ class LmnetV1Quantize(LmnetV1):
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
+        with tf.compat.v1.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)
