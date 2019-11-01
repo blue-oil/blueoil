@@ -81,18 +81,6 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'QTZ_binary_channel_wise_mean_scaling':
-            if len(input_ops) != 1:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(input_ops)
-
-            return self.format_string(
-                f"""
-                func_QTZ_binary_channel_wise_mean_scaling({inputs_string}, {op.name});
-                """
-            )
-
         elif self.op.op_type == 'Identity':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)

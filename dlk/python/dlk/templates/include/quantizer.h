@@ -21,10 +21,6 @@ limitations under the License.
 #include "global.h"
 #include "tensor_view.h"
 
-void func_QTZ_binary_channel_wise_mean_scaling(
-    const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
-    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output);
-
 template <MemoryLayout layout>
 void func_QTZ_binary_mean_scaling(
     const TensorView<T_FLOAT, layout>& input,
