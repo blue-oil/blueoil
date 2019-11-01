@@ -15,6 +15,7 @@ qemu-user-static \
 #flex \
 #device-tree-compiler \
 
-RUN ln -s /usr/bin/aarch64-linux-gnu-gcc-8 /usr/local/bin/aarch64-linux-gnu-gcc && \
-ln -s /usr/bin/aarch64-linux-gnu-cpp-8 /usr/local/bin/aarch64-linux-gnu-cpp
+# Thise symbolic links are necessary for compiling kernel for future so that they're remained as comment.
+#RUN ln -s /usr/bin/aarch64-linux-gnu-gcc-8 /usr/local/bin/aarch64-linux-gnu-gcc && \
+#ln -s /usr/bin/aarch64-linux-gnu-cpp-8 /usr/local/bin/aarch64-linux-gnu-cpp
 
