@@ -76,7 +76,7 @@ void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
 // kernel format converter
 // ohwi : oc kh kw ic, hwoi: kh kw oc ic
 template<typename T>
-void ohwi_to_hwoi(const TensorView<T, MemoryLayout::OHWC>& ohwi,
+void ohwi_to_hwoi(const TensorView<T, MemoryLayout::OHWI>& ohwi,
     const TensorView<T, MemoryLayout::HWOI>& hwoi,
     const struct convolution_parameters& p) {
   int ic = p.kernel_depth;
