@@ -21,7 +21,7 @@ limitations under the License.
 #include "tensor_view.h"
 
 void func_Conv2D(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
-    const TensorView<T_FLOAT, MemoryLayout::NHWC>& weights,
+    const TensorView<T_FLOAT, MemoryLayout::OHWI>& weights,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     struct convolution_parameters p);
 

@@ -54,7 +54,7 @@ def make_simple_model() -> Model:
         'conv1_kernel',
         Float32(),
         data['conv1_kernel'],  # .transpose([3, 0, 1, 2]),
-        dimension_format='HWCN'
+        dimension_format='HWOI'
     )
 
     c1_qtz_ker = QTZ_binary_mean_scaling(
@@ -63,7 +63,7 @@ def make_simple_model() -> Model:
         # [32, 3, 3, 3],
         Float32(),
         {'input': c1_ker},
-        dimension_format='HWCN'
+        dimension_format='HWOI'
     )
 
     conv1 = Conv(
@@ -136,7 +136,7 @@ def make_simple_model() -> Model:
         'conv2_kernel',
         Float32(),
         data['conv2_kernel'],  # .transpose([3, 0, 1, 2]),
-        dimension_format='HWCN'
+        dimension_format='HWOI'
     )
 
     c2_qtz_ker = QTZ_binary_mean_scaling(
@@ -145,7 +145,7 @@ def make_simple_model() -> Model:
         [3, 3, 32, 64],
         Float32(),
         {'input': c2_ker},
-        dimension_format='HWCN'
+        dimension_format='HWOI'
     )
 
     conv2 = Conv(
