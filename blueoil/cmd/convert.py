@@ -192,3 +192,14 @@ def run(experiment_id,
     make_all(project_dir, output_directories.get("library_dir"))
 
     return output_root_dir
+
+
+def convert(experiment_id, checkpoint=None, template=None, image_size=(None, None), project_name=None):
+    output_dir = os.environ.get('OUTPUT_DIR', 'saved')
+
+    if checkpoint is None:
+        restore_path = None
+    else:
+        restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
+
+    return run(experiment_id, restore_path, template, image_size, project_name)
