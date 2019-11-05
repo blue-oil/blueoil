@@ -124,13 +124,7 @@ class View(object):
                 k_elems = kh * kw * kd
                 od = ((od + b - 1) // b) * b
 
-                if input_ops['X'].op_type == 'Split':
-                    for k, v in input_ops['X'].output_ops.items():
-                        if v[0] == op:
-                            inputs_string = str(input_ops['X'].name) + '_' + str(k)
-                    inputs_string = inputs_string + ', ' + input_ops['W'].name
-                else:
-                    inputs_string = self.inputs_to_string(input_ops)
+                inputs_string = self.inputs_to_string(input_ops)
 
                 if op.has_thresholds:
                     threshold = f'{op.name}_thresholds'
@@ -190,13 +184,7 @@ class View(object):
                 kd = x_op.channel
                 k_elems = kh * kw * kd
 
-                if input_ops['X'].op_type == 'Split':
-                    for k, v in input_ops['X'].output_ops.items():
-                        if v[0] == op:
-                            inputs_string = str(input_ops['X'].name) + '_' + str(k)
-                    inputs_string = inputs_string + ', ' + input_ops['W'].name
-                else:
-                    inputs_string = self.inputs_to_string(input_ops)
+                inputs_string = self.inputs_to_string(input_ops)
 
                 render_string = self.format_string(
                     f"""
@@ -744,7 +732,17 @@ class View(object):
         return dedent(string).strip()
 
     def inputs_to_string(self, inputs):
-        return ', '.join(map(lambda x: str(x.name), inputs.values()))
+
+        def input_to_string(op, in_op):
+            if in_op.op_type == 'Split':
+                for k, v in in_op.output_ops.items():
+                    if op in v:
+                        return str(in_op.name) + '_' + str(k)
+                raise ValueError(f'invalid graph structure: {in_op.name} must have {op.name} as one of its output ops')
+            else:
+                return str(in_op.name)
+
+        return ', '.join(map(lambda x: input_to_string(x), inputs.values()))
 
     def outputs_to_string(self, node, outputs):
         return ', '.join(map(lambda x: str(node.name + '_' + x), outputs.keys()))
