@@ -1,6 +1,9 @@
-sphinx
-recommonmark
-sphinx_rtd_theme
+# for sphinx documentation
+Sphinx==1.7.2
+better-apidoc==0.1.2
+recommonmark==0.6.0
+sphinx-autobuild==0.7.1
+sphinx_rtd_theme==0.4.3
 
 # for autodoc of lmnet.
 numpy
