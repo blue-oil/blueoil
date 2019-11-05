@@ -426,7 +426,7 @@ def pass_pack_weights(graph: Graph) -> None:
             weight_quantizer.name + '_new',
             PackedUint32(),
             data=np.vectorize(lambda k: (~k) & ((0x1 << 32) - 1))(data),
-            dimension_format="NHWC",
+            dimension_format="OHWI",
             transposed_dimension_format="OhIhHWOlIl",
             packed=True,
             actual_shape=shape,
@@ -434,7 +434,7 @@ def pass_pack_weights(graph: Graph) -> None:
             transposed_data=[(~k) & ((0x1 << 32) - 1) for k in tca_packed_data.flatten()],
             kn2row_data=[k for k in kn2row_data.flatten()],
             kn2row_shape=kn2row_shape,
-            kn2row_dimension_format="HWNC"
+            kn2row_dimension_format="HWOI"
         )
 
         # get nodes to be removed after being disconnected
