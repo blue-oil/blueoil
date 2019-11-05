@@ -8,4 +8,5 @@ prompt_toolkit==1.0.15
 pytablewriter==0.35
 PyYAML==4.2b4
 tensorflow-datasets==1.0.2
+tensorflow==1.14.0
 whaaaaat==0.5.2
