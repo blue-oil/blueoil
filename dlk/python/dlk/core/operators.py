@@ -523,14 +523,14 @@ class Constant(Variable):
                  name: str,
                  dtype: DataType,
                  data: np.ndarray,
-                 dimension_format: str = 'OHWC',
-                 transposed_dimension_format: str = 'OHWC',
+                 dimension_format: str = 'OHWI',
+                 transposed_dimension_format: str = 'OHWI',
                  packed: bool = False,
                  actual_shape: List[int] = [],
                  transposed_data: List[int] = None,
                  transposed_shape: List[int] = None,
                  kn2row_data: List[int] = None,
-                 kn2row_dimension_format: str = 'HWNO',
+                 kn2row_dimension_format: str = 'HWOI',
                  kn2row_shape: List[int] = None,) -> None:
         """Init the variable.
 
