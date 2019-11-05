@@ -1,2 +1,5 @@
--r dev.requirements.txt
+-r requirements.txt
 tensorflow-gpu==1.14.0
+# for distributed training
+horovod==0.18.1
+mpi4py==3.0.2
