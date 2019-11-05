@@ -157,6 +157,9 @@ RUN chmod 777 /home/blueoil/dlk
 # Copy lmnet sources to docker image
 COPY lmnet /home/blueoil/lmnet
 
+# Copy blueoil test code to docker image
+COPY tests /home/blueoil/tests
+
 
 ENV PYTHONPATH $PYTHONPATH:/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk
 WORKDIR /home/blueoil
