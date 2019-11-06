@@ -14,19 +14,20 @@
 # limitations under the License.
 # =============================================================================
 """Test file for binary running on devices"""
-import numpy as np
 import os
 import unittest
+
 from nnlib import NNLib as NNLib
+
+import numpy as np
 
 
 class TestDevice(unittest.TestCase):
     """Base class for Device Test."""
 
-
     def get_param(self, test_case_path):
         params = {
-            'library':os.path.join(test_case_path, "lib.so"),
+            'library': os.path.join(test_case_path, "lib.so"),
             'input_npy': os.path.join(test_case_path, "input.npy"),
             'expected_npy': os.path.join(test_case_path, "expected.npy"),
         }
@@ -35,9 +36,9 @@ class TestDevice(unittest.TestCase):
 
     def get_test_cases(self):
         input_path = os.environ.get('DEVICE_TEST_INPUT_PATH')
-        test_case_paths = [d for d in os.listdir(input_path) if os.path.isdir(os.path.join(input_path,d))]
+        test_case_paths = [d for d in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, d))]
 
-        return [[test_case, self.get_param(os.path.join(input_path,test_case))] for test_case in test_case_paths]
+        return [[test_case, self.get_param(os.path.join(input_path, test_case))] for test_case in test_case_paths]
 
     def run_library(self, library, input_npy, expected_npy):
 
