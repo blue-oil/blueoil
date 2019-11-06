@@ -15,6 +15,7 @@
 # =============================================================================
 """Test file for binary running on devices"""
 import os
+import pathlib
 import unittest
 
 from nnlib import NNLib as NNLib
@@ -34,9 +35,10 @@ class DeviceTest(unittest.TestCase):
 
     def get_test_cases(self):
         input_path = os.environ['DEVICE_TEST_INPUT_PATH']
-        test_case_paths = [d for d in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, d))]
+        p = pathlib.Path(input_path)
+        test_case_paths = [d for d in p.iterdir() if d.is_dir()]
 
-        return [[test_case, self.get_param(os.path.join(input_path, test_case))] for test_case in test_case_paths]
+        return [[path.name, self.get_param(path)] for path in test_case_paths]
 
     def run_library(self, library, input_npy, expected_npy):
 
