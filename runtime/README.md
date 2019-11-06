@@ -83,13 +83,13 @@ $ make test
 Running tests...
 Test project <repos_dir>/blueoil/runtime/build
     Start 1: blueoil-test-tensor
-1/4 Test #1: blueoil-test-tensor ..............   Passed    0.00 sec
+1/5 Test #1: blueoil-test-tensor ..............   Passed    0.00 sec
     Start 2: blueoil-test-image
-2/4 Test #2: blueoil-test-image ...............   Passed    0.00 sec
-    Start 3: blueoil-test-opencv
-3/4 Test #3: blueoil-test-opencv ..............   Passed    0.04 sec
+2/5 Test #2: blueoil-test-image ...............   Passed    0.00 sec
+    Start 3: blueoil-test-npy
+3/5 Test #3: blueoil-test-npy .................   Passed    0.00 sec
     Start 4: blueoil-test-resize
-4/4 Test #4: blueoil-test-resize ..............   Passed    0.04 sec
+4/5 Test #4: blueoil-test-resize ..............   Passed    0.00 sec
     Start 5: blueoil-test-data_processor
 5/5 Test #5: blueoil-test-data_processor ......   Passed    0.00 sec
 
