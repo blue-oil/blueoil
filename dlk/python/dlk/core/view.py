@@ -618,7 +618,7 @@ class View(object):
                 if not v.is_variable:
                     concat_input[k] = v
 
-            inputs_string = self.inputs_to_string(concat_input)
+            inputs_string = self.inputs_to_string(op, concat_input)
 
             return self.format_string(
                 f"""
