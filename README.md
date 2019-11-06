@@ -74,7 +74,7 @@ You can test specific task.
 ```
 $ CUDA_VISIBLE_DEVICES={YOUR_GPU_ID} make test-classification
 $ CUDA_VISIBLE_DEVICES={YOUR_GPU_ID} make test-object-detection
-$ CUDA_VISIBLE_DEVICES={YOUR_GPU_ID} make est-semantic-segmentation
+$ CUDA_VISIBLE_DEVICES={YOUR_GPU_ID} make test-semantic-segmentation
 ```
 
 You can also test the modules used in Blueoil.
