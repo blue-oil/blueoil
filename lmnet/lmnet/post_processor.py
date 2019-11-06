@@ -19,27 +19,12 @@ import numpy as np
 
 from lmnet.data_augmentor import iou
 from lmnet.data_processor import Processor
+from lmnet.utils.box import format_cxcywh_to_xywh
 
 
 def _softmax(x):
     exp = np.exp(x - np.max(x))
     return exp / np.expand_dims(exp.sum(axis=-1), -1)
-
-
-def format_cxcywh_to_xywh(boxes, axis=1):
-    """Format form (center_x, center_y, w, h) to (x, y, w, h) along specific dimension.
-
-    Args:
-        boxes: A tensor include boxes. [:, 4(x, y, w, h)]
-        axis: Which dimension of the inputs Tensor is boxes.
-
-    """
-    results = np.split(boxes, [1, 2, 3, 4], axis=axis)
-    center_x, center_y, w, h = results[0], results[1], results[2], results[3]
-    x = center_x - (w / 2)
-    y = center_y - (h / 2)
-
-    return np.concatenate([x, y, w, h], axis=axis)
 
 
 class FormatYoloV2(Processor):
