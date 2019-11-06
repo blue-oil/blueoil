@@ -25,7 +25,7 @@ fi
 TEST_LOG_NO=0
 FAILED_TEST_NO=""
 
-# list of avairable optimizers listed in blueoil_init.py
+# list of avairable optimizers listed in cmd/main.py init
 OPTIMIZSERS=("Momentum" "Adam")
 
 function usage_exit(){
@@ -123,7 +123,7 @@ function init_test(){
     TRAINING_DATASET_PATH=$8
     VALIDATION_DATASET_PATH=$9
     CONFIG_NAME=${TEST_CONFIG_PREFIX}_${TEST_CASE}
-    TEST_YML_CONFIG_FILE=./tests/config/${TEST_CASE}.yml
+    TEST_YML_CONFIG_FILE=./tests/fixtures/configs/${TEST_CASE}.yml
     echo "## Test of ${TEST_CASE}"
     echo "### ${RUN_SCRIPT} init"
     if [ "${VALIDATION_DATASET_PATH}" == "" ]; then
@@ -182,6 +182,7 @@ function init_test(){
         send \"\n\"
         expect \"Next step:\"
     " >> ${TEST_LOG_FILE} 2>&1
+    sleep 1
     @ 0 ls config/${CONFIG_NAME}.yml
     # Wait for complete ${RUN_SCRIPT} init
     sleep 1
@@ -271,8 +272,8 @@ if [ "${YML_CONFIG_FILE}" == "" ]; then
         do
             for TEST_CASE in "${DATASET_FORMAT}_${TASK_TYPE}" "${DATASET_FORMAT}_${TASK_TYPE}_has_validation"
             do
-                TRAINING_DATASET_PATH=$(get_yaml_param train_path tests/config/${TEST_CASE}.yml)
-                VALIDATION_DATASET_PATH=$(get_yaml_param test_path tests/config/${TEST_CASE}.yml)
+                TRAINING_DATASET_PATH=$(get_yaml_param train_path tests/fixtures/configs/${TEST_CASE}.yml)
+                VALIDATION_DATASET_PATH=$(get_yaml_param test_path tests/fixtures/configs/${TEST_CASE}.yml)
                 OPTIMIZER_NUMBER=$(($((${TASK_TYPE_NUMBER} % ${#OPTIMIZSERS[@]}))+1))
                 init_test ${TEST_CASE} ${TASK_TYPE_NUMBER} 1 1 ${DATASET_FORMAT_NUMBER} ${ENABLE_DATA_AUGMENTATION} ${OPTIMIZER_NUMBER} ${TRAINING_DATASET_PATH} ${VALIDATION_DATASET_PATH}
                 basic_test

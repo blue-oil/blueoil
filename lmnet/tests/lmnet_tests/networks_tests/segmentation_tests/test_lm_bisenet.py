@@ -79,7 +79,7 @@ def test_lm_bisenet_post_process():
 
     image_size = [96, 64]
     batch_size = 2
-    classes = range(5)
+    classes = Camvid.classes
     data_format = "NHWC"
 
     model = LMBiSeNet(

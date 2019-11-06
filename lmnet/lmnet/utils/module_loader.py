@@ -22,7 +22,12 @@ import os
 def load_module(module_file_path):
     """dynamically load a module from the file path.
 
-    Return: module object
+    Args:
+        module_file_path:
+
+    Returns:
+        module: module object
+
     """
 
     if not os.path.exists(module_file_path):
@@ -58,14 +63,14 @@ def _load_class_from_name(name, base_dir):
     """dynamically load a class object from name.
 
     Args:
-        name: class name following python module loader rule.
+        name (string): class name following python module loader rule.
+            e.g.
+            `name` is dir1.module, load dir1.module.Module .
+            `name` is dir1.module.Class, load dir1.module.Class .
         base_dir: base directory of class name.
 
-    e.g. `name` is dir1.module, load dir1.module.Module .
-         `name` is dir1.module.Class, load dir1.module.Class .
-
-    Return: class object
-
+    Returns:
+        class: class object
     """
     names = name.split(".")
     last_name = names[-1]
@@ -89,7 +94,12 @@ def _load_class_from_name(name, base_dir):
 def load_network_class(name):
     """dynamically load a class object from a network file.
 
-    Return: network class object
+    Args:
+        name (str):  Name of network
+
+    Returns:
+        lmnet.networks.Base: network class object
+
     """
 
     base_dir = os.path.join("lmnet", "networks")
@@ -101,7 +111,12 @@ def load_network_class(name):
 def load_dataset_class(name):
     """dynamically load a class object from a dataset file.
 
-    Return: dataset class object
+    Args:
+        name (str): Name of dataset
+
+    Returns:
+        lmnet.datasets.Base: dataset class object
+
     """
     base_dir = os.path.join("lmnet", "datasets")
     dataset_class = _load_class_from_name(name, base_dir)

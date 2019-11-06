@@ -58,7 +58,7 @@ class BaseNetwork(object):
         self.optimizer_kwargs = optimizer_kwargs if optimizer_kwargs is not None else {'learning_rate': 0.01}
         self.learning_rate_func = learning_rate_func
         self.learning_rate_kwargs = learning_rate_kwargs if learning_rate_kwargs is not None else {}
-        self.classes = classes
+        self.classes = list(map(lambda _class: _class.replace(' ', '_'), classes))
         self.num_classes = len(classes)
         self.image_size = image_size
         self.batch_size = batch_size
@@ -70,8 +70,10 @@ class BaseNetwork(object):
         Args:
             images: Input images.
             is_training: A flag for if is training.
+
         Returns:
             tf.Tensor: Inference result.
+
         """
         raise NotImplemented()
 
@@ -82,6 +84,7 @@ class BaseNetwork(object):
 
         Returns:
             tf.placeholder: Placeholders.
+
         """
         raise NotImplemented()
 
@@ -91,6 +94,7 @@ class BaseNetwork(object):
         Args:
             output: tensor from inference.
             labels: labels tensor.
+
         """
         raise NotImplemented()
 
@@ -101,6 +105,7 @@ class BaseNetwork(object):
         Args:
             output: tensor from inference.
             labels: labels tensor.
+
         """
         var_list = tf.trainable_variables()
         # Add histograms for all trainable variables like weights in every layer.
@@ -112,6 +117,7 @@ class BaseNetwork(object):
 
         Args:
             images: images tensor. shape is (batch_num, height, width, channel)
+
         """
         raise NotImplemented()
 
@@ -121,6 +127,7 @@ class BaseNetwork(object):
         Args:
             output: tensor from inference.
             labels: labels tensor.
+
         """
         raise NotImplemented()
 
@@ -154,6 +161,7 @@ class BaseNetwork(object):
         Args:
            loss: loss function of this network.
            global_step: tensorflow's global_step
+
         """
         # TODO(wenhao): revert when support `tf.layers.batch_normalization`
         # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

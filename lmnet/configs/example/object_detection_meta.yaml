@@ -1,13 +1,28 @@
 CLASSES:
-- hand
-- salad
-- steak
-- whiskey
-- book
+- aeroplane
+- bicycle
+- bird
+- boat
+- bottle
+- bus
+- car
+- cat
+- chair
+- cow
+- diningtable
+- dog
+- horse
+- motorbike
+- person
+- pottedplant
+- sheep
+- sofa
+- train
+- tvmonitor
 DATA_FORMAT: NCHW
 IMAGE_SIZE:
-- 128
-- 128
+- 320
+- 320
 POST_PROCESSOR:
 - FormatYoloV2:
     anchors:
@@ -24,25 +39,40 @@ POST_PROCESSOR:
     boxes_per_cell: 5
     data_format: NCHW
     image_size:
-    - 128
-    - 128
-    num_classes: 5
+    - 320
+    - 320
+    num_classes: 20
 - ExcludeLowScoreBox:
     threshold: 0.05
 - NMS:
     classes:
-    - hand
-    - salad
-    - steak
-    - whiskey
-    - book
+    - aeroplane
+    - bicycle
+    - bird
+    - boat
+    - bottle
+    - bus
+    - car
+    - cat
+    - chair
+    - cow
+    - diningtable
+    - dog
+    - horse
+    - motorbike
+    - person
+    - pottedplant
+    - sheep
+    - sofa
+    - train
+    - tvmonitor
     iou_threshold: 0.5
     max_output_size: 100
     per_class: true
 PRE_PROCESSOR:
 - ResizeWithGtBoxes:
     size:
-    - 128
-    - 128
+    - 320
+    - 320
 - DivideBy255: null
 TASK: IMAGE.OBJECT_DETECTION

@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
-from lmnet.datasets.lm_things_on_a_table import LmThingsOnATable
+from lmnet.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     ResizeWithGtBoxes,
@@ -45,16 +45,16 @@ from lmnet.quantizations import (
 IS_DEBUG = False
 
 NETWORK_CLASS = YoloV2Quantize
-DATASET_CLASS = LmThingsOnATable
+DATASET_CLASS = Pascalvoc20072012
 
-IMAGE_SIZE = [128, 128]
-BATCH_SIZE = 8
+IMAGE_SIZE = [320, 320]
+BATCH_SIZE = 16
 DATA_FORMAT = "NCHW"
 TASK = Tasks.OBJECT_DETECTION
 CLASSES = DATASET_CLASS.classes
 
 KEEP_CHECKPOINT_MAX = 5
-MAX_EPOCHS = 1
+MAX_EPOCHS = 100
 SAVE_CHECKPOINT_STEPS = 100
 TEST_STEPS = 100
 SUMMARISE_STEPS = 10

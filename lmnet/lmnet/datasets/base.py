@@ -84,7 +84,7 @@ class Base(metaclass=ABCMeta):
     @abstractmethod
     def num_per_epoch(self):
         """Returns the number of datas in the data subset."""
-        pass
+        raise DeprecationWarning()
 
     @property
     @abstractmethod
@@ -157,6 +157,45 @@ class ObjectDetectionBase(Base, metaclass=ABCMeta):
             results.append(gt_boxes)
 
         return np.array(results)
+
+
+class KeypointDetectionBase(Base, metaclass=ABCMeta):
+
+    @staticmethod
+    def crop_from_full_image(full_image, box, joints):
+        """
+        Crop one example used for single-person pose estimation from a full sized image.
+        Args:
+            full_image: a numpy array of shape (full_height, full_width, 3).
+            box: a list, [x1, y1, x2, y2].
+            joints: a numpy array of shape (num_joints, 3). It has global offset.
+
+        Returns:
+            cropped_image: a numpy array cropped from full_image. It's shape depends on box.
+            new_joints: a numpy array of shape (num_joints, 3). It has local offset.
+
+        """
+        full_height, full_width, _ = full_image.shape
+
+        x1, y1, x2, y2 = box
+
+        # ground-truth box is too slim
+        x1 -= 30
+        x2 += 30
+        y1 -= 10
+        y2 += 10
+
+        x1 = max(x1, 0)
+        x2 = min(full_width, x2)
+        y1 = max(y1, 0)
+        y2 = min(full_height, y2)
+
+        cropped_image = full_image[int(y1):int(y2), int(x1):int(x2)]
+        new_joints = joints.copy()
+        new_joints[:, 0] -= x1
+        new_joints[:, 1] -= y1
+
+        return cropped_image, new_joints
 
 
 class DistributionInterface(metaclass=ABCMeta):

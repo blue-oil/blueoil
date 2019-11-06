@@ -448,18 +448,18 @@ class Importer(object):
             graph.remove_op(node)
 
     def _get_format(self, node: Any, output_format: str) -> Tuple[str, List[str]]:
-        """Get the dimension format, like 'NCHW', 'HWCN', 'NHWC', etc for operators.
+        """Get the dimension format, like 'NCHW', 'HWIO', 'NHWC', etc for operators.
         Always use the format from tensorflow, if the layout format is not defined,
         then propagate the format from the output. Special case such as:
-        - 'Conv': by default of tensorflow, input is 'NHWC', and kernel 'HWCN'
+        - 'Conv': by default of tensorflow, input is 'NHWC', and kernel 'HWIO'
         https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
         - 'QTZ_binary_mean_scaling', 'QTZ_binary_channel_wise_mean_scaling':
-        kernel quantizer is also in HWCN
+        kernel quantizer is also in HWIO
         - 'Transpose': depending on the permutation attribute
         """
 
         _default_format = 'NHWC'
-        _default_w_format = 'HWCN'
+        _default_w_format = 'HWIO'
 
         rank_to_format = {1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC', 5: 'NHWCT'}
 
@@ -558,20 +558,16 @@ class Importer(object):
     def create_new_node(self, node: Node, op_dic: Dict[str, Operator], current_format: str,
                         input_format_list: List[str], nodes_to_remove) -> Operator:
         """Create a new operator node. This might be tooooo long code...
-        Parameters
-        ----------
-        node : Node
-            TF node corresponding to the operator
-        op_dic : Dict from str to Operator
-            Dict of preceding operators
-        current_format : Dict from str to str
-            Dict of data format of current node
-        input_format_list : Dict from str to str
-            Dict of data format of corresponding inputs of current node
-        Returns
-        -------
-        new_op : Operator
-            Newly created dlk operator
+
+        Args:
+            node (Node): TF node corresponding to the operator
+            op_dic (dict): Dict of preceding operators
+            current_format (dict): Dict of data format of current node
+            input_format_list (dict): Dict of data format of corresponding inputs of
+                current node
+
+        Returns:
+            Operator: Newly created dlk operator
         """
         op_type = self.convert_operator(node.op_type)
         try:

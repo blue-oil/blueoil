@@ -558,21 +558,6 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'ConcatV2':
-            if len(input_ops) != 2:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(input_ops)
-
-            in0_d = input_ops[0].C
-            in1_d = input_ops[1].C
-
-            return self.format_string(
-                f"""
-                func_ConcatV2({inputs_string}, {op.name}, {op.axis}, {in0_d}, {in1_d});
-                """
-            )
-
         elif self.op.op_type == 'Reshape':
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
@@ -743,6 +728,8 @@ class View(object):
             inputs_string = self.inputs_to_string(input_ops)
 
             return self.format_string(f"""func_Lookup({inputs_string}, {op.name});""")
+
+        raise TypeError(f"{self.op.op_type} is not supported in View.run().")
 
     def render_alias(self, op, input_ops, output_ops):
         if len(input_ops) != 1:

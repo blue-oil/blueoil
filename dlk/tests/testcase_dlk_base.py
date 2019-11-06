@@ -41,9 +41,13 @@ class TestCaseDLKBase(TestCase):
     Setup and TearDown method which is common in dlk project.
     """
     build_dir = None
+    fpga_setup = False
 
     @classmethod
-    def setUpClass(TestCaseDLKBase):
+    def setUpClass(cls):
+        if not cls.fpga_setup:
+            return
+
         # Setup the board. For now, DE10 Nano board
         output_path = '/tmp'
         hw_path = os.path.abspath(os.path.join('..', FPGA_FILES))
@@ -73,6 +77,13 @@ class TestCaseDLKBase(TestCase):
 
         prefix = "-".join([prefix0, classtag, datetimetag]) + "-"
         self.build_dir = tempfile.mkdtemp(prefix=prefix)
+
+        self.output_dir = os.path.join(os.getcwd(), 'output')
+        self.class_output_dir = os.path.join(self.output_dir, self.__class__.__name__)
+        os.makedirs(self.class_output_dir, exist_ok=True)
+        # change mode for docker use case with root
+        os.chmod(self.output_dir, 0o777)
+        os.chmod(self.class_output_dir, 0o777)
 
     def tearDown(self) -> None:
         if DO_CLEANUP:

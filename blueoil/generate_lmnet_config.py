@@ -23,8 +23,8 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 from tensorflow import gfile
 
-from blueoil.vars import TEMPLATE_DIR
 from lmnet.utils.module_loader import load_class
+
 
 _TASK_TYPE_TEMPLATE_FILE = {
     "classification": "classification.tpl.py",
@@ -76,6 +76,10 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
         "dataset_module": "camvid",
         "dataset_class": "CamvidCustom",
     },
+    "DIV2K": {
+        "dataset_module": "div2k",
+        "dataset_class": "Div2k",
+    }
 }
 
 
@@ -92,10 +96,11 @@ def _load_yaml(blueoil_config_filename):
     """load blueoil config yaml
 
     Args:
-        blueoil_config_filename(str): File path of blueoil config yaml file.
+        blueoil_config_filename (str): File path of blueoil config yaml file.
 
     Returns:
-        blueoil_config(dict): dict of blueoil config.
+        dict: blueoil config.
+
     """
     if not gfile.Exists(blueoil_config_filename):
         FileNotFoundError("File not found: {}".format(blueoil_config_filename))
@@ -114,10 +119,11 @@ def _blueoil_to_lmnet(blueoil_config):
     """
 
     Args:
-        blueoil_config(dict):
+        blueoil_config(dict): 
 
     Returns:
-        lmnet_config(dict):
+        dict: 
+
     """
 
     # default setting
@@ -125,9 +131,8 @@ def _blueoil_to_lmnet(blueoil_config):
         "test_steps": 1000,
         "summarise_steps": 100,
     }
-    dataset = {
+    dataset = {}
 
-    }
 
     model_name = blueoil_config["model_name"]
 
@@ -159,7 +164,7 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # trainer
     batch_size = blueoil_config["trainer"]["batch_size"]
-    optimizer  = blueoil_config["trainer"]["optimizer"]
+    optimizer = blueoil_config["trainer"]["optimizer"]
 
     default_save_checkpoint_steps = 1000
     default_keep_checkpoint_max = 5
@@ -185,7 +190,7 @@ def _blueoil_to_lmnet(blueoil_config):
     learning_rate_schedule = blueoil_config["trainer"]["learning_rate_schedule"]
     max_epochs = blueoil_config["trainer"]["epochs"]
 
-    step_per_epoch = float(_dataset_obj.num_per_epoch)/batch_size
+    step_per_epoch = float(_dataset_obj.num_per_epoch) / batch_size
 
     learning_rate_kwargs = None
     if learning_rate_schedule == "constant":
@@ -279,7 +284,7 @@ def _blueoil_to_lmnet(blueoil_config):
         "dataset_class_property": dataset_class_property,
 
         "batch_size": batch_size,
-        "optimizer_class" : optimizer_class,
+        "optimizer_class": optimizer_class,
         "max_epochs": max_epochs,
 
         "optimizer_kwargs": optimizer_kwargs,
@@ -305,7 +310,10 @@ def _blueoil_to_lmnet(blueoil_config):
 
 
 def _save(lmnet_config):
-    env = Environment(loader=FileSystemLoader(os.path.join(TEMPLATE_DIR, 'lmnet'), encoding='utf8'))
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    template_dir = os.path.join(base_dir, "templates")
+
+    env = Environment(loader=FileSystemLoader(os.path.join(template_dir, 'lmnet'), encoding='utf8'))
 
     template_file = lmnet_config["template_file"]
 
