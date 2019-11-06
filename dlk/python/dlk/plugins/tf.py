@@ -448,18 +448,18 @@ class Importer(object):
             graph.remove_op(node)
 
     def _get_format(self, node: Any, output_format: str) -> Tuple[str, List[str]]:
-        """Get the dimension format, like 'NCHW', 'HWCN', 'NHWC', etc for operators.
+        """Get the dimension format, like 'NCHW', 'HWIO', 'NHWC', etc for operators.
         Always use the format from tensorflow, if the layout format is not defined,
         then propagate the format from the output. Special case such as:
-        - 'Conv': by default of tensorflow, input is 'NHWC', and kernel 'HWCN'
+        - 'Conv': by default of tensorflow, input is 'NHWC', and kernel 'HWIO'
         https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
         - 'QTZ_binary_mean_scaling', 'QTZ_binary_channel_wise_mean_scaling':
-        kernel quantizer is also in HWCN
+        kernel quantizer is also in HWIO
         - 'Transpose': depending on the permutation attribute
         """
 
         _default_format = 'NHWC'
-        _default_w_format = 'HWCN'
+        _default_w_format = 'HWIO'
 
         rank_to_format = {1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC', 5: 'NHWCT'}
 
