@@ -225,15 +225,15 @@ bool Network::init()
   {% if node.available_buffer == '' %}
   {% for out_k in node.output_ops.keys() -%}
   {% if node.output_ops.keys()|length > 1 %}
-  {{ node.name + '_' + out_k }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.shape }}]();
+  {{ node.name + '_' + out_k }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.size_in_words_as_cpp }}]();
   {% else %}
-  {{ node.name }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.shape }}]();
+  {{ node.name }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.size_in_words_as_cpp }}]();
   {% endif %}
   {%- endfor %}
   {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 %}
   {% for out_k in node.output_ops.keys() -%}
   {% if out_k != node.output_ops.keys()|list|first %}
-  {{ node.name + '_' + out_k }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.shape }}]();
+  {{ node.name + '_' + out_k }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.size_in_words_as_cpp }}]();
   {% endif %}
   {%- endfor %}
   {% endif %}
@@ -352,24 +352,24 @@ bool Network::run(float *network_input, float *network_output)
     {# Temporary: better access to the quantizer #}
 
     {% if node.dtype.cpptype() in ['int', 'int32_t'] -%}
-      save_int32_data("debug/{{ node.name }}", {{ node.view.shape }}, 0, {{ node.name }}.data(), 3.0 / 2.0 );
+      save_int32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 3.0 / 2.0 );
     {% elif node.dtype.cpptype() in ['unsigned', 'uint32_t'] -%}
-      save_uint32_data("debug/{{ node.name }}", {{ node.view.shape }}, 0, {{ node.name }}.data(), 1.0);
+      save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 1.0);
     {% elif node.dtype.cpptype() == 'float' -%}
       {% if node.output_ops.keys()|length > 1 %}
         {% for k in node.output_ops.keys() -%}
-          save_float32_data("debug/{{ node.name }}", {{ node.view.shape }}, {{ loop.index0 }}, {{ node.name }}[{{ loop.index0 }}].data(), 1.0);
+          save_float32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, {{ loop.index0 }}, {{ node.name }}[{{ loop.index0 }}].data(), 1.0);
           {{ '\n' -}}
         {%- endfor %}
       {% else %}
-        save_float32_data("debug/{{ node.name }}", {{ node.view.shape }}, 0, {{ node.name }}.data(), 1.0);
+        save_float32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 1.0);
       {% endif %}
     {% endif %}
   {% endif %}
 
   {% endfor -%}
 
-  std::copy({{ graph_output.name }}.data(), {{ graph_output.name }}.data() + {{ graph_output.view.shape }}, network_output);
+  std::copy({{ graph_output.name }}.data(), {{ graph_output.name }}.data() + {{ graph_output.view.size_in_words_as_cpp }}, network_output);
 
   return true;
 }
