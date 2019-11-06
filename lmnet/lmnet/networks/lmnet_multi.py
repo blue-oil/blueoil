@@ -112,12 +112,18 @@ class LmnetMulti:
                     fn = tf.gather(tf.gather(tp_tn_fp_fn, 3), label_i)
                     accuracy = (tp + tn) / (tp + tn + fp + fn)
 
-                    tf.compat.v1.summary.scalar("accuracy/prob_{}/{}".format(threshold, self.classes[label_i]), accuracy)
+                    tf.compat.v1.summary.scalar(
+                        "accuracy/prob_{}/{}".format(threshold, self.classes[label_i]),
+                        accuracy
+                    )
 
                     recall = (tp) / (tp + fn)
 
                     tf.compat.v1.summary.scalar("recall/prob_{}/{}".format(threshold, self.classes[label_i]), recall)
 
                     precision = (tp) / (tp + fp)
-                    tf.compat.v1.summary.scalar("precision/prob_{}/{}".format(threshold, self.classes[label_i]), precision)
+                    tf.compat.v1.summary.scalar(
+                        "precision/prob_{}/{}".format(threshold, self.classes[label_i]),
+                        precision
+                    )
         return accuracy

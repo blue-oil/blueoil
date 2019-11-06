@@ -211,10 +211,6 @@ class YoloV2(BaseNetwork):
 
             tf.compat.v1.summary.histogram("predict_boxes_center_x", resized_predict_boxes_for_summary[:, :, 0])
             tf.compat.v1.summary.histogram("predict_boxes_center_y", resized_predict_boxes_for_summary[:, :, 1])
-            # tf.compat.v1.summary.histogram("predict_boxes_w", resized_predict_boxes_for_summary[:, :, 2])
-            # tf.compat.v1.summary.scalar("predict_boxes_max_w", tf.reduce_max(resized_predict_boxes_for_summary[:, :, 2]))
-            # tf.compat.v1.summary.histogram("predict_boxes_h", resized_predict_boxes_for_summary[:, :, 3])
-            # tf.compat.v1.summary.scalar("predict_boxes_max_h", tf.reduce_max(resized_predict_boxes_for_summary[:, :, 3]))
 
             summary_boxes(
                 "boxes",
@@ -409,8 +405,8 @@ class YoloV2(BaseNetwork):
         resized_boxes = tf.stack([
             (resized_boxes[:, :, :, :, 0] * num_cell_x - offset_x),
             (resized_boxes[:, :, :, :, 1] * num_cell_y - offset_y),
-           tf.math.log(resized_boxes[:, :, :, :, 2] * num_cell_x / offset_w + epsilon),
-           tf.math.log(resized_boxes[:, :, :, :, 3] * num_cell_y / offset_h + epsilon),
+            tf.math.log(resized_boxes[:, :, :, :, 2] * num_cell_x / offset_w + epsilon),
+            tf.math.log(resized_boxes[:, :, :, :, 3] * num_cell_y / offset_h + epsilon),
         ], axis=4)
 
         return resized_boxes

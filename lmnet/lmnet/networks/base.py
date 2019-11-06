@@ -40,7 +40,7 @@ class BaseNetwork(object):
     def __init__(
             self,
             is_debug=False,
-            optimizer_class=tf.compat.v1.GradientDescentOptimizer,
+            optimizer_class=tf.compat.v1.train.GradientDescentOptimizer,
             optimizer_kwargs=None,
             learning_rate_func=None,
             learning_rate_kwargs=None,
