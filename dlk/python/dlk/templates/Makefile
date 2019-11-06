@@ -1,20 +1,11 @@
-DEVICE := CycloneV
-CLOCK  := {{ config.ip_frequency }}
-
-COMPONENTS := --component binary_convolution_hls
-
 SRC_DIR := ./src
 MAINS_DIR := ./mains
 INPUTS_SRC_DIR := ./src/inputs
 DLK_TEST_SRC_DIR := ./src/test_data
 
 LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
-{%- if config.activate_hard_quantization %}
-    $(SRC_DIR)/scaling_factors.cpp \
-{%- endif %}
-{%- if config.threshold_skipping %}
-    $(SRC_DIR)/thresholds.cpp \
-{%- endif %}
+    $(wildcard $(SRC_DIR)/scaling_factors.cpp) \
+    $(wildcard $(SRC_DIR)/thresholds.cpp) \
     $(SRC_DIR)/func/average_pool.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
@@ -76,7 +67,6 @@ LIB_OBJ := $(patsubst %.cpp, %.o, $(LIB_SRC))
 OBJ := $(patsubst %.cpp, %.o, $(SRC))
 
 INCLUDES := -I./include
-HLS_INCLUDE := -I./hls/include
 
 
 TARGETS_X86  := lm_x86
@@ -112,12 +102,7 @@ ARS_ARM     := ar_arm
 ARS_FPGA    := ar_fpga
 
 
-RM_TARGETS_LIST := hls_simulation \
-                   hls_synthesis \
-                   derive_threshold
 RM       := rm -rf
-
-HLS_INSTALL_DIR := $(shell which i++ | sed 's|/bin/i++||g')
 
 .PHONY: clean
 clean:
