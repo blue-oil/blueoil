@@ -30,7 +30,7 @@ namespace {
 
 template<typename T, typename U>
 void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
-    const TensorView<T, MemoryLayout::HWNC>& kernels,
+    const TensorView<T, MemoryLayout::HWOI>& kernels,
     const TensorView<U, MemoryLayout::NHWC>& output,
     struct convolution_parameters& p) {
   const int ic = p.kernel_depth;
@@ -76,8 +76,8 @@ void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
 // kernel format converter
 // ohwi : oc kh kw ic, hwoi: kh kw oc ic
 template<typename T>
-void ohwi_to_hwoi(const TensorView<T, MemoryLayout::NHWC>& ohwi,
-    const TensorView<T, MemoryLayout::HWNC>& hwoi,
+void ohwi_to_hwoi(const TensorView<T, MemoryLayout::OHWI>& ohwi,
+    const TensorView<T, MemoryLayout::HWOI>& hwoi,
     const struct convolution_parameters& p) {
   int ic = p.kernel_depth;
   int oc = p.output_channels;
@@ -97,7 +97,7 @@ void ohwi_to_hwoi(const TensorView<T, MemoryLayout::NHWC>& ohwi,
 
 template<typename T, typename U>
 void conv1x1_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
-                    const TensorView<T, MemoryLayout::NHWC>& kernels,
+                    const TensorView<T, MemoryLayout::OHWI>& kernels,
                     const TensorView<U, MemoryLayout::NHWC>& output,
                     struct convolution_parameters& p) {
   int ic = p.kernel_depth;
@@ -123,7 +123,7 @@ void conv1x1_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
 template<typename T>
 void conv_general(
   const TensorView<T, MemoryLayout::NHWC>& input,
-  const TensorView<T, MemoryLayout::NHWC>& kernels,
+  const TensorView<T, MemoryLayout::OHWI>& kernels,
   const TensorView<T, MemoryLayout::NHWC>& output,
   struct convolution_parameters p)
 {
@@ -172,7 +172,7 @@ void conv_general(
 template<typename T>
 void convolution(
   const TensorView<T, MemoryLayout::NHWC>& input,
-  const TensorView<T, MemoryLayout::NHWC>& kernels,
+  const TensorView<T, MemoryLayout::OHWI>& kernels,
   const TensorView<T, MemoryLayout::NHWC>& output,
   struct convolution_parameters p)
 {
@@ -184,7 +184,7 @@ void convolution(
   } else if (p.kernel_height == 3 && p.kernel_width == 3 && p.padding == 1) {
     int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
     const auto kernels_hwoi_buf = std::make_unique<T[]>(kernels_size);
-    using hwoi_t = TensorView<T, MemoryLayout::HWNC>;
+    using hwoi_t = TensorView<T, MemoryLayout::HWOI>;
     typename hwoi_t::template tensor_info_t<std::size_t> hwoi_shape = {
       p.kernel_height,
       p.kernel_width,
@@ -204,7 +204,7 @@ void convolution(
 } // namespace
 
 void func_Conv2D(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
-    const TensorView<T_FLOAT, MemoryLayout::NHWC>& weights,
+    const TensorView<T_FLOAT, MemoryLayout::OHWI>& weights,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     struct convolution_parameters p) {
   Measurement::Start("Convolution");

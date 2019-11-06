@@ -29,9 +29,10 @@ enum class MemoryLayout {
   TC, // Table, Channel
   HWC, // Height, Width, Channel
   NHWC, // Batch, Height, Width, Channel
-  OHWC, // Output Channel, Height, Width, Input Channel
+  OHWI, // Output Channel, Height, Width, Input Channel
   WNC, // Width, Batch, Channel
   HWNC, // Height, Width, Batch, Channel
+  HWOI, // Height, Width, Output Channel, Input Channel
   ChHWCl, // Channel (Higher dimension), Height, Width, Channel (Lower dimension)
   HWChBCl, // Height, Width, Channel (Higher dimension), Bit digit, Channel (Lower dimension)
   ChHWBCl, // Channel (Higher dimension), Height, Width, Bit digit, Channel (Lower dimension)
@@ -51,9 +52,10 @@ constexpr std::size_t get_dim(const MemoryLayout& layout) {
     case MemoryLayout::TC: return 2;
     case MemoryLayout::HWC: return 3;
     case MemoryLayout::NHWC: return 4;
-    case MemoryLayout::OHWC: return 4;
+    case MemoryLayout::OHWI: return 4;
     case MemoryLayout::WNC: return 3;
     case MemoryLayout::HWNC: return 4;
+    case MemoryLayout::HWOI: return 4;
     case MemoryLayout::ChHWCl: return 4;
     case MemoryLayout::HWChBCl: return 5;
     case MemoryLayout::ChHWBCl: return 5;
@@ -76,7 +78,6 @@ constexpr MemoryLayout inner_layout(const MemoryLayout& layout) {
     case MemoryLayout::WC: return MemoryLayout::C;
     case MemoryLayout::HWC: return MemoryLayout::WC;
     case MemoryLayout::NHWC: return MemoryLayout::HWC;
-    case MemoryLayout::OHWC: return MemoryLayout::HWC;
     case MemoryLayout::WNC: return MemoryLayout::NC;
     case MemoryLayout::HWNC: return MemoryLayout::WNC;
     default: return MemoryLayout::Invalid;
@@ -246,9 +247,9 @@ class TensorView<QuantizedPacked<T>, memory_layout> {
 #ifdef RUN_ON_FPGA
 using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>;
 #elif defined USE_NEON || defined USE_AVX
-using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::NHWC>;
+using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OHWI>;
 #else
-using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWNC>;
+using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWOI>;
 #endif
 
 #endif
