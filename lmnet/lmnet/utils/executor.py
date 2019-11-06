@@ -60,22 +60,22 @@ checkpoints_dir: {checkpoints_dir}
     print(message)
 
     if recreate:
-        if gfile.Exists(experiment_dir):
+        if gfile.exists(experiment_dir):
             gfile.DeleteRecursively(experiment_dir)
 
-        if gfile.Exists(tensorboard_dir):
+        if gfile.exists(tensorboard_dir):
             gfile.DeleteRecursively(tensorboard_dir)
 
-        if gfile.Exists(checkpoints_dir):
+        if gfile.exists(checkpoints_dir):
             gfile.DeleteRecursively(checkpoints_dir)
 
-    if not gfile.Exists(experiment_dir):
+    if not gfile.exists(experiment_dir):
         gfile.MakeDirs(experiment_dir)
 
-    if not gfile.Exists(tensorboard_dir):
+    if not gfile.exists(tensorboard_dir):
         gfile.MakeDirs(tensorboard_dir)
 
-    if not gfile.Exists(checkpoints_dir):
+    if not gfile.exists(checkpoints_dir):
         gfile.MakeDirs(checkpoints_dir)
 
 

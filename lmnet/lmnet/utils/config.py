@@ -234,7 +234,7 @@ def save_yaml(output_dir, config):
     2. 'meta.yaml' for application. The yaml's keys defined by `PARAMS_FOR_EXPORT`.
     """
 
-    if not gfile.Exists(output_dir):
+    if not gfile.exists(output_dir):
         gfile.MakeDirs(output_dir)
 
     config_yaml_path = _save_config_yaml(output_dir, config)
@@ -277,7 +277,7 @@ def copy_to_experiment_dir(config_file):
     # HACK: This is for tensorflow bug workaround.
     # We can remove following 2 lines once it's been resolved in tensorflow
     # issue link: https://github.com/tensorflow/tensorflow/issues/28508
-    if gfile.Exists(saved_config_file_path):
+    if gfile.exists(saved_config_file_path):
         gfile.Remove(saved_config_file_path)
 
     gfile.Copy(config_file, saved_config_file_path)

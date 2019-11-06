@@ -102,7 +102,7 @@ def _load_yaml(blueoil_config_filename):
         dict: blueoil config.
 
     """
-    if not gfile.Exists(blueoil_config_filename):
+    if not gfile.exists(blueoil_config_filename):
         FileNotFoundError("File not found: {}".format(blueoil_config_filename))
 
     with gfile.GFile(blueoil_config_filename, "r") as f:
