@@ -26,13 +26,11 @@ class TestDevice(unittest.TestCase):
     """Base class for Device Test."""
 
     def get_param(self, test_case_path):
-        params = {
+        return {
             'library': os.path.join(test_case_path, "lib.so"),
             'input_npy': os.path.join(test_case_path, "input.npy"),
             'expected_npy': os.path.join(test_case_path, "expected.npy"),
-        }
-
-        return params
+            }
 
     def get_test_cases(self):
         input_path = os.environ.get('DEVICE_TEST_INPUT_PATH')
