@@ -107,12 +107,12 @@ def test_joints_to_gaussian_heatmap():
                              [17, 17, 0]])
 
     pre_process = JointsToGaussianHeatmap(image_size, num_joints=num_joints,
-                                          stride=stride, sigma=2, max_value=10)
+                                          stride=stride, sigma=2)
 
     heatmap = pre_process(joints=input_joints)["heatmap"]
 
     # It is hard to test semantic correctness of a gaussian heatmap manually.
-    # That part will be tested jointly with FormatJoints() in test_post_processor.py.
+    # That part will be tested jointly with GaussianHeatmapToJoints() in test_post_processor.py.
     assert isinstance(heatmap, np.ndarray)
     assert heatmap.shape[0] == image_size[0] // stride
     assert heatmap.shape[1] == image_size[1] // stride
