@@ -29,14 +29,14 @@ class View(object):
         return len(self.node.shape)
 
     @property
-    def shape(self):
+    def size_in_words_as_cpp(self):
         if self.op.dtype == QUANTIZED_PACKED():
             return '*'.join(map(lambda x: str(x), self.op.shape)) + f' / (sizeof({self.op.dtype.cpptype()}) * CHAR_BIT)'
         else:
             return '*'.join(map(lambda x: str(x), self.op.shape))
 
     @property
-    def shape_list(self):
+    def shape_as_cpp(self):
         return ','.join(map(lambda x: str(x), self.op.shape))
 
     def run(self):
