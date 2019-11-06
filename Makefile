@@ -21,17 +21,17 @@ test: build test-classification test-object-detection test-semantic-segmentation
 .PHONY: test-classification
 test-classification: build
 	# Run Blueoil test of classification
-	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task classification
+	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) pytest tests/e2e/test_classification.py
 
 .PHONY: test-object-detection
 test-object-detection: build
 	# Run Blueoil test of object-detection
-	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task object_detection
+	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) pytest tests/e2e/test_object_detection.py
 
 .PHONY: test-semantic-segmentation
 test-semantic-segmentation: build
 	# Run Blueoil test of semantic-segmentation
-	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task semantic_segmentation --additional_test
+	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) pytest tests/e2e/test_semantic_segmentation.py
 
 .PHONY: test-lmnet
 test-lmnet: test-lmnet-pep8 test-lmnet-main
