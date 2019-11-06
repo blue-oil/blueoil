@@ -33,7 +33,7 @@ class DeviceTest(unittest.TestCase):
             }
 
     def get_test_cases(self):
-        input_path = os.environ.get('DEVICE_TEST_INPUT_PATH')
+        input_path = os.environ['DEVICE_TEST_INPUT_PATH']
         test_case_paths = [d for d in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, d))]
 
         return [[test_case, self.get_param(os.path.join(input_path, test_case))] for test_case in test_case_paths]
