@@ -43,7 +43,7 @@ class View(object):
         op = self.op
         input_ops = op.input_ops
         output_ops = op.output_ops
-        inputs_string = self.inputs_to_string(input_ops)
+        inputs_string = self.inputs_to_string(op, input_ops)
         shape_string = self.shape_to_string(op.shape)
 
         if op.available_buffer != '':
@@ -73,7 +73,7 @@ class View(object):
             if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -112,13 +112,7 @@ class View(object):
                 k_elems = kh * kw * kd
                 od = ((od + b - 1) // b) * b
 
-                if input_ops['X'].op_type == 'Split':
-                    for k, v in input_ops['X'].output_ops.items():
-                        if v[0] == op:
-                            inputs_string = str(input_ops['X'].name) + '_' + str(k)
-                    inputs_string = inputs_string + ', ' + input_ops['W'].name
-                else:
-                    inputs_string = self.inputs_to_string(input_ops)
+                inputs_string = self.inputs_to_string(op, input_ops)
 
                 if op.has_thresholds:
                     threshold = f'{op.name}_thresholds'
@@ -178,13 +172,7 @@ class View(object):
                 kd = x_op.channel
                 k_elems = kh * kw * kd
 
-                if input_ops['X'].op_type == 'Split':
-                    for k, v in input_ops['X'].output_ops.items():
-                        if v[0] == op:
-                            inputs_string = str(input_ops['X'].name) + '_' + str(k)
-                    inputs_string = inputs_string + ', ' + input_ops['W'].name
-                else:
-                    inputs_string = self.inputs_to_string(input_ops)
+                inputs_string = self.inputs_to_string(op, input_ops)
 
                 render_string = self.format_string(
                     f"""
@@ -217,7 +205,7 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -245,7 +233,7 @@ class View(object):
             elems = op.size
             pad = op.pads[0]
             stride = op.strides[0]
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -282,7 +270,7 @@ class View(object):
             elems = op.size
             pad = op.pads[0]
             stride = op.strides[0]
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
             output = 'output'  # NotImplemented
 
             return self.format_string(
@@ -311,7 +299,7 @@ class View(object):
 
             index_data_op = input_ops[1]
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -323,7 +311,7 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -340,7 +328,7 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -365,7 +353,7 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -377,7 +365,7 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -389,7 +377,7 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -401,7 +389,7 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -413,7 +401,7 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -425,7 +413,7 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             alpha = op.alpha
 
@@ -439,7 +427,7 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -451,7 +439,7 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
             shape_string = self.shape_to_string(op.shape)
 
             return self.format_string(
@@ -464,7 +452,7 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
             conv_scaling_factor = op.conv_scaling_factor
 
             return self.format_string(
@@ -493,7 +481,7 @@ class View(object):
             pad = op.pads[0]
             stride = op.strides[0]
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -518,7 +506,7 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -535,7 +523,7 @@ class View(object):
             k_w = op.kernel_shape[1]
             stride_w = op.strides[1]
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
             shape_string = self.shape_to_string(op.shape)
 
             args1 = f"{inputs_string}, {op.name}, "
@@ -566,7 +554,7 @@ class View(object):
             if len(input_ops) != 5:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -578,7 +566,7 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
             shape_string = self.shape_to_string(op.shape)
 
             bs = op.block_size
@@ -598,7 +586,7 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -609,7 +597,7 @@ class View(object):
             if len(input_ops) < 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
             shape_string = self.shape_to_string(op.shape)
 
             number_of_inputs = len(input_ops)
@@ -618,7 +606,7 @@ class View(object):
                 if not v.is_variable:
                     concat_input[k] = v
 
-            inputs_string = self.inputs_to_string(concat_input)
+            inputs_string = self.inputs_to_string(op, concat_input)
 
             return self.format_string(
                 f"""
@@ -629,7 +617,7 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -640,7 +628,7 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             bs = op.block_size
             x_op = input_ops['input']
@@ -657,7 +645,7 @@ class View(object):
             )
         elif self.op.op_type == 'ResizeNearestNeighbor':
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             args1 = f"{inputs_string}, {op.name}"
 
@@ -670,7 +658,7 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
             outputs_string = self.outputs_to_string(op, output_ops)
 
             ns = op.num_splits
@@ -689,7 +677,7 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             a_op = input_ops['A']
 
@@ -702,7 +690,7 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
@@ -713,9 +701,11 @@ class View(object):
             if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(input_ops)
+            inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(f"""func_Lookup({inputs_string}, {op.name});""")
+
+        raise TypeError(f"{self.op.op_type} is not supported in View.run().")
 
     def render_alias(self, op, input_ops, output_ops):
         if len(input_ops) != 1:
@@ -729,8 +719,18 @@ class View(object):
 
         return dedent(string).strip()
 
-    def inputs_to_string(self, inputs):
-        return ', '.join(map(lambda x: str(x.name), inputs.values()))
+    def inputs_to_string(self, op, inputs):
+
+        def input_to_string(op, in_op):
+            if in_op.op_type == 'Split':
+                for k, v in in_op.output_ops.items():
+                    if op in v:
+                        return str(in_op.name) + '_' + str(k)
+                raise ValueError(f'invalid graph structure: {in_op.name} must have {op.name} as one of its output ops')
+            else:
+                return str(in_op.name)
+
+        return ', '.join(map(lambda x: input_to_string(op, x), inputs.values()))
 
     def outputs_to_string(self, node, outputs):
         return ', '.join(map(lambda x: str(node.name + '_' + x), outputs.keys()))

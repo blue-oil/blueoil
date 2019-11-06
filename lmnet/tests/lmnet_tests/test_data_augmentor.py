@@ -38,10 +38,9 @@ from lmnet.data_augmentor import (
     Hue,
     Pad,
     RandomPatchCut,
-    SSDRandomCrop,
-    iou,
-    _crop_boxes,
+    SSDRandomCrop
 )
+from lmnet.utils.box import iou, crop_boxes
 
 
 # Apply reset_default_graph() and set_test_environment() in conftest.py to all tests in this file.
@@ -316,14 +315,14 @@ def test_crop_boxes():
     expected = np.array([
         [0, 0, 5, 5, 100],
     ])
-    cropped = _crop_boxes(boxes, crop_rect)
+    cropped = crop_boxes(boxes, crop_rect)
     assert np.allclose(cropped, expected)
 
     crop_rect = [80, 30, 100, 100]
     expected = np.array([
         [0, 0, 10, 50, 100],
     ])
-    cropped = _crop_boxes(boxes, crop_rect)
+    cropped = crop_boxes(boxes, crop_rect)
     assert np.allclose(cropped, expected)
 
     # crop include box
@@ -331,7 +330,7 @@ def test_crop_boxes():
     expected = np.array([
         [5, 15, 80, 60, 100],
     ])
-    cropped = _crop_boxes(boxes, crop_rect)
+    cropped = crop_boxes(boxes, crop_rect)
     assert np.allclose(cropped, expected)
 
     # overlap
@@ -339,25 +338,25 @@ def test_crop_boxes():
     expected = np.array([
         [0, 0, 80, 60, 100],
     ])
-    cropped = _crop_boxes(boxes, crop_rect)
+    cropped = crop_boxes(boxes, crop_rect)
     assert np.allclose(cropped, expected)
 
     # When crop rect is external boxes, raise error.
     crop_rect = [0, 0, 5, 100]
-    with pytest.raises(AssertionError):
-        cropped = _crop_boxes(boxes, crop_rect)
+    with pytest.raises(ValueError):
+        cropped = crop_boxes(boxes, crop_rect)
 
     crop_rect = [0, 0, 100, 5]
-    with pytest.raises(AssertionError):
-        cropped = _crop_boxes(boxes, crop_rect)
+    with pytest.raises(ValueError):
+        cropped = crop_boxes(boxes, crop_rect)
 
     crop_rect = [95, 0, 5, 5]
-    with pytest.raises(AssertionError):
-        cropped = _crop_boxes(boxes, crop_rect)
+    with pytest.raises(ValueError):
+        cropped = crop_boxes(boxes, crop_rect)
 
     crop_rect = [30, 85, 5, 5]
-    with pytest.raises(AssertionError):
-        cropped = _crop_boxes(boxes, crop_rect)
+    with pytest.raises(ValueError):
+        cropped = crop_boxes(boxes, crop_rect)
 
 
 if __name__ == '__main__':
