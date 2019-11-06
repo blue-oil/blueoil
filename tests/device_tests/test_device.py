@@ -22,7 +22,7 @@ from nnlib import NNLib as NNLib
 import numpy as np
 
 
-class TestDevice(unittest.TestCase):
+class DeviceTest(unittest.TestCase):
     """Base class for Device Test."""
 
     def get_param(self, test_case_path):
