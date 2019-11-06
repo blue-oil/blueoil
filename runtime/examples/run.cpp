@@ -64,9 +64,7 @@ int main(int argc, char **argv) {
   blueoil::Tensor output =  predictor.Run(image);
 
   std::cout << "Results !" << std::endl;
-  for (float j : output.data()) {
-    std::cout << j << std::endl;
-  }
+  output.dump();
 
   std::exit(0);
 }
