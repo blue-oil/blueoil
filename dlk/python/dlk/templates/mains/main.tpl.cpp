@@ -61,13 +61,13 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  if({{ graph_input.view.shape }} != debug_input_data.size()) {
-    std::cout << "Error: debug input shape should be {{ graph_input.view.shape }} but got " << debug_input_shape << std::endl;
+  if({{ graph_input.view.size_in_words_as_cpp }} != debug_input_data.size()) {
+    std::cout << "Error: debug input shape should be {{ graph_input.view.size_in_words_as_cpp }} but got " << debug_input_shape << std::endl;
     return -1;
   }
 
-  if({{ graph_output.view.shape }} != debug_output_data.size()) {
-    std::cout << "Error: debug output shape should be {{ graph_output.view.shape }} but got " << debug_output_shape << std::endl;
+  if({{ graph_output.view.size_in_words_as_cpp }} != debug_output_data.size()) {
+    std::cout << "Error: debug output shape should be {{ graph_output.view.size_in_words_as_cpp }} but got " << debug_output_shape << std::endl;
     return -1;
   }
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  std::vector<{{ graph_output.dtype.cpptype() }}> output({{ graph_output.view.shape }});
+  std::vector<{{ graph_output.dtype.cpptype() }}> output({{ graph_output.view.size_in_words_as_cpp }});
 
   Measurement::Start("TotalRunTime");
   nn.run(debug_input_data.data(), output.data());
