@@ -523,14 +523,14 @@ class Constant(Variable):
                  name: str,
                  dtype: DataType,
                  data: np.ndarray,
-                 dimension_format: str = 'NHWC',
-                 transposed_dimension_format: str = 'NHWC',
+                 dimension_format: str = 'OHWI',
+                 transposed_dimension_format: str = 'OHWI',
                  packed: bool = False,
                  actual_shape: List[int] = [],
                  transposed_data: List[int] = None,
                  transposed_shape: List[int] = None,
                  kn2row_data: List[int] = None,
-                 kn2row_dimension_format: str = 'HWNC',
+                 kn2row_dimension_format: str = 'HWOI',
                  kn2row_shape: List[int] = None,) -> None:
         """Init the variable.
 
@@ -3035,6 +3035,10 @@ class Prod(Operator):
     def is_monotonic(self) -> bool:
         return False
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Shape(Operator):
     r"""Shape operator.
@@ -3059,4 +3063,8 @@ class Shape(Operator):
 
     @property
     def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
         return False

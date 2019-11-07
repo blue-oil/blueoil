@@ -1,10 +1,10 @@
 # Generate a configuration file
 
-You can generate your configuration file interactively by running `blueoil init`.
+You can generate your configuration file interactively by running `python blueoil/cmd/main.py init`.
 
-    $ ./blueoil.sh init
+    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py init
 
-`blueoil init` generates a configuration file used to train your new model.
+`python blueoil/cmd/main.py init` generates a configuration file used to train your new model.
 
 Below is an example.
 ```

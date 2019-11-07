@@ -66,11 +66,20 @@ We can test each opereations of drore_run.sh by using shell script.
 - `expect` >= version 5.45
 
 ```
-$ ./blueoil_test.sh
-
-Usage: ./blueoil_test.sh <YML_CONFIG_FILE(optional)>
-
-Arguments:
-  YML_CONFIG_FILE       config file path for this test (optional)
+$ make test
 ```
 
+You can test specific task.
+
+```
+$ CUDA_VISIBLE_DEVICES={YOUR_GPU_ID} make test-classification
+$ CUDA_VISIBLE_DEVICES={YOUR_GPU_ID} make test-object-detection
+$ CUDA_VISIBLE_DEVICES={YOUR_GPU_ID} make test-semantic-segmentation
+```
+
+You can also test the modules used in Blueoil.
+
+```
+$ make test-lmnet
+$ make test-dlk
+```
