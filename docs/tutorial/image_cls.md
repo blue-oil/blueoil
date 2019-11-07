@@ -48,9 +48,9 @@ The CIFAR-10 dataset consists of 60,000 32x32 color images split into 10 classe
 
 ## Generate a configuration file
 
-Generate your model configuration file interactively by running the `blueoil init` command.
+Generate your model configuration file interactively by running the `python blueoil/cmd/main.py init` command.
 
-    $ ./blueoil.sh init
+    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py init
 
 Below is an example configuration.
 
@@ -79,19 +79,23 @@ Below is an example configuration.
 - Image size: 32x32
 - Number of epoch: (Any number)
 
-If configuration finishes, the configuration file is generated in the `{Model name}.yml` under `./config` directory.
+If configuration finishes, the configuration file is generated in the `{Model name}.yml` under current directory.
+
+When you want to create config yaml in specific filename or directory, you can use `-o` option.
+
+    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py init -o ./configs/my_config.yml
 
 ## Train a neural network
 
-Train your model by running `blueoil train` with model configuration.
+Train your model by running `python blueoil/cmd/main.py train` with model configuration.
 
-    $ ./blueoil.sh train config/{Model name}.yml
+    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py train -c {PATH_TO_CONFIG.yml}
 
 When training has started, the training log and checkpoints are generated under `./saved/{Mode name}_{TIMESTAMP}`.
 
 Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
-    $ ./blueoil.sh tensorboard saved/{Model name}_{TIMESTAMP} {Port}
+    $ tensorboard --logdir=saved/{Model name}_{TIMESTAMP} --port {Port}
 
 - Loss / Cross Entropy, Loss, Weight Decay
 <img src="../_static/train_loss.png">
@@ -105,9 +109,9 @@ Training is running on TensorFlow backend. So you can use TensorBoard to visuali
 Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
-    $ ./blueoil.sh convert config/[Model name].yml saved/{Mode name}_{TIMESTAMP}
+    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py convert -e {Model name}
 
-`Blueoil convert` automatically executes some conversion processes.
+`python blueoil/cmd/main.py convert` automatically executes some conversion processes.
 - Converts Tensorflow checkpoint to protocol buffer graph.
 - Optimizes graph.
 - Generates source code for executable binary.

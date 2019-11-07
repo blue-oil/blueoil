@@ -1,6 +1,7 @@
 IMAGE_NAME:=blueoil_$$(id -un)
 BUILD_VERSION:=$(shell git describe --tags --always --dirty --match="v*" 2> /dev/null || cat $(CURDIR/.version 2> /dev/null || echo v0))
 DOCKER_OPT:=--runtime=nvidia
+CWD:=$$(pwd)
 
 default: build
 
@@ -20,17 +21,17 @@ test: build test-classification test-object-detection test-semantic-segmentation
 .PHONY: test-classification
 test-classification: build
 	# Run Blueoil test of classification
-	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task classification
+	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) pytest tests/e2e/test_classification.py
 
 .PHONY: test-object-detection
 test-object-detection: build
 	# Run Blueoil test of object-detection
-	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task object_detection
+	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) pytest tests/e2e/test_object_detection.py
 
 .PHONY: test-semantic-segmentation
 test-semantic-segmentation: build
 	# Run Blueoil test of semantic-segmentation
-	CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) bash ./blueoil_test.sh  --task semantic_segmentation --additional_test
+	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) pytest tests/e2e/test_semantic_segmentation.py
 
 .PHONY: test-lmnet
 test-lmnet: test-lmnet-pep8 test-lmnet-main
@@ -61,7 +62,7 @@ test-dlk-pep8: build
 .PHONY: test-dlk-main
 test-dlk-main: build
 	# Run dlk test
-	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
+	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -v $(CWD)/output:/home/blueoil/dlk/output -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && python setup.py test"
 
 .PHONY: clean
 clean:

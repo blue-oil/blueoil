@@ -34,8 +34,9 @@ def visualize_classification(image, post_processed, config):
         post_processed (np.ndarray): A one batch output of model be already applied post process.
             format is defined at https://github.com/blue-oil/blueoil/blob/master/lmnet/docs/specification/output_data.md
         config (EasyDict): Inference config.
+
     Returns:
-        iamge (PIL.Image.Image): drawn image object.
+        PIL.Image.Image: drawn image object.
 
     """
     colormap = get_color_map(len(config.CLASSES))
@@ -68,8 +69,9 @@ def visualize_object_detection(image, post_processed, config):
         post_processed (np.ndarray): A one batch output of model be already applied post process.
             format is defined at https://github.com/blue-oil/blueoil/blob/master/lmnet/docs/specification/output_data.md
         config (EasyDict): Inference config.
+
     Returns:
-        iamge (PIL.Image.Image): drawn image object.
+        PIL.Image.Image: drawn image object.
 
     """
     colormap = get_color_map(len(config.CLASSES))
@@ -109,8 +111,9 @@ def visualize_semantic_segmentation(image, post_processed, config):
         post_processed (np.ndarray): A one batch output of model be already applied post process.
             format is defined at https://github.com/blue-oil/blueoil/blob/master/lmnet/docs/specification/output_data.md
         config (EasyDict): Inference config.
+
     Returns:
-        iamge (PIL.Image.Image): drawn image object.
+        PIL.Image.Image: drawn image object.
 
     """
     colormap = np.array(get_color_map(len(config.CLASSES)), dtype=np.uint8)
@@ -142,6 +145,7 @@ def label_to_color_image(results, colormap):
     Raises:
         ValueError: If label is not of rank 2 or its value is larger than color
             map maximum entry.
+
     """
     if results.ndim != 4:
         raise ValueError('Expect 4-D input results (1, height, width, classes).')
@@ -157,9 +161,11 @@ def draw_fps(pil_image, fps, fps_only_network):
     """Draw FPS information to image object.
 
     Args:
-       pil_image (PIL.Image.Image): Image object to be draw FPS.
-       fps (float): Entire inference FPS .
-       fps_only_network (float): FPS of network only (not pre/post process).
+        pil_image (PIL.Image.Image): Image object to be draw FPS.
+        fps (float): Entire inference FPS .
+        fps_only_network (float): FPS of network only (not pre/post process).
+
+    Returns:
 
     """
     font_size = 20

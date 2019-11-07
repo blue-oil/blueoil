@@ -25,9 +25,7 @@ pytestmark = pytest.mark.usefixtures("set_test_environment")
 
 
 def test_core_configs():
-    """
-    Test that all config files in `configs/core` dir include requirement keys.
-    """
+    """Test that all config files in `configs/core` dir include requirement keys."""
     dir_path = os.path.join("configs", "core")
 
     for config_file in glob.glob(os.path.join(dir_path, "**", "*.py"), recursive=True):
@@ -37,9 +35,7 @@ def test_core_configs():
 
 
 def test_convert_weight_from_darknet_configs():
-    """
-    Test that all config files in `configs/convert_weight_from_darknet` dir include requirement keys.
-    """
+    """Test that all config files in `configs/convert_weight_from_darknet` dir include requirement keys."""
     dir_path = os.path.join("configs", "convert_weight_from_darknet")
 
     for config_file in glob.glob(os.path.join(dir_path, "**", "*.py"), recursive=True):
@@ -48,9 +44,7 @@ def test_convert_weight_from_darknet_configs():
 
 
 def test_example_config():
-    """
-    Test that example config python file include requirement keys.
-    """
+    """Test that example config python file include requirement keys."""
 
     dir_path = os.path.join("configs", "example")
 
@@ -61,9 +55,7 @@ def test_example_config():
 
 
 def test_example_classification_config_yaml():
-    """
-    Test that export config and meta yaml from example classification config python.
-    """
+    """Test that export config and meta yaml from example classification config python."""
 
     config_file = os.path.join("configs", "example", "classification.py")
 
@@ -91,9 +83,7 @@ def test_example_classification_config_yaml():
 
 
 def test_example_object_detection_config_yaml():
-    """
-    Test that export config and meta yaml from example object_detection config python.
-    """
+    """Test that export config and meta yaml from example object_detection config python."""
 
     config_file = os.path.join("configs", "example", "object_detection.py")
 

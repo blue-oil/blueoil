@@ -57,6 +57,7 @@ def linear_mid_tread_half_quantizer(
             max_value (int): Be used for shift and clip.
             backward (callable): Be used in backpropagation.
             dtype (tf.DType): Define the data type of args of forward and backward.
+
         Returns:
             callable: forward function (grad_func defined).
 
@@ -71,10 +72,12 @@ def linear_mid_tread_half_quantizer(
         """Backward.
 
         Args:
-            op(tf.Operation): The forward operation.
-            grad_quantized(tf.Tensor): The gradient w.r.t quantized input, weights normally.
+            op (tf.Operation): The forward operation.
+            grad_quantized (tf.Tensor): The gradient w.r.t quantized input, weights normally.
+
         Returns:
             tf.Variable: The gradient w.r.t. normal (non-quantized) input.
+
         """
         if backward:
             return backward(op, grad_quantized)
@@ -88,9 +91,11 @@ def linear_mid_tread_half_quantizer(
         """Forward.
 
         Args:
-            x(tf.Variable): The input to be quantized, weights normally.
+            x (tf.Variable): The input to be quantized, weights normally.
+
         Returns:
             callable: The wrapped function which returns the quantized input.
+
         """
 
         @Defun(dtype, tf.int32, tf.float32, python_grad_func=_backward,

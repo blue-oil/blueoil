@@ -26,16 +26,9 @@ class BaseIO(metaclass=ABCMeta):
     def read(self, path: str) -> Model:
         """Read a model.
 
-        Parameters
-        ----------
-        path : str
-            Path to the file to be read
-
-        Returns
-        -------
-        model : Model
-            The model
-
+        Args:
+            path (str): Path to the file to be read
+        
         """
         pass
 
@@ -43,13 +36,8 @@ class BaseIO(metaclass=ABCMeta):
     def write(self, model: Model, path: str) -> None:
         """Write the model to a file.
 
-        Parameters
-        ----------
-        model : Model
-            Model to be written
-
-        path : str
-            Path to the written file
-
+        Args:
+            model (Model): Model to be written
+        
         """
         pass

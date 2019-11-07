@@ -25,13 +25,9 @@ class Packer:
                  wordsize: int) -> None:
         """Initialize packer object.
 
-        Parameters
-        ----------
-        bitwidth: int
-            Bitwidth of a kernel
-
-        wordsize: int
-            Wordsize
+        Args:
+            bitwidth (int): Bitwidth of a kernel
+            wordsize (int): Wordsize
 
         """
         super().__init__()
@@ -51,20 +47,15 @@ class Packer:
     def run(self, tensor: np.ndarray, data_format: str = 'NHWC') -> np.ndarray:
         """Pack a tensor.
 
-        Parameters
-        ----------
-        tensor : np.ndarray
-            Input tensor.
+        Args:
+            tensor (np.ndarray): Input tensor.
+            data_format (str): Order of dimension. This defaults to 'NHWC', where 'N' is
+                the number of kernels, 'H' and 'W' are the height and
+                width, and 'C' is the depth / the number of channels.
 
-        data_format : str
-            Order of dimension. This defaults to 'NHWC', where 'N' is
-            the number of kernels, 'H' and 'W' are the height and width,
-            and 'C' is the depth / the number of channels.
-
-        Returns
-        -------
-        output_tensor : np.ndarray
-            Quantized tensor.
+        Returns:
+            np.ndarray: Quantized tensor.
+        
         """
 
         wordsize = self.wordsize
