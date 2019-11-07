@@ -54,9 +54,9 @@ CamVid dataset consists of 360x480 color images in 12 classes. There are 367 tr
 
 ## Generate a configuration file
 
-Generate your model configuration file interactively by running `blueoil.sh init` command.
+Generate your model configuration file interactively by running the `python blueoil/cmd/main.py init` command.
 
-    $ ./blueoil.sh init
+    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py init
 
 This is an example of the initialization procedure.
 
@@ -81,17 +81,23 @@ Please choose augmentors:  done (5 selections)
 apply quantization at the first layer?  no
 ```
 
+If configuration finishes, the configuration file is generated in the `{Model name}.yml` under current directory.
+
+When you wnat to create config yaml in specific filename or directory, you can use `-o` option.
+
+    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py init -o ./configs/my_config.yml
+
 ## Train a network model
 
-Train your model by running `blueoil.sh train` command with model configuration.
+Train your model by running `python blueoil/cmd/main.py train` command with model configuration.
 
-    $ ./blueoil.sh train config/{Model name}.yml
+    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py train -c {PATH_TO_CONFIG.yml}
 
 When training has started, the training log and checkpoints will be generated under `./saved/{Mode name}_{TIMESTAMP}`.
 
 Training is running on the TensorFlow backend. So you can use TensorBoard to visualize your training progress.
 
-    $ ./blueoil.sh tensorboard saved/{Model name}_{TIMESTAMP} {Port}
+    $ tensorboard --logdir=saved/{Model name}_{TIMESTAMP} --port {Port}
 
 - Learning Rate / Loss
 <img src="../_static/semantic_segmentation_loss.png">
@@ -107,9 +113,9 @@ Training is running on the TensorFlow backend. So you can use TensorBoard to vis
 Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
-    $ ./blueoil.sh convert config/{Model name}.yml saved/{Mode name}_{TIMESTAMP}
+    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py convert -e {Model name}
 
-`blueoil.sh convert` automatically executes some conversion processes.
+`python blueoil/cmd/main.py convert` automatically executes some conversion processes.
 - Convert Tensorflow checkpoint to protocol buffer graph.
 - Optimize graph
 - Generate source code for executable binary
