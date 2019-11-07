@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
 
   Measurement::Start("TotalInitTime");
   Network nn;
+  std::cout << "This network will try to allocate " << nn.memory() / 1024.0 / 1024.0 << " MB on the heap" << std::endl;
   bool initialized = nn.init();
   Measurement::Stop();
 
