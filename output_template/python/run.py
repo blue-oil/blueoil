@@ -15,8 +15,10 @@
 # =============================================================================
 import numpy as np
 import click
+import logging
 import os
 import sys
+import time
 
 from lmnet.nnlib import NNLib as NNLib
 
@@ -28,6 +30,8 @@ from lmnet.utils.config import (
     build_pre_process,
     build_post_process,
 )
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def _pre_process(raw_image, pre_processor, data_format):
@@ -51,7 +55,7 @@ def _save_json(output_dir, json_obj):
         os.makedirs(dirname)
     with open(output_file_name, "w") as json_file:
         json_file.write(json_obj)
-    print("save json: {}".format(output_file_name))
+    logger.info("save json: {}".format(output_file_name))
 
 
 def _save_images(output_dir, filename_images):
@@ -62,10 +66,10 @@ def _save_images(output_dir, filename_images):
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         image.save(output_file_name)
-        print("save image: {}".format(output_file_name))
+        logger.info("save image: {}".format(output_file_name))
 
 
-def _run(model, input_image, config):
+def _run(model, image_data, config):
     filename, file_extension = os.path.splitext(model)
     supported_files = ['.so', '.pb']
 
@@ -73,19 +77,8 @@ def _run(model, input_image, config):
         raise Exception("""
             Unknown file type. Got %s%s.
             Please check the model file (-m).
-            Only .pb (protocol buffer) or .so (shared object) file is supported.
+            Only .pb (protocol buffer), .so (shared object) file is supported.
             """ % (filename, file_extension))
-
-    # load the image
-    data = load_image(input_image)
-
-    raw_image = data
-
-    # pre process for image
-    data = _pre_process(data, config.PRE_PROCESSOR, config.DATA_FORMAT)
-
-    # add the batch dimension
-    data = np.expand_dims(data, axis=0)
 
     if file_extension == '.so':  # Shared library
         # load and initialize the generated shared model
@@ -100,29 +93,50 @@ def _run(model, input_image, config):
         nn.init()
 
     # run the graph
-    output = nn.run(data)
+    output = nn.run(image_data)
 
-    return output, raw_image
+    return output
 
 
-def run_prediction(input_image, model, config_file, max_percent_incorrect_values=0.1):
+def _timerfunc(func, extraArgs, trial):
+    runtime = 0.
+    for i in range(trial):
+        start = time.process_time()
+        value = func(*extraArgs)
+        end = time.process_time()
+        runtime += end - start
+        msg = "Function {func} took {time} seconds to complete"
+        logger.info(msg.format(func=func.__name__, time=end - start))
+    logger.info("Avg(func {}): {} sec.".format(func.__name__, runtime / trial))
+    return value, runtime / trial
+
+
+def run_prediction(input_image, model, config_file, max_percent_incorrect_values=0.1, trial=1):
     if not input_image or not model or not config_file:
-        print('Please check usage with --help option')
+        logger.error('Please check usage with --help option')
         exit(1)
 
     config = load_yaml(config_file)
 
-    # run the model
-    output, raw_image = _run(model, input_image, config)
+    # load the image
+    image_data = load_image(input_image)
+    raw_image = image_data
 
-    print('Output: (before post process)')
-    print(output)
+    # pre process for image
+    image_data, bench_pre = _timerfunc(_pre_process, (image_data, config.PRE_PROCESSOR, config.DATA_FORMAT), trial)
+
+    # add the batch dimension
+    image_data = np.expand_dims(image_data, axis=0)
+
+    # run the model to inference
+    output, bench_inference = _timerfunc(_run, (model, image_data, config), trial)
+
+    logger.info('Output: (before post process)\n{}'.format(output))
 
     # pre process for output
-    output = _post_process(output, config.POST_PROCESSOR)
+    output, bench_post = _timerfunc(_post_process, (output, config.POST_PROCESSOR), trial)
 
-    print('Output: ')
-    print(output)
+    logger.info('Output: (after post process)\n{}'.format(output))
 
     # json output
     json_output = JsonOutput(
@@ -130,6 +144,12 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
         classes=config.CLASSES,
         image_size=config.IMAGE_SIZE,
         data_format=config.DATA_FORMAT,
+        bench={
+            "total": (bench_pre + bench_post + bench_inference) / trial,
+            "pre": bench_pre / trial,
+            "post": bench_post / trial,
+            "inference": bench_inference / trial,
+        },
     )
 
     image_from_json = ImageFromJson(
@@ -146,6 +166,9 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
     _save_json(output_dir, json_obj)
     filename_images = image_from_json(json_obj, raw_images, image_files)
     _save_images(output_dir, filename_images)
+    logger.info("Benchmark avg result(sec) for {} trials: pre_process: {}  inference: {} post_process: {}  Total: {}"
+                .format(trial, bench_pre / trial, bench_inference / trial, bench_post / trial,
+                        (bench_pre + bench_post + bench_inference) / trial,))
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
@@ -172,15 +195,21 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
     type=click.Path(exists=True),
     help="Config file Path",
 )
-def main(input_image, model, config_file):
+@click.option(
+    "--trial",
+    help="# of trial for Benchmark",
+    type=click.INT,
+    default=1,
+)
+def main(input_image, model, config_file, trial):
     _check_deprecated_arguments()
-    run_prediction(input_image, model, config_file)
+    run_prediction(input_image, model, config_file, trial)
 
 
 def _check_deprecated_arguments():
     argument_list = sys.argv
     if '-l' in argument_list:
-        print("Deprecated warning: -l is deprecated please use -m instead")
+        logger.warn("Deprecated warning: -l is deprecated please use -m instead")
 
 
 if __name__ == "__main__":
