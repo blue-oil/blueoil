@@ -16,7 +16,7 @@
 import os
 from datetime import datetime
 
-from tensorflow.io import gfile
+from tensorflow import gfile
 import yaml
 
 from blueoil.generate_lmnet_config import generate
@@ -52,7 +52,7 @@ def run(blueoil_config_file, experiment_id):
 
 def save_config_file(config_file, dest_dir):
     if not gfile.exists(dest_dir):
-        gfile.makeDirs(dest_dir)
+        gfile.MakeDirs(dest_dir)
 
     config_file_dest = os.path.join(dest_dir, 'blueoil_config.yaml')
 

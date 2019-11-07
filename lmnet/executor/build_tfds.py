@@ -56,7 +56,7 @@ def _get_tfds_builder_class(dataset_class):
 
 
 def _copy_directory_recursively(src, dst):
-    tf.io.gfile.makeDirs(dst)
+    tf.io.gfile.makedirs(dst)
     for parent, directories, files in tf.io.gfile.walk(src):
         for directory in directories:
             src_dir = os.path.join(parent, directory)

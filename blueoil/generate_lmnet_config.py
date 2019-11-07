@@ -21,7 +21,7 @@ from tempfile import NamedTemporaryFile
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
-from tensorflow.io import gfile
+from tensorflow import gfile
 
 from lmnet.utils.module_loader import load_class
 
