@@ -8,9 +8,13 @@ EXPOSE 6006
 # Python version settings
 ARG python_version="3.6.3"
 
+# Set env
+# HOROVOD_: install horovod with nccl and tensorflow option
 ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
     CUDA_HOME=/usr/local/cuda-10.0 \
-    PYENV_ROOT=/usr/local/pyenv
+    PYENV_ROOT=/usr/local/pyenv \
+    HOROVOD_GPU_ALLREDUCE=NCCL \
+    HOROVOD_WITH_TENSORFLOW=1
 
 RUN apt-get update && apt-get install -y \
     cmake \
@@ -93,23 +97,19 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
 RUN pip install -U pip setuptools
 
 FROM base AS blueoil-base
+
 # Install requirements
 COPY ./*requirements.txt /home/blueoil/
-RUN pip install -r /home/blueoil/gpu.requirements.txt
+
+# For distributed training temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs
+RUN pip install -r /home/blueoil/gpu.requirements.txt && \
+    ldconfig
 
 # Build coco. It needs numpy.
 COPY lmnet/third_party /home/blueoil/lmnet/third_party
 # https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
 RUN cd /home/blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
-
-# Set env to install horovod with nccl and tensorflow option
-ENV HOROVOD_GPU_ALLREDUCE=NCCL \
-    HOROVOD_WITH_TENSORFLOW=1
-
-# Install requirements for distributed training temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs && \
-    pip install -r /home/blueoil/dist.requirements.txt && \
-    ldconfig
 
 # we cannot customize the path of this temporal directory...
 RUN mkdir /.horovod && chmod 777 /.horovod
@@ -117,6 +117,10 @@ RUN mkdir /.horovod && chmod 777 /.horovod
 WORKDIR /home/blueoil
 
 FROM blueoil-base AS blueoil-dev
+
+RUN pip install -r /home/blueoil/dev.requirements.txt
+
+FROM blueoil-base AS blueoil
 
 # Copy blueoil sources to docker image
 COPY blueoil /home/blueoil/blueoil

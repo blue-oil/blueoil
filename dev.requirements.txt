@@ -1,5 +1,4 @@
 -r test.requirements.txt
--r docs.requirements.txt
 -r requirements.txt
 ipdb==0.10.2
 ray==0.6.4
