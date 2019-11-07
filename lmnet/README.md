@@ -133,7 +133,7 @@ Options:
 ```
 
 `--network` and `--dataset` option will override config on-the-fly.  
-If you'd like to use your own custom config, please refer to `configs/example/classification.py` before your training. See also [Config specification](docs/specification/config.md).
+If you'd like to use your own custom config, please refer to `configs/example/classification.py` before your training. See also [Config specification](../docs/specification/config.md).
 To run training in Docker, read the [lmnet in Docker](docs/docker/README.md) page.
 
 ## Saving model and training results
