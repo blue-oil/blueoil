@@ -62,7 +62,7 @@ def save_config_file(config_file, dest_dir):
     if gfile.exists(config_file_dest):
         gfile.Remove(config_file_dest)
 
-    return gfile.Copy(
+    return gfile.copy(
         config_file,
         config_file_dest
     )

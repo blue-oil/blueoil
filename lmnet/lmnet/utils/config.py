@@ -280,7 +280,7 @@ def copy_to_experiment_dir(config_file):
     if gfile.exists(saved_config_file_path):
         gfile.Remove(saved_config_file_path)
 
-    gfile.Copy(config_file, saved_config_file_path)
+    gfile.copy(config_file, saved_config_file_path)
 
 
 def init_config(config, training_id, recreate=False):
