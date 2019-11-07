@@ -70,13 +70,13 @@ checkpoints_dir: {checkpoints_dir}
             gfile.DeleteRecursively(checkpoints_dir)
 
     if not gfile.exists(experiment_dir):
-        gfile.MakeDirs(experiment_dir)
+        gfile.makedirs(experiment_dir)
 
     if not gfile.exists(tensorboard_dir):
-        gfile.MakeDirs(tensorboard_dir)
+        gfile.makedirs(tensorboard_dir)
 
     if not gfile.exists(checkpoints_dir):
-        gfile.MakeDirs(checkpoints_dir)
+        gfile.makedirs(checkpoints_dir)
 
 
 def search_restore_filename(checkpoints_dir):

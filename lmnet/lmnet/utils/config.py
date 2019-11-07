@@ -19,7 +19,7 @@ from abc import ABCMeta
 
 import yaml
 from easydict import EasyDict
-from tensorflow import gfile
+from tensorflow.io import gfile
 from yaml.representer import Representer
 
 from lmnet import environment
@@ -235,7 +235,7 @@ def save_yaml(output_dir, config):
     """
 
     if not gfile.exists(output_dir):
-        gfile.MakeDirs(output_dir)
+        gfile.makedirs(output_dir)
 
     config_yaml_path = _save_config_yaml(output_dir, config)
     meta_yaml_path = _save_meta_yaml(output_dir, config)
