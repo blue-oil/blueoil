@@ -32,9 +32,9 @@ def _create_tensorboard_event(tensorboard_dir):
 
     train_writer = tf.summary.FileWriter(train_dir)
     test_writer = tf.summary.FileWriter(test_dir)
-    tf.summary.scalar("scalar_1", tf.constant(1.0))
-    tf.summary.scalar("scalar_2", tf.constant(2.0))
-    merged = tf.summary.merge_all()
+    tf.compat.v1.summary.scalar("scalar_1", tf.constant(1.0))
+    tf.compat.v1.summary.scalar("scalar_2", tf.constant(2.0))
+    merged = tf.compat.v1.summary.merge_all()
 
     train_writer.add_summary(merged.eval(), 0)
     train_writer.add_summary(merged.eval(), 2)
