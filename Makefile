@@ -16,7 +16,8 @@ build: deps
 	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
 
 .PHONY: test
-test: build test-classification test-object-detection test-semantic-segmentation
+test: build
+	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/
 
 .PHONY: test-classification
 test-classification: build
