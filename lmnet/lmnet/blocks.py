@@ -34,7 +34,7 @@ def darknet(name, inputs, filters, kernel_size, is_training=tf.constant(False), 
     else:
         raise ValueError("data format must be 'NCHW' or 'NHWC'. got {}.".format(data_format))
 
-    with tf.variable_scope(name):
+    with tf.compat.v1.variable_scope(name):
         if activation is None:
             def activation(x): return tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
 
@@ -47,10 +47,10 @@ def darknet(name, inputs, filters, kernel_size, is_training=tf.constant(False), 
         # https://github.com/pjreddie/darknet/blob/8215a8864d4ad07e058acafd75b2c6ff6600b9e8/src/batchnorm_layer.c#L135
         batch_normed = batch_norm("bn", conv, is_training=is_training, decay=0.99, scale=True, center=True,
                                   data_format=data_format)
-        tf.summary.histogram("batch_normed", batch_normed)
+        tf.compat.v1.summary.histogram("batch_normed", batch_normed)
 
         output = activation(batch_normed)
-        tf.summary.histogram("output", output)
+        tf.compat.v1.summary.histogram("output", output)
 
         return output
 
@@ -78,7 +78,7 @@ def lmnet_block(
         inputs(tf.Tensor): Inputs.
         filters(int): Number of filters for convolution.
         kernel_size(int): Kernel size.
-        custom_getter(callable): Custom getter for `tf.variable_scope`.
+        custom_getter(callable): Custom getter for `tf.compat.v1.variable_scope`.
         is_training(tf.constant): Flag if training or not.
         activation(callable): Activation function.
         use_bias(bool): If use bias.
@@ -88,7 +88,7 @@ def lmnet_block(
     Returns:
         tf.Tensor: Output of current layer block.
     """
-    with tf.variable_scope(name, custom_getter=custom_getter):
+    with tf.compat.v1.variable_scope(name, custom_getter=custom_getter):
         conv = tf.layers.conv2d(inputs, filters=filters, kernel_size=kernel_size, padding='SAME', use_bias=False,
                                 data_format=data_format)
 
@@ -123,10 +123,10 @@ def lmnet_block(
             output = biased
 
         if is_debug:
-            tf.summary.histogram('conv', conv)
-            tf.summary.histogram('batch_normed', batch_normed)
-            tf.summary.histogram('biased', biased)
-            tf.summary.histogram('output', output)
+            tf.compat.v1.summary.histogram('conv', conv)
+            tf.compat.v1.summary.histogram('batch_normed', batch_normed)
+            tf.compat.v1.summary.histogram('biased', biased)
+            tf.compat.v1.summary.histogram('output', output)
 
         return output
 
@@ -168,7 +168,7 @@ def conv_bn_act(
     else:
         raise ValueError("data format must be 'NCHW' or 'NHWC'. got {}.".format(data_format))
 
-    with tf.variable_scope(name):
+    with tf.compat.v1.variable_scope(name):
         conved = tf.layers.conv2d(
             inputs,
             filters=filters,
@@ -196,9 +196,9 @@ def conv_bn_act(
             output = batch_normed
 
         if enable_detail_summary:
-            tf.summary.histogram('conv_output', conved)
-            tf.summary.histogram('batch_norm_output', batch_normed)
-            tf.summary.histogram('output', output)
+            tf.compat.v1.summary.histogram('conv_output', conved)
+            tf.compat.v1.summary.histogram('batch_norm_output', batch_normed)
+            tf.compat.v1.summary.histogram('output', output)
 
         return output
 
@@ -223,7 +223,7 @@ def _densenet_conv_bn_act(
     """
     bottleneck_channel = growth_rate * bottleneck_rate
 
-    with tf.variable_scope(name):
+    with tf.compat.v1.variable_scope(name):
 
         output_1x1 = conv_bn_act(
             "bottleneck_1x1",
@@ -259,7 +259,7 @@ def _densenet_conv_bn_act(
         output = tf.concat([inputs, output_3x3], axis=concat_axis)
 
         if enable_detail_summary:
-            tf.summary.histogram('output', output)
+            tf.compat.v1.summary.histogram('output', output)
 
     return output
 
@@ -302,7 +302,7 @@ def densenet_group(
         tf.Tensor: Output of current  block.
     """
 
-    with tf.variable_scope(name):
+    with tf.compat.v1.variable_scope(name):
         x = inputs
         for i in range(num_blocks):
             x = _densenet_conv_bn_act(

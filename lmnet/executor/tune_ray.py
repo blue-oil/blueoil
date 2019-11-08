@@ -193,7 +193,7 @@ class TrainTunable(Trainable):
             )
 
         self.global_step = tf.Variable(0, name="global_step", trainable=False)
-        self.is_training_placeholder = tf.placeholder(tf.bool, name="is_training_placeholder")
+        self.is_training_placeholder = tf.compat.v1.placeholder(tf.bool, name="is_training_placeholder")
         self.images_placeholder, self.labels_placeholder = model.placeholders()
 
         output = model.inference(self.images_placeholder, self.is_training_placeholder)
@@ -218,7 +218,7 @@ class TrainTunable(Trainable):
         self.sess = tf.Session(config=session_config)
         self.sess.run([init_op, self.reset_metrics_op])
         self.iterations = 0
-        self.saver = tf.train.Saver()
+        self.saver = tf.compat.v1.train.Saver()
 
     def _train(self):
         step_per_epoch = int(self.train_dataset.num_per_epoch / self.lm_config.BATCH_SIZE)
