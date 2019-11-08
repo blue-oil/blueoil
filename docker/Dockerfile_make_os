@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y debootstrap \
 qemu-user-static \
 && rm -rf /var/lib/apt/lists/*
 
-# This are necessary package for compiling kernel for future so that they're remained as comment.
+# These packages are necessary for compiling the kernel for the future.
 #
 #gcc-8-aarch64-linux-gnu \
 #vim \
@@ -15,7 +15,6 @@ qemu-user-static \
 #flex \
 #device-tree-compiler \
 
-# Thise symbolic links are necessary for compiling kernel for future so that they're remained as comment.
+# Theise symbolic links are necessary for compiling the kernel for the future.
 #RUN ln -s /usr/bin/aarch64-linux-gnu-gcc-8 /usr/local/bin/aarch64-linux-gnu-gcc && \
 #ln -s /usr/bin/aarch64-linux-gnu-cpp-8 /usr/local/bin/aarch64-linux-gnu-cpp
-

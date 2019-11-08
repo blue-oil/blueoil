@@ -70,15 +70,14 @@ rootfs-docker:
 
 .PHONY: rootfs-armhf
 rootfs-armhf: rootfs-docker 
-	docker run -v `pwd`/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh armhf
+	docker run -v $(CWD)/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh armhf
 
 .PHONY: rootfs-arm64
 rootfs-arm64: rootfs-docker
-	docker run -v `pwd`/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh arm64
+	docker run -v $(CWD)/make_os/build:/build -it --privileged $(IMAGE_NAME)_os /build/make_rootfs.sh arm64
 
 .PHONY: clean
 clean:
 	# Clean created files
 	docker rmi  $(IMAGE_NAME):$(BUILD_VERSION)
 	rm -rf tmp/*
-

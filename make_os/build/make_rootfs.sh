@@ -5,44 +5,41 @@ if [ $# -ne 1 ]; then
 	exit 1 
 fi
 
-BIT_32_OR_64=$1
+DEBOOTSTRAP_ARCH=$1
 
-if [ $1 = "armhf" ]; then
-	DEBOOTSTRAP_ARCH=armhf
+if [ ${DEBOOTSTRAP_ARCH} = "armhf" ]; then
 	QEMU_ARCH=arm
-	OUTPUT_FNAME=rootfs_armhf.tgz
-elif [ $1 = "arm64" ]; then
-	DEBOOTSTRAP_ARCH=arm64
+elif [ ${DEBOOTSTRAP_ARCH} = "arm64" ]; then
 	QEMU_ARCH=aarch64
-	OUTPUT_FNAME=rootfs_arm64.tgz
 else
-	echo "Error: Argumnet should be armhf or arm64"
+	echo "Error: Argument should be armhf or arm64"
 	exit 1
 fi
 
+OUTPUT_FNAME=rootfs_${DEBOOTSTRAP_ARCH}.tgz
+
 BUILD_DIR=/build
-ROOTFS_DIR=$BUILD_DIR/rootfs
+ROOTFS_DIR=${BUILD_DIR}/rootfs
 
 # Chcek if the $ROOTFS_DIR exists or not
-if [ -d $ROOTFS_DIR ]; then
-	echo "Error: $ROOTFS_DIR on docker environment already exists"
+if [ -d ${ROOTFS_DIR} ]; then
+	echo "Error: ${ROOTFS_DIR} on docker environment already exists"
 	exit 1
 fi
 
 # Check if $ROOTFS_DIR/$OUTPUT_NAME exists or not
-if [ -e $BUILD_DIR/$OUTPUT_FNAME ]; then
-	echo "Error: $BUILD_DIR/$OUTPUT_FNAME on docker environment already exists"
+if [ -e ${BUILD_DIR}/${OUTPUT_FNAME} ]; then
+	echo "Error: ${BUILD_DIR}/${OUTPUT_FNAME} on docker environment already exists"
 	exit 1
 fi
 
 # Make rootfs
-debootstrap --arch=$DEBOOTSTRAP_ARCH --keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg --verbose --foreign bionic $ROOTFS_DIR
-cp /usr/bin/qemu-${QEMU_ARCH}-static $ROOTFS_DIR/usr/bin/
-cp $BUILD_DIR/setting_after_chroot.sh $ROOTFS_DIR
-chroot $ROOTFS_DIR /bin/bash /setting_after_chroot.sh
+debootstrap --arch=${DEBOOTSTRAP_ARCH} --keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg --verbose --foreign bionic ${ROOTFS_DIR}
+cp /usr/bin/qemu-${QEMU_ARCH}-static ${ROOTFS_DIR}/usr/bin/
+cp ${BUILD_DIR}/setting_after_chroot.sh ${ROOTFS_DIR}
+chroot ${ROOTFS_DIR} /bin/bash /setting_after_chroot.sh
 
 # Here is after chroot
-rm $ROOTFS_DIR/setting_after_chroot.sh
-tar cvzf $BUILD_DIR/$OUTPUT_FNAME -C $BUILD_DIR rootfs --remove-file
-chmod a=rw $BUILD_DIR/$OUTPUT_FNAME
-
+rm ${ROOTFS_DIR}/setting_after_chroot.sh
+tar cvzf ${BUILD_DIR}/${OUTPUT_FNAME} -C ${BUILD_DIR} rootfs --remove-file
+chmod a=rw ${BUILD_DIR}/${OUTPUT_FNAME}
