@@ -53,7 +53,7 @@ test-lmnet-check-dataset-storage: build
 	docker run $(DOCKER_OPT) -v /storage/dataset:/storage/dataset -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) -e DATA_DIR=/storage/dataset --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-check_dataset_storage"
 
 .PHONY: test-dlk
-test-dlk: test-dlk-pep8 test-dlk-main
+test-dlk: test-dlk-pep8 test-dlk-main test-dlk-x86_64 test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64
 
 .PHONY: test-dlk-pep8
 test-dlk-pep8: build
@@ -63,7 +63,27 @@ test-dlk-pep8: build
 .PHONY: test-dlk-main
 test-dlk-main: build
 	# Run dlk test
-	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -v $(CWD)/output:/home/blueoil/dlk/output -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && pytest tests/"
+	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pytest tests/ --ignore=tests/test_code_generation.py"
+
+.PHONY: test-dlk-x86_64
+test-dlk-x86_64: build
+	# Run dlk test of code_generation for x86_64
+	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pytest tests/test_code_generation.py::TestCodeGenerationX8664"
+
+.PHONY: test-dlk-arm
+test-dlk-arm: build
+	# Run dlk test of code_generation for arm
+	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && pytest tests/test_code_generation.py::TestCodeGenerationArm"
+
+.PHONY: test-dlk-arm_fpga
+test-dlk-arm_fpga: build
+	# Run dlk test of code_generation for arm_fpga
+	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && pytest tests/test_code_generation.py::TestCodeGenerationArmFpga"
+
+.PHONY: test-dlk-aarch64
+test-dlk-aarch64: build
+	# Run dlk test of code_generation for aarch64
+	docker run --rm -t -v $(CWD)/output:/home/blueoil/dlk/output $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pytest tests/test_code_generation.py::TestCodeGenerationAarch64"
 
 .PHONY: rootfs-docker
 rootfs-docker:
