@@ -57,6 +57,7 @@ class TensorflowGraphRunner:
             data: returned result of the graph
 
         Returns:
-            result(array): The result array of the graph
+            array: The result array of the graph
+
         """
         return self.sess.run(self.output_op, feed_dict={self.images_placeholder: data})

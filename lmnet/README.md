@@ -42,7 +42,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 # install python requirements
-pip install -r cpu.requirements.txt
+pip install -r ../cpu.requirements.txt
 pip install -e third_party/coco/PythonAPI
 
 # start sample training by lmnet_v0 and cifar-10. It takes few minutes.
@@ -64,9 +64,9 @@ The following versions of Python can be used: `3.5`, `3.6`.
 To manage the version, we are using `requirements.txt`
 style.
 - only CPU
-`pip install -r cpu.requirements.txt`
+`pip install -r ../cpu.requirements.txt`
 - with GPU
-`pip install -r gpu.requirements.txt`
+`pip install -r ../gpu.requirements.txt`
 
 Install third_party:
 
@@ -133,7 +133,7 @@ Options:
 ```
 
 `--network` and `--dataset` option will override config on-the-fly.  
-If you'd like to use your own custom config, please refer to `configs/example/classification.py` before your training. See also [Config specification](docs/specification/config.md).
+If you'd like to use your own custom config, please refer to `configs/example/classification.py` before your training. See also [Config specification](../docs/specification/config.md).
 To run training in Docker, read the [lmnet in Docker](docs/docker/README.md) page.
 
 ## Saving model and training results

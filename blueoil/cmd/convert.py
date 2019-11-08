@@ -22,7 +22,15 @@ from scripts.generate_project import run as run_generate_project
 
 
 def create_output_directory(output_root_dir, output_template_dir=None):
-    """Create output directory from template."""
+    """Create output directory from template.
+
+    Args:
+        output_root_dir: 
+        output_template_dir:  (Default value = None)
+
+    Returns:
+
+    """
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     env_output_template_dir = os.environ.get(
@@ -44,13 +52,20 @@ def create_output_directory(output_root_dir, output_template_dir=None):
     return output_directories
 
 
-def get_output_directories(output_roor_dir):
-    """Return output directories."""
+def get_output_directories(output_root_dir):
+    """
 
-    model_dir = os.path.join(output_roor_dir, "models")
+    Args:
+        output_root_dir:
+
+    Returns:
+
+    """
+
+    model_dir = os.path.join(output_root_dir, "models")
     library_dir = os.path.join(model_dir, "lib")
     output_directories = dict(
-        root_dir=output_roor_dir,
+        root_dir=output_root_dir,
         model_dir=model_dir,
         library_dir=library_dir,
     )
@@ -58,7 +73,12 @@ def get_output_directories(output_roor_dir):
 
 
 def strip_binary(output):
-    """Strip binary file."""
+    """Strip binary file.
+
+    Args:
+        output: 
+
+    """
 
     if output == "lm_x86.elf":
         subprocess.run(("strip", output))
@@ -71,7 +91,13 @@ def strip_binary(output):
 
 
 def make_all(project_dir, output_dir):
-    """Make each target."""
+    """Make each target.
+
+    Args:
+        project_dir (str): Path to project directory
+        output_dir (str): Path to output directory
+
+    """
 
     make_list = [
         ["lm_x86", "lm_x86.elf"],
@@ -116,9 +142,17 @@ def run(experiment_id,
         project_name=None):
     """Convert from trained model.
 
+    Args:
+        experiment_id: 
+        restore_path: 
+        output_template_dir:  (Default value = None)
+        image_size: (Default value = (None)
+        project_name: (Default value = None)
+
     Returns:
-        output_root_dir (str): Path of exported dir.
+        str: Path of exported dir.
             (i.e. `(path to saved)/saved/det_20190326181434/export/save.ckpt-161/128x128/output/`)
+
     """
 
     # Export model
@@ -158,3 +192,14 @@ def run(experiment_id,
     make_all(project_dir, output_directories.get("library_dir"))
 
     return output_root_dir
+
+
+def convert(experiment_id, checkpoint=None, template=None, image_size=(None, None), project_name=None):
+    output_dir = os.environ.get('OUTPUT_DIR', 'saved')
+
+    if checkpoint is None:
+        restore_path = None
+    else:
+        restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
+
+    return run(experiment_id, restore_path, template, image_size, project_name)

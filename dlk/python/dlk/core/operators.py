@@ -96,13 +96,9 @@ class Operator(object):
         This is a substitute for an `assert` statement. The `assert` is
         not checked in byte-compiled code, but this is always checked.
 
-        Parameters
-        ----------
-        predicate : bool
-            Assertion to be true
-
-        message : str
-            Error message in the failure of the assertion
+        Args:
+            predicate (bool): Assertion to be true
+            message (str): Error message in the failure of the assertion
 
         """
         if not predicate:
@@ -157,11 +153,9 @@ class Operator(object):
     def input_ops(self) -> Ops:
         """Return a dict of input operators.
 
-        Returns
-        -------
-        ops : Dict of operators
-            Collection of input operators in a dictionary format.
-            The keys are input symbols, which can be taken from `input_names` property.
+        Returns:
+            dict: Collection of input operators in a dictionary format.
+                The keys are input symbols, which can be taken from `input_names` property.
 
         """
         return self._input_ops
@@ -173,10 +167,8 @@ class Operator(object):
         For example, `Conv` has two inputs, 'X' for the input data and 'W' for the weight.
         So `Conv.input_names` returns the list `['X', 'W']`.
 
-        Returns
-        -------
-        names : list of str
-            List of key names
+        Returns:
+            list[str]: List of key names
 
         """
         return cls._input_names
@@ -185,11 +177,9 @@ class Operator(object):
     def input_nodes(self) -> List['Operator']:
         """Return a list of input operators in proper order (original protobuf argument order).
 
-        Returns
-        -------
-        ops : List of operators
-            This list is already ordered following the order of the arguments in the original
-             protobuf operators (positional order in the list of arguments).
+        Returns:
+            list[Operator]: This list is already ordered following the order of the arguments in the original
+                protobuf operators (positional order in the list of arguments).
 
         """
         return [self._input_ops[i] for i in self.input_names if self.input_ops.get(i)]
@@ -198,11 +188,9 @@ class Operator(object):
     def output_ops(self) -> OutOps:
         """Return a dict of output operators.
 
-        Returns
-        -------
-        op_lists : Dict of list of operators
-            Collection of (list of) output operators in a dictionary format.
-            The keys are output symbols, which can be taken from `output_names` property.
+        Returns:
+            dict: Collection of (list of) output operators in a dictionary format.
+                The keys are output symbols, which can be taken from `output_names` property.
 
         """
         return self._output_ops
@@ -211,10 +199,8 @@ class Operator(object):
     def output_op_list(self) -> List['Operator']:
         """Return a list of output operators.
 
-        Returns
-        -------
-        ops : list of operators
-            List of output operators.
+        Returns:
+            list[Operator]: List of output operators.
 
         """
         return sum(list(self._output_ops.values()), [])
@@ -226,10 +212,8 @@ class Operator(object):
         For example, `Conv` has one output 'Y'.
         So `Conv.output_names` returns the list `['Y']`.
 
-        Returns
-        -------
-        names : list of str
-            List of key names
+        Returns:
+            list[str]: List of key names
 
         """
         return cls._output_names
@@ -237,13 +221,9 @@ class Operator(object):
     def add_input(self, ident: str, node: 'Operator') -> None:
         """Add input node.
 
-        Parameters
-        ----------
-        ident : str
-            key name of the input. This has to be in list `input_names`.
-
-        node : Operator
-            Node to be registered as the input.
+        Args
+            ident (str): key name of the input. This has to be in list `input_names`.
+            node (Operator): Node to be registered as the input.
 
         """
         self._assert(ident in self._input_names, "Illegal input name")
@@ -252,11 +232,9 @@ class Operator(object):
     def add_inputs(self, inputs: Ops) -> None:
         """Add input (possibly multiple) nodes at a once.
 
-        Parameters
-        ----------
-        outputs : Dict of str to Operator
-            Collection of pair of key name and a operator to be registered as the input.
-            All the key names have to be in list `input_names`.
+        Args:
+            outputs (dict): Collection of pair of key name and a operator to be registered as the input.
+                All the key names have to be in list `input_names`.
 
         """
         assert set(inputs.keys()).issubset(set(self._input_names)), "Illegal output names included"
@@ -265,13 +243,9 @@ class Operator(object):
     def add_output(self, ident: str, node: 'Operator') -> None:
         """Add output node.
 
-        Parameters
-        ----------
-        ident : str
-            key name of the output. This has to be in list `output_names`.
-
-        node : Operator
-            Node to be registered as the output.
+        Args:
+            ident (str): key name of the output. This has to be in list `output_names`.
+            node (Operator): Node to be registered as the output.
 
         """
         self._assert(ident in self._output_names, "Illegal output name")
@@ -284,11 +258,10 @@ class Operator(object):
     def add_outputs(self, outputs: OutOps) -> None:
         """Add output (possibly multiple) nodes at a once.
 
-        Parameters
-        ----------
-        outputs : Dict of str to list of Operators
-            Collection of pair of key name and a list of operators to be registered as the output.
-            All the key names have to be in list `output_names`.
+        Args:
+            outputs (Dict of str to list of Operators): Collection of pair of key name
+            and a list of operators to be registered as the output.
+                All the key names have to be in list `output_names`.
 
         """
         assert set(outputs.keys()).issubset(set(self._output_names)), f"Illegal output names included"
@@ -304,11 +277,9 @@ class Operator(object):
     def remove_input(self, ident: str) -> None:
         """Remove an input node.
 
-        Parameters
-        ----------
-        ident : str
-            Key name of the input node to be removed.
-            This key is in `input_names`, not the name of the operator.
+        Args:
+            ident (str): Key name of the input node to be removed.
+                This key is in `input_names`, not the name of the operator.
 
         """
         self._input_ops.pop(ident)
@@ -316,11 +287,9 @@ class Operator(object):
     def remove_output(self, ident: str) -> None:
         """Remove an output node.
 
-        Parameters
-        ----------
-        ident : str
-            Key name of the output node to be removed.
-            This key is in `output_names`, not the name of the operator.
+        Args:
+            ident (str): Key name of the output node to be removed.
+                This key is in `output_names`, not the name of the operator.
 
         """
         self._output_ops.pop(ident)
@@ -554,14 +523,14 @@ class Constant(Variable):
                  name: str,
                  dtype: DataType,
                  data: np.ndarray,
-                 dimension_format: str = 'NHWC',
-                 transposed_dimension_format: str = 'NHWC',
+                 dimension_format: str = 'OHWI',
+                 transposed_dimension_format: str = 'OHWI',
                  packed: bool = False,
                  actual_shape: List[int] = [],
                  transposed_data: List[int] = None,
                  transposed_shape: List[int] = None,
                  kn2row_data: List[int] = None,
-                 kn2row_dimension_format: str = 'HWNC',
+                 kn2row_dimension_format: str = 'HWOI',
                  kn2row_shape: List[int] = None,) -> None:
         """Init the variable.
 
@@ -3066,6 +3035,10 @@ class Prod(Operator):
     def is_monotonic(self) -> bool:
         return False
 
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
 
 class Shape(Operator):
     r"""Shape operator.
@@ -3090,4 +3063,8 @@ class Shape(Operator):
 
     @property
     def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
         return False
