@@ -96,7 +96,7 @@ class YoutubeFacialLandmarks(KeypointDetectionBase):
             joints: a numpy array of shape (68, 3), which has coordinates in image.
 
         """
-        image = self._get_image(self.files[item])
+        image = load_image(self.files[item])
         joints = self.joints_list[item]
 
         return image, joints
