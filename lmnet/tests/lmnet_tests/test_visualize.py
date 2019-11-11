@@ -74,10 +74,10 @@ def test_semantic_segmentation():
 def test_keypoint_detection():
     """Verify just image is changed."""
     input_image = PIL.Image.new("RGB", size=(100, 200))
-    results = np.zeros(shape=(17, 3), dtype=np.int)
-    results[0] = [30, 30, 1]
+    joints = np.zeros(shape=(17, 3), dtype=np.int)
+    joints[0] = [30, 30, 1]
 
-    result_image = visualize_keypoint_detection(np.array(input_image), results)
+    result_image = visualize_keypoint_detection(np.array(input_image), joints)
 
     assert not np.all(np.array(input_image) == np.array(result_image))
 
