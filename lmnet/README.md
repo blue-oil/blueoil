@@ -213,7 +213,7 @@ Currently, this feature is implemented for quantized classification of cifar10 a
 If you don't want to use this feature, set TRAIN_VALIDATION_SAVING_SIZE to zero.  
 
 The KEEP_CHECKPOINT_MAX is equivalent to 'max_to_keep' of tensorflow train.Saver parameter which indicates the maximum number of recent checkpoint files to keep. As new files are created, older files are deleted. 
-If None or 0, no checkpoints are deleted from the filesystem but only the last one is kept in the checkpoint file. Defaults to 5 (that is, the 5 most recent checkpoint files are kept.)
+If None or 0, no checkpoints but only the last one is kept in the checkpoint file. Defaults to 5 (that is, the 5 most recent checkpoint files are kept.)
 
 To apply this feature to another dataset, the dataset file should define another available subset called train_validation_saving, which is split from the original train dataset in the dataset file. Also a dataset parameter TRAIN_VALIDATION_SAVING_SIZE should be included in the config file.
 
