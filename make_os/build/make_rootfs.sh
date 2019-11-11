@@ -7,9 +7,9 @@ fi
 
 DEBOOTSTRAP_ARCH=$1
 
-if [ ${DEBOOTSTRAP_ARCH} = "armhf" ]; then
+if [ "${DEBOOTSTRAP_ARCH}" = "armhf" ]; then
 	QEMU_ARCH=arm
-elif [ ${DEBOOTSTRAP_ARCH} = "arm64" ]; then
+elif [ "${DEBOOTSTRAP_ARCH}" = "arm64" ]; then
 	QEMU_ARCH=aarch64
 else
 	echo "Error: Argument should be armhf or arm64"
@@ -22,13 +22,13 @@ BUILD_DIR=/build
 ROOTFS_DIR=${BUILD_DIR}/rootfs
 
 # Chcek if the $ROOTFS_DIR exists or not
-if [ -d ${ROOTFS_DIR} ]; then
+if [ -d "${ROOTFS_DIR}" ]; then
 	echo "Error: ${ROOTFS_DIR} on docker environment already exists"
 	exit 1
 fi
 
 # Check if $ROOTFS_DIR/$OUTPUT_NAME exists or not
-if [ -e ${BUILD_DIR}/${OUTPUT_FNAME} ]; then
+if [ -e "${BUILD_DIR}/${OUTPUT_FNAME}" ]; then
 	echo "Error: ${BUILD_DIR}/${OUTPUT_FNAME} on docker environment already exists"
 	exit 1
 fi

@@ -15,6 +15,6 @@ qemu-user-static \
 #flex \
 #device-tree-compiler \
 
-# Theise symbolic links are necessary for compiling the kernel for the future.
+# These symbolic links are necessary for compiling the kernel for the future.
 #RUN ln -s /usr/bin/aarch64-linux-gnu-gcc-8 /usr/local/bin/aarch64-linux-gnu-gcc && \
 #ln -s /usr/bin/aarch64-linux-gnu-cpp-8 /usr/local/bin/aarch64-linux-gnu-cpp
