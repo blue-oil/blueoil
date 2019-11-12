@@ -225,7 +225,7 @@ Exporting a trained model to proto buffer files and meta config yaml.
 In the case with `images` option, create each layer output value npy files in `export/{restore_path}/{image_size}/{image_name}/**.npy` for debug.
 
 * Load config file from saved experiment dir.
-* Export config file to yaml. See also [Config specification](docs/specification/config.md).
+* Export config file to yaml. See also [Config specification](../docs/specification/config.md).
   * `config.yaml` can be used for training and evaluation in python. i.e. [classification.yaml](configs/example/classification.yaml) is exported from [classification.py](configs/example/classification.py)
   * `meta.yaml` include only few parameter for application such as demo. i.e. [classification_meta.yaml](configs/example/classification_meta.yaml) is exported from [classification.py](configs/example/classification.py)
 * Save the model protocol buffer files (tf) for DLK converter.
@@ -328,7 +328,7 @@ Save the predictions npy, json, images results to output dir.
 * json: `{output_dir}/json/{batch number}.json`
 * images: `{output_dir}/images/{some type}/{input image file name}`
 
-The output predictions Tensor(npy) and json format depends on task type. Plsease see [Output Data Specification](docs/specification/output_data.md).
+The output predictions Tensor(npy) and json format depends on task type. Plsease see [Output Data Specification](../docs/specification/output_data.md).
 
 ```
 python3 executor/predict.py -h
