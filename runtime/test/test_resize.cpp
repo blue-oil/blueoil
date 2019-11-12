@@ -114,7 +114,7 @@ int test_resize() {
   }
   blueoil::Tensor output_bilinear = blueoil::image::Resize(input, width, height,
                                                            blueoil::image::RESIZE_FILTER_BI_LINEAR);
-  if (!output_bilinear.allclose(expect_bilinear)) {
+  if (!output_bilinear.allclose(expect_bilinear, 0.0, 1.0)) {
     std::cerr << "test_resize: output_bilinear != expect_bilinear" << std::endl;
     blueoil::util::Tensor_HWC_to_CHW(output_bilinear).dump();
     blueoil::util::Tensor_HWC_to_CHW(expect_bilinear).dump();
