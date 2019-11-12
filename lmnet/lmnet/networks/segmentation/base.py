@@ -45,11 +45,11 @@ class Base(BaseNetwork):
     def placeholders(self):
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 3) \
             if self.data_format == 'NHWC' else (self.batch_size, 3, self.image_size[0], self.image_size[1])
-        images_placeholder = tf.placeholder(
+        images_placeholder = tf.compat.v1.placeholder(
             tf.float32,
             shape=shape,
             name="images_placeholder")
-        labels_placeholder = tf.placeholder(
+        labels_placeholder = tf.compat.v1.placeholder(
             tf.int32,
             shape=(self.batch_size, self.image_size[0], self.image_size[1]),
             name="labels_placeholder")
@@ -186,7 +186,7 @@ class SegnetBase(Base):
             softmax = tf.nn.softmax(reshape_output)
 
             cross_entropy = -tf.reduce_sum(
-                (labels * tf.log(tf.clip_by_value(softmax, 1e-10, 1.0))) * loss_weight,
+                (labels * tf.math.log(tf.clip_by_value(softmax, 1e-10, 1.0))) * loss_weight,
                 axis=[1]
             )
 
@@ -194,17 +194,17 @@ class SegnetBase(Base):
             loss = cross_entropy_mean
             if self.weight_decay_rate:
                 weight_decay_loss = self._weight_decay_loss()
-                tf.summary.scalar("weight_decay", weight_decay_loss)
+                tf.compat.v1.summary.scalar("weight_decay", weight_decay_loss)
                 loss = loss + weight_decay_loss
 
-            tf.summary.scalar("loss", loss)
+            tf.compat.v1.summary.scalar("loss", loss)
             return loss
 
     def _weight_decay_loss(self):
         """L2 weight decay (regularization) loss."""
         losses = []
         print("apply l2 loss these variables")
-        for var in tf.trainable_variables():
+        for var in tf.compat.v1.trainable_variables():
 
             # exclude batch norm variable
             if "kernel" in var.name:
