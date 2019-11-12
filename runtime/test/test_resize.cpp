@@ -134,7 +134,7 @@ int command_resize(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   if (5 < argc) {
-    int f = atoi(argv[4]);
+    int f = atoi(argv[5]);
     if ((f != blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR) &&
         (f != blueoil::image::RESIZE_FILTER_BI_LINEAR)) {
       std::cerr << "unknown filter:" << f << std::endl;
