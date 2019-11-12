@@ -247,7 +247,7 @@ def _linear_quantize(x, bit, value_min, value_max):
 
 def joints_to_gaussian_heatmap(joints, image_size,
                                num_joints=17, stride=1,
-                               sigma=2, max_value=10):
+                               sigma=2):
     """Convert joints to gaussian heatmap which can be learned by networks.
 
     References:
@@ -259,7 +259,6 @@ def joints_to_gaussian_heatmap(joints, image_size,
         num_joints (int): int. (Default value = 17)
         stride (int): int, stride = image_height / heatmap_height. (Default value = 1)
         sigma (int): int, used to compute gaussian heatmap. (Default value = 2)
-        max_value (int): int, max value of gauusian heatmap. (Default value = 10)
 
     Returns:
         heatmap: a numpy array of shape (height, width, num_joints).
@@ -312,7 +311,9 @@ def joints_to_gaussian_heatmap(joints, image_size,
     am = np.amax(heatmap)
     if am > 0:
         heatmap /= am
-    heatmap *= max_value
+
+    # 10 is scaling factor of a ground-truth gaussian heatmap.
+    heatmap *= 10
 
     return heatmap
 
@@ -445,6 +446,7 @@ class LetterBoxes(Processor):
 
 class JointsToGaussianHeatmap(Processor):
     """Convert joints to gaussian heatmap which can be learned by networks.
+
     Use :func:`~joints_to_gaussian_heatmap` inside.
 
     Args:
@@ -452,7 +454,6 @@ class JointsToGaussianHeatmap(Processor):
         num_joints (int): int.
         stride (int): int, stride = image_height / heatmap_height.
         sigma (int): int, used to compute gaussian heatmap.
-        max_value (int): int, max value of gauusian heatmap.
 
     Returns:
         dict:
@@ -460,13 +461,12 @@ class JointsToGaussianHeatmap(Processor):
     """
 
     def __init__(self, image_size, num_joints=17,
-                 stride=1, sigma=3, max_value=10):
+                 stride=1, sigma=3):
 
         self.image_size = image_size
         self.num_joints = num_joints
         self.stride = stride
         self.sigma = sigma
-        self.max_value = max_value
 
     def __call__(self, joints=None, **kwargs):
 
@@ -475,5 +475,5 @@ class JointsToGaussianHeatmap(Processor):
 
         heatmap = joints_to_gaussian_heatmap(joints=joints, image_size=self.image_size,
                                              num_joints=self.num_joints, stride=self.stride,
-                                             sigma=self.sigma, max_value=self.max_value)
+                                             sigma=self.sigma)
         return dict({'heatmap': heatmap}, **kwargs)

@@ -69,12 +69,12 @@ class YoloV1(BaseNetwork):
     def placeholders(self):
         """placeholders"""
 
-        images_placeholder = tf.placeholder(
+        images_placeholder = tf.compat.v1.placeholder(
             tf.float32,
             shape=(self.batch_size, self.image_size[0], self.image_size[1], 3),
             name="images_placeholder")
 
-        labels_placeholder = tf.placeholder(
+        labels_placeholder = tf.compat.v1.placeholder(
             tf.int32,
             shape=(self.batch_size, self.num_max_boxes, 5),
             name="labels_placeholder")
@@ -84,8 +84,8 @@ class YoloV1(BaseNetwork):
     def summary(self, output, labels=None):
         predict_classes, predict_confidence, predict_boxes = self._predictions(output)
 
-        tf.summary.histogram("predict_classes", predict_classes)
-        tf.summary.histogram("predict_confidence", predict_confidence)
+        tf.compat.v1.summary.histogram("predict_classes", predict_classes)
+        tf.compat.v1.summary.histogram("predict_confidence", predict_confidence)
 
         self._summary_predict_boxes(predict_classes, predict_confidence, predict_boxes, threshold=0.05)
 
@@ -409,7 +409,7 @@ class YoloV1(BaseNetwork):
             # [batch_size, cell_size, cell_size, boxes_per_cell, num_classes]
             predict_probability = tf.expand_dims(predict_confidence, 4) * tf.expand_dims(predict_classes, 3)
 
-            tf.summary.histogram("predict_probability", predict_probability)
+            tf.compat.v1.summary.histogram("predict_probability", predict_probability)
 
             mask = predict_probability > threshold
 
@@ -642,7 +642,7 @@ class YoloV1Loss:
             for x in range(self.cell_size):
 
                 # Set True, when gt_boxes is in this [y, x] cell.
-                condition = tf.logical_and(tf.equal(y, cell_y_index), tf.equal(x, cell_x_index))
+                condition = tf.math.logical_and(tf.equal(y, cell_y_index), tf.equal(x, cell_x_index))
 
                 old_box = cell_gt_box[y, x, :]
                 # If gt_boxes is in this [y, x] cell, the cell_gt_boxes is assigned gt_boxes coordinate,
@@ -795,11 +795,11 @@ class YoloV1Loss:
 
             loss = class_loss + object_loss + no_object_loss + coordinate_loss
 
-            tf.summary.scalar("class", class_loss)
-            tf.summary.scalar("object", object_loss)
-            tf.summary.scalar("no_object", no_object_loss)
-            tf.summary.scalar("coordinate", coordinate_loss)
-            tf.summary.scalar("loss", loss)
+            tf.compat.v1.summary.scalar("class", class_loss)
+            tf.compat.v1.summary.scalar("object", object_loss)
+            tf.compat.v1.summary.scalar("no_object", no_object_loss)
+            tf.compat.v1.summary.scalar("coordinate", coordinate_loss)
+            tf.compat.v1.summary.scalar("loss", loss)
         return loss
 
 
