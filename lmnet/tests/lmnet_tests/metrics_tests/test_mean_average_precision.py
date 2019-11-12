@@ -213,8 +213,8 @@ def _tf_mean_average_precision(classes, gt_boxes, all_boxes, expected):
     graph = tf.Graph()
     with graph.as_default():
         overlap_thresh = 0.5
-        labels = tf.placeholder(tf.float32, shape=[None, None, 5])
-        predict_boxes = [tf.placeholder(tf.float32, shape=[None, 6]) for boxes in all_boxes]
+        labels = tf.compat.v1.placeholder(tf.float32, shape=[None, None, 5])
+        predict_boxes = [tf.compat.v1.placeholder(tf.float32, shape=[None, 6]) for boxes in all_boxes]
 
         average_precisions = []
         ordered_precisions = []

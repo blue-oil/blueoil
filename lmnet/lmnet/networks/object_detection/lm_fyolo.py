@@ -33,7 +33,7 @@ class LMFYolo(YoloV2):
     def train(self, loss, optimizer, global_step=tf.Variable(0, trainable=False), var_list=[]):
         with tf.name_scope("train"):
             if var_list == []:
-                var_list = tf.trainable_variables()
+                var_list = tf.compat.v1.trainable_variables()
 
             gradients = optimizer.compute_gradients(loss, var_list=var_list)
 
@@ -46,7 +46,7 @@ class LMFYolo(YoloV2):
 
         for grad, var in gradients:
             if grad is not None:
-                tf.summary.histogram(var.op.name + "/gradients", grad)
+                tf.compat.v1.summary.histogram(var.op.name + "/gradients", grad)
 
         return train_op
 
@@ -212,7 +212,7 @@ class LMFYoloQuantize(LMFYolo):
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
+        with tf.compat.v1.variable_scope(name):
             if "kernel" == var.op.name.split("/")[-1]:
 
                 if not quantize_first_convolution:
@@ -225,7 +225,7 @@ class LMFYoloQuantize(LMFYolo):
 
                 # Apply weight quantize to variable whose last word of name is "kernel".
                 quantized_kernel = weight_quantization(var)
-                tf.summary.histogram("quantized_kernel", quantized_kernel)
+                tf.compat.v1.summary.histogram("quantized_kernel", quantized_kernel)
                 return quantized_kernel
 
         return var
@@ -237,5 +237,5 @@ class LMFYoloQuantize(LMFYolo):
             self.quantize_first_convolution,
             self.quantize_last_convolution,
         )
-        with tf.variable_scope("", custom_getter=custom_getter):
+        with tf.compat.v1.variable_scope("", custom_getter=custom_getter):
             return super().base(images, is_training)

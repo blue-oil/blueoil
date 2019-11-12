@@ -23,6 +23,7 @@ from lmnet.post_processor import (
     ExcludeLowScoreBox,
     NMS,
     Bilinear,
+    GaussianHeatmapToJoints
 )
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
@@ -300,6 +301,52 @@ def test_resize_bilinear_pillow():
     assert np.allclose(out, expect, atol=1e-4, rtol=1e-4)
 
 
+def test_gaussian_heatmap_to_joints():
+
+    from lmnet.pre_processor import JointsToGaussianHeatmap
+
+    image_size = (160, 160)
+
+    num_dimensions = 2
+    stride = 1
+    confidence_threshold = 0.5
+    num_joints = 17
+
+    input_joints = np.array([[1, 1, 1],
+                             [2, 2, 1],
+                             [3, 3, 1],
+                             [4, 4, 1],
+                             [5, 5, 1],
+                             [6, 6, 1],
+                             [7, 7, 1],
+                             [8, 8, 1],
+                             [9, 9, 1],
+                             [10, 10, 1],
+                             [11, 11, 1],
+                             [12, 12, 1],
+                             [13, 13, 1],
+                             [14, 14, 1],
+                             [15, 15, 1],
+                             [16, 16, 1],
+                             [17, 17, 0]])
+
+    pre_process = JointsToGaussianHeatmap(image_size, num_joints=num_joints,
+                                          stride=1, sigma=3)
+
+    post_process = GaussianHeatmapToJoints(num_dimensions=num_dimensions,
+                                           stride=stride,
+                                           confidence_threshold=confidence_threshold)
+
+    heatmap = pre_process(joints=input_joints)["heatmap"]
+    heatmap = np.expand_dims(heatmap, axis=0)
+
+    output_joints = post_process(heatmap)["outputs"][0]
+
+    for i in range(num_joints):
+        if input_joints[i, 2] == 1:
+            assert np.allclose(output_joints[i], input_joints[i], atol=1e-4, rtol=1e-4)
+
+
 if __name__ == '__main__':
     test_format_yolov2_shape()
     test_exclude_low_score_box()
@@ -308,3 +355,4 @@ if __name__ == '__main__':
     test_nms_max_output_size()
     test_resize_bilinear()
     test_resize_bilinear_pillow()
+    test_gaussian_heatmap_to_joints()

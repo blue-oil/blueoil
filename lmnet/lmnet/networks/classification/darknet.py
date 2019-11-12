@@ -332,7 +332,7 @@ class DarknetQuantize(Darknet):
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
+        with tf.compat.v1.variable_scope(name):
             if "kernel" == var.op.name.split("/")[-1]:
 
                 if not quantize_first_convolution:
@@ -345,7 +345,7 @@ class DarknetQuantize(Darknet):
 
                 # Apply weight quantize to variable whose last word of name is "kernel".
                 quantized_kernel = weight_quantization(var)
-                tf.summary.histogram("quantized_kernel", quantized_kernel)
+                tf.compat.v1.summary.histogram("quantized_kernel", quantized_kernel)
                 return quantized_kernel
 
         return var
@@ -357,5 +357,5 @@ class DarknetQuantize(Darknet):
             self.quantize_first_convolution,
             self.quantize_last_convolution,
         )
-        with tf.variable_scope("", custom_getter=custom_getter):
+        with tf.compat.v1.variable_scope("", custom_getter=custom_getter):
             return super().base(images, is_training)
