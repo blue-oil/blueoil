@@ -245,8 +245,6 @@ def run_sementic_segmentation(config):
     q_show = Queue()
 
     grabbed, camera_img = vc.read()
-    if not grabbed:
-        print("Frame is empty")
 
     q_show.put(camera_img.copy())
     input_img = camera_img.copy()
@@ -303,8 +301,6 @@ def run_keypoint_detection(config):
     q_show = Queue()
 
     grabbed, camera_img = vc.read()
-    if not grabbed:
-        print("Frame is empty")
 
     q_show.put(camera_img.copy())
     input_img = camera_img.copy()
@@ -372,6 +368,9 @@ def run(model, config_file):
 
     if config.TASK == "IMAGE.SEMANTIC_SEGMENTATION":
         run_sementic_segmentation(config)
+
+    if config.TASK == "IMAGE.KEYPOINT_DETECTION":
+        run_keypoint_detection(config)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
