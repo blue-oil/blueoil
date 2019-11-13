@@ -129,6 +129,59 @@ def visualize_semantic_segmentation(image, post_processed, config):
     return result
 
 
+def visualize_keypoint_detection(image, joints, original_image_size=None):
+    """Draw keypoint detection result joints to image.
+
+    Args:
+        image: a numpy array of shape (height, width, 3).
+        joints: a numpy array of shape (num_joints, 3).
+        original_image_size: a tuple, (original_height, original_width). If not None, joints will be scaled.
+
+    Returns:
+        drawed_image: a numpy array of shape (height, width, 3).
+
+    """
+
+    if original_image_size is not None:
+        height, width, _ = image.shape
+        scale_height = height / original_image_size[0]
+        scale_width = width / original_image_size[1]
+        joints[:, 0] *= scale_width
+        joints[:, 1] *= scale_height
+
+    image = PIL.Image.fromarray(image, mode="RGB")
+    draw = PIL.ImageDraw.Draw(image)
+
+    num_joints = joints.shape[0]
+
+    # These joints are paired to draw a skeleton.
+    # A line will be drew only if both of joints are visible.
+    # For details:
+    # {0: "nose", 1: "left_eye", 2: "right_eye", 3: "left_ear", 4: "right_ear",
+    #  5: "left_shoulder", 6: "right_shoulder", 7: "left_elbow", 8: "right_elbow", 9: "left_wrist", 10: "right_wrist",
+    #  11: "left_hip", 12: "right_hip", 13: "left_knee", 14: "right_knee", 15: "left_ankle", 16: "right_ankle"}
+    joint_pairs = [[0, 1], [1, 3], [0, 2], [2, 4],
+                   [5, 6], [5, 7], [7, 9], [6, 8], [8, 10],
+                   [5, 11], [6, 12], [11, 12],
+                   [11, 13], [12, 14], [13, 15], [14, 16]]
+
+    for pair in joint_pairs:
+        if joints[pair[0], 2] > 0 and joints[pair[1], 2] > 0:
+            joint0 = (joints[pair[0], 0], joints[pair[0], 1])
+            joint1 = (joints[pair[1], 0], joints[pair[1], 1])
+            draw.line([joint0, joint1], fill=(255, 191, 0), width=3)
+
+    for i in range(num_joints):
+        if joints[i, 2] > 0:
+            center_x, center_y = joints[i, :2]
+            draw.ellipse([center_x - 2, center_y - 2,
+                          center_x + 2, center_y + 2], fill=(238, 130, 238))
+
+    drawed_image = np.array(image, dtype=np.uint8)
+
+    return drawed_image
+
+
 def label_to_color_image(results, colormap):
     """Adds color defined by the colormap to the label.
 
