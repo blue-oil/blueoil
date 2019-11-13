@@ -325,10 +325,14 @@ def run_keypoint_detection(config):
 
                 cv2.imshow(window_name, drawed_img)
                 key = cv2.waitKey(2)  # Wait for 2ms
+                # TODO(yang): Consider using another key for abort.
                 if key == 27:  # ESC to quit
                     return
+
+            # TODO(yang): Busy loop is not efficient here. Improve it and change them in other tasks.
             if pool_result.ready():
                 break
+
         q_show = clear_queue(q_show)
         q_save, q_show = swap_queue(q_save, q_show)
         result, fps = pool_result.get()
@@ -360,17 +364,12 @@ def run(model, config_file):
         from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
 
-    if config.TASK == "IMAGE.CLASSIFICATION":
-        run_classification(config)
+    TASK_HANDLERS = {"IMAGE.CLASSIFICATION": run_classification,
+                     "IMAGE.OBJECT_DETECTION": run_object_detection,
+                     "IMAGE.SEMANTIC_SEGMENTATION": run_sementic_segmentation,
+                     "IMAGE.KEYPOINT_DETECTION": run_keypoint_detection}
 
-    if config.TASK == "IMAGE.OBJECT_DETECTION":
-        run_object_detection(config)
-
-    if config.TASK == "IMAGE.SEMANTIC_SEGMENTATION":
-        run_sementic_segmentation(config)
-
-    if config.TASK == "IMAGE.KEYPOINT_DETECTION":
-        run_keypoint_detection(config)
+    TASK_HANDLERS[config.TASK](config)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
