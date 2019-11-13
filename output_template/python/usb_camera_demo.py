@@ -229,7 +229,7 @@ def run_classification(config):
     cv2.destroyAllWindows()
 
     
-def run_sementic_segmentation(config):
+def run_semantic_segmentation(config):
     global nn
     camera_width = 320
     camera_height = 240
@@ -366,7 +366,7 @@ def run(model, config_file):
 
     TASK_HANDLERS = {"IMAGE.CLASSIFICATION": run_classification,
                      "IMAGE.OBJECT_DETECTION": run_object_detection,
-                     "IMAGE.SEMANTIC_SEGMENTATION": run_sementic_segmentation,
+                     "IMAGE.SEMANTIC_SEGMENTATION": run_semantic_segmentation,
                      "IMAGE.KEYPOINT_DETECTION": run_keypoint_detection}
 
     TASK_HANDLERS[config.TASK](config)
