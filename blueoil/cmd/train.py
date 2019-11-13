@@ -16,7 +16,7 @@
 import os
 from datetime import datetime
 
-from tensorflow import gfile
+from tensorflow.io import gfile
 import yaml
 
 from blueoil.generate_lmnet_config import generate
@@ -51,18 +51,18 @@ def run(blueoil_config_file, experiment_id):
 
 
 def save_config_file(config_file, dest_dir):
-    if not gfile.Exists(dest_dir):
-        gfile.MakeDirs(dest_dir)
+    if not gfile.exists(dest_dir):
+        gfile.makedirs(dest_dir)
 
     config_file_dest = os.path.join(dest_dir, 'blueoil_config.yaml')
 
     # HACK: This is for tensorflow bug workaround.
     # We can remove following 2 lines once it's been resolved in tensorflow
     # issue link: https://github.com/tensorflow/tensorflow/issues/28508
-    if gfile.Exists(config_file_dest):
+    if gfile.exists(config_file_dest):
         gfile.Remove(config_file_dest)
 
-    return gfile.Copy(
+    return gfile.copy(
         config_file,
         config_file_dest
     )

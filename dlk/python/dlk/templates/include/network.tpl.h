@@ -61,10 +61,10 @@ private:
     BIN_CONV_OUTPUT *device_output_buf = 0;
 
     const T_INT input_rank = {{ graph_input.rank }};
-    const T_INT input_shape[{{ graph_input.rank }}] = { {{ graph_input.view.shape_list }} };
+    const T_INT input_shape[{{ graph_input.rank }}] = { {{ graph_input.view.shape_as_cpp }} };
 
     const T_INT output_rank = {{ graph_output.rank }};
-    const T_INT output_shape[{{ graph_output.rank }}] = { {{ graph_output.view.shape_list }} };
+    const T_INT output_shape[{{ graph_output.rank }}] = { {{ graph_output.view.shape_as_cpp }} };
 
     const int max_device_input_elems = MAX_SIZE_QINPUTS_PER_LAYER;
     const int max_device_output_elems = MAX_SIZE_OUTPUTS_PER_LAYER;

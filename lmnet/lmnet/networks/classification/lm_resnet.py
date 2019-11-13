@@ -94,9 +94,9 @@ class LmResnet(Base):
         return shortcut + x
 
     def resnet_group(self, x, out_ch, count, strides, training, name):
-        with tf.variable_scope(name, custom_getter=self.custom_getter):
+        with tf.compat.v1.variable_scope(name, custom_getter=self.custom_getter):
             for i in range(0, count):
-                with tf.variable_scope('block{}'.format(i)):
+                with tf.compat.v1.variable_scope('block{}'.format(i)):
                     x = self.basicblock(x, out_ch,
                                         strides if i == 0 else 1,
                                         training)
@@ -172,7 +172,7 @@ class LmResnetQuantize(LmResnet):
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
+        with tf.compat.v1.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)

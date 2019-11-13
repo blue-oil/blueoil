@@ -93,13 +93,13 @@ def evaluate(config, restore_path):
         metrics_ops_dict, metrics_update_op = model.metrics(output, labels_placeholder)
         model.summary(output, labels_placeholder)
 
-        summary_op = tf.summary.merge_all()
+        summary_op = tf.compat.v1.summary.merge_all()
 
         metrics_summary_op, metrics_placeholders = executor.prepare_metrics(metrics_ops_dict)
 
         init_op = tf.global_variables_initializer()
         reset_metrics_op = tf.local_variables_initializer()
-        saver = tf.train.Saver(max_to_keep=None)
+        saver = tf.compat.v1.train.Saver(max_to_keep=None)
 
     session_config = None  # tf.ConfigProto(log_device_placement=True)
     sess = tf.Session(graph=graph, config=session_config)
