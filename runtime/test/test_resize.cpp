@@ -115,12 +115,9 @@ int command_resize(int argc, char **argv) {
   char *outfile = argv[4];
   std::cout << "infile:" << infile << " width:" << width <<
     " height:" << height << " outfile:" << outfile << std::endl;
-  cv::Mat img = cv::imread(infile, 1);  // 1:force to RGB format
-  if (img.data == NULL) {
-    std::cerr << "can't open image file:" << infile <<std::endl;
-    return EXIT_FAILURE;
-  }
-  blueoil::Tensor input = blueoil::opencv::Tensor_fromCVMat(img);
+
+  blueoil::Tensor input = blueoil::Tensor_loadImage(infile);
+
   blueoil::Tensor output = blueoil::image::Resize(input, width, height,
                                                   filter);
   cv::Mat img2 = blueoil::opencv::Tensor_toCVMat(output);
