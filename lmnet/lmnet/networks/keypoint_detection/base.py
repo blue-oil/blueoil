@@ -120,8 +120,8 @@ class Base(BaseNetwork):
 
     @staticmethod
     def py_visualize_output(images, heatmaps, stride=2):
-        """
-        Visualize pose estimation, it is mainly used for visualization in training time.
+        """Visualize pose estimation, it is mainly used for visualization in training time.
+
         Args:
             images: a numpy array of shape (batch_size, height, width, 3).
             heatmaps: a numpy array of shape (batch_size, height, width, num_joints).
@@ -136,13 +136,13 @@ class Base(BaseNetwork):
 
         for i in range(images.shape[0]):
             joints = gaussian_heatmap_to_joints(heatmaps[i], stride=stride)
-            drawed_images[i] = visualize_keypoint_detection(joints, drawed_images[i])
+            drawed_images[i] = visualize_keypoint_detection(drawed_images[i], joints)
 
         return drawed_images
 
     def _visualize_output(self, images, output, name="visualize_output"):
-        """
-        A tensorflow mirror method for py_visualize_output().
+        """A tensorflow mirror method for py_visualize_output().
+
         Args:
             images: a Tensor of shape (batch_size, height, width, 3).
             output: a Tensor of shape (batch_size, height, width, num_joints).
@@ -157,8 +157,8 @@ class Base(BaseNetwork):
         tf.summary.image(name, drawed_images)
 
     def _compute_oks(self, output, labels):
-        """
-        Compute object keypoint similarity between output and labels.
+        """Compute object keypoint similarity between output and labels.
+
         Args:
             output: a Tensor of shape (batch_size, height, width, num_joints).
             labels: a Tensor of shape (batch_size, height, width, num_joints).
@@ -177,8 +177,8 @@ class Base(BaseNetwork):
         return oks
 
     def summary(self, output, labels=None):
-        """
-        Summary for tensorboard.
+        """Summary for tensorboard.
+
         Args:
             output: a Tensor of shape (batch_size, height, width, num_joints).
             labels: a Tensor of shape (batch_size, height, width, num_joints).
@@ -196,8 +196,8 @@ class Base(BaseNetwork):
         self._visualize_output(images, output, "visualize_output")
 
     def metrics(self, output, labels):
-        """
-        Compute metrics for single-person pose estimation task.
+        """Compute metrics for single-person pose estimation task.
+
         Args:
             output: a Tensor of shape (batch_size, height, width, num_joints).
             labels: a Tensor of shape (batch_size, height, width, num_joints).

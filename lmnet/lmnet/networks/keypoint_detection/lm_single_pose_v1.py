@@ -22,9 +22,7 @@ from lmnet.networks.keypoint_detection.base import Base
 
 
 class LmSinglePoseV1(Base):
-    """
-    LM original single-person pose estimation network.
-    """
+    """LM original single-person pose estimation network."""
 
     def __init__(
             self,
@@ -39,16 +37,18 @@ class LmSinglePoseV1(Base):
         self.custom_getter = None
         self.num_joints = 17
 
-        assert stride in [2, 4, 8, 16], "Only stride 2, 4, 8, 16 are supported."
+        if stride not in [2, 4, 8, 16]:
+            raise ValueError("Only stride 2, 4, 8, 16 are supported.")
 
         self.stride = stride
 
     def loss(self, output, labels):
-        """Loss
+        """Loss function for single-person pose estimation.
 
         Args:
            output: Tensor of network output. shape is (batch_size, height, width, num_joints).
            labels: Tensor of ground-truth labels. shape is (batch_size, height, width, num_joints).
+
         """
         if self.data_format == 'NCHW':
             output = tf.transpose(output, perm=[0, 2, 3, 1])
@@ -149,8 +149,7 @@ class LmSinglePoseV1(Base):
 
 
 class LmSinglePoseV1Quantize(LmSinglePoseV1):
-    """
-    LM original quantized single-person pose estimation network.
+    """LM original quantized single-person pose estimation network.
 
     Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
     ``weight_quantizer``, ``weight_quantizer_kwargs``.
@@ -160,6 +159,7 @@ class LmSinglePoseV1Quantize(LmSinglePoseV1):
         activation_quantizer_kwargs (dict): Kwargs for `activation_quantizer`.
         weight_quantizer (callable): Activation quantizater. See more at `lmnet.quantizations`.
         weight_quantizer_kwargs (dict): Kwargs for `weight_quantizer`.
+
     """
 
     def __init__(
@@ -199,6 +199,7 @@ class LmSinglePoseV1Quantize(LmSinglePoseV1):
             weight_quantization: Callable object which quantize variable.
             args: Args.
             kwargs: Kwargs.
+
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
