@@ -23,10 +23,10 @@ from lmnet.visualize import visualize_keypoint_detection
 
 
 class Base(BaseNetwork):
-    """base network for keypoints detection
+    """base network for keypoint detection
 
-    This base network is for keypoints detection.
-    Each keypoints detection network class should extend this class.
+    This base network is for keypoint detection.
+    Each keypoint detection network class should extend this class.
 
     """
 
@@ -40,7 +40,7 @@ class Base(BaseNetwork):
             **kwargs,
         )
 
-    def placeholderes(self):
+    def placeholders(self):
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 3) \
             if self.data_format == 'NHWC' else (self.batch_size, 3, self.image_size[0], self.image_size[1])
         images_placeholder = tf.placeholder(
@@ -61,8 +61,8 @@ class Base(BaseNetwork):
         return tf.identity(base, name="output")
 
     def _colored_heatmaps(self, heatmaps, color, name=""):
-        """
-        Visualize heatmaps with given color.
+        """Visualize heatmaps with given color.
+
         Args:
             heatmaps: a Tensor of shape (batch_size, height, width, num_joints).
             color: a numpy array of shape (batch_size, 1, 1, num_joints, 3).
@@ -78,9 +78,8 @@ class Base(BaseNetwork):
 
     @staticmethod
     def py_post_process(heatmaps, num_dimensions=2, stride=2):
-        """
-        Convert from heatmaps to joints,
-        it is mainly used for visualization and metrics in training time.
+        """Convert from heatmaps to joints, it is mainly used for visualization and metrics in training time.
+
         Args:
             heatmaps: a numpy array of shape (batch_size, height, width, num_joints).
             num_dimensions: int.
@@ -102,9 +101,9 @@ class Base(BaseNetwork):
         return batch_joints
 
     def post_process(self, output):
-        """
-        Tensorflow mirror method for py_post_process(),
+        """Tensorflow mirror method for py_post_process(),
         it is mainly used for visualization and metrics in training time.
+
         Args:
             output: a Tensor of shape (batch_size, height, width, num_joints).
 
