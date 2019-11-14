@@ -18,6 +18,7 @@ import pytest
 import tensorflow as tf
 
 from lmnet import environment
+from lmnet.common import Tasks
 from lmnet.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
 from lmnet.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
 from lmnet.utils.executor import prepare_dirs
@@ -57,6 +58,7 @@ def test_training():
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
     config.IS_DISTRIBUTION = False
+    config.TASK = Tasks.OBJECT_DETECTION
 
     # network model config
     config.NETWORK = EasyDict()
