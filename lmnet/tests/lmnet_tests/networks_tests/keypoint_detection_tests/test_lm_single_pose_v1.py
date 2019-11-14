@@ -58,7 +58,7 @@ def test_training():
     config.SUMMARISE_STEPS = 1
     config.IS_PRETRAIN = False
     config.IS_DISTRIBUTION = False
-    config.TASK = Tasks.OBJECT_DETECTION
+    config.TASK = Tasks.KEYPOINT_DETECTION
 
     # network model config
     config.NETWORK = EasyDict()
