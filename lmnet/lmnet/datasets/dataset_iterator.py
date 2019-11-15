@@ -22,7 +22,6 @@ from multiprocessing import Pool
 import numpy as np
 import tensorflow as tf
 
-from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase, KeypointDetectionBase
 from lmnet.datasets.tfds import TFDSMixin
 
 _dataset = None

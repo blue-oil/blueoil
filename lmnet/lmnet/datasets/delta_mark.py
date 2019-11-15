@@ -302,7 +302,10 @@ class ObjectDetectionBase(DeltaMarkMixin, StoragePathCustomizable, ObjectDetecti
         gt_boxes = annotations[i]
         gt_boxes = np.array(gt_boxes)
         gt_boxes = self._fill_dummy_boxes(gt_boxes)
-        return (image, gt_boxes)
+
+        sample = {"image": image, "gt_boxes": gt_boxes}
+
+        return sample
 
     def __len__(self):
         return self.num_per_epoch
