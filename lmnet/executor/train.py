@@ -106,21 +106,23 @@ def start_training(config):
         global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training_placeholder = tf.compat.v1.placeholder(tf.bool, name="is_training_placeholder")
 
-        images_placeholder, labels_placeholder = model.placeholders()
+        model.placeholders()
 
-        output = model.inference(images_placeholder, is_training_placeholder)
+        placeholders_dict = model.placeholders_dict
+
+        model.inference(is_training_placeholder)
         if config.TASK == Tasks.OBJECT_DETECTION:
-            loss = model.loss(output, labels_placeholder, global_step)
+            loss = model.loss(global_step)
         else:
-            loss = model.loss(output, labels_placeholder)
+            loss = model.loss()
         opt = model.optimizer(global_step)
         if use_horovod:
             # add Horovod Distributed Optimizer
             opt = hvd.DistributedOptimizer(opt)
         train_op = model.train(loss, opt, global_step)
-        metrics_ops_dict, metrics_update_op = model.metrics(output, labels_placeholder)
+        metrics_ops_dict, metrics_update_op = model.metrics()
         # TODO(wakisaka): Deal with many networks.
-        model.summary(output, labels_placeholder)
+        model.summary()
 
         summary_op = tf.compat.v1.summary.merge_all()
 
@@ -213,13 +215,12 @@ def start_training(config):
         progbar.update(last_step)
     for step in range(last_step, max_steps):
 
-        images, labels = train_dataset.feed()
+        samples_dict = train_dataset.feed()
 
-        feed_dict = {
-            is_training_placeholder: True,
-            images_placeholder: images,
-            labels_placeholder: labels,
-        }
+        feed_dict = {placeholders_dict[key]: samples_dict[key]
+                     for key in placeholders_dict.keys()}
+
+        feed_dict[is_training_placeholder] = True
 
         if step * ((step + 1) % config.SUMMARISE_STEPS) == 0 and rank == 0:
             # Runtime statistics for develop.
@@ -261,12 +262,12 @@ def start_training(config):
                 for train_validation_saving_step in range(train_validation_saving_step_size):
                     print("train_validation_saving_step", train_validation_saving_step)
 
-                    images, labels = train_validation_saving_dataset.feed()
-                    feed_dict = {
-                        is_training_placeholder: False,
-                        images_placeholder: images,
-                        labels_placeholder: labels,
-                    }
+                    samples_dict = train_dataset.feed()
+
+                    feed_dict = {placeholders_dict[key]: samples_dict[key]
+                                 for key in placeholders_dict.keys()}
+
+                    feed_dict[is_training_placeholder] = False
 
                     if train_validation_saving_step % config.SUMMARISE_STEPS == 0:
                         summary, _ = sess.run([summary_op, metrics_update_op], feed_dict=feed_dict)
@@ -315,12 +316,12 @@ def start_training(config):
 
             for test_step in range(test_step_size):
 
-                images, labels = validation_dataset.feed()
-                feed_dict = {
-                    is_training_placeholder: False,
-                    images_placeholder: images,
-                    labels_placeholder: labels,
-                }
+                samples_dict = train_dataset.feed()
+
+                feed_dict = {placeholders_dict[key]: samples_dict[key]
+                             for key in placeholders_dict.keys()}
+
+                feed_dict[is_training_placeholder] = False
 
                 if test_step % config.SUMMARISE_STEPS == 0:
                     summary, _ = sess.run([summary_op, metrics_update_op], feed_dict=feed_dict)
