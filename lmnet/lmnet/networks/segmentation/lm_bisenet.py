@@ -318,7 +318,11 @@ class LMBiSeNet(Base):
 
         return tf.add_n(losses) * self.weight_decay_rate
 
-    def loss(self, output, labels):
+    def loss(self):
+
+        output = self.output_tensor
+        labels = self.placeholders_dict["mask"]
+
         x = self.post_process(output)
         context_1 = self.post_process(self.context_1)
         context_2 = self.post_process(self.context_2)

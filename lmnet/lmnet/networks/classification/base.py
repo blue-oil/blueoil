@@ -39,6 +39,7 @@ class Base(BaseNetwork):
         )
 
         self.weight_decay_rate = weight_decay_rate
+        self.placeholders_dict = {}
 
     def placeholders(self):
         """Placeholders.
@@ -62,21 +63,23 @@ class Base(BaseNetwork):
             shape=(self.batch_size, self.num_classes),
             name="labels_placeholder")
 
-        return images_placeholder, labels_placeholder
+        self.placeholders_dict["image"] = images_placeholder
+        self.placeholders_dict["label"] = labels_placeholder
 
-    def inference(self, images, is_training):
+    def inference(self, is_training):
         """inference.
 
         Args:
-            images: images tensor. shape is (batch_num, height, width, channel)
-            is_training:
+            is_training: bool.
 
         """
+        images = self.placeholders_dict["image"]
         base = self.base(images, is_training)
         softmax = tf.nn.softmax(base)
 
-        self.output = tf.identity(softmax, name="output")
-        return self.output
+        self.output_tensor = tf.identity(softmax, name="output")
+
+        return self.output_tensor
 
     def _weight_decay_loss(self):
         """L2 weight decay (regularization) loss."""
@@ -91,14 +94,10 @@ class Base(BaseNetwork):
 
         return tf.add_n(losses) * self.weight_decay_rate
 
-    def loss(self, softmax, labels):
-        """loss.
+    def loss(self):
 
-        Args:
-            softmax: softmaxed tensor from base. shape is (batch_num, num_classes)
-            labels: onehot labels tensor. shape is (batch_num, num_classes)
-
-        """
+        softmax = self.output_tensor
+        labels = self.placeholders_dict["label"]
 
         with tf.name_scope("loss"):
             labels = tf.cast(labels, tf.float32)
@@ -153,7 +152,11 @@ class Base(BaseNetwork):
 
         return results
 
-    def summary(self, output, labels=None):
+    def summary(self):
+
+        output = self.output_tensor
+        labels = self.placeholders_dict["label"]
+
         super().summary(output, labels)
 
         images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
@@ -190,7 +193,7 @@ class Base(BaseNetwork):
         )
         return accuracy_topk, accuracy_topk_update
 
-    def metrics(self, softmax, labels):
+    def metrics(self):
         """metrics.
 
         Args:
@@ -198,6 +201,10 @@ class Base(BaseNetwork):
             labels: onehot labels tensor. shape is (batch_num, num_classes)
 
         """
+
+        softmax = self.output_tensor
+        labels = self.placeholders_dict["label"]
+
         with tf.name_scope("metrics_calc"):
             labels = tf.cast(labels, tf.float32)
 
