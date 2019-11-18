@@ -313,7 +313,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
 
         bits_per_word = 32
         rem = (bits_per_word - ch % bits_per_word) % bits_per_word
-        pad = np.ones((rem, n+1), dtype=np.int32)
+        pad = np.ones((rem, n + 1), dtype=np.int32)
         threshold_table = np.vstack((threshold_table, pad))
 
         # Put the thresholds into list
