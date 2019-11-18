@@ -41,6 +41,7 @@ class Base(BaseNetwork):
             self.label_colors = get_color_map(self.num_classes)
         else:
             self.label_colors = label_colors
+        self.placeholders_dict = {}
 
     def placeholders(self):
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 3) \
