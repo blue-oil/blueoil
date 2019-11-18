@@ -49,9 +49,9 @@ def convert(config, weight_file):
 
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, labels_placeholder = model.placeholders()
+        model.placeholders()
 
-        model.inference(images_placeholder, is_training)
+        model.inference(is_training)
 
         init_op = tf.global_variables_initializer()
 

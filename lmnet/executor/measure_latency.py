@@ -52,8 +52,9 @@ def _measure_time(config, restore_path, step_size):
 
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, labels_placeholder = model.placeholders()
-        output = model.inference(images_placeholder, is_training)
+        model.placeholders()
+        model.inference(is_training)
+        output = model.output_tensor
 
         init_op = tf.global_variables_initializer()
 
@@ -72,7 +73,7 @@ def _measure_time(config, restore_path, step_size):
     image = _pre_process(raw_image, config.PRE_PROCESSOR, config.DATA_FORMAT)
     images = np.expand_dims(image, axis=0)
     feed_dict = {
-        images_placeholder: images,
+        model.placeholders_dict["image"]: images,
     }
     output_np = sess.run(output, feed_dict=feed_dict)
     if config.POST_PROCESSOR:
@@ -93,7 +94,7 @@ def _measure_time(config, restore_path, step_size):
         image = _pre_process(raw_image, config.PRE_PROCESSOR, config.DATA_FORMAT)
         images = np.expand_dims(image, axis=0)
         feed_dict = {
-            images_placeholder: images,
+            model.placeholders_dict["image"]: images,
         }
 
         start_only_network = time.time()
