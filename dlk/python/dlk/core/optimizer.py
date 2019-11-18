@@ -311,6 +311,11 @@ def pass_compute_thresholds(graph: Graph) -> None:
                 threshold_table[c, -1] = 1
                 threshold_table[c, 0:-1] = max_th_value
 
+        b = 32 # b parameter
+        rem = (b - ch % b) % b
+        pad = np.ones((rem, n+1), dtype=np.int32)
+        threshold_table = np.vstack((threshold_table, pad))
+
         # Put the thresholds into list
         conv_node.thresholds = threshold_table.flatten().tolist()
 
