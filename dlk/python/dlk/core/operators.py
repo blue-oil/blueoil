@@ -1224,6 +1224,9 @@ class Conv(Operator):
         return True
 
     def restore_shape(self):
+        real_ch = self._original_shape[3]
+        data_per_ch = 2 ** self.a_quantizer[0].nbit
+        self._thresholds.resize((real_ch * data_per_ch,))
         self.update_shape(self._original_shape, 'NHWC')
 
 
