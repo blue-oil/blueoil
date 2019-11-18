@@ -16,22 +16,23 @@ build: deps
 	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
 
 .PHONY: test
-test: build test-classification test-object-detection test-semantic-segmentation
+test: build
+	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/
 
 .PHONY: test-classification
 test-classification: build
 	# Run Blueoil test of classification
-	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) pytest tests/e2e/test_classification.py
+	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_classification.py
 
 .PHONY: test-object-detection
 test-object-detection: build
 	# Run Blueoil test of object-detection
-	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) pytest tests/e2e/test_object_detection.py
+	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_object_detection.py
 
 .PHONY: test-semantic-segmentation
 test-semantic-segmentation: build
 	# Run Blueoil test of semantic-segmentation
-	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) pytest tests/e2e/test_semantic_segmentation.py
+	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_semantic_segmentation.py
 
 .PHONY: test-lmnet
 test-lmnet: test-lmnet-pep8 test-lmnet-main
