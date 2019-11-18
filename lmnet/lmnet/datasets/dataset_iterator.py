@@ -178,9 +178,9 @@ class _SimpleDatasetReader:
         """Return batch size data."""
         result = []
         for i in self._gen_ids(self.dataset.batch_size):
-            image, label = self.dataset[i]
-            image, label = _apply_augmentations(self.dataset, image, label)
-            result.append((image, label))
+            sample = self.dataset[i]
+            sample = _apply_augmentations(self.dataset, sample)
+            result.append(sample)
         return _concat_data(result)
 
 
