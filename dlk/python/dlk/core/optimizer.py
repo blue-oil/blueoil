@@ -311,8 +311,8 @@ def pass_compute_thresholds(graph: Graph) -> None:
                 threshold_table[c, -1] = 1
                 threshold_table[c, 0:-1] = max_th_value
 
-        b = 32 # b parameter
-        rem = (b - ch % b) % b
+        bits_per_word = 32 # b parameter
+        rem = (bits_per_word - ch % bits_per_word) % bits_per_word
         pad = np.ones((rem, n+1), dtype=np.int32)
         threshold_table = np.vstack((threshold_table, pad))
 
