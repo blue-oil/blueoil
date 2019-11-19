@@ -68,7 +68,10 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
         return splits
 
     def _generate_examples(self, dataset):
-        for image, annotations in dataset:
+        for sample_dict in dataset:
+            image = sample_dict["image"]
+            annotations = sample_dict["gt_boxes"]
+
             height, width, _ = image.shape
 
             objects = [

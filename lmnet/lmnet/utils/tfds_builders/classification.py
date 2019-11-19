@@ -65,7 +65,10 @@ class ClassificationBuilder(tfds.core.GeneratorBasedBuilder):
         return splits
 
     def _generate_examples(self, dataset):
-        for image, label in dataset:
+        for sample_dict in dataset:
+            image = sample_dict["image"]
+            label = sample_dict["label"]
+
             yield {
                 "image": image,
                 "label": label.tolist().index(1)
