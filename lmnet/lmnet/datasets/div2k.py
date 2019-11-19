@@ -45,7 +45,7 @@ class Div2k(Base):
         target_file = self.files[i]
         image = load_image(target_file)
 
-        sample = {"image": image}
+        sample = {"image": image, "label": None}
 
         return sample
 
