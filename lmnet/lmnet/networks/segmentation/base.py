@@ -64,7 +64,9 @@ class Base(BaseNetwork):
 
         base = self.base(images, is_training)
 
-        return tf.identity(base, name="output")
+        self.output_tensor = tf.identity(base, name="output")
+
+        return self.output_tensor
 
     def _color_labels(self, images, name=""):
         with tf.name_scope(name):
