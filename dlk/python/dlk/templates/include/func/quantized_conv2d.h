@@ -59,9 +59,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       QUANTIZED_PACKED::BitCount
     };
     dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
-    Measurement::Start("Tensor convert");
     convert_tensor(input, tmp);
-    Measurement::Stop();
     dlk::impl::TCAConv2d(tmp, kernel, p);
 #elif defined USE_NEON || defined USE_AVX
     dlk::impl::tiling_input_t::tensor_info_t<std::size_t> shape = {
@@ -72,9 +70,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       TilingInTypeBitWidth
     };
     dlk::impl::tiling_input_t tmp(p.device_input_buf, shape);
-    Measurement::Start("Tensor convert");
     convert_tensor(input, tmp);
-    Measurement::Stop();
     dlk::impl::QuantizedConv2DTiling(tmp, kernel, p);
 #else
     dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
@@ -85,9 +81,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       QUANTIZED_PACKED::BitCount
     };
     dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
-    Measurement::Start("Tensor convert");
     convert_tensor(input, tmp);
-    Measurement::Stop();
     dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
 #endif
   } else {

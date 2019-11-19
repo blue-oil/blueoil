@@ -355,6 +355,8 @@ bool Network::run(float *network_input, float *network_output)
       save_int32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 3.0 / 2.0 );
     {% elif node.dtype.cpptype() in ['unsigned', 'uint32_t'] -%}
       save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 1.0);
+    {% elif node.dtype.cpptype() == 'QUANTIZED_PACKED' -%}
+      save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, reinterpret_cast<uint32_t*>({{ node.name }}.data()), 1.0);
     {% elif node.dtype.cpptype() == 'float' -%}
       {% if node.output_ops.keys()|length > 1 %}
         {% for k in node.output_ops.keys() -%}
