@@ -107,7 +107,7 @@ def test_sequence():
     for _ in range(5):
         samples_dict = dataset.feed()
         images = samples_dict["image"]
-        labels = samples_dict["label"]
+        labels = samples_dict["gt_boxes"]
 
         _show_images_with_boxes(images, labels)
 
@@ -122,7 +122,9 @@ def test_blur():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        samples_dict = dataset.feed()
+        images = samples_dict["image"]
+        labels = samples_dict["gt_boxes"]
         _show_images_with_boxes(images, labels)
 
 
@@ -138,7 +140,7 @@ def test_brightness():
     for _ in range(5):
         samples_dict = dataset.feed()
         images = samples_dict["image"]
-        labels = samples_dict["label"]
+        labels = samples_dict["gt_boxes"]
         _show_images_with_boxes(images, labels)
 
 
@@ -154,7 +156,7 @@ def test_color():
     for _ in range(5):
         samples_dict = dataset.feed()
         images = samples_dict["image"]
-        labels = samples_dict["label"]
+        labels = samples_dict["gt_boxes"]
         _show_images_with_boxes(images, labels)
 
 
@@ -170,7 +172,7 @@ def test_contrast():
     for _ in range(5):
         samples_dict = dataset.feed()
         images = samples_dict["image"]
-        labels = samples_dict["label"]
+        labels = samples_dict["gt_boxes"]
         _show_images_with_boxes(images, labels)
 
 
@@ -200,7 +202,7 @@ def test_filp_left_right():
     for _ in range(5):
         samples_dict = dataset.feed()
         images = samples_dict["image"]
-        labels = samples_dict["label"]
+        labels = samples_dict["gt_boxes"]
         _show_images_with_boxes(images, labels)
 
 
@@ -216,7 +218,7 @@ def test_filp_top_bottom():
     for _ in range(5):
         samples_dict = dataset.feed()
         images = samples_dict["image"]
-        labels = samples_dict["label"]
+        labels = samples_dict["gt_boxes"]
         _show_images_with_boxes(images, labels)
 
 
@@ -232,7 +234,7 @@ def test_hue():
     for _ in range(5):
         samples_dict = dataset.feed()
         images = samples_dict["image"]
-        labels = samples_dict["label"]
+        labels = samples_dict["gt_boxes"]
         _show_images_with_boxes(images, labels)
 
 
@@ -293,7 +295,7 @@ def test_ssd_random_crop():
     for _ in range(5):
         samples_dict = dataset.feed()
         images = samples_dict["image"]
-        labels = samples_dict["label"]
+        labels = samples_dict["gt_boxes"]
         _show_images_with_boxes(images, labels)
         assert np.all(labels[:, :, 2] <= 512)
         assert np.all(labels[:, :, 3] <= 256)
