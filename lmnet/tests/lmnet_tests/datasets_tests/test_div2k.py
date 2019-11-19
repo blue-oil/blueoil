@@ -65,7 +65,11 @@ def test_can_iterate(set_test_environment, subset):
     iterator = DatasetIterator(dataset)
 
     for _ in range(len(dataset)):
-        images, labels = iterator.feed()
+
+        samples_dict = iterator.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["label"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size

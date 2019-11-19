@@ -34,6 +34,6 @@ def test_cityscapes():
     colors = train_dataset.label_colors
     assert len(colors) == 34
 
-    train_image_files, train_label_files = train_dataset.feed()
-    assert train_image_files.shape[0] == batch_size
-    assert train_label_files.shape[0] == batch_size
+    samples_dict = train_dataset.feed()
+    assert samples_dict["image"].shape[0] == batch_size
+    assert samples_dict["mask"].shape[0] == batch_size

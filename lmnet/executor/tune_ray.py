@@ -205,7 +205,7 @@ class TrainTunable(Trainable):
         opt = model.optimizer(self.global_step)
 
         train_op = model.train(loss, opt, self.global_step)
-        metrics_ops_dict, metrics_update_op = model.metrics(output, self.labels_placeholder)
+        metrics_ops_dict, metrics_update_op = model.metrics(self.labels_placeholder)
 
         self.train_op = train_op
         self.metrics_ops_dict = metrics_ops_dict
