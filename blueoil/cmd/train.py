@@ -60,7 +60,7 @@ def save_config_file(config_file, dest_dir):
     # We can remove following 2 lines once it's been resolved in tensorflow
     # issue link: https://github.com/tensorflow/tensorflow/issues/28508
     if gfile.exists(config_file_dest):
-        gfile.Remove(config_file_dest)
+        gfile.remove(config_file_dest)
 
     return gfile.copy(
         config_file,
