@@ -68,7 +68,7 @@ test-dlk-main: build
 .PHONY: test-dlk-x86_64
 test-dlk-x86_64: build
 	# Run dlk test of code_generation for x86_64
-	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pytest tests/test_code_generation.py::TestCodeGenerationX8664"
+	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pytest -n auto tests/test_code_generation.py::TestCodeGenerationX8664"
 
 .PHONY: test-dlk-arm
 test-dlk-arm: build
@@ -83,7 +83,7 @@ test-dlk-arm_fpga: build
 .PHONY: test-dlk-aarch64
 test-dlk-aarch64: build
 	# Run dlk test of code_generation for aarch64
-	docker run --rm -t -v $(CWD)/output:/home/blueoil/dlk/output $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pytest tests/test_code_generation.py::TestCodeGenerationAarch64"
+	docker run --rm -t -v $(CWD)/output:/home/blueoil/dlk/output $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pytest -n auto tests/test_code_generation.py::TestCodeGenerationAarch64"
 
 .PHONY: rootfs-docker
 rootfs-docker:
