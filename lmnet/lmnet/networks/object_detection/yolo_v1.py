@@ -439,7 +439,7 @@ class YoloV1(BaseNetwork):
                     self.image_size,
                 )
 
-    def loss(self):
+    def loss(self, *args):
         """Loss.
 
         Args:
