@@ -814,7 +814,8 @@ class SpaceToDepth(Operator):
         """
         super()._check_consistency()
         if self.channel % 32 != 0:
-            warnings.warn(f"Output channels need to be multiple of "
+            warnings.warn(warning_sign +
+                          f" Output channels need to be multiple of "
                           f"1. kernel_size^2 * 32 "
                           f"2. kernel_size^2 * 8, 16 for {self.name} of {self.op_type}, "
                           f"but got output channel size of {self.channel}",
