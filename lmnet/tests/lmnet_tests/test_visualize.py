@@ -22,6 +22,7 @@ from lmnet.visualize import (
     visualize_classification,
     visualize_object_detection,
     visualize_semantic_segmentation,
+    visualize_keypoint_detection,
 )
 
 
@@ -70,8 +71,20 @@ def test_semantic_segmentation():
     assert not np.all(np.array(input_image) == np.array(result_image))
 
 
+def test_keypoint_detection():
+    """Verify just image is changed."""
+    input_image = PIL.Image.new("RGB", size=(100, 200))
+    joints = np.zeros(shape=(17, 3), dtype=np.int)
+    joints[0] = [30, 30, 1]
+
+    result_image = visualize_keypoint_detection(np.array(input_image), joints)
+
+    assert not np.all(np.array(input_image) == np.array(result_image))
+
+
 if __name__ == '__main__':
     test_draw_fps()
     test_classification()
     test_object_detection()
     test_semantic_segmentation()
+    test_keypoint_detection()
