@@ -55,7 +55,7 @@ def convert(config, weight_file):
 
         init_op = tf.global_variables_initializer()
 
-        saver = tf.train.Saver(max_to_keep=None)
+        saver = tf.compat.v1.train.Saver(max_to_keep=None)
 
         variables = tf.global_variables()
 

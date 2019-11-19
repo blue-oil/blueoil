@@ -80,7 +80,7 @@ def _run(input_dir, output_dir, config, restore_path, save_images):
 
         init_op = tf.global_variables_initializer()
 
-        saver = tf.train.Saver(max_to_keep=None)
+        saver = tf.compat.v1.train.Saver(max_to_keep=None)
 
     session_config = tf.ConfigProto()
     sess = tf.Session(graph=graph, config=session_config)
