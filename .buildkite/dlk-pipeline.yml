@@ -1,11 +1,4 @@
-  - command: "make test-dlk-main"
-    label: "dlk: main"
-    agents:
-    - "agent-type=fpga"
-    - "env=production"
-    timeout_in_minutes: "40"
-    env:
-      BUILDKITE_CLEAN_CHECKOUT: 'true'
+steps:
   - command: "make test-dlk-pep8"
     label: "dlk: pep8"
     agents:
@@ -14,3 +7,58 @@
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-dlk-main"
+    label: "dlk: main"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-dlk-x86_64"
+    label: "dlk: code_generation for x86_64"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-dlk-arm"
+    label: "dlk: code_generation for arm"
+    agents:
+    - "agent-type=fpga"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-dlk-arm_fpga"
+    label: "dlk: code_generation for arm_fpga"
+    agents:
+    - "agent-type=fpga"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-dlk-aarch64"
+    label: "dlk: code_generation for aarch64"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+    artifact_paths:
+    - "output/TestCodeGenerationAarch64/**/*"
+  - wait
+  - command: |
+      buildkite-agent artifact download "output/TestCodeGenerationAarch64/*" ./ --build ${BUILDKITE_BUILD_ID}
+      python3 tests/device_tests/test_device.py
+    label: "dlk: run binary on aarch64"
+    agents:
+    - "agent-type=raspberry-pi"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+      DEVICE_TEST_INPUT_PATH: './output/TestCodeGenerationAarch64'
+      PYTHONPATH: 'dlk/python/dlk/scripts/pylib'

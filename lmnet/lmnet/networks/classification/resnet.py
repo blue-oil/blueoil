@@ -24,7 +24,7 @@ class Resnet(Base):
 
     def __init__(
             self,
-            optimizer_class=tf.train.GradientDescentOptimizer,
+            optimizer_class=tf.compat.v1.train.GradientDescentOptimizer,
             optimizer_kwargs={},
             learning_rate_func=None,
             learning_rate_kwargs={},
@@ -54,10 +54,10 @@ class Resnet(Base):
     def _residual(self, inputs, in_filters, out_filters, strides, is_training):
         use_bias = False
 
-        with tf.variable_scope('sub1'):
+        with tf.compat.v1.variable_scope('sub1'):
             bn1 = batch_norm("bn1", inputs, is_training=is_training)
 
-            with tf.variable_scope('relu1'):
+            with tf.compat.v1.variable_scope('relu1'):
                 relu1 = tf.nn.relu(bn1)
             conv1 = conv2d(
                 "conv1",
@@ -70,10 +70,10 @@ class Resnet(Base):
                 is_debug=self.is_debug,
             )
 
-        with tf.variable_scope('sub2'):
+        with tf.compat.v1.variable_scope('sub2'):
             bn2 = batch_norm("bn2", conv1, is_training=is_training)
 
-            with tf.variable_scope('relu2'):
+            with tf.compat.v1.variable_scope('relu2'):
                 relu2 = tf.nn.relu(bn2)
 
             conv2 = conv2d(
@@ -87,7 +87,7 @@ class Resnet(Base):
                 is_debug=self.is_debug,
             )
 
-        with tf.variable_scope('sub_add'):
+        with tf.compat.v1.variable_scope('sub_add'):
             if in_filters != out_filters:
                 inputs = tf.nn.avg_pool(
                     inputs,
@@ -109,7 +109,7 @@ class Resnet(Base):
 
         self.images = self.input = images
 
-        with tf.variable_scope("init"):
+        with tf.compat.v1.variable_scope("init"):
             self.conv1 = conv2d(
                 "conv1",
                 self.images,
@@ -121,31 +121,31 @@ class Resnet(Base):
             )
 
             self.bn1 = batch_norm("bn1", self.conv1, is_training=is_training)
-            with tf.variable_scope("relu1"):
+            with tf.compat.v1.variable_scope("relu1"):
                 self.relu1 = tf.nn.relu(self.bn1)
 
         for i in range(0, self.num_residual):
-            with tf.variable_scope("unit1_{}".format(i)):
+            with tf.compat.v1.variable_scope("unit1_{}".format(i)):
                 if i == 0:
                     out = self._residual(self.relu1, in_filters=16, out_filters=16, strides=1, is_training=is_training)
                 else:
                     out = self._residual(out, in_filters=16, out_filters=16, strides=1, is_training=is_training)
 
         for i in range(0, self.num_residual):
-            with tf.variable_scope("unit2_{}".format(i)):
+            with tf.compat.v1.variable_scope("unit2_{}".format(i)):
                 if i == 0:
                     out = self._residual(out, in_filters=16, out_filters=32, strides=2, is_training=is_training)
                 else:
                     out = self._residual(out, in_filters=32, out_filters=32, strides=1, is_training=is_training)
 
         for i in range(0, self.num_residual):
-            with tf.variable_scope("unit3_{}".format(i)):
+            with tf.compat.v1.variable_scope("unit3_{}".format(i)):
                 if i == 0:
                     out = self._residual(out, in_filters=32, out_filters=64, strides=2, is_training=is_training)
                 else:
                     out = self._residual(out, in_filters=64, out_filters=64, strides=1, is_training=is_training)
 
-        with tf.variable_scope("unit4_0"):
+        with tf.compat.v1.variable_scope("unit4_0"):
             self.bn4 = batch_norm("bn4", out, is_training=is_training, activation=tf.nn.relu)
 
         # global average pooling
@@ -162,9 +162,10 @@ class Resnet(Base):
     def loss(self, softmax, labels):
         """loss.
 
-        Params:
-           output: softmaxed tensor from base. shape is (batch_num, num_classes)
-           labels: onehot labels tensor. shape is (batch_num, num_classes)
+        Args:
+            output: softmaxed tensor from base. shape is (batch_num, num_classes)
+            labels: onehot labels tensor. shape is (batch_num, num_classes)
+
         """
         labels = tf.cast(labels, tf.float32)
 
@@ -173,20 +174,20 @@ class Resnet(Base):
             softmax = tf.Print(softmax, [tf.shape(softmax), tf.argmax(softmax, 1)], message="softmax:", summarize=200)
 
         cross_entropy = -tf.reduce_sum(
-            labels * tf.log(tf.clip_by_value(softmax, 1e-10, 1.0)),
+            labels * tf.math.log(tf.clip_by_value(softmax, 1e-10, 1.0)),
             axis=[1]
         )
 
         cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
 
         loss = cross_entropy_mean + self._decay()
-        tf.summary.scalar("loss", loss)
+        tf.compat.v1.summary.scalar("loss", loss)
         return loss
 
     def _decay(self):
         """L2 weight decay loss."""
         costs = []
-        for var in tf.trainable_variables():
+        for var in tf.compat.v1.trainable_variables():
             # exclude batch norm variable
             if not ("bn" in var.name and "beta" in var.name):
                 costs.append(tf.nn.l2_loss(var))

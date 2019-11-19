@@ -213,8 +213,56 @@ void func_QTZ_linear_mid_tread_half(
   T_FLOAT min_value = 0.f;
   T_FLOAT n = (1 << nbit()) - 1.f;
   unsigned num_elems = input.size();
+  const auto coeff = n / max_value();
+  const auto inv_coeff = max_value() / n;
 
-  for (unsigned i = 0; i < num_elems; i++)
+  unsigned i = 0;
+#ifdef USE_NEON
+  constexpr std::size_t SIMD_WIDTH = 4;
+  const auto num_elems_floor = num_elems - num_elems % SIMD_WIDTH;
+  const auto max_value_v = vdupq_n_f32(max_value());
+  const auto min_value_v = vdupq_n_f32(min_value);
+  const auto coeff_v = vdupq_n_f32(coeff);
+  const auto inv_coeff_v = vdupq_n_f32(inv_coeff);
+#pragma omp parallel for
+  for (unsigned i = 0; i < num_elems_floor; i += SIMD_WIDTH)
+  {
+    const auto in = vld1q_f32(input.data() + i);
+    const auto lbounded = vmaxq_f32(in, min_value_v);
+    const auto ubounded = vminq_f32(lbounded, max_value_v);
+    const auto normed = vmulq_f32(ubounded, coeff_v);
+#ifdef AARCH32
+    const auto biased = vaddq_f32(normed, vdupq_n_f32(0.5f));
+    const auto rounded_i = vcvtq_s32_f32(biased);
+    const auto rounded = vcvtq_f32_s32(rounded_i);
+#else
+    const auto rounded = vrndnq_f32(normed);
+#endif
+    const auto result = vmulq_f32(rounded, inv_coeff_v);
+    vst1q_f32(output.data() + i, result);
+  }
+  i = num_elems_floor;
+#elif defined USE_AVX
+  constexpr std::size_t SIMD_WIDTH = 8;
+  const auto num_elems_floor = num_elems - num_elems % SIMD_WIDTH;
+  const auto max_value_v = _mm256_set1_ps(max_value());
+  const auto min_value_v = _mm256_set1_ps(min_value);
+  const auto coeff_v = _mm256_set1_ps(coeff);
+  const auto inv_coeff_v = _mm256_set1_ps(inv_coeff);
+#pragma omp parallel for
+  for (unsigned i = 0; i < num_elems_floor; i += SIMD_WIDTH)
+  {
+    const auto in = _mm256_loadu_ps(input.data() + i);
+    const auto lbounded = _mm256_max_ps(in, min_value_v);
+    const auto ubounded = _mm256_min_ps(lbounded, max_value_v);
+    const auto normed = _mm256_mul_ps(ubounded, coeff_v);
+    const auto rounded = _mm256_round_ps(normed, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+    const auto result = _mm256_mul_ps(rounded, inv_coeff_v);
+    _mm256_storeu_ps(output.data() + i, result);
+  }
+  i = num_elems_floor;
+#endif
+  for (; i < num_elems; i++)
   {
     T_FLOAT tmp = std::max(input.data()[i], min_value);
     tmp = std::min(tmp, max_value());

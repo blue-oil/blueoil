@@ -33,10 +33,11 @@ def shuffle(*arrays, seed=None):
 
     Args:
         arrays: Sequence of arrays. For each array should be instance of np.ndarray or list.
-        seed(int): The seed of random generator.
+        seed (int, optional): The seed of random generator.
 
     Returns:
-        shuffled arrays(list): List of shuffled arrays. len(shuffled) == len(arrays)
+        list: List of shuffled arrays. len(shuffled) == len(arrays)
+
     """
 
     random_state = np.random.RandomState(seed)
@@ -65,12 +66,13 @@ def train_test_split(*arrays, test_size=0.25, seed=None):
 
     Args:
         arrays: Sequence of arrays. For each array should be instance of np.ndarray or list.
-        test_size(float): Represent the proportion of the arrays to include in the test split.
-        should be between 0.0 and 1.0.
-        seed(int): The seed of random generator.
+        test_size(float, optional): Represent the proportion of the arrays to include in the test split.
+            should be between 0.0 and 1.0.
+        seed (int): The seed of random generator.
 
     Returns:
-        splitted(list): List of train-test splittd array. len(splitted) == len(arrays) * 2
+        list: List of train-test splittd array. len(splitted) == len(arrays) * 2
+
     """
 
     random_state = np.random.RandomState(seed)

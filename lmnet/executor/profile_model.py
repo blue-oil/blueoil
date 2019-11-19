@@ -50,7 +50,7 @@ def _profile(config, restore_path, bit, unquant_layers):
         model.inference(images_placeholder, is_training)
 
         init_op = tf.global_variables_initializer()
-        saver = tf.train.Saver(max_to_keep=50)
+        saver = tf.compat.v1.train.Saver(max_to_keep=50)
 
     session_config = tf.ConfigProto()
     sess = tf.Session(graph=graph, config=session_config)

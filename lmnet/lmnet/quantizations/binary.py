@@ -48,6 +48,7 @@ def binary_channel_wise_mean_scaling_quantizer(
         Args:
             backward (callable): Be used in backpropagation.
             dtype (tf.DType): Define the data type of args of forward and backward.
+
         Returns:
             callable: forward function (grad_func defined).
 
@@ -59,10 +60,12 @@ def binary_channel_wise_mean_scaling_quantizer(
         """Backward.
 
         Args:
-            op(tf.Operation): The forward operation.
-            grad_quantized(tf.Tensor): The gradient w.r.t quantized input, weights normally.
+            op (tf.Operation): The forward operation.
+            grad_quantized (tf.Tensor): The gradient w.r.t quantized input, weights normally.
+
         Returns:
             tf.Variable: The gradient w.r.t. normal (non-quantized) input.
+
         """
         if backward:
             return backward(op, grad_quantized)
@@ -74,14 +77,16 @@ def binary_channel_wise_mean_scaling_quantizer(
         """Forward.
 
         Args:
-            x(tf.Variable): The input to be quantized, weights normally.
+            x (tf.Variable): The input to be quantized, weights normally.
+
         Returns:
             tf.Variable: The quantized input.
+
         """
         # x kernel shape is [height, width, in_channels, out_channels]
         scaling_factor = tf.reduce_mean(tf.abs(x), axis=[0, 1, 2])
         # TODO(wakisaka): tensorflow raise error.
-        # tf.summary.histogram("scaling_factor", scaling_factor)
+        # tf.compat.v1.summary.histogram("scaling_factor", scaling_factor)
         quantized = tf.sign(x) * scaling_factor
         return quantized
 
@@ -119,6 +124,7 @@ def binary_mean_scaling_quantizer(
         Args:
             backward (callable): Be used in backpropagation.
             dtype (tf.DType): Define the data type of args of forward and backward.
+
         Returns:
             callable: forward function (grad_func defined).
 
@@ -130,10 +136,12 @@ def binary_mean_scaling_quantizer(
         """Backward.
 
         Args:
-            op(tf.Operation): The forward operation.
-            grad_quantized(tf.Tensor): The gradient w.r.t quantized input, weights normally.
+            op (tf.Operation): The forward operation.
+            grad_quantized (tf.Tensor): The gradient w.r.t quantized input, weights normally.
+
         Returns:
             tf.Variable: The gradient w.r.t. normal (non-quantized) input.
+
         """
         if backward:
             return backward(op, grad_quantized)
@@ -145,9 +153,11 @@ def binary_mean_scaling_quantizer(
         """Forward.
 
         Args:
-            x(tf.Variable): The input to be quantized, weights normally.
+            x (tf.Variable): The input to be quantized, weights normally.
+
         Returns:
             tf.Variable: The quantized input.
+
         """
         expectation = tf.reduce_mean(tf.abs(x))
         return tf.sign(x) * expectation

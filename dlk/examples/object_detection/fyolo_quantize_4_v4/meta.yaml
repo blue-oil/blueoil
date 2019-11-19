@@ -23,24 +23,18 @@ DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 320
 - 320
-POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
-  processors:
-  - !!python/object:lmnet.post_processor.FormatYOLOV2
+POST_PROCESSOR:
+- FormatYoloV2:
     anchors:
-    - !!python/tuple
-      - 1.3221
+    - - 1.3221
       - 1.73145
-    - !!python/tuple
-      - 3.19275
+    - - 3.19275
       - 4.00944
-    - !!python/tuple
-      - 5.05587
+    - - 5.05587
       - 8.09892
-    - !!python/tuple
-      - 9.47112
+    - - 9.47112
       - 4.84053
-    - !!python/tuple
-      - 11.2364
+    - - 11.2364
       - 10.0071
     batch_size: 24
     boxes_per_cell: 5
@@ -49,9 +43,9 @@ POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     - 320
     - 320
     num_classes: 20
-  - !!python/object:lmnet.post_processor.ExcludeLowScoreBox
+- ExcludeLowScoreBox:
     threshold: 0.05
-  - !!python/object:lmnet.post_processor.NMS
+- NMS:
     classes:
     - aeroplane
     - bicycle
@@ -76,11 +70,10 @@ POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     iou_threshold: 0.5
     max_output_size: 100
     per_class: true
-PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
-  processors:
-  - !!python/object:lmnet.pre_processor.ResizeWithGtBoxes
+PRE_PROCESSOR:
+- ResizeWithGtBoxes:
     size:
     - 320
     - 320
-  - !!python/object:lmnet.pre_processor.DivideBy255 {}
+- DivideBy255: null
 TASK: IMAGE.OBJECT_DETECTION

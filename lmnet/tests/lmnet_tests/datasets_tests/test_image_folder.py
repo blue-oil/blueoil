@@ -75,7 +75,7 @@ def test_image_folder():
 
 class DummyHasValidation(ImageFolderBase):
     extend_dir = "dummy_classification"
-    validation_extend_dir = "lm_things_on_a_table"
+    validation_extend_dir = "open_images_v4"
 
 
 def test_has_validation_path():
@@ -102,7 +102,7 @@ def test_has_validation_path():
 def test_image_folder_onthefly():
     Onthefly = type('Onthefly',
                     (ImageFolderBase,),
-                    {"extend_dir": "dummy_classification", "validation_extend_dir": "lm_things_on_a_table"})
+                    {"extend_dir": "dummy_classification", "validation_extend_dir": "open_images_v4"})
     batch_size = 3
 
     train_dataset = Onthefly(subset="train",

@@ -69,7 +69,7 @@ def conv2d(
     )
 
     if is_debug:
-        tf.summary.histogram(name + "/output", output)
+        tf.compat.v1.summary.histogram(name + "/output", output)
 
     return output
 
@@ -100,7 +100,7 @@ def fully_connected(
     )
 
     if is_debug:
-        tf.summary.histogram(name + "/output", output)
+        tf.compat.v1.summary.histogram(name + "/output", output)
 
     return output
 
@@ -127,7 +127,7 @@ def max_pooling2d(
     )
 
     if is_debug:
-        tf.summary.histogram(name + "/output", output)
+        tf.compat.v1.summary.histogram(name + "/output", output)
 
     return output
 
@@ -172,6 +172,6 @@ def average_pooling2d(
     )
 
     if is_debug:
-        tf.summary.histogram(name + "/output", output)
+        tf.compat.v1.summary.histogram(name + "/output", output)
 
     return output

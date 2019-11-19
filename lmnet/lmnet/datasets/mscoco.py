@@ -17,22 +17,22 @@ import functools
 import os.path
 
 import numpy as np
-import PIL.Image
 from pycocotools.coco import COCO
 
+from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 
 DEFAULT_CLASSES = [
-        'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
-        'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-        'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
-        'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
-        'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
-        'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
-        'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
-        'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
-        'teddy bear', 'hair drier', 'toothbrush'
-    ]
+    'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
+    'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+    'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+    'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
+    'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+    'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+    'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
+    'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
+    'teddy bear', 'hair drier', 'toothbrush'
+]
 
 
 # TODO(wakisaka): shuffle
@@ -112,20 +112,6 @@ class MscocoSegmentation(SegmentationBase):
 
         return label
 
-    def _image(self, filename, convert_rgb=True):
-        """Returns numpy array of an image"""
-        image = PIL.Image.open(filename)
-
-        #  sometime image data is gray.
-        if convert_rgb:
-            image = image.convert("RGB")
-        else:
-            image = image.convert("L")
-
-        image = np.array(image)
-
-        return image
-
     def _image_file_from_image_id(self, image_id):
         image = self.coco.loadImgs(image_id)
         return os.path.join(self.image_dir, image[0]["file_name"])
@@ -133,7 +119,7 @@ class MscocoSegmentation(SegmentationBase):
     def __getitem__(self, i, type=None):
         image_id = self._image_ids[i]
         image_file = self._image_file_from_image_id(image_id)
-        image = self._image(image_file)
+        image = load_image(image_file)
 
         label = self._label_from_image_id(image_id)
 
@@ -239,10 +225,16 @@ class MscocoObjectDetection(ObjectDetectionBase):
     @functools.lru_cache(maxsize=None)
     def _gt_boxes_from_image_id(self, image_id):
         """Return gt boxes list ([[x, y, w, h, class_id]]) of a image."""
+        classes = [class_name for class_name in self.classes if class_name is not "__background__"]
+        class_ids = set(self.coco.getCatIds(catNms=classes))
+
         boxes = []
         annotation_ids = self.coco.getAnnIds(imgIds=[image_id], iscrowd=None)
         annotations = self.coco.loadAnns(annotation_ids)
         for annotation in annotations:
+            if annotation['category_id'] not in class_ids:
+                continue
+
             class_id = self.coco_category_id_to_lmnet_class_id(annotation['category_id'])
             box = annotation["bbox"] + [class_id]
             boxes.append(box)
@@ -259,11 +251,11 @@ class MscocoObjectDetection(ObjectDetectionBase):
         return files, gt_boxes_list
 
     def _init_files_and_annotations(self):
-            self.files, self.annotations = self._files_and_annotations()
+        self.files, self.annotations = self._files_and_annotations()
 
     def __getitem__(self, i, type=None):
         target_file = self.files[i]
-        image = self._get_image(target_file)
+        image = load_image(target_file)
 
         gt_boxes = self.annotations[i]
         gt_boxes = np.array(gt_boxes)

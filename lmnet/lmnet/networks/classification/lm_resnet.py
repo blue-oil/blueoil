@@ -85,17 +85,18 @@ class LmResnet(Base):
 
         x = self._conv2d_fix_padding(x, out_ch, 3, 1)
 
-        if in_ch != out_ch:
+        if strides == 2:
             shortcut = tf.nn.avg_pool(shortcut, ksize=[1, strides, strides, 1],
                                       strides=[1, strides, strides, 1], padding='VALID')
+        if in_ch != out_ch:
             shortcut = tf.pad(shortcut, [[0, 0], [0, 0], [0, 0],
-                              [(out_ch - in_ch) // 2, (out_ch - in_ch) // 2]])
+                              [(out_ch - in_ch) // 2, (out_ch - in_ch + 1) // 2]])
         return shortcut + x
 
     def resnet_group(self, x, out_ch, count, strides, training, name):
-        with tf.variable_scope(name, custom_getter=self.custom_getter):
+        with tf.compat.v1.variable_scope(name, custom_getter=self.custom_getter):
             for i in range(0, count):
-                with tf.variable_scope('block{}'.format(i)):
+                with tf.compat.v1.variable_scope('block{}'.format(i)):
                     x = self.basicblock(x, out_ch,
                                         strides if i == 0 else 1,
                                         training)
@@ -171,7 +172,7 @@ class LmResnetQuantize(LmResnet):
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
+        with tf.compat.v1.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)

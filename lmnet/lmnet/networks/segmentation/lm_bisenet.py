@@ -102,7 +102,7 @@ class LMBiSeNet(Base):
         filters,
         kernel_size,
     ):
-        with tf.variable_scope(name):
+        with tf.compat.v1.variable_scope(name):
             output = tf.layers.conv2d(
                 inputs,
                 filters=filters,
@@ -115,11 +115,11 @@ class LMBiSeNet(Base):
             )
 
             if self.enable_detail_summary:
-                tf.summary.histogram("conv_bias_output", output)
+                tf.compat.v1.summary.histogram("conv_bias_output", output)
             return output
 
     def _spatial(self, x):
-        with tf.variable_scope("spatial"):
+        with tf.compat.v1.variable_scope("spatial"):
             x = self._space_to_depth(name='s2d_1', inputs=x)
             x = self._block('conv_1', x, 32, 3)
             x = self._space_to_depth(name='s2d_2', inputs=x)
@@ -130,8 +130,8 @@ class LMBiSeNet(Base):
             return x
 
     def _context(self, x):
-        with tf.variable_scope("context"):
-            with tf.variable_scope("block_1"):
+        with tf.compat.v1.variable_scope("context"):
+            with tf.compat.v1.variable_scope("block_1"):
                 x = self._space_to_depth(name='s2d_1', inputs=x, block_size=8)
                 x = self._block('conv_1', x, 128, 1)
                 growth_rate = 32
@@ -148,7 +148,7 @@ class LMBiSeNet(Base):
                     batch_norm_decay=self.batch_norm_decay,
                 )
 
-            with tf.variable_scope("block_2"):
+            with tf.compat.v1.variable_scope("block_2"):
                 x = self._space_to_depth(name='s2d_2', inputs=x)
                 x = self._block('conv_1', x, 256, 1)
                 growth_rate = 32
@@ -172,7 +172,7 @@ class LMBiSeNet(Base):
                     x_down_16 = self._block('conv_2', x, 256, 1)
                     x = x_down_16
 
-            with tf.variable_scope("block_3"):
+            with tf.compat.v1.variable_scope("block_3"):
                 x = self._space_to_depth(name='s2d_3', inputs=x)
                 x = self._block('conv_1', x, 512, 1)
                 growth_rate = 256
@@ -197,7 +197,7 @@ class LMBiSeNet(Base):
             return x_down_32, x_down_16
 
     def _attention(self, name, x):
-        with tf.variable_scope(name):
+        with tf.compat.v1.variable_scope(name):
             stock = x
             # global average pooling
             h = x.get_shape()[1].value
@@ -215,7 +215,7 @@ class LMBiSeNet(Base):
 
     def _fusion(self, sp, cx):
         """Feature fusion module"""
-        with tf.variable_scope("fusion"):
+        with tf.compat.v1.variable_scope("fusion"):
             fusion_channel = 64
             x = tf.concat([cx, sp], axis=3)
             if self.use_feature_fusion:
@@ -255,7 +255,7 @@ class LMBiSeNet(Base):
 
         context_32, context_16 = self._context(x)
 
-        with tf.variable_scope("context_merge"):
+        with tf.compat.v1.variable_scope("context_merge"):
             if self.use_tail_gap:
                 tail = context_32
                 h = tail.get_shape()[1].value
@@ -298,7 +298,7 @@ class LMBiSeNet(Base):
     def _cross_entropy(self, x, labels):
         x = tf.reshape(x, [-1, self.num_classes])
         cross_entropy = -tf.reduce_sum(
-            (labels * tf.log(tf.clip_by_value(x, 1e-10, 1.0))),
+            (labels * tf.math.log(tf.clip_by_value(x, 1e-10, 1.0))),
             axis=[1]
         )
         cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
@@ -309,7 +309,7 @@ class LMBiSeNet(Base):
         """L2 weight decay (regularization) loss."""
         losses = []
         print("apply l2 loss these variables")
-        for var in tf.trainable_variables():
+        for var in tf.compat.v1.trainable_variables():
 
             # exclude batch norm variable
             if "kernel" in var.name:
@@ -335,9 +335,9 @@ class LMBiSeNet(Base):
 
             weight_decay_loss = tf.losses.get_regularization_loss()
             loss = loss + weight_decay_loss
-            tf.summary.scalar("weight_decay", weight_decay_loss)
+            tf.compat.v1.summary.scalar("weight_decay", weight_decay_loss)
 
-            tf.summary.scalar("loss", loss)
+            tf.compat.v1.summary.scalar("loss", loss)
             return loss
 
     def summary(self, output, labels=None):
@@ -359,9 +359,8 @@ class LMBiSeNet(Base):
 
 
 class LMBiSeNetQuantize(LMBiSeNet):
-    """
-    Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
-    ``weight_quantizer``, ``weight_quantizer_kwargs``.
+    """Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
+       ``weight_quantizer``, ``weight_quantizer_kwargs``.
 
     Args:
         activation_quantizer (callable): Weight quantizer. See more at `lmnet.quantizations`.
@@ -412,7 +411,7 @@ class LMBiSeNetQuantize(LMBiSeNet):
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
+        with tf.compat.v1.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
 
@@ -434,5 +433,5 @@ class LMBiSeNetQuantize(LMBiSeNet):
         return var
 
     def base(self, images, is_training):
-        with tf.variable_scope("", custom_getter=self.custom_getter):
+        with tf.compat.v1.variable_scope("", custom_getter=self.custom_getter):
             return super().base(images, is_training)

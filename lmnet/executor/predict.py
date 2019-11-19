@@ -20,13 +20,13 @@ from glob import glob
 
 import click
 import numpy as np
-import PIL.Image
 import tensorflow as tf
 
 from lmnet import environment
+from lmnet.utils.image import load_image
 from lmnet.utils import config as config_util
 from lmnet.utils.executor import search_restore_filename
-from lmnet.utils.json import ImageFromJson, JsonOutput
+from lmnet.utils.predict_output.writer import OutputWriter
 
 DUMMY_FILENAME = "DUMMY_FILE"
 
@@ -40,9 +40,7 @@ def _get_images(filenames, pre_processor, data_format):
         if filename == DUMMY_FILENAME:
             raw_image = np.zeros((64, 64, 3), dtype=np.uint8)
         else:
-            tmp_image = PIL.Image.open(filename)
-            tmp_image = tmp_image.convert("RGB")
-            raw_image = np.array(tmp_image)
+            raw_image = load_image(filename)
 
         image = pre_processor(image=raw_image)['image']
         if data_format == 'NCHW':
@@ -61,33 +59,6 @@ def _all_image_files(directory):
             all_image_files.append(os.path.abspath(file_path))
 
     return all_image_files
-
-
-def _save_images(output_dir, filename_images, step):
-
-    for filename, image in filename_images:
-        output_file_name = os.path.join(output_dir, "images", "{}".format(step), filename)
-        os.makedirs(os.path.dirname(output_file_name), exist_ok=True)
-
-        image.save(output_file_name)
-        print("save image: {}".format(output_file_name))
-
-
-def _save_json(output_dir, json_obj, step):
-    output_file_name = os.path.join(output_dir, "json", "{}.json".format(step))
-    os.makedirs(os.path.dirname(output_file_name), exist_ok=True)
-
-    with open(output_file_name, "w") as json_file:
-        json_file.write(json_obj)
-    print("save json: {}".format(output_file_name))
-
-
-def _save_outputs(output_dir, outputs, step):
-    output_file_name = os.path.join(output_dir, "npy", "{}.npy".format(step))
-    os.makedirs(os.path.dirname(output_file_name), exist_ok=True)
-
-    np.save(output_file_name, outputs)
-    print("save npy: {}".format(output_file_name))
 
 
 def _run(input_dir, output_dir, config, restore_path, save_images):
@@ -109,7 +80,7 @@ def _run(input_dir, output_dir, config, restore_path, save_images):
 
         init_op = tf.global_variables_initializer()
 
-        saver = tf.train.Saver(max_to_keep=None)
+        saver = tf.compat.v1.train.Saver(max_to_keep=None)
 
     session_config = tf.ConfigProto()
     sess = tf.Session(graph=graph, config=session_config)
@@ -120,17 +91,11 @@ def _run(input_dir, output_dir, config, restore_path, save_images):
 
     step_size = int(math.ceil(len(all_image_files) / config.BATCH_SIZE))
 
-    json_output = JsonOutput(
+    writer = OutputWriter(
         task=config.TASK,
         classes=config.CLASSES,
         image_size=config.IMAGE_SIZE,
-        data_format=config.DATA_FORMAT,
-    )
-
-    image_from_json = ImageFromJson(
-        task=config.TASK,
-        classes=config.CLASSES,
-        image_size=config.IMAGE_SIZE,
+        data_format=config.DATA_FORMAT
     )
 
     results = []
@@ -154,14 +119,15 @@ def _run(input_dir, output_dir, config, restore_path, save_images):
             outputs = config.POST_PROCESSOR(outputs=outputs)["outputs"]
 
         results.append(outputs)
-        _save_outputs(output_dir, outputs, step)
 
-        json = json_output(outputs, raw_images, image_files)
-        _save_json(output_dir, json, step)
-
-        if save_images:
-            filename_images = image_from_json(json, raw_images, image_files)
-            _save_images(output_dir, filename_images, step)
+        writer.write(
+            output_dir,
+            outputs,
+            raw_images,
+            image_files,
+            step,
+            save_material=save_images
+        )
 
     return results
 
@@ -227,13 +193,11 @@ def run(input_dir, output_dir, experiment_id, config_file, restore_path, save_im
 )
 def main(input_dir, output_dir, experiment_id, config_file, restore_path, save_images):
     """Make predictions from input dir images by using trained model.
-
-\b
-Save the predictions npy, json, images results to output dir.
-npy: `{output_dir}/npy/{batch number}.npy`
-json: `{output_dir}/json/{batch number}.json`
-images: `{output_dir}/images/{some type}/{input image file name}`
-"""
+        Save the predictions npy, json, images results to output dir.
+        npy: `{output_dir}/npy/{batch number}.npy`
+        json: `{output_dir}/json/{batch number}.json`
+        images: `{output_dir}/images/{some type}/{input image file name}`
+    """
 
     run(input_dir, output_dir, experiment_id, config_file, restore_path, save_images)
 

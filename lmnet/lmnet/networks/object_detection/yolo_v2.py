@@ -138,13 +138,13 @@ class YoloV2(BaseNetwork):
         if self.is_dynamic_image_size:
             # shape is [batch_size, height, width, 3]
             if self.data_format == "NHWC":
-                images_placeholder = tf.placeholder(
+                images_placeholder = tf.compat.v1.placeholder(
                     tf.float32,
                     shape=(self.batch_size, None, None, 3),
                     name="images_placeholder")
 
             if self.data_format == "NCHW":
-                images_placeholder = tf.placeholder(
+                images_placeholder = tf.compat.v1.placeholder(
                     tf.float32,
                     shape=(self.batch_size, 3, None, None),
                     name="images_placeholder")
@@ -152,18 +152,18 @@ class YoloV2(BaseNetwork):
         else:
 
             if self.data_format == "NHWC":
-                images_placeholder = tf.placeholder(
+                images_placeholder = tf.compat.v1.placeholder(
                     tf.float32,
                     shape=(self.batch_size, self.image_size[0], self.image_size[1], 3),
                     name="images_placeholder")
 
             if self.data_format == "NCHW":
-                images_placeholder = tf.placeholder(
+                images_placeholder = tf.compat.v1.placeholder(
                     tf.float32,
                     shape=(self.batch_size, 3, self.image_size[0], self.image_size[1]),
                     name="images_placeholder")
 
-        labels_placeholder = tf.placeholder(
+        labels_placeholder = tf.compat.v1.placeholder(
             tf.float32,
             shape=(self.batch_size, self.num_max_boxes, 5),
             name="labels_placeholder")
@@ -174,21 +174,21 @@ class YoloV2(BaseNetwork):
         super().summary(output, labels)
 
         with tf.name_scope("post_process"):
-            tf.summary.scalar("score_threshold", self.score_threshold)
-            tf.summary.scalar("nms_iou_threshold", self.nms_iou_threshold)
-            tf.summary.scalar("nms_max_output_size", self.nms_max_output_size)
-            tf.summary.scalar("nms_per_class", tf.cast(self.nms_per_class, tf.int32))
+            tf.compat.v1.summary.scalar("score_threshold", self.score_threshold)
+            tf.compat.v1.summary.scalar("nms_iou_threshold", self.nms_iou_threshold)
+            tf.compat.v1.summary.scalar("nms_max_output_size", self.nms_max_output_size)
+            tf.compat.v1.summary.scalar("nms_per_class", tf.cast(self.nms_per_class, tf.int32))
 
         if self.change_base_output:
             predict_classes, predict_confidence, predict_boxes = self._split_predictions(output)
         else:
             predict_classes, predict_confidence, predict_boxes = self._predictions(output)
 
-        tf.summary.histogram("predict_classes", predict_classes)
-        tf.summary.histogram("predict_confidence", predict_confidence)
+        tf.compat.v1.summary.histogram("predict_classes", predict_classes)
+        tf.compat.v1.summary.histogram("predict_confidence", predict_confidence)
 
         predict_score = predict_confidence * predict_classes
-        tf.summary.histogram("predict_score", predict_score)
+        tf.compat.v1.summary.histogram("predict_score", predict_score)
 
         if labels is not None:
             with tf.name_scope("gt_boxes"):
@@ -209,12 +209,8 @@ class YoloV2(BaseNetwork):
 
             resized_predict_boxes_for_summary = tf.reshape(predict_boxes, [self.batch_size, -1, 4])
 
-            tf.summary.histogram("predict_boxes_center_x", resized_predict_boxes_for_summary[:, :, 0])
-            tf.summary.histogram("predict_boxes_center_y", resized_predict_boxes_for_summary[:, :, 1])
-            # tf.summary.histogram("predict_boxes_w", resized_predict_boxes_for_summary[:, :, 2])
-            # tf.summary.scalar("predict_boxes_max_w", tf.reduce_max(resized_predict_boxes_for_summary[:, :, 2]))
-            # tf.summary.histogram("predict_boxes_h", resized_predict_boxes_for_summary[:, :, 3])
-            # tf.summary.scalar("predict_boxes_max_h", tf.reduce_max(resized_predict_boxes_for_summary[:, :, 3]))
+            tf.compat.v1.summary.histogram("predict_boxes_center_x", resized_predict_boxes_for_summary[:, :, 0])
+            tf.compat.v1.summary.histogram("predict_boxes_center_y", resized_predict_boxes_for_summary[:, :, 1])
 
             summary_boxes(
                 "boxes",
@@ -240,7 +236,7 @@ class YoloV2(BaseNetwork):
                 )
 
     def metrics(self, output, labels, thresholds=[0.3, 0.5, 0.7]):
-        with tf.variable_scope("calc_metrics"):
+        with tf.compat.v1.variable_scope("calc_metrics"):
             detect_boxes = self.post_process(output)
             metrics_ops_dict = {}
             updates = []
@@ -409,8 +405,8 @@ class YoloV2(BaseNetwork):
         resized_boxes = tf.stack([
             (resized_boxes[:, :, :, :, 0] * num_cell_x - offset_x),
             (resized_boxes[:, :, :, :, 1] * num_cell_y - offset_y),
-            tf.log(resized_boxes[:, :, :, :, 2] * num_cell_x / offset_w + epsilon),
-            tf.log(resized_boxes[:, :, :, :, 3] * num_cell_y / offset_h + epsilon),
+            tf.math.log(resized_boxes[:, :, :, :, 2] * num_cell_x / offset_w + epsilon),
+            tf.math.log(resized_boxes[:, :, :, :, 3] * num_cell_y / offset_h + epsilon),
         ], axis=4)
 
         return resized_boxes
@@ -664,7 +660,7 @@ class YoloV2(BaseNetwork):
         return self.loss_function(predict_classes, predict_confidence, predict_boxes, gt_boxes, global_step)
 
     def inference(self, images, is_training):
-        tf.summary.histogram("images", images)
+        tf.compat.v1.summary.histogram("images", images)
         base = self.base(images, is_training)
         self.output = tf.identity(base, name="output")
         return self.output
@@ -1393,7 +1389,7 @@ class YoloV2Loss:
     def _weight_decay_loss(self):
         """L2 weight decay (regularization) loss."""
         losses = []
-        for var in tf.trainable_variables():
+        for var in tf.compat.v1.trainable_variables():
 
             # exclude batch norm variable
             if "conv/kernel" in var.name:
@@ -1483,7 +1479,7 @@ class YoloV2Loss:
             if self.use_cross_entropy_loss:
                 class_loss = tf.reduce_mean(
                     - tf.reduce_sum(
-                        object_mask * (truth_classes * tf.log(tf.clip_by_value(predict_classes, 1e-10, 1.0))),
+                        object_mask * (truth_classes * tf.math.log(tf.clip_by_value(predict_classes, 1e-10, 1.0))),
                         axis=[1, 2, 3, 4]
                     ),
                     name='class_loss'
@@ -1529,13 +1525,13 @@ class YoloV2Loss:
                     message="loss: class_loss, object_loss, no_object_loss, coordinate_loss:",
                     summarize=20000)
 
-            tf.summary.scalar("class", class_loss)
-            tf.summary.scalar("object", object_loss)
-            tf.summary.scalar("no_object", no_object_loss)
-            tf.summary.scalar("coordinate", coordinate_loss)
-            tf.summary.scalar("weight_decay", weight_decay_loss)
+            tf.compat.v1.summary.scalar("class", class_loss)
+            tf.compat.v1.summary.scalar("object", object_loss)
+            tf.compat.v1.summary.scalar("no_object", no_object_loss)
+            tf.compat.v1.summary.scalar("coordinate", coordinate_loss)
+            tf.compat.v1.summary.scalar("weight_decay", weight_decay_loss)
 
-            tf.summary.scalar("loss", loss)
+            tf.compat.v1.summary.scalar("loss", loss)
 
         return loss
 

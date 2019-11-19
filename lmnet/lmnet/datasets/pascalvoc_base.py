@@ -21,6 +21,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
 
+from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase
 
 
@@ -108,8 +109,9 @@ class PascalvocBase(ObjectDetectionBase):
         Args:
             xml_file: file name for bounding box annotation xml
 
-        Return:
-           gt boxes list [[x, y, w, h, class_id]].
+        Returns:
+            list: gt boxes list [[x, y, w, h, class_id]].
+
         """
         tree = ET.parse(xml_file)
         root = tree.getroot()
@@ -211,7 +213,7 @@ class PascalvocBase(ObjectDetectionBase):
 
     def __getitem__(self, i, type=None):
         target_file = self.files[i]
-        image = self._get_image(target_file)
+        image = load_image(target_file)
 
         gt_boxes = self.annotations[i]
         gt_boxes = np.array(gt_boxes)

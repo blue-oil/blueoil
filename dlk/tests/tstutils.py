@@ -22,7 +22,7 @@ from os.path import join
 from tstconf import DO_CLEANUP
 
 TEST_LEVEL_FUTURE_TARGET=512
-FPGA_HOST = os.environ['FPGA_HOST']
+FPGA_HOST = os.getenv('FPGA_HOST')
 
 
 def updated_dict(src_dict, updation) -> dict:
@@ -138,6 +138,9 @@ def wait_for_device(host: str, tries: int, seconds: int, log_path: str, testcase
 def setup_de10nano(hw_path: str, output_path: str, testcase=None):
 
     host = FPGA_HOST
+    if host is None:
+        return False
+
     available = wait_for_device(host, 15, 10, output_path, testcase)
     if not available:
         return False
