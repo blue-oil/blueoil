@@ -48,6 +48,7 @@ from lmnet.utils.demo import (
 
 from lmnet.visualize import (
     label_to_color_image,
+    visualize_keypoint_detection,
 )
 
 
@@ -228,7 +229,7 @@ def run_classification(config):
     cv2.destroyAllWindows()
 
     
-def run_sementic_segmentation(config):
+def run_semantic_segmentation(config):
     global nn
     camera_width = 320
     camera_height = 240
@@ -244,8 +245,6 @@ def run_sementic_segmentation(config):
     q_show = Queue()
 
     grabbed, camera_img = vc.read()
-    if not grabbed:
-        print("Frame is empty")
 
     q_show.put(camera_img.copy())
     input_img = camera_img.copy()
@@ -283,6 +282,63 @@ def run_sementic_segmentation(config):
         m1.show()
 
 
+def run_keypoint_detection(config):
+    global nn
+    camera_width = 320
+    camera_height = 240
+    window_name = "Keypoint Detection Demo"
+
+    input_width = config.IMAGE_SIZE[1]
+    input_height = config.IMAGE_SIZE[0]
+
+    vc = init_camera(camera_width, camera_height)
+
+    pool = Pool(processes=1, initializer=nn.init)
+    result = None
+    fps = 1.0
+
+    q_save = Queue()
+    q_show = Queue()
+
+    grabbed, camera_img = vc.read()
+
+    q_show.put(camera_img.copy())
+    input_img = camera_img.copy()
+
+    while True:
+        m1 = MyTime("1 loop of while(1) of main()")
+        pool_result = pool.apply_async(_run_inference, (input_img,))
+        is_first = True
+        while True:
+            grabbed, camera_img = vc.read()
+            if is_first:
+                input_img = camera_img.copy()
+                is_first = False
+            q_save.put(camera_img.copy())
+            if not q_show.empty():
+                window_img = q_show.get()
+                drawed_img = window_img
+                if result is not None:
+
+                    drawed_img = visualize_keypoint_detection(window_img, result[0], (input_height, input_width))
+                    drawed_img = add_fps(drawed_img, fps)
+
+                cv2.imshow(window_name, drawed_img)
+                key = cv2.waitKey(2)  # Wait for 2ms
+                # TODO(yang): Consider using another key for abort.
+                if key == 27:  # ESC to quit
+                    return
+
+            # TODO(yang): Busy loop is not efficient here. Improve it and change them in other tasks.
+            if pool_result.ready():
+                break
+
+        q_show = clear_queue(q_show)
+        q_save, q_show = swap_queue(q_save, q_show)
+        result, fps = pool_result.get()
+        m1.show()
+
+
 def run(model, config_file):
     global nn, pre_process, post_process
     filename, file_extension = os.path.splitext(model)
@@ -308,14 +364,12 @@ def run(model, config_file):
         from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
 
-    if config.TASK == "IMAGE.CLASSIFICATION":
-        run_classification(config)
+    TASK_HANDLERS = {"IMAGE.CLASSIFICATION": run_classification,
+                     "IMAGE.OBJECT_DETECTION": run_object_detection,
+                     "IMAGE.SEMANTIC_SEGMENTATION": run_semantic_segmentation,
+                     "IMAGE.KEYPOINT_DETECTION": run_keypoint_detection}
 
-    if config.TASK == "IMAGE.OBJECT_DETECTION":
-        run_object_detection(config)
-
-    if config.TASK == "IMAGE.SEMANTIC_SEGMENTATION":
-        run_sementic_segmentation(config)
+    TASK_HANDLERS[config.TASK](config)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

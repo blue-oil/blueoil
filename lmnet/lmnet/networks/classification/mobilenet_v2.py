@@ -75,7 +75,7 @@ class MobileNetV2(Base):
 
         expanded_filters_size = up_sample_rate * input_channel
 
-        with tf.variable_scope('inverted_bottleneck{}_{}_{}'.format(self.i, up_sample_rate, subsample)):
+        with tf.compat.v1.variable_scope('inverted_bottleneck{}_{}_{}'.format(self.i, up_sample_rate, subsample)):
             self.i += 1
             if expanded_filters_size > input_channel:
                 x = self.conv2d(x, expanded_filters_size, 1, activation=None)
@@ -116,7 +116,7 @@ class MobileNetV2(Base):
         self.images = images
 
         self.i = 0
-        with tf.variable_scope('init_conv'):
+        with tf.compat.v1.variable_scope('init_conv'):
             # For cifar10, I use strides `1` instead of `2`.
             x = self.conv2d(self.images, filters=32, kernel_size=3, strides=1)
             x = self.batch_norm(x, is_training=self.is_training)
@@ -141,7 +141,7 @@ class MobileNetV2(Base):
         x = self._inverted_bottleneck(x, 6, 320, 0)
 
         self.i += 1
-        with tf.variable_scope('conv' + str(self.i)):
+        with tf.compat.v1.variable_scope('conv' + str(self.i)):
             x = self.conv2d(x, 1280, 1)
             x = self.batch_norm(x, is_training=self.is_training)
             x = self.activation(x)
@@ -158,7 +158,7 @@ class MobileNetV2(Base):
         x = tf.contrib.layers.dropout(x, keep_prob=self.dropout_keep_prob, is_training=is_training)
 
         self.i += 1
-        with tf.variable_scope('conv' + str(self.i)):
+        with tf.compat.v1.variable_scope('conv' + str(self.i)):
             x = self.conv2d(x, filters=self.num_classes, kernel_size=1, use_bias=True)
 
         # disable heatmap for faster learning.
