@@ -56,8 +56,7 @@ class YoutubeFacialLandmarks(KeypointDetectionBase):
             # skip header line
             f.readline()
             for line in f:
-                landmarks = line.split(",")
-                filename = landmarks.pop(0)
+                filename, *landmarks = line.split(",")
                 abs_path = os.path.join(self.image_dir, filename)
 
                 joints = np.ones((self.num_joints, num_dimensions + 1), dtype=np.float32)
@@ -82,10 +81,8 @@ class YoutubeFacialLandmarks(KeypointDetectionBase):
             joints: a numpy array of shape (68, 3), which has coordinates in image.
 
         """
-        image = load_image(self.files[item])
-        joints = self.joints_list[item]
 
-        return image, joints
+        return load_image(self.files[item]), self.joints_list[item]
 
     def __len__(self):
         return len(self.files)
