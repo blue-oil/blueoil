@@ -24,14 +24,8 @@ from lmnet.networks.keypoint_detection.base import Base
 class LmSinglePoseV1(Base):
     """LM original single-person pose estimation network."""
 
-    def __init__(
-            self,
-            stride=2,
-            *args,
-            **kwargs):
-        super().__init__(
-            *args,
-            **kwargs)
+    def __init__(self, stride=2, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.activation = tf.nn.relu
         self.custom_getter = None
@@ -53,15 +47,11 @@ class LmSinglePoseV1(Base):
         if self.data_format == 'NCHW':
             output = tf.transpose(output, perm=[0, 2, 3, 1])
         with tf.name_scope("loss"):
-
             global_loss = tf.reduce_mean((output - labels)**2)
 
             refine_loss = tf.reduce_mean((output - labels)**2, axis=(1, 2))
-
             top_k = 8
-
             top_k_values, top_k_idx = tf.nn.top_k(refine_loss, k=top_k, sorted=False)
-
             refine_loss = tf.reduce_sum(top_k_values) / top_k
 
             loss = refine_loss + global_loss
@@ -138,10 +128,10 @@ class LmSinglePoseV1(Base):
 
         if self.stride < 16:
             x = connect_block(lateral=c3, up=x, name="connect_block2")
-            if self.stride < 8:
-                x = connect_block(lateral=c2, up=x, name="connect_block3")
-                if self.stride < 4:
-                    x = connect_block(lateral=c1, up=x, name="connect_block4")
+        if self.stride < 8:
+            x = connect_block(lateral=c2, up=x, name="connect_block3")
+        if self.stride < 4:
+            x = connect_block(lateral=c1, up=x, name="connect_block4")
 
         x = _lmnet_block('conv_final', x, self.num_joints, 3, activation=None)
 

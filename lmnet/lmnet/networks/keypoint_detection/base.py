@@ -30,23 +30,17 @@ class Base(BaseNetwork):
 
     """
 
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def placeholders(self):
-        shape = (self.batch_size, self.image_size[0], self.image_size[1], 3) \
-            if self.data_format == 'NHWC' else (self.batch_size, 3, self.image_size[0], self.image_size[1])
-        images_placeholder = tf.placeholder(
-            tf.float32,
-            shape=shape,
-            name="images_placeholder")
+
+        if self.data_format == 'NHWC':
+            shape = (self.batch_size, self.image_size[0], self.image_size[1], 3)
+        else:
+            shape = (self.batch_size, 3, self.image_size[0], self.image_size[1])
+
+        images_placeholder = tf.placeholder(tf.float32, shape=shape, name="images_placeholder")
         labels_placeholder = tf.placeholder(
             tf.float32,
             shape=(self.batch_size,
@@ -90,15 +84,10 @@ class Base(BaseNetwork):
 
         """
         batch_size = heatmaps.shape[0]
-        list_joints = []
+        list_joints = [gaussian_heatmap_to_joints(heatmaps[i], num_dimensions, stride=stride)
+                       for i in range(batch_size)]
 
-        for i in range(batch_size):
-            joints = gaussian_heatmap_to_joints(heatmaps[i], num_dimensions, stride=stride)
-            list_joints.append(joints)
-
-        batch_joints = np.stack(list_joints)
-
-        return batch_joints
+        return np.stack(list_joints)
 
     def post_process(self, output):
         """Tensorflow mirror method for py_post_process(),
@@ -112,11 +101,9 @@ class Base(BaseNetwork):
 
         """
 
-        joints = tf.py_func(self.py_post_process,
-                            [output, 2, self.stride],
-                            tf.float32)
-
-        return joints
+        return tf.py_func(self.py_post_process,
+                          [output, 2, self.stride],
+                          tf.float32)
 
     @staticmethod
     def py_visualize_output(images, heatmaps, stride=2):
@@ -153,7 +140,6 @@ class Base(BaseNetwork):
         drawed_images = tf.py_func(self.py_visualize_output,
                                    [images, output, self.stride],
                                    tf.uint8)
-
         tf.summary.image(name, drawed_images)
 
     def _compute_oks(self, output, labels):
@@ -170,11 +156,9 @@ class Base(BaseNetwork):
         joints_gt = self.post_process(labels)
         joints_pred = self.post_process(output)
 
-        oks = tf.py_func(compute_object_keypoint_similarity,
-                         [joints_gt, joints_pred, self.image_size],
-                         tf.float32)
-
-        return oks
+        return tf.py_func(compute_object_keypoint_similarity,
+                          [joints_gt, joints_pred, self.image_size],
+                          tf.float32)
 
     def summary(self, output, labels=None):
         """Summary for tensorboard.
@@ -209,18 +193,13 @@ class Base(BaseNetwork):
         """
 
         output = output if self.data_format == 'NHWC' else tf.transpose(output, perm=[0, 2, 3, 1])
-
         oks = self._compute_oks(output, labels)
 
         results = {}
-        updates = []
 
         mean_oks, update_oks = tf.metrics.mean(oks)
-
-        updates.append(update_oks)
-
+        updates = [update_oks]
         updates_op = tf.group(*updates)
-
         results["mean_oks"] = mean_oks
 
         return results, updates_op

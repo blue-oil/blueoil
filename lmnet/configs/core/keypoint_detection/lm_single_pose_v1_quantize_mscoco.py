@@ -82,7 +82,7 @@ POST_PROCESSOR = Sequence([
     GaussianHeatmapToJoints(num_dimensions=2, stride=STRIDE, confidence_threshold=0.1)
 ])
 
-step_per_epoch = int(149813 / BATCH_SIZE)
+step_per_epoch = 149813 // BATCH_SIZE
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
