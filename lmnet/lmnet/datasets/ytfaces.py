@@ -53,6 +53,8 @@ class YoutubeFacialLandmarks(KeypointDetectionBase):
         num_dimensions = 2
 
         with open(self.csv) as f:
+            # skip header line
+            f.readline()
             for line in f:
                 landmarks = line.split(",")
                 filename = landmarks.pop(0)
@@ -66,9 +68,6 @@ class YoutubeFacialLandmarks(KeypointDetectionBase):
 
                 files.append(abs_path)
                 joints_list.append(joints)
-
-        files.pop(0)
-        joints_list.pop(0)
 
         return files, joints_list
 
