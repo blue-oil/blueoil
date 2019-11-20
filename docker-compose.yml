@@ -1,15 +1,18 @@
+# FOR DEVELOP USE
 version: "3.6"
 services:
   blueoil:
     build:
       context: .
       dockerfile: ./docker/Dockerfile
+      target: blueoil-dev
       # https://docs.nvidia.com/deeplearning/frameworks/user-guide/index.html#run_tf_cifar10
       shm_size: "1gb"
     image: blueoil_${USER}
     ulimits:
       memlock: -1
       stack: 67108864
+    network_mode: "host"
     working_dir: /home/blueoil
     volumes:
       - ./:/home/blueoil

@@ -21,7 +21,7 @@ import numpy as np
 import PIL.Image
 
 from lmnet.common import Tasks
-from lmnet.utils.json import JsonOutput
+from lmnet.utils.predict_output.output import JsonOutput
 
 
 def test_classification_json():

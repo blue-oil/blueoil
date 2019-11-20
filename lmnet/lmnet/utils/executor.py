@@ -16,7 +16,7 @@
 import os
 
 import tensorflow as tf
-from tensorflow import gfile
+from tensorflow.io import gfile
 
 from lmnet import environment
 
@@ -60,23 +60,23 @@ checkpoints_dir: {checkpoints_dir}
     print(message)
 
     if recreate:
-        if gfile.Exists(experiment_dir):
-            gfile.DeleteRecursively(experiment_dir)
+        if gfile.exists(experiment_dir):
+            gfile.rmtree(experiment_dir)
 
-        if gfile.Exists(tensorboard_dir):
-            gfile.DeleteRecursively(tensorboard_dir)
+        if gfile.exists(tensorboard_dir):
+            gfile.rmtree(tensorboard_dir)
 
-        if gfile.Exists(checkpoints_dir):
-            gfile.DeleteRecursively(checkpoints_dir)
+        if gfile.exists(checkpoints_dir):
+            gfile.rmtree(checkpoints_dir)
 
-    if not gfile.Exists(experiment_dir):
-        gfile.MakeDirs(experiment_dir)
+    if not gfile.exists(experiment_dir):
+        gfile.makedirs(experiment_dir)
 
-    if not gfile.Exists(tensorboard_dir):
-        gfile.MakeDirs(tensorboard_dir)
+    if not gfile.exists(tensorboard_dir):
+        gfile.makedirs(tensorboard_dir)
 
-    if not gfile.Exists(checkpoints_dir):
-        gfile.MakeDirs(checkpoints_dir)
+    if not gfile.exists(checkpoints_dir):
+        gfile.makedirs(checkpoints_dir)
 
 
 def search_restore_filename(checkpoints_dir):
@@ -99,28 +99,29 @@ def convert_variables_to_constants(sess, output_node_names=["output"]):
 
 def save_pb_file(sess, output_dir, output_node_names=["output"], pb_name="minimal_graph_with_shape.pb"):
     minimal_graph_def = convert_variables_to_constants(sess, output_node_names)
-    tf.train.write_graph(minimal_graph_def, output_dir, pb_name, as_text=False)
+    tf.io.write_graph(minimal_graph_def, output_dir, pb_name, as_text=False)
     return pb_name
 
 
 def prepare_metrics(metrics_ops_dict):
     """Create summary_op and placeholders for training metrics.
 
-    Params:
+    Args:
         metrics_ops_dict (dict): dict of name and metrics_op.
 
     Returns:
         metrics_summary_op: summary op of metrics.
         metrics_placeholders: list of metrics placeholder.
+
     """
     with tf.name_scope("metrics"):
         metrics_placeholders = []
         metrics_summaries = []
         for (metrics_key, metrics_op) in metrics_ops_dict.items():
-            metrics_placeholder = tf.placeholder(
+            metrics_placeholder = tf.compat.v1.placeholder(
                 tf.float32, name="{}_placeholder".format(metrics_key)
             )
-            summary = tf.summary.scalar(metrics_key, metrics_placeholder)
+            summary = tf.compat.v1.summary.scalar(metrics_key, metrics_placeholder)
             metrics_placeholders.append(metrics_placeholder)
             metrics_summaries.append(summary)
 

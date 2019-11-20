@@ -21,7 +21,7 @@ from tempfile import NamedTemporaryFile
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
-from tensorflow import gfile
+from tensorflow.io import gfile
 
 from lmnet.utils.module_loader import load_class
 
@@ -76,6 +76,10 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
         "dataset_module": "camvid",
         "dataset_class": "CamvidCustom",
     },
+    "DIV2K": {
+        "dataset_module": "div2k",
+        "dataset_class": "Div2k",
+    }
 }
 
 
@@ -92,12 +96,13 @@ def _load_yaml(blueoil_config_filename):
     """load blueoil config yaml
 
     Args:
-        blueoil_config_filename(str): File path of blueoil config yaml file.
+        blueoil_config_filename (str): File path of blueoil config yaml file.
 
     Returns:
-        blueoil_config(dict): dict of blueoil config.
+        dict: blueoil config.
+
     """
-    if not gfile.Exists(blueoil_config_filename):
+    if not gfile.exists(blueoil_config_filename):
         FileNotFoundError("File not found: {}".format(blueoil_config_filename))
 
     with gfile.GFile(blueoil_config_filename, "r") as f:
@@ -114,10 +119,11 @@ def _blueoil_to_lmnet(blueoil_config):
     """
 
     Args:
-        blueoil_config(dict):
+        blueoil_config(dict): 
 
     Returns:
-        lmnet_config(dict):
+        dict: 
+
     """
 
     # default setting

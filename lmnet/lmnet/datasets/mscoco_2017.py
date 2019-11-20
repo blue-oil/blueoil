@@ -23,8 +23,7 @@ from lmnet.datasets.base import KeypointDetectionBase
 
 
 class MscocoSinglePersonKeypoints(KeypointDetectionBase):
-    """
-    MSCOCO_2017 dataset loader for single-person pose estimation.
+    """MSCOCO_2017 dataset loader for single-person pose estimation.
 
     References:
         https://github.com/dmlc/gluon-cv/blob/master/gluoncv/data/mscoco/keypoints.py
@@ -87,8 +86,8 @@ class MscocoSinglePersonKeypoints(KeypointDetectionBase):
         return files, box_list, joints_list
 
     def _labels_from_entry(self, entry):
-        """
-        Extract labels from entry.
+        """Extract labels from entry.
+
         Args:
             entry: a dict to store all labeled examples in an image.
 

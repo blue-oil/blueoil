@@ -97,7 +97,7 @@ def _export(config, restore_path, image_path):
         model.inference(images_placeholder, is_training)
         init_op = tf.global_variables_initializer()
 
-        saver = tf.train.Saver(max_to_keep=50)
+        saver = tf.compat.v1.train.Saver(max_to_keep=50)
 
     session_config = tf.ConfigProto()
     sess = tf.Session(graph=graph, config=session_config)

@@ -23,7 +23,8 @@ from lmnet.networks.segmentation.base import SegnetBase
 
 class LmSegnetV1(SegnetBase):
     """LM original semantic segmentation network.
-    This network is composed of 11 convolution layers with space_to_depth and depth_to_space."""
+       This network is composed of 11 convolution layers with space_to_depth and depth_to_space.
+    """
 
     def __init__(
             self,
@@ -97,10 +98,13 @@ class LmSegnetV1Quantize(LmSegnetV1):
     ``weight_quantizer``, ``weight_quantizer_kwargs``.
 
     Args:
-        activation_quantizer (callable): Weight quantizater. See more at `lmnet.quantizations`.
+        activation_quantizer (callable): Weight quantizater.
+            See more at `lmnet.quantizations`.
         activation_quantizer_kwargs (dict): Kwargs for `activation_quantizer`.
-        weight_quantizer (callable): Activation quantizater. See more at `lmnet.quantizations`.
+        weight_quantizer (callable): Activation quantizater.
+            See more at `lmnet.quantizations`.
         weight_quantizer_kwargs (dict): Kwargs for `weight_quantizer`.
+
     """
 
     def __init__(
@@ -140,10 +144,11 @@ class LmSegnetV1Quantize(LmSegnetV1):
             weight_quantization: Callable object which quantize variable.
             args: Args.
             kwargs: Kwargs.
+
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
+        with tf.compat.v1.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
                 return weight_quantization(var)

@@ -19,7 +19,7 @@ from lmnet.metrics.metrics import tp_tn_fp_fn, tp_tn_fp_fn_for_each
 
 
 def safe_log(arg):
-    return tf.log(tf.clip_by_value(arg, 1e-10, 1.0))
+    return tf.math.log(tf.clip_by_value(arg, 1e-10, 1.0))
 
 
 # TODO(wakisaka): WIP
@@ -31,12 +31,12 @@ class LmnetMulti:
     def placeholders(self):
         """placeholders"""
 
-        images_placeholder = tf.placeholder(
+        images_placeholder = tf.compat.v1.placeholder(
             tf.float32,
             shape=(self.batch_size, self.image_size[0], self.image_size[1], 3),
             name="images_placeholder")
 
-        labels_placeholder = tf.placeholder(
+        labels_placeholder = tf.compat.v1.placeholder(
             tf.bool,
             shape=(self.batch_size, self.num_classes),
             name="labels_placeholder")
@@ -46,8 +46,10 @@ class LmnetMulti:
     def inference(self, images, is_training):
         """inference.
 
-        Params:
-           images: images tensor. shape is (batch_num, height, width, channel)
+        Args:
+            images: images tensor. shape is (batch_num, height, width, channel)
+            is_training:
+
         """
         base = self.base(images, is_training)
         softmax = tf.sigmoid(base)
@@ -58,9 +60,10 @@ class LmnetMulti:
     def loss(self, output, labels):
         """loss.
 
-        Params:
-           output: network output sigmoided tensor.
-           labels:  multi label encoded tensor. shape is (batch_num, num_classes)
+        Args:
+            output: network output sigmoided tensor.
+            labels:  multi label encoded tensor. shape is (batch_num, num_classes)
+
         """
 
         with tf.name_scope("loss"):
@@ -76,7 +79,7 @@ class LmnetMulti:
                 )
             )
 
-            tf.summary.scalar("loss", loss)
+            tf.compat.v1.summary.scalar("loss", loss)
 
         return loss
 
@@ -87,15 +90,15 @@ class LmnetMulti:
                 tp, tn, fp, fn = tp_tn_fp_fn(output, labels, threshold=threshold)
                 accuracy = (tp + tn) / (tp + tn + fp + fn)
 
-                tf.summary.scalar("accuracy/prob_{}".format(threshold), accuracy)
+                tf.compat.v1.summary.scalar("accuracy/prob_{}".format(threshold), accuracy)
 
                 recall = (tp) / (tp + fn)
 
-                tf.summary.scalar("recall/prob_{}".format(threshold), recall)
+                tf.compat.v1.summary.scalar("recall/prob_{}".format(threshold), recall)
 
                 precision = (tp) / (tp + fp)
 
-                tf.summary.scalar("precision/prob_{}".format(threshold), precision)
+                tf.compat.v1.summary.scalar("precision/prob_{}".format(threshold), precision)
         return accuracy
 
     def metrics_for_each_class(self, output, labels, thresholds=[0.3, 0.5, 0.7]):
@@ -109,12 +112,18 @@ class LmnetMulti:
                     fn = tf.gather(tf.gather(tp_tn_fp_fn, 3), label_i)
                     accuracy = (tp + tn) / (tp + tn + fp + fn)
 
-                    tf.summary.scalar("accuracy/prob_{}/{}".format(threshold, self.classes[label_i]), accuracy)
+                    tf.compat.v1.summary.scalar(
+                        "accuracy/prob_{}/{}".format(threshold, self.classes[label_i]),
+                        accuracy
+                    )
 
                     recall = (tp) / (tp + fn)
 
-                    tf.summary.scalar("recall/prob_{}/{}".format(threshold, self.classes[label_i]), recall)
+                    tf.compat.v1.summary.scalar("recall/prob_{}/{}".format(threshold, self.classes[label_i]), recall)
 
                     precision = (tp) / (tp + fp)
-                    tf.summary.scalar("precision/prob_{}/{}".format(threshold, self.classes[label_i]), precision)
+                    tf.compat.v1.summary.scalar(
+                        "precision/prob_{}/{}".format(threshold, self.classes[label_i]),
+                        precision
+                    )
         return accuracy

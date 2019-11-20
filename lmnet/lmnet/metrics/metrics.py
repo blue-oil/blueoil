@@ -20,21 +20,22 @@ import tensorflow as tf
 def tp_tn_fp_fn_for_each(output, labels, threshold=0.5):
     """Calculate True Positive, True Negative, False Positive, False Negative.
 
-    Return:
-       shape is [4(tp, tn, fp, fn), num_class]
-
     Args:
         output: network output sigmoided tensor. shape is [batch_size, num_class]
         labels: multi label encoded bool tensor. shape is [batch_size, num_class]
         threshold: python float
+
+    Returns:
+        shape is [4(tp, tn, fp, fn), num_class]
+
     """
     predicted = tf.greater_equal(output, threshold)
     gt_positive = tf.reduce_sum(tf.cast(labels, tf.int32), 0, keep_dims=True)
     gt_negative = tf.reduce_sum(tf.cast(tf.logical_not(labels), tf.int32), 0, keep_dims=True)
-    true_positive = tf.logical_and(predicted, labels)
+    true_positive = tf.math.logical_and(predicted, labels)
     true_positive = tf.reduce_sum(tf.cast(true_positive, tf.int32), 0, keep_dims=True)
 
-    true_negative = tf.logical_and(tf.logical_not(predicted), tf.logical_not(labels))
+    true_negative = tf.math.logical_and(tf.logical_not(predicted), tf.math.logical_not(labels))
     true_negative = tf.reduce_sum(tf.cast(true_negative, tf.int32), 0, keep_dims=True)
     false_negative = gt_positive - true_positive
     false_positive = gt_negative - true_negative
@@ -49,16 +50,17 @@ def tp_tn_fp_fn(output, labels, threshold=0.5):
         output: network output sigmoided tensor. shape is [batch_size, num_class]
         labels: multi label encoded bool tensor. shape is [batch_size, num_class]
         threshold: python float
+
     """
     predicted = tf.greater_equal(output, threshold)
 
     gt_positive = tf.reduce_sum(tf.cast(labels, tf.int32))
     gt_negative = tf.reduce_sum(tf.cast(tf.logical_not(labels), tf.int32))
 
-    true_positive = tf.logical_and(predicted, labels)
+    true_positive = tf.math.logical_and(predicted, labels)
     true_positive = tf.reduce_sum(tf.cast(true_positive, tf.int32))
 
-    true_negative = tf.logical_and(tf.logical_not(predicted), tf.logical_not(labels))
+    true_negative = tf.math.logical_and(tf.logical_not(predicted), tf.math.logical_not(labels))
     true_negative = tf.reduce_sum(tf.cast(true_negative, tf.int32))
 
     false_negative = gt_positive - true_positive

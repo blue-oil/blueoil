@@ -29,17 +29,20 @@ def ttq_weight_quantizer(threshold=0.05, dtype=tf.float32):
     @Defun(dtype, dtype, dtype, tf.float32, dtype)
     def backward(weights, positive, negative, threshold, grad_quantized):
         """Backward
+
         Args:
             weights(tf.Variable): The weights to be quantized.
             positive(tf.Variable): The positive scaling factor.
             negative(tf.Variable): The negative scaling factor.
             threshold(tf.Tensor): The threshold scalar value.
             grad_quantized(tf.Tensor): The gradient w.r.t quantized weights.
-        Return:
-            grad_weights(tf.Tensor): The gradient w.r.t. normal (non-quantized) weights.
-            grad_positive(tf.Tensor): The gradient w.r.t. positive.
-            grad_negative(tf.Tensor): The gradient w.r.t. negative.
-            grad_threshold(tf.Tensor): The gradient w.r.t. threshold. It be ignore because of the threshold is constant value.
+
+        Returns:
+            tf.Tensor: The gradient w.r.t. normal (non-quantized) weights.
+            tf.Tensor: The gradient w.r.t. positive.
+            tf.Tensor: The gradient w.r.t. negative.
+            tf.Tensor: The gradient w.r.t. threshold. It be ignore because of the threshold is constant value.
+
         """ # NOQA
         ternary_threshold = tf.reduce_max(tf.abs(weights)) * threshold
         mask_positive = (weights > ternary_threshold)
@@ -62,13 +65,16 @@ def ttq_weight_quantizer(threshold=0.05, dtype=tf.float32):
            grad_func=backward, func_name="ttq_weight_quantizer", shape_func=lambda op: [op.inputs[0].get_shape()])
     def forward(weights, positive, negative, threshold):
         """Forward
+
         Args:
             weights(tf.Variable): The weights to be quantized.
             positive(tf.Variable): The positive scaling factor.
             negative(tf.Variable): The negative scaling factor.
             threshold(tf.Tensor): The threshold scalar value.
+
         Returns:
-            quantized(tf.Variable): The quantized weights.
+            tf.Variable: The quantized weights.
+
         """
         ternary_threshold = tf.reduce_max(tf.abs(weights)) * threshold
         mask_positive = (weights > ternary_threshold)
@@ -87,8 +93,8 @@ def ttq_weight_quantizer(threshold=0.05, dtype=tf.float32):
         # See https://stackoverflow.com/questions/33694368/what-is-the-best-way-to-implement-weight-constraints-in-tensorflow/37426800  # NOQA
         positive = tf.get_variable("positive", initializer=1.0)
         negative = tf.get_variable("negative", initializer=1.0)
-        tf.summary.scalar("positive", positive)
-        tf.summary.scalar("negative", negative)
+        tf.compat.v1.summary.scalar("positive", positive)
+        tf.compat.v1.summary.scalar("negative", negative)
         return forward(weights, positive, negative, threshold)
 
     return wrapper
@@ -103,10 +109,13 @@ def twn_weight_quantizer(threshold=0.7, dtype=tf.float32):
     @Defun(dtype, dtype)
     def backward(weights, grad_quantized):
         """Backward
+
         Args:
             grad_quantized(tf.Tensor): The gradient w.r.t quantized weights.
+
         Return:
             grad_weights(tf.Tensor): The gradient w.r.t. normal (non-quantized) weights.
+
         """
         grad_weights = grad_quantized
         return grad_weights
@@ -115,10 +124,13 @@ def twn_weight_quantizer(threshold=0.7, dtype=tf.float32):
            shape_func=lambda op: [op.inputs[0].get_shape()])
     def forward(weights):
         """Forward
+
         Args:
             weights(tf.Variable): The weights to be quantized.
+
         Returns:
-            quantized(tf.Variable): The quantized weights.
+            tf.Variable: The quantized weights.
+
         """
         ternary_threshold = tf.reduce_sum(tf.abs(weights)) * threshold / tf.cast(tf.size(weights), tf.float32)
         mask_positive = (weights > ternary_threshold)

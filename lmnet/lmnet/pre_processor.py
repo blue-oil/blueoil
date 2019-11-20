@@ -23,8 +23,9 @@ def resize(image, size=[256, 256]):
     """Resize an image.
 
     Args:
-        image: an image numpy array.
+        image (np.ndarray): an image numpy array.
         size: [height, width]
+
     """
     width = size[1]
     height = size[0]
@@ -49,7 +50,8 @@ def square(image, gt_boxes, fill=127.5):
     Args:
         image: An image numpy array.
         gt_boxes: Python list ground truth boxes in the image. shape is [num_boxes, 5(x, y, width, height)].
-        fill: Fill blank by this number.
+        fill: Fill blank by this number. (Default value = 127.5)
+
     """
     origin_width = image.shape[1]
     origin_height = image.shape[0]
@@ -98,9 +100,10 @@ def resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
     """Resize an image and gt_boxes.
 
     Args:
-        image(np.ndarray): An image numpy array.
-        gt_boxes(np.ndarray): Ground truth boxes in the image. shape is [num_boxes, 5(x, y, width, height)].
+        image (np.ndarray): An image numpy array.
+        gt_boxes (np.ndarray): Ground truth boxes in the image. shape is [num_boxes, 5(x, y, width, height)].
         size: [height, width]
+
     """
 
     origin_width = image.shape[1]
@@ -137,9 +140,11 @@ def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256)):
     """Resize keeping ratio an image and gt_boxes.
 
     Args:
-        image: An image numpy array.
-        gt_boxes: Python list ground truth boxes in the image. shape is [num_boxes, 5(x, y, width, height)].
+        image (np.ndarray): An image numpy array.
+        gt_boxes (list): Python list ground truth boxes in the image. shape is
+            [num_boxes, 5(x, y, width, height)].
         size: [height, width]
+
     """
     origin_width = image.shape[1]
     origin_height = image.shape[0]
@@ -166,8 +171,8 @@ def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256)):
 
 
 def resize_with_joints(image, joints, image_size):
-    """
-    Resize image with joints to target image_size.
+    """Resize image with joints to target image_size.
+
     Args:
         image: a numpy array of shape (height, width, 3).
         joints: a numpy array of shape (num_joints, 3).
@@ -176,6 +181,7 @@ def resize_with_joints(image, joints, image_size):
     Returns:
         resized_image: a numpy array of shape (new_height, new_width, 3).
         new_joints: a numpy array of shape (num_joints, 3).
+
     """
 
     original_height, original_width, _ = image.shape
@@ -199,6 +205,7 @@ def per_image_standardization(image):
 
     Args:
         image: An image numpy array.
+
     """
     image = image.astype(np.float32)
     mean = image.mean()
@@ -240,20 +247,18 @@ def _linear_quantize(x, bit, value_min, value_max):
 
 def joints_to_gaussian_heatmap(joints, image_size,
                                num_joints=17, stride=1,
-                               sigma=2, max_value=10):
-    """
-    Convert joints to gaussian heatmap which can be learned by networks.
+                               sigma=2):
+    """Convert joints to gaussian heatmap which can be learned by networks.
 
     References:
         https://github.com/Microsoft/human-pose-estimation.pytorch
 
     Args:
-        joints: a numpy array of shape (num_joints).
-        image_size: a tuple, (height, width).
-        num_joints: int.
-        stride: int, stride = image_height / heatmap_height.
-        sigma: int, used to compute gaussian heatmap.
-        max_value: int, max value of gauusian heatmap.
+        joints (np.ndarray): a numpy array of shape (num_joints).
+        image_size (tuple): a tuple, (height, width).
+        num_joints (int): int. (Default value = 17)
+        stride (int): int, stride = image_height / heatmap_height. (Default value = 1)
+        sigma (int): int, used to compute gaussian heatmap. (Default value = 2)
 
     Returns:
         heatmap: a numpy array of shape (height, width, num_joints).
@@ -306,7 +311,9 @@ def joints_to_gaussian_heatmap(joints, image_size,
     am = np.amax(heatmap)
     if am > 0:
         heatmap /= am
-    heatmap *= max_value
+
+    # 10 is scaling factor of a ground-truth gaussian heatmap.
+    heatmap *= 10
 
     return heatmap
 
@@ -318,6 +325,7 @@ class PerImageLinearQuantize(Processor):
 
     Args:
         bit: Quantize bit.
+
     """
 
     def __init__(self, bit):
@@ -332,6 +340,7 @@ class PerImageStandardization(Processor):
     """Standardization per image.
 
     Use :func:`~per_image_standardization` inside.
+
     """
 
     def __call__(self, image, **kwargs):
@@ -346,6 +355,7 @@ class Resize(Processor):
 
     Args:
         size: Target size.
+
     """
 
     def __init__(self, size):
@@ -365,6 +375,7 @@ class ResizeWithGtBoxes(Processor):
 
     Args:
         size: Target size.
+
     """
 
     def __init__(self, size):
@@ -382,6 +393,7 @@ class ResizeWithMask(Processor):
 
     Args:
         size: Target size.
+
     """
 
     def __init__(self, size):
@@ -433,28 +445,28 @@ class LetterBoxes(Processor):
 
 
 class JointsToGaussianHeatmap(Processor):
-    """
-    Convert joints to gaussian heatmap which can be learned by networks.
+    """Convert joints to gaussian heatmap which can be learned by networks.
 
     Use :func:`~joints_to_gaussian_heatmap` inside.
 
     Args:
-    image_size: a tuple, (height, width).
-    num_joints: int.
-    stride: int, stride = image_height / heatmap_height.
-    sigma: int, used to compute gaussian heatmap.
-    max_value: int, max value of gauusian heatmap.
+        image_size (tuple): a tuple, (height, width).
+        num_joints (int): int.
+        stride (int): int, stride = image_height / heatmap_height.
+        sigma (int): int, used to compute gaussian heatmap.
+
+    Returns:
+        dict:
 
     """
 
     def __init__(self, image_size, num_joints=17,
-                 stride=1, sigma=3, max_value=10):
+                 stride=1, sigma=3):
 
         self.image_size = image_size
         self.num_joints = num_joints
         self.stride = stride
         self.sigma = sigma
-        self.max_value = max_value
 
     def __call__(self, joints=None, **kwargs):
 
@@ -463,5 +475,5 @@ class JointsToGaussianHeatmap(Processor):
 
         heatmap = joints_to_gaussian_heatmap(joints=joints, image_size=self.image_size,
                                              num_joints=self.num_joints, stride=self.stride,
-                                             sigma=self.sigma, max_value=self.max_value)
+                                             sigma=self.sigma)
         return dict({'heatmap': heatmap}, **kwargs)

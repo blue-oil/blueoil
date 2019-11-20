@@ -21,7 +21,8 @@ from os.path import join, basename
 import shutil
 import sys
 import unittest
-from nose2.tools import params
+
+from parameterized import parameterized
 
 from scripts import generate_project as gp
 from scripts.pylib.nnlib import NNLib as NNLib
@@ -135,10 +136,8 @@ def get_configurations_arm():
     test_cases = [
         {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': True},
         {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': False},
-        # FIXME: Cannot run library with hard_quantize=False for segmentation task.
-        # Issue link: https://github.com/blue-oil/blueoil/issues/512
-        # {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True},
-        # {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False},
+        {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True},
+        {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False},
     ]
     configurations = get_configurations_by_architecture(test_cases, cpu_name)
 
@@ -418,7 +417,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
 class TestCodeGenerationX8664(TestCodeGenerationBase):
     """Test class for code generation testing."""
 
-    @params(*get_configurations_x86_64())
+    @parameterized.expand(get_configurations_x86_64())
     def test_code_generation(self, i, configuration) -> None:
         self.run_test_all_configuration(i, configuration)
 
@@ -428,7 +427,7 @@ class TestCodeGenerationArm(TestCodeGenerationBase):
 
     fpga_setup = True
 
-    @params(*get_configurations_arm())
+    @parameterized.expand(get_configurations_arm())
     def test_code_generation(self, i, configuration) -> None:
         self.run_test_all_configuration(i, configuration)
 
@@ -438,7 +437,7 @@ class TestCodeGenerationArmFpga(TestCodeGenerationBase):
 
     fpga_setup = True
 
-    @params(*get_configurations_arm_fpga())
+    @parameterized.expand(get_configurations_arm_fpga())
     def test_code_generation(self, i, configuration) -> None:
         self.run_test_all_configuration(i, configuration)
 
@@ -446,7 +445,7 @@ class TestCodeGenerationArmFpga(TestCodeGenerationBase):
 class TestCodeGenerationAarch64(TestCodeGenerationBase):
     """Test class for code generation testing for aarch64."""
 
-    @params(*get_configurations_aarch64())
+    @parameterized.expand(get_configurations_aarch64())
     def test_code_generation(self, i, configuration) -> None:
         self.run_test_all_configuration(i, configuration)
 

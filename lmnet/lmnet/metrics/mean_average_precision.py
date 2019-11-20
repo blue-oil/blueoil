@@ -95,9 +95,9 @@ def _streaming_tp_fp_array(
 
         # Remove TP and FP both false.
         if remove_zero_scores:
-            mask = tf.logical_or(tp, fp)
+            mask = tf.math.logical_or(tp, fp)
             rm_threshold = 1e-4
-            mask = tf.logical_and(mask, tf.greater(scores, rm_threshold))
+            mask = tf.math.logical_and(mask, tf.greater(scores, rm_threshold))
             tp = tf.boolean_mask(tp, mask)
             fp = tf.boolean_mask(fp, mask)
             scores = tf.boolean_mask(scores, mask)
