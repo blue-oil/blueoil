@@ -32,19 +32,8 @@ class YoutubeFacialLandmarks(KeypointDetectionBase):
     available_subsets = ["train", "validation"]
     extend_dir = "ytfaces"
 
-    def __init__(
-        self,
-        subset="train",
-        batch_size=10,
-        *args,
-        **kwargs
-    ):
-        super().__init__(
-            subset=subset,
-            batch_size=batch_size,
-            *args,
-            **kwargs,
-        )
+    def __init__(self, subset="train", batch_size=10, *args, **kwargs):
+        super().__init__(subset=subset, batch_size=batch_size, *args, **kwargs)
 
         if subset == 'train':
             self.csv = os.path.join(self.data_dir, "training_frames_keypoints.csv")
@@ -61,11 +50,9 @@ class YoutubeFacialLandmarks(KeypointDetectionBase):
         """Read items from JSON files"""
         files = []
         joints_list = []
-
         num_dimensions = 2
 
         with open(self.csv) as f:
-
             for line in f:
                 landmarks = line.split(",")
                 filename = landmarks.pop(0)
