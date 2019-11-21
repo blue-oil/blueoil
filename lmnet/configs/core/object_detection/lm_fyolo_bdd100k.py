@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.object_detection.lm_fyolo import LMFYolo
-from lmnet.datasets.bdd100k import BDD100K
+from lmnet.datasets.bdd100k import BDD100KObjectDetection
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     ResizeWithGtBoxes,
@@ -41,7 +41,7 @@ from lmnet.data_augmentor import (
 IS_DEBUG = False
 
 NETWORK_CLASS = LMFYolo
-DATASET_CLASS = BDD100K
+DATASET_CLASS = BDD100KObjectDetection
 
 IMAGE_SIZE = [320, 320]
 BATCH_SIZE = 18
