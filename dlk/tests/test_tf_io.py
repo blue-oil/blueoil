@@ -25,7 +25,6 @@ from core.data_types import Float32
 from core.graph import Graph
 from core.operators import Constant, Conv, Input, Output
 from frontend import TensorFlowIO
-from scripts.simple_model import make_simple_model as make_model
 
 
 class TestTensorFlowIO(unittest.TestCase):
