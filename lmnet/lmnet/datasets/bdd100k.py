@@ -107,11 +107,9 @@ class BDD100KObjectDetection(ObjectDetectionBase):
 
         anno_data = json.load(open(self.anno_dir))
 
-        counts = 0
         self.paths = []
         self.bboxs = []
         for item in anno_data:
-            counts += 1
             # Skip if Label not in images
             img_name = item['name']
             if img_name not in img_names:
