@@ -16,14 +16,13 @@
 """Base IO module."""
 from abc import ABCMeta, abstractmethod
 
-from core.model import Model
-
+from core.graph import Graph
 
 class BaseIO(metaclass=ABCMeta):
     """Base class for model IO."""
 
     @abstractmethod
-    def read(self, path: str) -> Model:
+    def read(self, path: str) -> Graph:
         """Read a model.
 
         Args:
@@ -33,7 +32,7 @@ class BaseIO(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def write(self, model: Model, path: str) -> None:
+    def write(self, graph: Graph, path: str) -> None:
         """Write the model to a file.
 
         Args:

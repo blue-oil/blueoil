@@ -25,7 +25,6 @@ from os import path
 
 from core.config import Config
 from core.graph import Graph
-from core.model import Model
 from core.params import Params
 from code_generater import CodeGenerater
 from frontend import TensorFlowIO
@@ -40,7 +39,7 @@ DLK_ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '..'))
 ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '../../..'))
 
 
-def optimize_graph_step(model: Model, config: Config) -> None:
+def optimize_graph_step(graph: Graph, config: Config) -> None:
     """Optimize graph in the model.
 
     Args:
@@ -51,7 +50,7 @@ def optimize_graph_step(model: Model, config: Config) -> None:
 
     
     """
-    graph: Graph = model.graph
+
     pass_remove_identities(graph)
     pass_transpose(graph)
 
@@ -71,7 +70,7 @@ def optimize_graph_step(model: Model, config: Config) -> None:
     pass_constant_folding(graph)
 
 
-def generate_code_step(model: Model, config: Config) -> None:
+def generate_code_step(graph: Graph, config: Config) -> None:
     """Generate code for the model.
 
     Args:
@@ -79,7 +78,6 @@ def generate_code_step(model: Model, config: Config) -> None:
         config (Config): Collection of configurations
     
     """
-    graph: Graph = model.graph
     params = Params(graph, config)
 
     builder = CodeGenerater(graph,
