@@ -22,12 +22,12 @@ class Resnet(Base):
     version = ""
 
     def __init__(self,
-                quantize_first_convolution = True,
-                quantize_last_convolution = True,
-                activation_quantizer = None,
-                activation_quantizer_kwargs = None,
-                weight_quantizer = None,
-                weight_quantizer_kwargs = None,
+                 quantize_first_convolution=True,
+                 quantize_last_convolution=True,
+                 activation_quantizer=None,
+                 activation_quantizer_kwargs=None,
+                 weight_quantizer=None,
+                 weight_quantizer_kwargs=None,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -69,6 +69,9 @@ class Resnet(Base):
         conv_name_base = 'res{}{}_branch'.format(str(stage), block)
         bn_name_base = 'bn{}{}_branch'.format(str(stage), block)
         shortcut = x
+
+        if stride != 1:
+            shortcut = self._conv(bn_name_base + '1', shortcut, ch_out, 1, stride, data_format)
 
         x = self._conv(conv_name_base + '2a', x, ch_out, 1, 1, data_format)
         x = self._bn(bn_name_base + '2a', x, training, data_format)
