@@ -124,14 +124,14 @@ def run(input_path: str,
 
     click.echo('import pb file')
     io = TensorFlowIO()
-    model: Model = io.read(input_path)
+    graph: Graph = io.read(input_path)
 
     click.echo('optimize graph step: start')
-    optimize_graph_step(model, config)
+    optimize_graph_step(graph, config)
     click.echo('optimize graph step: done!')
 
     click.echo('generate code step: start')
-    generate_code_step(model, config)
+    generate_code_step(graph, config)
     click.echo(f'generate code step: done!')
 
 
