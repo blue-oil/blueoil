@@ -1,9 +1,15 @@
+# Import model with dlk library
+
+- Choose a model to try from blueoil/dlk/examples/
+- make libdlk_x86.a with reference blueoil/dlk/README.md
+- put libdlk_x86.a & meta.yaml to blueoil/runtime/examples/
+
 # Build blueoil static lib
 ```
 $ mkdir build
 $ cd build
 # You can set `DLK_LIB_DIR` environment.
-$ DLK_LIB_DIR=`pwd`/../examples/dlk_lib/ cmake ../
+$ DLK_LIB_DIR=`pwd`/../examples/ cmake ../
 $ make
 $ make install
 $ tree output/
@@ -20,7 +26,7 @@ output/
 $ mkdir build
 $ cd build
 # -DBUILD_SHARED_LIBS=ON
-$ DLK_LIB_DIR=`pwd`/../examples/dlk_lib/ cmake -DBUILD_SHARED_LIBS=ON ../
+$ DLK_LIB_DIR=`pwd`/../examples/ cmake -DBUILD_SHARED_LIBS=ON ../
 $ make
 $ make install
 $ tree output/
@@ -69,7 +75,7 @@ shape:1 10
 
 ```
 $ cd build
-$ DLK_LIB_DIR=`pwd`/../examples/dlk_lib/ cmake -DBUILD_SHARED_LIBS=ON ../
+$ DLK_LIB_DIR=`pwd`/../examples/ cmake -DBUILD_SHARED_LIBS=ON ../
 $ make
 $ make test
 Running tests...
