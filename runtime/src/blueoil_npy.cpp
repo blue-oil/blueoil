@@ -23,6 +23,7 @@ limitations under the License.
 #include <utility>
 #include <vector>
 #include <numeric>
+#include <functional>
 
 #include "blueoil.hpp"
 #include "blueoil_npy.hpp"
@@ -33,7 +34,7 @@ namespace npy {
 
 struct NPYheader_t {
   std::vector<int> shape;
-  std::string valuetype; // u1(uchar)
+  std::string valuetype;  // u1(uchar)
 };
 
 struct NPYheader_t readNPYheader(std::ifstream &fin);
