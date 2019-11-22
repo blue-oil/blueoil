@@ -202,9 +202,12 @@ class _TFDSReader:
     def read(self):
         """Return batch size data."""
         batch = self.session.run(self.next_batch)
-        sample = _apply_augmentations(self.dataset, batch)
-
-        return sample
+        result = []
+        for i in batch["image"].shape[0]:
+            sample = {key: batch[key][i] for key in batch.keys()}
+            sample = _apply_augmentations(self.dataset, sample)
+            result.append(sample)
+        return _concat_data(result)
 
 
 class DatasetIterator:
