@@ -108,7 +108,6 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         anno_data = json.load(open(self.anno_dir))
 
         counts = 0
-        max_boxes = 0
         self.paths = []
         self.bboxs = []
         for item in anno_data:
@@ -141,10 +140,6 @@ class BDD100KObjectDetection(ObjectDetectionBase):
             if num_boxes > 0:
                 self.paths.append(img_paths[img_name])
                 self.bboxs.append(bbox)
-                if num_boxes > max_boxes:
-                    max_boxes = num_boxes
-
-        self.max_boxes = max_boxes
 
     def __getitem__(self, i, type=None):
         image_file_path = self.paths[i]
