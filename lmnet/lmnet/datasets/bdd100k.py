@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-import json
-import glob
 import functools
-import numpy as np
+import glob
+import json
 from os.path import basename, join, splitext
 
-from lmnet.utils.image import load_image
+import numpy as np
+
 from lmnet.datasets.base import ObjectDetectionBase
+from lmnet.utils.image import load_image
 
 
 class BDD100KObjectDetection(ObjectDetectionBase):
