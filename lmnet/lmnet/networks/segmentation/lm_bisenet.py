@@ -348,10 +348,6 @@ class LMBiSeNet(Base):
         x = self.post_process(output)
         return super().summary(x, labels)
 
-    def metrics(self, output, labels):
-        x = self.post_process(output)
-        return super().metrics(x, labels)
-
     def post_process(self, output):
         with tf.name_scope("post_process"):
             # resize bilinear
