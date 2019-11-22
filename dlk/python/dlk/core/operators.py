@@ -16,6 +16,8 @@
 """Definition of operators."""
 import copy
 import functools
+import warnings
+from termcolor import colored
 from abc import abstractmethod
 from itertools import dropwhile
 from typing import TYPE_CHECKING, Any, Dict, Optional, cast
@@ -30,6 +32,8 @@ if TYPE_CHECKING:
 
 Ops = Dict[str, 'Operator']
 OutOps = Dict[str, List['Operator']]
+
+warning_sign = colored('WRN', 'red', attrs=['blink'])
 
 
 class Operator(object):
@@ -803,7 +807,18 @@ class SpaceToDepth(Operator):
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
+        """
+        This check the following constraints:
+            Output depth must be
+            1. (multiple of kernel_size^2 * 32) OR
+            2. (kernel_size^2 * {8, 16}).
+        """
         super()._check_consistency()
+        if self.channel % 32 != 0:
+            warnings.warn(warning_sign +
+                          f" Output channels need to be multiple of 32 for {self.name} of {self.op_type}, "
+                          f"but got output channel size of {self.channel}",
+                          stacklevel=2)
 
     @property
     def is_monotonic(self) -> bool:
