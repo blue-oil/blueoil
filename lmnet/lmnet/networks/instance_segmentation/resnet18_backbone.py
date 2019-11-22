@@ -21,13 +21,14 @@ from lmnet.networks.classification.base import Base
 class Resnet(Base):
     version = ""
 
-    def __init__(self, *args, **kwargs):
-        quantize_first_convolution = True,
-        quantize_last_convolution = True,
-        activation_quantizer = None,
-        activation_quantizer_kwargs = None,
-        weight_quantizer = None,
-        weight_quantizer_kwargs = None,
+    def __init__(self,
+                quantize_first_convolution = True,
+                quantize_last_convolution = True,
+                activation_quantizer = None,
+                activation_quantizer_kwargs = None,
+                weight_quantizer = None,
+                weight_quantizer_kwargs = None,
+                 *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def _bn(self, name, x, training, data_format):
