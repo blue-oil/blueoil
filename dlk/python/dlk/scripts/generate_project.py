@@ -40,10 +40,10 @@ ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '../../..'))
 
 
 def optimize_graph_step(graph: Graph, config: Config) -> None:
-    """Optimize graph in the model.
+    """Optimizing graph that imported from tensorflow pb.
 
     Args:
-        model (Model): Model that contains the graph
+        graph (Graph): Graph that optimization passes are applying to
         config (Config): Collection of configurations
 
     Returns:
@@ -74,7 +74,7 @@ def generate_code_step(graph: Graph, config: Config) -> None:
     """Generate code for the model.
 
     Args:
-        model (Model): Model the code generation is based on
+        graph (Graph): Graph the code generation is based on
         config (Config): Collection of configurations
     
     """
