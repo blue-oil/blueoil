@@ -125,30 +125,30 @@ class Resnet(Base):
         self.images = self.input = images
         return self.resnet_backbone(images, is_training, self.data_format)
 
-    def loss(self, softmax, labels):
-        labels = tf.cast(labels, tf.float32)
-
-        if self.is_debug:
-            labels = tf.Print(labels, [tf.shape(labels), tf.argmax(labels, 1)], message="labels:", summarize=200)
-            softmax = tf.Print(softmax, [tf.shape(softmax), tf.argmax(softmax, 1)], message="softmax:", summarize=200)
-
-        cross_entropy = -tf.reduce_sum(
-            labels * tf.math.log(tf.clip_by_value(softmax, 1e-10, 1.0)),
-            axis=[1]
-        )
-
-        cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
-
-        loss = cross_entropy_mean + self._decay()
-        tf.compat.v1.summary.scalar("loss", loss)
-        return loss
-
-    def _decay(self):
-        """L2 weight decay loss."""
-        costs = []
-        for var in tf.compat.v1.trainable_variables():
-            # exclude batch norm variable
-            if not ("bn" in var.name or "beta" in var.name):
-                costs.append(tf.nn.l2_loss(var))
-
-        return tf.add_n(costs) * self.weight_decay_rate
+    # def loss(self, softmax, labels):
+    #     labels = tf.cast(labels, tf.float32)
+    #
+    #     if self.is_debug:
+    #         labels = tf.Print(labels, [tf.shape(labels), tf.argmax(labels, 1)], message="labels:", summarize=200)
+    #         softmax = tf.Print(softmax, [tf.shape(softmax), tf.argmax(softmax, 1)], message="softmax:", summarize=200)
+    #
+    #     cross_entropy = -tf.reduce_sum(
+    #         labels * tf.math.log(tf.clip_by_value(softmax, 1e-10, 1.0)),
+    #         axis=[1]
+    #     )
+    #
+    #     cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
+    #
+    #     loss = cross_entropy_mean + self._decay()
+    #     tf.compat.v1.summary.scalar("loss", loss)
+    #     return loss
+    #
+    # def _decay(self):
+    #     """L2 weight decay loss."""
+    #     costs = []
+    #     for var in tf.compat.v1.trainable_variables():
+    #         # exclude batch norm variable
+    #         if not ("bn" in var.name or "beta" in var.name):
+    #             costs.append(tf.nn.l2_loss(var))
+    #
+    #     return tf.add_n(costs) * self.weight_decay_rate
