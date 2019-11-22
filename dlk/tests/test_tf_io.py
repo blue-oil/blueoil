@@ -23,7 +23,6 @@ import numpy as np
 from core import Operator
 from core.data_types import Float32
 from core.graph import Graph
-from core.model import Model
 from core.operators import Constant, Conv, Input, Output
 from frontend import TensorFlowIO
 from scripts.simple_model import make_simple_model as make_model
@@ -40,9 +39,8 @@ class TestTensorFlowIO(unittest.TestCase):
                             'minimal_graph_with_shape.pb')
 
         tf_io = TensorFlowIO()
-        model = tf_io.read(tf_path)
+        graph: Graph = tf_io.read(tf_path)
 
-        graph: Graph = model.graph
         outputs = graph.get_outputs()
 
         self.assertEqual(len(outputs), 1)
@@ -58,9 +56,8 @@ class TestTensorFlowIO(unittest.TestCase):
                             'minimal_graph_with_shape.pb')
 
         tf_io = TensorFlowIO()
-        model = tf_io.read(tf_path)
+        graph: Graph = tf_io.read(tf_path)
 
-        graph: Graph = model.graph
         outputs = graph.get_outputs()
 
         self.assertEqual(len(outputs), 1)
@@ -76,9 +73,8 @@ class TestTensorFlowIO(unittest.TestCase):
                             'minimal_graph_with_shape.pb')
 
         tf_io = TensorFlowIO()
-        model = tf_io.read(tf_path)
+        graph: Graph = tf_io.read(tf_path)
 
-        graph: Graph = model.graph
         outputs = graph.get_outputs()
 
         self.assertEqual(len(outputs), 1)
@@ -96,9 +92,8 @@ class TestTensorFlowIO(unittest.TestCase):
                             'minimal_graph_with_shape.pb')
 
         tf_io = TensorFlowIO()
-        model = tf_io.read(tf_path)
+        graph: Graph = tf_io.read(tf_path)
 
-        graph: Graph = model.graph
         outputs = graph.get_outputs()
 
         self.assertEqual(len(outputs), 1)
@@ -106,7 +101,7 @@ class TestTensorFlowIO(unittest.TestCase):
 
         print("TF file import test passed for object detection!")
 
-    def make_simple_model(self) -> Model:
+    def make_simple_model(self) -> Graph:
         graph = Graph()
 
         # two inputs
@@ -142,9 +137,7 @@ class TestTensorFlowIO(unittest.TestCase):
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
-        model = Model()
-        model.graph = graph
-        return model
+        return graph
 
     def _comparator(self, graph_1, graph_2) -> bool:
         if graph_1 is None or graph_2 is None or not isinstance(graph_2, Graph) or not isinstance(graph_1, Graph):

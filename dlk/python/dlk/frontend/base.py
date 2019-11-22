@@ -18,6 +18,7 @@ from abc import ABCMeta, abstractmethod
 
 from core.graph import Graph
 
+
 class BaseIO(metaclass=ABCMeta):
     """Base class for model IO."""
 
