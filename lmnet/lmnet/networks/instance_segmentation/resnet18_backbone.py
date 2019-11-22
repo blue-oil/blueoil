@@ -122,6 +122,7 @@ class Resnet(Base):
         return logits
 
     def base(self, images, is_training, *args, **kwargs):
+        self.images = self.input = images
         return self.resnet_backbone(images, is_training, self.data_format)
 
     def loss(self, softmax, labels):

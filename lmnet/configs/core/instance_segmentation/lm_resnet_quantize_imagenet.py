@@ -22,7 +22,6 @@ from lmnet.datasets.ilsvrc_2012 import Ilsvrc2012
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
-    PerImageStandardization,
     DivideBy255,
 )
 from lmnet.data_augmentor import (
@@ -43,15 +42,15 @@ DATASET_CLASS = Ilsvrc2012
 
 IMAGE_SIZE = [224, 224]
 BATCH_SIZE = 4
-DATA_FORMAT = "NHWC"
+DATA_FORMAT = "NCHW"
 TASK = Tasks.CLASSIFICATION
 CLASSES = DATASET_CLASS.classes
 
-MAX_STEPS = 100000
-SAVE_CHECKPOINT_STEPS = 2500
+MAX_STEPS = 2000000
+SAVE_CHECKPOINT_STEPS = 50000
 KEEP_CHECKPOINT_MAX = 5
-TEST_STEPS = 2500
-SUMMARISE_STEPS = 2500
+TEST_STEPS = 50000
+SUMMARISE_STEPS = 50000
 USE_RECOVERY = True
 # pretrain
 IS_PRETRAIN = False
@@ -69,10 +68,6 @@ PRETRAIN_FILE = ""
 # SUMMARISE_STEPS = 2
 # IS_DEBUG = True
 
-# PRE_PROCESSOR = Sequence([
-#     Resize(size=IMAGE_SIZE),
-#     PerImageStandardization()
-# ])
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
     DivideBy255()
@@ -98,18 +93,15 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 }
 NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
-# NETWORK.QUANTIZE_FIRST_CONVOLUTION = True
-# NETWORK.QUANTIZE_LAST_CONVOLUTION = False
+
 # dataset
 DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
-    # Pad(2),
-    # Crop(size=IMAGE_SIZE),
-    # FlipLeftRight(),
-    Crop(size=IMAGE_SIZE, resize=256),
+    Pad(2),
+    Crop(size=IMAGE_SIZE),
     FlipLeftRight(),
 ])
 DATASET.ENABLE_PREFETCH = True
