@@ -344,9 +344,14 @@ class LMBiSeNet(Base):
             tf.compat.v1.summary.scalar("loss", loss)
             return loss
 
-    def summary(self, output, labels=None):
-        x = self.post_process(output)
-        return super().summary(x, labels)
+    def summary(self):
+        return super().summary()
+
+    def inference(self, is_training):
+
+        self.output_tensor = self.post_process(super().inference(is_training))
+
+        return self.output_tensor
 
     def post_process(self, output):
         with tf.name_scope("post_process"):
