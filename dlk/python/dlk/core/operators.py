@@ -35,6 +35,7 @@ OutOps = Dict[str, List['Operator']]
 
 warning_sign = colored('WRN', 'red', attrs=['blink'])
 
+
 class Operator(object):
     """Base class of operators."""
 
