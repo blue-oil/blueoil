@@ -22,6 +22,7 @@ limitations under the License.
 #include <cstring>
 #include <utility>
 #include <vector>
+#include <numeric>
 
 #include "blueoil.hpp"
 #include "blueoil_npy.hpp"
@@ -31,15 +32,14 @@ namespace blueoil {
 namespace npy {
 
 struct NPYheader_t {
-  int depth;
-  int width, height;
-  int channels;
+  std::vector<int> shape;
+  std::string valuetype; // u1(uchar)
 };
 
 struct NPYheader_t readNPYheader(std::ifstream &fin);
 template<typename T>
-void readNPYimagedata(std::ifstream &fin, const struct NPYheader_t &nh,
-                      T *imagedata);
+void readNPYdata(std::ifstream &fin, const struct NPYheader_t &nh,
+                  T *imagedata);
 
 Tensor Tensor_fromNPYFile(const std::string filename) {
   std::ifstream fin(filename, std::ios::in | std::ios::binary);
@@ -49,9 +49,9 @@ Tensor Tensor_fromNPYFile(const std::string filename) {
     throw std::runtime_error(ss.str());
   }
   NPYheader_t nh = readNPYheader(fin);
-  assert((nh.channels == 1) || (nh.channels == 3));  // grayscale or RGB
-  blueoil::Tensor tensor({nh.height, nh.width, nh.channels});
-  readNPYimagedata(fin, nh, tensor.dataAsArray());
+
+  blueoil::Tensor tensor(nh.shape);
+  readNPYdata(fin, nh, tensor.dataAsArray());
   return tensor;
 }
 
@@ -183,7 +183,7 @@ struct NPYheader_t readNPYheader(std::ifstream &fin) {
         ss << "descr:" << value << ", must be lu1";
         throw std::runtime_error(ss.str());
       }
-      header.depth = 8;
+      header.valuetype = value;
     } else if (key =="fortran_order") {
       if (value != "False") {
         throw std::runtime_error("fortran_order must be False");
@@ -195,28 +195,26 @@ struct NPYheader_t readNPYheader(std::ifstream &fin) {
         ss << "Wrong shape size:" << numstrList.size();
         throw std::runtime_error(ss.str());
       }
-      header.height = std::stoi(numstrList[0]);
-      header.width = std::stoi(numstrList[1]);
-      header.channels = std::stoi(numstrList[2]);
+      std::vector<int> shape(numstrList.size());
+      for (size_t i = 0 ; i < numstrList.size() ; i++) {
+        shape[i] = std::stoi(numstrList[i]);
+      }
+      header.shape = shape;
     } else {
-      ss << "Unknown json keye:" << key;
+      ss << "Unknown json key:" << key;
       throw std::runtime_error(ss.str());
     }
-  }
-  if (header.channels != 3) {
-    ss << "Wrong channels:" << header.channels;
-    throw std::runtime_error(ss.str());
   }
   return header;
 }
 
 template<typename T>
-void readNPYimagedata(std::ifstream &fin, const struct NPYheader_t &nh,
-                      T *imagedata) {
+void readNPYdata(std::ifstream &fin, const struct NPYheader_t &nh,
+                 T *imagedata) {
   if (imagedata == NULL) {
     throw std::runtime_error("imagedata == NULL");
   }
-  int n = nh.width * nh.height * nh.channels;
+  int n = std::accumulate(nh.shape.begin(), nh.shape.end(), 1, std::multiplies<int>());
   for (int i = 0 ; i < n ; ++i) {
     int cc = fin.get();
     if (cc < 0) {

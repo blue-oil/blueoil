@@ -57,7 +57,15 @@ Tensor LoadImage(const std::string filename) {
     return tensor;
   }
 #endif
-  return blueoil::npy::Tensor_fromNPYFile(filename);
+  tensor = blueoil::npy::Tensor_fromNPYFile(filename);
+  if (tensor.shape().size() != 3) {
+    throw std::runtime_error("npy image shape must be 3-dimention");
+  }
+  int channels = tensor.shape()[2];
+  if ((channels != 1) && (channels != 3)) {
+    throw std::runtime_error("npy image channels must be 1(grayscale) or 3(RGB)");
+  }
+  return tensor;
 }
 
 /*
