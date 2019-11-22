@@ -13,30 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
 import tensorflow as tf
+from easydict import EasyDict
 
 from lmnet.common import Tasks
-from lmnet.networks.object_detection.lm_fyolo import LMFYolo
-from lmnet.datasets.bdd100k import BDD100KObjectDetection
+from lmnet.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
+                                  Hue, SSDRandomCrop)
 from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
-    ResizeWithGtBoxes,
-    DivideBy255,
-)
-from lmnet.post_processor import (
-    FormatYoloV2,
-    ExcludeLowScoreBox,
-    NMS,
-)
-from lmnet.data_augmentor import (
-    Brightness,
-    Color,
-    Contrast,
-    FlipLeftRight,
-    Hue,
-    SSDRandomCrop,
-)
+from lmnet.datasets.bdd100k import BDD100KObjectDetection
+from lmnet.networks.object_detection.lm_fyolo import LMFYolo
+from lmnet.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
+from lmnet.pre_processor import DivideBy255, ResizeWithGtBoxes
 
 IS_DEBUG = False
 
