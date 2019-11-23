@@ -34,7 +34,7 @@ namespace npy {
 
 struct NPYheader_t {
   std::vector<int> shape;
-  std::string valuetype;  // u1(uchar)
+  std::string datatype;  // |u1(uint8) or <f4(float32)
 };
 
 struct NPYheader_t readNPYheader(std::ifstream &fin);
@@ -184,7 +184,7 @@ struct NPYheader_t readNPYheader(std::ifstream &fin) {
         ss << "descr:" << value << ", must be |u1 or <f4";
         throw std::runtime_error(ss.str());
       }
-      header.valuetype = value;
+      header.datatype = value;
     } else if (key =="fortran_order") {
       if (value != "False") {
         throw std::runtime_error("fortran_order must be False");
@@ -217,7 +217,7 @@ void readNPYdata(std::ifstream &fin, const struct NPYheader_t &nh,
   }
   int n = std::accumulate(nh.shape.begin(), nh.shape.end(), 1, std::multiplies<int>());
   // only little-endian support
-  if (nh.valuetype == "|u1") {
+  if (nh.datatype == "|u1") {
     for (int i = 0 ; i < n ; ++i) {
       int cc = fin.get();
       if (cc < 0) {
@@ -225,7 +225,7 @@ void readNPYdata(std::ifstream &fin, const struct NPYheader_t &nh,
       }
       data[i] = cc;
     }
-  } else if (nh.valuetype == "<f4") {
+  } else if (nh.datatype == "<f4") {
     char fvalue_char[4];
     for (int i = 0 ; i < n ; ++i) {
       fin.read(fvalue_char, 4);
@@ -235,7 +235,7 @@ void readNPYdata(std::ifstream &fin, const struct NPYheader_t &nh,
       data[i] = *(reinterpret_cast<float*>(fvalue_char));
     }
   } else {
-    throw std::runtime_error("unsupported type:"+nh.valuetype);
+    throw std::runtime_error("unsupported type:"+nh.datatype);
   }
 }
 
