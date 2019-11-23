@@ -180,8 +180,8 @@ struct NPYheader_t readNPYheader(std::ifstream &fin) {
   for (auto itr = jsonMap.begin(); itr != jsonMap.end(); ++itr) {
     std::string key = itr->first, value = itr->second;
     if (key == "descr") {
-      if (value != "|u1") {
-        ss << "descr:" << value << ", must be lu1";
+      if ((value != "|u1") && (value != "<f4")) {
+        ss << "descr:" << value << ", must be |u1 or <f4";
         throw std::runtime_error(ss.str());
       }
       header.valuetype = value;
@@ -216,12 +216,26 @@ void readNPYdata(std::ifstream &fin, const struct NPYheader_t &nh,
     throw std::runtime_error("imagedata == NULL");
   }
   int n = std::accumulate(nh.shape.begin(), nh.shape.end(), 1, std::multiplies<int>());
-  for (int i = 0 ; i < n ; ++i) {
-    int cc = fin.get();
-    if (cc < 0) {
-      throw std::runtime_error("incompleted rgb-data");
+   // only little-endian support
+  if (nh.valuetype == "|u1") {
+    for (int i = 0 ; i < n ; ++i) {
+      int cc = fin.get();
+      if (cc < 0) {
+        throw std::runtime_error("incompleted rgb-data");
+      }
+      imagedata[i] = cc;
     }
-    imagedata[i] = cc;
+  } else if (nh.valuetype == "<f4") {
+    char fvalue_char[4];
+    for (int i = 0 ; i < n ; ++i) {
+      fin.read(fvalue_char, 4);
+      if (fin.eof()) {
+        throw std::runtime_error("incompleted rgb-data");
+      }
+      imagedata[i] = *(reinterpret_cast<float*>(fvalue_char));
+    }
+  } else {
+    throw std::runtime_error("unsupported type:"+nh.valuetype);
   }
 }
 
