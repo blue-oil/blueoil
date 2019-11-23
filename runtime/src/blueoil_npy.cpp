@@ -211,19 +211,19 @@ struct NPYheader_t readNPYheader(std::ifstream &fin) {
 
 template<typename T>
 void readNPYdata(std::ifstream &fin, const struct NPYheader_t &nh,
-                 T *imagedata) {
-  if (imagedata == NULL) {
-    throw std::runtime_error("imagedata == NULL");
+                 T *data) {
+  if (data == NULL) {
+    throw std::runtime_error("data == NULL");
   }
   int n = std::accumulate(nh.shape.begin(), nh.shape.end(), 1, std::multiplies<int>());
-   // only little-endian support
+  // only little-endian support
   if (nh.valuetype == "|u1") {
     for (int i = 0 ; i < n ; ++i) {
       int cc = fin.get();
       if (cc < 0) {
         throw std::runtime_error("incompleted rgb-data");
       }
-      imagedata[i] = cc;
+      data[i] = cc;
     }
   } else if (nh.valuetype == "<f4") {
     char fvalue_char[4];
@@ -232,7 +232,7 @@ void readNPYdata(std::ifstream &fin, const struct NPYheader_t &nh,
       if (fin.eof()) {
         throw std::runtime_error("incompleted rgb-data");
       }
-      imagedata[i] = *(reinterpret_cast<float*>(fvalue_char));
+      data[i] = *(reinterpret_cast<float*>(fvalue_char));
     }
   } else {
     throw std::runtime_error("unsupported type:"+nh.valuetype);
