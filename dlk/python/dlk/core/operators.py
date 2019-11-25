@@ -1017,7 +1017,30 @@ class Conv(Operator):
         # if kernel shape is not assigned, estimate kernel shape from input W's shape
 
     def _check_consistency(self) -> None:
+        """
+        This check the following condition:
+            1. Kernel size must be 1x1 or 3x3.
+            2. Max input channel size allowed is 1024.
+            3. Input channel size is multiple of 32.
+        """
         super()._check_consistency()
+        if self.kernel_shape[0] not in (1, 3):
+            warnings.warn(warning_sign +
+                          f" Kernel size must be 1x1 or 3x3 but got "
+                          f"{self.kernel_shape[0]}x{self.kernel_shape[1]} for {self.name} of {self.op_type}",
+                          stacklevel=2)
+        if self.input_ops['X'].channel > 1024 or self.channel > 1024:
+            warnings.warn(warning_sign +
+                          f" Input or output channel size need be less than 1024, but got "
+                          f"input: {self.input_ops['X'].channel} and output: {self.channel} "
+                          f"for {self.name} of {self.op_type}",
+                          stacklevel=2)
+        if self.input_ops['X'].channel % 32 != 0:
+            warnings.warn(warning_sign +
+                          f" Input channel size need be multiple of 32, but got "
+                          f"{self.input_ops['X'].channel} for {self.name} of {self.op_type}",
+                          stacklevel=2)
+
         self._assert(len(self.shape) == self._num_dimensions + 2,
                      f'{self.name} has illegal shape {self.shape}')
         self._assert(len(self.kernel_shape) == self._num_dimensions,
