@@ -24,7 +24,7 @@ limitations under the License.
 int main(int argc, char **argv) {
   std::string imagefile, meta_yaml;
 
-  for (int i = 1 ; i < (argc-1); i++) {
+  for (int i = 1; i < (argc-1); i++) {
     char *arg = argv[i];
     char *arg2 = argv[i+1];
     if ((arg[0] == '-') && (std::strlen(arg) == 2) && (arg2[0] != '-')) {
