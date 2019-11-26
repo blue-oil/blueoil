@@ -1,6 +1,7 @@
 # Import model with dlk library
 
 - Choose a model to try from blueoil/dlk/examples/
+   - for example: classification/lmnet_quantize_cifar10
 - make libdlk_x86.a with reference blueoil/dlk/README.md
 - put libdlk_x86.a & meta.yaml to blueoil/runtime/examples/
 
@@ -47,7 +48,7 @@ $ cd examples
 $ cp -R ../build/output/* ./
 $ cmake .
 $ make
-$ ./a.out -i cat.npy -c meta.yaml
+$ ./run -i cat.npy -c meta.yaml
 classes:
 airplane
 automobile
