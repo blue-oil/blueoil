@@ -6,8 +6,8 @@ import os
 
 import numpy as np
 
-from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
+from lmnet.utils.image import load_image
 
 
 class BDD100KObjectDetection(ObjectDetectionBase):
