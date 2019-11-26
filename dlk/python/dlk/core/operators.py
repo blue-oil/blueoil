@@ -2560,7 +2560,17 @@ class DepthToSpace(Operator):
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
+        """
+        This check the following constraints:
+            1. qunatized-packed data requires depth of input must be multiple of kernel_size^2 * 32
+        """
         super()._check_consistency()
+        if self.input_ops['input'].op_type == 'QTZ_linear_mid_tread_half' and \
+                self.input_ops['input'].channel % 128 != 0:
+            warnings.warn(warning_sign +
+                          f" Input channels need to be multiple of kernel_size^2 * 32 for "
+                          f"{self.name} of {self.op_type}, but got {self.input_ops['input'].channel}",
+                          stacklevel=2)
 
     @property
     def is_monotonic(self) -> bool:
