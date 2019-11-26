@@ -1018,7 +1018,7 @@ class Conv(Operator):
 
     def _check_consistency(self) -> None:
         """
-        This check the following condition:
+        This checks the following condition:
             1. Kernel size must be 1x1 or 3x3.
             2. Max input channel size allowed is 1024.
             3. Input channel size is multiple of 32.
