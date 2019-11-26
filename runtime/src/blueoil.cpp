@@ -159,7 +159,7 @@ static void Tensor_data_dump(const float *data, const std::vector<int>& shape) {
   if (shape.size() == 1) {  // 1-D array
     auto itr = shape.begin();
     int n = *itr;
-    for (int i = 0 ; i < n ;  i++) {
+    for (int i = 0; i < n;  i++) {
       std::cout << data[i] << " ";
     }
     std::cout << std::endl;
@@ -167,7 +167,7 @@ static void Tensor_data_dump(const float *data, const std::vector<int>& shape) {
     auto itr = shape.begin();
     int w = *itr;
     int c = *(itr+1);
-    for (int x = 0 ; x < w ; x++) {
+    for (int x = 0; x < w; x++) {
       for (int i = 0 ; i < c ; i++) {
         std::cout << data[c*x + i] << " ";
       }
@@ -182,7 +182,7 @@ static void Tensor_data_dump(const float *data, const std::vector<int>& shape) {
     }
     std::vector<int> shape2 = shape;
     shape2.erase(shape2.begin());
-    for (int i = 0 ; i < n ; i++) {
+    for (int i = 0; i < n; i++) {
       Tensor_data_dump(data + i*stride, shape2);
     }
   }
@@ -232,7 +232,7 @@ bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) const {
     return false;
   }
   int n = data_.size();
-  for (int i = 0 ; i < n ; i++) {
+  for (int i = 0; i < n; i++) {
     float a = data_[i];
     float b = tensor.data_[i];
     if (std::abs(a - b) > (atol + rtol * std::abs(b))) {

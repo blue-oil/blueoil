@@ -52,11 +52,11 @@ Tensor ResizeHorizontal_NearestNeighbor(const Tensor &tensor, const int width) {
   const float *srcImageData = tensor.dataAsArray();
   float *srcRGBline = const_cast<float *>(srcImageData);
   float *dstRGB = dstTensor.dataAsArray();
-  for (int dstY = 0 ; dstY < height ; dstY++) {
+  for (int dstY = 0; dstY < height; dstY++) {
     float srcRGBindexF = 0.5 / xScale;
-    for (int dstX = 0 ; dstX < width ; dstX++) {
+    for (int dstX = 0; dstX < width; dstX++) {
       float *srcRGB = srcRGBline + (static_cast<int>(srcRGBindexF) * channels);
-      for (int c = 0 ; c < channels ; c++) {
+      for (int c = 0; c < channels; c++) {
         *dstRGB++ = *srcRGB++;
       }
       srcRGBindexF += srcRGBscaled;
@@ -80,9 +80,9 @@ Tensor ResizeVertical_NearestNeighbor(const Tensor &tensor, const int height) {
   float *srcRGBbase = const_cast<float *>(srcImageData);
   float *dstRGB = dstTensor.dataAsArray();
   float srcRGBindexF = 0.5 / yScale;
-  for (int dstY = 0 ; dstY < height ; dstY++) {
+  for (int dstY = 0; dstY < height; dstY++) {
     float *srcRGB = srcRGBbase + (static_cast<int>(srcRGBindexF) * srcScanLineSize);
-    for (int i = 0 ; i < srcScanLineSize ; i++) {
+    for (int i = 0; i < srcScanLineSize; i++) {
       *dstRGB++ = *srcRGB++;
     }
     srcRGBindexF += srcRGBscaled;
@@ -101,9 +101,9 @@ Tensor ResizeHorizontal_BiLinear(const Tensor &tensor, const int width) {
   const int height = srcHeight;
   Tensor dstTensor({height, width, channels});
   const float xScale = static_cast<float>(width) / static_cast<float>(srcWidth);
-  const float xSrcWindow = (xScale < 1.0)?(1.0f / xScale):1.0;
-  for (int dstY = 0 ; dstY < height ; dstY++) {
-    for (int dstX = 0 ; dstX < width ; dstX++) {
+  const float xSrcWindow = (xScale < 1.0)? (1.0f/xScale): 1.0;
+  for (int dstY = 0; dstY < height; dstY++) {
+    for (int dstX = 0; dstX < width; dstX++) {
       float srcXf = (dstX + 0.5)/xScale - 0.5;
       int srcY = dstY;
       int xStart = std::ceil(srcXf - xSrcWindow);
@@ -119,10 +119,10 @@ Tensor ResizeHorizontal_BiLinear(const Tensor &tensor, const int width) {
       if (xEnd >= srcWidth) {
         xEnd = srcWidth - 1;
       }
-      for (int c = 0 ; c < channels ; c++) {
+      for (int c = 0; c < channels; c++) {
         float v = 0.0;
         float totalW = 0.0;
-        for (int srcX = xStart ; srcX <= xEnd; srcX++) {
+        for (int srcX = xStart; srcX <= xEnd; srcX++) {
           float d = std::abs(static_cast<float>(srcX) - srcXf) / xSrcWindow;
           if (d < 1.0) {
             const float *srcPixel = tensor.dataAsArray({srcY, srcX, c});
@@ -132,7 +132,7 @@ Tensor ResizeHorizontal_BiLinear(const Tensor &tensor, const int width) {
           }
         }
         float *dstPixel = dstTensor.dataAsArray({dstY, dstX, c});
-        *dstPixel = (v)?(v/totalW):0;
+        *dstPixel = (v)? (v/totalW): 0;
       }
     }
   }
@@ -147,9 +147,9 @@ Tensor ResizeVertical_BiLinear(const Tensor &tensor, const int height) {
   const int width = srcWidth;
   Tensor dstTensor({height, width, channels});
   const float yScale = static_cast<float> (height) / static_cast<float>(srcHeight);
-  const int ySrcWindow = (yScale < 1.0)?(1.0f / yScale):1.0;
-  for (int dstX = 0 ; dstX < width ; dstX++) {
-    for (int dstY = 0 ; dstY < height ; dstY++) {
+  const int ySrcWindow = (yScale < 1.0)? (1.0f/yScale): 1.0;
+  for (int dstX = 0; dstX < width; dstX++) {
+    for (int dstY = 0; dstY < height; dstY++) {
       int srcX = dstX;
       float srcYf = (dstY + 0.5)/yScale - 0.5;
       int yStart = std::ceil(srcYf - ySrcWindow);
@@ -165,10 +165,10 @@ Tensor ResizeVertical_BiLinear(const Tensor &tensor, const int height) {
       if (yEnd >= srcHeight) {
         yEnd = srcHeight - 1;
       }
-      for (int c = 0 ; c < channels ; c++) {
+      for (int c = 0; c < channels; c++) {
         float v = 0.0;
         float totalW = 0.0;
-        for (int srcY = yStart ; srcY <= yEnd; srcY++) {
+        for (int srcY = yStart; srcY <= yEnd; srcY++) {
           float d = std::abs(static_cast<float>(srcY) - srcYf) / ySrcWindow;
           if (d < 1.0) {
             const float *srcPixel = tensor.dataAsArray({srcY, srcX, c});
@@ -178,7 +178,7 @@ Tensor ResizeVertical_BiLinear(const Tensor &tensor, const int height) {
           }
         }
         float *dstPixel = dstTensor.dataAsArray({dstY, dstX, c});
-        *dstPixel = (v)?(v/totalW):0;
+        *dstPixel = (v)? (v/totalW): 0;
       }
     }
   }
