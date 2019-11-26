@@ -6,11 +6,11 @@ from os.path import basename, join, splitext
 
 import numpy as np
 
-from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase
+from lmnet.utils.image import load_image
 
 
-class BDD100K(ObjectDetectionBase):
+class BDD100KObjectDetection(ObjectDetectionBase):
     """BDD100K Dataset for Object Detection (Car Camera)
     https://github.com/ucbdrive/bdd-data
     """
@@ -127,7 +127,7 @@ class BDD100K(ObjectDetectionBase):
 
 
 def check_dataset():
-    train = BDD100K(subset="train")
+    train = BDD100KObjectDetection(subset="train")
     print(len(train.paths))
     print(train.paths[0:5])
     print(train.bboxs[0:5])
