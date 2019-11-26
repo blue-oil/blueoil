@@ -1,9 +1,16 @@
+# Import model with dlk library
+
+- Choose a model to try from blueoil/dlk/examples/
+   - for example: classification/lmnet_quantize_cifar10
+- make libdlk_x86.a with reference blueoil/dlk/README.md
+- put libdlk_x86.a & meta.yaml to blueoil/runtime/examples/
+
 # Build blueoil static lib
 ```
 $ mkdir build
 $ cd build
 # You can set `DLK_LIB_DIR` environment.
-$ DLK_LIB_DIR=`pwd`/../examples/dlk_lib/ cmake ../
+$ DLK_LIB_DIR=`pwd`/../examples/ cmake ../
 $ make
 $ make install
 $ tree output/
@@ -20,7 +27,7 @@ output/
 $ mkdir build
 $ cd build
 # -DBUILD_SHARED_LIBS=ON
-$ DLK_LIB_DIR=`pwd`/../examples/dlk_lib/ cmake -DBUILD_SHARED_LIBS=ON ../
+$ DLK_LIB_DIR=`pwd`/../examples/ cmake -DBUILD_SHARED_LIBS=ON ../
 $ make
 $ make install
 $ tree output/
@@ -41,59 +48,47 @@ $ cd examples
 $ cp -R ../build/output/* ./
 $ cmake .
 $ make
-$ ./a.out
+$ ./run -i cat.npy -c meta.yaml
 classes:
-0
-1
-2
-3
-4
-5
-6
-7
-8
-9
+airplane
+automobile
+bird
+cat
+deer
+dog
+frog
+horse
+ship
+truck
 task: IMAGE.CLASSIFICATION
 expected input shape:
 1
-128
-128
+32
+32
 3
 Run
 Results !
-0.100382
-0.0998879
-0.101126
-0.098727
-0.100418
-0.0999296
-0.100612
-0.0995238
-0.0996848
-0.0997096
+shape:1 10
+0.000105945 6.23502e-05 0.0323531 0.00360625 0.0124029 0.000231775 0.951004 8.7062e-05 9.84179e-05 4.80589e-05
 ```
-
-Currentlly pre/post-process functions are NOT correctly implemented. 
-The value of Results! 0.100382, 0.0998879 will be changed after correct implementation.
-
 
 # Unit tests
 
 ```
 $ cd build
-$ DLK_LIB_DIR=`pwd`/../examples/dlk_lib/ cmake -DBUILD_SHARED_LIBS=ON ../
+$ DLK_LIB_DIR=`pwd`/../examples/ cmake -DBUILD_SHARED_LIBS=ON ../
 $ make
 $ make test
 Running tests...
 Test project <repos_dir>/blueoil/runtime/build
     Start 1: blueoil-test-tensor
-1/4 Test #1: blueoil-test-tensor ..............   Passed    0.00 sec
+1/5 Test #1: blueoil-test-tensor ..............   Passed    0.00 sec
     Start 2: blueoil-test-image
-2/4 Test #2: blueoil-test-image ...............   Passed    0.00 sec
-    Start 3: blueoil-test-opencv
-3/4 Test #3: blueoil-test-opencv ..............   Passed    0.04 sec
+2/5 Test #2: blueoil-test-image ...............   Passed    0.00 sec
+    Start 3: blueoil-test-npy
+3/5 Test #3: blueoil-test-npy .................   Passed    0.00 sec
     Start 4: blueoil-test-resize
-4/4 Test #4: blueoil-test-resize ..............   Passed    0.04 sec
+4/5 Test #4: blueoil-test-resize ..............   Passed    0.00 sec
     Start 5: blueoil-test-data_processor
 5/5 Test #5: blueoil-test-data_processor ......   Passed    0.00 sec
 
