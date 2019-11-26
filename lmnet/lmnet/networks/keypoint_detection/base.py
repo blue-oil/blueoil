@@ -34,7 +34,6 @@ class Base(BaseNetwork):
         super().__init__(*args, **kwargs)
 
     def placeholders(self):
-
         if self.data_format == 'NHWC':
             shape = (self.batch_size, self.image_size[0], self.image_size[1], 3)
         else:
@@ -47,7 +46,6 @@ class Base(BaseNetwork):
                    self.image_size[0] // self.stride, self.image_size[1] // self.stride,
                    self.num_joints),
             name="labels_placeholder")
-
         return images_placeholder, labels_placeholder
 
     def inference(self, images, is_training):
@@ -63,7 +61,6 @@ class Base(BaseNetwork):
             name: str, name to display on tensorboard.
 
         """
-
         heatmaps_colored = tf.expand_dims(heatmaps, axis=-1)
         heatmaps_colored *= color
         heatmaps_colored = tf.reduce_sum(heatmaps_colored, axis=3)
@@ -86,7 +83,6 @@ class Base(BaseNetwork):
         batch_size = heatmaps.shape[0]
         list_joints = [gaussian_heatmap_to_joints(heatmaps[i], num_dimensions, stride=stride)
                        for i in range(batch_size)]
-
         return np.stack(list_joints)
 
     def post_process(self, output):
@@ -100,7 +96,6 @@ class Base(BaseNetwork):
             joints: a Tensor of shape (batch_size, num_joints, 3).
 
         """
-
         return tf.py_func(self.py_post_process,
                           [output, 2, self.stride],
                           tf.float32)
@@ -118,13 +113,11 @@ class Base(BaseNetwork):
             drawed_images: a numpy array of shape (batch_size, height, width, 3).
 
         """
-
         drawed_images = np.uint8(images * 255.0)
 
         for i in range(images.shape[0]):
             joints = gaussian_heatmap_to_joints(heatmaps[i], stride=stride)
             drawed_images[i] = visualize_keypoint_detection(drawed_images[i], joints)
-
         return drawed_images
 
     def _visualize_output(self, images, output, name="visualize_output"):
@@ -136,7 +129,6 @@ class Base(BaseNetwork):
             name: str, name to display on tensorboard.
 
         """
-
         drawed_images = tf.py_func(self.py_visualize_output,
                                    [images, output, self.stride],
                                    tf.uint8)
@@ -152,7 +144,6 @@ class Base(BaseNetwork):
         Returns:
             oks: a Tensor represents object keypoint similarity.
         """
-
         joints_gt = self.post_process(labels)
         joints_pred = self.post_process(output)
 
@@ -191,15 +182,12 @@ class Base(BaseNetwork):
             updates_op: an operation that increments the total and count variables appropriately.
 
         """
-
         output = output if self.data_format == 'NHWC' else tf.transpose(output, perm=[0, 2, 3, 1])
         oks = self._compute_oks(output, labels)
 
         results = {}
-
         mean_oks, update_oks = tf.metrics.mean(oks)
         updates = [update_oks]
         updates_op = tf.group(*updates)
-        results["mean_oks"] = mean_oks
-
+        results["mean_object_keypoint_similarity"] = mean_oks
         return results, updates_op

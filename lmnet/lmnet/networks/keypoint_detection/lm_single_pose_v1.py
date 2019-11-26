@@ -134,7 +134,6 @@ class LmSinglePoseV1(Base):
             x = connect_block(lateral=c1, up=x, name="connect_block4")
 
         x = _lmnet_block('conv_final', x, self.num_joints, 3, activation=None)
-
         return x
 
 
@@ -193,13 +192,9 @@ class LmSinglePoseV1Quantize(LmSinglePoseV1):
         with tf.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
-
                 if var.op.name.startswith("conv1/"):
                     return var
-
                 if var.op.name.startswith("conv_final/"):
                     return var
-
                 return weight_quantization(var)
-
         return var
