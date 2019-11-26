@@ -26,6 +26,7 @@ limitations under the License.
 #include <functional>
 
 #include "blueoil.hpp"
+#include "blueoil_image.hpp"
 #include "blueoil_data_processor.hpp"
 
 #include "yaml-cpp/yaml.h"
@@ -240,6 +241,10 @@ bool Tensor::allclose(const Tensor &tensor, float rtol, float atol) const {
     }
   }
   return true;
+}
+
+Tensor Tensor_loadImage(std::string filename) {
+  return blueoil::image::LoadImage(filename);
 }
 
 

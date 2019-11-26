@@ -16,9 +16,17 @@ limitations under the License.
 #include <iostream>
 #include <cmath>
 #include <cassert>
+#include <string>
 
 #include "blueoil.hpp"
 #include "blueoil_image.hpp"
+#include "blueoil_npy.hpp"
+#ifdef USE_OPENCV
+#include "blueoil_opencv.hpp"
+#endif
+#ifdef USE_LIBPNG
+#include "blueoil_png.hpp"
+#endif
 
 namespace blueoil {
 namespace image {
@@ -33,6 +41,31 @@ T clamp(const T x, const T lowerLimit, const T upperLimit) {
     return upperLimit;
   }
   return x;
+}
+
+
+Tensor LoadImage(const std::string filename) {
+  blueoil::Tensor tensor({0});
+#ifdef USE_OPENCV
+  cv::Mat img = cv::imread(filename, 1);  // 1:force to RGB format
+  if (!img.empty()) {
+    return blueoil::opencv::Tensor_fromCVMat(img);
+  }
+#elif USE_LIBPNG
+  tensor = blueoil::png::Tensor_fromPNGFile(filename);
+  if (tensor.shape()[0] > 0) {
+    return tensor;
+  }
+#endif
+  tensor = blueoil::npy::Tensor_fromNPYFile(filename);
+  if (tensor.shape().size() != 3) {
+    throw std::runtime_error("npy image shape must be 3-dimention");
+  }
+  int channels = tensor.shape()[2];
+  if ((channels != 1) && (channels != 3)) {
+    throw std::runtime_error("npy image channels must be 1(grayscale) or 3(RGB)");
+  }
+  return tensor;
 }
 
 /*
