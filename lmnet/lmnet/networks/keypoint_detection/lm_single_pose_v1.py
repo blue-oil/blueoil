@@ -161,10 +161,7 @@ class LmSinglePoseV1Quantize(LmSinglePoseV1):
             *args,
             **kwargs
     ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        super().__init__(*args, **kwargs)
 
         assert weight_quantizer
         assert activation_quantizer
