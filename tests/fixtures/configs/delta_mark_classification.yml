@@ -5,7 +5,7 @@ network_name: LmnetV1Quantize
 
 dataset:
   format: DeLTA-Mark for Classification
-  train_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_classification/for_train
+  train_path: custom_delta_mark_classification/for_train
   test_path: 
 
 trainer:
