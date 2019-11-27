@@ -75,19 +75,49 @@ float test_expect[3][4][4] =
      {  0, 255,   0,   0}
     } };
 
+float test_expect_bilinear[3][4][4] =
+  { {  // Red
+     {95, 19,  0,  0},
+     {19, 34, 10,  0},
+     { 0, 10, 34, 19},
+     { 0,  0, 19, 95}
+     },
+    {  // Green
+     { 0,  0, 19, 95},
+     { 0, 10, 34, 19},
+     {19, 34, 10,  0},
+     {95, 19,  0,  0}
+    },
+    {  // Blue
+     {  0, 128, 128,   0},
+     {128, 153, 153, 128},
+     {128, 153, 153, 128},
+     {  0, 128, 128,   0},
+    } };
+
 int test_resize() {
   // CHW (3-channel, height, width)
   int width = 4, height = 4;
   blueoil::Tensor input({3, 8, 8}, reinterpret_cast<float *>(test_input));
   blueoil::Tensor expect({3, 4, 4}, reinterpret_cast<float *>(test_expect));
+  blueoil::Tensor expect_bilinear({3, 4, 4}, reinterpret_cast<float *>(test_expect_bilinear));
   input = blueoil::util::Tensor_CHW_to_HWC(input);
   expect = blueoil::util::Tensor_CHW_to_HWC(expect);
+  expect_bilinear = blueoil::util::Tensor_CHW_to_HWC(expect_bilinear);
   blueoil::Tensor output = blueoil::image::Resize(input, width, height,
                                                   blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR);
   if (!output.allclose(expect)) {
-    std::cerr << "test_resize: output != expect" << std::endl;
+    std::cerr << "test_resize: output != expect (nearest-neighbor)" << std::endl;
     blueoil::util::Tensor_HWC_to_CHW(output).dump();
     blueoil::util::Tensor_HWC_to_CHW(expect).dump();
+    return EXIT_FAILURE;
+  }
+  blueoil::Tensor output_bilinear = blueoil::image::Resize(input, width, height,
+                                                           blueoil::image::RESIZE_FILTER_BI_LINEAR);
+  if (!output_bilinear.allclose(expect_bilinear, 0.0, 1.0)) {
+    std::cerr << "test_resize: output_bilinear != expect_bilinear" << std::endl;
+    blueoil::util::Tensor_HWC_to_CHW(output_bilinear).dump();
+    blueoil::util::Tensor_HWC_to_CHW(expect_bilinear).dump();
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
@@ -104,7 +134,7 @@ int command_resize(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   if (5 < argc) {
-    int f = atoi(argv[4]);
+    int f = atoi(argv[5]);
     if ((f != blueoil::image::RESIZE_FILTER_NEAREST_NEIGHBOR) &&
         (f != blueoil::image::RESIZE_FILTER_BI_LINEAR)) {
       std::cerr << "unknown filter:" << f << std::endl;
