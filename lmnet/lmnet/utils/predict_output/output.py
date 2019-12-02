@@ -151,9 +151,10 @@ class JsonOutput():
             joints = output.copy()
             joints[:, 0] *= width_scale
             joints[:, 1] *= height_scale
+            joints_list = [joints[i, j] for j in range(3) for i in range(joints.shape[0])]
             result_per_batch = {
                 "file_path": image_file,
-                "prediction": {"joints": joints}
+                "prediction": {"joints": joints_list}
             }
             results.append(result_per_batch)
         return results
@@ -311,7 +312,13 @@ class ImageFromJson():
         for i, (result, raw_image, image_file) in enumerate(zip(results, raw_images, image_files)):
             base, _ = os.path.splitext(os.path.basename(image_file))
             file_name = "{}.png".format(base)
-            joints = result["prediction"]["joints"]
+            joints_list = result["prediction"]["joints"]
+            number_joints = len(joints_list) // 3
+            joints = np.zeros(shape=(number_joints, 3), dtype=np.float)
+            for j in range(number_joints):
+                joints[j, 0] = joints_list[j * 3]
+                joints[j, 1] = joints_list[j * 3 + 1]
+                joints[j, 2] = joints_list[j * 3 + 2]
             image = visualize_keypoint_detection(raw_image, joints)
             filename_images.append((file_name, image))
 
