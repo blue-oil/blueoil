@@ -83,8 +83,8 @@ def infer_loop(q_input, q_output):
     global nn, pre_process, post_process
     nn.init()
     while True:
-        img, img_orig = q_input.get()
-        result, fps, _ = run_inference(img, nn, pre_process, post_process)
+        img, img_orig, fps = q_input.get()
+        result, _, _ = run_inference(img, nn, pre_process, post_process)
         q_output.put((result, fps, img_orig))
 
 def show_object_detection(img, result, fps, window_height, window_width, config):
@@ -137,11 +137,19 @@ def capture_loop(q_input):
 
     vc = init_camera(camera_width, camera_height)
 
+    count_frames = 10
+    prev_1 = time.clock()
+    prev = deque([prev_1] * count_frames)
+
     while True:
         valid, img_orig = vc.read()
         if valid:
+            now = time.clock()
+            prev.append(now)
+            old = prev.popleft()
+            fps = count_frames / (now - old)
             img = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
-            q_input.put((img, img_orig))
+            q_input.put((img, img_orig, fps))
 
 def run_impl(config):
     # Set variables
@@ -157,10 +165,6 @@ def run_impl(config):
     window_width = 320
     window_height = 240
 
-    count_frames = 10
-    prev_1 = time.clock()
-    prev = deque([prev_1] * count_frames)
-
     show_handles_table = {
         "IMAGE.OBJECT_DETECTION": show_object_detection,
         "IMAGE.CLASSIFICATION": show_classification,
@@ -172,11 +176,7 @@ def run_impl(config):
     #  ----------- Beginning of Main Loop ---------------
     while True:
         if not q_output.empty():
-            result, fps_inner, img = q_output.get()
-            now = time.clock()
-            prev.append(now)
-            old = prev.popleft()
-            fps = count_frames / (now - old)
+            result, fps, img = q_output.get()
             show_handle(img, result, fps, window_height, window_width, config)
             key = cv2.waitKey(1)    # Wait for 1ms
             if key == 27:           # ESC to quit
