@@ -151,7 +151,7 @@ class JsonOutput():
             joints = output.copy()
             joints[:, 0] *= width_scale
             joints[:, 1] *= height_scale
-            joints_list = [joints[i, j] for j in range(3) for i in range(joints.shape[0])]
+            joints_list = [int(joints[i, j]) for j in range(3) for i in range(joints.shape[0])]
             result_per_batch = {
                 "file_path": image_file,
                 "prediction": {"joints": joints_list}
