@@ -320,7 +320,7 @@ class ImageFromJson():
                 joints[j, 1] = joints_list[j * 3 + 1]
                 joints[j, 2] = joints_list[j * 3 + 2]
             image = visualize_keypoint_detection(raw_image, joints)
-            filename_images.append((file_name, image))
+            filename_images.append((file_name, PIL.Image.fromarray(image)))
 
         return filename_images
 
