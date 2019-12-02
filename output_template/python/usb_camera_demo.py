@@ -21,13 +21,9 @@ from __future__ import unicode_literals
 import time
 import os
 import sys
-from multiprocessing import Pool
+from multiprocessing import Process, Queue
 from time import sleep
-# HACK: cross py2-py3 compatible version
-try:
-    from queue import Queue
-except ImportError:
-    from Queue import Queue
+from collections import deque
 
 import click
 import cv2
@@ -50,6 +46,7 @@ from lmnet.visualize import (
     label_to_color_image,
     visualize_keypoint_detection,
 )
+from lmnet.pre_processor import resize
 
 
 nn = None
@@ -57,27 +54,17 @@ pre_process = None
 post_process = None
 
 
-class MyTime:
-    def __init__(self, function_name):
-        self.start_time = time.time()
-        self.function_name = function_name
-
-    def show(self):
-        print("TIME: ", self.function_name, time.time() - self.start_time)
-
-
 def init_camera(camera_width, camera_height):
     if hasattr(cv2, 'cv'):
         vc = cv2.VideoCapture(0)
         vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
         vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-        vc.set(cv2.cv.CV_CAP_PROP_FPS, 10)
-
+        vc.set(cv2.cv.CV_CAP_PROP_FPS, 60)
     else:
-        vc = cv2.VideoCapture(1)
+        vc = cv2.VideoCapture(0)
         vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
         vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
-        vc.set(cv2.CAP_PROP_FPS, 10)
+        vc.set(cv2.CAP_PROP_FPS, 60)
 
     return vc
 
@@ -92,251 +79,108 @@ def add_class_label(canvas,
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
-def _run_inference(img):
+def infer_loop(q_input, q_output):
     global nn, pre_process, post_process
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    result, fps, _ = run_inference(img, nn, pre_process, post_process)
-    return result, fps
+    nn.init()
+    while True:
+        img_orig = q_input.get()
+        img = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
+        result, fps, _ = run_inference(img, nn, pre_process, post_process)
+        q_output.put((result, fps, img_orig))
 
+def show_object_detection(img, result, fps, window_height, window_width, config):
+    window_img = resize(img, size=[window_height, window_width])
 
-def clear_queue(queue):
-    while not queue.empty():
-        queue.get()
-    return queue
+    input_width = config.IMAGE_SIZE[1]
+    input_height = config.IMAGE_SIZE[0]
+    window_img = add_rectangle(config.CLASSES,
+        window_img, result, (input_height, input_width)
+    )
+    img = add_fps(window_img, fps)
 
+    window_name = "Object Detection Demo"
+    cv2.imshow(window_name, window_img)
 
-def swap_queue(q1, q2):
-    return q2, q1  # These results are swapped
+def show_classification(img, result, fps, window_height, window_width, config):
+    window_img = resize(img, size=[window_height, window_width])
 
+    result_class = np.argmax(result, axis=1)
+    add_class_label(window_img, text=str(result[0, result_class][0]), font_scale=0.52, dl_corner=(230, 230))
+    add_class_label(window_img, text=config.CLASSES[result_class[0]], font_scale=0.52, dl_corner=(230, 210))
+    window_img = add_fps(window_img, fps)
 
-def run_object_detection(config):
-    global nn
+    window_name = "Classification Demo"
+    cv2.imshow(window_name, window_img)
+
+def show_semantic_segmentation(img, result, fps, window_height, window_width, config):
+    orig_img = resize(img, size=[window_height, window_width])
+
+    seg_img = label_to_color_image(result, colormap)
+    seg_img = cv2.resize(seg_img, dsize=(window_width, window_height))
+    window_img = cv2.addWeighted(orig_img, 1, seg_img, 0.8, 0)
+    window_img = add_fps(window_img, fps)
+
+    window_name = "Semantic Segmentation Demo"
+    cv2.imshow(window_name, window_img)
+
+def show_keypoint_detection(img, result, fps, window_height, window_width, config):
+    window_img = resize(img, size=[window_height, window_width])
+
+    window_img = visualize_keypoint_detection(window_img, result[0], (input_height, input_width))
+    window_img = add_fps(window_img, fps)
+
+    window_name = "Keypoint Detection Demo"
+    cv2.imshow(window_name, window_img)
+
+def run_impl(config):
     # Set variables
     camera_width = 320
     camera_height = 240
-    window_name = "Object Detection Demo"
-    input_width = config.IMAGE_SIZE[1]
-    input_height = config.IMAGE_SIZE[0]
-
-    vc = init_camera(camera_width, camera_height)
-
-    pool = Pool(processes=1, initializer=nn.init)
-    result = False
-    fps = 1.0
-
-    q_save = Queue()
-    q_show = Queue()
-
-    grabbed, camera_img = vc.read()
-
-    q_show.put(camera_img.copy())
-    input_img = camera_img.copy()
-
-    #  ----------- Beginning of Main Loop ---------------
-    while True:
-        m1 = MyTime("1 loop of while(1) of main()")
-        pool_result = pool.apply_async(_run_inference, (input_img, ))
-        is_first = True
-        while True:
-            grabbed, camera_img = vc.read()
-            if is_first:
-                input_img = camera_img.copy()
-                is_first = False
-            q_save.put(camera_img.copy())
-            if not q_show.empty():
-                window_img = q_show.get()
-                if result:
-                    window_img = add_rectangle(
-                        config.CLASSES,
-                        window_img,
-                        result,
-                        (input_height, input_width)
-                    )
-                    window_img = add_fps(window_img, fps)
-                # ---------- END of if result != False -----------------
-
-                cv2.imshow(window_name, window_img)
-                key = cv2.waitKey(2)    # Wait for 2ms
-                if key == 27:           # ESC to quit
-                    return
-            if pool_result.ready():
-                break
-
-        # -------------- END of wait loop ----------------------
-        q_show = clear_queue(q_show)
-        q_save, q_show = swap_queue(q_save, q_show)
-        result, fps = pool_result.get()
-        m1.show()
-
-    # --------------------- End of main Loop -----------------------
-
-
-def run_classification(config):
-    global nn
-    camera_height = 240
-    camera_width = 320
-
-    window_name = "Classification Demo"
     window_width = 320
     window_height = 240
 
     vc = init_camera(camera_width, camera_height)
 
-    pool = Pool(processes=1, initializer=nn.init)
+    q_input = Queue(2)
+    q_output = Queue(4)
 
-    grabbed, camera_img = vc.read()
+    p = Process(target=infer_loop, args=(q_input, q_output))
+    p.start()
 
-    pool_result = pool.apply_async(_run_inference, (camera_img, ))
-    result = None
-    fps = 1.0
-    loop_count = 0
+    count_frames = 10
+    prev_1 = time.clock()
+    prev = deque([prev_1] * count_frames)
 
-    while 1:
+    show_handles_table = {
+        "IMAGE.OBJECT_DETECTION": show_object_detection,
+        "IMAGE.CLASSIFICATION": show_classification,
+        "IMAGE.SEMANTIC_SEGMENTATION": show_semantic_segmentation,
+        "IMAGE.KEYPOINT_DETECTION": show_keypoint_detection
+    }
+    show_handle = show_handles_table[config.TASK]
 
-        m1 = MyTime("1 loop of while(1) of main()")
-        key = cv2.waitKey(2)    # Wait for 2ms
-        if key == 27:           # ESC to quit
-            break
-
-        m2 = MyTime("vc.read()")
-        grabbed, camera_img = vc.read()
-        m2.show()
-
-        if pool_result.ready():
-            result, fps = pool_result.get()
-            pool_result = pool.apply_async(_run_inference, (camera_img, ))
-
-        if (window_width == camera_width) and (window_height == camera_height):
-            window_img = camera_img
-        else:
-            window_img = cv2.resize(camera_img, (window_width, window_height))
-
-        if result is not None:
-            result_class = np.argmax(result, axis=1)
-            add_class_label(window_img, text=str(result[0, result_class][0]), font_scale=0.52, dl_corner=(230, 230))
-            add_class_label(window_img, text=config.CLASSES[result_class[0]], font_scale=0.52, dl_corner=(230, 210))
-            window_img = add_fps(window_img, fps)
-            loop_count += 1
-            print("loop_count:", loop_count)
-
-        m3 = MyTime("cv2.imshow()")
-        cv2.imshow(window_name, window_img)
-        m3.show()
-
-        m1.show()
-        sleep(0.05)
-
-    cv2.destroyAllWindows()
-
-    
-def run_semantic_segmentation(config):
-    global nn
-    camera_width = 320
-    camera_height = 240
-    window_name = "Segmentation Demo"
-
-    vc = init_camera(camera_width, camera_height)
-
-    pool = Pool(processes=1, initializer=nn.init)
-    result = None
-    fps = 1.0
-
-    q_save = Queue()
-    q_show = Queue()
-
-    grabbed, camera_img = vc.read()
-
-    q_show.put(camera_img.copy())
-    input_img = camera_img.copy()
-
-    colormap = np.array(get_color_map(len(config['CLASSES'])), dtype=np.uint8)
-
+    #  ----------- Beginning of Main Loop ---------------
     while True:
-        m1 = MyTime("1 loop of while(1) of main()")
-        pool_result = pool.apply_async(_run_inference, (input_img,))
-        is_first = True
+        if not q_output.empty():
+            result, fps_inner, img = q_output.get()
+            now = time.clock()
+            prev.append(now)
+            old = prev.popleft()
+            fps = count_frames / (now - old)
+            show_handle(img, result, fps, window_height, window_width, config)
+            key = cv2.waitKey(1)    # Wait for 1ms
+            if key == 27:           # ESC to quit
+                sleep(1.0)          # Wait for worker's current task is finished
+                p.terminate()
+                return
+
         while True:
-            grabbed, camera_img = vc.read()
-            if is_first:
-                input_img = camera_img.copy()
-                is_first = False
-            q_save.put(camera_img.copy())
-            if not q_show.empty():
-                window_img = q_show.get()
-                overlay_img = window_img
-                if result is not None:
-                    seg_img = label_to_color_image(result, colormap)
-                    seg_img = cv2.resize(seg_img, dsize=(camera_width, camera_height))
-                    overlay_img = cv2.addWeighted(window_img, 1, seg_img, 0.8, 0)
-                    overlay_img = add_fps(overlay_img, fps)
-
-                cv2.imshow(window_name, overlay_img)
-                key = cv2.waitKey(2)    # Wait for 2ms
-                if key == 27:           # ESC to quit
-                    return
-            if pool_result.ready():
-                break
-        q_show = clear_queue(q_show)
-        q_save, q_show = swap_queue(q_save, q_show)
-        result, fps = pool_result.get()
-        m1.show()
-
-
-def run_keypoint_detection(config):
-    global nn
-    camera_width = 320
-    camera_height = 240
-    window_name = "Keypoint Detection Demo"
-
-    input_width = config.IMAGE_SIZE[1]
-    input_height = config.IMAGE_SIZE[0]
-
-    vc = init_camera(camera_width, camera_height)
-
-    pool = Pool(processes=1, initializer=nn.init)
-    result = None
-    fps = 1.0
-
-    q_save = Queue()
-    q_show = Queue()
-
-    grabbed, camera_img = vc.read()
-
-    q_show.put(camera_img.copy())
-    input_img = camera_img.copy()
-
-    while True:
-        m1 = MyTime("1 loop of while(1) of main()")
-        pool_result = pool.apply_async(_run_inference, (input_img,))
-        is_first = True
-        while True:
-            grabbed, camera_img = vc.read()
-            if is_first:
-                input_img = camera_img.copy()
-                is_first = False
-            q_save.put(camera_img.copy())
-            if not q_show.empty():
-                window_img = q_show.get()
-                drawed_img = window_img
-                if result is not None:
-
-                    drawed_img = visualize_keypoint_detection(window_img, result[0], (input_height, input_width))
-                    drawed_img = add_fps(drawed_img, fps)
-
-                cv2.imshow(window_name, drawed_img)
-                key = cv2.waitKey(2)  # Wait for 2ms
-                # TODO(yang): Consider using another key for abort.
-                if key == 27:  # ESC to quit
-                    return
-
-            # TODO(yang): Busy loop is not efficient here. Improve it and change them in other tasks.
-            if pool_result.ready():
+            valid, img = vc.read()
+            if valid:
+                q_input.put(img)
                 break
 
-        q_show = clear_queue(q_show)
-        q_save, q_show = swap_queue(q_save, q_show)
-        result, fps = pool_result.get()
-        m1.show()
+    # --------------------- End of main Loop -----------------------
 
 
 def run(model, config_file):
@@ -364,12 +208,7 @@ def run(model, config_file):
         from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
 
-    TASK_HANDLERS = {"IMAGE.CLASSIFICATION": run_classification,
-                     "IMAGE.OBJECT_DETECTION": run_object_detection,
-                     "IMAGE.SEMANTIC_SEGMENTATION": run_semantic_segmentation,
-                     "IMAGE.KEYPOINT_DETECTION": run_keypoint_detection}
-
-    TASK_HANDLERS[config.TASK](config)
+    run_impl(config)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
