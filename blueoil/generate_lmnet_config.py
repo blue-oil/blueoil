@@ -258,6 +258,7 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # common
     image_size = blueoil_config["common"]["image_size"]
+    dataset_prefetch = blueoil_config["common"]["dataset_prefetch"]
 
     data_augmentation = []
     for augmentor in blueoil_config["common"].get("data_augmentation", []):
@@ -299,7 +300,8 @@ def _blueoil_to_lmnet(blueoil_config):
         "quantize_first_convolution": quantize_first_convolution,
 
         "dataset": dataset,
-        "data_augmentation": data_augmentation
+        "data_augmentation": data_augmentation,
+        "dataset_prefetch": dataset_prefetch
     }
 
     # merge dict
