@@ -5,8 +5,8 @@ network_name: LmSegnetV1Quantize
 
 dataset:
   format: CamvidCustom
-  train_path: ./lmnet/tests/fixtures/datasets/camvid_custom
-  test_path: ./lmnet/tests/fixtures/datasets/camvid_custom
+  train_path: camvid_custom
+  test_path: camvid_custom
 
 trainer:
   batch_size: 1
