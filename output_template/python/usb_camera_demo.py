@@ -83,7 +83,8 @@ def infer_loop(q_input, q_output):
     global nn, pre_process, post_process
     nn.init()
     while True:
-        img, img_orig, fps = q_input.get()
+        img_orig, fps = q_input.get()
+        img = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
         result, _, _ = run_inference(img, nn, pre_process, post_process)
         q_output.put((result, fps, img_orig))
 
@@ -142,14 +143,13 @@ def capture_loop(q_input):
     prev = deque([prev_1] * count_frames)
 
     while True:
-        valid, img_orig = vc.read()
+        valid, img = vc.read()
         if valid:
             now = time.clock()
             prev.append(now)
             old = prev.popleft()
             fps = count_frames / (now - old)
-            img = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
-            q_input.put((img, img_orig, fps))
+            q_input.put((img, fps))
 
 def run_impl(config):
     # Set variables
