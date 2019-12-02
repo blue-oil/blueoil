@@ -30,6 +30,7 @@ _TASK_TYPE_TEMPLATE_FILE = {
     "classification": "classification.tpl.py",
     "object_detection": "object_detection.tpl.py",
     "semantic_segmentation": "semantic_segmentation.tpl.py",
+    "keypoint_detection": "keypoint_detection.tpl.py"
 }
 
 _NETWORK_NAME_NETWORK_MODULE_CLASS = {
@@ -53,6 +54,10 @@ _NETWORK_NAME_NETWORK_MODULE_CLASS = {
         "network_module": "lm_segnet_v1",
         "network_class": "LmSegnetV1Quantize",
     },
+    "LmSinglePoseV1Quantize": {
+        "network_module": "lm_single_pose_v1",
+        "network_class": "LmSinglePoseV1Quantize",
+    }
 }
 
 _DATASET_FORMAT_DATASET_MODULE_CLASS = {
@@ -79,6 +84,10 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
     "DIV2K": {
         "dataset_module": "div2k",
         "dataset_class": "Div2k",
+    },
+    "Mscoco for Single-Person Pose Estimation": {
+        "dataset_module": "mscoco_2017",
+        "dataset_class": "MscocoSinglePersonKeypoints",
     }
 }
 
@@ -258,7 +267,6 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # common
     image_size = blueoil_config["common"]["image_size"]
-    dataset_prefetch = blueoil_config["common"]["dataset_prefetch"]
 
     data_augmentation = []
     for augmentor in blueoil_config["common"].get("data_augmentation", []):
@@ -300,8 +308,7 @@ def _blueoil_to_lmnet(blueoil_config):
         "quantize_first_convolution": quantize_first_convolution,
 
         "dataset": dataset,
-        "data_augmentation": data_augmentation,
-        "dataset_prefetch": dataset_prefetch
+        "data_augmentation": data_augmentation
     }
 
     # merge dict
