@@ -83,8 +83,7 @@ def infer_loop(q_input, q_output):
     global nn, pre_process, post_process
     nn.init()
     while True:
-        img_orig = q_input.get()
-        img = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
+        img, img_orig = q_input.get()
         result, fps, _ = run_inference(img, nn, pre_process, post_process)
         q_output.put((result, fps, img_orig))
 
@@ -132,20 +131,31 @@ def show_keypoint_detection(img, result, fps, window_height, window_width, confi
     window_name = "Keypoint Detection Demo"
     cv2.imshow(window_name, window_img)
 
-def run_impl(config):
-    # Set variables
+def capture_loop(q_input):
     camera_width = 320
     camera_height = 240
-    window_width = 320
-    window_height = 240
 
     vc = init_camera(camera_width, camera_height)
 
+    while True:
+        valid, img_orig = vc.read()
+        if valid:
+            img = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
+            q_input.put((img, img_orig))
+
+def run_impl(config):
+    # Set variables
     q_input = Queue(2)
     q_output = Queue(4)
 
-    p = Process(target=infer_loop, args=(q_input, q_output))
-    p.start()
+    p_capture = Process(target=capture_loop, args=(q_input,))
+    p_capture.start()
+
+    p_infer = Process(target=infer_loop, args=(q_input, q_output))
+    p_infer.start()
+
+    window_width = 320
+    window_height = 240
 
     count_frames = 10
     prev_1 = time.clock()
@@ -171,15 +181,9 @@ def run_impl(config):
             key = cv2.waitKey(1)    # Wait for 1ms
             if key == 27:           # ESC to quit
                 sleep(1.0)          # Wait for worker's current task is finished
-                p.terminate()
+                p_capture.terminate()
+                p_infer.terminate()
                 return
-
-        while True:
-            valid, img = vc.read()
-            if valid:
-                q_input.put(img)
-                break
-
     # --------------------- End of main Loop -----------------------
 
 
