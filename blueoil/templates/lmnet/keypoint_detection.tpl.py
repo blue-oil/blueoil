@@ -49,7 +49,7 @@ DATA_FORMAT = "NHWC"
 TASK = Tasks.KEYPOINT_DETECTION
 CLASSES = {{classes}}
 
-MAX_STEPS = {{max_epochs}}
+MAX_EPOCHS = {{max_epochs}}
 SAVE_CHECKPOINT_STEPS = {{save_checkpoint_steps}}
 KEEP_CHECKPOINT_MAX = {{keep_checkpoint_max}}
 TEST_STEPS = {{test_steps}}
