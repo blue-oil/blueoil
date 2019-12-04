@@ -65,29 +65,29 @@ dataset_formats = [
 ]
 
 dataset_train_paths = [
-    '  train_path: ./lmnet/tests/fixtures/datasets/dummy_classification\n',
-    '  train_path: ./lmnet/tests/fixtures/datasets/dummy_classification\n',
-    '  train_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_classification/for_train\n',
-    '  train_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_classification/for_train\n',
-    '  train_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_object_detection/for_train\n',
-    '  train_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_object_detection/for_train\n',
-    '  train_path: ./lmnet/tests/fixtures/datasets/custom_open_images_v4_bounding_boxes/for_train\n',
-    '  train_path: ./lmnet/tests/fixtures/datasets/custom_open_images_v4_bounding_boxes/for_train\n',
-    '  train_path: ./lmnet/tests/fixtures/datasets/camvid_custom\n',
-    '  train_path: ./lmnet/tests/fixtures/datasets/camvid_custom\n',
+    '  train_path: dummy_classification\n',
+    '  train_path: dummy_classification\n',
+    '  train_path: custom_delta_mark_classification/for_train\n',
+    '  train_path: custom_delta_mark_classification/for_train\n',
+    '  train_path: custom_delta_mark_object_detection/for_train\n',
+    '  train_path: custom_delta_mark_object_detection/for_train\n',
+    '  train_path: custom_open_images_v4_bounding_boxes/for_train\n',
+    '  train_path: custom_open_images_v4_bounding_boxes/for_train\n',
+    '  train_path: camvid_custom\n',
+    '  train_path: camvid_custom\n',
 ]
 
 dataset_test_paths = [
     '  test_path: \n',
-    '  test_path: ./lmnet/tests/fixtures/datasets/dummy_classification\n',
+    '  test_path: dummy_classification\n',
     '  test_path: \n',
-    '  test_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_classification/for_validation\n',
+    '  test_path: custom_delta_mark_classification/for_validation\n',
     '  test_path: \n',
-    '  test_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_object_detection/for_validation\n',
+    '  test_path: custom_delta_mark_object_detection/for_validation\n',
     '  test_path: \n',
-    '  test_path: ./lmnet/tests/fixtures/datasets/custom_open_images_v4_bounding_boxes/for_validation\n',
+    '  test_path: custom_open_images_v4_bounding_boxes/for_validation\n',
     '  test_path: \n',
-    '  test_path: ./lmnet/tests/fixtures/datasets/camvid_custom\n',
+    '  test_path: camvid_custom\n',
 ]
 
 trainer_batch_sizes = [
