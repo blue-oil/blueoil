@@ -2,15 +2,15 @@
 import functools
 import glob
 import json
-from os.path import basename, join, splitext
+import os
 
 import numpy as np
 
-from lmnet.utils.image import load_image
 from lmnet.datasets.base import ObjectDetectionBase
+from lmnet.utils.image import load_image
 
 
-class BDD100K(ObjectDetectionBase):
+class BDD100KObjectDetection(ObjectDetectionBase):
     """BDD100K Dataset for Object Detection (Car Camera)
     https://github.com/ucbdrive/bdd-data
     """
@@ -27,6 +27,25 @@ class BDD100K(ObjectDetectionBase):
     num_classes = len(classes)
     available_subsets = ["train", "validation"]
     extend_dir = "bdd100k"
+
+    @property
+    def label_colors(self):
+        bike = [119, 11, 32]
+        bus = [0, 60, 100]
+        car = [0, 0, 142]
+        motor = [0, 0, 230]
+        person = [220, 20, 60]
+        rider = [255, 0, 0]
+        traffic_light = [250, 170, 30]
+        traffic_sign = [220, 220, 0]
+        train = [0, 80, 100]
+        truck = [0, 0, 70]
+
+        return np.array([
+            bike, bus, car, motor,
+            person, rider, traffic_light,
+            traffic_sign, train, truck
+        ])
 
     @classmethod
     @functools.lru_cache(maxsize=None)
@@ -47,7 +66,7 @@ class BDD100K(ObjectDetectionBase):
     def num_max_boxes(self):
         # from dataset:
         # train - max 91 boxes, val - max 66 boxes
-        return self.max_boxes
+        return 91
 
     @property
     def num_per_epoch(self):
@@ -74,41 +93,51 @@ class BDD100K(ObjectDetectionBase):
         self.num_workers = num_workers
 
         subset_dir = "train" if subset == "train" else "val"
-        self.img_dir = join(self.data_dir, "images", "100k", subset_dir)
-        self.anno_dir = join(self.data_dir, "labels", "100k", subset_dir)
+        self.img_dir = os.path.join(self.data_dir, "images", "100k", subset_dir)
+        self.anno_dir = os.path.join(self.data_dir, "labels", "bdd100k_labels_images_" + subset_dir + ".json")
         self.paths = []
         self.bboxs = []
 
         self._init_files_and_annotations()
 
     def _init_files_and_annotations(self):
-        img_paths = glob.glob(join(self.img_dir, "*.jpg"))
-        anno_paths = [join(self.anno_dir, splitext(basename(f))[0] + ".json")
-                      for f in img_paths]
+        img_paths = dict([(os.path.basename(path), path)
+                          for path in glob.glob(os.path.join(self.img_dir, "*.jpg"))])
+        img_names = set(img_paths.keys())
 
-        self.paths = img_paths
-        for f in anno_paths:
-            with open(f) as fp:
-                raw = json.load(fp)
-            objs = raw["frames"][0]["objects"]
+        anno_data = json.load(open(self.anno_dir))
+
+        self.paths = []
+        self.bboxs = []
+        for item in anno_data:
+            # Skip if Label not in images
+            img_name = item['name']
+            if img_name not in img_names:
+                continue
             bbox = []
-            for obj in objs:
-                cat = obj["category"]
-                cat = cat.replace(" ", "_")
-                if cat in self.classes:
-                    cls_idx = self.classes.index(cat)
-                    x1 = int(round(obj["box2d"]["x1"]))
-                    x2 = int(round(obj["box2d"]["x2"]))
-                    y1 = int(round(obj["box2d"]["y1"]))
-                    y2 = int(round(obj["box2d"]["y2"]))
-                    x = x1
-                    y = y1
-                    w = x2 - x1
-                    h = y2 - y1
+            for label in item['labels']:
+                class_name = label['category'].replace(' ', '_')
+                # Skip if Classname/Category not in Selected classes
+                if class_name not in self.classes:
+                    continue
 
-                    bbox.append([x, y, w, h, cls_idx])
-            bbox = np.array(bbox, dtype=np.int32)
-            self.bboxs.append(bbox)
+                cls_idx = self.classes.index(class_name)
+                x1 = int(round(label["box2d"]["x1"]))
+                x2 = int(round(label["box2d"]["x2"]))
+                y1 = int(round(label["box2d"]["y1"]))
+                y2 = int(round(label["box2d"]["y2"]))
+
+                x = x1
+                y = y1
+                w = x2 - x1
+                h = y2 - y1
+
+                bbox += [[x, y, w, h, cls_idx]]
+
+            num_boxes = len(bbox)
+            if num_boxes > 0:
+                self.paths.append(img_paths[img_name])
+                self.bboxs.append(bbox)
 
     def __getitem__(self, i, type=None):
         image_file_path = self.paths[i]
@@ -129,7 +158,7 @@ class BDD100K(ObjectDetectionBase):
 
 
 def check_dataset():
-    train = BDD100K(subset="train")
+    train = BDD100KObjectDetection(subset="train")
     print(len(train.paths))
     print(train.paths[0:5])
     print(train.bboxs[0:5])

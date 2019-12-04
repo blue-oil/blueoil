@@ -16,6 +16,8 @@
 """Definition of operators."""
 import copy
 import functools
+import warnings
+from termcolor import colored
 from abc import abstractmethod
 from itertools import dropwhile
 from typing import TYPE_CHECKING, Any, Dict, Optional, cast
@@ -30,6 +32,8 @@ if TYPE_CHECKING:
 
 Ops = Dict[str, 'Operator']
 OutOps = Dict[str, List['Operator']]
+
+warning_sign = colored('WRN', 'red', attrs=['blink'])
 
 
 class Operator(object):
@@ -803,7 +807,18 @@ class SpaceToDepth(Operator):
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
+        """
+        This check the following constraints:
+            Output depth must be
+            1. (multiple of kernel_size^2 * 32) OR
+            2. (kernel_size^2 * {8, 16}).
+        """
         super()._check_consistency()
+        if self.channel % 32 != 0:
+            warnings.warn(warning_sign +
+                          f" Output channels need to be multiple of 32 for {self.name} of {self.op_type}, "
+                          f"but got output channel size of {self.channel}",
+                          stacklevel=2)
 
     @property
     def is_monotonic(self) -> bool:
@@ -1224,6 +1239,10 @@ class Conv(Operator):
         return True
 
     def restore_shape(self):
+        if self.a_quantizer:
+            real_ch = self._original_shape[3]
+            data_per_ch = 2 ** self.a_quantizer[0].nbit
+            del self._thresholds[real_ch * data_per_ch:]
         self.update_shape(self._original_shape, 'NHWC')
 
 
@@ -2541,7 +2560,17 @@ class DepthToSpace(Operator):
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
+        """
+        This check the following constraints:
+            1. qunatized-packed data requires depth of input must be multiple of kernel_size^2 * 32
+        """
         super()._check_consistency()
+        if self.input_ops['input'].op_type == 'QTZ_linear_mid_tread_half' and \
+                self.input_ops['input'].channel % 128 != 0:
+            warnings.warn(warning_sign +
+                          f" Input channels need to be multiple of kernel_size^2 * 32 for "
+                          f"{self.name} of {self.op_type}, but got {self.input_ops['input'].channel}",
+                          stacklevel=2)
 
     @property
     def is_monotonic(self) -> bool:
