@@ -16,27 +16,34 @@ limitations under the License.
 #include <string>
 #include <iostream>
 #include <vector>
+#include <cstring>
 
 #include "blueoil.hpp"
 
-// TODO: delete this func. it is for debug.
-blueoil::Tensor RandomImage(int height, int width, int channel) {
-    blueoil::Tensor t({height, width, channel});
-    std::vector<float>& data = t.data();
-    unsigned seed = 0;
 
-    for (size_t i = 0; i < data.size(); ++i) {
-        const float f_rand = static_cast <float> (rand_r(&seed)) / static_cast <float> (RAND_MAX) * 255;
-        data[i] = f_rand;
+int main(int argc, char **argv) {
+  std::string imagefile, meta_yaml;
+
+  for (int i = 1; i < (argc-1); i++) {
+    char *arg = argv[i];
+    char *arg2 = argv[i+1];
+    if ((arg[0] == '-') && (std::strlen(arg) == 2) && (arg2[0] != '-')) {
+      switch (arg[1]) {
+        case 'i':  // image file (ex. raw_image.npy)
+          imagefile = std::string(arg2);
+          break;
+        case 'c':  // config file (meta.yaml)
+          meta_yaml = std::string(arg2);
+          break;
+      }
     }
+  }
 
-    return t;
-}
-
-
-
-int main() {
-  std::string meta_yaml = "meta.yaml";
+  if (imagefile.empty() || meta_yaml.empty()) {
+    std::cerr << "Usage: a.out -i <imagefile> -c <configfile>" << std::endl;
+    std::cerr << "ex) a.out -i raw_image.npy -c meta.yaml" << std::endl;
+    std::exit(1);
+  }
 
   blueoil::Predictor predictor = blueoil::Predictor(meta_yaml);
 
@@ -51,14 +58,13 @@ int main() {
   for (int j : predictor.expected_input_shape) {
     std::cout << j << "\n";
   }
-
-  blueoil::Tensor random_image = RandomImage(256, 256, 3);
+  blueoil::Tensor image = blueoil::Tensor_loadImage(imagefile);
 
   std::cout << "Run" << std::endl;
-  blueoil::Tensor output =  predictor.Run(random_image);
+  blueoil::Tensor output =  predictor.Run(image);
 
   std::cout << "Results !" << std::endl;
-  for (float j : output.data()) {
-    std::cout << j << std::endl;
-  }
+  output.dump();
+
+  std::exit(0);
 }
