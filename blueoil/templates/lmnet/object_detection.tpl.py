@@ -116,7 +116,7 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 }
 NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
-NETWORK.QUANTIZE_FIRST_CONVOLUTION = True
+NETWORK.QUANTIZE_FIRST_CONVOLUTION = {{ quantize_first_convolution }}
 NETWORK.QUANTIZE_LAST_CONVOLUTION = False
 
 # dataset
@@ -127,3 +127,4 @@ DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([{% if data_augmentation %}{% for augmentor in data_augmentation %}
     {{ augmentor[0] }}({% for d_name, d_value in augmentor[1] %}{{ d_name }}={{ d_value }}, {% endfor %}),{% endfor %}
 {% endif %}])
+DATASET.ENABLE_PREFETCH = {{ dataset_prefetch }}
