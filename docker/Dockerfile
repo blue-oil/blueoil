@@ -122,6 +122,8 @@ RUN pip install -r /home/blueoil/dev.requirements.txt
 
 FROM blueoil-base AS blueoil
 
+RUN pip install -r /home/blueoil/test.requirements.txt
+
 # Copy blueoil sources to docker image
 COPY blueoil /home/blueoil/blueoil
 COPY setup.* /home/blueoil/
