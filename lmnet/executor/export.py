@@ -40,7 +40,7 @@ def _pre_process(raw_image, pre_processor, data_format):
     return image
 
 
-def _save_npy(image_path, output_dir, image, raw_image, all_outputs, image_size):
+def _save_all_operation_outputs(image_path, output_dir, image, raw_image, all_outputs, image_size):
     shutil.copy(image_path, os.path.join(output_dir))
     tmp_image = PIL.Image.open(image_path)
     tmp_image.save(os.path.join(output_dir, "raw_image.png"))
@@ -97,7 +97,7 @@ def _export(config, restore_path, image_path):
         model.inference(images_placeholder, is_training)
         init_op = tf.global_variables_initializer()
 
-        saver = tf.train.Saver(max_to_keep=50)
+        saver = tf.compat.v1.train.Saver(max_to_keep=50)
 
     session_config = tf.ConfigProto()
     sess = tf.Session(graph=graph, config=session_config)
@@ -109,12 +109,13 @@ def _export(config, restore_path, image_path):
     if not os.path.exists(main_output_dir):
         os.makedirs(main_output_dir)
 
-    # npy files for DLK debug.
+    # save inference values as npy files for runtime inference test and debug.
     if image_path:
         all_ops = _minimal_operations(sess)
-        npy_output_dir = os.path.join(main_output_dir, "inference_test_data")
-        if not os.path.exists(npy_output_dir):
-            os.makedirs(npy_output_dir)
+        inference_values_output_dir = os.path.join(main_output_dir, "inference_test_data")
+
+        if not os.path.exists(inference_values_output_dir):
+            os.makedirs(inference_values_output_dir)
 
         raw_image = load_image(image_path)
         image = _pre_process(raw_image, config.PRE_PROCESSOR, config.DATA_FORMAT)
@@ -132,7 +133,8 @@ def _export(config, restore_path, image_path):
                 all_outputs.append({'val': val, 'name': name})
                 index += 1
 
-        _save_npy(image_path, npy_output_dir, image, raw_image, all_outputs, config.IMAGE_SIZE)
+        _save_all_operation_outputs(
+            image_path, inference_values_output_dir, image, raw_image, all_outputs, config.IMAGE_SIZE)
 
     yaml_names = config_util.save_yaml(main_output_dir, config)
     pb_name = executor.save_pb_file(sess, main_output_dir)
@@ -225,8 +227,8 @@ def run(experiment_id,
 def main(experiment_id, restore_path, image_size, image, config_file):
     """Exporting a trained model to proto buffer files and meta config yaml.
 
-    In the case with `image` option, create each layer output value npy files in
-    `export/{restore_path}/{image_size}/inference_test_data/**.npy` for debug.
+    In the case with `image` option, create each layer output value npy files into
+    `export/{restore_path}/{image_size}/inference_test_data/**.npy` as expected value for inference test and debug.
     """
     run(experiment_id, restore_path, image_size, image, config_file)
 

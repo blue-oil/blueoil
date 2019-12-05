@@ -21,7 +21,7 @@ from tempfile import NamedTemporaryFile
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
-from tensorflow import gfile
+from tensorflow.io import gfile
 
 from lmnet.utils.module_loader import load_class
 
@@ -102,7 +102,7 @@ def _load_yaml(blueoil_config_filename):
         dict: blueoil config.
 
     """
-    if not gfile.Exists(blueoil_config_filename):
+    if not gfile.exists(blueoil_config_filename):
         FileNotFoundError("File not found: {}".format(blueoil_config_filename))
 
     with gfile.GFile(blueoil_config_filename, "r") as f:
@@ -258,6 +258,7 @@ def _blueoil_to_lmnet(blueoil_config):
 
     # common
     image_size = blueoil_config["common"]["image_size"]
+    dataset_prefetch = blueoil_config["common"]["dataset_prefetch"]
 
     data_augmentation = []
     for augmentor in blueoil_config["common"].get("data_augmentation", []):
@@ -299,7 +300,8 @@ def _blueoil_to_lmnet(blueoil_config):
         "quantize_first_convolution": quantize_first_convolution,
 
         "dataset": dataset,
-        "data_augmentation": data_augmentation
+        "data_augmentation": data_augmentation,
+        "dataset_prefetch": dataset_prefetch
     }
 
     # merge dict

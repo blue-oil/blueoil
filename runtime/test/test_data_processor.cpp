@@ -174,7 +174,7 @@ int test_data_processor_formatyolov2() {
   params.num_classes = 2;
 
   blueoil::Tensor input({batch_size, num_cell_y, num_cell_x, (params.boxes_per_cell+5) * params.boxes_per_cell});
-  for (int i = 0 ; i < input.size() ; i++) {
+  for (int i = 0; i < input.size(); i++) {
     input.data()[i] = static_cast<float>(i) / static_cast<float>(input.size());
   }
   blueoil::Tensor output = blueoil::data_processor::FormatYoloV2(input,

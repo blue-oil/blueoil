@@ -52,20 +52,20 @@ def create_output_directory(output_root_dir, output_template_dir=None):
     return output_directories
 
 
-def get_output_directories(output_roor_dir):
+def get_output_directories(output_root_dir):
     """
 
     Args:
-        output_roor_dir: 
+        output_root_dir:
 
     Returns:
 
     """
 
-    model_dir = os.path.join(output_roor_dir, "models")
+    model_dir = os.path.join(output_root_dir, "models")
     library_dir = os.path.join(model_dir, "lib")
     output_directories = dict(
-        root_dir=output_roor_dir,
+        root_dir=output_root_dir,
         model_dir=model_dir,
         library_dir=library_dir,
     )
@@ -139,7 +139,8 @@ def run(experiment_id,
         restore_path,
         output_template_dir=None,
         image_size=(None, None),
-        project_name=None):
+        project_name=None,
+        save_npy_for_debug=True):
     """Convert from trained model.
 
     Args:
@@ -156,7 +157,11 @@ def run(experiment_id,
     """
 
     # Export model
-    export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size)
+    if save_npy_for_debug:
+        export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size)
+    else:
+        export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=None)
+
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")
@@ -194,7 +199,14 @@ def run(experiment_id,
     return output_root_dir
 
 
-def convert(experiment_id, checkpoint=None, template=None, image_size=(None, None), project_name=None):
+def convert(
+    experiment_id,
+    checkpoint=None,
+    template=None,
+    image_size=(None, None),
+    project_name=None,
+    save_npy_for_debug=True
+):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
 
     if checkpoint is None:
@@ -202,4 +214,4 @@ def convert(experiment_id, checkpoint=None, template=None, image_size=(None, Non
     else:
         restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
 
-    return run(experiment_id, restore_path, template, image_size, project_name)
+    return run(experiment_id, restore_path, template, image_size, project_name, save_npy_for_debug)

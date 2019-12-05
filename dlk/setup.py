@@ -26,7 +26,6 @@ import pip
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
-from setuptools.command.test import test
 
 from python.dlk import __version__
 
@@ -49,11 +48,6 @@ install_requirements = [
     'pyyaml',
     'jinja2',
     'pillow'
-]
-
-
-tests_requirements = [
-    'nose2',
 ]
 
 
@@ -99,11 +93,6 @@ class CustomInstall(install):
         install.do_egg_install(self)
 
 
-class CustomTest(test):
-    def run(self):
-        test.run(self)
-
-
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
@@ -112,15 +101,12 @@ class CMakeExtension(Extension):
 
 setup(
     cmdclass={
-        'test': CustomTest,
         'install': CustomInstall},
 
     name='dlk',
     python_requires='>= 3.6.3',
     version=__version__,
     install_requires=install_requirements,
-    tests_require=tests_requirements,
-    test_suite='nose2.collector.collector',
     extras_require={
         'validation': validation_requirements,
         'docbuild': docbuild_requirements,

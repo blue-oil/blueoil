@@ -32,8 +32,8 @@ Tensor Tensor_fromCVMat(cv::Mat img) {
   int channels = img.elemSize();
   assert((channels == 1) || (channels == 3));  // grayscale or RGB
   blueoil::Tensor tensor({height, width, channels});
-  for (int y = 0 ; y < height ; y++) {
-    for (int x = 0 ; x < width ; x++) {
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
       float *tensorPixel = tensor.dataAsArray({y, x, 0});
       uchar *imgPixel = &(img.data[ y * img.step + x * img.elemSize()]);
       if (channels == 1) {
@@ -64,8 +64,8 @@ cv::Mat Tensor_toCVMat(const Tensor &tensor) {
   } else {  //  (channels == 3)
     img = cv::Mat::zeros(height, width, CV_8UC3);  // uchar[3] rgb color
   }
-  for (int y = 0 ; y < height ; y++) {
-    for (int x = 0 ; x < width ; x++) {
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
       const float *tensorPixel = tensor.dataAsArray({y, x, 0});
       uchar *imgPixel = &(img.data[ y * img.step + x * img.elemSize()]);
       if (channels == 1) {

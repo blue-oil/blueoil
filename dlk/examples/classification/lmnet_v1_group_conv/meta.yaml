@@ -14,11 +14,10 @@ IMAGE_SIZE:
 - 32
 - 32
 POST_PROCESSOR: null
-PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
-  processors:
-  - !!python/object:lmnet.pre_processor.Resize
-    size: !!python/tuple
+PRE_PROCESSOR:
+- Resize:
+    size:
     - 32
     - 32
-  - !!python/object:lmnet.pre_processor.PerImageStandardization {}
+- PerImageStandardization: null
 TASK: IMAGE.CLASSIFICATION

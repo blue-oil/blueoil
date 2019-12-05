@@ -18,7 +18,7 @@ from os import path
 
 from tensorflow.core.framework import graph_pb2
 
-from core.model import Model
+from core.graph import Graph
 from plugins.tf import Importer
 
 from .base import BaseIO
@@ -27,7 +27,7 @@ from .base import BaseIO
 class TensorFlowIO(BaseIO):
     """IO class that reads/writes a model from/to TensorFlow pb."""
 
-    def read(self, pb_path: str) -> Model:
+    def read(self, pb_path: str) -> Graph:
         """Read TF file and load model.
 
         Args:
@@ -37,7 +37,6 @@ class TensorFlowIO(BaseIO):
             Model: Loaded model
 
         """
-        model = Model()
 
         # load tensorflow model
         graph_def = graph_pb2.GraphDef()
@@ -49,9 +48,9 @@ class TensorFlowIO(BaseIO):
             print("Could not open file. Creating a new one.")
 
         # import graph
-        model.graph = Importer.make_graph(graph_def)
+        graph = Importer.make_graph(graph_def)
 
-        return model
+        return graph
 
-    def write(self, model: Model, path: str) -> None:
+    def write(self, graph: Graph, path: str) -> None:
         raise NotImplementedError

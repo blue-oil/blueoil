@@ -93,8 +93,8 @@ def ttq_weight_quantizer(threshold=0.05, dtype=tf.float32):
         # See https://stackoverflow.com/questions/33694368/what-is-the-best-way-to-implement-weight-constraints-in-tensorflow/37426800  # NOQA
         positive = tf.get_variable("positive", initializer=1.0)
         negative = tf.get_variable("negative", initializer=1.0)
-        tf.summary.scalar("positive", positive)
-        tf.summary.scalar("negative", negative)
+        tf.compat.v1.summary.scalar("positive", positive)
+        tf.compat.v1.summary.scalar("negative", negative)
         return forward(weights, positive, negative, threshold)
 
     return wrapper
