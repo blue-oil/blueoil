@@ -1,4 +1,4 @@
-# supported task types are 'classification', 'object_detection' and 'semantic_segmentation'.
+# supported task types are 'classification', 'object_detection', 'semantic_segmentation' and 'keypoint_detection'.
 task_type: {{ task_type }}
 
 network_name: {{ network_name }}

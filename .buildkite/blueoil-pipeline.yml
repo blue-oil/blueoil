@@ -23,3 +23,11 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-keypoint-detection"
+    label: "keypoint_detection"
+    agents:
+    - "agent-type=gpu"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'

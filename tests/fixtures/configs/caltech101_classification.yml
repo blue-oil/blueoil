@@ -5,7 +5,7 @@ network_name: LmnetV1Quantize
 
 dataset:
   format: Caltech101
-  train_path: ./lmnet/tests/fixtures/datasets/dummy_classification
+  train_path: dummy_classification
   test_path: 
 
 trainer:

@@ -69,6 +69,8 @@ class Tensor {
   bool allclose(const Tensor &tensor, float rtol, float atol) const;
 };
 
+Tensor Tensor_loadImage(std::string filename);
+
 
 // typedef Tensor (*TensorFunction)(Tensor&);
 typedef std::function<Tensor(const Tensor& input)> Processor;
