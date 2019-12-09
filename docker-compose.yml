@@ -1,5 +1,5 @@
 # FOR DEVELOP USE
-version: "3.6"
+version: "2.4"
 services:
   blueoil:
     build:
@@ -9,6 +9,7 @@ services:
       # https://docs.nvidia.com/deeplearning/frameworks/user-guide/index.html#run_tf_cifar10
       shm_size: "1gb"
     image: blueoil_${USER}
+    runtime: nvidia
     ulimits:
       memlock: -1
       stack: 67108864
