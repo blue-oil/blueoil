@@ -264,18 +264,20 @@ class BDD100KSegmentation(SegmentationBase):
 
     @functools.lru_cache(maxsize=None)
     def files_and_annotations(self):
-        split = "train"
+        subset_dir = "train"
         if self.subset == "validation":
-            split = "val"
+            subset_dir = "val"
         elif self.subset == "test":
-            split = "test"
-        file_path = os.path.join(self.data_dir, self.image_dir, split, "*.jpg")
+            subset_dir = "test"
+        file_path = os.path.join(self.data_dir, self.image_dir, subset_dir, "*.jpg")
         image_paths = glob.glob(file_path)
         image_paths.sort()
 
-        file_path = os.path.join(self.data_dir, self.label_dir, split, "*.png")
+        file_path = os.path.join(self.data_dir, self.label_dir, subset_dir, "*.png")
         label_paths = glob.glob(file_path)
         label_paths.sort()
+
+        assert (len(image_paths) == len(label_paths)), "Number of Images and Labels does not match."
 
         return image_paths, label_paths
 
