@@ -28,7 +28,8 @@ from lmnet.data_processor import Processor
 task_type_choices = [
     'classification',
     'object_detection',
-    'semantic_segmentation'
+    'semantic_segmentation',
+    'keypoint_detection'
 ]
 
 classification_network_definitions = [
@@ -56,6 +57,13 @@ semantic_segmentation_network_definitions = [
     },
 ]
 
+keypoint_detection_network_definitions = [
+    {
+        'name': 'LmSinglePoseV1Quantize',
+        'desc': 'Quantized LeapMind original single-person pose estimation network, version 1.',
+    },
+]
+
 IMAGE_SIZE_VALIDATION = {
     "LmnetV1Quantize": {
         "max_size": 512,
@@ -70,6 +78,10 @@ IMAGE_SIZE_VALIDATION = {
         "divider": 32,
     },
     "LmSegnetV1Quantize": {
+        "max_size": 512,
+        "divider": 8,
+    },
+    "LmSinglePoseV1Quantize": {
         "max_size": 512,
         "divider": 8,
     },
@@ -104,6 +116,13 @@ semantic_segmentation_dataset_formats = [
     },
 ]
 
+keypoint_detection_dataset_formats = [
+    {
+        'name': 'Mscoco for Single-Person Pose Estimation',
+        'desc': 'Mscoco 2017 for Single-Person Pose Estimation',
+    },
+]
+
 
 learning_rate_schedule_map = OrderedDict([
     ("constant", "'constant' -> constant learning rate."),
@@ -120,6 +139,8 @@ def network_name_choices(task_type):
         return [definition['name'] for definition in object_detection_network_definitions]
     elif task_type == 'semantic_segmentation':
         return [definition['name'] for definition in semantic_segmentation_network_definitions]
+    elif task_type == 'keypoint_detection':
+        return [definition['name'] for definition in keypoint_detection_network_definitions]
 
 
 def dataset_format_choices(task_type):
@@ -129,6 +150,8 @@ def dataset_format_choices(task_type):
         return [definition['name'] for definition in object_detection_dataset_formats]
     elif task_type == 'semantic_segmentation':
         return [definition['name'] for definition in semantic_segmentation_dataset_formats]
+    elif task_type == 'keypoint_detection':
+        return [definition['name'] for definition in keypoint_detection_dataset_formats]
 
 
 def default_batch_size(task_type):
@@ -138,6 +161,8 @@ def default_batch_size(task_type):
         return '16'
     elif task_type == 'semantic_segmentation':
         return '8'
+    elif task_type == 'keypoint_detection':
+        return '4'
 
 
 def prompt(question):
