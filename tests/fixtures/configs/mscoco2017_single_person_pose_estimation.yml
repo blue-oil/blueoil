@@ -1,51 +1,46 @@
-# supported task types are 'classification', 'object_detection', 'semantic_segmentation' and 'keypoint_detection'.
-task_type: {{ task_type }}
+# supported task types are 'classification', 'object_detection' and 'semantic_segmentation'.
+task_type: keypoint_detection
 
-network_name: {{ network_name }}
+network_name: LmSinglePoseV1Quantize
 
 dataset:
-  format: {{ dataset_format }}
-  train_path: {{ train_path }}
-  test_path: {{ test_path }}
+  format: Mscoco for Single-Person Pose Estimation
+  train_path: MSCOCO_2017
+  test_path:
 
 trainer:
-  batch_size: {{ batch_size }}
-  epochs: {{ training_epochs }}
+  batch_size: 1
+  epochs: 1
   # supported 'optimizer' is 'Momentum', 'Adam' currently.
   # Momentum
   #    https://www.tensorflow.org/api_docs/python/tf/train/MomentumOptimizer
   # Adam
   #    https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
-  optimizer: {{ training_optimizer }}
+  optimizer: Adam
   # supported 'learning_rate_schedule' is 'constant', '2-step-decay', '3-step-decay', '3-step-decay-with-warmup' ({epochs} is the number of training epochs you entered before).
   #   'constant' -> constant learning rate.
   #   '2-step-decay' -> learning rate decrease by 1/10 on {epochs}/2 and {epochs}-1.
   #   '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1.
   #   '3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'.
-  learning_rate_schedule: {{ learning_rate_schedule }}
-  initial_learning_rate: {{ initial_learning_rate_value }}
+  learning_rate_schedule: constant
+  initial_learning_rate: 0.001
   save_checkpoint_steps: 1000
   keep_checkpoint_max: 5
 
 network:
-  quantize_first_convolution: {{ quantize_first_convolution }}
+  quantize_first_convolution: no
 
 common:
   image_size:
-    - {{ image_size[0] }}  # height
-    - {{ image_size[1] }}  # width
+    - 160  # height
+    - 160  # width
 
   # set pretrain model name. currently, this feature is not supported, always ignored.
   pretrain_model: false
 
   # enable dataset prefetch, set false if weired problem happens
   dataset_prefetch: true
-{% if data_augmentation %}
+
   data_augmentation:
-{%- for name, defaults in data_augmentation.items() %}
-    - {{ name }}:
-      {%- for d_name, d_value in defaults %}
-        - {{ d_name }}: {{ d_value|replace("None", "null") }}
-      {%- endfor -%}
-{% endfor %}
-{% endif %}
+    - Blur:
+        - value: (0, 1)
