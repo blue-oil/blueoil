@@ -55,7 +55,8 @@ void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
   assert(p.input_height > 0);
   assert(p.input_width > 0);
 
-  static U buf[MAX_SIZE_KN2ROW_BUFFER_PER_LAYER];
+  T* buf = reinterpret_cast<T*>(p.temporary_buf) + MAX_SIZE_KERNELS_PER_LAYER; // offset comes from kernel layout convert buffer
+  BYTE* matmul_buf = reinterpret_cast<BYTE*>(buf + MAX_SIZE_KN2ROW_BUFFER_PER_LAYER);
 
   Measurement::Stop();
 
@@ -66,7 +67,7 @@ void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
     auto input_ = dlk::MatrixView<T, dlk::MatrixOrder::ColMajor>(input.data() + ic * offset, ic, col_block);
     auto buf_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(buf, oc * kh * kw, col_block);
 
-    dlk::matrix_multiplication(kernels_, input_, buf_);
+    dlk::matrix_multiplication(kernels_, input_, buf_, matmul_buf);
     dlk::matrix_shift_add(buf_, output_, p, offset);
   }
 
@@ -108,16 +109,18 @@ void conv1x1_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
   Measurement::Start("kn2row-1x1");
 
 
-   assert(p.input_height > 0);
-   assert(p.input_width > 0);
+  assert(p.input_height > 0);
+  assert(p.input_width > 0);
 
-   auto kernels_ = dlk::MatrixView<T, dlk::MatrixOrder::RowMajor>(kernels.data(), oc * kh * kw, ic);
-   auto input_ = dlk::MatrixView<T, dlk::MatrixOrder::ColMajor>(input.data(), ic, p.input_height * p.input_width);
-   auto output_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(output.data(), oc, p.input_height * p.input_width);
+  auto kernels_ = dlk::MatrixView<T, dlk::MatrixOrder::RowMajor>(kernels.data(), oc * kh * kw, ic);
+  auto input_ = dlk::MatrixView<T, dlk::MatrixOrder::ColMajor>(input.data(), ic, p.input_height * p.input_width);
+  auto output_ = dlk::MatrixView<U, dlk::MatrixOrder::ColMajor>(output.data(), oc, p.input_height * p.input_width);
 
-   dlk::matrix_multiplication(kernels_, input_, output_);
+  // offset comes from kernel layout convert buffer
+  BYTE* matmul_buf = p.temporary_buf + MAX_SIZE_KERNELS_PER_LAYER * sizeof(T);
+  dlk::matrix_multiplication(kernels_, input_, output_, matmul_buf);
 
-   Measurement::Stop();
+  Measurement::Stop();
 }
 
 template<typename T>
@@ -183,7 +186,7 @@ void convolution(
     return;
   } else if (p.kernel_height == 3 && p.kernel_width == 3 && p.padding == 1) {
     int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
-    const auto kernels_hwoi_buf = std::make_unique<T[]>(kernels_size);
+    T* buf = reinterpret_cast<T*>(p.temporary_buf);
     using hwoi_t = TensorView<T, MemoryLayout::HWOI>;
     typename hwoi_t::template tensor_info_t<std::size_t> hwoi_shape = {
       p.kernel_height,
@@ -191,7 +194,7 @@ void convolution(
       p.output_channels,
       p.kernel_depth
     };
-    hwoi_t kernels_hwoi(kernels_hwoi_buf.get(), hwoi_shape);
+    hwoi_t kernels_hwoi(buf, hwoi_shape);
     ohwi_to_hwoi(kernels, kernels_hwoi, p);
     conv3x3_kn2row(input, kernels_hwoi, output, p);
     return;

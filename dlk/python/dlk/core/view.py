@@ -158,6 +158,7 @@ class View(object):
                     Conv2D_struct.padding = {pad};
                     Conv2D_struct.stride_along_height = {stride};
                     Conv2D_struct.stride_along_width = {stride};
+                    Conv2D_struct.temporary_buf = qconv_tmp_buffer.get();
 
                     binConv2D_struct.normal_conv_params = Conv2D_struct;
                     binConv2D_struct.bin_input_extra_bits = 0;
@@ -204,6 +205,7 @@ class View(object):
                     Conv2D_struct.padding = {pad};
                     Conv2D_struct.stride_along_height = {stride};
                     Conv2D_struct.stride_along_width = {stride};
+                    Conv2D_struct.temporary_buf = conv_tmp_buffer.get();
 
                     func_Conv2D({inputs_string}, {op.name}, Conv2D_struct);
                     """

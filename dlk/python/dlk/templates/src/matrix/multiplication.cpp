@@ -23,6 +23,9 @@ limitations under the License.
 #elif defined USE_AVX
   #include <x86intrin.h>
 #endif
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 namespace dlk {
 
@@ -32,30 +35,13 @@ constexpr std::size_t ceil_mod(const std::size_t n, const std::size_t mod) {
   return n + (mod - n%mod) % mod;
 }
 
-static constexpr std::size_t align_margin = 32 / sizeof(float);
-static constexpr std::size_t B_buf_size = MAX_SIZE_INPUTS_PER_LAYER + MAX_IN_C * 8 + align_margin;
-static const auto B_buf = std::make_unique<float[]>(B_buf_size);
-#ifdef USE_NEON
-static constexpr std::size_t MAX_KERNEL_HEIGHT = 5;
-static constexpr std::size_t MAX_KERNEL_WIDTH = 5;
-static const auto col3_A_colm_buf = std::make_unique<float[]>(MAX_IN_C * MAX_KERNEL_HEIGHT * MAX_KERNEL_WIDTH * 3);
-static constexpr std::size_t regblock_n = 8;
-static constexpr std::size_t regblock_m = 4;
-static constexpr std::size_t A_buf_size = regblock_n * MAX_IN_C;
-thread_local static float A_buf[A_buf_size];
-#elif defined USE_AVX
-static constexpr std::size_t regblock_n = 16;
-static constexpr std::size_t regblock_m = 4;
-static constexpr std::size_t A_buf_size = regblock_n * ceil_mod(MAX_IN_C, regblock_m);
-alignas(32) thread_local static float A_buf[A_buf_size];
-#endif
-
 void matrix_multiplication_col3(
   MatrixView<float, MatrixOrder::RowMajor>& A,
   MatrixView<float, MatrixOrder::ColMajor>& B,
-  MatrixView<float, MatrixOrder::ColMajor>& C) {
+  MatrixView<float, MatrixOrder::ColMajor>& C,
+  BYTE *temporary_buf) {
 #ifdef USE_NEON
-  auto A_colm = row_major_to_col_major(A, col3_A_colm_buf.get());
+  auto A_colm = row_major_to_col_major(A, reinterpret_cast<float*>(temporary_buf));
   for (std::size_t i = 0; i < B.cols(); ++i) {
     float32x4_t rhs0 = vdupq_n_f32((float)(*B.data(0, i)));
     float32x4_t rhs1 = vdupq_n_f32((float)(*B.data(1, i)));
@@ -80,10 +66,15 @@ void matrix_multiplication_col3(
 void matrix_multiplication_impl(
    MatrixView<float, MatrixOrder::RowMajor>& A,
    MatrixView<float, MatrixOrder::ColMajor>& B,
-   MatrixView<float, MatrixOrder::ColMajor>& C) {
+   MatrixView<float, MatrixOrder::ColMajor>& C,
+   BYTE *temporary_buf) {
 #ifdef USE_NEON
+  constexpr std::size_t regblock_n = 8;
+  static_assert(regblock_n <= MAX_UNROLL, "MAX_UNROLL is too small");
+  constexpr std::size_t regblock_m = 4;
   const auto B_col_blocks = (B.cols() + regblock_m - 1) / regblock_m;
-  float *B_buf_ptr = B_buf.get();
+  float *B_buf_ptr = reinterpret_cast<float*>(temporary_buf);
+  const auto B_buf_size = B_col_blocks * regblock_m * B.rows();
   for (std::size_t j = 0; j < B.cols(); j += regblock_m) {
     if (j + regblock_m <= B.cols()) {
       std::size_t k = 0;
@@ -130,6 +121,13 @@ void matrix_multiplication_impl(
   }
 #pragma omp parallel for
   for (std::size_t i = 0; i < A.rows(); i += regblock_n) {
+    constexpr std::size_t A_buf_size = regblock_n * MAX_IN_C;
+#ifdef _OPENMP
+    std::size_t offset = A_buf_size * omp_get_thread_num();
+#else
+    std::size_t offset = 0;
+#endif
+    float *A_buf = reinterpret_cast<float*>(temporary_buf) + B_buf_size + offset;
     for (std::size_t k = 0; k < A.cols(); ++k) {
       for (std::size_t i2 = 0; i2 < regblock_n; ++i2) {
         if (i + i2 >= A.rows()) {
@@ -139,7 +137,7 @@ void matrix_multiplication_impl(
         }
       }
     }
-    float *B_buf_ptr = B_buf.get();
+    float *B_buf_ptr = reinterpret_cast<float*>(temporary_buf);
     for (std::size_t j = 0; j < B.cols(); j += regblock_m) {
       if (A.rows() - i >= regblock_n && B.cols() - j >= regblock_m) {
         float *A_buf_ptr = A_buf;
@@ -198,7 +196,7 @@ void matrix_multiplication_impl(
       } else if (B.cols() - j >= regblock_m) {
         const auto i2max = std::min(regblock_n, A.rows() - i);
         for (std::size_t i2 = 0; i2 < i2max; ++i2) {
-          B_buf_ptr = B_buf.get() + j * A.cols();
+          B_buf_ptr = reinterpret_cast<float*>(temporary_buf) + j * A.cols();
           auto accum0 = vdupq_n_f32(0.0f);
           auto accum1 = vdupq_n_f32(0.0f);
           auto accum2 = vdupq_n_f32(0.0f);
@@ -256,11 +254,16 @@ void matrix_multiplication_impl(
     }
   }
 #elif defined USE_AVX
+  constexpr std::size_t align = 32;
+  constexpr std::size_t regblock_n = 16;
+  static_assert(regblock_n <= MAX_UNROLL, "MAX_UNROLL is too small");
+  constexpr std::size_t regblock_m = 4;
   const auto kmax = ceil_mod(A.cols(), regblock_m);
   const auto jmax = ceil_mod(B.cols(), regblock_m);
-  auto B_buf_aligned = reinterpret_cast<void*>(B_buf.get());
-  auto space = B_buf_size;
-  std::align(32, kmax * jmax, B_buf_aligned, space);
+  auto B_buf_aligned = reinterpret_cast<void*>(temporary_buf);
+  std::size_t B_buf_size = kmax * jmax;
+  auto space = B_buf_size * sizeof(float) + align;
+  std::align(align, kmax * jmax, B_buf_aligned, space);
   float *B_buf_ptr = reinterpret_cast<float*>(B_buf_aligned);
   for (std::size_t j = 0; j < jmax; j += regblock_m) {
     if (B.cols() - j >= regblock_m) {
@@ -308,8 +311,22 @@ void matrix_multiplication_impl(
       }
     }
   }
+  constexpr std::size_t A_buf_size = ceil_mod(regblock_n * ceil_mod(MAX_IN_C, regblock_m), align);
+  void *A_buf_aligned = reinterpret_cast<void*>(reinterpret_cast<float*>(B_buf_aligned) + B_buf_size);
+#ifdef _OPENMP
+  space = omp_get_max_threads() * A_buf_size + align;
+#else
+  space = A_buf_size + align;
+#endif
+  std::align(align, omp_get_max_threads() * A_buf_size, A_buf_aligned, space);
 #pragma omp parallel for
   for (std::size_t i = 0; i < A.rows(); i += regblock_n) {
+#ifdef _OPENMP
+    std::size_t offset = A_buf_size * omp_get_thread_num();
+#else
+    std::size_t offset = 0;
+#endif
+    float *A_buf = reinterpret_cast<float*>(A_buf_aligned) + offset;
     for (std::size_t k = 0; k < kmax; ++k) {
       for (std::size_t i2 = 0; i2 < regblock_n; ++i2) {
         if (i + i2 >= A.rows() || k >= A.cols()) {

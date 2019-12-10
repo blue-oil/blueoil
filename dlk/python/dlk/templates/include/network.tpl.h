@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef NETWORK_H_INCLUDED
 #define NETWORK_H_INCLUDED
 
+#include <memory>
 #include "global.h"
 #include "dma_buffer.h"
 
@@ -59,6 +60,9 @@ private:
 
     QUANTIZED_PACKED *device_input_buf = 0;
     BIN_CONV_OUTPUT *device_output_buf = 0;
+
+    std::unique_ptr<BYTE[]> qconv_tmp_buffer;
+    std::unique_ptr<BYTE[]> conv_tmp_buffer;
 
     const T_INT input_rank = {{ graph_input.rank }};
     const T_INT input_shape[{{ graph_input.rank }}] = { {{ graph_input.view.shape_as_cpp }} };

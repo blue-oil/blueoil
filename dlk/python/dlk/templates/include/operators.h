@@ -33,6 +33,7 @@ struct convolution_parameters {
   T_UINT stride_along_height;
   T_UINT stride_along_width;
   T_UINT padding;
+  BYTE *temporary_buf;
 };
 
 struct binary_convolution_parameters {
