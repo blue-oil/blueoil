@@ -35,14 +35,27 @@ constexpr std::size_t ceil_mod(const std::size_t n, const std::size_t mod) {
 static constexpr std::size_t align_margin = 32 / sizeof(float);
 static constexpr std::size_t B_buf_size = MAX_SIZE_INPUTS_PER_LAYER + MAX_IN_C * 8 + align_margin;
 static const auto B_buf = std::make_unique<float[]>(B_buf_size);
+#ifdef USE_NEON
+static constexpr std::size_t MAX_KERNEL_HEIGHT = 5;
+static constexpr std::size_t MAX_KERNEL_WIDTH = 5;
+static const auto col3_A_colm_buf = std::make_unique<float[]>(MAX_IN_C * MAX_KERNEL_HEIGHT * MAX_KERNEL_WIDTH * 3);
+static constexpr std::size_t regblock_n = 8;
+static constexpr std::size_t regblock_m = 4;
+static constexpr std::size_t A_buf_size = regblock_n * MAX_IN_C;
+thread_local static float A_buf[A_buf_size];
+#elif defined USE_AVX
+static constexpr std::size_t regblock_n = 16;
+static constexpr std::size_t regblock_m = 4;
+static constexpr std::size_t A_buf_size = regblock_n * ceil_mod(MAX_IN_C, regblock_m);
+alignas(32) thread_local static float A_buf[A_buf_size];
+#endif
 
 void matrix_multiplication_col3(
   MatrixView<float, MatrixOrder::RowMajor>& A,
   MatrixView<float, MatrixOrder::ColMajor>& B,
   MatrixView<float, MatrixOrder::ColMajor>& C) {
 #ifdef USE_NEON
-  const auto A_colm_buf = std::make_unique<float[]>(A.rows() * A.cols());
-  auto A_colm = row_major_to_col_major(A, A_colm_buf.get());
+  auto A_colm = row_major_to_col_major(A, col3_A_colm_buf.get());
   for (std::size_t i = 0; i < B.cols(); ++i) {
     float32x4_t rhs0 = vdupq_n_f32((float)(*B.data(0, i)));
     float32x4_t rhs1 = vdupq_n_f32((float)(*B.data(1, i)));
@@ -69,8 +82,6 @@ void matrix_multiplication_impl(
    MatrixView<float, MatrixOrder::ColMajor>& B,
    MatrixView<float, MatrixOrder::ColMajor>& C) {
 #ifdef USE_NEON
-  constexpr std::size_t regblock_n = 8;
-  constexpr std::size_t regblock_m = 4;
   const auto B_col_blocks = (B.cols() + regblock_m - 1) / regblock_m;
   float *B_buf_ptr = B_buf.get();
   for (std::size_t j = 0; j < B.cols(); j += regblock_m) {
@@ -119,7 +130,6 @@ void matrix_multiplication_impl(
   }
 #pragma omp parallel for
   for (std::size_t i = 0; i < A.rows(); i += regblock_n) {
-    float A_buf[regblock_n * A.cols()];
     for (std::size_t k = 0; k < A.cols(); ++k) {
       for (std::size_t i2 = 0; i2 < regblock_n; ++i2) {
         if (i + i2 >= A.rows()) {
@@ -246,8 +256,6 @@ void matrix_multiplication_impl(
     }
   }
 #elif defined USE_AVX
-  constexpr std::size_t regblock_n = 16;
-  constexpr std::size_t regblock_m = 4;
   const auto kmax = ceil_mod(A.cols(), regblock_m);
   const auto jmax = ceil_mod(B.cols(), regblock_m);
   auto B_buf_aligned = reinterpret_cast<void*>(B_buf.get());
@@ -302,7 +310,6 @@ void matrix_multiplication_impl(
   }
 #pragma omp parallel for
   for (std::size_t i = 0; i < A.rows(); i += regblock_n) {
-    alignas(32) float A_buf[regblock_n * kmax];
     for (std::size_t k = 0; k < kmax; ++k) {
       for (std::size_t i2 = 0; i2 < regblock_n; ++i2) {
         if (i + i2 >= A.rows() || k >= A.cols()) {
