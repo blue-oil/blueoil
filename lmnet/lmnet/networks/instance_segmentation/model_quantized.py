@@ -75,9 +75,11 @@ def quantized_variable_getter(getter, name, weight_quantization=None, *args, **k
 
 
 my_activation = ACTIVATION_QUANTIZER(**ACTIVATION_QUANTIZER_KWARGS)
+my_activation = KL.Lambda(my_activation)
 weight_quantization = WEIGHT_QUANTIZER(**WEIGHT_QUANTIZER_KWARGS)
 my_custom_getter = functools.partial(quantized_variable_getter,
                                      weight_quantization=weight_quantization)
+
 
 # my_activation = KL.Activation('relu')
 
