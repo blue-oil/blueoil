@@ -23,7 +23,7 @@ import keras.layers as KL
 import keras.engine as KE
 import keras.models as KM
 
-from lmnet.networks.instance_segmentation_new import utils
+from lmnet.networks.instance_segmentation import utils
 # from lmnet.networks.instance_segmentation_new.resnet_model import resnet18, resnet18_shapes
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
