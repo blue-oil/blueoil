@@ -24,7 +24,7 @@ import keras.engine as KE
 import keras.models as KM
 
 from lmnet.networks.instance_segmentation_new import utils
-from lmnet.networks.instance_segmentation_new.resnet_model import resnet18, resnet18_shapes
+# from lmnet.networks.instance_segmentation_new.resnet_model import resnet18, resnet18_shapes
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
 from distutils.version import LooseVersion
@@ -1029,29 +1029,30 @@ def build_fpn_mask_graph(rois, feature_maps, image_meta,
                         name="roi_align_mask")([rois, image_meta] + feature_maps)
 
     # Conv layers
-    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
-                           name="mrcnn_mask_conv1")(x)
-    x = KL.TimeDistributed(BatchNorm(),
-                           name='mrcnn_mask_bn1')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+    with tf.compat.v1.variable_scope('quantize_mask_head', custom_getter=my_custom_getter):
+        x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
+                               name="mrcnn_mask_conv1")(x)
+        x = KL.TimeDistributed(BatchNorm(),
+                               name='mrcnn_mask_bn1')(x, training=train_bn)
+        x = my_activation(x)
 
-    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
-                           name="mrcnn_mask_conv2")(x)
-    x = KL.TimeDistributed(BatchNorm(),
-                           name='mrcnn_mask_bn2')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+        x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
+                               name="mrcnn_mask_conv2")(x)
+        x = KL.TimeDistributed(BatchNorm(),
+                               name='mrcnn_mask_bn2')(x, training=train_bn)
+        x = my_activation(x)
 
-    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
-                           name="mrcnn_mask_conv3")(x)
-    x = KL.TimeDistributed(BatchNorm(),
-                           name='mrcnn_mask_bn3')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+        x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
+                               name="mrcnn_mask_conv3")(x)
+        x = KL.TimeDistributed(BatchNorm(),
+                               name='mrcnn_mask_bn3')(x, training=train_bn)
+        x = my_activation(x)
 
-    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
-                           name="mrcnn_mask_conv4")(x)
-    x = KL.TimeDistributed(BatchNorm(),
-                           name='mrcnn_mask_bn4')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+        x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
+                               name="mrcnn_mask_conv4")(x)
+        x = KL.TimeDistributed(BatchNorm(),
+                               name='mrcnn_mask_bn4')(x, training=train_bn)
+        x = my_activation(x)
 
     x = KL.TimeDistributed(KL.Conv2DTranspose(256, (2, 2), strides=2, activation="relu"),
                            name="mrcnn_mask_deconv")(x)
