@@ -10,7 +10,8 @@ how to modify:
   display them.
 '''
 
-header_line = "# supported task types are 'classification', 'object_detection' and 'semantic_segmentation'.\n"
+header_line = "# supported task types are 'classification', 'object_detection'," \
+              "'semantic_segmentation' and keypoint_detection.\n"
 
 output_files = [
     'caltech101_classification',
@@ -23,6 +24,8 @@ output_files = [
     'openimagesv4_object_detection_has_validation',
     'camvid_custom_semantic_segmentation',
     'camvid_custom_semantic_segmentation_has_validation',
+    'mscoco2017_single_person_pose_estimation',
+    'mscoco2017_single_person_pose_estimation_has_validation'
 ]
 
 task_types = [
@@ -36,6 +39,8 @@ task_types = [
     'task_type: object_detection\n\n',
     'task_type: semantic_segmentation\n\n',
     'task_type: semantic_segmentation\n\n',
+    'task_type: keypoint_detection\n\n',
+    'task_type: keypoint_detection\n\n',
 ]
 
 network_names = [
@@ -49,6 +54,8 @@ network_names = [
     'network_name: LMFYoloQuantize\n\n',
     'network_name: LmSegnetV1Quantize\n\n',
     'network_name: LmSegnetV1Quantize\n\n',
+    'network_name: LmSinglePoseV1Quantize\n\n',
+    'network_name: LmSinglePoseV1Quantize\n\n',
 ]
 
 dataset_formats = [
@@ -62,6 +69,8 @@ dataset_formats = [
     '  format: OpenImagesV4\n',
     '  format: CamvidCustom\n',
     '  format: CamvidCustom\n',
+    '  format: Mscoco for Single-Person Pose Estimation\n',
+    '  format: Mscoco for Single-Person Pose Estimation\n',
 ]
 
 dataset_train_paths = [
@@ -75,6 +84,8 @@ dataset_train_paths = [
     '  train_path: custom_open_images_v4_bounding_boxes/for_train\n',
     '  train_path: camvid_custom\n',
     '  train_path: camvid_custom\n',
+    '  train_path: MSCOCO_2017\n',
+    '  train_path: MSCOCO_2017\n',
 ]
 
 dataset_test_paths = [
@@ -88,6 +99,8 @@ dataset_test_paths = [
     '  test_path: custom_open_images_v4_bounding_boxes/for_validation\n',
     '  test_path: \n',
     '  test_path: camvid_custom\n',
+    '  test_path: \n',
+    '  test_path: MSCOCO_2017\n',
 ]
 
 trainer_batch_sizes = [
@@ -101,9 +114,13 @@ trainer_batch_sizes = [
     '  batch_size: 1\n',
     '  batch_size: 1\n',
     '  batch_size: 1\n',
+    '  batch_size: 1\n',
+    '  batch_size: 1\n',
 ]
 
 trainer_epochs = [
+    '  epochs: 1\n',
+    '  epochs: 1\n',
     '  epochs: 1\n',
     '  epochs: 1\n',
     '  epochs: 1\n',
@@ -135,6 +152,8 @@ trainer_optimizers = [
     '  optimizer: Momentum\n',
     '  optimizer: Adam\n',
     '  optimizer: Adam\n',
+    '  optimizer: Adam\n',
+    '  optimizer: Adam\n',
 ]
 
 trainer_lr_schedule_comment = """\
@@ -158,9 +177,13 @@ trainer_lr_schedules = [
     '  learning_rate_schedule: constant\n',
     '  learning_rate_schedule: constant\n',
     '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
+    '  learning_rate_schedule: constant\n',
 ]
 
 trainer_initial_lrs = [
+    '  initial_learning_rate: 0.001\n',
+    '  initial_learning_rate: 0.001\n',
     '  initial_learning_rate: 0.001\n',
     '  initial_learning_rate: 0.001\n',
     '  initial_learning_rate: 0.001\n',
@@ -184,6 +207,8 @@ network_quantize_first_convolution = [
     '  quantize_first_convolution: yes\n',
     '  quantize_first_convolution: yes\n',
     '  quantize_first_convolution: yes\n',
+    '  quantize_first_convolution: no\n',
+    '  quantize_first_convolution: no\n',
 ]
 
 common_image_size_heights = [
@@ -197,6 +222,8 @@ common_image_size_heights = [
     '    - 128  # height\n',
     '    - 128  # height\n',
     '    - 128  # height\n',
+    '    - 160  # height\n',
+    '    - 160  # height\n',
 ]
 
 common_image_size_widths = [
@@ -210,6 +237,8 @@ common_image_size_widths = [
     '    - 128  # width\n',
     '    - 128  # width\n',
     '    - 128  # width\n',
+    '    - 160  # width\n',
+    '    - 160  # width\n',
 ]
 
 common_is_pretrain_model_comment = '  # set pretrain model name. currently, this feature is not supported, always ignored.\n'
@@ -225,11 +254,15 @@ common_is_pretrain_model = [
     '  pretrain_model: false\n',
     '  pretrain_model: false\n',
     '  pretrain_model: false\n',
+    '  pretrain_model: false\n',
+    '  pretrain_model: false\n',
 ]
 
 common_enable_prefetch_comment = '  # enable dataset prefetch, set false if weired problem happens\n'
 
 common_enable_prefetch = [
+    '  dataset_prefetch: true',
+    '  dataset_prefetch: true',
     '  dataset_prefetch: true',
     '  dataset_prefetch: true',
     '  dataset_prefetch: true',
