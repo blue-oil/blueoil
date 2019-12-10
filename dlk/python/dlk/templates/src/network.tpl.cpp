@@ -244,6 +244,9 @@ bool Network::init()
       + MAX_IN_C * MAX_SIZE_KN2ROW_COL_BLOCK * sizeof(float)
       + thread_num * MAX_IN_C * dlk::details::MAX_UNROLL * sizeof(float)
   );
+  quantize_tmp_buffer = std::make_unique<BYTE[]>(
+      MAX_SIZE_INPUTS_PER_LAYER * sizeof(QUANTIZED_NOT_PACKED)
+  );
 
   {% for node in graph.non_variables -%}
   {% if node.available_buffer == '' %}

@@ -81,7 +81,7 @@ class View(object):
 
             return self.format_string(
                 f"""
-                func_QTZ_linear_mid_tread_half({inputs_string}, {op.name});
+                func_QTZ_linear_mid_tread_half({inputs_string}, {op.name}, quantize_tmp_buffer.get());
                 """
             )
 

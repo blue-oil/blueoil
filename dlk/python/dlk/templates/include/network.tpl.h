@@ -63,6 +63,7 @@ private:
 
     std::unique_ptr<BYTE[]> qconv_tmp_buffer;
     std::unique_ptr<BYTE[]> conv_tmp_buffer;
+    std::unique_ptr<BYTE[]> quantize_tmp_buffer;
 
     const T_INT input_rank = {{ graph_input.rank }};
     const T_INT input_shape[{{ graph_input.rank }}] = { {{ graph_input.view.shape_as_cpp }} };
