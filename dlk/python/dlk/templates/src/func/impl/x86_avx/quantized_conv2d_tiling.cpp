@@ -15,6 +15,7 @@ limitations under the License.
 
 #include <cassert>
 #include <climits>
+#include <cstring>
 
 #include "global.h"
 #include "func/impl/quantized_conv2d_tiling.h"
@@ -73,6 +74,48 @@ void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::
   }
 
   Measurement::Stop();
+}
+
+void convert_thresholds(BIN_CONV_OUTPUT *thresholds, std::size_t channels) {
+  const auto buf = std::make_unique<BIN_CONV_OUTPUT[]>(channels * NUM_OF_A2W1_THRESHOLD);
+  const auto table = _mm256_setr_epi8(
+      0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15,
+      0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15
+  );
+  const auto table2 = _mm256_setr_epi32(
+      0, 4, 2, 6, 1, 5, 3, 7
+  );
+  for (std::size_t i = 0; i < out_channels; i += 16) {
+    const auto v0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(thresholds + NUM_OF_A2W1_THRESHOLD * i +  0));
+    const auto v1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(thresholds + NUM_OF_A2W1_THRESHOLD * i + 16));
+    const auto v2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(thresholds + NUM_OF_A2W1_THRESHOLD * i + 32));
+    const auto v3 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(thresholds + NUM_OF_A2W1_THRESHOLD * i + 48));
+    const auto tmp00 = _mm256_shuffle_epi8(v0, table);
+    const auto tmp01 = _mm256_shuffle_epi8(v1, table);
+    const auto tmp02 = _mm256_shuffle_epi8(v2, table);
+    const auto tmp03 = _mm256_shuffle_epi8(v3, table);
+    const auto tmp10 = _mm256_unpacklo_epi32(tmp00, tmp01);
+    const auto tmp11 = _mm256_unpacklo_epi32(tmp02, tmp03);
+    const auto tmp12 = _mm256_unpackhi_epi32(tmp00, tmp01);
+    const auto tmp13 = _mm256_unpackhi_epi32(tmp02, tmp03);
+    const auto tmp20 = _mm256_unpacklo_epi32(tmp10, tmp11);
+    const auto tmp21 = _mm256_unpackhi_epi32(tmp10, tmp11);
+    const auto tmp22 = _mm256_unpacklo_epi32(tmp12, tmp13);
+    const auto tmp23 = _mm256_unpackhi_epi32(tmp12, tmp13);
+    const auto th0 = _mm256_permutevar8x32_epi32(tmp20, table2);
+    const auto th1 = _mm256_permutevar8x32_epi32(tmp21, table2);
+    const auto th2 = _mm256_permutevar8x32_epi32(tmp22, table2);
+    const auto flg = _mm256_permutevar8x32_epi32(tmp23, table2);
+    const auto is_neg = _mm256_cmpgt_epi16(_mm256_setzero_si256(), flg);
+    const auto res0 = _mm256_sub_epi16(th0, is_neg);
+    const auto res1 = _mm256_sub_epi16(th1, is_neg);
+    const auto res2 = _mm256_sub_epi16(th2, is_neg);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf.get() + 0 * channels + i), res0);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf.get() + 1 * channels + i), res1);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf.get() + 2 * channels + i), res2);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf.get() + 3 * channels + i), flg);
+  }
+  std::memcpy(thresholds, buf.get(), channels * NUM_OF_A2W1_THRESHOLD * sizeof(BIN_CONV_OUTPUT));
 }
 
 void QuantizedConv2DTiling(const tiling_input_t& input,
