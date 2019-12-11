@@ -17,12 +17,32 @@ import numpy as np
 import pytest
 
 from lmnet.pre_processor import (
+    Resize,
     ResizeWithJoints,
     JointsToGaussianHeatmap
 )
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("reset_default_graph")
+
+
+def test_resize():
+    IMAGE_SIZE = [32, 32]
+    orig_image = np.zeros(shape=(1024, 512, 3), dtype=np.uint8)
+    orig_mask = np.zeros(shape=(1024, 512, 3), dtype=np.uint8)
+
+    pre_processor = Resize(IMAGE_SIZE)
+    resized = pre_processor(image=orig_image, mask=orig_mask)
+    resized_image = resized["image"]
+    resized_mask = resized["mask"]
+
+    assert isinstance(resized_image, np.ndarray)
+    assert isinstance(resized_mask, np.ndarray)
+    assert resized_image[:2] == (32, 32)
+    assert resized_image[2] == 3
+
+    assert resized_mask[:2] == (32, 32)
+    assert resized_mask[2] == 3
 
 
 def test_resize_with_joints():
