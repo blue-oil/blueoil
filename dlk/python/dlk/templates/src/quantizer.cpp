@@ -151,8 +151,6 @@ void func_QTZ_linear_mid_tread_half_body(
   }
 }
 
-static const auto output_not_packed = std::make_unique<QUANTIZED_NOT_PACKED[]>(MAX_SIZE_INPUTS_PER_LAYER);
-
 void func_QTZ_linear_mid_tread_half(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_INT, MemoryLayout::Atom>& nbit,
