@@ -31,11 +31,6 @@ namespace dlk {
 
 namespace impl {
 
-static const auto buf_th0 = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
-static const auto buf_th1 = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
-static const auto buf_th2 = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
-static const auto buf_flg = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_IN_C);
-
 void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
     const tiling_input_t& output) {
   Measurement::Start("Pack_input_for_tiling");
@@ -142,43 +137,6 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
 
   Measurement::Start("Quantized Conv2D Tiling");
   if (p.thresholds != nullptr) {
-    const auto table = _mm256_setr_epi8(
-        0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15,
-        0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15
-    );
-    const auto table2 = _mm256_setr_epi32(
-        0, 4, 2, 6, 1, 5, 3, 7
-    );
-    for (std::size_t i = 0; i < out_channels; i += 16) {
-      const auto v0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i +  0));
-      const auto v1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 16));
-      const auto v2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 32));
-      const auto v3 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + NUM_OF_A2W1_THRESHOLD * i + 48));
-      const auto tmp00 = _mm256_shuffle_epi8(v0, table);
-      const auto tmp01 = _mm256_shuffle_epi8(v1, table);
-      const auto tmp02 = _mm256_shuffle_epi8(v2, table);
-      const auto tmp03 = _mm256_shuffle_epi8(v3, table);
-      const auto tmp10 = _mm256_unpacklo_epi32(tmp00, tmp01);
-      const auto tmp11 = _mm256_unpacklo_epi32(tmp02, tmp03);
-      const auto tmp12 = _mm256_unpackhi_epi32(tmp00, tmp01);
-      const auto tmp13 = _mm256_unpackhi_epi32(tmp02, tmp03);
-      const auto tmp20 = _mm256_unpacklo_epi32(tmp10, tmp11);
-      const auto tmp21 = _mm256_unpackhi_epi32(tmp10, tmp11);
-      const auto tmp22 = _mm256_unpacklo_epi32(tmp12, tmp13);
-      const auto tmp23 = _mm256_unpackhi_epi32(tmp12, tmp13);
-      const auto th0 = _mm256_permutevar8x32_epi32(tmp20, table2);
-      const auto th1 = _mm256_permutevar8x32_epi32(tmp21, table2);
-      const auto th2 = _mm256_permutevar8x32_epi32(tmp22, table2);
-      const auto flg = _mm256_permutevar8x32_epi32(tmp23, table2);
-      const auto is_neg = _mm256_cmpgt_epi16(_mm256_setzero_si256(), flg);
-      const auto res0 = _mm256_sub_epi16(th0, is_neg);
-      const auto res1 = _mm256_sub_epi16(th1, is_neg);
-      const auto res2 = _mm256_sub_epi16(th2, is_neg);
-      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_th0.get() + i), res0);
-      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_th1.get() + i), res1);
-      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_th2.get() + i), res2);
-      _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf_flg.get() + i), flg);
-    }
   }
 
   if (kh == 1 && kw == 1) {
@@ -294,10 +252,10 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
         const auto Ohh = Oh / OutChUnroll2;
         const auto Om = Oh / OutChUnroll % OutChBlocks;
         if (p.thresholds != nullptr) {
-          const auto th0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th0.get() + Oh));
-          const auto th1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th1.get() + Oh));
-          const auto th2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_th2.get() + Oh));
-          const auto flg = _mm256_loadu_si256(reinterpret_cast<__m256i*>(buf_flg.get() + Oh));
+          const auto th0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + 0 * out_channels + Oh));
+          const auto th1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + 1 * out_channels + Oh));
+          const auto th2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + 2 * out_channels + Oh));
+          const auto flg = _mm256_loadu_si256(reinterpret_cast<__m256i*>(p.thresholds + 3 * out_channels + Oh));
           const auto is_neg = _mm256_cmpgt_epi16(_mm256_setzero_si256(), flg);
           const auto m2 = _mm256_sub_epi16(flg, _mm256_set1_epi16(2));
           const auto is_not_const = _mm256_cmpgt_epi16(_mm256_setzero_si256(), m2);
@@ -508,10 +466,10 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
         }
       }
       if (p.thresholds != nullptr) {
-        const auto th0 = _mm_loadu_si128(reinterpret_cast<__m128i*>(buf_th0.get() + out_ch_high * OutChUnroll));
-        const auto th1 = _mm_loadu_si128(reinterpret_cast<__m128i*>(buf_th1.get() + out_ch_high * OutChUnroll));
-        const auto th2 = _mm_loadu_si128(reinterpret_cast<__m128i*>(buf_th2.get() + out_ch_high * OutChUnroll));
-        const auto flg = _mm_loadu_si128(reinterpret_cast<__m128i*>(buf_flg.get() + out_ch_high * OutChUnroll));
+        const auto th0 = _mm_loadu_si128(reinterpret_cast<__m128i*>(p.thresholds + 0 * out_channels + out_ch_high * OutChUnroll));
+        const auto th1 = _mm_loadu_si128(reinterpret_cast<__m128i*>(p.thresholds + 1 * out_channels + out_ch_high * OutChUnroll));
+        const auto th2 = _mm_loadu_si128(reinterpret_cast<__m128i*>(p.thresholds + 2 * out_channels + out_ch_high * OutChUnroll));
+        const auto flg = _mm_loadu_si128(reinterpret_cast<__m128i*>(p.thresholds + 3 * out_channels + out_ch_high * OutChUnroll));
         const auto is_neg = _mm_cmpgt_epi16(_mm_setzero_si128(), flg);
         const auto m2 = _mm_sub_epi16(flg, _mm_set1_epi16(2));
         const auto is_not_const = _mm_cmpgt_epi16(_mm_setzero_si128(), m2);

@@ -31,8 +31,6 @@ namespace dlk {
 
 namespace impl {
 
-static auto buf_th = std::make_unique<BIN_CONV_OUTPUT[]>(NUM_OF_A2W1_THRESHOLD * MAX_IN_C);
-
 void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
     const tiling_input_t& output) {
   Measurement::Start("Pack_input_for_tiling");
@@ -111,18 +109,6 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   assert((in_channels % InTypeBitWidth) == 0);
 
   Measurement::Start("Quantized Conv2D Tiling");
-  if (p.thresholds != nullptr) {
-    for (T_UINT i = 0; i < out_channels; i += 8) {
-      const auto v = vld4q_s16(p.thresholds + NUM_OF_A2W1_THRESHOLD * i);
-      const auto is_neg = vreinterpretq_s16_u16(vmvnq_u16(vcgeq_s16(v.val[3], vdupq_n_s16(0))));
-      int16x8x4_t res;
-      res.val[0] = vsubq_s16(v.val[0], is_neg);
-      res.val[1] = vsubq_s16(v.val[1], is_neg);
-      res.val[2] = vsubq_s16(v.val[2], is_neg);
-      res.val[3] = v.val[3];
-      vst4q_s16(buf_th.get() + NUM_OF_A2W1_THRESHOLD * i, res);
-    }
-  }
   constexpr uint8_t coeff_ary[16] = {
     0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
     0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
@@ -280,7 +266,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       }
       if (p.thresholds != nullptr) {
 #define LOAD_TH(k) \
-  const auto ts##k = vld4q_s16(buf_th.get() + NUM_OF_A2W1_THRESHOLD * (out_ch_high * OutChUnroll2 + Om + 8 * k)); \
+  const auto ts##k = vld4q_s16(p.thresholds + NUM_OF_A2W1_THRESHOLD * (out_ch_high * OutChUnroll2 + Om + 8 * k)); \
   const auto is_neg##k = vreinterpretq_s16_u16(vcltq_s16(ts##k.val[3], vdupq_n_s16(0))); \
   const auto m2_##k = vsubq_s16(ts##k.val[3], vdupq_n_s16(2)); \
   const auto is_const##k = vcgeq_s16(m2_##k, vdupq_n_s16(0));
@@ -545,7 +531,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
       }
       if (p.thresholds != nullptr) {
 #define LOAD_TH(k) \
-  const auto ts##k = vld4q_s16(buf_th.get() + NUM_OF_A2W1_THRESHOLD * (out_ch_high * OutChUnroll2 + Om + 8 * k)); \
+  const auto ts##k = vld4q_s16(p.thresholds + NUM_OF_A2W1_THRESHOLD * (out_ch_high * OutChUnroll2 + Om + 8 * k)); \
   const auto is_neg##k = vreinterpretq_s16_u16(vcltq_s16(ts##k.val[3], vdupq_n_s16(0))); \
   const auto m2_##k = vsubq_s16(ts##k.val[3], vdupq_n_s16(2)); \
   const auto is_const##k = vcgeq_s16(m2_##k, vdupq_n_s16(0));

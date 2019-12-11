@@ -283,6 +283,12 @@ bool Network::init()
   std::memcpy(thresholds_buffer + {{qconv.name}}_thresholds_offset, const_cast<T_INT16*>({{qconv.name}}_thresholds), {{qconv.name}}_thresholds_size);
   {% endif -%}
   {% endfor -%}
+#elif defined(USE_NEON) || defined(USE_AVX)
+  {% for qconv in graph.convs(quantized_only=True) -%}
+  {% if qconv.has_thresholds -%}
+  dlk::impl::convert_thresholds({{ qconv.name }}_thresholds, {{ qconv.channel }});
+  {% endif -%}
+  {% endfor -%}
 #endif // RUN_ON_FPGA
 
 #pragma omp parallel
