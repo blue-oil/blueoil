@@ -71,8 +71,7 @@ void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::
   Measurement::Stop();
 }
 
-void convert_thresholds(BIN_CONV_OUTPUT *thresholds, std::size_t channels) {
-  const auto buf = std::make_unique<BIN_CONV_OUTPUT[]>(channels * NUM_OF_A2W1_THRESHOLD);
+void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::size_t channels) {
   const auto table = _mm256_setr_epi8(
       0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15,
       0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15
@@ -81,10 +80,10 @@ void convert_thresholds(BIN_CONV_OUTPUT *thresholds, std::size_t channels) {
       0, 4, 2, 6, 1, 5, 3, 7
   );
   for (std::size_t i = 0; i < out_channels; i += 16) {
-    const auto v0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(thresholds + NUM_OF_A2W1_THRESHOLD * i +  0));
-    const auto v1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(thresholds + NUM_OF_A2W1_THRESHOLD * i + 16));
-    const auto v2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(thresholds + NUM_OF_A2W1_THRESHOLD * i + 32));
-    const auto v3 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(thresholds + NUM_OF_A2W1_THRESHOLD * i + 48));
+    const auto v0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + NUM_OF_A2W1_THRESHOLD * i +  0));
+    const auto v1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + NUM_OF_A2W1_THRESHOLD * i + 16));
+    const auto v2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + NUM_OF_A2W1_THRESHOLD * i + 32));
+    const auto v3 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + NUM_OF_A2W1_THRESHOLD * i + 48));
     const auto tmp00 = _mm256_shuffle_epi8(v0, table);
     const auto tmp01 = _mm256_shuffle_epi8(v1, table);
     const auto tmp02 = _mm256_shuffle_epi8(v2, table);
@@ -105,12 +104,11 @@ void convert_thresholds(BIN_CONV_OUTPUT *thresholds, std::size_t channels) {
     const auto res0 = _mm256_sub_epi16(th0, is_neg);
     const auto res1 = _mm256_sub_epi16(th1, is_neg);
     const auto res2 = _mm256_sub_epi16(th2, is_neg);
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf.get() + 0 * channels + i), res0);
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf.get() + 1 * channels + i), res1);
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf.get() + 2 * channels + i), res2);
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(buf.get() + 3 * channels + i), flg);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 0 * channels + i), res0);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 1 * channels + i), res1);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 2 * channels + i), res2);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 3 * channels + i), flg);
   }
-  std::memcpy(thresholds, buf.get(), channels * NUM_OF_A2W1_THRESHOLD * sizeof(BIN_CONV_OUTPUT));
 }
 
 void QuantizedConv2DTiling(const tiling_input_t& input,

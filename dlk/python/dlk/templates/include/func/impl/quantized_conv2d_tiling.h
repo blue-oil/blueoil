@@ -31,7 +31,7 @@ using tiling_input_t = TensorView<tiling_input_elem_t, MemoryLayout::ChHWBCl>;
 void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
     const tiling_input_t& output);
 
-void convert_thresholds(BIN_CONV_OUTPUT *thresholds, std::size_t channels);
+void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::size_t channels);
 
 void QuantizedConv2DTiling(const tiling_input_t& input,
                                   const kernel_t& kernel,

@@ -131,7 +131,7 @@ class View(object):
                 inputs_string = self.inputs_to_string(op, input_ops)
 
                 if op.has_thresholds:
-                    threshold = f'{op.name}_thresholds'
+                    threshold = f'{op.name}_thresholds_converted.get()'
                     thresholds_addr = f'THRESHOLD_ADDR + {op.name}_thresholds_offset'
                     conv_func = 'func_QuantizedConv2DWithThreshold'
                     nbit_aqtz = self.op.a_quantizer[0].nbit

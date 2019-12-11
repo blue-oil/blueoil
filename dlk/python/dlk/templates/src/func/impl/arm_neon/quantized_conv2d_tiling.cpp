@@ -71,19 +71,17 @@ void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::
   Measurement::Stop();
 }
 
-void convert_thresholds(BIN_CONV_OUTPUT *thresholds, std::size_t channels) {
-  const auto buf = std::make_unique<BIN_CONV_OUTPUT[]>(channels * NUM_OF_A2W1_THRESHOLD);
+void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::size_t channels) {
   for (T_UINT i = 0; i < channels; i += 8) {
-    const auto v = vld4q_s16(thresholds + NUM_OF_A2W1_THRESHOLD * i);
+    const auto v = vld4q_s16(input + NUM_OF_A2W1_THRESHOLD * i);
     const auto is_neg = vreinterpretq_s16_u16(vmvnq_u16(vcgeq_s16(v.val[3], vdupq_n_s16(0))));
     int16x8x4_t res;
     res.val[0] = vsubq_s16(v.val[0], is_neg);
     res.val[1] = vsubq_s16(v.val[1], is_neg);
     res.val[2] = vsubq_s16(v.val[2], is_neg);
     res.val[3] = v.val[3];
-    vst4q_s16(buf.get() + NUM_OF_A2W1_THRESHOLD * i, res);
+    vst4q_s16(output + NUM_OF_A2W1_THRESHOLD * i, res);
   }
-  std::memcpy(thresholds, buf.get(), channels * NUM_OF_A2W1_THRESHOLD * sizeof(BIN_CONV_OUTPUT));
 }
 
 void QuantizedConv2DTiling(const tiling_input_t& input,

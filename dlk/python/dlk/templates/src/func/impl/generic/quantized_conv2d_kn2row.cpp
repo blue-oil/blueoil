@@ -31,6 +31,10 @@ namespace dlk {
 
 namespace impl {
 
+void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::size_t channels) {
+  std::memcpy(output, input, channels * NUM_OF_A2W1_THRESHOLD * sizeof(BIN_CONV_OUTPUT));
+}
+
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
                                   const kernel_t& kernel,
                                   const binary_convolution_parameters &p) {

@@ -103,6 +103,13 @@ private:
   {% endfor -%}
   const uint32_t total_thresholds_size = std::max(1, {{th_offset.o}});
 #endif // RUN_ON_FPGA
+  {% for qconv in graph.convs(quantized_only=True) -%}
+  {%     if qconv.has_thresholds -%}
+  const std::unique_ptr<BIN_CONV_OUTPUT[]> {{qconv.name}}_thresholds_converted = std::make_unique<BIN_CONV_OUTPUT[]>({{qconv.channel}} * NUM_OF_A2W1_THRESHOLD);
+  {%     else -%}
+  const std::unique_ptr<BIN_CONV_OUTPUT[]> {{qconv.name}}_thresholds_converted;
+  {%     endif -%}
+  {% endfor -%}
 };
 
 #endif // NETWORK_H_INCLUDED
