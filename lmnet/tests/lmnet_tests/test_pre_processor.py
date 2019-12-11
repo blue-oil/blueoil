@@ -38,11 +38,11 @@ def test_resize():
 
     assert isinstance(resized_image, np.ndarray)
     assert isinstance(resized_mask, np.ndarray)
-    assert resized_image[:2] == (32, 32)
-    assert resized_image[2] == 3
+    assert resized_image.shape[:2] == (32, 32)
+    assert resized_image.shape[2] == 3
 
-    assert resized_mask[:2] == (32, 32)
-    assert resized_mask[2] == 3
+    assert resized_mask.shape[:2] == (32, 32)
+    assert resized_mask.shape[2] == 3
 
 
 def test_resize_with_joints():
