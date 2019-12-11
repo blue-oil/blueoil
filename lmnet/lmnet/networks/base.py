@@ -47,7 +47,9 @@ class BaseNetwork(object):
             classes=(),
             image_size=(),  # [height, width]
             batch_size=64,
-            data_format='NHWC'
+            data_format='NHWC',
+            *args,
+            **kwargs
     ):
 
         if data_format not in ["NCHW", "NHWC"]:
