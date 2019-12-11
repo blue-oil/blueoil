@@ -1024,11 +1024,10 @@ class Conv(Operator):
             3. Input channel size is multiple of 32.
         """
         super()._check_consistency()
-        if self.kernel_shape[0] != self.kernel_shape[1] or self.kernel_shape[0] not in (1, 3):
-            warnings.warn(warning_sign +
-                          f" Kernel size needs to be 1x1 or 3x3 but got "
-                          f"{self.kernel_shape[0]}x{self.kernel_shape[1]} for {self.name} of {self.op_type}",
-                          stacklevel=2)
+        self._assert(self.kernel_shape[0] == self.kernel_shape[1] and self.kernel_shape[0] in (1, 3),
+                     f" Kernel size needs to be 1x1 or 3x3 but got "
+                     f"{self.kernel_shape[0]}x{self.kernel_shape[1]} for {self.name} of {self.op_type}")
+
         if self.input_ops['X'].channel > 1024 or self.channel > 1024:
             warnings.warn(warning_sign +
                           f" Input and output channel size need to be less than 1024, but got "
