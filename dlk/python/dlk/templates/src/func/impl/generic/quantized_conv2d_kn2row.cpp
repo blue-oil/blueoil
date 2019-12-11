@@ -32,6 +32,8 @@ namespace dlk {
 namespace impl {
 
 static const auto kn2row_buf = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_SIZE_KN2ROW_BUFFER_PER_LAYER);
+static const auto apply_threshold_buf = std::make_unique<QUANTIZED_PACKED[]>(MAX_SIZE_QOUTPUTS_PER_LAYER * sizeof(QUANTIZED_PACKED));
+static const auto convert_buf = std::make_unique<BIN_CONV_OUTPUT[]>(MAX_SIZE_OUTPUTS_PER_LAYER);
 
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
                                   const kernel_t& kernel,
@@ -81,13 +83,12 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
   const auto out_size = oc * oh * ow;
   if (p.thresholds != nullptr) {
     ApplyThresholds(output_, p);
-    const auto buf = std::make_unique<QUANTIZED_PACKED[]>(out_size * p.n_bit / CHAR_BIT);
-    pack_16bit(p.device_output_buf, buf.get(), out_size);
+    pack_16bit(p.device_output_buf, apply_threshold_buf.get(), out_size);
     const std::size_t b = 32;
     TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>::tensor_info_t<std::size_t> buf_shape = {
       oh, ow, (oc + b - 1) / b, p.n_bit, b
     };
-    TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl> buf_tensor(buf.get(), buf_shape);
+    TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl> buf_tensor(apply_threshold_buf.get(), buf_shape);
     TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>::tensor_info_t<std::size_t> out_shape = {
       (oc + b - 1) / b,
       oh,
@@ -99,12 +100,11 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
     convert_tensor(buf_tensor, out);
   } else {
     const std::size_t b = 32;
-    const auto buf = std::make_unique<BIN_CONV_OUTPUT[]>(out_size);
-    std::copy(p.device_output_buf, p.device_output_buf + out_size, buf.get());
+    std::copy(p.device_output_buf, p.device_output_buf + out_size, convert_buf.get());
     TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>::tensor_info_t<std::size_t> buf_shape = {
       oh, ow, oc 
     };
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC> buf_tensor(buf.get(), buf_shape);
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC> buf_tensor(convert_buf.get(), buf_shape);
     TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl>::tensor_info_t<std::size_t> out_shape = {
       (oc + b - 1) / b, oh, ow, b
     };
