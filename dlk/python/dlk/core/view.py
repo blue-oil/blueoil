@@ -54,7 +54,8 @@ class View(object):
 
             shape_string = self.shape_to_string(op.shape, channel_active=True)
 
-            self.reuse_buffer_str = (f"""
+            self.reuse_buffer_str = (
+                f"""
                 TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}>::tensor_info_t<std::size_t>"""
                 f""" {op_name}_shape = {{ {shape_string} }};
                 TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}>"""
