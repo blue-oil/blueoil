@@ -251,10 +251,10 @@ bool Network::init()
   MappedMem thresholds_mmap(THRESHOLD_ADDR, total_thresholds_size);
   auto thresholds_buffer = reinterpret_cast<uint8_t*>(thresholds_mmap.get());
   {% for qconv in graph.convs(quantized_only=True) -%}
-      {% if qconv.has_thresholds -%}
-          {% set thresholds = qconv.thresholds -%}
+  {% if qconv.has_thresholds -%}
+  {% set thresholds = qconv.thresholds -%}
   std::memcpy(thresholds_buffer + {{qconv.name}}_thresholds_offset, const_cast<T_INT16*>({{qconv.name}}_thresholds), {{qconv.name}}_thresholds_size);
-      {% endif -%}
+  {% endif -%}
   {% endfor -%}
 #endif // RUN_ON_FPGA
 
@@ -325,8 +325,7 @@ bool Network::run(float *network_input, float *network_output)
     {{- len -}},
     {%- endfor %}
   };
-  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>
-    {{ node.name }}({{ node.name }}_raw, {{ node.name }}_shape);
+  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}({{ node.name }}_raw, {{ node.name }}_shape);
   {% endif %}
   {%- endfor %}
   {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 %}
@@ -337,8 +336,7 @@ bool Network::run(float *network_input, float *network_output)
     {{- len -}},
     {%- endfor %}
   };
-  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>
-    {{ node.name + '_' + out_k }}({{ node.name + '_' + out_k }}_raw, {{ node.name + '_' + out_k }}_shape);
+  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name + '_' + out_k }}({{ node.name + '_' + out_k }}_raw, {{ node.name + '_' + out_k }}_shape);
   {% endif %}
   {%- endfor %}
   {% endif %}
@@ -346,7 +344,7 @@ bool Network::run(float *network_input, float *network_output)
   {{ '\n' -}}
 
   {%- for node in graph.non_variables %}
-  {{ node.view.run() }}
+  {{- node.view.run() }}
 
   {% if config.debug -%}
     {# Temporary: better access to the quantizer #}
