@@ -22,15 +22,9 @@ limitations under the License.
 
 #include <arm_neon.h>
 
-static const auto scale = std::make_unique<float[]>(MAX_IN_C);
-static const auto shift = std::make_unique<float[]>(MAX_IN_C);
-
 void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
-    const TensorView<T_FLOAT, MemoryLayout::C>& gamma,
-    const TensorView<T_FLOAT, MemoryLayout::C>& beta,
-    const TensorView<T_FLOAT, MemoryLayout::C>& mean,
-    const TensorView<T_FLOAT, MemoryLayout::C>& variance,
-    T_FLOAT epsilon,
+    const TensorView<T_FLOAT, MemoryLayout::C>& scale,
+    const TensorView<T_FLOAT, MemoryLayout::C>& bias,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output) {
   Measurement::Start("BatchNorm");
 
@@ -41,32 +35,6 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
 
   T_UINT size = out_height * out_width;
 
-  float32x4_t eps_batch = vdupq_n_f32(epsilon);
-  float32x4_t scale_b, shift_b;
-
-  int i = 0;
-  for (; i <= static_cast<int>(out_depth) - 4; i += 4) {
-    float32x4_t gamma_batch = vld1q_f32(gamma.data() + i);
-    float32x4_t var_batch = vld1q_f32(variance.data() + i);
-    float32x4_t beta_batch = vld1q_f32(beta.data() + i);
-    float32x4_t mu_batch = vld1q_f32(mean.data() + i);
-
-    scale_b = vaddq_f32(var_batch, eps_batch);
-    float32x4_t rsqrt_est = vrsqrteq_f32(scale_b);
-    rsqrt_est = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
-    scale_b = vrsqrtsq_f32(scale_b * rsqrt_est, rsqrt_est) * rsqrt_est;
-
-    scale_b = vmulq_f32(scale_b, gamma_batch);
-    shift_b = vmlsq_f32(beta_batch, scale_b, mu_batch);
-    vst1q_f32(&scale[i], scale_b);
-    vst1q_f32(&shift[i], shift_b);
-  }
-
-  for (; i < static_cast<int>(out_depth); i++) {
-    scale[i] = gamma(i) * (1.0 / std::sqrt(variance(i) + epsilon));
-    shift[i] = beta(i) - (scale[i] * mean(i));
-  }
-
 // TODO(nlpng): remove use of OpenMP library
 #pragma omp parallel for
   for (T_UINT f = 0; f < size; f++) {
@@ -75,8 +43,8 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
 
     T_UINT d = 0;
     for (; d + 3 < out_depth; d += 4) {
-      const auto scale_v = vld1q_f32(scale.get() + d);
-      const auto shift_v = vld1q_f32(shift.get() + d);
+      const auto scale_v = vld1q_f32(scale.data() + d);
+      const auto shift_v = vld1q_f32(bias.data() + d);
       const auto in_v = vld1q_f32(in_temp);
       vst1q_f32(out_temp, vmlaq_f32(shift_v, in_v, scale_v));
       in_temp += 4;
@@ -84,7 +52,7 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
     }
 
     for (; d < out_depth; d++) {
-      *out_temp++ = *in_temp++ * scale[d] + shift[d];
+      *out_temp++ = *in_temp++ * scale(d) + bias(d);
     }
   }
 
