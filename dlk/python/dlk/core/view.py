@@ -566,15 +566,15 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'BatchNormalization':
-            if len(input_ops) != 5:
+        elif self.op.op_type == 'BatchNormalizationOptimized':
+            if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
-                func_BatchNormalization({inputs_string}, {op.epsilon}, {op.name});
+                func_BatchNormalizationOptimized({inputs_string}, {op.name});
                 """
             )
 
