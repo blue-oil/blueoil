@@ -34,20 +34,6 @@ struct max_pooling_parameters {
   T_UINT padding;
 };
 
-struct MaxPoolWithArgmax_parameters {
-  T_UINT input_height;
-  T_UINT input_width;
-  T_UINT output_channels;
-  T_UINT output_height;
-  T_UINT output_width;
-  T_UINT output_elements;
-  T_UINT kernel_depth;
-  T_UINT kernel_height;
-  T_UINT kernel_width;
-  T_UINT stride;
-  T_UINT padding;
-};
-
 void func_MaxPool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     struct max_pooling_parameters mpp);
@@ -55,10 +41,5 @@ void func_MaxPool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
 void func_MaxPool(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
     const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& output,
     struct max_pooling_parameters mpp);
-
-void func_MaxPoolWithArgmax(const TensorView<Quantized_t, MemoryLayout::NHWC>& input,
-    const TensorView<Quantized_t, MemoryLayout::NHWC>& output,
-    const TensorView<T_UINT, MemoryLayout::NHWC>& indices,
-    struct MaxPoolWithArgmax_parameters mpp);
 
 #endif // DLK_FUNC_MAX_POOLING_H_INCLUDED

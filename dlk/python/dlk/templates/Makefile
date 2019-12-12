@@ -13,7 +13,6 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/func/matmul.cpp \
     $(SRC_DIR)/func/quantize.cpp \
     $(SRC_DIR)/func/softmax.cpp \
-    $(SRC_DIR)/func/unpooling.cpp \
     $(SRC_DIR)/func/lookup.cpp \
     $(SRC_DIR)/matrix/shift_add.cpp \
     $(SRC_DIR)/matrix/multiplication.cpp \
