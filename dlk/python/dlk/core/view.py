@@ -270,59 +270,6 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'MaxPoolWithArgmax':
-            if len(input_ops) != 1:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            x_op = input_ops[0]
-
-            ih = x_op.H
-            iw = x_op.W
-            kh = op.kernel_shape[1]
-            kw = op.kernel_shape[2]
-            kd = x_op.C
-            oh = op.H
-            ow = op.W
-            elems = op.size
-            pad = op.pads[0]
-            stride = op.strides[0]
-            inputs_string = self.inputs_to_string(op, input_ops)
-            output = 'output'  # NotImplemented
-
-            return self.format_string(
-                f"""
-                MaxPoolWithArgmax_struct.input.H = {ih};
-                MaxPoolWithArgmax_struct.input.W = {iw};
-                MaxPoolWithArgmax_struct.kernel.C = {id};
-                MaxPoolWithArgmax_struct.kernel.H = {ih};
-                MaxPoolWithArgmax_struct.kernel.W = {iw};
-                MaxPoolWithArgmax_struct.output_elements = {elems};
-                MaxPoolWithArgmax_struct.output.H = {oh};
-                MaxPoolWithArgmax_struct.output.W = {ow};
-                MaxPoolWithArgmax_struct.padding = {pad};
-                MaxPoolWithArgmax_struct.stride = {stride};
-
-                func_MaxPoolWithArgmax({inputs_string},
-                                       {op.name},
-                                       {output},
-                                       MaxPoolWithArgmax_struct);
-                """,
-            )
-
-        elif self.op.op_type == 'Unpooling':
-            if len(input_ops) != 2:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            index_data_op = input_ops[1]
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-
-            return self.format_string(
-                f"""
-                func_Unpooling({inputs_string}, {op.name});
-                """
-            )
-
         elif self.op.op_type == 'RealDiv':
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
