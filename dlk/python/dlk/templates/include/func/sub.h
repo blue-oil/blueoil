@@ -25,7 +25,7 @@ template <typename T, MemoryLayout layout_l, MemoryLayout layout_r>
 void func_Sub(const TensorView<T, layout_l>& lhs,
     const TensorView<T, layout_r>& rhs,
     const TensorView<T, dlk::impl::output_layout(layout_l, layout_r)>& output) {
-  Measurement::Start("Add");
+  Measurement::Start("Sub");
 
   dlk::impl::binary_op<T, layout_l, layout_r, std::minus<T>> bin_op;
   bin_op(lhs, rhs, output, std::minus<T>());

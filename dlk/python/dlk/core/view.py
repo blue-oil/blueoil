@@ -14,7 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import copy
-from textwrap import dedent
+from textwrap import dedent, indent
 
 from core.data_types import *
 
@@ -54,10 +54,14 @@ class View(object):
 
             shape_string = self.shape_to_string(op.shape, channel_active=True)
 
-            self.reuse_buffer_str = f"""TensorView<{op.dtype.cpptype()}, \
-            MemoryLayout::{op.dimension}>::tensor_info_t<std::size_t> {op_name}_shape = {{ {shape_string} }};
-            TensorView<{op.dtype.cpptype()}, \
-            MemoryLayout::{op.dimension}> {op_name}({op.available_buffer}_raw, {op_name}_shape);"""
+            self.reuse_buffer_str = (
+                f"""
+                TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}>::tensor_info_t<std::size_t>"""
+                f""" {op_name}_shape = {{ {shape_string} }};
+                TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}>"""
+                f""" {op_name}({op.available_buffer}_raw, {op_name}_shape);
+                """
+            )
 
         if self.op.op_type == 'QTZ_binary_mean_scaling':
             if len(input_ops) != 1:
@@ -167,10 +171,10 @@ class View(object):
                     binConv2D_struct.n_bit = {nbit_aqtz};
                     binConv2D_struct.max_value = {max_value};
                     binConv2D_struct.debug_name = "{op.name}";
-#ifdef RUN_ON_FPGA
+                    #ifdef RUN_ON_FPGA
                     binConv2D_struct.device_kernel_phys_addr = KERNEL_ADDR + {op.name}_kernel_offset;
                     binConv2D_struct.device_thresholds_phys_addr = {thresholds_addr};
-#endif
+                    #endif
 
                     {conv_func}({inputs_string}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
                     """
@@ -557,8 +561,8 @@ class View(object):
             return self.format_string(
                 f"""
                 // Reshape from {in_shape} to {out_shape}'
-                std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data() + \
-                {input_ops["data"].name}.size(), {op.name}.data());
+                std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data()"""
+                f""" + {input_ops["data"].name}.size(), {op.name}.data());
                 """
             )
 
@@ -726,10 +730,14 @@ class View(object):
             return f'{op.dtype.cpptype()}* {op.name} = {input_ops["input"].name};'
 
     def format_string(self, string):
+        string = dedent(string)
         if self.reuse_buffer_str:
-            string = self.reuse_buffer_str + '\n' + string
+            string = dedent(self.reuse_buffer_str) + '\n' + string
 
-        return dedent(string).strip()
+        def should_be_indent(line):
+            return line != "" and line[0] != "#"
+
+        return indent(string, '  ', should_be_indent)
 
     def inputs_to_string(self, op, inputs):
 
