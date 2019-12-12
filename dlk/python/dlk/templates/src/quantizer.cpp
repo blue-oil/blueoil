@@ -16,14 +16,8 @@ limitations under the License.
 /***************************************
  leapmind original
 ***************************************/
-#include <cstdlib>
-#include <cfloat>
 #include <cmath>
-#include <cstring>
 #include <algorithm>
-#include <thread>
-#include <vector>
-#include <memory>
 
 #include "quantizer.h"
 #include "pack_input_to_qwords.h"
