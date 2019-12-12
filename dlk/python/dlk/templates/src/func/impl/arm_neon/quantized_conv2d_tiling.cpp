@@ -15,7 +15,6 @@ limitations under the License.
 
 #include <cassert>
 #include <climits>
-#include <cstring>
 
 #include "global.h"
 #include "func/impl/quantized_conv2d_tiling.h"
