@@ -15,8 +15,9 @@ limitations under the License.
 
 #include <algorithm>
 #include <cassert>
-#include <thread>
-#include <vector>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include "global.h"
 #include "matrix_view.h"
@@ -195,21 +196,17 @@ void quantized_matrix_multiplication(
 
   assert(A.cols() * 2 == B.rows());
 
-  unsigned int chunk_size = B.cols() / std::thread::hardware_concurrency();
-  if (chunk_size == 0) {
-    chunk_size += 1;
+#ifdef _OPENMP
+  const std::size_t num_threads = omp_get_max_threads();
+  const std::size_t cols = B.cols();
+  const auto chunk_size = (cols + num_threads - 1) / num_threads;
+#pragma omp parallel for
+  for (std::size_t offset = 0; offset < cols; offset += chunk_size) {
+    quantized_matrix_multiplication_body(A, B, offset, std::min(offset + chunk_size, cols), C);
   }
-
-  std::vector<std::thread> threads;
-  for (unsigned int i = 0; i < B.cols(); i += chunk_size) {
-    threads.emplace_back(std::thread([A, B, &C, i, chunk_size] {
-          quantized_matrix_multiplication_body(A, B, i, std::min(i + chunk_size, static_cast<unsigned int>(B.cols())), C);
-    }));
-  }
-
-  for (auto& th: threads) {
-    th.join();
-  }
+#else
+  quantized_matrix_multiplication_body(A, B, 0, B.cols(), C);
+#endif
 
   Measurement::Stop();
 }
