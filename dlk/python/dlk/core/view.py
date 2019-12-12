@@ -85,7 +85,7 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'QTZ_binary_channel_wise_mean_scaling':
+        elif self.op.op_type == 'QuantizeBinaryChannelWiseMeanScaling':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
