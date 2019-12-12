@@ -1034,11 +1034,13 @@ class Conv(Operator):
                           f"input: {self.input_ops['X'].channel} and output: {self.channel} "
                           f"for {self.name} of {self.op_type}",
                           stacklevel=2)
-        if self.input_ops['X'].channel % 32 != 0:
-            warnings.warn(warning_sign +
-                          f" Input channel size Should be multiple of 32, but got "
-                          f"{self.input_ops['X'].channel} for {self.name} of {self.op_type}",
-                          stacklevel=2)
+        if self.input_ops['W'].op_type in ('QTZ_binary_channel_wise_mean_scaling', 'QTZ_binary_mean_scaling') and \
+                (self.input_ops['X'].preserve_quantization or
+                 self.input_ops['X'].op_type == 'QTZ_linear_mid_tread_half'):
+            if self.input_ops['X'].channel % 32 != 0:
+                warnings.warn(warning_sign +
+                              " Input channel size should be multiple of 32 to have best performance.",
+                              stacklevel=2)
 
         self._assert(len(self.shape) == self._num_dimensions + 2,
                      f'{self.name} has illegal shape {self.shape}')
