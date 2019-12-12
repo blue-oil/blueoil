@@ -282,7 +282,7 @@ Tensor NMS(const Tensor& input,
 
   // IoU overlap boxes marking for deletion
   if (per_class) {
-    for (int class_id = 0 ; class_id < num_classes ; class_id++) {
+    for (int class_id = 0; class_id < num_classes; class_id++) {
       int num_remain = 1;
       for (int i = 0; i < num_predictions; i++) {
         float* prediction_a = result.dataAsArray({0, i, 0});

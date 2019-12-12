@@ -25,7 +25,7 @@ def init_env():
 
     # TODO: Remove this setting after lmnet.environment has been refactored.
     envs = {
-        "DATA_DIR": blueoil_dir,
+        "DATA_DIR": os.path.join(blueoil_dir, "lmnet", "tests", "fixtures", "datasets"),
         "OUTPUT_DIR": train_output_dir.name,
         "_EXPERIMENT_DIR": os.path.join(train_output_dir.name, "{experiment_id}"),
         "_TENSORBOARD_DIR": os.path.join(train_output_dir.name, "{experiment_id}", "tensorboard"),

@@ -1,4 +1,4 @@
-/* Copyright 2018 The Blueoil Authors. All Rights Reserved.
+/* Copyright 2019 The Blueoil Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,16 +11,20 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
-#ifndef DLK_FUNC_UNPOOLING_H_INCLUDED
-#define DLK_FUNC_UNPOOLING_H_INCLUDED
+#ifndef RUNTIME_INCLUDE_BLUEOIL_NPY_HPP_
+#define RUNTIME_INCLUDE_BLUEOIL_NPY_HPP_
 
-#include "global.h"
-#include "tensor_view.h"
+#include <string>
+#include "blueoil.hpp"
 
-void func_Unpooling(const TensorView<T_UINT, MemoryLayout::NHWC>& indices,
-    const TensorView<Quantized_t, MemoryLayout::NHWC>& input,
-    const TensorView<Quantized_t, MemoryLayout::NHWC>& output);
+namespace blueoil {
+namespace npy {
 
-#endif // DLK_FUNC_UNPOOLING_H_INCLUDED
+Tensor Tensor_fromNPYFile(const std::string filename);
+
+}  // namespace npy
+}  // namespace blueoil
+
+#endif  // RUNTIME_INCLUDE_BLUEOIL_NPY_HPP_

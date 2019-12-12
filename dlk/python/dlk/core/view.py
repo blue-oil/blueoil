@@ -14,7 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import copy
-from textwrap import dedent
+from textwrap import dedent, indent
 
 from core.data_types import *
 
@@ -54,10 +54,14 @@ class View(object):
 
             shape_string = self.shape_to_string(op.shape, channel_active=True)
 
-            self.reuse_buffer_str = f"""TensorView<{op.dtype.cpptype()}, \
-            MemoryLayout::{op.dimension}>::tensor_info_t<std::size_t> {op_name}_shape = {{ {shape_string} }};
-            TensorView<{op.dtype.cpptype()}, \
-            MemoryLayout::{op.dimension}> {op_name}({op.available_buffer}_raw, {op_name}_shape);"""
+            self.reuse_buffer_str = (
+                f"""
+                TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}>::tensor_info_t<std::size_t>"""
+                f""" {op_name}_shape = {{ {shape_string} }};
+                TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}>"""
+                f""" {op_name}({op.available_buffer}_raw, {op_name}_shape);
+                """
+            )
 
         if self.op.op_type == 'QTZ_binary_mean_scaling':
             if len(input_ops) != 1:
@@ -155,10 +159,10 @@ class View(object):
                     binConv2D_struct.n_bit = {nbit_aqtz};
                     binConv2D_struct.max_value = {max_value};
                     binConv2D_struct.debug_name = "{op.name}";
-#ifdef RUN_ON_FPGA
+                    #ifdef RUN_ON_FPGA
                     binConv2D_struct.device_kernel_phys_addr = KERNEL_ADDR + {op.name}_kernel_offset;
                     binConv2D_struct.device_thresholds_phys_addr = {thresholds_addr};
-#endif
+                    #endif
 
                     {conv_func}({inputs_string}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
                     """
@@ -251,59 +255,6 @@ class View(object):
                 MaxPool_struct.stride = {stride};
 
                 func_MaxPool({inputs_string}, {op.name}, MaxPool_struct);
-                """
-            )
-
-        elif self.op.op_type == 'MaxPoolWithArgmax':
-            if len(input_ops) != 1:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            x_op = input_ops[0]
-
-            ih = x_op.H
-            iw = x_op.W
-            kh = op.kernel_shape[1]
-            kw = op.kernel_shape[2]
-            kd = x_op.C
-            oh = op.H
-            ow = op.W
-            elems = op.size
-            pad = op.pads[0]
-            stride = op.strides[0]
-            inputs_string = self.inputs_to_string(op, input_ops)
-            output = 'output'  # NotImplemented
-
-            return self.format_string(
-                f"""
-                MaxPoolWithArgmax_struct.input.H = {ih};
-                MaxPoolWithArgmax_struct.input.W = {iw};
-                MaxPoolWithArgmax_struct.kernel.C = {id};
-                MaxPoolWithArgmax_struct.kernel.H = {ih};
-                MaxPoolWithArgmax_struct.kernel.W = {iw};
-                MaxPoolWithArgmax_struct.output_elements = {elems};
-                MaxPoolWithArgmax_struct.output.H = {oh};
-                MaxPoolWithArgmax_struct.output.W = {ow};
-                MaxPoolWithArgmax_struct.padding = {pad};
-                MaxPoolWithArgmax_struct.stride = {stride};
-
-                func_MaxPoolWithArgmax({inputs_string},
-                                       {op.name},
-                                       {output},
-                                       MaxPoolWithArgmax_struct);
-                """,
-            )
-
-        elif self.op.op_type == 'Unpooling':
-            if len(input_ops) != 2:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            index_data_op = input_ops[1]
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-
-            return self.format_string(
-                f"""
-                func_Unpooling({inputs_string}, {op.name});
                 """
             )
 
@@ -435,32 +386,6 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'Quantize':
-            if len(input_ops) != 1:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-            shape_string = self.shape_to_string(op.shape)
-
-            return self.format_string(
-                f"""
-                func_Quantize({inputs_string}, {op.name}, {shape_string});
-                """
-            )
-
-        elif self.op.op_type == 'Scale':
-            if len(input_ops) != 1:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-            conv_scaling_factor = op.conv_scaling_factor
-
-            return self.format_string(
-                f"""
-                func_Scale({inputs_string}, {conv_scaling_factor}, {op.name});
-                """
-            )
-
         elif self.op.op_type == 'AveragePool':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
@@ -502,38 +427,6 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'BiasAdd':
-            if len(input_ops) != 2:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-
-            return self.format_string(
-                f"""
-                func_Add({inputs_string}, {op.name});
-                """
-            )
-
-        elif self.op.op_type == 'ExtractImagePatches':
-            if len(input_ops) != 1:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            in_w = input_ops[0].W
-            in_d = input_ops[0].C
-            k_w = op.kernel_shape[1]
-            stride_w = op.strides[1]
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-            shape_string = self.shape_to_string(op.shape)
-
-            args1 = f"{inputs_string}, {op.name}, "
-            args2 = f"{k_w}, {stride_w}"
-            return self.format_string(
-                f"""
-                func_ExtractImagePatches({args1}{args2});
-                """
-            )
-
         elif self.op.op_type == 'Reshape':
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
@@ -545,20 +438,20 @@ class View(object):
             return self.format_string(
                 f"""
                 // Reshape from {in_shape} to {out_shape}'
-                std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data() + \
-                {input_ops["data"].name}.size(), {op.name}.data());
+                std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data()"""
+                f""" + {input_ops["data"].name}.size(), {op.name}.data());
                 """
             )
 
-        elif self.op.op_type == 'BatchNormalization':
-            if len(input_ops) != 5:
+        elif self.op.op_type == 'BatchNormalizationOptimized':
+            if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
-                func_BatchNormalization({inputs_string}, {op.epsilon}, {op.name});
+                func_BatchNormalizationOptimized({inputs_string}, {op.name});
                 """
             )
 
@@ -714,10 +607,14 @@ class View(object):
             return f'{op.dtype.cpptype()}* {op.name} = {input_ops["input"].name};'
 
     def format_string(self, string):
+        string = dedent(string)
         if self.reuse_buffer_str:
-            string = self.reuse_buffer_str + '\n' + string
+            string = dedent(self.reuse_buffer_str) + '\n' + string
 
-        return dedent(string).strip()
+        def should_be_indent(line):
+            return line != "" and line[0] != "#"
+
+        return indent(string, '  ', should_be_indent)
 
     def inputs_to_string(self, op, inputs):
 

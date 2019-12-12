@@ -145,4 +145,8 @@ ENV PYTHONPATH $PYTHONPATH:/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/p
 # enable blueoil command
 RUN pyenv rehash
 
+# Setup entrypoint
+COPY docker/docker-entrypoint.sh /
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
 WORKDIR /home/blueoil
