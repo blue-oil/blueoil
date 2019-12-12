@@ -19,7 +19,7 @@ limitations under the License.
 #include "global.h"
 #include "tensor_view.h"
 
-void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+void func_BatchNormalizationOptimized(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_FLOAT, MemoryLayout::C>& scale,
     const TensorView<T_FLOAT, MemoryLayout::C>& bias,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output);

@@ -570,7 +570,7 @@ class View(object):
 
             return self.format_string(
                 f"""
-                func_BatchNormalization({inputs_string}, {op.name});
+                func_BatchNormalizationOptimized({inputs_string}, {op.name});
                 """
             )
 
