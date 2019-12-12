@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 
-from lmnet.datasets.base import ObjectDetectionBase
+from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 from lmnet.utils.image import load_image
 
 
@@ -155,13 +155,142 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         return self.num_per_epoch
 
 
-def check_dataset():
-    train = BDD100KObjectDetection(subset="train")
-    print(len(train.paths))
-    print(train.paths[0:5])
-    print(train.bboxs[0:5])
-    print("seems dataset was loaded correctly")
+class BDD100KSegmentation(SegmentationBase):
+    """BDD100K Dataset for Segmentation
+    https://github.com/ucbdrive/bdd-data
+    """
+    available_subsets = ["train", "validation", "test"]
+    extend_dir = "seg"
+    image_dir = 'images'
+    label_dir = 'labels'  # labels : gray scale labels
+    classes = [
+        "unlabeled",
+        "dynamic",
+        "ego_vehicle",
+        "ground",
+        "static",
+        "parking",
+        "rail track",
+        "road",
+        "sidewalk",
+        "bridge",
+        "building",
+        "fence",
+        "garage",
+        "guard rail",
+        "tunnel",
+        "wall",
+        "banner",
+        "billboard",
+        "lane divider",
+        "parking_sign",
+        "pole",
+        "polegroup",
+        "street_light",
+        "traffic_cone",
+        "traffic_device",
+        "traffic_light",
+        "traffic_sign",
+        "traffic_sign_frame",
+        "terrain",
+        "vegetation",
+        "sky",
+        "person",
+        "rider",
+        "bicycle",
+        "bus",
+        "car",
+        "caravan",
+        "motorcycle",
+        "trailer",
+        "train",
+        "truck"
+    ]
+    num_classes = len(classes)
 
+    def __init__(self, batch_size=10, *args, **kwargs):
+        super().__init__(batch_size=batch_size, *args, **kwargs)
 
-if __name__ == '__main__':
-    check_dataset()
+    @property
+    def label_colors(self):
+        unlabeled = [0, 0, 0]
+        dynamic = [111, 74, 0]
+        ego_vehicle = [0, 0, 0]
+        ground = [81, 0, 81]
+        static = [0, 0, 0]
+        parking = [250, 170, 160]
+        rail_track = [230, 150, 140]
+        road = [128, 64, 128]
+        sidewalk = [244, 35, 232]
+        bridge = [150, 100, 100]
+        building = [70, 70, 70]
+        fence = [190, 153, 153]
+        garage = [180, 100, 180]
+        guard_rail = [180, 165, 180]
+        tunnel = [150, 120, 90]
+        wall = [102, 102, 156]
+        banner = [250, 170, 100]
+        billboard = [220, 220, 250]
+        lane_divider = [255, 165, 0]
+        parking_sign = [220, 20, 60]
+        pole = [153, 153, 153]
+        polegroup = [153, 153, 153]
+        street_light = [220, 220, 100]
+        traffic_cone = [255, 70, 0]
+        traffic_device = [220, 220, 220]
+        traffic_light = [250, 170, 30]
+        traffic_sign = [220, 220, 0]
+        traffic_sign_frame = [250, 170, 250]
+        terrain = [152, 251, 152]
+        vegetation = [107, 152, 35]
+        sky = [70, 130, 180]
+        person = [220, 20, 60]
+        rider = [255, 0, 0]
+        bicycle = [119, 11, 32]
+        bus = [0, 60, 100]
+        car = [0, 0, 142]
+        caravan = [0, 0, 90]
+        motorcycle = [0, 0, 230]
+        trailer = [0, 0, 110]
+        train = [0, 80, 100]
+        truck = [0, 0, 70]
+
+        return np.array([
+            unlabeled, dynamic, ego_vehicle, ground, static, parking, rail_track, road, sidewalk, bridge,
+            building, fence, garage, guard_rail, tunnel, wall, banner, billboard, lane_divider, parking_sign,
+            pole, polegroup, street_light, traffic_cone, traffic_device, traffic_light, traffic_sign,
+            traffic_sign_frame, terrain, vegetation, sky, person, rider, bicycle, bus, car, caravan,
+            motorcycle, trailer, train, truck])
+
+    @functools.lru_cache(maxsize=None)
+    def files_and_annotations(self):
+        subset_dir = "train"
+        if self.subset == "validation":
+            subset_dir = "val"
+        elif self.subset == "test":
+            subset_dir = "test"
+        file_path = os.path.join(self.data_dir, self.image_dir, subset_dir, "*.jpg")
+        image_paths = glob.glob(file_path)
+        image_paths.sort()
+
+        file_path = os.path.join(self.data_dir, self.label_dir, subset_dir, "*.png")
+        label_paths = glob.glob(file_path)
+        label_paths.sort()
+
+        assert (len(image_paths) == len(label_paths)), "Number of Images and Labels does not match."
+
+        return image_paths, label_paths
+
+    def __getitem__(self, i):
+        imgs, labels = self.files_and_annotations()
+        img = load_image(imgs[i])
+        label = load_image(labels[i])
+
+        return img, label
+
+    def __len__(self):
+        return len(self.files_and_annotations()[0])
+
+    @property
+    def num_per_epoch(self):
+        return len(self.files_and_annotations()[0])
