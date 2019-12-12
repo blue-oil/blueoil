@@ -652,6 +652,7 @@ def pass_lookup(graph: Graph) -> None:
     for op in to_be_removed:
         graph.remove_op(op)
 
+
 def pass_simplify_batchnorm(graph: Graph) -> None:
     """Simplify BarchNorm operator.
     """

@@ -3098,6 +3098,7 @@ class Shape(Operator):
     def preserve_quantization(self) -> bool:
         return False
 
+
 class BatchNormalizationOptimized(Operator):
     """Optimized batch normalization operator.
     This operator for only inference.
