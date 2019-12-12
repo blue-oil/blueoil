@@ -21,7 +21,7 @@ limitations under the License.
 #include "global.h"
 #include "tensor_view.h"
 
-void func_QTZ_binary_channel_wise_mean_scaling(
+void func_QuantizeLinearMidTreadHalf(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output);
 

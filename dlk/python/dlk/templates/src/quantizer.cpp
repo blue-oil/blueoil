@@ -43,7 +43,7 @@ limitations under the License.
 /***************************************
  wrappers
 ***************************************/
-void func_QTZ_binary_channel_wise_mean_scaling(
+void func_QuantizeLinearMidTreadHalf(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output) {
   const auto shape = input.get_shape();
