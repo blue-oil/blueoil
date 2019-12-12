@@ -1036,7 +1036,7 @@ class Conv(Operator):
                           stacklevel=2)
         if self.input_ops['X'].channel % 32 != 0:
             warnings.warn(warning_sign +
-                          f" Input channel size need be multiple of 32, but got "
+                          f" Input channel size Should be multiple of 32, but got "
                           f"{self.input_ops['X'].channel} for {self.name} of {self.op_type}",
                           stacklevel=2)
 
