@@ -78,7 +78,7 @@ void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::si
   const auto table2 = _mm256_setr_epi32(
       0, 4, 2, 6, 1, 5, 3, 7
   );
-  for (std::size_t i = 0; i < out_channels; i += 16) {
+  for (std::size_t i = 0; i < channels; i += 16) {
     const auto v0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + NUM_OF_A2W1_THRESHOLD * i +  0));
     const auto v1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + NUM_OF_A2W1_THRESHOLD * i + 16));
     const auto v2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + NUM_OF_A2W1_THRESHOLD * i + 32));
