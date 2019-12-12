@@ -24,7 +24,7 @@ namespace scaling_factors {
 
 T_FLOAT {{ conv.name }} = {{ conv.quantizer.scaling_factor }};
 
-{% elif conv.quantizer.op_type == 'QuantizeBinaryChannelWiseMeanScaling' -%}
+{% elif conv.quantizer.op_type == 'BinaryChannelWiseMeanScalingQuantizer' -%}
 
 T_FLOAT {{ conv.name }}[{{ conv.depth }}] = {
   {% for f in conv.quantizer.scaling_factor -%}

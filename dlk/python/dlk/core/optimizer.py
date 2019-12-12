@@ -173,7 +173,7 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
     qtypes = [
         'QTZ_binary_mean_scaling',
         'QTZ_linear_mid_tread_half',
-        'QuantizeBinaryChannelWiseMeanScaling',
+        'BinaryChannelWiseMeanScalingQuantizer',
         'Lookup'
     ]
 
@@ -295,7 +295,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
             threshold[threshold < -max_th_value] = -max_th_value
 
             for ch_id, th_per_ch in enumerate(threshold):
-                if quantizer_conv_weights.op_type == 'QuantizeBinaryChannelWiseMeanScaling':
+                if quantizer_conv_weights.op_type == 'BinaryChannelWiseMeanScalingQuantizer':
                     threshold_table[ch_id, th_id] = int(math.floor(th_per_ch)) \
                         if (scaling_factor[ch_id] < 0) ^ (ch_id in bn_nega_idx) \
                         else int(math.ceil(th_per_ch))
@@ -350,7 +350,7 @@ def pass_pack_weights(graph: Graph) -> None:
     quantization_types = [
         'QTZ_binary_mean_scaling',
         'QTZ_linear_mid_tread_half',
-        'QuantizeBinaryChannelWiseMeanScaling'
+        'BinaryChannelWiseMeanScalingQuantizer'
     ]
 
     word_size = 32
@@ -575,7 +575,7 @@ def pass_lookup(graph: Graph) -> None:
     quantization_types = [
         'QTZ_binary_mean_scaling',
         'QTZ_linear_mid_tread_half',
-        'QuantizeBinaryChannelWiseMeanScaling'
+        'BinaryChannelWiseMeanScalingQuantizer'
     ]
 
     to_be_removed = []

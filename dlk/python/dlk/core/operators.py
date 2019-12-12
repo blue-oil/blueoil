@@ -2349,7 +2349,7 @@ class Mul(Operator):
         return output_shape
 
 
-class QuantizeBinaryChannelWiseMeanScaling(Quantizer):
+class BinaryChannelWiseMeanScalingQuantizer(Quantizer):
     """Quantization operator using binary channel wise scaling.
 
     Input
