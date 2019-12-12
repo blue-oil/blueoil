@@ -451,32 +451,6 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'Quantize':
-            if len(input_ops) != 1:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-            shape_string = self.shape_to_string(op.shape)
-
-            return self.format_string(
-                f"""
-                func_Quantize({inputs_string}, {op.name}, {shape_string});
-                """
-            )
-
-        elif self.op.op_type == 'Scale':
-            if len(input_ops) != 1:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-            conv_scaling_factor = op.conv_scaling_factor
-
-            return self.format_string(
-                f"""
-                func_Scale({inputs_string}, {conv_scaling_factor}, {op.name});
-                """
-            )
-
         elif self.op.op_type == 'AveragePool':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
@@ -518,38 +492,6 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'BiasAdd':
-            if len(input_ops) != 2:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-
-            return self.format_string(
-                f"""
-                func_Add({inputs_string}, {op.name});
-                """
-            )
-
-        elif self.op.op_type == 'ExtractImagePatches':
-            if len(input_ops) != 1:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            in_w = input_ops[0].W
-            in_d = input_ops[0].C
-            k_w = op.kernel_shape[1]
-            stride_w = op.strides[1]
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-            shape_string = self.shape_to_string(op.shape)
-
-            args1 = f"{inputs_string}, {op.name}, "
-            args2 = f"{k_w}, {stride_w}"
-            return self.format_string(
-                f"""
-                func_ExtractImagePatches({args1}{args2});
-                """
-            )
-
         elif self.op.op_type == 'Reshape':
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
@@ -566,15 +508,15 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'BatchNormalization':
-            if len(input_ops) != 5:
+        elif self.op.op_type == 'BatchNormalizationOptimized':
+            if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             inputs_string = self.inputs_to_string(op, input_ops)
 
             return self.format_string(
                 f"""
-                func_BatchNormalization({inputs_string}, {op.epsilon}, {op.name});
+                func_BatchNormalizationOptimized({inputs_string}, {op.name});
                 """
             )
 

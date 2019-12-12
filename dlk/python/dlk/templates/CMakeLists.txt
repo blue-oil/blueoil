@@ -36,7 +36,6 @@ list(APPEND SRC_LIB_ALL
     src/func/max_pool.cpp
     src/func/pad.cpp
     src/func/matmul.cpp
-    src/func/quantize.cpp
     src/func/softmax.cpp
     src/func/unpooling.cpp
     src/matrix/shift_add.cpp
