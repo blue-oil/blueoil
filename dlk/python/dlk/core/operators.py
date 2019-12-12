@@ -3097,3 +3097,80 @@ class Shape(Operator):
     @property
     def preserve_quantization(self) -> bool:
         return False
+
+
+class BatchNormalizationOptimized(Operator):
+    """Optimized batch normalization operator.
+    This operator for only inference.
+
+    Inputs
+    ------
+    X
+        The input 4-dimensional tensor.
+
+    scale
+        The scale as a 1-dimensional tensor of size C to be applied to the output.
+
+    bias
+        The bias as a 1-dimensional tensor of size C to be applied to the output.
+
+    Outputs
+    -------
+    Y
+        The output 4-dimensional tensor of the same shape as X.
+
+    """
+
+    _input_names = ['X', 'scale', 'bias']
+    _output_names = ['Y']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        """Init the optimized batch normalization operator."""
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+        x_shape = self._input_ops['X'].shape
+        message = 'BatchNorm operator has inconsistency in shapes: '
+        message += f'input "X" has {x_shape}, while it has {self.shape}'
+        self._assert(x_shape == self.shape, message)
+
+    def run(self, **kwargs) -> Dict:
+        """Return the forward calculation results of batch normalization.
+
+        Currently this function is only used by threshold skipping optimization pass
+        for recursively calculating thresholds of the skipping patterns.
+        """
+        scale = np.float64(self._input_ops['scale'].data)
+        bias = np.float64(self._input_ops['bias'].data)
+
+        kwargs['data'] = scale * kwargs['data'] + bias
+        return kwargs
+
+    def run_forward(self) -> np.ndarray:
+        kwdata = {'data': self.input_ops['X'].data}
+        data_dict = self.run(**kwdata)
+        self._data = data_dict['data']
+        return self._data
+
+    @property
+    def is_monotonic(self) -> bool:
+        return True
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        return lists['X']
+
+    @property
+    def _dispatch_name(self) -> str:
+        return "batch_normalization"
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
