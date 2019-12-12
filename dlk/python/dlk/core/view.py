@@ -85,18 +85,6 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'QuantizeBinaryChannelWiseMeanScaling':
-            if len(input_ops) != 1:
-                self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-
-            return self.format_string(
-                f"""
-                func_QuantizeBinaryChannelWiseMeanScaling({inputs_string}, {op.name});
-                """
-            )
-
         elif self.op.op_type == 'Identity':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
