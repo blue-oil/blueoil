@@ -38,35 +38,6 @@ limitations under the License.
   #include <x86intrin.h>
 #endif
 
-
-
-/***************************************
- wrappers
-***************************************/
-void func_QuantizeBinaryChannelWiseMeanScaling(
-    const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
-    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output) {
-  const auto shape = input.get_shape();
-  T_UINT in_height = shape[1];
-  T_UINT in_width = shape[2];
-  T_UINT in_depth = shape[3];
-  T_UINT in_channel = shape[0];
-  unsigned num_elems_in_channel = in_height * in_width * in_depth;
-  T_FLOAT sum, mean;
-
-  for(unsigned i = 0; i < in_channel; i++) {
-    sum = 0;
-    for(unsigned j = 0; j < num_elems_in_channel; j++) {
-      sum += std::abs(input.data()[i * num_elems_in_channel + j]);
-    }
-    mean = sum / num_elems_in_channel;
-    for(unsigned j = 0; j < num_elems_in_channel; j++) {
-      unsigned in_index = i * num_elems_in_channel + j;
-      output.data()[in_index] = (input.data()[in_index] >= 0) ? mean : -1 * mean;
-    }
-  }
-}
-
 void func_QTZ_linear_mid_tread_half_body(
   T_FLOAT input[],
   T_INT nbit,
