@@ -93,7 +93,7 @@ class View(object):
 
             return self.format_string(
                 f"""
-                func_QuantizeLinearMidTreadHalf({inputs_string}, {op.name});
+                func_QuantizeBinaryChannelWiseMeanScaling({inputs_string}, {op.name});
                 """
             )
 
