@@ -33,18 +33,15 @@ limitations under the License.
 #include "func/pad.h"
 #include "func/mul.h"
 #include "func/matmul.h"
-#include "func/quantize.h"
 #include "func/quantized_conv2d.h"
 #include "func/real_div.h"
 #include "func/relu.h"
 #include "func/leaky_relu.h"
 #include "func/round.h"
-#include "func/scale.h"
 #include "func/softmax.h"
 #include "func/split.h"
 #include "func/sqrt.h"
 #include "func/sub.h"
-#include "func/unpooling.h"
 #include "func/lookup.h"
 #include "matrix/multiplication.h"
 #include "operators.h"
@@ -323,7 +320,6 @@ bool Network::run(float *network_input, float *network_output)
   struct binary_convolution_parameters binConv2D_struct;
   struct max_pooling_parameters MaxPool_struct;
   struct avg_pooling_parameters AveragePool_struct;
-  struct MaxPoolWithArgmax_parameters MaxPoolWithArgmax_struct;
 
   #if defined RUN_ON_FPGA
   binConv2D_struct.device_input_phys_addr = dma_input_buffer.physical_address();

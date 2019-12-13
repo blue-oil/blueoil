@@ -61,43 +61,6 @@ void max_pooling(
   }
 }
 
-template<typename TYPE>
-void max_pooling_with_argmax(
-    const TensorView<TYPE, MemoryLayout::NHWC>& input,
-    const TensorView<TYPE, MemoryLayout::NHWC>& output,
-    const TensorView<T_UINT, MemoryLayout::NHWC>& indices,
-    struct MaxPoolWithArgmax_parameters p)
-{
-  const TYPE lowest = -10000000;
-
-  // important to be zero (minimum value for T_UINT)
-  for(T_UINT i = 0; i < p.output_elements; i++) { output.data()[i] = lowest; }
-
-  for(T_UINT wi = 0; wi < p.output_height; wi++)
-    for(T_UINT wj = 0; wj < p.output_width; wj++)
-    {
-        for(T_UINT ki = 0; ki < p.kernel_height; ki++)
-         for(T_UINT kj = 0; kj < p.kernel_width; kj++)
-          for(T_UINT kz = 0; kz < p.kernel_depth; kz++)
-          {
-            T_INT height_index = (wi * p.stride) - p.padding + ki;
-            T_INT width_index = (wj * p.stride) - p.padding + kj;
-            T_INT inside = (height_index >= 0 && width_index >= 0 && height_index < (T_INT) p.input_height && width_index < (T_INT)p.input_width);
-	    if (!inside) continue;
-
-            T_UINT input_index = height_index * (p.input_width * p.kernel_depth) + width_index * (p.kernel_depth) + kz;
-            TYPE e = input(0, height_index, width_index, kz);
-
-            // update the current maximum value found so far
-            if(e > output(0, wi, wj, kz))
-            {
-              output(0, wi, wj, kz) = e;
-              indices(0, wi, wj, kz) = input_index;
-            }
-          }
-    }
-}
-
 } // namespace
 
 void func_MaxPool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
@@ -116,17 +79,6 @@ void func_MaxPool(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& in
   Measurement::Start("MaxPooling");
 
   max_pooling(input, output, mpp);
-
-  Measurement::Stop();
-}
-
-void func_MaxPoolWithArgmax(const TensorView<Quantized_t, MemoryLayout::NHWC>& input,
-    const TensorView<Quantized_t, MemoryLayout::NHWC>& output,
-    const TensorView<T_UINT, MemoryLayout::NHWC>& indices,
-    struct MaxPoolWithArgmax_parameters mpp) {
-  Measurement::Start("MaxPoolingWithArgmax");
-
-  max_pooling_with_argmax(input, output, indices, mpp);
 
   Measurement::Stop();
 }
