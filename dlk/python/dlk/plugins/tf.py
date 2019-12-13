@@ -934,7 +934,7 @@ class Importer(object):
                 input_ops,
                 dimension_format=current_format,
             )
-        elif op_type in ['BinaryChannelWiseMeanScalingQuantizer']:
+        elif op_type == 'BinaryChannelWiseMeanScalingQuantizer':
 
             if not shape:
                 attributes = {}
