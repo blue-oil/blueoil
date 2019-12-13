@@ -491,7 +491,7 @@ class Importer(object):
                 out_format = node.get_format()
 
             op_type = self.convert_operator(node.op_type)
-            op_type = self.convert_deprecated_operator(node.op_type)
+            op_type = self.convert_deprecated_operator(op_type)
             if op_type == 'Conv':
                 return out_format, [out_format, _default_w_format, 'C']
             elif op_type in ['QTZ_binary_mean_scaling', 'BinaryChannelWiseMeanScalingQuantizer']:
@@ -579,7 +579,7 @@ class Importer(object):
             Operator: Newly created dlk operator
         """
         op_type = self.convert_operator(node.op_type)
-        op_type = self.convert_deprecated_operator(node.op_type)
+        op_type = self.convert_deprecated_operator(op_type)
         try:
             module = importlib.import_module('core.operators')
             class_def = getattr(module, op_type)
