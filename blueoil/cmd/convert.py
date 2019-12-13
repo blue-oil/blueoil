@@ -169,7 +169,6 @@ def run(experiment_id,
         project_name = "project"
     activate_hard_quantization = True
     threshold_skipping = True
-    cache_dma = True
 
     # Generate project
     run_generate_project(
@@ -177,8 +176,7 @@ def run(experiment_id,
         dest_dir_path=export_dir,
         project_name=project_name,
         activate_hard_quantization=activate_hard_quantization,
-        threshold_skipping=threshold_skipping,
-        cache_dma=cache_dma
+        threshold_skipping=threshold_skipping
     )
 
     # Create output dir from template

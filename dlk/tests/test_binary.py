@@ -51,8 +51,7 @@ class TestBinary(TestCaseDLKBase):
                activate_hard_quantization=False,
                threshold_skipping=False,
                num_pe=16,
-               debug=False,
-               cache_dma=False,
+               debug=False
                )
         self.assertTrue(os.path.exists(project_dir))
 

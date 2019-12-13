@@ -147,10 +147,10 @@ def get_configurations_arm():
 def get_configurations_arm_fpga():
     cpu_name = "arm_fpga"
     test_cases = [
-        {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': True},
-        {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': False},
-        {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': True},
-        {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': False},
+        {'need_arm_compiler': True, 'threshold_skipping': True},
+        {'need_arm_compiler': True, 'threshold_skipping': False},
+        {'need_arm_compiler': True, 'threshold_skipping': True},
+        {'need_arm_compiler': True, 'threshold_skipping': False},
     ]
     configurations = get_configurations_by_architecture(test_cases, cpu_name)
 
@@ -302,7 +302,6 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                     max_percent_incorrect_values=0.1,
                     from_npy=False,
                     need_arm_compiler=False,
-                    cache_dma=False,
                     use_avx=False,
                     test_id=0
                     ) -> None:
@@ -331,8 +330,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                activate_hard_quantization=hard_quantize,
                threshold_skipping=threshold_skipping,
                num_pe=16,
-               debug=False,
-               cache_dma=cache_dma,
+               debug=False
                )
 
         lib_name = 'lib_' + cpu_name
@@ -411,7 +409,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
 
         print(f"Codegen test {prefix}: passed!  {100.0 - percent_failed:.3f}% "
               f"of the output values are correct\n"
-              f"[hard quantize == {hard_quantize}, threshold skipping == {threshold_skipping}, cache == {cache_dma}]")
+              f"[hard quantize == {hard_quantize}, threshold skipping == {threshold_skipping}]")
 
 
 class TestCodeGenerationX8664(TestCodeGenerationBase):

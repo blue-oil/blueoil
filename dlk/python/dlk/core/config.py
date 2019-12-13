@@ -37,8 +37,7 @@ class Config(object):
                  test_dir=None,
                  optimized_pb_path=None,
                  output_pj_path=None,
-                 debug: bool = False,
-                 cache_dma: bool = False
+                 debug: bool = False
                  ) -> None:
         """Init the config object."""
         self.num_pe: int = num_pe
@@ -54,7 +53,6 @@ class Config(object):
         self.optimized_pb_path: str = optimized_pb_path
         self.output_pj_path: str = output_pj_path
         self.__debug: bool = debug
-        self.__cache_dma: bool = cache_dma
 
     @property
     def pre_processor(self) -> str:
@@ -74,4 +72,4 @@ class Config(object):
 
     @property
     def cache(self) -> bool:
-        return self.__cache_dma
+        return True
