@@ -64,7 +64,7 @@ limitations under the License.
 #endif
 
 #ifdef _OPENMP
-#include "memdriver.h"
+#include <omp.h>
 #endif
 
 {% if config.debug -%}
