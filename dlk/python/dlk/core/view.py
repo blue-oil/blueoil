@@ -81,7 +81,7 @@ class View(object):
 
             return self.format_string(
                 f"""
-                func_QTZ_linear_mid_tread_half({inputs_string}, {op.name});
+                func_QTZ_linear_mid_tread_half({inputs_string}, {op.name}, quantize_tmp_buffer.get());
                 """
             )
 
@@ -119,7 +119,7 @@ class View(object):
                 inputs_string = self.inputs_to_string(op, input_ops)
 
                 if op.has_thresholds:
-                    threshold = f'{op.name}_thresholds'
+                    threshold = f'{op.name}_thresholds_converted.get()'
                     thresholds_addr = f'THRESHOLD_ADDR + {op.name}_thresholds_offset'
                     conv_func = 'func_QuantizedConv2DWithThreshold'
                     nbit_aqtz = self.op.a_quantizer[0].nbit
@@ -146,6 +146,7 @@ class View(object):
                     Conv2D_struct.padding = {pad};
                     Conv2D_struct.stride_along_height = {stride};
                     Conv2D_struct.stride_along_width = {stride};
+                    Conv2D_struct.temporary_buf = qconv_tmp_buffer.get();
 
                     binConv2D_struct.normal_conv_params = Conv2D_struct;
                     binConv2D_struct.bin_input_extra_bits = 0;
@@ -192,6 +193,7 @@ class View(object):
                     Conv2D_struct.padding = {pad};
                     Conv2D_struct.stride_along_height = {stride};
                     Conv2D_struct.stride_along_width = {stride};
+                    Conv2D_struct.temporary_buf = conv_tmp_buffer.get();
 
                     func_Conv2D({inputs_string}, {op.name}, Conv2D_struct);
                     """
