@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 #include <iostream>
-#include <vector>
 #include <climits>
 #include <cstring>
 #include <cstdio>
@@ -44,6 +43,7 @@ limitations under the License.
 #include "func/sqrt.h"
 #include "func/sub.h"
 #include "func/lookup.h"
+#include "matrix/multiplication.h"
 #include "operators.h"
 #include "quantizer.h"
 #include "network.h"
@@ -60,6 +60,10 @@ limitations under the License.
 #include "operators.h"
 
 #ifdef RUN_ON_FPGA
+#include "memdriver.h"
+#endif
+
+#ifdef _OPENMP
 #include "memdriver.h"
 #endif
 
@@ -218,6 +222,28 @@ bool Network::init()
   device_output_buf = new BIN_CONV_OUTPUT[max_device_output_elems]();
 #endif
 
+#if !defined(RUN_ON_FPGA) && !defined(USE_NEON) && !defined(USE_AVX)
+  qconv_tmp_buffer = std::make_unique<BYTE[]>(std::max({
+      MAX_SIZE_KN2ROW_BUFFER_PER_LAYER * sizeof(BIN_CONV_OUTPUT),
+      MAX_SIZE_QOUTPUTS_PER_LAYER * sizeof(QUANTIZED_PACKED),
+      MAX_SIZE_OUTPUTS_PER_LAYER * sizeof(BIN_CONV_OUTPUT)
+  }));
+#endif
+#ifdef _OPENMP
+  const std::size_t thread_num = omp_get_max_threads();
+#else
+  const std::size_t thread_num = 1;
+#endif
+  conv_tmp_buffer = std::make_unique<BYTE[]>(
+      MAX_SIZE_KERNELS_PER_LAYER * sizeof(float)
+      + MAX_SIZE_KN2ROW_BUFFER_PER_LAYER * sizeof(float)
+      + MAX_IN_C * MAX_SIZE_KN2ROW_COL_BLOCK * sizeof(float)
+      + thread_num * MAX_IN_C * dlk::details::MAX_UNROLL * sizeof(float)
+  );
+  quantize_tmp_buffer = std::make_unique<BYTE[]>(
+      MAX_SIZE_INPUTS_PER_LAYER * sizeof(QUANTIZED_NOT_PACKED)
+  );
+
   {% for node in graph.non_variables -%}
   {% if node.available_buffer == '' %}
   {% for out_k in node.output_ops.keys() -%}
@@ -251,6 +277,13 @@ bool Network::init()
   {% if qconv.has_thresholds -%}
   {% set thresholds = qconv.thresholds -%}
   std::memcpy(thresholds_buffer + {{qconv.name}}_thresholds_offset, const_cast<T_INT16*>({{qconv.name}}_thresholds), {{qconv.name}}_thresholds_size);
+  {% endif -%}
+  {% endfor -%}
+#else
+  {% for qconv in graph.convs(quantized_only=True) -%}
+  {% if qconv.has_thresholds -%}
+  dlk::impl::convert_thresholds({{ qconv.name }}_thresholds, {{ qconv.name }}_thresholds_converted.get(), {{ qconv.channel }});
+  {% else -%}
   {% endif -%}
   {% endfor -%}
 #endif // RUN_ON_FPGA

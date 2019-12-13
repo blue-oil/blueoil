@@ -23,6 +23,14 @@ limitations under the License.
 #include <type_traits>
 #include "func/impl/pop_count.h"
 
+#ifdef __cpp_lib_byte
+#include <cstddef>
+using BYTE = std::byte;
+#else
+enum class byte : unsigned char {};
+using BYTE = byte;
+#endif
+
 typedef uint32_t T_UINT;
 typedef int32_t  T_INT;
 typedef float    T_FLOAT;

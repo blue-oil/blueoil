@@ -92,10 +92,8 @@ class CodeGenerater(object):
         src_template_path = path.join('manual', 'consts', 'thresholds.tpl.cpp')
         header_template_path = path.join('manual', 'consts', 'thresholds.tpl.h')
 
-        qconvs_with_ts = [x for x in self.graph.non_variables
-                          if x.op_type == 'Conv'
-                          and cast(Conv, x).is_quantized
-                          and cast(Conv, x).has_thresholds]
+        qconvs_with_ts = [x for x in self.graph.convs(quantized_only=True)
+                          if x.has_thresholds]
 
         self.template.generate(src_template_path,
                                self.src_dir,

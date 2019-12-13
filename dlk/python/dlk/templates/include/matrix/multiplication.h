@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef DLK_MATRIX_MULTIPLICATION_H_INCLUDED
 #define DLK_MATRIX_MULTIPLICATION_H_INCLUDED
 
+#include "global.h"
 #include "matrix_view.h"
 #include "time_measurement.h"
 
@@ -23,15 +24,19 @@ namespace dlk {
 
 namespace details {
 
+constexpr std::size_t MAX_UNROLL = 16; // hard coded, not configurable
+
 void matrix_multiplication_col3(
   MatrixView<float, MatrixOrder::RowMajor>& A,
   MatrixView<float, MatrixOrder::ColMajor>& B,
-  MatrixView<float, MatrixOrder::ColMajor>& C);
+  MatrixView<float, MatrixOrder::ColMajor>& C,
+  BYTE *temporary_buf);
 
 void matrix_multiplication_impl(
-   MatrixView<float, MatrixOrder::RowMajor>& A,
-   MatrixView<float, MatrixOrder::ColMajor>& B,
-   MatrixView<float, MatrixOrder::ColMajor>& C);
+  MatrixView<float, MatrixOrder::RowMajor>& A,
+  MatrixView<float, MatrixOrder::ColMajor>& B,
+  MatrixView<float, MatrixOrder::ColMajor>& C,
+  BYTE *temporary_buf);
 
 } // namespace details
 
@@ -40,21 +45,22 @@ template<typename T, typename U, typename V>
 void matrix_multiplication(
    MatrixView<T, MatrixOrder::RowMajor>& A,
    MatrixView<U, MatrixOrder::ColMajor>& B,
-   MatrixView<V, MatrixOrder::ColMajor>& C) {
+   MatrixView<V, MatrixOrder::ColMajor>& C,
+   BYTE *temporary_buf) {
 
   assert(A.cols() == B.rows());
   Measurement::Start("matrix_multiplication");
 
 #ifdef USE_NEON
   if (A.cols() == 3 && A.rows() % 4 == 0) {
-    details::matrix_multiplication_col3(A, B, C);
+    details::matrix_multiplication_col3(A, B, C, temporary_buf);
   } else {
-    details::matrix_multiplication_impl(A, B, C);
+    details::matrix_multiplication_impl(A, B, C, temporary_buf);
   }
   Measurement::Stop();
   return;
 #elif defined USE_AVX
-  details::matrix_multiplication_impl(A, B, C);
+  details::matrix_multiplication_impl(A, B, C, temporary_buf);
   Measurement::Stop();
   return;
 #endif

@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef NETWORK_H_INCLUDED
 #define NETWORK_H_INCLUDED
 
+#include <memory>
 #include "global.h"
 #include "dma_buffer.h"
 
@@ -60,6 +61,10 @@ private:
     QUANTIZED_PACKED *device_input_buf = 0;
     BIN_CONV_OUTPUT *device_output_buf = 0;
 
+    std::unique_ptr<BYTE[]> qconv_tmp_buffer;
+    std::unique_ptr<BYTE[]> conv_tmp_buffer;
+    std::unique_ptr<BYTE[]> quantize_tmp_buffer;
+
     const T_INT input_rank = {{ graph_input.rank }};
     const T_INT input_shape[{{ graph_input.rank }}] = { {{ graph_input.view.shape_as_cpp }} };
 
@@ -98,6 +103,15 @@ private:
   {% endfor -%}
   const uint32_t total_thresholds_size = std::max(1, {{th_offset.o}});
 #endif // RUN_ON_FPGA
+  {% for qconv in graph.convs(quantized_only=True) -%}
+  {%     if qconv.has_thresholds -%}
+  {%         set b = 32 -%}
+  {%         set channels_padded = qconv.channel + (b - qconv.channel % b) % b -%}
+  const std::unique_ptr<BIN_CONV_OUTPUT[]> {{qconv.name}}_thresholds_converted = std::make_unique<BIN_CONV_OUTPUT[]>({{channels_padded}} * NUM_OF_A2W1_THRESHOLD);
+  {%     else -%}
+  const std::unique_ptr<BIN_CONV_OUTPUT[]> {{qconv.name}}_thresholds_converted;
+  {%     endif -%}
+  {% endfor -%}
 };
 
 #endif // NETWORK_H_INCLUDED
