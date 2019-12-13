@@ -45,8 +45,6 @@ void TCAConv2d(const kn2row_input_t& input,
   const T_UINT b = 32;
   const T_UINT out_c = ((cp.output_channels + b - 1) / b) * b;
 
-  const T_UINT num_qkernel_per_qword = (NBIT_QDYPE / MAX_NBIT_KERNEL);
-
   const T_UINT k_h = cp.kernel_height;
   const T_UINT k_w = cp.kernel_width;
   const T_UINT k_c = cp.kernel_depth;
@@ -75,7 +73,7 @@ void TCAConv2d(const kn2row_input_t& input,
 
     Measurement::Start("Conv2D TCA");
     de10_nano::RunTCA(p.device_input_phys_addr, p.device_output_phys_addr, p.device_kernel_phys_addr, p.device_thresholds_phys_addr, in_w, in_h,
-      k_c, MAX_NBIT_QINPUT, out_w, out_h, out_c, k_w, k_h, cp.padding, cp.stride_along_height);
+      k_c, out_w, out_h, out_c, k_w, k_h, cp.padding, cp.stride_along_height);
     Measurement::Stop();
 
     Measurement::Start("Sync UDMABuf Output");
