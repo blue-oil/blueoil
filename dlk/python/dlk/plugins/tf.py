@@ -312,7 +312,6 @@ class Output(object):
         """Get shape info."""
         if self.out_.op == 'QTZ_binary_mean_scaling' or \
                 self.out_.op == 'QTZ_linear_mid_tread_half' or \
-                self.nd_.op == 'QTZ_binary_channel_wise_mean_scaling' or \
                 self.out_.op == 'BinaryChannelWiseMeanScalingQuantizer':
             typep = 1
         else:
@@ -486,7 +485,11 @@ class Importer(object):
             op_type = self.convert_operator(node.op_type)
             if op_type == 'Conv':
                 return out_format, [out_format, _default_w_format, 'C']
-            elif op_type in ['QTZ_binary_mean_scaling', 'BinaryChannelWiseMeanScalingQuantizer', 'QTZ_binary_channel_wise_mean_scaling']:
+            elif op_type in [
+                'QTZ_binary_mean_scaling',
+                'BinaryChannelWiseMeanScalingQuantizer',
+                'QTZ_binary_channel_wise_mean_scaling'
+            ]:
                 return _default_w_format, [_default_w_format]
             elif op_type in ['QTZ_linear_mid_tread_half']:
                 return out_format, [out_format, 'C', 'C']
