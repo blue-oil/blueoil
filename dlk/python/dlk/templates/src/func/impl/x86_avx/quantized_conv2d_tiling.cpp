@@ -71,6 +71,8 @@ void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::
 }
 
 void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::size_t channels) {
+  constexpr std::size_t b = tiling_input_elem_t::BitCount;
+  const auto channels_padded = channels + (b - channels % b) % b;
   const auto table = _mm256_setr_epi8(
       0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15,
       0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15
@@ -78,7 +80,8 @@ void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::si
   const auto table2 = _mm256_setr_epi32(
       0, 4, 2, 6, 1, 5, 3, 7
   );
-  for (std::size_t i = 0; i < channels; i += 16) {
+  std::size_t i = 0;
+  for (; i + 16 <= channels; i += 16) {
     const auto v0 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + NUM_OF_A2W1_THRESHOLD * i +  0));
     const auto v1 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + NUM_OF_A2W1_THRESHOLD * i + 16));
     const auto v2 = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + NUM_OF_A2W1_THRESHOLD * i + 32));
@@ -103,10 +106,23 @@ void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::si
     const auto res0 = _mm256_sub_epi16(th0, is_neg);
     const auto res1 = _mm256_sub_epi16(th1, is_neg);
     const auto res2 = _mm256_sub_epi16(th2, is_neg);
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 0 * channels + i), res0);
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 1 * channels + i), res1);
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 2 * channels + i), res2);
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 3 * channels + i), flg);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 0 * channels_padded + i), res0);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 1 * channels_padded + i), res1);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 2 * channels_padded + i), res2);
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(output + 3 * channels_padded + i), flg);
+  }
+  for (; i < channels; ++i) {
+    BIN_CONV_OUTPUT v0 = input[NUM_OF_A2W1_THRESHOLD * i + 0];
+    BIN_CONV_OUTPUT v1 = input[NUM_OF_A2W1_THRESHOLD * i + 1];
+    BIN_CONV_OUTPUT v2 = input[NUM_OF_A2W1_THRESHOLD * i + 2];
+    const BIN_CONV_OUTPUT flg = input[NUM_OF_A2W1_THRESHOLD * i + 3];
+    if (flg < 0) {
+      --v0; --v1; --v2;
+    }
+    output[channels_padded * 0 + i] = v0;
+    output[channels_padded * 1 + i] = v1;
+    output[channels_padded * 2 + i] = v2;
+    output[channels_padded * 3 + i] = flg;
   }
 }
 

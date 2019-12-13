@@ -71,7 +71,8 @@ void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::
 }
 
 void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::size_t channels) {
-  for (T_UINT i = 0; i < channels; i += 8) {
+  std::size_t i = 0;
+  for (; i + 8 <= channels; i += 8) {
     const auto v = vld4q_s16(input + NUM_OF_A2W1_THRESHOLD * i);
     const auto is_neg = vreinterpretq_s16_u16(vmvnq_u16(vcgeq_s16(v.val[3], vdupq_n_s16(0))));
     int16x8x4_t res;
@@ -80,6 +81,19 @@ void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::si
     res.val[2] = vsubq_s16(v.val[2], is_neg);
     res.val[3] = v.val[3];
     vst4q_s16(output + NUM_OF_A2W1_THRESHOLD * i, res);
+  }
+  for (; i < channels; ++i) {
+    BIN_CONV_OUTPUT v0 = input[NUM_OF_A2W1_THRESHOLD * i + 0];
+    BIN_CONV_OUTPUT v1 = input[NUM_OF_A2W1_THRESHOLD * i + 1];
+    BIN_CONV_OUTPUT v2 = input[NUM_OF_A2W1_THRESHOLD * i + 2];
+    const BIN_CONV_OUTPUT flg = input[NUM_OF_A2W1_THRESHOLD * i + 3];
+    if (flg < 0) {
+      --v0; --v1; --v2;
+    }
+    output[NUM_OF_A2W1_THRESHOLD * i + 0] = v0;
+    output[NUM_OF_A2W1_THRESHOLD * i + 1] = v1;
+    output[NUM_OF_A2W1_THRESHOLD * i + 2] = v2;
+    output[NUM_OF_A2W1_THRESHOLD * i + 3] = flg;
   }
 }
 
