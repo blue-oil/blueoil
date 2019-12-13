@@ -103,7 +103,7 @@ def run(input_path: str,
         threshold_skipping: bool = False,
         num_pe: int = 16,
         debug: bool = False,
-        cache_dma: bool = False):
+        cache_dma: bool = True):
 
     output_dlk_test_dir = path.join(dest_dir_path, f'{project_name}.test')
     optimized_pb_path = path.join(dest_dir_path, f'{project_name}')
@@ -181,21 +181,13 @@ def run(input_path: str,
     default=False,
     help="add debug code to the generated project",
 )
-@click.option(
-    "-cache",
-    "--cache_dma",
-    is_flag=True,
-    default=False,
-    help="use cached DMA buffers",
-)
 def main(input_path,
          output_path,
          project_name,
          activate_hard_quantization,
          threshold_skipping,
          num_pe,
-         debug,
-         cache_dma):
+         debug):
 
     click.echo('start running')
     run(input_path=input_path,
@@ -205,7 +197,7 @@ def main(input_path,
         threshold_skipping=threshold_skipping,
         num_pe=num_pe,
         debug=debug,
-        cache_dma=cache_dma)
+        cache_dma=True)
 
 
 if __name__ == '__main__':
