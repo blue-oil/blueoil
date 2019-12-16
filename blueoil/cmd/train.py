@@ -70,7 +70,9 @@ def save_config_file(config_file, dest_dir):
 
 def train(config, experiment_id=None):
     if not experiment_id:
-        experiment_id = 'train_{:%Y%m%d%H%M%S}'.format(datetime.now())
+        # Default model_name will be taken from config file: {model_name}.yml.
+        model_name = config[:-4]
+        experiment_id = '{}_{:%Y%m%d%H%M%S}'.format(model_name, datetime.now())
 
     run(config, experiment_id)
 
