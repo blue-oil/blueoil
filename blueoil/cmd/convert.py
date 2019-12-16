@@ -115,7 +115,6 @@ def make_all(project_dir, output_dir):
     ]
     output_dir = os.path.abspath(output_dir)
     running_dir = os.getcwd()
-
     # Change current directory to project directory
     os.chdir(project_dir)
 
