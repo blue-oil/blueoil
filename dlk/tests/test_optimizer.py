@@ -21,7 +21,7 @@ from core.optimizer import pass_remove_identities, pass_transpose, pass_constant
     pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
 from core.graph import Graph
 from core.operators import Add, AveragePool, BatchNormalization, Constant, Conv, Identity, Input, \
-    MaxPool, Operator, Output, Transpose, QTZ_binary_mean_scaling, QTZ_linear_mid_tread_half, Reshape, Softmax, \
+    MaxPool, Operator, Output, Transpose, BinaryMeanScalingQuantizer, QTZ_linear_mid_tread_half, Reshape, Softmax, \
     SpaceToDepth
 
 import numpy as np
@@ -51,7 +51,7 @@ class TestPassTranspose(unittest.TestCase):
         # constant and internal nodes
         w = Constant('weight', Float32(), data, dimension_format='CWHN')
         i1 = Identity('identity1', [3, 2, 2, 1], Float32(), {'input': w}, dimension_format='CWHN')
-        q = QTZ_binary_mean_scaling('qtz1', [3, 2, 2, 1], Float32(), {'input': i1}, dimension_format='CWHN')
+        q = BinaryMeanScalingQuantizer('qtz1', [3, 2, 2, 1], Float32(), {'input': i1}, dimension_format='CWHN')
 
         # Conv
         conv = Conv('conv', [3, 4, 4, 1], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2], dimension_format='CWHN')
@@ -77,7 +77,7 @@ class TestPassTranspose(unittest.TestCase):
         # constant and internal nodes
         w = Constant('weight', Float32(), data, dimension_format='NHWC')
         i1 = Identity('identity1', [1, 2, 2, 3], Float32(), {'input': w}, dimension_format='NHWC')
-        q = QTZ_binary_mean_scaling('qtz1', [1, 2, 2, 3], Float32(), {'input': i1}, dimension_format='NHWC')
+        q = BinaryMeanScalingQuantizer('qtz1', [1, 2, 2, 3], Float32(), {'input': i1}, dimension_format='NHWC')
 
         # Conv
         conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2], dimension_format='NHWC')
@@ -116,7 +116,7 @@ class TestPassRemoveIdentities(unittest.TestCase):
         # constant and internal nodes
         w = Constant('weight', Float32(), data)
         i1 = Identity('identity1', [1, 2, 2, 3], Float32(), {'input': w})
-        q = QTZ_binary_mean_scaling('qtz1', [1, 2, 2, 3], Float32(), {'input': i1})
+        q = BinaryMeanScalingQuantizer('qtz1', [1, 2, 2, 3], Float32(), {'input': i1})
 
         # Conv
         conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2])
@@ -140,7 +140,7 @@ class TestPassRemoveIdentities(unittest.TestCase):
 
         # constant and internal nodes
         w = Constant('weight', Float32(), data)
-        q = QTZ_binary_mean_scaling('qtz1', [1, 2, 2, 3], Float32(), {'input': w})
+        q = BinaryMeanScalingQuantizer('qtz1', [1, 2, 2, 3], Float32(), {'input': w})
 
         # Conv
         conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2])
@@ -197,7 +197,7 @@ class TestPassPropagateQuantizationDetailsIntoConv(unittest.TestCase):
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
-        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
+        kq = BinaryMeanScalingQuantizer('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
         conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[2, 2])
 
         # One output
@@ -226,7 +226,7 @@ class TestPassPropagateQuantizationDetailsIntoConv(unittest.TestCase):
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
-        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
+        kq = BinaryMeanScalingQuantizer('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
         conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[2, 2])
         conv2.a_quantizer = [aq]
         conv2.quantizer = kq
@@ -278,7 +278,7 @@ class TestPassPackWeights(unittest.TestCase):
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
-        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
+        kq = BinaryMeanScalingQuantizer('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
         conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[2, 2])
         conv2.a_quantizer = [aq]
         conv2.quantizer = kq
@@ -350,7 +350,7 @@ class TestPassQuantizeConvolutions(unittest.TestCase):
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
-        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
+        kq = BinaryMeanScalingQuantizer('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
         conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[2, 2])
         conv2.a_quantizer = [aq]
         conv2.quantizer = kq
@@ -484,7 +484,7 @@ class TestPassComputeThresholds(unittest.TestCase):
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
-        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
+        kq = BinaryMeanScalingQuantizer('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
         conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq1, 'W': kq}, kernel_shape=[2, 2])
         conv2.a_quantizer = [aq1]
         conv2.quantizer = kq

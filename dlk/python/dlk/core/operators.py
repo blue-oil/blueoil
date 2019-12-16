@@ -706,7 +706,7 @@ class Quantizer(Operator):
             f'operator {self.op_type} need to implement the binarizer method')
 
 
-class QTZ_binary_mean_scaling(Quantizer):
+class BinaryMeanScalingQuantizer(Quantizer):
     """Quantization operator using binary scaling.
 
     Input

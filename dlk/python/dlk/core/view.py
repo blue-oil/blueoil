@@ -63,7 +63,7 @@ class View(object):
                 """
             )
 
-        if self.op.op_type == 'QTZ_binary_mean_scaling':
+        if self.op.op_type == 'BinaryMeanScalingQuantizer':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 

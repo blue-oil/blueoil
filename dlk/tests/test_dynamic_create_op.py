@@ -31,7 +31,7 @@ class TestDynamicCreateOp(unittest.TestCase):
         """Test code for unary operators."""
         unary_ops = [
             'Identity',
-            'QTZ_binary_mean_scaling',
+            'BinaryMeanScalingQuantizer',
             'Transpose',
             'QTZ_linear_mid_tread_half',
             'MaxPool',
