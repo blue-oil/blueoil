@@ -114,7 +114,7 @@ def load(config_file):
     else:
         raise ValueError('Config file type is not supported.'
                          'Should be .py, .yaml or .yml. Received {}.'.format(file_extension))
-    config = loader(os.path.abspath(config_file))
+    config = loader(config_file)
 
     check_config(config)
 
@@ -122,13 +122,17 @@ def load(config_file):
 
 
 def _load_py(config_file):
-    config_module = module_loader.load_module(config_file)
+    config = {}
+    with gfile.GFile(config_file) as config_file_stream:
+        source = config_file_stream.read()
+        exec(source, globals(), config)
 
     # use only upper key.
-    keys = [key for key in dir(config_module) if key.isupper()]
-    config_dict = {key: getattr(config_module, key) for key in keys}
-    config = EasyDict(config_dict)
-    return config
+    return EasyDict({
+        key: value
+        for key, value in config.items()
+        if key.isupper()
+    })
 
 
 def _easy_dict_to_dict(config):
