@@ -41,8 +41,10 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
   const int kw = p.kernel_width;
   const auto col_block = buf.cols();
 
-  // only 3x3 kernel is supported.
-  assert(kh == 3 && kw == 3);
+  // only 3x3 or 5x5 kernel is supported.
+  assert(kh == kw);
+  assert(kh % 2 == 1);
+  assert(3 <= kh && kh <= 5);
 
   for (unsigned int j = 0; j < col_block; ++j) {
     const bool is_first = is_first_column(j + block_offset, w);
@@ -115,8 +117,10 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
   const int kw = p.kernel_width;
   const auto col_block = buf.cols();
 
-  // only 3x3 kernel is supported.
-  assert(kh == 3 && kw == 3);
+  // only 3x3 or 5x5 kernel is supported.
+  assert(kh == kw);
+  assert(kh % 2 == 1);
+  assert(3 <= kh && kh <= 5);
 
   for (unsigned int j = 0; j < col_block; ++j) {
     for (unsigned int i = 0; i < buf.rows(); ++i) {
