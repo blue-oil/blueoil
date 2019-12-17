@@ -44,7 +44,7 @@ void conv_nxn_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
 
   // assertions
   assert(ih * iw == oh * ow);
-  assert(kh == hw);
+  assert(kh == kw);
   assert(3 <= kh && kh <= 5);
 
   // need to initialize output
