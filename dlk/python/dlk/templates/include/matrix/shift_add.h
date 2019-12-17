@@ -22,54 +22,10 @@ limitations under the License.
 
 namespace dlk {
 
-inline bool is_first_column(int j, int w) {
-  return (j % w == 0);
-}
-
-inline bool is_last_column(int j, int w) {
-  return (j % w == (w - 1));
-}
-
- // 3x3 matrix
- /* A B C */
- /* D E F */
- /* G H I */
-
-// is the right most column for the kernel matrix?
-inline bool is_cfi(int i, int oc) {
-  return int(i / oc) == 2 or int(i / oc) == 5 or int(i / oc) == 8;
-}
-
-// is the left most column for the kernel matrix?
-inline bool is_adg(int i, int oc) {
-  return int(i / oc) == 0 or int(i / oc) == 3 or int(i / oc) == 6;
-}
-
-// Note: this function is only for 3x3 kernel
-inline int calc_offset(int i, int w) {
-  switch (i) {
-  case 0:
-    return w+1;
-  case 1:
-    return w;
-  case 2:
-    return w-1;
-  case 3:
-    return 1;
-  case 4:
-    return 0;
-  case 5:
-    return -1;
-  case 6:
-    return -w+1;
-  case 7:
-    return -w;
-  case 8:
-    return -w-1;
-  }
-
-  // must not come here
-  assert(false);
+inline int calc_offset(int i, const convolution_parameters& p) {
+  int row = i / p.kernel_width;
+  int col = i % p.kernel_width;
+  return -(row - p.padding) * p.output_width - (col - p.padding);
 }
 
 template<typename T>
@@ -77,7 +33,7 @@ void matrix_shift_add(MatrixView<T, MatrixOrder::ColMajor>& buf,
                       MatrixView<T, MatrixOrder::ColMajor>& result,
                       const struct convolution_parameters& p,
                       const int block_offset) {
-  Measurement::Start("matrix_shift_add1");
+  Measurement::Start("matrix_shift_add");
 
   const int h = p.input_height;
   const int w = p.input_width;
@@ -86,27 +42,15 @@ void matrix_shift_add(MatrixView<T, MatrixOrder::ColMajor>& buf,
   const int kw = p.kernel_width;
   const auto col_block = buf.cols();
 
-  // only 3x3 kernel is supported.
-  assert(kh == 3 && kw == 3);
-
-  for (unsigned int j = 0; j < col_block; ++j) {
-    for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first_column(j + block_offset, w) && is_cfi(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      } else if (is_last_column(j + block_offset, w) && is_adg(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      }
-    }
-  }
-
-  Measurement::Stop();
-
-  Measurement::Start("matrix_shift_add2");
+  // only 3x3 or 5x5 kernel is supported.
+  assert(kh == kw);
+  assert(kh % 2 == 1);
+  assert(3 <= kh && kh <= 5);
 
   for (int k = 0; k < col_block; ++k) {
     const auto true_k = k + block_offset;
     for (unsigned int i = 0; i < kh * kw; ++i) {
-      int offset = calc_offset(i, w);
+      int offset = calc_offset(i, p);
       if ((true_k + offset < 0) || (true_k + offset >= h * w)) {
         continue;
       }
