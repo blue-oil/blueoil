@@ -48,45 +48,44 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
   if (p.device_output_buf == nullptr)
     p.device_output_buf = new BIN_CONV_OUTPUT[size]();
 
-  if ((kh == 3 && kw == 3 && padding == 1) ||
-      (kh == 1 && kw == 1 && padding == 0)) {
+  assert(kh == kw); // kernel rectangle must be square
+  assert(kh % 2 == 1); // kernel size must be even
+  assert(1 <= kh && kh <= 5); // Only 1x1, 3x3, 5x5 are supported
+  assert(ic * kh * kw * maxa <= std::numeric_limits<BIN_CONV_OUTPUT>::max()); // overflow check
 #ifdef RUN_ON_FPGA
-    dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
-      (ic + QUANTIZED_PACKED::BitCount - 1) / QUANTIZED_PACKED::BitCount,
-      ih,
-      iw,
-      p.bin_input_bitwidth,
-      QUANTIZED_PACKED::BitCount
-    };
-    dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
-    convert_tensor(input, tmp);
-    dlk::impl::TCAConv2d(tmp, kernel, p);
+  dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
+    (ic + QUANTIZED_PACKED::BitCount - 1) / QUANTIZED_PACKED::BitCount,
+    ih,
+    iw,
+    p.bin_input_bitwidth,
+    QUANTIZED_PACKED::BitCount
+  };
+  dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
+  convert_tensor(input, tmp);
+  dlk::impl::TCAConv2d(tmp, kernel, p);
 #elif defined USE_NEON || defined USE_AVX
-    dlk::impl::tiling_input_t::tensor_info_t<std::size_t> shape = {
-      ic / TilingInTypeBitWidth,
-      ih,
-      iw,
-      p.bin_input_bitwidth,
-      TilingInTypeBitWidth
-    };
-    dlk::impl::tiling_input_t tmp(p.device_input_buf, shape);
-    convert_tensor(input, tmp);
-    dlk::impl::QuantizedConv2DTiling(tmp, kernel, p);
+  dlk::impl::tiling_input_t::tensor_info_t<std::size_t> shape = {
+    ic / TilingInTypeBitWidth,
+    ih,
+    iw,
+    p.bin_input_bitwidth,
+    TilingInTypeBitWidth
+  };
+  dlk::impl::tiling_input_t tmp(p.device_input_buf, shape);
+  convert_tensor(input, tmp);
+  dlk::impl::QuantizedConv2DTiling(tmp, kernel, p);
 #else
-    dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
-      ih,
-      iw,
-      ic / QUANTIZED_PACKED::BitCount,
-      p.bin_input_bitwidth,
-      QUANTIZED_PACKED::BitCount
-    };
-    dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
-    convert_tensor(input, tmp);
-    dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
+  dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
+    ih,
+    iw,
+    ic / QUANTIZED_PACKED::BitCount,
+    p.bin_input_bitwidth,
+    QUANTIZED_PACKED::BitCount
+  };
+  dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
+  convert_tensor(input, tmp);
+  dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
 #endif
-  } else {
-    throw std::invalid_argument("Unsupported convolution parameter");
-  }
 
   Measurement::Stop();
 }
