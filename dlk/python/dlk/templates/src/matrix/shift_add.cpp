@@ -51,16 +51,17 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
   const auto res_col_end = std::min(h * w, block_offset + col_block + pad * w + pad);
 #pragma omp parallel for
   for (int k = res_col_start; k < res_col_end; ++k) {
-    const auto buf_k = k - block_offset;
     const auto row = k / w;
     const auto col = k % w;
     for (int kr = 0; kr < kh; ++kr) {
       for (int kc = 0; kc < kw; ++kc) {
         if (row + kr < pad || row + kr >= h + pad || col + kc < pad || col + kc >= w + pad) continue;
+        const auto offset = (kr - pad) * w + (kc - pad);
+        const auto b_col = k - block_offset + offset;
+        if (b_col < 0 || col_block <= b_col) continue;
 
-        int offset = (kr - pad) * w + (kc - pad);
         float* r = result.data(0, k);
-        float* b = buf.data((kr*kw + kc)*oc, buf_k + offset);
+        float* b = buf.data((kr*kw + kc)*oc, b_col);
 
 
         unsigned int j = 0;
@@ -113,16 +114,17 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
   const auto res_col_end = std::min(h * w, block_offset + col_block + pad * w + pad);
 #pragma omp parallel for
   for (int k = res_col_start; k < res_col_end; ++k) {
-    const auto buf_k = k - block_offset;
     const auto row = k / w;
     const auto col = k % w;
     for (int kr = 0; kr < kh; ++kr) {
       for (int kc = 0; kc < kw; ++kc) {
         if (row + kr < pad || row + kr >= h + pad || col + kc < pad || col + kc >= w + pad) continue;
+        const auto offset = (kr - pad) * w + (kc - pad);
+        const auto b_col = k - block_offset + offset;
+        if (b_col < 0 || col_block <= b_col) continue;
 
-        int offset = (kr - pad) * w + (kc - pad);
         int32_t* r = result.data(0, k);
-        int32_t* b = buf.data((kr*kw + kc)*oc, buf_k + offset);
+        int32_t* b = buf.data((kr*kw + kc)*oc, b_col);
 
 
         unsigned int j = 0;
