@@ -22,12 +22,6 @@ limitations under the License.
 
 namespace dlk {
 
-inline int calc_offset(int i, const convolution_parameters& p) {
-  int row = i / p.kernel_width;
-  int col = i % p.kernel_width;
-  return -(row - p.padding) * p.output_width - (col - p.padding);
-}
-
 template<typename T>
 void matrix_shift_add(MatrixView<T, MatrixOrder::ColMajor>& buf,
                       MatrixView<T, MatrixOrder::ColMajor>& result,
