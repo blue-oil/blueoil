@@ -3,7 +3,7 @@
 This tutorial covers training a neural network model on a GPU server to perform keypoint detection.
 Specifically, we will train a single-person pose estimation model.
 
-<img src="../_static/openimages_v4.png" width="600">
+<img src="../_static/mscoco_2017_keypoint.png" width="600">
 
 ## Preparation
 
@@ -87,14 +87,11 @@ Training runs on the TensorFlow backend. So you can use TensorBoard to visualize
 
     $ tensorboard --logdir=${OUTPUT_DIR}/keypoint_detection_demo_{TIMESTAMP} --port {Port}
 
-- Metrics / Accuracy
+- input / labels_heatmap / output_heatmap
 <img src="../_static/keypoint_detection_heatmap.png">
 
-- Loss, Weight Decay
+- visualize_labels, visualize_output
 <img src="../_static/keypoint_detection_visualize.png">
-
-- Images / Ground-truth labels and output of model.
-<img src="../_static/object_detection_boxes.png">
 
 
 ## Convert training result to FPGA ready format.
