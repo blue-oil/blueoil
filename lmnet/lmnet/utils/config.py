@@ -25,7 +25,6 @@ from yaml.representer import Representer
 from lmnet import environment
 from lmnet.common import Tasks
 from lmnet.data_processor import Processor, Sequence
-from lmnet.utils import module_loader
 
 PARAMS_FOR_EXPORT = [
     "DATA_FORMAT",
