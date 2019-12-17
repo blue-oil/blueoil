@@ -35,12 +35,13 @@ void matrix_shift_add(MatrixView<T, MatrixOrder::ColMajor>& buf,
                       const int block_offset) {
   Measurement::Start("matrix_shift_add");
 
-  const int h = p.input_height;
-  const int w = p.input_width;
-  const int oc = p.output_channels;
-  const int kh = p.kernel_height;
-  const int kw = p.kernel_width;
-  const auto col_block = buf.cols();
+  const std::ptrdiff_t h = p.input_height;
+  const std::ptrdiff_t w = p.input_width;
+  const std::ptrdiff_t oc = p.output_channels;
+  const std::ptrdiff_t kh = p.kernel_height;
+  const std::ptrdiff_t kw = p.kernel_width;
+  const std::ptrdiff_t col_block = buf.cols();
+  const std::ptrdiff_t pad = p.padding;
 
   // only 3x3 or 5x5 kernel is supported.
   assert(kh == kw);
@@ -49,13 +50,15 @@ void matrix_shift_add(MatrixView<T, MatrixOrder::ColMajor>& buf,
 
   for (int k = 0; k < col_block; ++k) {
     const auto true_k = k + block_offset;
+    const auto row = true_k / w;
+    const auto col = true_k % w;
     for (unsigned int i = 0; i < kh * kw; ++i) {
-      int offset = calc_offset(i, p);
-      if ((true_k + offset < 0) || (true_k + offset >= h * w)) {
-        continue;
-      }
+      int kr = i / kw;
+      int kc = i % kw;
+      if (row - kr + pad < 0 || row - kr + pad >= h || col - kc + pad < 0 || col - kc + pad >= w) continue;
 
-      T* r = result.data(0, true_k + offset);
+      int offset = (kr - pad) * w + (kc - pad);
+      T* r = result.data(0, true_k - offset);
       T* b = buf.data(i*oc, k);
 
       for (unsigned int j = 0; j < oc; ++j) {
