@@ -30,6 +30,7 @@ from lmnet.utils import executor, module_loader
 from lmnet.utils.predict_output.writer import save_json
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def setup_dataset(config, subset, seed):
@@ -60,7 +61,7 @@ def evaluate(config, restore_path, output_dir):
     if output_dir is None:
         output_dir = os.path.join(os.path.dirname(os.path.dirname(restore_path)), "evaluate")
 
-    logging.info(f"restore_path:{restore_path}")
+    logger.info(f"restore_path:{restore_path}")
 
     DatasetClass = config.DATASET_CLASS
     ModelClass = config.NETWORK_CLASS
@@ -121,10 +122,10 @@ def evaluate(config, restore_path, output_dir):
 
     # init metrics values
     test_step_size = int(math.ceil(validation_dataset.num_per_epoch / config.BATCH_SIZE))
-    logging.info(f"test_step_size{test_step_size}")
+    logger.info(f"test_step_size{test_step_size}")
 
     for test_step in range(test_step_size):
-        logging.info(f"test_step{test_step}")
+        logger.info(f"test_step{test_step}")
 
         images, labels = validation_dataset.feed()
         feed_dict = {
