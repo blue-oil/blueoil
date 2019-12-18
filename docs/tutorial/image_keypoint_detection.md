@@ -3,8 +3,6 @@
 This tutorial covers training a neural network model on a GPU server to perform keypoint detection.
 Specifically, we will train a single-person pose estimation model.
 
-<img src="../_static/mscoco_2017_keypoint.png" width="600">
-
 ## Preparation
 
 ### Dataset
@@ -217,49 +215,7 @@ output
                     376,
                     274,
                     479,
-                    308,
-                    376,
-                    376,
-                    342,
-                    308,
-                    308,
-                    445,
-                    445,
-                    376,
-                    204,
-                    153,
-                    153,
-                    204,
-                    256,
-                    204,
-                    256,
-                    358,
-                    409,
-                    307,
-                    512,
-                    512,
-                    512,
-                    614,
-                    614,
-                    716,
-                    768,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1
+                    ...
                 ]
             }
         }
