@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import json
 import logging
 import math
 import os
 
 import click
-import json
 import tensorflow as tf
 
 from lmnet import environment
