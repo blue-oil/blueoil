@@ -12,6 +12,10 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
     CUDA_HOME=/usr/local/cuda-10.0 \
     PYENV_ROOT=/usr/local/pyenv
 
+# Add PPA for GCC 9
+RUN apt-get update && apt-get install -y software-properties-common
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test
+
 RUN apt-get update && apt-get install -y \
     cmake \
     locales\
@@ -36,7 +40,7 @@ RUN apt-get update && apt-get install -y \
     libncursesw5-dev \
     xz-utils \
     tk-dev \
-    g++-4.9 \
+    g++-9 \
     crossbuild-essential-arm64 \
     g++-5-arm-linux-gnueabihf \
     openssh-client \
