@@ -25,7 +25,7 @@ Training data is required; validation data is optional. When you only provide tr
   - [CamvidCustom](#camvidcustom)
 
 - Task type: `Keypoint Detection`
-  - [MSCOCO_2017 keypoint detection](#MSCOCO_2017-keypoint-detection)
+  - [MSCOCO_2017 keypoint detection](#mscoco_2017-keypoint-detection)
 
 ### Caltech 101
 [Caltech 101](http://www.vision.caltech.edu/Image_Datasets/Caltech101/), a dataset format where category names are the names of the subdirectories.
