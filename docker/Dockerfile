@@ -13,8 +13,8 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
     PYENV_ROOT=/usr/local/pyenv
 
 # Add PPA for GCC 9
-RUN apt-get update && apt-get install -y software-properties-common
-RUN add-apt-repository ppa:ubuntu-toolchain-r/test
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 60C317803A41BA51845E371A1E9377A2BA9EF27F
+RUN echo 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu xenial main' | tee /etc/apt/sources.list.d/ubuntu-toolchain-r-ubuntu-test-xenial.list
 
 RUN apt-get update && apt-get install -y \
     cmake \
