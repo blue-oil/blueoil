@@ -85,6 +85,12 @@ Training runs on the TensorFlow backend. So you can use TensorBoard to visualize
 
     $ tensorboard --logdir=${OUTPUT_DIR}/keypoint_detection_demo_{TIMESTAMP} --port {Port}
 
+- learning_rate / loss / metrics
+<img src="../_static/keypoint_detection_scalar.png">
+
+Note: loss consists of global_loss and refine_loss.
+global_loss is for all keypoints, refine_loss is for some difficult keypoints.
+
 - input / labels_heatmap / output_heatmap
 <img src="../_static/keypoint_detection_heatmap.png">
 
