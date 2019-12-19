@@ -25,7 +25,7 @@ steps:
       - "agent-type=gcloudsdk"
 
     command: |
-      gsutil -m cp gs://lmfs-backend-us-west1/shared/argo-artifacts/blueoilbench-wx5z5/blueoilbench-wx5z5-2909979057/convert-result.tgz ./
+      gsutil -m cp "${CONVERT_RESULT_PATH}" ./
 
     artifact_paths:
       - "convert-result.tgz"
