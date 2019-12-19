@@ -15,5 +15,6 @@ Please setup the environment before attempting the tutorials.
    image_cls
    image_det
    image_seg
+   image_keypoint_detection
    run_fpga
 
