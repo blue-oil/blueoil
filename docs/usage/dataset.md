@@ -216,7 +216,7 @@ If the `Ignore` class exists, the corresponding class will not be used for train
 
 ### MSCOCO_2017 keypoint detection
 
-Download MSCOCO 2017 dataset from http://cocodataset.org/#download.
+Download [MSCOCO 2017 dataset](http://cocodataset.org/#download).
 Specifically, you need to download `2017 Train images`, `2017 Val images` and `2017 Train/Val annotations`.
 Then, unzip them and organize dataset files as below. `MSCOCO_2017` should be in your `$DATA_DIR`.
 
