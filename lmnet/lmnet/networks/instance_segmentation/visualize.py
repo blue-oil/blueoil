@@ -21,11 +21,13 @@ from matplotlib.patches import Polygon
 import IPython.display
 
 # Root directory of the project
-ROOT_DIR = os.path.abspath("../")
+LMNET_DIR = os.path.abspath("../../..")
+# Import Mask RCNN
+sys.path.append(LMNET_DIR)
 
 # Import Mask RCNN
-sys.path.append(ROOT_DIR)  # To find local version of the library
-from mrcnn import utils
+sys.path.append(LMNET_DIR)  # To find local version of the library
+from lmnet.networks.instance_segmentation import utils
 
 
 ############################################################

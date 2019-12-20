@@ -29,5 +29,17 @@ h5py
 imgaug
 IPython[all]
 
-tensorflow-gpu==1.14.0
+# tensorflow-gpu==1.14.0
+tensorflow==1.14.0
 keras==2.2.4
+
+
+#imgaug
+
+
+# Download and install the Python COCO tools from https://github.com/waleedka/coco
+# That's a fork from the original https://github.com/pdollar/coco with a bug
+# fix for Python 3.
+# I submitted a pull request https://github.com/cocodataset/cocoapi/pull/50
+# If the PR is merged then use the original repo.
+# Note: Edit PythonAPI/Makefile and replace "python" with "python3".
