@@ -358,7 +358,7 @@ if __name__ == '__main__':
     elif args.weights.lower() == "imagenet":
         # Start from ImageNet trained weights
         weights_path = model.get_imagenet_weights()
-    elif args.weights.lower() == 'res18':
+    elif args.weights.lower() == 'resnet18':
         # TODO(lucien): hard coding
         # todo change
         weights_path = '/storage/neil/imagenet-qresnet-d18-batch256'
