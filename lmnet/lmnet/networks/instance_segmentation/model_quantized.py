@@ -1781,7 +1781,7 @@ class MaskRCNN():
             _, C2, C3, C4, C5 = config.BACKBONE(input_image, stage5=True,
                                                 train_bn=config.TRAIN_BN)
         else:
-            _, C2, C3, C4, C5 = resnet_graph_18(input_image, train_bn=config.TRAIN_BN, config=config)
+            _, _, C2, C3, C4, C5 = resnet_graph_18(input_image, train_bn=config.TRAIN_BN, config=config)
             # _, C2, C3, C4, C5 = resnet_graph(input_image, config.BACKBONE,
             #                                     stage5=True, train_bn=config.TRAIN_BN)
         # Top-down Layers
