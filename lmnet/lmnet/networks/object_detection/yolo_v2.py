@@ -37,6 +37,7 @@ class YoloV2(BaseNetwork):
             self,
             num_max_boxes=5,
             anchors=[(0.25, 0.25), (0.5, 0.5), (1.0, 1.0)],
+            cell_size=32,
             leaky_relu_scale=0.1,
             object_scale=5.0,
             no_object_scale=1.0,
@@ -94,8 +95,8 @@ class YoloV2(BaseNetwork):
 
         # Assert image size can mod `32`.
         # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
-        assert self.image_size[0] % 32 == 0
-        assert self.image_size[1] % 32 == 0
+        assert self.image_size[0] % cell_size == 0, "Image height must be divisible by %s" % cell_size
+        assert self.image_size[1] % cell_size == 0, "Image weight must be divisible by %s" % cell_size
 
         if self.is_dynamic_image_size:
             self.image_size = tf.tuple([
@@ -104,11 +105,11 @@ class YoloV2(BaseNetwork):
 
             # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
             # Number of cell is the spatial dimension of the final convolutional features.
-            image_size0 = self.image_size[0] / 32
-            image_size1 = self.image_size[1] / 32
-            self.num_cell = tf.tuple([tf.cast(image_size0, tf.int32), tf.cast(image_size1, tf.int32)])
+            image_size0 = tf.cast(self.image_size[0] / cell_size, tf.int32)
+            image_size1 = tf.cast(self.image_size[1] / cell_size, tf.int32)
+            self.num_cell = tf.tuple([image_size0, image_size1])
         else:
-            self.num_cell = self.image_size[0] // 32, self.image_size[1] // 32
+            self.num_cell = self.image_size[0] // cell_size, self.image_size[1] // cell_size
 
         self.loss_function = YoloV2Loss(
             is_debug=self.is_debug,
