@@ -139,10 +139,6 @@ class BDD100KObjectDetection(ObjectDetectionBase):
                 self.paths.append(img_paths[img_name])
                 self.bboxs.append(bbox)
 
-            if self.subset != 'train':
-                self.paths = self.paths[:100]
-                self.bboxs = self.bboxs[:100]
-
     def __getitem__(self, i, type=None):
         image_file_path = self.paths[i]
 
