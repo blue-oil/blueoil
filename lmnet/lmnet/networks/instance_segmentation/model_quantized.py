@@ -24,67 +24,13 @@ import keras.engine as KE
 import keras.models as KM
 
 from lmnet.networks.instance_segmentation import utils
-from lmnet.networks.instance_segmentation.resnet18_quantized import resnet_graph_18
+from lmnet.networks.instance_segmentation.resnet18_quantized import resnet_graph_18, my_custom_getter, my_activation
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
 from distutils.version import LooseVersion
 
 assert LooseVersion(tf.__version__) >= LooseVersion("1.3")
 assert LooseVersion(keras.__version__) >= LooseVersion('2.0.8')
-
-import functools
-from lmnet.quantizations import (
-    binary_mean_scaling_quantizer,
-    linear_mid_tread_half_quantizer,
-)
-
-#####################
-# QUANTIZE
-#####################
-
-ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
-ACTIVATION_QUANTIZER_KWARGS = {
-    'bit': 2,
-    'max_value': 2
-}
-WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
-WEIGHT_QUANTIZER_KWARGS = {}
-
-
-#####################
-# QUANTIZE
-#####################
-
-def quantized_variable_getter(getter, name, weight_quantization=None, *args, **kwargs):
-    """Get the quantized variables.
-    Use if to choose or skip the target should be quantized.
-    Args:
-        getter: Default from tensorflow.
-        name: Default from tensorflow.
-        weight_quantization: Callable object which quantize variable.
-        args: Args.
-        kwargs: Kwargs.
-    """
-    assert callable(weight_quantization)
-    var = getter(name, *args, **kwargs)
-    with tf.compat.v1.variable_scope(name):
-        # Apply weight quantize to variable whose last word of name is "kernel".
-        if "kernel" == var.op.name.split("/")[-1]:
-            return weight_quantization(var)
-    return var
-
-
-my_activation = ACTIVATION_QUANTIZER(**ACTIVATION_QUANTIZER_KWARGS)
-my_activation = KL.Lambda(my_activation)
-weight_quantization = WEIGHT_QUANTIZER(**WEIGHT_QUANTIZER_KWARGS)
-my_custom_getter = functools.partial(quantized_variable_getter,
-                                     weight_quantization=weight_quantization)
-
-
-# my_activation = KL.Activation('relu')
-
-
-# my_custom_getter = None
 
 
 ############################################################
@@ -140,126 +86,6 @@ def compute_backbone_shapes(config, image_shape):
         [[int(math.ceil(image_shape[0] / stride)),
           int(math.ceil(image_shape[1] / stride))]
          for stride in config.BACKBONE_STRIDES])
-
-
-############################################################
-#  Resnet Graph
-############################################################
-
-def identity_block_18(input_tensor, kernel_size, filters, stage, block,
-                      use_bias=True, train_bn=True, config=None):
-    """The identity_block is the block that has no conv layer at shortcut
-    # Arguments
-        input_tensor: input tensor
-        kernel_size: default 3, the kernel size of middle conv layer at main path
-        filters: list of integers, the nb_filters of 3 conv layer at main path
-        stage: integer, current stage label, used for generating layer names
-        block: 'a','b'..., current block label, used for generating layer names
-        use_bias: Boolean. To use or not use a bias in conv layers.
-        train_bn: Boolean. Train or freeze Batch Norm layers
-    """
-    _, nb_filter2, nb_filter3 = filters
-    conv_name_base = 'res' + str(stage) + block + '_branch'
-    bn_name_base = 'bn' + str(stage) + block + '_branch'
-
-    # x = KL.Conv2D(nb_filter1, (1, 1), name=conv_name_base + '2a',
-    #               use_bias=use_bias)(input_tensor)
-    # x = BatchNorm(name=bn_name_base + '2a')(x, training=train_bn)
-    # x = KL.Activation('relu')(x)
-    with tf.compat.v1.variable_scope('quantize_group_' + str(stage) + block, custom_getter=my_custom_getter):
-        x = KL.Conv2D(nb_filter2, (kernel_size, kernel_size), padding='same',
-                      name=conv_name_base + '2b', use_bias=use_bias)(input_tensor)
-        x = BatchNorm(name=bn_name_base + '2b')(x, training=train_bn)
-        x = my_activation(x)
-
-        x = KL.Conv2D(nb_filter3, (1, 1), name=conv_name_base + '2c',
-                      use_bias=use_bias)(x)
-    x = BatchNorm(name=bn_name_base + '2c')(x, training=train_bn)
-
-    x = KL.Add()([x, input_tensor])
-    x = my_activation(x)
-    return x
-
-
-def conv_block_18(input_tensor, kernel_size, filters, stage, block,
-                  strides=(2, 2), use_bias=True, train_bn=True, config=None):
-    """conv_block is the block that has a conv layer at shortcut
-    # Arguments
-        input_tensor: input tensor
-        kernel_size: default 3, the kernel size of middle conv layer at main path
-        filters: list of integers, the nb_filters of 3 conv layer at main path
-        stage: integer, current stage label, used for generating layer names
-        block: 'a','b'..., current block label, used for generating layer names
-        use_bias: Boolean. To use or not use a bias in conv layers.
-        train_bn: Boolean. Train or freeze Batch Norm layers
-    Note that from stage 3, the first conv layer at main path is with subsample=(2,2)
-    And the shortcut should have subsample=(2,2) as well
-    """
-    _, nb_filter2, nb_filter3 = filters
-    conv_name_base = 'res' + str(stage) + block + '_branch'
-    bn_name_base = 'bn' + str(stage) + block + '_branch'
-
-    # x = KL.Conv2D(nb_filter1, (1, 1), strides=strides,
-    #               name=conv_name_base + '2a', use_bias=use_bias)(input_tensor)
-    # x = BatchNorm(name=bn_name_base + '2a')(x, training=train_bn)
-    # x = KL.Activation('relu')(x)
-
-    with tf.compat.v1.variable_scope('quantize_group_' + str(stage) + block, custom_getter=my_custom_getter):
-        x = KL.MaxPooling2D((1, 1), strides=strides)(input_tensor)
-        x = KL.Conv2D(nb_filter2, (kernel_size, kernel_size), padding='same',
-                      name=conv_name_base + '2b', use_bias=use_bias)(x)
-        x = BatchNorm(name=bn_name_base + '2b')(x, training=train_bn)
-        x = my_activation(x)
-
-        x = KL.Conv2D(nb_filter3, (1, 1), name=conv_name_base +
-                                               '2c', use_bias=use_bias)(x)
-        x = BatchNorm(name=bn_name_base + '2c')(x, training=train_bn)
-
-        shortcut = KL.Conv2D(nb_filter3, (1, 1), strides=strides,
-                             name=conv_name_base + '1', use_bias=use_bias)(input_tensor)
-        shortcut = BatchNorm(name=bn_name_base + '1')(shortcut, training=train_bn)
-
-        x = KL.Add()([x, shortcut])
-        x = my_activation(x)
-    return x
-
-
-def resnet_graph_18(input_image, architecture, stage5=False, train_bn=True, config=None):
-    """Build a ResNet graph.
-        architecture: Can be resnet50 or resnet101
-        stage5: Boolean. If False, stage5 of the network is not created
-        train_bn: Boolean. Train or freeze Batch Norm layers
-    """
-    assert architecture in ["resnet50", "resnet101", "resnet18"]
-    # Stage 1
-    x = KL.ZeroPadding2D((3, 3))(input_image)
-    x = KL.Conv2D(64, (7, 7), strides=(2, 2), name='conv1', use_bias=True)(x)
-    x = BatchNorm(name='bn_conv1')(x, training=train_bn)
-    x = my_activation(x)
-    C1 = x = KL.MaxPooling2D((3, 3), strides=(2, 2), padding="same")(x)
-    # Stage 2
-    x = conv_block_18(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1), train_bn=train_bn, config=config)
-    # x = identity_block(x, 3, [64, 64, 256], stage=2, block='b', train_bn=train_bn)
-    C2 = x = identity_block_18(x, 3, [64, 64, 256], stage=2, block='c', train_bn=train_bn, config=config)
-    # Stage 3
-    x = conv_block_18(x, 3, [128, 128, 512], stage=3, block='a', train_bn=train_bn, config=config)
-    # x = identity_block(x, 3, [128, 128, 512], stage=3, block='b', train_bn=train_bn)
-    # x = identity_block(x, 3, [128, 128, 512], stage=3, block='c', train_bn=train_bn)
-    C3 = x = identity_block_18(x, 3, [128, 128, 512], stage=3, block='d', train_bn=train_bn, config=config)
-    # Stage 4
-    x = conv_block_18(x, 3, [256, 256, 1024], stage=4, block='a', train_bn=train_bn, config=config)
-    C4 = x = identity_block_18(x, 3, [256, 256, 1024], stage=4, block='b', train_bn=train_bn, config=config)
-    # block_count = {"resnet50": 5, "resnet101": 22}[architecture]
-    # for i in range(block_count):
-    x = conv_block_18(x, 3, [512, 512, 2048], stage=5, block='a', train_bn=train_bn, config=config)
-
-    C5 = x = identity_block_18(x, 3, [512, 512, 2048], stage=5, block='c', train_bn=train_bn, config=config)
-    # # Stage 5
-    # if stage5:
-    #     # x = identity_block(x, 3, [512, 512, 2048], stage=5, block='b', train_bn=train_bn)
-    # else:
-    #     C5 = None
-    return [C1, C2, C3, C4, C5]
 
 
 ############################################################
@@ -2400,7 +2226,7 @@ class MaskRCNN():
             keras.callbacks.TensorBoard(log_dir=self.log_dir,
                                         histogram_freq=0, write_graph=True, write_images=False),
             keras.callbacks.ModelCheckpoint(self.checkpoint_path,
-                                            verbose=0, save_weights_only=True, save_best_only=True),
+                                            verbose=0, save_weights_only=True, period=20),
         ]
 
         # Add custom callbacks to the list
@@ -2433,6 +2259,10 @@ class MaskRCNN():
             workers=workers,
             use_multiprocessing=True,
         )
+
+        pb_dir = os.path.join(self.log_dir, 'model_pb')
+        self.keras_model.save(pb_dir)
+
         self.epoch = max(self.epoch, epochs)
 
     def mold_inputs(self, images):

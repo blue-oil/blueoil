@@ -202,11 +202,12 @@ def train(model):
     # Since we're using a very small dataset, and starting from
     # COCO trained weights, we don't need to train too long. Also,
     # no need to train all layers, just the heads should do it.
+    # TODO(lucien): the quality of backbone is not good enough, need to fine tune all layers
     print("Training network heads")
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
                 epochs=30,
-                layers='all')
+                layers='heads')
 
 
 def color_splash(image, mask):
@@ -358,44 +359,16 @@ if __name__ == '__main__':
         # Start from ImageNet trained weights
         weights_path = model.get_imagenet_weights()
     elif args.weights.lower() == 'res18':
+        # TODO(lucien): hard coding
+        # todo change
         weights_path = '/storage/neil/imagenet-qresnet-d18-batch256'
     else:
         weights_path = args.weights
 
     # Load weights
-
-    # sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True))
-    # # First let's load meta graph and restore weights
-    # saver = tf.train.import_meta_graph('/storage/neil/imagenet-qresnet-d18-batch256/graph-0625-130842.meta')
-    # saver.restore(sess, tf.train.latest_checkpoint('/storage/neil/imagenet-qresnet-d18-batch256'))
-
-    # print("Loading weights ", weights_path)
-    # GRAPH_PB_PATH = 'neil/imagenet-qresnet-d18-batch256/export/minimal_graph_with_shape.pb'
-    # with tf.Session() as sess:
-    #     print("load graph")
-    #     with gfile.FastGFile(GRAPH_PB_PATH, 'rb') as f:
-    #         graph_def = tf.GraphDef()
-    #         graph_def.ParseFromString(f.read())
-    #         sess.graph.as_default()
-    #         tf.import_graph_def(graph_def, name='')
-    #
-    #         graph_nodes = [n for n in graph_def.node]
-    #         wts = [n for n in graph_nodes if n.op == 'Const']
-    #         from tensorflow.python.framework import tensor_util
-    #
-    # for n in wts:
-    #     print("Name of the node - %s" % n.name)
-    #     print("Value - ")
-    #     # print(tensor_util.MakeNdarray(n.attr['value'].tensor))
-
-    # if args.weights.lower() == "coco":
-    #     # Exclude the last layers because they require a matching
-    #     # number of classes
-    #     model.load_weights(weights_path, by_name=True, exclude=[
-    #         "mrcnn_class_logits", "mrcnn_bbox_fc",
-    #         "mrcnn_bbox", "mrcnn_mask"])
-    # else:
-    #     model.load_weights(weights_path, by_name=True)
+    print("Loading weights ", weights_path)
+    assert args.weights.lower() == "resnet18"
+    model.load_weights(weights_path, by_name=True)
 
     # Train or evaluate
     if args.command == "train":
