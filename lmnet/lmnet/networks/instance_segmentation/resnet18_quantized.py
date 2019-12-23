@@ -14,8 +14,8 @@ assert LooseVersion(keras.__version__) >= LooseVersion('2.0.8')
 import functools
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
-    linear_mid_tread_half_quantizer,
 )
+from lmnet.networks.instance_segmentation.keras_linear import linear_mid_tread_half_quantizer
 
 #####################
 # QUANTIZE

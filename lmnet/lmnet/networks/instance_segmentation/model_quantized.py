@@ -2259,7 +2259,7 @@ class MaskRCNN():
             use_multiprocessing=True,
         )
 
-        pb_dir = os.path.join(self.log_dir, 'model_pb.h5')
+        pb_dir = os.path.join(self.log_dir, 'model_pb')
         self.keras_model.save(str(pb_dir))
 
         self.epoch = max(self.epoch, epochs)
