@@ -2,7 +2,7 @@
 set -euf
 
 # test cases to run inference
-# <buildkite agent-type> <model filename>
+# "<buildkite agent-type> <model filename>"
 TEST_CASES=(
     "de10nano       lib/lib_arm.so"
     "de10nano       lib/lib_fpga.so"
@@ -25,6 +25,7 @@ TEST_CASES=(
     "raspberry-pi   lib/lib_aarch64.so"
 )
 
+# Generate setup step
 cat <<EOS
 steps:
   - label: "inference: setup"
@@ -34,26 +35,21 @@ steps:
       - "env=benchmark"
       - "agent-type=gcloudsdk"
 
-    command: |
-      gsutil -m cp "${CONVERT_RESULT_PATH}" ./
-
     artifact_paths:
       - "convert-result.tgz"
 
-
+    command: |
+      gsutil -m cp "${CONVERT_RESULT_PATH}" ./
 EOS
 
 for TEST_CASE in "${TEST_CASES[@]}" ; do
     IFS=' '
     read AGENT MODEL <<< "${TEST_CASE}"
 
-    if [ "${AGENT}" = "de10nano" ]; then
-        PYTHON_COMMAND="sudo python"
-    else
-        PYTHON_COMMAND="python"
-    fi
-
+    # Generate inference step
     cat <<EOS
+
+
   - label: "inference: ${AGENT} (${MODEL})"
     depends_on: "setup"
     timeout_in_minutes: "30"
@@ -62,15 +58,24 @@ for TEST_CASE in "${TEST_CASES[@]}" ; do
       - "env=benchmark"
       - "agent-type=${AGENT}"
 
+    artifact_paths:
+      - "export/*/*/output/python/output/output.json"
+
     command: |
       buildkite-agent artifact download "convert-result.tgz" ./
       tar xvf convert-result.tgz
       cd export/*/*/output/python
-      ${PYTHON_COMMAND} run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/${MODEL}
-
-    artifact_paths:
-      - "export/*/*/output/python/output/output.json"
-
-
 EOS
+
+    # Generate commands to run inference (with and without "sudo")
+    if [ "${AGENT}" = "de10nano" ] && [ "${MODEL}" = "lib/lib_fpga.so" ] ; then
+        cat <<EOS
+      sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/${MODEL}
+      sudo chown -R buildkite-agent:buildkite-agent output
+EOS
+    else
+        cat <<EOS
+      python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/${MODEL}
+EOS
+    fi
 done
