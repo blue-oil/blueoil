@@ -174,43 +174,48 @@ def _profile_params(graph, res, bit, unquant_layers):
     def helper(node, level):
         is_quant_kernel = all([layer not in node.name for layer in unquant_layers]) and "kernel" == \
                           node.name.split("/")[-1]
-        bits = bit if is_quant_kernel else 32
         node_name = "total" if level == 0 else node.name
+        node_params = node.total_parameters
+        node_size = node_params * 32
+        node_quant_size = (node_params * bit) if is_quant_kernel else node_size
+        node_children = []
+        # Add node info to result list
         res.append(
-            [level, node_name, node.total_parameters, node.total_parameters * 32, node.total_parameters * bits])
+            [level, node_name, node_params, node_size, node_quant_size])
         idx = len(res) - 1
-
-        node_param_dict = {
-            'name': node_name,
-            'parameters': node.total_parameters,
-            'size': node.total_parameters * 32,
-            'quant_size': node.total_parameters * bits,
-            'children': [],
-        }
+        # Get children node info
+        sumqs = 0
+        for c in node.children:
+            children = helper(c, level + 1)
+            sumqs += children["quant_size"]
+            node_children.append(children)
+        node_quant_size = sumqs or node_quant_size
+        # Update node_quant_size of result list
+        res[idx][-1] = node_quant_size
+        # Create node_dict
         if node_name == "total":
             node_param_dict = {
-                'total_parameters': node.total_parameters,
-                'total_size': node.total_parameters * 32,
+                'total_parameters': node_params,
+                'total_size': node_size,
                 'quant_bit': bit,
-                'total_quant_size': None,
-                'children': [],
+                'total_quant_size': node_quant_size,
+                'children': node_children,
             }
-
-        sumsq = 0
-        for c in node.children:
-            size_quat, children = helper(c, level + 1)
-            sumsq += size_quat
-            node_param_dict["children"].append(children)
-        res[idx][-1] = sumsq or res[idx][-1]
-        if node_name == "total":
-            node_param_dict["total_quant_size"] = res[idx][-1]
         else:
-            node_param_dict["quant_size"] = res[idx][-1]
+            node_param_dict = {
+                'name': node_name,
+                'parameters': node_params,
+                'size': node_size,
+                'quant_size': node_quant_size,
+                'children': node_children,
+            }
+        # Add is_quant_kernel flag to leaf node
         if len(node.children) == 0:
             node_param_dict["is_quant_kernel"] = is_quant_kernel
-        return res[idx][-1], node_param_dict
 
-    _, node_param_dict = helper(prof, 0)
+        return node_param_dict
+
+    node_param_dict = helper(prof, 0)
     for elem in res:
         elem[3] = round(elem[3] / 8 / 1024 ** 2, 5)
         elem[4] = round(elem[4] / 8 / 1024 ** 2, 5)
