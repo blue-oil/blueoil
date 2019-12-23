@@ -60,7 +60,7 @@ def save_config_file(config_file, dest_dir):
     # We can remove following 2 lines once it's been resolved in tensorflow
     # issue link: https://github.com/tensorflow/tensorflow/issues/28508
     if gfile.exists(config_file_dest):
-        gfile.Remove(config_file_dest)
+        gfile.remove(config_file_dest)
 
     return gfile.copy(
         config_file,
@@ -70,7 +70,9 @@ def save_config_file(config_file, dest_dir):
 
 def train(config, experiment_id=None):
     if not experiment_id:
-        experiment_id = 'train_{:%Y%m%d%H%M%S}'.format(datetime.now())
+        # Default model_name will be taken from config file: {model_name}.yml.
+        model_name = os.path.splitext(os.path.basename(config))[0]
+        experiment_id = '{}_{:%Y%m%d%H%M%S}'.format(model_name, datetime.now())
 
     run(config, experiment_id)
 

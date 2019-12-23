@@ -25,7 +25,6 @@ from os import path
 
 from core.config import Config
 from core.graph import Graph
-from core.model import Model
 from core.params import Params
 from code_generater import CodeGenerater
 from frontend import TensorFlowIO
@@ -33,25 +32,25 @@ from core.optimizer import pass_remove_identities, pass_transpose, pass_constant
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
     pass_quantize_convolutions, pass_propagate_datatypes, \
     pass_propagate_format, pass_propagate_output_type_backward, \
-    pass_lookup
+    pass_lookup, pass_simplify_batchnorm
 
 SCRITPS_DIR = path.abspath(path.dirname(__file__))
 DLK_ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '..'))
 ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '../../..'))
 
 
-def optimize_graph_step(model: Model, config: Config) -> None:
-    """Optimize graph in the model.
+def optimize_graph_step(graph: Graph, config: Config) -> None:
+    """Optimizing graph that imported from tensorflow pb.
 
     Args:
-        model (Model): Model that contains the graph
+        graph (Graph): Graph that optimization passes are applying to
         config (Config): Collection of configurations
 
     Returns:
 
     
     """
-    graph: Graph = model.graph
+
     pass_remove_identities(graph)
     pass_transpose(graph)
 
@@ -69,17 +68,17 @@ def optimize_graph_step(model: Model, config: Config) -> None:
     pass_propagate_format(graph)
 
     pass_constant_folding(graph)
+    pass_simplify_batchnorm(graph)
 
 
-def generate_code_step(model: Model, config: Config) -> None:
+def generate_code_step(graph: Graph, config: Config) -> None:
     """Generate code for the model.
 
     Args:
-        model (Model): Model the code generation is based on
+        graph (Graph): Graph the code generation is based on
         config (Config): Collection of configurations
     
     """
-    graph: Graph = model.graph
     params = Params(graph, config)
 
     builder = CodeGenerater(graph,
@@ -126,14 +125,14 @@ def run(input_path: str,
 
     click.echo('import pb file')
     io = TensorFlowIO()
-    model: Model = io.read(input_path)
+    graph: Graph = io.read(input_path)
 
     click.echo('optimize graph step: start')
-    optimize_graph_step(model, config)
+    optimize_graph_step(graph, config)
     click.echo('optimize graph step: done!')
 
     click.echo('generate code step: start')
-    generate_code_step(model, config)
+    generate_code_step(graph, config)
     click.echo(f'generate code step: done!')
 
 

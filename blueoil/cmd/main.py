@@ -71,16 +71,11 @@ def init(output):
     required=False,
 )
 def train(config, experiment_id=None):
-    try:
-        experiment_id, checkpoint_name = run_train(config, experiment_id)
-        click.echo('Next step: blueoil convert -e {} -p {}'.format(
-            experiment_id,
-            checkpoint_name
-        ))
-    except Exception as err:
-        click.echo(err.args, err=True)
-        exit(1)
-
+    experiment_id, checkpoint_name = run_train(config, experiment_id)
+    click.echo('Next step: blueoil convert -e {} -p {}'.format(
+        experiment_id,
+        checkpoint_name
+    ))
 
 @main.command(help='Convert trained model to binary files.')
 @click.option(

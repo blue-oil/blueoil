@@ -113,6 +113,7 @@ def make_all(project_dir, output_dir):
         ["ar_fpga", "libdlk_fpga.a"],
         ["ar_aarch64", "libdlk_aarch64.a"],
     ]
+    output_dir = os.path.abspath(output_dir)
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)
@@ -139,7 +140,8 @@ def run(experiment_id,
         restore_path,
         output_template_dir=None,
         image_size=(None, None),
-        project_name=None):
+        project_name=None,
+        save_npy_for_debug=True):
     """Convert from trained model.
 
     Args:
@@ -156,7 +158,11 @@ def run(experiment_id,
     """
 
     # Export model
-    export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size)
+    if save_npy_for_debug:
+        export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size)
+    else:
+        export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=None)
+
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")
@@ -194,7 +200,14 @@ def run(experiment_id,
     return output_root_dir
 
 
-def convert(experiment_id, checkpoint=None, template=None, image_size=(None, None), project_name=None):
+def convert(
+    experiment_id,
+    checkpoint=None,
+    template=None,
+    image_size=(None, None),
+    project_name=None,
+    save_npy_for_debug=True
+):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
 
     if checkpoint is None:
@@ -202,4 +215,4 @@ def convert(experiment_id, checkpoint=None, template=None, image_size=(None, Non
     else:
         restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
 
-    return run(experiment_id, restore_path, template, image_size, project_name)
+    return run(experiment_id, restore_path, template, image_size, project_name, save_npy_for_debug)

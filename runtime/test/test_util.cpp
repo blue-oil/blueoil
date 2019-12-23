@@ -29,10 +29,10 @@ Tensor Tensor_CHW_to_HWC(const Tensor &tensor) {
     int srcPlaneSize = width * height;
     const float *srcImagePtr = tensor.dataAsArray();
     float *dstImagePtr = dstTensor.dataAsArray();
-    for (int y = 0 ; y < height ; y++) {
-      for (int x = 0 ; x < width ; x++) {
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
         const float *srcPixelPtr0 = srcImagePtr + x + (y * height);
-        for (int c = 0 ; c < channels ; c++) {
+        for (int c = 0; c < channels; c++) {
           const float *srcPixelPtr = srcPixelPtr0 + (c * srcPlaneSize);
           *dstImagePtr = *srcPixelPtr;
           dstImagePtr++;
@@ -50,10 +50,10 @@ Tensor Tensor_HWC_to_CHW(const Tensor &tensor) {
     Tensor dstTensor({channels, height, width});
     const float *srcImagePtr = tensor.dataAsArray();
     float *dstImagePtr = dstTensor.dataAsArray();
-    for (int c = 0 ; c < channels ; c++) {
+    for (int c = 0; c < channels; c++) {
       const float *srcPixelPtr = srcImagePtr + c;
-      for (int y = 0 ; y < height ; y++) {
-        for (int x = 0 ; x < width ; x++) {
+      for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
           *dstImagePtr = *srcPixelPtr;
           srcPixelPtr += channels;
           dstImagePtr++;

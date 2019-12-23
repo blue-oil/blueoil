@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 #include <iostream>
-#include <vector>
 #include <climits>
 #include <cstring>
 #include <cstdio>
@@ -34,19 +33,17 @@ limitations under the License.
 #include "func/pad.h"
 #include "func/mul.h"
 #include "func/matmul.h"
-#include "func/quantize.h"
 #include "func/quantized_conv2d.h"
 #include "func/real_div.h"
 #include "func/relu.h"
 #include "func/leaky_relu.h"
 #include "func/round.h"
-#include "func/scale.h"
 #include "func/softmax.h"
 #include "func/split.h"
 #include "func/sqrt.h"
 #include "func/sub.h"
-#include "func/unpooling.h"
 #include "func/lookup.h"
+#include "matrix/multiplication.h"
 #include "operators.h"
 #include "quantizer.h"
 #include "network.h"
@@ -64,6 +61,10 @@ limitations under the License.
 
 #ifdef RUN_ON_FPGA
 #include "memdriver.h"
+#endif
+
+#ifdef _OPENMP
+#include <omp.h>
 #endif
 
 {% if config.debug -%}
@@ -221,6 +222,28 @@ bool Network::init()
   device_output_buf = new BIN_CONV_OUTPUT[max_device_output_elems]();
 #endif
 
+#if !defined(RUN_ON_FPGA) && !defined(USE_NEON) && !defined(USE_AVX)
+  qconv_tmp_buffer = std::make_unique<BYTE[]>(std::max({
+      MAX_SIZE_KN2ROW_BUFFER_PER_LAYER * sizeof(BIN_CONV_OUTPUT),
+      MAX_SIZE_QOUTPUTS_PER_LAYER * sizeof(QUANTIZED_PACKED),
+      MAX_SIZE_OUTPUTS_PER_LAYER * sizeof(BIN_CONV_OUTPUT)
+  }));
+#endif
+#ifdef _OPENMP
+  const std::size_t thread_num = omp_get_max_threads();
+#else
+  const std::size_t thread_num = 1;
+#endif
+  conv_tmp_buffer = std::make_unique<BYTE[]>(
+      MAX_SIZE_KERNELS_PER_LAYER * sizeof(float)
+      + MAX_SIZE_KN2ROW_BUFFER_PER_LAYER * sizeof(float)
+      + MAX_IN_C * MAX_SIZE_KN2ROW_COL_BLOCK * sizeof(float)
+      + thread_num * MAX_IN_C * dlk::details::MAX_UNROLL * sizeof(float)
+  );
+  quantize_tmp_buffer = std::make_unique<BYTE[]>(
+      MAX_SIZE_INPUTS_PER_LAYER * sizeof(QUANTIZED_NOT_PACKED)
+  );
+
   {% for node in graph.non_variables -%}
   {% if node.available_buffer == '' %}
   {% for out_k in node.output_ops.keys() -%}
@@ -251,10 +274,17 @@ bool Network::init()
   MappedMem thresholds_mmap(THRESHOLD_ADDR, total_thresholds_size);
   auto thresholds_buffer = reinterpret_cast<uint8_t*>(thresholds_mmap.get());
   {% for qconv in graph.convs(quantized_only=True) -%}
-      {% if qconv.has_thresholds -%}
-          {% set thresholds = qconv.thresholds -%}
+  {% if qconv.has_thresholds -%}
+  {% set thresholds = qconv.thresholds -%}
   std::memcpy(thresholds_buffer + {{qconv.name}}_thresholds_offset, const_cast<T_INT16*>({{qconv.name}}_thresholds), {{qconv.name}}_thresholds_size);
-      {% endif -%}
+  {% endif -%}
+  {% endfor -%}
+#else
+  {% for qconv in graph.convs(quantized_only=True) -%}
+  {% if qconv.has_thresholds -%}
+  dlk::impl::convert_thresholds({{ qconv.name }}_thresholds, {{ qconv.name }}_thresholds_converted.get(), {{ qconv.channel }});
+  {% else -%}
+  {% endif -%}
   {% endfor -%}
 #endif // RUN_ON_FPGA
 
@@ -290,7 +320,6 @@ bool Network::run(float *network_input, float *network_output)
   struct binary_convolution_parameters binConv2D_struct;
   struct max_pooling_parameters MaxPool_struct;
   struct avg_pooling_parameters AveragePool_struct;
-  struct MaxPoolWithArgmax_parameters MaxPoolWithArgmax_struct;
 
   #if defined RUN_ON_FPGA
   binConv2D_struct.device_input_phys_addr = dma_input_buffer.physical_address();
@@ -325,8 +354,7 @@ bool Network::run(float *network_input, float *network_output)
     {{- len -}},
     {%- endfor %}
   };
-  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>
-    {{ node.name }}({{ node.name }}_raw, {{ node.name }}_shape);
+  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}({{ node.name }}_raw, {{ node.name }}_shape);
   {% endif %}
   {%- endfor %}
   {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 %}
@@ -337,8 +365,7 @@ bool Network::run(float *network_input, float *network_output)
     {{- len -}},
     {%- endfor %}
   };
-  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>
-    {{ node.name + '_' + out_k }}({{ node.name + '_' + out_k }}_raw, {{ node.name + '_' + out_k }}_shape);
+  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name + '_' + out_k }}({{ node.name + '_' + out_k }}_raw, {{ node.name + '_' + out_k }}_shape);
   {% endif %}
   {%- endfor %}
   {% endif %}
@@ -346,7 +373,7 @@ bool Network::run(float *network_input, float *network_output)
   {{ '\n' -}}
 
   {%- for node in graph.non_variables %}
-  {{ node.view.run() }}
+  {{- node.view.run() }}
 
   {% if config.debug -%}
     {# Temporary: better access to the quantizer #}
@@ -355,6 +382,8 @@ bool Network::run(float *network_input, float *network_output)
       save_int32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 3.0 / 2.0 );
     {% elif node.dtype.cpptype() in ['unsigned', 'uint32_t'] -%}
       save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 1.0);
+    {% elif node.dtype.cpptype() == 'QUANTIZED_PACKED' -%}
+      save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, reinterpret_cast<uint32_t*>({{ node.name }}.data()), 1.0);
     {% elif node.dtype.cpptype() == 'float' -%}
       {% if node.output_ops.keys()|length > 1 %}
         {% for k in node.output_ops.keys() -%}

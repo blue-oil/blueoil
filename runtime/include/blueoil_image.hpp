@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef RUNTIME_INCLUDE_BLUEOIL_IMAGE_HPP_
 #define RUNTIME_INCLUDE_BLUEOIL_IMAGE_HPP_
 
+#include <string>
 #include "blueoil.hpp"
 
 namespace blueoil {
@@ -25,6 +26,8 @@ enum ResizeFilter {
                    RESIZE_FILTER_NEAREST_NEIGHBOR = 1,
                    RESIZE_FILTER_BI_LINEAR = 2,
 };
+
+Tensor LoadImage(const std::string filename);
 
 Tensor Resize(const Tensor& image, const int width, const int height,
               const enum ResizeFilter filter);

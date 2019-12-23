@@ -20,15 +20,9 @@ limitations under the License.
 #include "func/batch_normalization.h"
 #include "time_measurement.h"
 
-static const auto scale = std::make_unique<float[]>(MAX_IN_C);
-static const auto shift = std::make_unique<float[]>(MAX_IN_C);
-
-void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
-    const TensorView<T_FLOAT, MemoryLayout::C>& gamma,
-    const TensorView<T_FLOAT, MemoryLayout::C>& beta,
-    const TensorView<T_FLOAT, MemoryLayout::C>& mean,
-    const TensorView<T_FLOAT, MemoryLayout::C>& variance,
-    T_FLOAT epsilon,
+void func_BatchNormalizationOptimized(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
+    const TensorView<T_FLOAT, MemoryLayout::C>& scale,
+    const TensorView<T_FLOAT, MemoryLayout::C>& bias,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output) {
   Measurement::Start("BatchNorm");
 
@@ -36,16 +30,10 @@ void func_BatchNormalization(const TensorView<T_FLOAT, MemoryLayout::NHWC>& inpu
   const unsigned out_width = output.get_shape()[2];
   const unsigned out_depth = output.get_shape()[3];
 
-  for (T_UINT i = 0; i < out_depth; i++)
-    scale[i] = gamma(i) * (1.0 / std::sqrt(variance(i) + epsilon));
-
-  for (T_UINT i = 0; i < out_depth; i++)
-    shift[i] = beta(i) - (scale[i] * mean(i));
-
   for (T_UINT r = 0; r < out_height; r++) {
     for (T_UINT c = 0; c < out_width; c++) {
       for (T_UINT d = 0; d < out_depth; d++) {
-        output(0, r, c, d) = input(0, r, c, d) * scale[d] + shift[d];
+        output(0, r, c, d) = input(0, r, c, d) * scale(d) + bias(d);
       }
     }
   }

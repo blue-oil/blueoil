@@ -27,6 +27,7 @@ namespace impl {
 using kn2row_input_elem_t = QUANTIZED_PACKED;
 
 #ifndef RUN_ON_FPGA
+void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::size_t channels);
 using kn2row_input_t = TensorView<kn2row_input_elem_t, MemoryLayout::HWChBCl>;
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
                                   const kernel_t& kernel,

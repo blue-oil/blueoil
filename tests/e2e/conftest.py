@@ -25,7 +25,7 @@ def init_env():
 
     # TODO: Remove this setting after lmnet.environment has been refactored.
     envs = {
-        "DATA_DIR": blueoil_dir,
+        "DATA_DIR": os.path.join(blueoil_dir, "lmnet", "tests", "fixtures", "datasets"),
         "OUTPUT_DIR": train_output_dir.name,
         "_EXPERIMENT_DIR": os.path.join(train_output_dir.name, "{experiment_id}"),
         "_TENSORBOARD_DIR": os.path.join(train_output_dir.name, "{experiment_id}", "tensorboard"),
@@ -81,7 +81,7 @@ def run_all_steps(dirs, config_file):
     # Convert
     # TODO: Remove this setting after lmnet.environment has been refactored.
     environment._init_flag = False
-    convert(experiment_id)
+    convert(experiment_id, save_npy_for_debug=False)
 
     convert_output_dir = os.path.join(train_output_dir, 'export', checkpoint_name)
     lib_dir = os.path.join(

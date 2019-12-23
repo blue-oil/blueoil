@@ -17,7 +17,7 @@
 import os
 import unittest
 
-from nose2.tools import params
+from parameterized import parameterized
 
 from scripts import generate_project as gp
 from testcase_dlk_base import TestCaseDLKBase
@@ -30,7 +30,7 @@ def params_generate():
 class TestGenerateProject(TestCaseDLKBase):
     """Test class for 'generate_project.py' script."""
 
-    @params(*params_generate())
+    @parameterized.expand(params_generate())
     def test_generate_project(self, i, flag_hq, flag_thskip) -> None:
 
         input_path = os.path.abspath(

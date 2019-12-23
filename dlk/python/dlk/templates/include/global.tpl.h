@@ -23,6 +23,14 @@ limitations under the License.
 #include <type_traits>
 #include "func/impl/pop_count.h"
 
+#ifdef __cpp_lib_byte
+#include <cstddef>
+using BYTE = std::byte;
+#else
+enum class byte : unsigned char {};
+using BYTE = byte;
+#endif
+
 typedef uint32_t T_UINT;
 typedef int32_t  T_INT;
 typedef float    T_FLOAT;
@@ -89,13 +97,6 @@ struct Base<QuantizedPacked<T>> {
   typedef T_INT16 BIN_CONV_OUTPUT;
 #endif
 
-#define NBIT_QDYPE {{ params.default_nbit_qword }}
-
-#define DEFAULT_GRAPH_INPUT {{ graph_input.dtype.cpptype() }}
-#define DEFAULT_GRAPH_OUTPUT {{ graph_output.dtype.cpptype() }}
-
-#define BIN_CONV_FORMULA_SCALING_FACTOR 3.0
-#define WORD_SIZE 32
 
 #define IP_CSR_ADDR 0xFF200000
 #define TH_IP_CSR_ADDR 0xFF200100
@@ -106,7 +107,6 @@ struct Base<QuantizedPacked<T>> {
 #define KERNEL_ADDR 0x38000000
 #define THRESHOLD_ADDR 0x3F000000
 
-#define NUM_PE {{ config.num_pe }}
 
 {%- if config.activate_hard_quantization %}
 #define HARD_QUANTIZATION_ACTIVE
@@ -118,7 +118,6 @@ struct Base<QuantizedPacked<T>> {
 
 #define NUM_OF_A2W1_THRESHOLD {{ 2**2 }}
 
-#define PS_PL_BANDWIDTH {{ config.bandwidth }}
 
 
 /********************************************************

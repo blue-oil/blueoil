@@ -5,7 +5,7 @@ network_name: LMFYoloQuantize
 
 dataset:
   format: DeLTA-Mark for Object Detection
-  train_path: ./lmnet/tests/fixtures/datasets/custom_delta_mark_object_detection/for_train
+  train_path: custom_delta_mark_object_detection/for_train
   test_path: 
 
 trainer:

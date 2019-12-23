@@ -24,7 +24,7 @@ import numpy as np
 from core.data_types import QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, Int32, PackedUint32, Uint32
 from core.graph import Graph
 from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from core.operators import Constant, Conv, Lookup, Operator
+from core.operators import Constant, Conv, Lookup, Operator, BatchNormalizationOptimized
 from modules.packer import Packer
 
 
@@ -310,6 +310,11 @@ def pass_compute_thresholds(graph: Graph) -> None:
             if np.all(threshold_table[c, 1:-1] == threshold_table[c, :-2], axis=0):
                 threshold_table[c, -1] = 1
                 threshold_table[c, 0:-1] = max_th_value
+
+        bits_per_word = 32
+        rem = (bits_per_word - ch % bits_per_word) % bits_per_word
+        pad = np.ones((rem, n + 1), dtype=np.int32)
+        threshold_table = np.vstack((threshold_table, pad))
 
         # Put the thresholds into list
         conv_node.thresholds = threshold_table.flatten().tolist()
@@ -646,3 +651,83 @@ def pass_lookup(graph: Graph) -> None:
 
     for op in to_be_removed:
         graph.remove_op(op)
+
+
+def pass_simplify_batchnorm(graph: Graph) -> None:
+    """Simplify BarchNorm operator.
+    """
+
+    exec_list = [x for x in sort_graph(graph) if x.op_type == 'BatchNormalization']
+
+    to_be_removed = []
+
+    for node in exec_list:
+        scale = node.input_ops['scale']
+        if scale.op_type != 'Constant':
+            raise RuntimeError('scale for BatchNormalization must be Constant')
+        B = node.input_ops['B']
+        if B.op_type != 'Constant':
+            raise RuntimeError('B for BatchNormalization must be Constant')
+        mean = node.input_ops['mean']
+        if mean.op_type != 'Constant':
+            raise RuntimeError('mean for BatchNormalization must be Constant')
+        var = node.input_ops['var']
+        if var.op_type != 'Constant':
+            raise RuntimeError('var for BatchNormalization must be Constant')
+
+        new_name = node.name + '_optimized'
+        new_scale_data = scale.data / np.sqrt(var.data + node.epsilon)
+        new_scale = Constant(
+            new_name + '_scale',
+            scale.dtype,
+            new_scale_data,
+            dimension_format=scale.dimension
+        )
+        new_bias_data = B.data - new_scale_data * mean.data
+        new_bias = Constant(
+            new_name + '_bias',
+            B.dtype,
+            new_bias_data,
+            dimension_format=B.dimension
+        )
+        new_op = BatchNormalizationOptimized(
+            new_name,
+            node.shape,
+            node.dtype,
+            {'X': node.input_ops['X'], 'scale': new_scale, 'bias': new_bias},
+            dimension_format=node.dimension
+        )
+        new_scale.add_output('output', new_op)
+        new_bias.add_output('output', new_op)
+
+        input_op = node.input_ops['X']
+        update_key = None
+        new_outputs = [new_op]
+        for key, inout_ops in input_op.output_ops.items():
+            if node in inout_ops:
+                update_key = key
+                for op in inout_ops:
+                    if op != node:
+                        new_outputs.append(op)
+        if update_key is not None:
+            input_op.remove_output(update_key)
+            input_op.add_outputs({update_key: new_outputs})
+
+        out_ops = node.output_op_list
+        for op in out_ops:
+            update_key = None
+            for key, outin_op in op.input_ops.items():
+                if outin_op == node:
+                    update_key = key
+            if update_key is not None:
+                op.add_input(update_key, new_op)
+            new_op.add_output('Y', op)
+
+        graph.add_op(new_scale)
+        graph.add_op(new_bias)
+        graph.add_op(new_op)
+
+        to_be_removed += [node, scale, B, mean, var]
+
+    for node in to_be_removed:
+        graph.remove_op(node)

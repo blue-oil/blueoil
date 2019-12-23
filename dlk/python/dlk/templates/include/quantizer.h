@@ -21,10 +21,6 @@ limitations under the License.
 #include "global.h"
 #include "tensor_view.h"
 
-void func_QTZ_binary_channel_wise_mean_scaling(
-    const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
-    const TensorView<T_FLOAT, MemoryLayout::NHWC>& output);
-
 template <MemoryLayout layout>
 void func_QTZ_binary_mean_scaling(
     const TensorView<T_FLOAT, layout>& input,
@@ -50,12 +46,14 @@ void func_QTZ_linear_mid_tread_half(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_INT, MemoryLayout::Atom>& nbit,
     const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
-    const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& output);
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& output,
+    BYTE *temporary_buf);
 
 void func_QTZ_linear_mid_tread_half(
   const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
   const TensorView<T_INT, MemoryLayout::Atom>& nbit,
   const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
-  const TensorView<T_FLOAT, MemoryLayout::NHWC>& output);
+  const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
+  BYTE *temporary_buf);
 
 #endif // QUANTIZER_H_INCLUDED
