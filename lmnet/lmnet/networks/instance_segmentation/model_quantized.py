@@ -2258,11 +2258,18 @@ class MaskRCNN():
             workers=workers,
             use_multiprocessing=True,
         )
-
-        pb_dir = os.path.join(self.log_dir, 'model_pb')
-        self.keras_model.save(str(pb_dir))
+        #######using session and saving .pb file##
+        # frozen_graph = self.freeze_session(K.get_session(),
+        #                                    output_names=[out.op.name for out in self.keras_model.outputs])
+        # tf.train.write_graph(frozen_graph, self.log_dir, "my_model.pb", as_text=False)
+        #
+        # pb_dir = os.path.join(self.log_dir, 'model_pb')
+        # self.keras_model.save(str(pb_dir))
 
         self.epoch = max(self.epoch, epochs)
+
+    def save(self, save_path):
+        self.keras_model.save(save_path)
 
     def mold_inputs(self, images):
         """Takes a list of images and modifies them to the format expected
