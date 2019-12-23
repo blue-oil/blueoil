@@ -68,6 +68,7 @@ def linear_mid_tread_half_quantizer(
 
     """  # NOQA
     min_value = 0
+    max_value = float(max_value)
 
     def _backward(op, grad_quantized):
         """Backward.
@@ -102,7 +103,7 @@ def linear_mid_tread_half_quantizer(
         @Defun(dtype, K.tf.int32, K.tf.float32, python_grad_func=_backward,
                shape_func=lambda op: [op.inputs[0].get_shape()],
                func_name='QTZ_linear_mid_tread_half')
-        def _func(x, bit, max_value):
+        def _func(x):
             n = K.tf.pow(2., K.tf.cast(bit, dtype=K.tf.float32)) - 1
             value_range = max_value - min_value
 
@@ -112,6 +113,6 @@ def linear_mid_tread_half_quantizer(
             unshifted = quantized * value_range + min_value
             return unshifted
 
-        return _func(x, bit, float(max_value))
+        return _func(x)
 
     return _forward
