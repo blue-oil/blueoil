@@ -4,8 +4,8 @@ set -euf
 # test cases to run inference
 # <buildkite agent-type> <model filename>
 TEST_CASES=(
-    # "de10-nano      lib_arm.so"
-    # "de10-nano      lib_fpga.so"
+    "de10nano      lib_arm.so"
+    "de10nano      lib_fpga.so"
     # "ultra96        lib_aarch64.so"
     # "ultra96        lib_fpga.so"
     "jetson-nano    lib_aarch64.so"
@@ -50,8 +50,8 @@ for TEST_CASE in "${TEST_CASES[@]}" ; do
       buildkite-agent artifact download "convert-result.tgz" ./
       tar xvf convert-result.tgz
       cd export/*/*/output/python
-      pip3 install -r requirements.txt
-      python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/${MODEL}
+      pip install -r requirements.txt
+      python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/${MODEL}
 
     artifact_paths:
       - "export/*/*/output/python/output/output.json"
