@@ -45,7 +45,13 @@ EOS
 
 for TEST_CASE in "${TEST_CASES[@]}" ; do
     IFS=' '
-    read AGENT MODEL <<< "$TEST_CASE"
+    read AGENT MODEL <<< "${TEST_CASE}"
+
+    if [ "${AGENT}" = "de10nano" ]; then
+        PYTHON_COMMAND="sudo python"
+    else
+        PYTHON_COMMAND="python"
+    fi
 
     cat <<EOS
   - label: "inference: ${AGENT} (${MODEL})"
@@ -60,7 +66,7 @@ for TEST_CASE in "${TEST_CASES[@]}" ; do
       buildkite-agent artifact download "convert-result.tgz" ./
       tar xvf convert-result.tgz
       cd export/*/*/output/python
-      python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/${MODEL}
+      ${PYTHON_COMMAND} run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/${MODEL}
 
     artifact_paths:
       - "export/*/*/output/python/output/output.json"
