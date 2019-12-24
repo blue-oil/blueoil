@@ -282,9 +282,9 @@ if __name__ == '__main__':
 
     change_lr = LearningRateScheduler(scheduler)
     tb_cb = TensorBoard(log_dir=log_dir, histogram_freq=0)
-    ckpt_cb = ModelCheckpoint(filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc', save_weights_only=True,
-                              period=10)
-    callbacks = [change_lr, tb_cb]
+    checkpoint = ModelCheckpoint(filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc', save_weights_only=True,
+                                 period=10)
+    callbacks = [change_lr, tb_cb, checkpoint]
 
     EPOCHS = 150
 
@@ -292,7 +292,7 @@ if __name__ == '__main__':
                         epochs=EPOCHS,
                         callbacks=callbacks,
                         steps_per_epoch=1281167 // BATCH_SIZE,
-                        #validation_data=val_gen,
+                        # validation_data=val_gen,
                         )
 
     model.save_weights(log_dir + 'resnet18_final.h5')
