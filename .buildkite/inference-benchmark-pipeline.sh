@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euf
 
+# This script is executed by Buildkite to generate pipeline YAML string.
+# Document: https://buildkite.com/docs/pipelines/defining-steps#dynamic-pipelines
+#
+# Usage: CONVERT_RESULT_PATH=gs://path/to/result.tgz ./inference-benchmark-pipeline.sh
+
 # test cases to run inference
 # "<buildkite agent-type> <model filename>"
 TEST_CASES=(
