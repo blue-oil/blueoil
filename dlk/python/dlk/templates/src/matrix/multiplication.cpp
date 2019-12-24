@@ -42,6 +42,7 @@ void matrix_multiplication_col3(
   BYTE *temporary_buf) {
 #ifdef USE_NEON
   auto A_colm = row_major_to_col_major(A, reinterpret_cast<float*>(temporary_buf));
+#pragma omp parallel for
   for (std::size_t i = 0; i < B.cols(); ++i) {
     float32x4_t rhs0 = vdupq_n_f32((float)(*B.data(0, i)));
     float32x4_t rhs1 = vdupq_n_f32((float)(*B.data(1, i)));
