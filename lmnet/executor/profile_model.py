@@ -205,7 +205,7 @@ def _profile_params(graph, res, bit, unquant_layers):
                 'children': node_children,
             }
         # Add is_quant_kernel flag to leaf node
-        if len(node.children) == 0:
+        if not node.children:
             node_param_dict["is_quant_kernel"] = is_quant_kernel
 
         return node_param_dict
