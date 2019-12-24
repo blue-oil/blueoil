@@ -292,7 +292,9 @@ if __name__ == '__main__':
                         epochs=EPOCHS,
                         callbacks=callbacks,
                         steps_per_epoch=1281167 // BATCH_SIZE,
-                        validation_data=val_gen
+                        validation_data=val_gen,
+                        validation_steps=2000,
+                        validation_freq=10
                         )
 
     model.save_weights(log_dir + 'resnet18_final.h5')
