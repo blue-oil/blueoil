@@ -12,9 +12,6 @@ TEST_CASES=(
     "de10nano       lib/lib_arm.so"
     "de10nano       lib/lib_fpga.so"
 
-    # "ultra96        lib/lib_aarch64.so"
-    # "ultra96        lib/lib_fpga.so"
-
     "jetson-nano    lib/lib_aarch64.so"
     "jetson-nano    minimal_graph_with_shape.pb"
 
@@ -23,9 +20,6 @@ TEST_CASES=(
 
     "jetson-xavier  lib/lib_aarch64.so"
     "jetson-xavier  minimal_graph_with_shape.pb"
-
-    # "lm-server      lib/lib_x86.so"
-    # "lm-server      minimal_graph_with_shape.pb"
 
     "raspberry-pi   lib/lib_aarch64.so"
 )
