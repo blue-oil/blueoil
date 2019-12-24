@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import logging
 import math
 import os
 
@@ -25,6 +26,9 @@ from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
 from lmnet.utils import config as config_util
 from lmnet.utils import executor, module_loader
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def setup_dataset(config, subset, seed):
@@ -52,7 +56,7 @@ def evaluate(config, restore_path):
     if not os.path.exists("{}.index".format(restore_path)):
         raise Exception("restore file {} dont exists.".format(restore_path))
 
-    print("restore_path:", restore_path)
+    logger.info(f"restore_path:{restore_path}")
 
     DatasetClass = config.DATASET_CLASS
     ModelClass = config.NETWORK_CLASS
@@ -113,10 +117,10 @@ def evaluate(config, restore_path):
 
     # init metrics values
     test_step_size = int(math.ceil(validation_dataset.num_per_epoch / config.BATCH_SIZE))
-    print("test_step_size", test_step_size)
+    logger.info(f"test_step_size{test_step_size}")
 
     for test_step in range(test_step_size):
-        print("test_step", test_step)
+        logger.info(f"test_step{test_step}")
 
         images, labels = validation_dataset.feed()
         feed_dict = {
