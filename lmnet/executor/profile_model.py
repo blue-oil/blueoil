@@ -270,7 +270,7 @@ def run(experiment_id, restore_path, config_file, bit, unquant_layers):
 @click.option(
     "-b",
     "--bit",
-    default=1,
+    default=32,
     help="quantized bit",
 )
 @click.option(
