@@ -109,10 +109,12 @@ def identity_block_18(input_tensor, kernel_size, filters, stage, block,
 
         x = KL.Conv2D(nb_filter2, (1, 1), name=conv_name_base + '2b',
                       use_bias=use_bias)(x)
+
+    # the output of this block is used as feature map
     x = BatchNorm(name=bn_name_base + '2b')(x, training=train_bn)
 
     x = KL.Add()([x, input_tensor])
-    x = my_activation(x)
+    x = KL.Activation('relu')(x)
     return x
 
 
@@ -280,8 +282,8 @@ if __name__ == '__main__':
 
     change_lr = LearningRateScheduler(scheduler)
     tb_cb = TensorBoard(log_dir=log_dir, histogram_freq=0)
-    # ckpt_cb = ModelCheckpoint(filepath=str(log_dir / '{epoch:02d}.hdf5'), monitor='val_acc', save_weights_only=True,
-    #                           period=50)
+    ckpt_cb = ModelCheckpoint(filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc', save_weights_only=True,
+                              period=10)
     callbacks = [change_lr, tb_cb]
 
     EPOCHS = 150
@@ -293,4 +295,4 @@ if __name__ == '__main__':
                         validation_data=val_gen
                         )
 
-    model.save(log_dir)
+    model.save_weights(log_dir + 'resnet18_final.h5')
