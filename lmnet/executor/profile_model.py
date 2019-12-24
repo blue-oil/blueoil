@@ -24,6 +24,7 @@ from lmnet import environment
 from lmnet.utils import config as config_util
 from lmnet.utils import executor
 
+
 def _profile(config, restore_path, bit, unquant_layers):
     output_root_dir = os.path.join(environment.EXPERIMENT_DIR, "export")
     if restore_path:
