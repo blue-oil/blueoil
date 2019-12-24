@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import collections
+import logging
 import os
 
 import click
@@ -22,6 +23,9 @@ import tensorflow as tf
 from lmnet import environment
 from lmnet.utils import config as config_util
 from lmnet.utils import executor
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def _profile(config, restore_path, bit, unquant_layers):
@@ -57,7 +61,7 @@ def _profile(config, restore_path, bit, unquant_layers):
     sess.run(init_op)
 
     if restore_path:
-        print("Restore from {}".format(restore_path))
+        logger.info("Restore from {}".format(restore_path))
         saver.restore(sess, restore_path)
 
     main_output_dir = os.path.join(output_root_dir, "{}x{}".format(config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
@@ -114,7 +118,7 @@ def _render(name, image_size, num_classes, bit, res):
     output_file = os.path.join(environment.EXPERIMENT_DIR, "{}_profile.md".format(name))
     with open(output_file, "w") as f:
         f.write(file_data)
-    print("Model's profile has been saved into {}".format(output_file))
+    logger.info("Model's profile has been saved into {}".format(output_file))
 
 
 def _profile_flops(graph, res, scopes):
