@@ -1,6 +1,7 @@
 import tensorflow as tf
 import keras
 import keras.layers as KL
+import keras.backend as K
 from keras.callbacks import LearningRateScheduler, TensorBoard, ModelCheckpoint
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils.training_utils import multi_gpu_model
@@ -13,10 +14,11 @@ assert LooseVersion(tf.__version__) >= LooseVersion("1.3")
 assert LooseVersion(keras.__version__) >= LooseVersion('2.0.8')
 
 import functools
-from lmnet.quantizations import (
-    binary_mean_scaling_quantizer,
-    linear_mid_tread_half_quantizer
-)
+with K.get_session().graph.as_default():
+    from lmnet.quantizations import (
+        binary_mean_scaling_quantizer,
+        linear_mid_tread_half_quantizer
+    )
 
 # from lmnet.networks.instance_segmentation.keras_linear import linear_mid_tread_half_quantizer
 
