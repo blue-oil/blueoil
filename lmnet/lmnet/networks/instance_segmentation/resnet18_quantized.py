@@ -3,6 +3,7 @@ import keras
 import keras.layers as KL
 from keras.callbacks import LearningRateScheduler, TensorBoard, ModelCheckpoint
 from keras.preprocessing.image import ImageDataGenerator
+from keras.utils.training_utils import multi_gpu_model
 import numpy as np
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
@@ -225,6 +226,18 @@ def val_gen():
             yield (batch_input, batch_output)
 
 
+class ParallelModelCheckpoint(ModelCheckpoint):
+    def __init__(self, model, filepath, monitor='val_acc', verbose=0,
+                 save_best_only=False, save_weights_only=True,
+                 mode='auto', period=10):
+        self.single_model = model
+        super(ParallelModelCheckpoint, self).__init__(filepath, monitor, verbose, save_best_only, save_weights_only,
+                                                      mode, period)
+
+    def set_model(self, model):
+        super(ParallelModelCheckpoint, self).set_model(self.single_model)
+
+
 if __name__ == '__main__':
     ##############
     # Model
@@ -259,9 +272,9 @@ if __name__ == '__main__':
                                                batch_size=BATCH_SIZE)
 
     train_data = crop_generator(train_data, 224)
-
-    model.compile(loss='categorical_crossentropy', metrics=['accuracy'],
-                  optimizer=keras.optimizers.SGD(0.1, 0.9, nesterov=True))
+    parallel_model = multi_gpu_model(model, gpus=2)
+    parallel_model.compile(loss='categorical_crossentropy', metrics=['accuracy'],
+                           optimizer=keras.optimizers.SGD(0.1, 0.9, nesterov=True))
 
     START_LR = 0.1
     BASE_LR = START_LR * (BATCH_SIZE / 256.0)
@@ -282,20 +295,23 @@ if __name__ == '__main__':
 
     change_lr = LearningRateScheduler(scheduler)
     tb_cb = TensorBoard(log_dir=log_dir, histogram_freq=0)
-    ckpt_cb = ModelCheckpoint(filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc', save_weights_only=True,
-                              period=10)
-    callbacks = [change_lr, tb_cb]
+
+    checkpoint = ParallelModelCheckpoint(model, filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc')
+
+    # ckpt_cb = ModelCheckpoint(filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc', save_weights_only=True,
+    #                           period=10)
+    callbacks = [change_lr, tb_cb, checkpoint]
 
     EPOCHS = 150
 
-    model.fit_generator(train_data,
-                        epochs=EPOCHS,
-                        callbacks=callbacks,
-                        steps_per_epoch=1281167 // BATCH_SIZE,
-                        # validation_data=val_gen,
-                        # validation_steps=2000,
-                        workers=4,
-                        use_multiprocessing=True
-                        )
+    parallel_model.fit_generator(train_data,
+                                 epochs=EPOCHS,
+                                 callbacks=callbacks,
+                                 steps_per_epoch=1281167 // BATCH_SIZE,
+                                 # validation_data=val_gen,
+                                 # validation_steps=2000,
+                                 # workers=4,
+                                 # use_multiprocessing=True
+                                 )
 
     model.save_weights(log_dir + 'resnet18_final.h5')
