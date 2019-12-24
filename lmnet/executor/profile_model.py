@@ -156,7 +156,7 @@ def _profile_flops(graph, res, scopes):
 
     node_flops_dict = {
         'total_flops': float_res_dict["total"],
-        'children': [{"name": k, "flops": float_res_dict[k]} for k in float_res_dict.keys() if k != "total"]
+        'children': [{"name": k, "flops": v} for k, v in float_res_dict.items() if k != "total"]
     }
 
     return new_res, node_flops_dict
