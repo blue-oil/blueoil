@@ -56,7 +56,7 @@ for TEST_CASE in "${TEST_CASES[@]}" ; do
       - "export/*/*/output/python/output/output.json"
 
     command: |
-      buildkite-agent artifact download "convert-result.tgz" ./
+      buildkite-agent artifact download "convert-result.tgz" ./ --build $BUILDKITE_BUILD_ID
       tar xvf convert-result.tgz
       cd export/*/*/output/python
 EOS
