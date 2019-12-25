@@ -12,13 +12,8 @@ TEST_CASES=(
     "de10nano       lib/lib_arm.so"
     "de10nano       lib/lib_fpga.so"
 
-    "jetson-nano    lib/lib_aarch64.so"
     "jetson-nano    minimal_graph_with_shape.pb"
-
-    "jetson-tx2     lib/lib_aarch64.so"
     "jetson-tx2     minimal_graph_with_shape.pb"
-
-    "jetson-xavier  lib/lib_aarch64.so"
     "jetson-xavier  minimal_graph_with_shape.pb"
 
     "raspberry-pi   lib/lib_aarch64.so"
