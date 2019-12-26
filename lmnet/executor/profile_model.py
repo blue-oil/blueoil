@@ -14,6 +14,8 @@
 # limitations under the License.
 # =============================================================================
 import collections
+import json
+import logging
 import os
 
 import click
@@ -22,6 +24,9 @@ import tensorflow as tf
 from lmnet import environment
 from lmnet.utils import config as config_util
 from lmnet.utils import executor
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def _profile(config, restore_path, bit, unquant_layers):
@@ -57,7 +62,7 @@ def _profile(config, restore_path, bit, unquant_layers):
     sess.run(init_op)
 
     if restore_path:
-        print("Restore from {}".format(restore_path))
+        logger.info("Restore from {}".format(restore_path))
         saver.restore(sess, restore_path)
 
     main_output_dir = os.path.join(output_root_dir, "{}x{}".format(config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
@@ -70,7 +75,7 @@ def _profile(config, restore_path, bit, unquant_layers):
     with inference_graph.as_default():
         tf.import_graph_def(inference_graph_def)
 
-    scopes = {"_TFProfRoot": 0}
+    scopes = {"total": 0}
     scope_idx = 1
     for node in inference_graph_def.node:
         names = node.name.split("/")
@@ -81,13 +86,14 @@ def _profile(config, restore_path, bit, unquant_layers):
 
     # [level, node name, total param, 32 bits size, quantized size, flops]
     res = []
-    res = _profile_params(graph, res, bit, unquant_layers)
-    res = _profile_flops(inference_graph, res, scopes)
+    res, node_param_dict = _profile_params(graph, res, bit, unquant_layers)
+    res, node_flops_dict = _profile_flops(inference_graph, res, scopes)
 
     name = ModelClass.__name__
     image_size = config.IMAGE_SIZE
     num_classes = len(config.CLASSES)
     _render(name, image_size, num_classes, bit, res)
+    _save_json(name, image_size, num_classes, node_param_dict, node_flops_dict)
 
 
 def _render(name, image_size, num_classes, bit, res):
@@ -114,13 +120,30 @@ def _render(name, image_size, num_classes, bit, res):
     output_file = os.path.join(environment.EXPERIMENT_DIR, "{}_profile.md".format(name))
     with open(output_file, "w") as f:
         f.write(file_data)
-    print("Model's profile has been saved into {}".format(output_file))
+    logger.info("Model's profile has been saved into {}".format(output_file))
+
+
+def _save_json(name, image_size, num_classes, node_param_dict, node_flops_dict):
+    prof_dict = {
+        'model_name': name,
+        'image_size_height': image_size[0],
+        'image_size_width': image_size[1],
+        'num_classes': num_classes,
+        'flops': node_flops_dict,
+        'parameters': node_param_dict,
+    }
+
+    output_file = os.path.join(environment.EXPERIMENT_DIR, "{}_profile.json".format(name))
+    with open(output_file, "w") as f:
+        f.write(json.dumps(prof_dict, indent=4))
+
+    logger.info("save json: {}".format(output_file))
 
 
 def _profile_flops(graph, res, scopes):
     float_prof = tf.profiler.profile(graph, options=tf.profiler.ProfileOptionBuilder.float_operation())
     float_res_dict = collections.defaultdict(int)
-    float_res_dict["_TFProfRoot"] = float_prof.total_float_ops
+    float_res_dict["total"] = float_prof.total_float_ops
     for node in float_prof.children:
         scope = node.name.split("/")[1]
         float_res_dict[scope] += node.total_float_ops
@@ -136,7 +159,12 @@ def _profile_flops(graph, res, scopes):
         elif scope in float_res_dict:
             new_res.append([1, scope, "-", "-", "-", flops])
 
-    return new_res
+    node_flops_dict = {
+        'total_flops': float_res_dict["total"],
+        'children': [{"name": k, "flops": v} for k, v in float_res_dict.items() if k != "total"]
+    }
+
+    return new_res, node_flops_dict
 
 
 def _profile_params(graph, res, bit, unquant_layers):
@@ -146,22 +174,52 @@ def _profile_params(graph, res, bit, unquant_layers):
     def helper(node, level):
         is_quant_kernel = all([layer not in node.name for layer in unquant_layers]) and "kernel" == \
                           node.name.split("/")[-1]
-        bits = bit if is_quant_kernel else 32
+        node_name = "total" if level == 0 else node.name
+        node_params = node.total_parameters
+        node_size = node_params * 32
+        node_quant_size = (node_params * bit) if is_quant_kernel else node_size
+        node_children = []
+        # Add node info to result list
         res.append(
-            [level, node.name, node.total_parameters, node.total_parameters * 32, node.total_parameters * bits])
+            [level, node_name, node_params, node_size, node_quant_size])
         idx = len(res) - 1
-        sumsq = 0
+        # Get children node info
+        sumqs = 0
         for c in node.children:
-            size_quat = helper(c, level + 1)
-            sumsq += size_quat
-        res[idx][-1] = sumsq or res[idx][-1]
-        return res[idx][-1]
+            children = helper(c, level + 1)
+            sumqs += children["quant_size"]
+            node_children.append(children)
+        node_quant_size = sumqs or node_quant_size
+        # Update node_quant_size of result list
+        res[idx][-1] = node_quant_size
+        # Create node_dict
+        if node_name == "total":
+            node_param_dict = {
+                'total_parameters': node_params,
+                'total_size': node_size,
+                'quant_bit': bit,
+                'total_quant_size': node_quant_size,
+                'children': node_children,
+            }
+        else:
+            node_param_dict = {
+                'name': node_name,
+                'parameters': node_params,
+                'size': node_size,
+                'quant_size': node_quant_size,
+                'children': node_children,
+            }
+        # Add is_quant_kernel flag to leaf node
+        if not node.children:
+            node_param_dict["is_quant_kernel"] = is_quant_kernel
 
-    helper(prof, 0)
+        return node_param_dict
+
+    node_param_dict = helper(prof, 0)
     for elem in res:
         elem[3] = round(elem[3] / 8 / 1024 ** 2, 5)
         elem[4] = round(elem[4] / 8 / 1024 ** 2, 5)
-    return res
+    return res, node_param_dict
 
 
 def run(experiment_id, restore_path, config_file, bit, unquant_layers):
