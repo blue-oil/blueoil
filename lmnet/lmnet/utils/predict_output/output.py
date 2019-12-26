@@ -16,15 +16,14 @@
 import base64
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 from io import BytesIO
 
 import numpy as np
 import PIL.Image
 import PIL.ImageDraw
-from matplotlib import cm
 
-from lmnet.common import Tasks
+from lmnet.common import Tasks, get_color_map
 from lmnet.visualize import visualize_keypoint_detection
 
 
@@ -35,12 +34,13 @@ class JsonOutput():
     Please see [Output Data Specification](https://github.com/LeapMind/lmnet/wiki/Output-Data-Specification).
     """
 
-    def __init__(self, task, classes, image_size, data_format):
+    def __init__(self, task, classes, image_size, data_format, bench=None):
         assert task in Tasks
         self.task = task
         self.classes = classes
         self.image_size = image_size
         self.data_format = data_format
+        self.bench = bench if bench else {}
 
     def _classification(self, outputs, raw_images, image_files):
         assert outputs.shape == (len(image_files), len(self.classes))
@@ -175,7 +175,7 @@ class JsonOutput():
             "version": 0.2,
             "task": str(self.task.value),
             "classes": [{"id": i, "name": class_name} for i, class_name in enumerate(self.classes)],
-            "date": datetime.now(timezone.utc).isoformat(),
+            "date": datetime.now().isoformat(),
             "results": [],
         }
 
@@ -208,6 +208,7 @@ class ImageFromJson():
         self.task = task
         self.classes = classes
         self.image_size = image_size
+        self.color_maps = get_color_map(len(classes))
 
     def _classification(self, result_json, raw_images, image_files):
         outputs = json.loads(result_json)
@@ -251,13 +252,11 @@ class ImageFromJson():
             masks = np.stack(masks, axis=2)
             argmax = np.argmax(masks, axis=2)
 
-            color_maps = (np.array(cm.tab20.colors) * 255).tolist()
-
             result = []
 
             output_image = np.zeros_like(raw_image)
             for i, class_name in enumerate(self.classes):
-                color = color_maps[i % len(self.classes)]
+                color = self.color_maps[i % len(self.classes)]
                 output_image[argmax == i] = color
 
             output_pil = PIL.Image.fromarray(output_image)
@@ -284,7 +283,6 @@ class ImageFromJson():
             draw = PIL.ImageDraw.Draw(image)
 
             predictions = result["prediction"]
-            color_maps = (np.array(cm.tab20.colors) * 255).astype(np.uint8).tolist()
 
             for prediction in predictions:
                 box = prediction["box"]
@@ -294,7 +292,7 @@ class ImageFromJson():
                 class_name = prediction["class"]["name"]
                 score = prediction["score"]
 
-                color = tuple(color_maps[class_id % len(self.classes)])
+                color = tuple(self.color_maps[class_id % len(self.classes)])
 
                 draw.rectangle(xy, outline=color)
                 txt = "class: {:s}, score: {:.3f}".format(class_name, float(score))
