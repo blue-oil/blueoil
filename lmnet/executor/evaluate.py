@@ -156,7 +156,7 @@ def evaluate(config, restore_path, output_dir):
 
     metrics_dict = {
         'task_type': config.TASK.value,
-        'model_name': config.NETWORK_CLASS.__name__,
+        'network_name': config.NETWORK_CLASS.__name__,
         'dataset_name': dataset_name,
         'dataset_path': dataset_path,
         'last_step': int(last_step),
