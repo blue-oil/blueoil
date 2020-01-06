@@ -4,6 +4,9 @@ import keras.layers as KL
 from keras.callbacks import LearningRateScheduler, TensorBoard, ModelCheckpoint
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
+from keras.utils import multi_gpu_model
+from keras.layers import Layer
+from keras.initializers import random_normal
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
 from distutils.version import LooseVersion
@@ -63,6 +66,40 @@ my_custom_getter = functools.partial(quantized_variable_getter,
 
 
 ############################################################
+#  Custom Layers
+############################################################
+class QConv2d(Layer):
+    def __init__(self, out_ch, k_size, padding='valid', strides=1, name=None, use_bias=True, **kwargs):
+        self.out_ch = out_ch
+        self.k_size = k_size
+        self.padding = padding
+        self.strides = strides
+        self.use_bias = use_bias
+        self.kernel_quantizer = binary_mean_scaling_quantizer()
+        super(QConv2d, self).__init__(name=name, **kwargs)
+
+    def build(self, input_shape):
+        self.w = self.add_weight(name="kernel",
+                                 shape=(self.k_size, self.k_size, int(input_shape[3]), self.out_ch),
+                                 initializer=random_normal(stddev=0.01),
+                                 trainable=True)
+        self.b = self.add_weight(name="bias",
+                                 shape=(self.out_ch,),
+                                 initializer='zeros',
+                                 trainable=True)
+        super(QConv2d, self).build(input_shape)
+
+    def call(self, x):
+        x = tf.nn.conv2d(x,
+                         filter=self.kernel_quantizer(self.w),
+                         strides=self.strides,
+                         padding=self.padding, )
+        if self.use_bias:
+            x = tf.nn.bias_add(x, self.b)
+        return x
+
+
+############################################################
 #  Resnet Graph
 ############################################################
 
@@ -101,14 +138,13 @@ def identity_block_18(input_tensor, kernel_size, filters, stage, block,
     conv_name_base = 'res' + str(stage) + block + '_branch'
     bn_name_base = 'bn' + str(stage) + block + '_branch'
 
-    with tf.compat.v1.variable_scope('quantize_group_' + str(stage) + block, custom_getter=my_custom_getter):
-        x = KL.Conv2D(nb_filter1, (kernel_size, kernel_size), padding='same',
-                      name=conv_name_base + '2a', use_bias=use_bias)(input_tensor)
-        x = BatchNorm(name=bn_name_base + '2a')(x, training=train_bn)
-        x = my_activation(x)
+    x = QConv2d(nb_filter1, kernel_size, padding='same',
+                name=conv_name_base + '2a', use_bias=use_bias)(input_tensor)
+    x = BatchNorm(name=bn_name_base + '2a')(x, training=train_bn)
+    x = my_activation(x)
 
-        x = KL.Conv2D(nb_filter2, (1, 1), name=conv_name_base + '2b',
-                      use_bias=use_bias)(x)
+    x = QConv2d(nb_filter2, 1, name=conv_name_base + '2b',
+                use_bias=use_bias)(x)
 
     # the output of this block is used as feature map
     x = BatchNorm(name=bn_name_base + '2b')(x, training=train_bn)
@@ -136,22 +172,21 @@ def conv_block_18(input_tensor, kernel_size, filters, stage, block,
     conv_name_base = 'res' + str(stage) + block + '_branch'
     bn_name_base = 'bn' + str(stage) + block + '_branch'
 
-    with tf.compat.v1.variable_scope('quantize_group_' + str(stage) + block, custom_getter=my_custom_getter):
-        x = KL.MaxPooling2D((1, 1), strides=strides)(input_tensor)
-        x = KL.Conv2D(nb_filter1, (kernel_size, kernel_size), padding='same',
-                      name=conv_name_base + '2a', use_bias=use_bias)(x)
-        x = BatchNorm(name=bn_name_base + '2a')(x, training=train_bn)
-        x = my_activation(x)
+    x = KL.MaxPooling2D((1, 1), strides=strides)(input_tensor)
+    x = QConv2d(nb_filter1, kernel_size, padding='same',
+                name=conv_name_base + '2a', use_bias=use_bias)(x)
+    x = BatchNorm(name=bn_name_base + '2a')(x, training=train_bn)
+    x = my_activation(x)
 
-        x = KL.Conv2D(nb_filter2, (1, 1), name=conv_name_base + '2b', use_bias=use_bias)(x)
-        x = BatchNorm(name=bn_name_base + '2b')(x, training=train_bn)
+    x = QConv2d(nb_filter2, 1, name=conv_name_base + '2b', use_bias=use_bias)(x)
+    x = BatchNorm(name=bn_name_base + '2b')(x, training=train_bn)
 
-        shortcut = KL.Conv2D(nb_filter2, (1, 1), strides=strides,
-                             name=conv_name_base + '1', use_bias=use_bias)(input_tensor)
-        shortcut = BatchNorm(name=bn_name_base + '1')(shortcut, training=train_bn)
+    shortcut = QConv2d(nb_filter2, 1, strides=strides,
+                       name=conv_name_base + '1', use_bias=use_bias)(input_tensor)
+    shortcut = BatchNorm(name=bn_name_base + '1')(shortcut, training=train_bn)
 
-        x = KL.Add()([x, shortcut])
-        x = my_activation(x)
+    x = KL.Add()([x, shortcut])
+    x = my_activation(x)
     return x
 
 
@@ -225,6 +260,18 @@ def val_gen():
             yield (batch_input, batch_output)
 
 
+class ParallelModelCheckpoint(ModelCheckpoint):
+    def __init__(self, model, filepath, monitor='val_loss', verbose=0,
+                 save_best_only=False, save_weights_only=False,
+                 mode='auto', period=1):
+        self.single_model = model
+        super(ParallelModelCheckpoint, self).__init__(filepath, monitor, verbose, save_best_only, save_weights_only,
+                                                      mode, period)
+
+    def set_model(self, model):
+        super(ParallelModelCheckpoint, self).set_model(self.single_model)
+
+
 if __name__ == '__main__':
     ##############
     # Model
@@ -236,14 +283,16 @@ if __name__ == '__main__':
 
     x = KL.GlobalAveragePooling2D(name='global_avg_pool')(x)
     outputs = KL.Dense(1000, activation='softmax', name='fc1000')(x)
-
-    model = keras.Model(input_image, outputs, name='resnet18')
+    with tf.device('/cpu:0'):
+        model = keras.Model(input_image, outputs, name='resnet18')
 
     # TODO(lucien): hard coding
     log_dir = '/home/zhang/blueoil/lmnet/lmnet/networks/instance_segmentation/logs/'
     data_dir = '/storage/dataset/ILSVRC2012/'
 
     BATCH_SIZE = 128
+    NUM_GPU = 2
+    BATCH_SIZE *= NUM_GPU
     mean = [0.485, 0.456, 0.406]  # rgb
     std = [0.229, 0.224, 0.225]
 
@@ -260,8 +309,9 @@ if __name__ == '__main__':
 
     train_data = crop_generator(train_data, 224)
 
-    model.compile(loss='categorical_crossentropy', metrics=['accuracy'],
-                  optimizer=keras.optimizers.SGD(0.1, 0.9, nesterov=True))
+    parallel_model = multi_gpu_model(model, gpus=NUM_GPU)
+    parallel_model.compile(loss='categorical_crossentropy', metrics=['accuracy'],
+                           optimizer=keras.optimizers.SGD(0.1, 0.9, nesterov=True))
 
     START_LR = 0.1
     BASE_LR = START_LR * (BATCH_SIZE / 256.0)
@@ -282,17 +332,21 @@ if __name__ == '__main__':
 
     change_lr = LearningRateScheduler(scheduler)
     tb_cb = TensorBoard(log_dir=log_dir, histogram_freq=0)
-    checkpoint = ModelCheckpoint(filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc', save_weights_only=True,
-                                 period=10)
+    # checkpoint = ModelCheckpoint(filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc', save_weights_only=True,
+    #                              period=10)
+    checkpoint = ParallelModelCheckpoint(model, filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc',
+                                         save_weights_only=True,
+                                         period=10)
+
     callbacks = [change_lr, tb_cb, checkpoint]
 
     EPOCHS = 150
 
-    model.fit_generator(train_data,
-                        epochs=EPOCHS,
-                        callbacks=callbacks,
-                        steps_per_epoch=1281167 // BATCH_SIZE,
-                        # validation_data=val_gen,
-                        )
+    parallel_model.fit_generator(train_data,
+                                 epochs=EPOCHS,
+                                 callbacks=callbacks,
+                                 steps_per_epoch=1281167 // BATCH_SIZE,
+                                 # validation_data=val_gen,
+                                 )
 
     model.save_weights(log_dir + 'resnet18_final.h5')
