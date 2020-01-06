@@ -113,7 +113,7 @@ def run_object_detection(config):
     while vc.isOpened():
         grabbed, input_img = vc.read()
         result, fps = inference_coroutine_generator.send(input_img)
-        if result:
+        if result is not None:
             window_img = add_rectangle(
                 config.CLASSES,
                 input_img,
@@ -150,7 +150,7 @@ def run_classification(config):
     while vc.isOpened():
         grabbed, input_img = vc.read()
         result, fps = inference_coroutine_generator.send(input_img)
-        if result:
+        if result is not None:
             result_class = np.argmax(result, axis=1)
             window_img = input_img.copy()
             add_class_label(window_img, text=str(result[0, result_class][0]), font_scale=0.52, dl_corner=(230, 230))
@@ -186,7 +186,7 @@ def run_semantic_segmentation(config):
     while vc.isOpened():
         grabbed, input_img = vc.read()
         result, fps = inference_coroutine_generator.send(input_img)
-        if result:
+        if result is not None:
             seg_img = label_to_color_image(result, colormap)
             seg_img = cv2.resize(seg_img, dsize=(camera_width, camera_height))
             window_img = cv2.addWeighted(input_img, 1, seg_img, 0.8, 0)
@@ -222,7 +222,7 @@ def run_keypoint_detection(config):
     while vc.isOpened():
         grabbed, input_img = vc.read()
         result, fps = inference_coroutine_generator.send(input_img)
-        if result:
+        if result is not None:
             window_img = visualize_keypoint_detection(input_img, result[0], (input_height, input_width))
             window_img = add_fps(window_img, fps)
         else:
