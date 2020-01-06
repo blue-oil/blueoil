@@ -68,6 +68,33 @@ my_custom_getter = functools.partial(quantized_variable_getter,
 ############################################################
 #  Custom Layers
 ############################################################
+def conv_output_length(input_length, filter_size,
+                       padding, stride, dilation=1):
+    """Determines output length of a convolution given input length.
+    # Arguments
+        input_length: integer.
+        filter_size: integer.
+        padding: one of `"same"`, `"valid"`, `"full"`.
+        stride: integer.
+        dilation: dilation rate, integer.
+    # Returns
+        The output length (integer).
+    """
+    if input_length is None:
+        return None
+    assert padding in {'same', 'valid', 'full', 'causal'}
+    dilated_filter_size = (filter_size - 1) * dilation + 1
+    if padding == 'same':
+        output_length = input_length
+    elif padding == 'valid':
+        output_length = input_length - dilated_filter_size + 1
+    elif padding == 'causal':
+        output_length = input_length
+    elif padding == 'full':
+        output_length = input_length + dilated_filter_size - 1
+    return (output_length + stride - 1) // stride
+
+
 class QConv2d(Layer):
     def __init__(self, out_ch, k_size, padding='valid', strides=1, name=None, use_bias=True, **kwargs):
         self.out_ch = out_ch
@@ -97,6 +124,18 @@ class QConv2d(Layer):
         if self.use_bias:
             x = tf.nn.bias_add(x, self.b)
         return x
+
+    def compute_output_shape(self, input_shape):
+        space = input_shape[1:-1]
+        new_space = []
+        for i in range(len(space)):
+            new_dim = conv_output_length(
+                space[i],
+                self.k_size,
+                padding=self.padding,
+                stride=self.strides)
+            new_space.append(new_dim)
+        return (input_shape[0],) + tuple(new_space) + (self.out_ch,)
 
 
 ############################################################
