@@ -21,14 +21,6 @@ from __future__ import unicode_literals
 import time
 import os
 import sys
-from multiprocessing import Pool
-from time import sleep
-
-# HACK: cross py2-py3 compatible version
-try:
-    from queue import Queue
-except ImportError:
-    from Queue import Queue
 
 import click
 import cv2
