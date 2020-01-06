@@ -21,9 +21,14 @@ from __future__ import unicode_literals
 import time
 import os
 import sys
-from multiprocessing import Process, Queue
+from multiprocessing import Pool
 from time import sleep
-from collections import deque
+
+# HACK: cross py2-py3 compatible version
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 
 import click
 import cv2
@@ -46,12 +51,19 @@ from lmnet.visualize import (
     label_to_color_image,
     visualize_keypoint_detection,
 )
-from lmnet.pre_processor import resize
-
 
 nn = None
 pre_process = None
 post_process = None
+
+
+class MyTime:
+    def __init__(self, function_name):
+        self.start_time = time.time()
+        self.function_name = function_name
+
+    def show(self):
+        print("TIME: ", self.function_name, time.time() - self.start_time)
 
 
 def init_camera(camera_width, camera_height):
@@ -59,12 +71,13 @@ def init_camera(camera_width, camera_height):
         vc = cv2.VideoCapture(0)
         vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
         vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-        vc.set(cv2.cv.CV_CAP_PROP_FPS, 60)
+        vc.set(cv2.cv.CV_CAP_PROP_FPS, 10)
+
     else:
-        vc = cv2.VideoCapture(0)
+        vc = cv2.VideoCapture(1)
         vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
         vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
-        vc.set(cv2.CAP_PROP_FPS, 60)
+        vc.set(cv2.CAP_PROP_FPS, 10)
 
     return vc
 
@@ -79,112 +92,157 @@ def add_class_label(canvas,
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
-def infer_loop(q_input, q_output):
+def inference_coroutine():
     global nn, pre_process, post_process
-    nn.init()
+    result = None
+    fps = 1.0
     while True:
-        img_orig, fps = q_input.get()
-        img = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
-        result, _, _ = run_inference(img, nn, pre_process, post_process)
-        q_output.put((result, fps, img_orig))
+        input_img = yield result, fps
+        input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2RGB)
+        result, fps, _ = run_inference(input_img, nn, pre_process, post_process)
 
-def show_object_detection(img, result, fps, window_height, window_width, config):
-    window_img = resize(img, size=[window_height, window_width])
 
-    input_width = config.IMAGE_SIZE[1]
-    input_height = config.IMAGE_SIZE[0]
-    window_img = add_rectangle(config.CLASSES,
-        window_img, result, (input_height, input_width)
-    )
-    img = add_fps(window_img, fps)
-
-    window_name = "Object Detection Demo"
-    cv2.imshow(window_name, window_img)
-
-def show_classification(img, result, fps, window_height, window_width, config):
-    window_img = resize(img, size=[window_height, window_width])
-
-    result_class = np.argmax(result, axis=1)
-    add_class_label(window_img, text=str(result[0, result_class][0]), font_scale=0.52, dl_corner=(230, 230))
-    add_class_label(window_img, text=config.CLASSES[result_class[0]], font_scale=0.52, dl_corner=(230, 210))
-    window_img = add_fps(window_img, fps)
-
-    window_name = "Classification Demo"
-    cv2.imshow(window_name, window_img)
-
-def show_semantic_segmentation(img, result, fps, window_height, window_width, config):
-    orig_img = resize(img, size=[window_height, window_width])
-
-    seg_img = label_to_color_image(result, colormap)
-    seg_img = cv2.resize(seg_img, dsize=(window_width, window_height))
-    window_img = cv2.addWeighted(orig_img, 1, seg_img, 0.8, 0)
-    window_img = add_fps(window_img, fps)
-
-    window_name = "Semantic Segmentation Demo"
-    cv2.imshow(window_name, window_img)
-
-def show_keypoint_detection(img, result, fps, window_height, window_width, config):
-    window_img = resize(img, size=[window_height, window_width])
-
-    window_img = visualize_keypoint_detection(window_img, result[0], (input_height, input_width))
-    window_img = add_fps(window_img, fps)
-
-    window_name = "Keypoint Detection Demo"
-    cv2.imshow(window_name, window_img)
-
-def capture_loop(q_input):
+def run_object_detection(config):
+    # Init
+    global nn
+    nn.init()
     camera_width = 320
     camera_height = 240
-
+    window_name = "Object Detection Demo"
+    input_width = config.IMAGE_SIZE[1]
+    input_height = config.IMAGE_SIZE[0]
     vc = init_camera(camera_width, camera_height)
+    inference_coroutine_generator = inference_coroutine()
+    next(inference_coroutine_generator)
 
-    count_frames = 10
-    prev_1 = time.clock()
-    prev = deque([prev_1] * count_frames)
-
-    while True:
-        valid, img = vc.read()
-        if valid:
-            now = time.clock()
-            prev.append(now)
-            old = prev.popleft()
-            fps = count_frames / (now - old)
-            q_input.put((img, fps))
-
-def run_impl(config):
-    # Set variables
-    q_input = Queue(2)
-    q_output = Queue(4)
-
-    p_capture = Process(target=capture_loop, args=(q_input,))
-    p_capture.start()
-
-    p_infer = Process(target=infer_loop, args=(q_input, q_output))
-    p_infer.start()
-
-    window_width = 320
-    window_height = 240
-
-    show_handles_table = {
-        "IMAGE.OBJECT_DETECTION": show_object_detection,
-        "IMAGE.CLASSIFICATION": show_classification,
-        "IMAGE.SEMANTIC_SEGMENTATION": show_semantic_segmentation,
-        "IMAGE.KEYPOINT_DETECTION": show_keypoint_detection
-    }
-    show_handle = show_handles_table[config.TASK]
-
+    grabbed, input_img = vc.read()
+    inference_coroutine_generator.send(input_img)
     #  ----------- Beginning of Main Loop ---------------
-    while True:
-        if not q_output.empty():
-            result, fps, img = q_output.get()
-            show_handle(img, result, fps, window_height, window_width, config)
-            key = cv2.waitKey(1)    # Wait for 1ms
-            if key == 27:           # ESC to quit
-                sleep(1.0)          # Wait for worker's current task is finished
-                p_capture.terminate()
-                p_infer.terminate()
-                return
-    # --------------------- End of main Loop -----------------------
+    while vc.isOpened():
+        grabbed, input_img = vc.read()
+        result, fps = inference_coroutine_generator.send(input_img)
+        if result:
+            window_img = add_rectangle(
+                config.CLASSES,
+                input_img,
+                result,
+                (input_height, input_width)
+            )
+            window_img = add_fps(window_img, fps)
+        else:
+            window_img = input_img
+
+        cv2.imshow(window_name, window_img)
+        key = cv2.waitKey(2)  # Wait for 2ms
+        if key == 27:  # ESC to quit
+            vc.release()
+            cv2.destroyAllWindows()
+            return
+        # --------------------- End of main Loop -----------------------
+
+
+def run_classification(config):
+    # Init
+    global nn
+    nn.init()
+    camera_width = 320
+    camera_height = 240
+    window_name = "Classification Demo"
+    vc = init_camera(camera_width, camera_height)
+    inference_coroutine_generator = inference_coroutine()
+    next(inference_coroutine_generator)
+
+    grabbed, input_img = vc.read()
+    inference_coroutine_generator.send(input_img)
+    #  ----------- Beginning of Main Loop ---------------
+    while vc.isOpened():
+        grabbed, input_img = vc.read()
+        result, fps = inference_coroutine_generator.send(input_img)
+        if result:
+            result_class = np.argmax(result, axis=1)
+            window_img = input_img.copy()
+            add_class_label(window_img, text=str(result[0, result_class][0]), font_scale=0.52, dl_corner=(230, 230))
+            add_class_label(window_img, text=config.CLASSES[result_class[0]], font_scale=0.52, dl_corner=(230, 210))
+            window_img = add_fps(window_img, fps)
+        else:
+            window_img = input_img
+
+        cv2.imshow(window_name, window_img)
+        key = cv2.waitKey(2)  # Wait for 2ms
+        if key == 27:  # ESC to quit
+            vc.release()
+            cv2.destroyAllWindows()
+            return
+        # --------------------- End of main Loop -----------------------
+
+
+def run_semantic_segmentation(config):
+    # Init
+    global nn
+    nn.init()
+    camera_width = 320
+    camera_height = 240
+    window_name = "Semantic Segmentation Demo"
+    vc = init_camera(camera_width, camera_height)
+    inference_coroutine_generator = inference_coroutine()
+    next(inference_coroutine_generator)
+    colormap = np.array(get_color_map(len(config['CLASSES'])), dtype=np.uint8)
+
+    grabbed, input_img = vc.read()
+    inference_coroutine_generator.send(input_img)
+    #  ----------- Beginning of Main Loop ---------------
+    while vc.isOpened():
+        grabbed, input_img = vc.read()
+        result, fps = inference_coroutine_generator.send(input_img)
+        if result:
+            seg_img = label_to_color_image(result, colormap)
+            seg_img = cv2.resize(seg_img, dsize=(camera_width, camera_height))
+            window_img = cv2.addWeighted(input_img, 1, seg_img, 0.8, 0)
+            window_img = add_fps(window_img, fps)
+        else:
+            window_img = input_img
+
+        cv2.imshow(window_name, window_img)
+        key = cv2.waitKey(2)  # Wait for 2ms
+        if key == 27:  # ESC to quit
+            vc.release()
+            cv2.destroyAllWindows()
+            return
+        # --------------------- End of main Loop -----------------------
+
+
+def run_keypoint_detection(config):
+    # Init
+    global nn
+    nn.init()
+    camera_width = 320
+    camera_height = 240
+    window_name = "Keypoint Detection Demo"
+    input_width = config.IMAGE_SIZE[1]
+    input_height = config.IMAGE_SIZE[0]
+    vc = init_camera(camera_width, camera_height)
+    inference_coroutine_generator = inference_coroutine()
+    next(inference_coroutine_generator)
+
+    grabbed, input_img = vc.read()
+    inference_coroutine_generator.send(input_img)
+    #  ----------- Beginning of Main Loop ---------------
+    while vc.isOpened():
+        grabbed, input_img = vc.read()
+        result, fps = inference_coroutine_generator.send(input_img)
+        if result:
+            window_img = visualize_keypoint_detection(input_img, result[0], (input_height, input_width))
+            window_img = add_fps(window_img, fps)
+        else:
+            window_img = input_img
+
+        cv2.imshow(window_name, window_img)
+        key = cv2.waitKey(2)  # Wait for 2ms
+        if key == 27:  # ESC to quit
+            vc.release()
+            cv2.destroyAllWindows()
+            return
+        # --------------------- End of main Loop -----------------------
 
 
 def run(model, config_file):
@@ -212,7 +270,12 @@ def run(model, config_file):
         from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
 
-    run_impl(config)
+    TASK_HANDLERS = {"IMAGE.CLASSIFICATION": run_classification,
+                     "IMAGE.OBJECT_DETECTION": run_object_detection,
+                     "IMAGE.SEMANTIC_SEGMENTATION": run_semantic_segmentation,
+                     "IMAGE.KEYPOINT_DETECTION": run_keypoint_detection}
+
+    TASK_HANDLERS[config.TASK](config)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
