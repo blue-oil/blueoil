@@ -132,7 +132,7 @@ class QConv2d(Layer):
             new_dim = conv_output_length(
                 space[i],
                 self.k_size,
-                padding=self.padding,
+                padding=self.padding.lower(),
                 stride=self.strides)
             new_space.append(new_dim)
         return (input_shape[0],) + tuple(new_space) + (self.out_ch,)
