@@ -72,7 +72,7 @@ class QConv2d(Layer):
     def __init__(self, out_ch, k_size, padding='valid', strides=1, name=None, use_bias=True, **kwargs):
         self.out_ch = out_ch
         self.k_size = k_size
-        self.padding = padding
+        self.padding = padding.upper()
         self.strides = strides
         self.use_bias = use_bias
         self.kernel_quantizer = binary_mean_scaling_quantizer()
