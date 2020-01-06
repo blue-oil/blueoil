@@ -361,7 +361,7 @@ if __name__ == '__main__':
     elif args.weights.lower() == 'resnet18':
         # TODO(lucien): hard coding
         # todo change
-        weights_path = '/storage/neil/imagenet-qresnet-d18-batch256'
+        weights_path = '/home/zhang/blueoil/lmnet/lmnet/networks/instance_segmentation/backbone/30.hdf5'
     else:
         weights_path = args.weights
 
