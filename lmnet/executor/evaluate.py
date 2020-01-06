@@ -150,7 +150,15 @@ def evaluate(config, restore_path, output_dir):
     )
     validation_writer.add_summary(metrics_summary, last_step)
 
+    is_tfds = "TFDS_KWARGS" in config.DATASET
+    dataset_name = config.DATASET.TFDS_KWARGS["name"] if is_tfds else config.DATASET_CLASS.__name__
+    dataset_path = config.DATASET.TFDS_KWARGS["data_dir"] if is_tfds else ""
+
     metrics_dict = {
+        'task_type': config.TASK.value,
+        'network_name': config.NETWORK_CLASS.__name__,
+        'dataset_name': dataset_name,
+        'dataset_path': dataset_path,
         'last_step': int(last_step),
         # TODO: Fix to avoid the implementation depended on the order of dict implicitly
         'metrics': [{'name': k, 'value': float(v)} for k, v in zip(list(metrics_ops_dict.keys()), metrics_values)],
