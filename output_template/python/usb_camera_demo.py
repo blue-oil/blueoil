@@ -18,7 +18,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import time
 import os
 import sys
 
@@ -47,15 +46,6 @@ from lmnet.visualize import (
 nn = None
 pre_process = None
 post_process = None
-
-
-class MyTime:
-    def __init__(self, function_name):
-        self.start_time = time.time()
-        self.function_name = function_name
-
-    def show(self):
-        print("TIME: ", self.function_name, time.time() - self.start_time)
 
 
 def init_camera(camera_width, camera_height):
