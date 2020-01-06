@@ -322,16 +322,17 @@ if __name__ == '__main__':
 
     x = KL.GlobalAveragePooling2D(name='global_avg_pool')(x)
     outputs = KL.Dense(1000, activation='softmax', name='fc1000')(x)
-    with tf.device('/cpu:0'):
-        model = keras.Model(input_image, outputs, name='resnet18')
+    model = keras.Model(input_image, outputs, name='resnet18')
+    # with tf.device('/cpu:0'):
+    #     model = keras.Model(input_image, outputs, name='resnet18')
 
     # TODO(lucien): hard coding
     log_dir = '/home/zhang/blueoil/lmnet/lmnet/networks/instance_segmentation/logs/'
     data_dir = '/storage/dataset/ILSVRC2012/'
 
     BATCH_SIZE = 128
-    NUM_GPU = 2
-    BATCH_SIZE *= NUM_GPU
+    # NUM_GPU = 2
+    # BATCH_SIZE *= NUM_GPU
     mean = [0.485, 0.456, 0.406]  # rgb
     std = [0.229, 0.224, 0.225]
 
@@ -348,9 +349,12 @@ if __name__ == '__main__':
 
     train_data = crop_generator(train_data, 224)
 
-    parallel_model = multi_gpu_model(model, gpus=NUM_GPU)
-    parallel_model.compile(loss='categorical_crossentropy', metrics=['accuracy'],
-                           optimizer=keras.optimizers.SGD(0.1, 0.9, nesterov=True))
+    model.compile(loss='categorical_crossentropy', metrics=['accuracy'],
+                  optimizer=keras.optimizers.SGD(0.1, 0.9, nesterov=True))
+
+    # parallel_model = multi_gpu_model(model, gpus=NUM_GPU)
+    # parallel_model.compile(loss='categorical_crossentropy', metrics=['accuracy'],
+    #                        optimizer=keras.optimizers.SGD(0.1, 0.9, nesterov=True))
 
     START_LR = 0.1
     BASE_LR = START_LR * (BATCH_SIZE / 256.0)
@@ -371,21 +375,27 @@ if __name__ == '__main__':
 
     change_lr = LearningRateScheduler(scheduler)
     tb_cb = TensorBoard(log_dir=log_dir, histogram_freq=0)
-    # checkpoint = ModelCheckpoint(filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc', save_weights_only=True,
-    #                              period=10)
-    checkpoint = ParallelModelCheckpoint(model, filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc',
-                                         save_weights_only=True,
-                                         period=10)
+    checkpoint = ModelCheckpoint(filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc', save_weights_only=True,
+                                 period=10)
+    # checkpoint = ParallelModelCheckpoint(model, filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc',
+    #                                      save_weights_only=True,
+    #                                      period=10)
 
     callbacks = [change_lr, tb_cb, checkpoint]
 
     EPOCHS = 150
 
-    parallel_model.fit_generator(train_data,
-                                 epochs=EPOCHS,
-                                 callbacks=callbacks,
-                                 steps_per_epoch=1281167 // BATCH_SIZE,
-                                 # validation_data=val_gen,
-                                 )
+    model.fit_generator(train_data,
+                        epochs=EPOCHS,
+                        callbacks=callbacks,
+                        steps_per_epoch=1281167 // BATCH_SIZE,
+                        # validation_data=val_gen,
+                        )
+    # parallel_model.fit_generator(train_data,
+    #                              epochs=EPOCHS,
+    #                              callbacks=callbacks,
+    #                              steps_per_epoch=1281167 // BATCH_SIZE,
+    #                              # validation_data=val_gen,
+    #                              )
 
     model.save_weights(log_dir + 'resnet18_final.h5')
