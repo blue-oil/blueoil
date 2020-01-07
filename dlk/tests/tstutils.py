@@ -148,6 +148,8 @@ def setup_de10nano(hw_path: str, output_path: str, testcase=None):
     try:
         run_and_check(
             [ "ssh",
+             "-o",
+             "StrictHostKeyChecking no",
              f"root@{host}",
              f"mkdir -p ~/automated_testing; mkdir -p ~/boot; if grep -qs '/root/boot' /proc/mounts ;" \
              + "then echo 0 ; else mount /dev/mmcblk0p1 /root/boot ; fi"

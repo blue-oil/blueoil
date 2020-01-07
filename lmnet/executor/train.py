@@ -58,6 +58,14 @@ def setup_dataset(config, subset, rank):
     return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
 
 
+def setup_dataset(config, subset, rank):
+    DatasetClass = config.DATASET_CLASS
+    dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
+    dataset = DatasetClass(subset=subset, **dataset_kwargs)
+    enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
+    return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
+
+
 def start_training(config):
     use_horovod = horovod_util.is_enabled()
     print("use_horovod:", use_horovod)

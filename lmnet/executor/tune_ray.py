@@ -118,15 +118,17 @@ def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
     base_lr = chosen_kwargs['learning_rate']
     if network_kwargs['learning_rate_func'] is tf.train.piecewise_constant:
         lr_factor = chosen_kwargs['learning_rate_func']['scheduler_factor']
-        network_kwargs['learning_rate_kwargs']['values'] = [base_lr,
-                                                            base_lr * lr_factor,
-                                                            base_lr * lr_factor * lr_factor,
-                                                            base_lr * lr_factor * lr_factor * lr_factor]
+
+        if 'soft_start' in chosen_kwargs['learning_rate_func']:
+            num_decay_stage = len(chosen_kwargs['learning_rate_func']['scheduler_steps'])
+            lr_values = [base_lr * lr_factor ** n for n in range(num_decay_stage)]
+            lr_values.insert(0, chosen_kwargs['learning_rate_func']['soft_start'])
+        else:
+            num_decay_stage = len(chosen_kwargs['learning_rate_func']['scheduler_steps']) + 1
+            lr_values = [base_lr * lr_factor ** n for n in range(num_decay_stage)]
+
+        network_kwargs['learning_rate_kwargs']['values'] = lr_values
         network_kwargs['learning_rate_kwargs']['boundaries'] = chosen_kwargs['learning_rate_func']['scheduler_steps']
-    elif network_kwargs['learning_rate_func'] is tf.train.polynomial_decay:
-        network_kwargs['learning_rate_kwargs']['learning_rate'] = base_lr
-        network_kwargs['learning_rate_kwargs']['power'] = chosen_kwargs['learning_rate_func']['scheduler_power']
-        network_kwargs['learning_rate_kwargs']['decay_steps'] = chosen_kwargs['learning_rate_func']['scheduler_decay']
     else:
         network_kwargs['learning_rate_kwargs']['learning_rate'] = base_lr
 
@@ -248,6 +250,8 @@ class TrainTunable(Trainable):
 
         if self.lm_config.NETWORK_CLASS.__module__.startswith("lmnet.networks.segmentation"):
             metric_accuracy = self.sess.run(self.metrics_ops_dict["mean_iou"])
+        elif self.lm_config.NETWORK_CLASS.__module__.startswith("lmnet.networks.object_detection"):
+            metric_accuracy = self.sess.run(self.metrics_ops_dict["MeanAveragePrecision_0.5"])
         else:
             metric_accuracy = self.sess.run(self.metrics_ops_dict["accuracy"])
 
@@ -287,7 +291,9 @@ def run(config_file, tunable_id, local_dir):
     # Expecting use of gpus to do parameter search
     ray.init(num_cpus=multiprocessing.cpu_count() // 2, num_gpus=max(get_num_gpu(), 1))
     algo = HyperOptSearch(tune_space, max_concurrent=4, reward_attr="mean_accuracy")
-    scheduler = AsyncHyperBandScheduler(time_attr="training_iteration", reward_attr="mean_accuracy", max_t=200)
+    scheduler = AsyncHyperBandScheduler(time_attr="training_iteration",
+                                        reward_attr="mean_accuracy",
+                                        max_t=tune_spec['stop']['training_iteration'])
     trials = run_experiments(experiments={'exp_tune': tune_spec},
                              search_alg=algo,
                              scheduler=scheduler)
