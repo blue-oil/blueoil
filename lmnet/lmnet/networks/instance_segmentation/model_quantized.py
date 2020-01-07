@@ -2297,7 +2297,7 @@ class MaskRCNN():
             return frozen_graph
 
     def save(self, save_path):
-        self.keras_model.save(save_path)
+        self.keras_model.save_weights(save_path)
 
     def mold_inputs(self, images):
         """Takes a list of images and modifies them to the format expected
