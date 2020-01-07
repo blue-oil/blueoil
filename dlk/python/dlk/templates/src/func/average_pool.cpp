@@ -32,29 +32,37 @@ void func_AveragePool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
   int idx_out = 0;
   const T_FLOAT num_k_elems = app.kernel_height * app.kernel_width * app.kernel_depth;
 
-  std::memset(output.data(), 0.0f, app.output_channels * app.output_height * app.output_width * sizeof(T_FLOAT));
-
-  for(T_UINT oc = 0; oc < app.output_channels; oc++) {
-    for(T_UINT wi = 0; wi < app.output_height; wi++) {
-      for(T_UINT wj = 0; wj < app.output_width; wj++) {
-        T_FLOAT out = 0;
-        for(T_UINT ki = 0; ki < app.kernel_height; ki++) {
-          for(T_UINT kj = 0; kj < app.kernel_width; kj++) {
-            T_INT row = (wi * app.stride) - app.padding + ki;
-            T_INT col = (wj * app.stride) - app.padding + kj;
-
-            T_INT inside = (row >= 0 && col >= 0 && row < (T_INT) app.input_height && col < (T_INT)app.input_width);
-            if (!inside) continue;
-            for(T_UINT kz = 0; kz < app.kernel_depth; kz++) {
-              int idx_in = oc * app.kernel_depth
-                + row * (app.input_width * app.input_depth)
-                + col * (app.input_depth) + kz;
-              out += input(0, row, col, oc * app.kernel_depth + kz);
-            }
-          }
+  size_t area = app.output_height * app.output_width;
+#pragma omp parallel for
+  for(size_t wij = 0; wij < area; wij++) {
+    size_t wi = wij / app.output_width;
+    size_t wj = wij % app.output_width;
+    float tmp[MAX_IN_C];
+    for(size_t ic = 0; ic < app.input_depth; ic++) {
+      tmp[ic] = 0.f;
+    }
+    for(size_t ki = 0; ki < app.kernel_height; ki++) {
+      for(size_t kj = 0; kj < app.kernel_width; kj++) {
+        T_INT row = (wi * app.stride) - app.padding + ki;
+        T_INT col = (wj * app.stride) - app.padding + kj;
+        if (row < 0 || col < 0 || row >= (T_INT) app.input_height || col >= (T_INT)app.input_width) continue;
+        for(size_t ic = 0; ic < app.input_depth; ic++) {
+          size_t idx_in = + row * (app.input_width * app.input_depth)
+            + col * (app.input_depth)
+            + ic;
+          tmp[ic] += input.data()[idx_in];
         }
-        output(0, wi, wj, oc) += T_FLOAT(out) / num_k_elems;
       }
+    }
+    for(size_t oc = 0; oc < app.output_channels; oc++) {
+      size_t idx_out = wi * (app.output_width * app.output_channels)
+        + wj * app.output_channels
+        + oc;
+      float out = 0.f;
+      for(size_t kz = 0; kz < app.kernel_depth; kz++) {
+        out += tmp[oc * app.kernel_depth + kz];
+      }
+      output.data()[idx_out] = out / num_k_elems;
     }
   }
 
