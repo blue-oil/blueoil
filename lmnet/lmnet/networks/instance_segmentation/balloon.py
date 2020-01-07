@@ -380,4 +380,4 @@ if __name__ == '__main__':
         print("'{}' is not recognized. "
               "Use 'train' or 'splash'".format(args.command))
 
-    # model.save('/home/zhang/blueoil/lmnet/lmnet/networks/instance_segmentation/logs/pb')
+    model.save('/home/zhang/blueoil/lmnet/lmnet/networks/instance_segmentation/logs/balloon.h5')
