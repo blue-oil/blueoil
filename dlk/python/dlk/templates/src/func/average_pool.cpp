@@ -29,7 +29,6 @@ void func_AveragePool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
   assert (app.input_depth == app.kernel_depth * app.output_channels && \
           "input_depth must equal kernel_depth * output_channels.");
 
-  int idx_out = 0;
   const T_FLOAT num_k_elems = app.kernel_height * app.kernel_width * app.kernel_depth;
 
   size_t area = app.output_height * app.output_width;
