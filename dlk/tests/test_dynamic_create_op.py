@@ -83,7 +83,7 @@ class TestDynamicCreateOp(unittest.TestCase):
         w = Constant(
             'const2',
             Float32(),
-            np.zeros([1, 2, 2, 3])
+            np.zeros([1, 1, 1, 3])
         )
 
         binary_ops = [
@@ -99,7 +99,7 @@ class TestDynamicCreateOp(unittest.TestCase):
             module = importlib.import_module('core.operators')
             try:
                 op_def = getattr(module, op)
-                shape = [1, 2, 2, 3] if op == 'Conv' else shape
+                shape = [1, 3, 3, 3] if op == 'Conv' else shape
                 input_ops = {n: opw for n, opw in zip(op_def.input_names, [x, w])} \
                     if op == 'Conv' else {n: x for n in op_def.input_names}
                 args = [name, shape, dtype, input_ops]

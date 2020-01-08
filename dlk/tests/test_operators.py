@@ -64,23 +64,23 @@ class TestOperators(unittest.TestCase):
         w = Constant(
             'weight',
             Float32(),
-            np.zeros([1, 2, 2, 5])
+            np.zeros([1, 1, 1, 5])
         )
         inputs: Dict[str, Operator] = {i_names[0]: x, i_names[1]: w}
         c = Conv(
             "conv1",
-            [1, 2, 2, 3],
+            [1, 3, 3, 3],
             Float32(),
             inputs,
-            kernel_shape=[2, 2]
+            kernel_shape=[1, 1]
         )
 
         self.assertEqual(c.batchsize, 1)
-        self.assertEqual(c.height, 2)
-        self.assertEqual(c.width, 2)
+        self.assertEqual(c.height, 3)
+        self.assertEqual(c.width, 3)
         self.assertEqual(c.channel, 3)
-        self.assertEqual(c.kernel_height, 2)
-        self.assertEqual(c.kernel_width, 2)
+        self.assertEqual(c.kernel_height, 1)
+        self.assertEqual(c.kernel_width, 1)
 
         print("Conv test passed!")
 

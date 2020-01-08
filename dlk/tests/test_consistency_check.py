@@ -106,7 +106,7 @@ class TestConsistencyCheck(unittest.TestCase):
         w = Constant(
             'weight',
             Float32(),
-            np.zeros([1, 2, 2, 3])
+            np.zeros([1, 1, 1, 3])
         )
         input_ops = {'X': cast(Operator, x), 'W': cast(Operator, w)}
 
@@ -115,7 +115,7 @@ class TestConsistencyCheck(unittest.TestCase):
             [1, 3, 3, 3],
             Float32(),
             input_ops,
-            pads=[1, 1, 2, 2],
+            pads=[1, 1, 1, 1],
             strides=[2, 2]
         )
 

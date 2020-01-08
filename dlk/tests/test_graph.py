@@ -40,22 +40,22 @@ class TestGraph(unittest.TestCase):
         w = Constant(
             'weight',
             Float32(),
-            np.zeros([1, 2, 2, 3])
+            np.zeros([1, 1, 1, 3])
         )
 
         # Conv
         conv = Conv(
             'conv',
-            [1, 4, 4, 3],
+            [1, 5, 5, 3],
             Float32(),
             {'X': x, 'W': w},  # you can get these keys by 'Conv.input_names'
-            kernel_shape=[2, 2]
+            kernel_shape=[1, 1]
         )
 
         # One output
         y = Output(
             'output',
-            [1, 4, 4, 3],
+            [1, 5, 5, 3],
             Float32(),
             {'input': conv}  # you can get this key by 'Output.input_names'
         )

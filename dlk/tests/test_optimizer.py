@@ -31,7 +31,7 @@ class TestPassTranspose(unittest.TestCase):
     """Test class for transposing pass."""
     def test_pass_transpose(self) -> None:
         """Test code for transposing optimizer pass."""
-        data = np.random.rand(3, 2, 2, 1)
+        data = np.random.rand(3, 1, 1, 1)
         graph1 = self.create_sample_graph(data)
         graph2 = self.create_expected_graph(data)
 
@@ -46,15 +46,15 @@ class TestPassTranspose(unittest.TestCase):
         graph = Graph()
 
         # input
-        x = Input('placeholder', [3, 5, 5, 1], Float32(), dimension_format='CWHN')
+        x = Input('placeholder', [3, 4, 4, 1], Float32(), dimension_format='CWHN')
 
         # constant and internal nodes
         w = Constant('weight', Float32(), data, dimension_format='CWHN')
-        i1 = Identity('identity1', [3, 2, 2, 1], Float32(), {'input': w}, dimension_format='CWHN')
-        q = QTZ_binary_mean_scaling('qtz1', [3, 2, 2, 1], Float32(), {'input': i1}, dimension_format='CWHN')
+        i1 = Identity('identity1', [3, 1, 1, 1], Float32(), {'input': w}, dimension_format='CWHN')
+        q = QTZ_binary_mean_scaling('qtz1', [3, 1, 1, 1], Float32(), {'input': i1}, dimension_format='CWHN')
 
         # Conv
-        conv = Conv('conv', [3, 4, 4, 1], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2], dimension_format='CWHN')
+        conv = Conv('conv', [3, 4, 4, 1], Float32(), {'X': x, 'W': q}, kernel_shape=[1, 1], dimension_format='CWHN')
 
         # One output
         rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
@@ -72,15 +72,15 @@ class TestPassTranspose(unittest.TestCase):
         data = data.transpose([3, 2, 1, 0])
 
         # input
-        x = Input('placeholder', [1, 5, 5, 3], Float32(), dimension_format='NHWC')
+        x = Input('placeholder', [1, 4, 4, 3], Float32(), dimension_format='NHWC')
 
         # constant and internal nodes
         w = Constant('weight', Float32(), data, dimension_format='NHWC')
-        i1 = Identity('identity1', [1, 2, 2, 3], Float32(), {'input': w}, dimension_format='NHWC')
-        q = QTZ_binary_mean_scaling('qtz1', [1, 2, 2, 3], Float32(), {'input': i1}, dimension_format='NHWC')
+        i1 = Identity('identity1', [1, 1, 1, 3], Float32(), {'input': w}, dimension_format='NHWC')
+        q = QTZ_binary_mean_scaling('qtz1', [1, 1, 1, 3], Float32(), {'input': i1}, dimension_format='NHWC')
 
         # Conv
-        conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2], dimension_format='NHWC')
+        conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[1, 1], dimension_format='NHWC')
 
         # One output
         rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
@@ -96,7 +96,7 @@ class TestPassRemoveIdentities(unittest.TestCase):
     """Test class for removing identity pass."""
     def test_pass_remove_identities(self) -> None:
         """Test code for removing identities optimizer pass."""
-        data = np.random.rand(1, 2, 2, 3)
+        data = np.random.rand(1, 1, 1, 3)
         graph1 = self.create_sample_graph(data)
         graph2 = self.create_expected_graph(data)
 
@@ -111,15 +111,15 @@ class TestPassRemoveIdentities(unittest.TestCase):
         graph = Graph()
 
         # input
-        x = Input('placeholder', [1, 5, 5, 3], Float32())
+        x = Input('placeholder', [1, 4, 4, 3], Float32())
 
         # constant and internal nodes
         w = Constant('weight', Float32(), data)
-        i1 = Identity('identity1', [1, 2, 2, 3], Float32(), {'input': w})
-        q = QTZ_binary_mean_scaling('qtz1', [1, 2, 2, 3], Float32(), {'input': i1})
+        i1 = Identity('identity1', [1, 1, 1, 3], Float32(), {'input': w})
+        q = QTZ_binary_mean_scaling('qtz1', [1, 1, 1, 3], Float32(), {'input': i1})
 
         # Conv
-        conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2])
+        conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[1, 1])
 
         # One output
         i2 = Identity('identity2', [1, 4, 4, 3], Float32(), {'input': conv})
@@ -136,14 +136,14 @@ class TestPassRemoveIdentities(unittest.TestCase):
         graph = Graph()
 
         # input
-        x = Input('placeholder', [1, 5, 5, 3], Float32())
+        x = Input('placeholder', [1, 4, 4, 3], Float32())
 
         # constant and internal nodes
         w = Constant('weight', Float32(), data)
-        q = QTZ_binary_mean_scaling('qtz1', [1, 2, 2, 3], Float32(), {'input': w})
+        q = QTZ_binary_mean_scaling('qtz1', [1, 1, 1, 3], Float32(), {'input': w})
 
         # Conv
-        conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[2, 2])
+        conv = Conv('conv', [1, 4, 4, 3], Float32(), {'X': x, 'W': q}, kernel_shape=[1, 1])
 
         # One output
         rs = Reshape('reshape', [1, 48], Float32(), {'data': conv})
@@ -159,8 +159,8 @@ class TestPassPropagateQuantizationDetailsIntoConv(unittest.TestCase):
     """Test class for propagating quantization details into conv."""
     def test_pass_propagate_quantization_details_into_conv(self) -> None:
         """Test pass."""
-        data1 = np.random.rand(1, 2, 2, 3)
-        data2 = np.random.rand(1, 2, 2, 3)
+        data1 = np.random.rand(1, 1, 1, 3)
+        data2 = np.random.rand(1, 1, 1, 3)
         graph1 = self.create_sample_graph(data1, data2)
         graph2 = self.create_expected_graph(data1, data2)
 
@@ -188,20 +188,20 @@ class TestPassPropagateQuantizationDetailsIntoConv(unittest.TestCase):
 
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+        conv1 = Conv('conv1', [1, 5, 5, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[1, 1])
 
         # activation quantizer
         s1 = Constant('aq_const1', Float32(), np.array(1))
         s2 = Constant('aq_const2', Float32(), np.array(2))
-        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 5, 5, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
-        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
-        conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[2, 2])
+        kq = QTZ_binary_mean_scaling('kqtz1', [1, 1, 1, 3], Float32(), {'input': w2})
+        conv2 = Conv('conv2', [1, 5, 5, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[1, 1])
 
         # One output
-        y = Output('output', [1, 3, 3, 3], Float32(), {'input': conv2})
+        y = Output('output', [1, 5, 5, 3], Float32(), {'input': conv2})
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -217,22 +217,22 @@ class TestPassPropagateQuantizationDetailsIntoConv(unittest.TestCase):
 
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+        conv1 = Conv('conv1', [1, 5, 5, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[1, 1])
 
         # activation quantizer
         s1 = Constant('aq_const1', Float32(), np.array(1))
         s2 = Constant('aq_const2', Float32(), np.array(2))
-        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 5, 5, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
-        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
-        conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[2, 2])
+        kq = QTZ_binary_mean_scaling('kqtz1', [1, 1, 1, 3], Float32(), {'input': w2})
+        conv2 = Conv('conv2', [1, 5, 5, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[1, 1])
         conv2.a_quantizer = [aq]
         conv2.quantizer = kq
 
         # One output
-        y = Output('output', [1, 3, 3, 3], Float32(), {'input': conv2})
+        y = Output('output', [1, 5, 5, 3], Float32(), {'input': conv2})
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -244,8 +244,8 @@ class TestPassPackWeights(unittest.TestCase):
     """Test class for packing weight."""
     def test_pass_pack_weights(self) -> None:
         """Test pass."""
-        data1 = np.float32(np.random.rand(1, 2, 2, 3))
-        data2 = np.float32(np.random.rand(1, 2, 2, 3))
+        data1 = np.float32(np.random.rand(1, 1, 1, 3))
+        data2 = np.float32(np.random.rand(1, 1, 1, 3))
 
         graph1 = self.create_sample_graph(data1, data2)
         pass_pack_weights(graph1)
@@ -269,22 +269,22 @@ class TestPassPackWeights(unittest.TestCase):
 
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+        conv1 = Conv('conv1', [1, 5, 5, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[1, 1])
 
         # activation quantizer
         s1 = Constant('aq_const1', Float32(), np.array(1))
         s2 = Constant('aq_const2', Float32(), np.array(2))
-        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 5, 5, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
-        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
-        conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[2, 2])
+        kq = QTZ_binary_mean_scaling('kqtz1', [1, 1, 1, 3], Float32(), {'input': w2})
+        conv2 = Conv('conv2', [1, 5, 5, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[1, 1])
         conv2.a_quantizer = [aq]
         conv2.quantizer = kq
 
         # One output
-        y = Output('output', [1, 3, 3, 3], Float32(), {'input': conv2})
+        y = Output('output', [1, 5, 5, 3], Float32(), {'input': conv2})
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -300,12 +300,12 @@ class TestPassPackWeights(unittest.TestCase):
 
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+        conv1 = Conv('conv1', [1, 5, 5, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[1, 1])
 
-        s1 = Constant('const1', Float32(), np.zeros([1, 4, 4, 3]))
-        add1 = Add('add', [1, 4, 4, 3], Float32(), {'A': conv1, 'B': s1})
+        s1 = Constant('const1', Float32(), np.zeros([1, 5, 5, 3]))
+        add1 = Add('add', [1, 5, 5, 3], Float32(), {'A': conv1, 'B': s1})
 
-        y = Output('output', [1, 4, 4, 3], Float32(), {'input': add1})
+        y = Output('output', [1, 5, 5, 3], Float32(), {'input': add1})
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -317,8 +317,8 @@ class TestPassQuantizeConvolutions(unittest.TestCase):
     """Test class for packing weight."""
     def test_pass_quantize_convolutions(self) -> None:
         """Test pass."""
-        data1 = np.float32(np.random.rand(1, 2, 2, 3))
-        data2 = np.float32(np.random.rand(1, 2, 2, 3))
+        data1 = np.float32(np.random.rand(1, 1, 1, 3))
+        data2 = np.float32(np.random.rand(1, 1, 1, 3))
         graph1 = self.create_sample_graph(data1, data2)
 
         pass_quantize_convolutions(graph1)
@@ -341,22 +341,22 @@ class TestPassQuantizeConvolutions(unittest.TestCase):
 
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+        conv1 = Conv('conv1', [1, 5, 5, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[1, 1])
 
         # activation quantizer
         s1 = Constant('aq_const1', Float32(), np.array(1))
         s2 = Constant('aq_const2', Float32(), np.array(2))
-        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 5, 5, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
-        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
-        conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[2, 2])
+        kq = QTZ_binary_mean_scaling('kqtz1', [1, 1, 1, 3], Float32(), {'input': w2})
+        conv2 = Conv('conv2', [1, 5, 5, 3], Float32(), {'X': aq, 'W': kq}, kernel_shape=[1, 1])
         conv2.a_quantizer = [aq]
         conv2.quantizer = kq
 
         # One output
-        y = Output('output', [1, 3, 3, 3], Float32(), {'input': conv2})
+        y = Output('output', [1, 5, 5, 3], Float32(), {'input': conv2})
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -368,7 +368,7 @@ class TestPassPropagateDatatypes(unittest.TestCase):
     """Test class for packing weight."""
     def test_pass_propagate_datatypes(self) -> None:
         """Test pass."""
-        data1 = np.float32(np.random.rand(1, 2, 2, 3))
+        data1 = np.float32(np.random.rand(1, 1, 1, 3))
         graph1 = self.create_sample_graph(data1)
         # graph2 = self.create_expected_graph(data1, data2)
 
@@ -384,16 +384,16 @@ class TestPassPropagateDatatypes(unittest.TestCase):
         graph = Graph()
 
         # input
-        x = Input('placeholder', [1, 5, 5, 3], Float32())
+        x = Input('placeholder', [1, 6, 6, 3], Float32())
 
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], QUANTIZED_PACKED(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+        conv1 = Conv('conv1', [1, 6, 6, 3], QUANTIZED_PACKED(), {'X': x, 'W': w1}, kernel_shape=[1, 1])
 
-        pool1 = SpaceToDepth('s2d', [1, 2, 2, 12], Float32(), {'input': conv1})
+        pool1 = SpaceToDepth('s2d', [1, 3, 3, 12], Float32(), {'input': conv1})
 
         # One output
-        y = Output('output', [1, 2, 2, 12], Float32(), {'input': pool1})
+        y = Output('output', [1, 3, 3, 12], Float32(), {'input': pool1})
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -405,7 +405,7 @@ class TestPassPropagateOutputTypeBackward(unittest.TestCase):
     """Test class for packing weight."""
     def test_pass_propagate_output_type_backward(self) -> None:
         """Test pass."""
-        data1 = np.float32(np.random.rand(1, 2, 2, 3))
+        data1 = np.float32(np.random.rand(1, 1, 1, 3))
         graph1 = self.create_sample_graph(data1)
 
         pass_propagate_output_type_backward(graph1)
@@ -420,17 +420,17 @@ class TestPassPropagateOutputTypeBackward(unittest.TestCase):
         graph = Graph()
 
         # input
-        x = Input('placeholder', [1, 5, 5, 3], Float32())
+        x = Input('placeholder', [1, 6, 6, 3], Float32())
 
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], QUANTIZED_PACKED(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+        conv1 = Conv('conv1', [1, 6, 6, 3], QUANTIZED_PACKED(), {'X': x, 'W': w1}, kernel_shape=[1, 1])
         conv1.is_quantized = True
 
-        pool1 = SpaceToDepth('s2d', [1, 2, 2, 12], Float32(), {'input': conv1})
+        pool1 = SpaceToDepth('s2d', [1, 3, 3, 12], Float32(), {'input': conv1})
 
         # One output
-        y = Output('output', [1, 2, 2, 12], Float32(), {'input': pool1})
+        y = Output('output', [1, 3, 3, 12], Float32(), {'input': pool1})
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
@@ -442,8 +442,8 @@ class TestPassComputeThresholds(unittest.TestCase):
     """Test class for packing weight."""
     def test_pass_compute_thresholds(self) -> None:
         """Test pass."""
-        data1 = np.float32(np.random.rand(1, 2, 2, 3))
-        data2 = np.float32(np.random.rand(1, 2, 2, 3))
+        data1 = np.float32(np.random.rand(1, 1, 1, 3))
+        data2 = np.float32(np.random.rand(1, 1, 1, 3))
         graph1 = self.create_sample_graph(data1, data2)
 
         pass_compute_thresholds(graph1)
@@ -455,8 +455,8 @@ class TestPassComputeThresholds(unittest.TestCase):
 
     def test_pass_compute_thresholds_for_huge_threshold_values(self) -> None:
         """Test pass."""
-        data1 = np.float32(np.random.rand(1, 2, 2, 3))
-        data2 = np.float32(np.random.uniform(10 ** (-30), 10 ** (-40), size=(1, 2, 2, 3)))
+        data1 = np.float32(np.random.rand(1, 1, 1, 3))
+        data2 = np.float32(np.random.uniform(10 ** (-30), 10 ** (-40), size=(1, 1, 1, 3)))
         graph1 = self.create_sample_graph(data1, data2)
 
         pass_compute_thresholds(graph1)
@@ -475,17 +475,17 @@ class TestPassComputeThresholds(unittest.TestCase):
 
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
+        conv1 = Conv('conv1', [1, 5, 5, 3], Float32(), {'X': x, 'W': w1}, kernel_shape=[1, 1])
 
         # activation quantizer
         s1 = Constant('aq_const1', Int32(), np.array([2], dtype=np.int32))
         s2 = Constant('aq_const2', Float32(), np.array([2.0], dtype=np.float32))
-        aq1 = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+        aq1 = QTZ_linear_mid_tread_half('aqtz1', [1, 5, 5, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
-        kq = QTZ_binary_mean_scaling('kqtz1', [1, 2, 2, 3], Float32(), {'input': w2})
-        conv2 = Conv('conv2', [1, 3, 3, 3], Float32(), {'X': aq1, 'W': kq}, kernel_shape=[2, 2])
+        kq = QTZ_binary_mean_scaling('kqtz1', [1, 1, 1, 3], Float32(), {'input': w2})
+        conv2 = Conv('conv2', [1, 5, 5, 3], Float32(), {'X': aq1, 'W': kq}, kernel_shape=[1, 1])
         conv2.a_quantizer = [aq1]
         conv2.quantizer = kq
         conv2.is_quantized = True
@@ -494,7 +494,7 @@ class TestPassComputeThresholds(unittest.TestCase):
         be = Constant('bn_b', Float32(), np.random.rand(3))
         mu = Constant('bn_mu', Float32(), np.random.rand(3))
         va = Constant('bn_var', Float32(), np.random.rand(3))
-        bn = BatchNormalization('bn', [1, 3, 3, 3], Float32(), {'X': conv2,
+        bn = BatchNormalization('bn', [1, 5, 5, 3], Float32(), {'X': conv2,
                                                                 'scale': sc,
                                                                 'B': be,
                                                                 'mean': mu,
@@ -503,10 +503,10 @@ class TestPassComputeThresholds(unittest.TestCase):
         # activation quantizer
         s3 = Constant('aq_const3', Int32(), np.array([2], dtype=np.int32))
         s4 = Constant('aq_const4', Float32(), np.array([2.0], dtype=np.float32))
-        aq2 = QTZ_linear_mid_tread_half('aqtz2', [1, 3, 3, 3], Float32(), {'X': bn, 'Y': s3, 'Z': s4})
+        aq2 = QTZ_linear_mid_tread_half('aqtz2', [1, 5, 5, 3], Float32(), {'X': bn, 'Y': s3, 'Z': s4})
 
         # One output
-        y = Output('output', [1, 3, 3, 3], Float32(), {'input': aq2})
+        y = Output('output', [1, 5, 5, 3], Float32(), {'input': aq2})
 
         # add ops to the graph
         graph.add_op_and_inputs(y)
