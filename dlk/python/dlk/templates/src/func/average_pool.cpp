@@ -29,7 +29,7 @@ void func_AveragePool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
   assert (app.input_depth == app.kernel_depth * app.output_channels && \
           "input_depth must equal kernel_depth * output_channels.");
 
-  const T_FLOAT num_k_elems = app.kernel_height * app.kernel_width * app.kernel_depth;
+  const T_FLOAT num_k_elems_inv = 1.f / (app.kernel_height * app.kernel_width * app.kernel_depth);
 
   size_t area = app.output_height * app.output_width;
 #pragma omp parallel for
@@ -61,7 +61,7 @@ void func_AveragePool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
       for(size_t kz = 0; kz < app.kernel_depth; kz++) {
         out += tmp[oc * app.kernel_depth + kz];
       }
-      output.data()[idx_out] = out / num_k_elems;
+      output.data()[idx_out] = out * num_k_elems_inv;
     }
   }
 
