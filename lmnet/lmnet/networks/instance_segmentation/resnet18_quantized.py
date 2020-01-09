@@ -4,6 +4,8 @@ import keras.layers as KL
 from keras.callbacks import LearningRateScheduler, TensorBoard, ModelCheckpoint
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
+from keras.layers import Layer
+from keras.initializers import random_normal
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
 from distutils.version import LooseVersion
