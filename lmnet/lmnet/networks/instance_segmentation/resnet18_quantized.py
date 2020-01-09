@@ -4,9 +4,6 @@ import keras.layers as KL
 from keras.callbacks import LearningRateScheduler, TensorBoard, ModelCheckpoint
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
-from keras.utils import multi_gpu_model
-from keras.layers import Layer
-from keras.initializers import random_normal
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
 from distutils.version import LooseVersion
@@ -299,18 +296,6 @@ def val_gen():
             yield (batch_input, batch_output)
 
 
-class ParallelModelCheckpoint(ModelCheckpoint):
-    def __init__(self, model, filepath, monitor='val_loss', verbose=0,
-                 save_best_only=False, save_weights_only=False,
-                 mode='auto', period=1):
-        self.single_model = model
-        super(ParallelModelCheckpoint, self).__init__(filepath, monitor, verbose, save_best_only, save_weights_only,
-                                                      mode, period)
-
-    def set_model(self, model):
-        super(ParallelModelCheckpoint, self).set_model(self.single_model)
-
-
 if __name__ == '__main__':
     ##############
     # Model
@@ -322,17 +307,14 @@ if __name__ == '__main__':
 
     x = KL.GlobalAveragePooling2D(name='global_avg_pool')(x)
     outputs = KL.Dense(1000, activation='softmax', name='fc1000')(x)
+
     model = keras.Model(input_image, outputs, name='resnet18')
-    # with tf.device('/cpu:0'):
-    #     model = keras.Model(input_image, outputs, name='resnet18')
 
     # TODO(lucien): hard coding
     log_dir = '/home/zhang/blueoil/lmnet/lmnet/networks/instance_segmentation/logs/'
     data_dir = '/storage/dataset/ILSVRC2012/'
 
     BATCH_SIZE = 128
-    # NUM_GPU = 2
-    # BATCH_SIZE *= NUM_GPU
     mean = [0.485, 0.456, 0.406]  # rgb
     std = [0.229, 0.224, 0.225]
 
@@ -351,10 +333,6 @@ if __name__ == '__main__':
 
     model.compile(loss='categorical_crossentropy', metrics=['accuracy'],
                   optimizer=keras.optimizers.SGD(0.1, 0.9, nesterov=True))
-
-    # parallel_model = multi_gpu_model(model, gpus=NUM_GPU)
-    # parallel_model.compile(loss='categorical_crossentropy', metrics=['accuracy'],
-    #                        optimizer=keras.optimizers.SGD(0.1, 0.9, nesterov=True))
 
     START_LR = 0.1
     BASE_LR = START_LR * (BATCH_SIZE / 256.0)
@@ -377,10 +355,6 @@ if __name__ == '__main__':
     tb_cb = TensorBoard(log_dir=log_dir, histogram_freq=0)
     checkpoint = ModelCheckpoint(filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc', save_weights_only=True,
                                  period=10)
-    # checkpoint = ParallelModelCheckpoint(model, filepath=log_dir + '{epoch:02d}.hdf5', monitor='val_acc',
-    #                                      save_weights_only=True,
-    #                                      period=10)
-
     callbacks = [change_lr, tb_cb, checkpoint]
 
     EPOCHS = 150
@@ -391,11 +365,5 @@ if __name__ == '__main__':
                         steps_per_epoch=1281167 // BATCH_SIZE,
                         # validation_data=val_gen,
                         )
-    # parallel_model.fit_generator(train_data,
-    #                              epochs=EPOCHS,
-    #                              callbacks=callbacks,
-    #                              steps_per_epoch=1281167 // BATCH_SIZE,
-    #                              # validation_data=val_gen,
-    #                              )
 
     model.save_weights(log_dir + 'resnet18_final.h5')

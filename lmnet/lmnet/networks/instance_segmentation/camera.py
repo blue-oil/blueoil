@@ -13,7 +13,9 @@ import lmnet.networks.instance_segmentation.model_quantized as modellib
 from lmnet.networks.instance_segmentation import balloon
 
 MODEL_DIR = os.path.join(os.path.abspath('./notebooks'), "logs")
-BALLON_WEIGHTS_PATH = os.path.join(MODEL_DIR, 'balloon20200106T1307/mask_rcnn_balloon_0020.h5')
+BALLON_WEIGHTS_PATH = os.path.join(MODEL_DIR, 'balloon.h5')
+# BALLON_WEIGHTS_PATH = os.path.join(MODEL_DIR, 'balloon20200106T1307/mask_rcnn_balloon_0020.h5')
+
 
 config = balloon.BalloonConfig()
 
@@ -37,8 +39,8 @@ def get_model():
     with tf.device(DEVICE):
         model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR,
                                   config=config)
-    weights_path = model.find_last()
-    model.load_weights(weights_path, by_name=True)
+    # weights_path = model.find_last()
+    model.load_weights(BALLON_WEIGHTS_PATH, by_name=True)
     return model
 
 
