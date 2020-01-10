@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4 FATAL_ERROR)
 
-# set(TOOLCHAIN_NAME "linux_arm")
-set(TOOLCHAIN_NAME "linux-armv8a-hardfloat")
+set(TOOLCHAIN_NAME "linux_arm")
+# set(TOOLCHAIN_NAME "linux-armv8a-hardfloat")
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchain/${TOOLCHAIN_NAME}.cmake")
 
 project(progfpga CXX)
