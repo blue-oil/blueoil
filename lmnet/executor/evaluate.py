@@ -161,7 +161,7 @@ def evaluate(config, restore_path, output_dir):
         'dataset_path': dataset_path,
         'last_step': int(last_step),
         # TODO: Fix to avoid the implementation depended on the order of dict implicitly
-        'metrics': [{'name': k, 'value': float(v)} for k, v in zip(list(metrics_ops_dict.keys()), metrics_values)],
+        'metrics': {k: float(v) for k, v in zip(list(metrics_ops_dict.keys()), metrics_values)},
     }
     save_json(output_dir, json.dumps(metrics_dict, indent=4,), metrics_dict["last_step"])
 
