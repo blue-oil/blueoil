@@ -204,6 +204,8 @@ def _blueoil_to_lmnet(blueoil_config):
     learning_rate_kwargs = None
     if learning_rate_schedule == "constant":
         learning_rate_func = None
+    elif learning_rate_schedule == "cosine":
+        learning_rate_func = "tf.train.cosine_decay"
     else:
         learning_rate_func = "tf.train.piecewise_constant"
 
@@ -263,6 +265,11 @@ def _blueoil_to_lmnet(blueoil_config):
                 int((step_per_epoch * (max_epochs - 1)) * 2 / 3),
                 int(step_per_epoch * (max_epochs - 1))
             ],
+        }
+    elif learning_rate_schedule == "cosine":
+        learning_rate_kwargs = {
+            "learning_rate": initial_learning_rate,
+            "decay_steps": int(step_per_epoch * max_epochs),
         }
 
     # common
