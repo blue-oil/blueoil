@@ -85,7 +85,8 @@ DLK_OPERATOR_MAP: Dict[str, str] = {
     'BiasAdd': 'Add',
     'AddV2': 'Add',
     'ConcatV2': 'ConcatOnDepth',
-    'GatherV2': 'Gather'
+    'GatherV2': 'Gather',
+    'QTZ_binary_channel_wise_mean_scaling': 'BinaryChannelWiseMeanScalingQuantizer'
 }
 
 
@@ -393,15 +394,7 @@ class Importer(object):
         dlk_op_type = DLK_OPERATOR_MAP.get(op_type)
         return dlk_op_type if dlk_op_type else op_type
 
-    def convert_deprecated_operator(self, op_type: str) -> str:
-        """Support backwards compatibility to old operators"""
-        DEPRECATED_OPERATOR_MAP: Dict[str, str] = {
-            'QTZ_binary_channel_wise_mean_scaling': 'BinaryChannelWiseMeanScalingQuantizer'
-        }
-        new_op_type = DEPRECATED_OPERATOR_MAP.get(op_type)
-        return new_op_type if new_op_type else op_type
-
-    def create_new_op(self, node: Any, op_dic: Dict[str, Operator], current_format: str,
+    def create_new_op(self, node:   Any, op_dic: Dict[str, Operator], current_format: str,
                       input_format_list: List[str], nodes_to_remove) -> Operator:
         """Create new operators with Node, Input(Constant), Output."""
         new_op: Operator
@@ -493,7 +486,6 @@ class Importer(object):
                 out_format = node.get_format()
 
             op_type = self.convert_operator(node.op_type)
-            op_type = self.convert_deprecated_operator(op_type)
             if op_type == 'Conv':
                 return out_format, [out_format, _default_w_format, 'C']
             elif op_type in ['QTZ_binary_mean_scaling', 'BinaryChannelWiseMeanScalingQuantizer']:
@@ -581,7 +573,6 @@ class Importer(object):
             Operator: Newly created dlk operator
         """
         op_type = self.convert_operator(node.op_type)
-        op_type = self.convert_deprecated_operator(op_type)
         try:
             module = importlib.import_module('core.operators')
             class_def = getattr(module, op_type)
