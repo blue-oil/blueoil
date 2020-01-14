@@ -394,7 +394,7 @@ class Importer(object):
         dlk_op_type = DLK_OPERATOR_MAP.get(op_type)
         return dlk_op_type if dlk_op_type else op_type
 
-    def create_new_op(self, node:   Any, op_dic: Dict[str, Operator], current_format: str,
+    def create_new_op(self, node: Any, op_dic: Dict[str, Operator], current_format: str,
                       input_format_list: List[str], nodes_to_remove) -> Operator:
         """Create new operators with Node, Input(Constant), Output."""
         new_op: Operator
