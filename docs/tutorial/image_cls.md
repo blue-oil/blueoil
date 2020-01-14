@@ -50,7 +50,10 @@ The CIFAR-10 dataset consists of 60,000 32x32 color images split into 10 classe
 
 Generate your model configuration file interactively by running the `blueoil init` command.
 
-    $ docker run --rm -it -v $(pwd)/config:/home/blueoil/config blueoil_$(id -un):{TAG} blueoil init -o config/my_config.yml
+    $ docker run --rm -it \
+        -v $(pwd)/config:/home/blueoil/config \
+        blueoil_$(id -un):{TAG} \
+        blueoil init -o config/my_config.yml
 
 The `{TAG}` value must be set to a value like `v0.15.0-15-gf493ec9` that can be obtained with the `docker images` command.
 This value depends on your environment.
@@ -88,7 +91,13 @@ If configuration finishes, the configuration file is generated in the `my_config
 
 Train your model by running `blueoil train` with model configuration.
 
-    $ docker run --rm -e CUDA_VISIBLE_DEVICES=0 -v $(pwd)/cifar:/home/blueoil/cifar -v $(pwd)/config:/home/blueoil/config -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} blueoil train -c config/my_config.yml
+    $ docker run --rm \
+        -e CUDA_VISIBLE_DEVICES=0 \
+        -v $(pwd)/cifar:/home/blueoil/cifar \
+        -v $(pwd)/config:/home/blueoil/config \
+        -v $(pwd)/saved:/home/blueoil/saved \
+        blueoil_$(id -un):{TAG} \
+        blueoil train -c config/my_config.yml
 
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
 Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
@@ -98,7 +107,11 @@ The value of `{MODEL_NAME}` will be `train_{TIMESTAMP}`.
 
 Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
-    $ docker run --rm -p 6006:6006 -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} tensorboard --logdir=saved/{MODEL_NAME}
+    $ docker run --rm \
+        -p 6006:6006 \
+        -v $(pwd)/saved:/home/blueoil/saved \
+        blueoil_$(id -un):{TAG} \
+        tensorboard --logdir=saved/{MODEL_NAME}
 
 - Loss / Cross Entropy, Loss, Weight Decay
 <img src="../_static/train_loss.png">
@@ -112,7 +125,12 @@ Training is running on TensorFlow backend. So you can use TensorBoard to visuali
 Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
-    $ docker run --rm -e CUDA_VISIBLE_DEVICES=0 -e OUTPUT_DIR=/home/blueoil/saved -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} blueoil convert -e {MODEL_NAME}
+    $ docker run --rm \
+        -e CUDA_VISIBLE_DEVICES=0 \
+        -e OUTPUT_DIR=/home/blueoil/saved \
+        -v $(pwd)/saved:/home/blueoil/saved \
+        blueoil_$(id -un):{TAG} \
+        blueoil convert -e {MODEL_NAME}
     
 
 `blueoil convert` automatically executes some conversion processes.

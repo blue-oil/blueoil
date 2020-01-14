@@ -37,7 +37,10 @@ Note: Below instructions assume your current path is blueoil root path.
 
 Generate your model configuration file interactively by running the `blueoil init` command.
 
-    $ docker run --rm -it -v $(pwd)/config:/home/blueoil/config blueoil_$(id -un):{TAG} blueoil init -o config/my_config.yml
+    $ docker run --rm -it \
+        -v $(pwd)/config:/home/blueoil/config \
+        blueoil_$(id -un):{TAG} \
+        blueoil init -o config/my_config.yml
 
 Below is an example of initialization.
 
@@ -68,14 +71,24 @@ It should be `keypoint_detection_demo.yml` if you use above example initializati
 
 Train your model by running `blueoil train` with a model configuration.
 
-    $ docker run --rm -e CUDA_VISIBLE_DEVICES=0 -v /storage/dataset/MSCOCO_2017:/home/blueoil/MSCOCO_2017 -v $(pwd)/config:/home/blueoil/config -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} blueoil train -c config/my_config.yml
+    $ docker run --rm \
+        -e CUDA_VISIBLE_DEVICES=0 \
+        -v /storage/dataset/MSCOCO_2017:/home/blueoil/MSCOCO_2017 \
+        -v $(pwd)/config:/home/blueoil/config \
+        -v $(pwd)/saved:/home/blueoil/saved \
+        blueoil_$(id -un):{TAG} \
+        blueoil train -c config/my_config.yml
 
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
 Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
 
 Training runs on the TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
-    $ docker run --rm -p 6006:6006 -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} tensorboard --logdir=saved/{MODEL_NAME}
+    $ docker run --rm \
+        -p 6006:6006 \
+        -v $(pwd)/saved:/home/blueoil/saved \
+        blueoil_$(id -un):{TAG} \
+        tensorboard --logdir=saved/{MODEL_NAME}
 
 - loss / metrics
 <img src="../_static/keypoint_detection_scalar.png">
@@ -95,7 +108,12 @@ global_loss is for all keypoints, refine_loss is for some difficult keypoints.
 Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
-    $ docker run --rm -e CUDA_VISIBLE_DEVICES=0 -e OUTPUT_DIR=/home/blueoil/saved -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} blueoil convert -e {MODEL_NAME}
+    $ docker run --rm \
+        -e CUDA_VISIBLE_DEVICES=0 \
+        -e OUTPUT_DIR=/home/blueoil/saved \
+        -v $(pwd)/saved:/home/blueoil/saved \
+        blueoil_$(id -un):{TAG} \
+        blueoil convert -e {MODEL_NAME}
 
 `blueoil convert` automatically executes some conversion processes.
 - Converts Tensorflow checkpoint to protocol buffer graph.

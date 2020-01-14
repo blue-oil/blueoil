@@ -56,7 +56,10 @@ CamVid dataset consists of 360x480 color images in 12 classes. There are 367 tr
 
 Generate your model configuration file interactively by running the `blueoil init` command.
 
-    $ docker run --rm -it -v $(pwd)/config:/home/blueoil/config blueoil_$(id -un):{TAG} blueoil init -o config/my_config.yml
+    $ docker run --rm -it \
+	    -v $(pwd)/config:/home/blueoil/config \
+	    blueoil_$(id -un):{TAG} \
+	    blueoil init -o config/my_config.yml
 
 This is an example of the initialization procedure.
 
@@ -87,7 +90,13 @@ If configuration finishes, the configuration file is generated in the `my_config
 
 Train your model by running `blueoil train` command with model configuration.
 
-    $ docker run --rm -e CUDA_VISIBLE_DEVICES=0 -v $(pwd)/CamVid:/home/blueoil/CamVid -v $(pwd)/config:/home/blueoil/config -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} blueoil train -c config/my_config.yml
+    $ docker run --rm \
+	    -e CUDA_VISIBLE_DEVICES=0 \
+	    -v $(pwd)/CamVid:/home/blueoil/CamVid \
+	    -v $(pwd)/config:/home/blueoil/config \
+	    -v $(pwd)/saved:/home/blueoil/saved \
+	    blueoil_$(id -un):{TAG} \
+	    blueoil train -c config/my_config.yml
 
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
 Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
@@ -97,7 +106,11 @@ The value of `{MODEL_NAME}` will be `train_{TIMESTAMP}`.
 
 Training is running on the TensorFlow backend. So you can use TensorBoard to visualize your training progress.
 
-    $ docker run --rm -p 6006:6006 -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} tensorboard --logdir=saved/{MODEL_NAME}
+    $ docker run --rm \
+	    -p 6006:6006 \
+	    -v $(pwd)/saved:/home/blueoil/saved \
+	    blueoil_$(id -un):{TAG} \
+	    tensorboard --logdir=saved/{MODEL_NAME}
 
 - Learning Rate / Loss
 <img src="../_static/semantic_segmentation_loss.png">
@@ -113,7 +126,12 @@ Training is running on the TensorFlow backend. So you can use TensorBoard to vis
 Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
-    $ docker run --rm -e CUDA_VISIBLE_DEVICES=0 -e OUTPUT_DIR=/home/blueoil/saved -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} blueoil convert -e {MODEL_NAME}
+    $ docker run --rm \
+	    -e CUDA_VISIBLE_DEVICES=0 \
+	    -e OUTPUT_DIR=/home/blueoil/saved \
+	    -v $(pwd)/saved:/home/blueoil/saved \
+	    blueoil_$(id -un):{TAG} \
+	    blueoil convert -e {MODEL_NAME}
 
 `blueoil convert` automatically executes some conversion processes.
 - Convert Tensorflow checkpoint to protocol buffer graph.
