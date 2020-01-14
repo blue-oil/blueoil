@@ -122,14 +122,14 @@ output
 │   └── soc_system.rbf
 ├── models
 │   ├── lib
-│   │   ├── lib_aarch64.so
-│   │   ├── lib_arm.so
+│   │   ├── libdlk_aarch64.so
+│   │   ├── libdlk_arm.so
 │   │   ├── libdlk_aarch64.a
 │   │   ├── libdlk_arm.a
 │   │   ├── libdlk_fpga.a
 │   │   ├── libdlk_x86.a
-│   │   ├── lib_fpga.so
-│   │   ├── lib_x86.so
+│   │   ├── libdlk_fpga.so
+│   │   ├── libdlk_x86.so
 │   │   ├── lm_aarch64.elf
 │   │   ├── lm_arm.elf
 │   │   ├── lm_fpga.elf
@@ -183,7 +183,7 @@ output
 	$ sudo pip install -r requirements.txt  # for the first time only
 	$ python run.py \
 	      -i {inference image path} \
-	      -m ../models/lib/lib_x86.so \
+	      -m ../models/lib/libdlk_x86.so \
 	      -c ../models/meta.yaml
 	```
 

@@ -82,11 +82,11 @@ def strip_binary(output):
 
     if output == "lm_x86.elf":
         subprocess.run(("strip", output))
-    elif output == "lib_x86.so":
+    elif output == "libdlk_x86.so":
         subprocess.run(("strip", "-x", "--strip-unneeded", output))
     elif output in {"lm_arm.elf", "lm_fpga.elf"}:
         subprocess.run(("arm-linux-gnueabihf-strip", output))
-    elif output in {"lib_arm.so", "lib_fpga.so"}:
+    elif output in {"libdlk_arm.so", "libdlk_fpga.so"}:
         subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
 
 
@@ -104,10 +104,10 @@ def make_all(project_dir, output_dir):
         ["lm_arm", "lm_arm.elf"],
         ["lm_fpga", "lm_fpga.elf"],
         ["lm_aarch64", "lm_aarch64.elf"],
-        ["lib_x86", "lib_x86.so"],
-        ["lib_arm", "lib_arm.so"],
-        ["lib_fpga", "lib_fpga.so"],
-        ["lib_aarch64", "lib_aarch64.so"],
+        ["lib_x86", "libdlk_x86.so"],
+        ["lib_arm", "libdlk_arm.so"],
+        ["lib_fpga", "libdlk_fpga.so"],
+        ["lib_aarch64", "libdlk_aarch64.so"],
         ["ar_x86", "libdlk_x86.a"],
         ["ar_arm", "libdlk_arm.a"],
         ["ar_fpga", "libdlk_fpga.a"],

@@ -192,7 +192,7 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
-    default="../models/lib/lib_fpga.so",
+    default="../models/lib/libdlk_fpga.so",
 )
 @click.option(
     "-c",

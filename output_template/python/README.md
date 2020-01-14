@@ -13,7 +13,7 @@
 
 ```
 $ pip install -r requirements.txt
-$ python run.py -i [your image file] -c ../models/meta.yaml -m ../models/lib/lib_fpga.so
+$ python run.py -i [your image file] -c ../models/meta.yaml -m ../models/lib/libdlk_fpga.so
 ```
 ## Prerequisites
 ```
@@ -44,7 +44,7 @@ $ python -c "import cv2; print(cv2.__version__)"
 
 ```
 $ pip install -r requirements.txt
-$ python usb_camera_demo.py -c ../models/meta.yaml -m ../models/lib/lib_fpga.so
+$ python usb_camera_demo.py -c ../models/meta.yaml -m ../models/lib/libdlk_fpga.so
 ```
 
 

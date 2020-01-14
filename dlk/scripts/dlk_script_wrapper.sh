@@ -46,13 +46,13 @@ function make_each_target(){
 	elif [[ "${1}" = "lm_arm" ]] || [[ "${1}" = "lm_fpga" ]]
 	then
 	    arm-linux-gnueabihf-strip "${2}"
-	elif [[ "${1}" = "lib_x86" ]]
+	elif [[ "${1}" = "libdlk_x86" ]]
 	then
 	    strip -x --strip-unneeded "${2}"
-	elif [[ "${1}" = "lib_aarch64" ]]
+	elif [[ "${1}" = "libdlk_aarch64" ]]
 	then
 	    strip -x --strip-unneeded "${2}"
-	elif [[ "${1}" = "lib_arm" ]] || [[ "${1}" = "lib_fpga" ]]
+	elif [[ "${1}" = "libdlk_arm" ]] || [[ "${1}" = "libdlk_fpga" ]]
 	then
 	    arm-linux-gnueabihf-strip -x --strip-unneeded "${2}"
 	fi
@@ -216,10 +216,10 @@ then
 	make_each_target lm_arm lm_arm.elf ${OUTPUT_DATA_DIR}
 	make_each_target lm_aarch64 lm_aarch64.elf ${OUTPUT_DATA_DIR}
 	make_each_target lm_fpga lm_fpga.elf ${OUTPUT_DATA_DIR}
-	make_each_target lib_x86 lib_x86.so ${OUTPUT_DATA_DIR}
-	make_each_target lib_arm lib_arm.so ${OUTPUT_DATA_DIR}
-	make_each_target lib_aarch64 lib_aarch64.so ${OUTPUT_DATA_DIR}
-	make_each_target lib_fpga lib_fpga.so ${OUTPUT_DATA_DIR}
+	make_each_target lib_x86 libdlk_x86.so ${OUTPUT_DATA_DIR}
+	make_each_target lib_arm libdlk_arm.so ${OUTPUT_DATA_DIR}
+	make_each_target lib_aarch64 libdlk_aarch64.so ${OUTPUT_DATA_DIR}
+	make_each_target lib_fpga libdlk_fpga.so ${OUTPUT_DATA_DIR}
 	make_each_target ar_x86 libdlk_x86.a ${OUTPUT_DATA_DIR}
 	make_each_target ar_arm libdlk_arm.a ${OUTPUT_DATA_DIR}
 	make_each_target ar_aarch64 libdlk_aarch64.a ${OUTPUT_DATA_DIR}

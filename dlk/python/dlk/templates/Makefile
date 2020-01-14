@@ -77,15 +77,15 @@ TARGETS_ARM  := lm_arm
 
 TARGETS_FPGA := lm_fpga
 
-LIBS_X86     := lib_x86
+LIBS_X86     := libdlk_x86
 
-LIBS_X86_AVX := lib_x86_avx
+LIBS_X86_AVX := libdlk_x86_avx
 
-LIBS_AARCH64 := lib_aarch64
+LIBS_AARCH64 := libdlk_aarch64
 
-LIBS_ARM     := lib_arm
+LIBS_ARM     := libdlk_arm
 
-LIBS_FPGA    := lib_fpga
+LIBS_FPGA    := libdlk_fpga
 
 ARS_X86     := ar_x86
 
@@ -134,25 +134,32 @@ lm_fpga:          CXX = arm-linux-gnueabihf-g++
 lm_fpga:          FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DRUN_ON_FPGA -DUSE_PNG -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -pthread -g -fopenmp -DFUNC_TIME_MEASUREMENT
 lm_fpga:          CXXFLAGS +=
 
+.PHONY: lib_x86 lib_x86_avx lib_aarch64 lib_arm lib_fpga
+
 lib_x86:           CXX = g++
 lib_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -pthread -g
 lib_x86:           CXXFLAGS +=
+lib_x86:           NAME = x86
 
 lib_x86_avx:       CXX = g++
 lib_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -mavx2 -mfma -pthread -g -fopenmp
 lib_x86_avx:       CXXFLAGS +=
+lib_x86_avx:       NAME = x86_avx
 
 lib_aarch64:       CXX = aarch64-linux-gnu-g++
 lib_aarch64:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_NEON -pthread -g
 lib_aarch64:       CXXFLAGS +=
+lib_aarch64:       NAME = aarch64
 
 lib_arm:           CXX = arm-linux-gnueabihf-g++
 lib_arm:           FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
 lib_arm:           CXXFLAGS +=
+lib_arm:           NAME = arm
 
 lib_fpga:          CXX = arm-linux-gnueabihf-g++
 lib_fpga:          FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -DUSE_NEON -DRUN_ON_FPGA -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fvisibility=hidden -pthread -g -fopenmp
 lib_fpga:          CXXFLAGS +=
+lib_fpga:          NAME = fpga
 
 ar_x86:           AR = ar
 ar_x86:           CXX = g++
@@ -201,19 +208,19 @@ $(TARGETS_X86_AVX): $(OBJ) $(LIB_X86_AVX_OBJ)
 	$(CXX) $(FLAGS) $(OBJ) $(LIB_X86_AVX_OBJ) -o $@.elf $(CXXFLAGS) -pthread -ldl
 
 $(LIBS_X86): $(LIB_OBJ) $(LIB_X86_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_X86_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_X86_OBJ) -o libdlk_$(NAME).so $(CXXFLAGS) -shared -pthread -ldl
 
 $(LIBS_X86_AVX): $(LIB_OBJ) $(LIB_X86_AVX_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_X86_AVX_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_X86_AVX_OBJ) -o libdlk_$(NAME).so $(CXXFLAGS) -shared -pthread -ldl
 
 $(LIBS_AARCH64): $(LIB_OBJ) $(LIB_AARCH64_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_AARCH64_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_AARCH64_OBJ) -o libdlk_$(NAME).so $(CXXFLAGS) -shared -pthread -ldl
 
 $(LIBS_ARM): $(LIB_OBJ) $(LIB_ARM_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_ARM_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_ARM_OBJ) -o libdlk_$(NAME).so $(CXXFLAGS) -shared -pthread -ldl
 
 $(LIBS_FPGA): $(LIB_OBJ) $(LIB_FPGA_OBJ)
-	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_FPGA_OBJ) -o $@.so $(CXXFLAGS) -shared -pthread -ldl
+	$(CXX) $(FLAGS) $(LIB_OBJ) $(LIB_FPGA_OBJ) -o libdlk_$(NAME).so $(CXXFLAGS) -shared -pthread -ldl
 
 $(ARS_X86): $(LIB_OBJ) $(LIB_X86_OBJ)
 	$(AR) $(LDFLAGS) libdlk_$(NAME).a $(LIB_OBJ) $(LIB_X86_OBJ)

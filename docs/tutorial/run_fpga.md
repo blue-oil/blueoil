@@ -24,7 +24,7 @@ demo
  │   └── soc_system.rbf
  ├── models
  │   ├── lib
- │   │   └── lib_fpga.so
+ │   │   └── libdlk_fpga.so
  │   └── meta.yaml
  └── python
      ├── lmnet
@@ -46,5 +46,5 @@ Explore into the `demo/python` directory, and execute the following commands on 
 
     $ cd demo/python
     $ python usb_camera_demo.py \
-          -m ../models/lib/lib_fpga.so \
+          -m ../models/lib/libdlk_fpga.so \
           -c ../models/meta.yaml

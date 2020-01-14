@@ -192,7 +192,7 @@ def run(model, config_file, port=80):
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
-    default="../models/lib/lib_fpga.so",
+    default="../models/lib/libdlk_fpga.so",
 )
 @click.option(
     "-c",
