@@ -80,8 +80,10 @@ DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
 DLK_OPERATOR_MAP: Dict[str, str] = {
     'Conv2D': 'Conv',
     'FusedBatchNorm': 'BatchNormalization',
+    'FusedBatchNormV3': 'BatchNormalization',
     'AvgPool': 'AveragePool',
     'BiasAdd': 'Add',
+    'AddV2': 'Add',
     'ConcatV2': 'ConcatOnDepth',
     'GatherV2': 'Gather'
 }

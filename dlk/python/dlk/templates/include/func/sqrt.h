@@ -18,7 +18,6 @@ limitations under the License.
 
 #include <cmath>
 
-#include "global.h"
 #include "tensor_view.h"
 #include "func/impl/unary_op.h"
 #include "time_measurement.h"

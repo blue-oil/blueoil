@@ -33,7 +33,7 @@ def resize(image, size=[256, 256]):
     if width == image.shape[1] and height == image.shape[0]:
         return image
 
-    image = PIL.Image.fromarray(image)
+    image = PIL.Image.fromarray(np.uint8(image))
 
     image = image.resize([width, height])
 

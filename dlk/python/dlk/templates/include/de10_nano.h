@@ -260,7 +260,7 @@ Parameters calcParameters(uint32_t inputHeight, uint32_t inputWidth, uint32_t in
 }
 
 void RunTCA(unsigned long input_addr, unsigned long output_addr, unsigned long kernel_addr,
-  unsigned long thresholds_addr, unsigned in_w, unsigned in_h, unsigned in_c, unsigned nbits_in_data,
+  unsigned long thresholds_addr, unsigned in_w, unsigned in_h, unsigned in_c,
   unsigned out_w, unsigned out_h, unsigned out_c, unsigned k_w, unsigned k_h, unsigned pad, unsigned stride) {
 
   unsigned use_threshold = (thresholds_addr != 0) ? 1 : 0;

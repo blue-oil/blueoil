@@ -1,7 +1,7 @@
 click==6.7
 easydict==1.6
 matplotlib==2.2.2
-numpy==1.15.0
+numpy==1.17.4
 pandas==0.19.2
 Pillow==6.2.1
 prompt_toolkit==1.0.15

@@ -113,6 +113,7 @@ def make_all(project_dir, output_dir):
         ["ar_fpga", "libdlk_fpga.a"],
         ["ar_aarch64", "libdlk_aarch64.a"],
     ]
+    output_dir = os.path.abspath(output_dir)
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)

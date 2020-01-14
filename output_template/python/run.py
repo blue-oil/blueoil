@@ -99,11 +99,16 @@ def _run(model, image_data, config):
 
 
 def _timerfunc(func, extraArgs, trial):
+    if sys.version_info.major == 2:
+        get_time = time.clock
+    else:
+        get_time = time.process_time
+
     runtime = 0.
     for i in range(trial):
-        start = time.process_time()
+        start = get_time()
         value = func(*extraArgs)
-        end = time.process_time()
+        end = get_time()
         runtime += end - start
         msg = "Function {func} took {time} seconds to complete"
         logger.info(msg.format(func=func.__name__, time=end - start))

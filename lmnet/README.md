@@ -192,6 +192,7 @@ Options:
   -d, --dataset TEXT        dataset name. override config.DATASET_CLASS
   -c, --config_file TEXT    config file path. override(merge) saved experiment config.
                             if it is not provided, it restore from saved experiment config.
+  -o, --output_dir TEXT     Output directory to save a evaluated result
   -h, --help                Show this message and exit.
 ```
 
