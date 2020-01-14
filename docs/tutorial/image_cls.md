@@ -48,9 +48,12 @@ The CIFAR-10 dataset consists of 60,000 32x32 color images split into 10 classe
 
 ## Generate a configuration file
 
-Generate your model configuration file interactively by running the `python blueoil/cmd/main.py init` command.
+Generate your model configuration file interactively by running the `blueoil init` command.
 
-    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py init
+    $ docker run --rm -it -v $(pwd)/config:/home/blueoil/config blueoil_$(id -un):{TAG} blueoil init -o config/my_config.yml
+
+The `{TAG}` value must be set to a value like `v0.15.0-15-gf493ec9` that can be obtained with the `docker images` command.
+This value depends on your environment.
 
 Below is an example configuration.
 
@@ -60,9 +63,9 @@ Below is an example configuration.
   choose task type:  classification
   choose network:  LmnetV1Quantize
   choose dataset format:  Caltech101
-  training dataset path:  {dataset_dir}/cifar/train/
+  training dataset path:  /home/blueoil/cifar/train/
   set validataion dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  yes
-  validataion dataset path:  {dataset_dir}/cifar/test/
+  validataion dataset path:  /home/blueoil/cifar/test/
   batch size (integer):  64
   image size (integer x integer):  32x32
   how many epochs do you run training (integer):  100
@@ -73,29 +76,29 @@ Below is an example configuration.
 - Network: LmnetV1Quantize / LmnetV0Quantize
 - Dataset format: Caltech101
 - Dataset path:
-    - Training: {dataset_dir}/cifar/train/
-    - Validation: {dataset_dir}/cifar/test/
+    - Training: {dataset_dir on docker container}/cifar/train/
+    - Validation: {dataset_dir on docker container}/cifar/test/
 - Batch size: (Any)
 - Image size: 32x32
 - Number of epoch: (Any number)
 
-If configuration finishes, the configuration file is generated in the `{Model name}.yml` under current directory.
-
-When you want to create config yaml in specific filename or directory, you can use `-o` option.
-
-    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py init -o ./configs/my_config.yml
+If configuration finishes, the configuration file is generated in the `my_config.yml` under config directory.
 
 ## Train a neural network
 
-Train your model by running `python blueoil/cmd/main.py train` with model configuration.
+Train your model by running `blueoil train` with model configuration.
 
-    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py train -c {PATH_TO_CONFIG.yml}
+    $ docker run --rm -e CUDA_VISIBLE_DEVICES=0 -v $(pwd)/cifar:/home/blueoil/cifar -v $(pwd)/config:/home/blueoil/config -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} blueoil train -c config/my_config.yml
 
-When training has started, the training log and checkpoints are generated under `./saved/{Mode name}_{TIMESTAMP}`.
+Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
+Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
+
+When training has started, the training log and checkpoints are generated under `./saved/{MODEL_NAME}`.
+The value of `{MODEL_NAME}` will be `train_{TIMESTAMP}`.
 
 Training is running on TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
-    $ tensorboard --logdir=saved/{Model name}_{TIMESTAMP} --port {Port}
+    $ docker run --rm -p 6006:6006 -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} tensorboard --logdir=saved/{MODEL_NAME}
 
 - Loss / Cross Entropy, Loss, Weight Decay
 <img src="../_static/train_loss.png">
@@ -109,15 +112,16 @@ Training is running on TensorFlow backend. So you can use TensorBoard to visuali
 Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
-    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py convert -e {Model name}
+    $ docker run --rm -e CUDA_VISIBLE_DEVICES=0 -e OUTPUT_DIR=/home/blueoil/saved -v $(pwd)/saved:/home/blueoil/saved blueoil_$(id -un):{TAG} blueoil convert -e {MODEL_NAME}
+    
 
-`python blueoil/cmd/main.py convert` automatically executes some conversion processes.
+`blueoil convert` automatically executes some conversion processes.
 - Converts Tensorflow checkpoint to protocol buffer graph.
 - Optimizes graph.
 - Generates source code for executable binary.
 - Compiles for x86, ARM and FPGA.
 
-If conversion is successful, output files are generated under `./saved/{Mode name}_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
+If conversion is successful, output files are generated under `./saved/train_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
 
 ```
 output
