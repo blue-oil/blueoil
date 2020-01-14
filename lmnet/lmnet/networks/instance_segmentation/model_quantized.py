@@ -864,13 +864,13 @@ def build_fpn_mask_graph(rois, feature_maps, image_meta,
                            name='mrcnn_mask_bn1')(x, training=train_bn)
     x = my_activation(x)
 
-    x = KL.TimeDistributed(QConv2d(256, 3, padding="same"),
+    x = KL.TimeDistributed(KL.Conv2D(256, 3, padding="same"),
                            name="mrcnn_mask_conv2")(x)
     x = KL.TimeDistributed(BatchNorm(),
                            name='mrcnn_mask_bn2')(x, training=train_bn)
     x = my_activation(x)
 
-    x = KL.TimeDistributed(QConv2d(256, 3, padding="same"),
+    x = KL.TimeDistributed(KL.Conv2D(256, 3, padding="same"),
                            name="mrcnn_mask_conv3")(x)
     x = KL.TimeDistributed(BatchNorm(),
                            name='mrcnn_mask_bn3')(x, training=train_bn)
