@@ -112,7 +112,7 @@ class Uint16(Primitive, int):
 
     @classmethod
     def nptype(cls):
-        return np.uint8
+        return np.uint16
 
 
 class Int32(Primitive, int):

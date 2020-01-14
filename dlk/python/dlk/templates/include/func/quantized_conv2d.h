@@ -108,18 +108,23 @@ void func_QuantizedConv2D(
 
   // temporary: (2^n - 1) * (max - min)
   const T_FLOAT post_qtz_factor = 2.0f / 3.0f;
+  const T_FLOAT coeff = scaling_factor * post_qtz_factor;
 
-  int b = 32;
+  size_t b = 32;
   auto &ncp(p.normal_conv_params);
   auto true_out_channels = output.get_shape()[3];
-  auto channel_blocks = (true_out_channels + b - 1) / b;
+  auto channel_blocks = true_out_channels / b;
 
-  int out_index = 0;
-  for (int h = 0; h < ncp.output_height; ++h)
-    for (int w = 0; w < ncp.output_width; ++w)
-      for (int s = 0; s < channel_blocks; ++s)
-        for (int d = 0; d < std::min(b, (int)true_out_channels - s*b); ++d)
-          output.data()[out_index++] = (scaling_factor * post_qtz_factor) * p.device_output_buf[h * (b * ncp.output_width) + w * b + s * (ncp.output_height * ncp.output_width * b) + d];
+  size_t area = ncp.output_height * ncp.output_width;
+#pragma omp parallel for
+  for (size_t hw = 0; hw < area; ++hw) {
+    size_t out_index = hw * true_out_channels;
+    for (size_t s = 0; s < channel_blocks; ++s)
+      for (size_t d = 0; d < b; ++d)
+        output.data()[out_index++] = coeff * p.device_output_buf[hw * b + s * (area * b) + d];
+    for (size_t d = 0; d < true_out_channels - channel_blocks*b; ++d)
+      output.data()[out_index++] = coeff * p.device_output_buf[hw * b + channel_blocks * (area * b) + d];
+  }
 
   Measurement::Stop();
 
@@ -138,22 +143,26 @@ void func_QuantizedConv2D(
       p.normal_conv_params.output_height * p.normal_conv_params.output_width;
   unsigned out_channels = p.normal_conv_params.output_channels;
 
-  int b = 32;
+  size_t b = 32;
   auto& ncp(p.normal_conv_params);
   auto true_out_channels = output.get_shape()[3];
-  auto channel_blocks = (true_out_channels + b - 1) / b;
+  auto channel_blocks = true_out_channels / b;
 
   // temporary: (2^n - 1) * (max - min)
   T_FLOAT post_qtz_factor = 2.0 / 3.0;
 
   Measurement::Start("QuantizedConv2D_ApplyScalingFactor");
 
-  int out_index = 0;
-  for (int h = 0; h < ncp.output_height; ++h)
-    for (int w = 0; w < ncp.output_width; ++w)
-      for (int s = 0; s < channel_blocks; ++s)
-        for (int d = 0; d < std::min(b, (int)true_out_channels - s*b); ++d)
-          output.data()[out_index++] = (scaling_factor[s*b + d] * post_qtz_factor) * p.device_output_buf[h * (b * ncp.output_width) + w * b + s * (ncp.output_height * ncp.output_width * b) + d];
+  size_t area = ncp.output_height * ncp.output_width;
+#pragma omp parallel for
+  for (size_t hw = 0; hw < area; ++hw) {
+    size_t out_index = hw * true_out_channels;
+    for (size_t s = 0; s < channel_blocks; ++s)
+      for (size_t d = 0; d < b; ++d)
+        output.data()[out_index++] = (scaling_factor[s*b + d] * post_qtz_factor) * p.device_output_buf[hw * b + s * (area * b) + d];
+    for (size_t d = 0; d < true_out_channels - channel_blocks*b; ++d)
+      output.data()[out_index++] = (scaling_factor[channel_blocks*b + d] * post_qtz_factor) * p.device_output_buf[hw * b + channel_blocks * (area * b) + d];
+  }
 
   Measurement::Stop();
 }
