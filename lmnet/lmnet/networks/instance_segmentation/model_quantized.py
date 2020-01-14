@@ -858,7 +858,7 @@ def build_fpn_mask_graph(rois, feature_maps, image_meta,
                         name="roi_align_mask")([rois, image_meta] + feature_maps)
 
     # Conv layers
-    x = KL.TimeDistributed(QConv2d(256, 3, padding="same"),
+    x = KL.TimeDistributed(KL.Conv2D(256, 3, padding="same"),
                            name="mrcnn_mask_conv1")(x)
     x = KL.TimeDistributed(BatchNorm(),
                            name='mrcnn_mask_bn1')(x, training=train_bn)
@@ -2258,15 +2258,18 @@ class MaskRCNN():
             workers=workers,
             use_multiprocessing=True,
         )
-        ######using session and saving .pb file##
-        frozen_graph = self.freeze_session(K.get_session(),
-                                           output_names=[out.op.name for out in self.keras_model.outputs])
-        tf.train.write_graph(frozen_graph, self.log_dir, "my_model.pb", as_text=False)
+        # self.write_pb()
         #
         # pb_dir = os.path.join(self.log_dir, 'model_pb')
         # self.keras_model.save(str(pb_dir))
 
         self.epoch = max(self.epoch, epochs)
+
+    def write_pb(self, name):
+        ######using session and saving .pb file##
+        frozen_graph = self.freeze_session(K.get_session(),
+                                           output_names=[out.op.name for out in self.keras_model.outputs])
+        tf.train.write_graph(frozen_graph, self.log_dir, name, as_text=False)
 
     def freeze_session(self, session, keep_var_names=None, output_names=None, clear_devices=True):
         """
