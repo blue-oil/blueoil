@@ -77,15 +77,15 @@ TARGETS_ARM  := lm_arm
 
 TARGETS_FPGA := lm_fpga
 
-LIBS_X86     := libdlk_x86
+LIBS_X86     := lib_x86
 
-LIBS_X86_AVX := libdlk_x86_avx
+LIBS_X86_AVX := lib_x86_avx
 
-LIBS_AARCH64 := libdlk_aarch64
+LIBS_AARCH64 := lib_aarch64
 
-LIBS_ARM     := libdlk_arm
+LIBS_ARM     := lib_arm
 
-LIBS_FPGA    := libdlk_fpga
+LIBS_FPGA    := lib_fpga
 
 ARS_X86     := ar_x86
 
