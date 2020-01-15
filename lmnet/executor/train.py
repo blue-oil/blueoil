@@ -344,10 +344,10 @@ def start_training(config):
         if rank == 0:
             progbar.update(step + 1)
     # training loop end.
-    train_dataset.close_dataset()
-    validation_dataset.close_dataset()
+    train_dataset.close()
+    validation_dataset.close()
     if use_train_validation_saving:
-        train_validation_saving_dataset.close_dataset()
+        train_validation_saving_dataset.close()
     print("Done")
 
 

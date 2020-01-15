@@ -306,7 +306,7 @@ class DatasetIterator:
         self.seed += 1
         return random_indices
 
-    def close_dataset(self):
+    def close(self):
         if self.enable_prefetch:
             self.prefetcher.terminate = True
             self.prefetcher.pool.close()
