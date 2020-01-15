@@ -58,13 +58,6 @@ def setup_dataset(config, subset, rank):
     return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
 
 
-def close_dataset(dataset):
-    if dataset.enable_prefetch == True:
-        dataset.prefetcher.terminate = True
-        dataset.prefetcher.pool.close()
-        dataset.prefetcher.pool.join()
-
-
 def start_training(config):
     use_horovod = horovod_util.is_enabled()
     print("use_horovod:", use_horovod)
@@ -351,10 +344,10 @@ def start_training(config):
         if rank == 0:
             progbar.update(step + 1)
     # training loop end.
-    close_dataset(train_dataset)
-    close_dataset(validation_dataset)
+    train_dataset.close_dataset()
+    validation_dataset.close_dataset()
     if use_train_validation_saving:
-        close_dataset(train_validation_saving_dataset)
+        train_validation_saving_dataset.close_dataset()
     print("Done")
 
 
