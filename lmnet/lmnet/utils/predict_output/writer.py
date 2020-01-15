@@ -56,7 +56,7 @@ def save_npy(dest, outputs, step):
 
     np.save(filepath, outputs)
 
-    logging.info("save npy: {}".format(filepath))
+    logger.info("save npy: {}".format(filepath))
 
 
 def save_json(dest, json, step):
@@ -80,7 +80,7 @@ def save_json(dest, json, step):
     with open(filepath, "w") as f:
         f.write(json)
 
-    logging.info("save json: {}".format(filepath))
+    logger.info("save json: {}".format(filepath))
 
 
 def save_materials(dest, materials, step):
@@ -104,4 +104,4 @@ def save_materials(dest, materials, step):
 
         content.save(filepath)
 
-        logging.info("save image: {}".format(filepath))
+        logger.info("save image: {}".format(filepath))
