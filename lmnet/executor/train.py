@@ -41,7 +41,7 @@ def _save_checkpoint(saver, sess, global_step, step):
     )
 
 
-def setup_dataset(config, subset, rank):
+def setup_dataset(config, subset, rank, local_rank):
     DatasetClass = config.DATASET_CLASS
     dataset_kwargs = {key.lower(): val for key, val in config.DATASET.items()}
 
@@ -55,7 +55,7 @@ def setup_dataset(config, subset, rank):
 
     dataset = DatasetClass(subset=subset, **dataset_kwargs, **tfds_kwargs)
     enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
-    return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
+    return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch, local_rank=local_rank)
 
 
 def start_training(config):
@@ -64,8 +64,10 @@ def start_training(config):
     if use_horovod:
         hvd = horovod_util.setup()
         rank = hvd.rank()
+        local_rank = hvd.local_rank()
     else:
         rank = 0
+        local_rank = -1
 
     ModelClass = config.NETWORK_CLASS
     network_kwargs = {key.lower(): val for key, val in config.NETWORK.items()}
@@ -77,14 +79,14 @@ def start_training(config):
     if use_train_validation_saving:
         top_train_validation_saving_set_accuracy = 0
 
-    train_dataset = setup_dataset(config, "train", rank)
+    train_dataset = setup_dataset(config, "train", rank, local_rank)
     print("train dataset num:", train_dataset.num_per_epoch)
 
     if use_train_validation_saving:
-        train_validation_saving_dataset = setup_dataset(config, "train_validation_saving", rank)
+        train_validation_saving_dataset = setup_dataset(config, "train_validation_saving", rank, local_rank)
         print("train_validation_saving dataset num:", train_validation_saving_dataset.num_per_epoch)
 
-    validation_dataset = setup_dataset(config, "validation", rank)
+    validation_dataset = setup_dataset(config, "validation", rank, local_rank)
     print("validation dataset num:", validation_dataset.num_per_epoch)
 
     graph = tf.Graph()
