@@ -203,15 +203,58 @@ class _SimpleDatasetReader:
             result.append((image, label))
         return _concat_data(result)
 
+def _generate_tfds_map_func(dataset):
+    """
+    Return callable object
+    """
+    if hasattr(dataset, 'TFDS_PRE_PROCESSOR'):
+        pre_processor = dataset.tfds_pre_processor
+    else:
+        pre_processor = None
+    if hasattr(dataset, 'TFDS_AUGMENTOR'):
+        augmentor = dataset.tfds_augmentor
+    else:
+        augmentor = None
+
+    def _tfds_map_func(arg):
+        """
+        Arg:
+            arg(dict): with 'image' and 'label' keys
+        """
+        image, label = arg['image'], arg['label']
+        sample = {'image': image}
+
+        if issubclass(dataset.__class__, ObjectDetectionBase):
+            sample['gt_boxes'] = label
+        else:
+            sample['label'] = label
+
+        if callable(augmentor) and dataset.subset == 'train':
+            sample = augmentor(**sample)
+
+        if callable(pre_processor):
+            sample = pre_processor(**sample)
+
+        image = sample['image']
+
+        if issubclass(dataset.__class__, ObjectDetectionBase):
+            label = sample['gt_boxes']
+        else:
+            label = sample['label']
+
+        return (image, label)
+
+    return _tfds_map_func
 
 class _TFDSReader:
 
-    def __init__(self, dataset, local_rank):
+    def __init__(self, dataset, local_rank, tfds_pre_processor):
         tf_dataset = dataset.tf_dataset.shuffle(1024) \
-                                       .repeat() \
-                                       .batch(dataset.batch_size) \
-                                       .prefetch(tf.data.experimental.AUTOTUNE)
-
+                                       .repeat()
+        if tfds_pre_processor is not None:
+            tf_dataset = tf_dataset.map(map_func=_generate_tfds_map_func(dataset), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        tf_dataset = tf_dataset.batch(dataset.batch_size) \
+                                .prefetch(tf.data.experimental.AUTOTUNE)
         iterator = tf.data.make_initializable_iterator(tf_dataset)
 
         self.dataset = dataset
@@ -231,27 +274,21 @@ class _TFDSReader:
 
     def read(self):
         """Return batch size data."""
-        result = []
-        batch = self.session.run(self.next_batch)
-        for image, label in zip(batch['image'], batch['label']):
-            image, label = _apply_augmentations(self.dataset, image, label)
-            result.append((image, label))
-        return _concat_data(result)
-
+        return self.session.run(self.next_batch)
 
 class DatasetIterator:
 
     available_subsets = ["train", "train_validation_saving", "validation"]
 
     """docstring for DatasetIterator."""
-    def __init__(self, dataset, enable_prefetch=False, seed=0, local_rank=-1):
+    def __init__(self, dataset, enable_prefetch=False, seed=0, local_rank=-1, tfds_pre_processor=None):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
         self.seed = seed
 
         if issubclass(dataset.__class__, TFDSMixin):
             self.enable_prefetch = False
-            self.reader = _TFDSReader(self.dataset, local_rank)
+            self.reader = _TFDSReader(self.dataset, local_rank, tfds_pre_processor)
         else:
             if self.enable_prefetch:
                 self.prefetch_result_queue = queue.Queue(maxsize=200)

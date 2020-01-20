@@ -47,15 +47,18 @@ def setup_dataset(config, subset, rank, local_rank):
 
     # If there is a settings for TFDS, TFDS dataset class will be used.
     tfds_kwargs = dataset_kwargs.pop("tfds_kwargs", {})
+    tfds_pre_processor = dataset_kwargs.pop("tfds_pre_processor", {})
     if tfds_kwargs:
         if issubclass(DatasetClass, ObjectDetectionBase):
             DatasetClass = TFDSObjectDetection
         else:
             DatasetClass = TFDSClassification
+    elif tfds_pre_processor is not None:
+        print("TFDS_PRE_PROCESSOR is defined but not used")
 
     dataset = DatasetClass(subset=subset, **dataset_kwargs, **tfds_kwargs)
     enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
-    return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch, local_rank=local_rank)
+    return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch, local_rank=local_rank, tfds_pre_processor=tfds_pre_processor)
 
 
 def start_training(config):
