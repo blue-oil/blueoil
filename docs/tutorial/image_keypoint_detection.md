@@ -35,9 +35,12 @@ In this tutorial, we assume we have exported both variables as above.
 
 Note: Below instructions assume your current path is blueoil root path.
 
-Generate your model configuration file interactively by running the `python blueoil/cmd/main.py init` command.
+Generate your model configuration file interactively by running the `blueoil init` command.
 
-    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py init
+    $ docker run --rm -it \
+        -v $(pwd)/config:/home/blueoil/config \
+        blueoil_$(id -un):{TAG} \
+        blueoil init -o config/my_config.yml
 
 Below is an example of initialization.
 
@@ -47,9 +50,9 @@ your model name ():  keypoint_detection_demo
 choose task type  keypoint_detection
 choose network  LmSinglePoseV1Quantize
 choose dataset format  Mscoco for Single-Person Pose Estimation
-training dataset path:  MSCOCO_2017
+training dataset path:  /home/blueoil/MSCOCO_2017/
 set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  yes
-validation dataset path:  MSCOCO_2017
+validation dataset path:  /home/blueoil/MSCOCO_2017/
 batch size (integer):  4
 image size (integer x integer):  160x160
 how many epochs do you run training (integer):  100
@@ -61,29 +64,31 @@ Please choose augmentors:  done (6 selections)
 apply quantization at the first layer?  no
 ```
 
-If configuration finishes, the configuration file is generated in the `{Model name}.yml` under current directory.
+If configuration finishes, the configuration file is generated in the `my_config.yml` under config directory.
 It should be `keypoint_detection_demo.yml` if you use above example initialization.
-
-
-When you wnat to create config yaml in specific filename or directory, you can use `-o` option.
-
-    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py init -o ./configs/my_config.yml
 
 ## Train a network model
 
-Train your model by running `python blueoil/cmd/main.py train` with a model configuration.
-Feel free to replace `keypoint_detection_demo.yml` by your custom config file.
+Train your model by running `blueoil train` with a model configuration.
 
-    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py train -c keypoint_detection_demo.yml
-    
-    
+    $ docker run --rm \
+        -e CUDA_VISIBLE_DEVICES=0 \
+        -v /storage/dataset/MSCOCO_2017:/home/blueoil/MSCOCO_2017 \
+        -v $(pwd)/config:/home/blueoil/config \
+        -v $(pwd)/saved:/home/blueoil/saved \
+        blueoil_$(id -un):{TAG} \
+        blueoil train -c config/my_config.yml
 
-When training has started, the training log and checkpoints are generated under `${OUTPUT_DIR}/{Mode name}_{TIMESTAMP}`,
-i.e. `/storage/saved/keypoint_detection_demo_{TIMESTAMP}` here.
+Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
+Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
 
 Training runs on the TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
-    $ tensorboard --logdir=${OUTPUT_DIR}/keypoint_detection_demo_{TIMESTAMP} --port {Port}
+    $ docker run --rm \
+        -p 6006:6006 \
+        -v $(pwd)/saved:/home/blueoil/saved \
+        blueoil_$(id -un):{TAG} \
+        tensorboard --logdir=saved/{MODEL_NAME}
 
 - loss / metrics
 <img src="../_static/keypoint_detection_scalar.png">
@@ -103,16 +108,21 @@ global_loss is for all keypoints, refine_loss is for some difficult keypoints.
 Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
-    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py convert -e keypoint_detection_demo_{TIMESTAMP}
+    $ docker run --rm \
+        -e CUDA_VISIBLE_DEVICES=0 \
+        -e OUTPUT_DIR=/home/blueoil/saved \
+        -v $(pwd)/saved:/home/blueoil/saved \
+        blueoil_$(id -un):{TAG} \
+        blueoil convert -e {MODEL_NAME}
 
-`python blueoil/cmd/main.py convert` automatically executes some conversion processes.
+`blueoil convert` automatically executes some conversion processes.
 - Converts Tensorflow checkpoint to protocol buffer graph.
 - Optimizes graph.
 - Generates source code for executable binary.
 - Compiles for x86, ARM and FPGA.
 
 If conversion is successful, output files are generated under
-`/storage/saved/keypoint_detection_demo_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
+`./saved/train_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
 
 ```
 output
