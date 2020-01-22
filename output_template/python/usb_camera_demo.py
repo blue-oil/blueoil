@@ -20,6 +20,8 @@ from __future__ import unicode_literals
 
 import os
 import sys
+import asyncio
+import concurrent.futures
 
 import click
 import cv2
@@ -48,6 +50,12 @@ pre_process = None
 post_process = None
 
 
+vcread_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+nn_run_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+imshow_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+post_process_pool = concurrent.futures.ProcessPoolExecutor(max_workers=1)
+
+
 def init_camera(camera_width, camera_height):
     if hasattr(cv2, 'cv'):
         vc = cv2.VideoCapture(0)
@@ -74,157 +82,81 @@ def add_class_label(canvas,
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
-def inference_coroutine():
-    global nn, pre_process, post_process
-    result = None
-    fps = 1.0
-    while True:
-        input_img = yield result, fps
-        input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2RGB)
-        result, fps, _ = run_inference(input_img, nn, pre_process, post_process)
+# thread
+def io_vcread(vc):
+    grabbed, current_img = vc.read()
+    return current_img
 
 
-def run_object_detection(config):
-    # Init
-    global nn
-    nn.init()
-    camera_width = 320
-    camera_height = 240
-    window_name = "Object Detection Demo"
-    input_width = config.IMAGE_SIZE[1]
-    input_height = config.IMAGE_SIZE[0]
-    vc = init_camera(camera_width, camera_height)
-    inference_coroutine_generator = inference_coroutine()
-    next(inference_coroutine_generator)
-
-    grabbed, input_img = vc.read()
-    inference_coroutine_generator.send(input_img)
-    #  ----------- Beginning of Main Loop ---------------
-    while vc.isOpened():
-        grabbed, input_img = vc.read()
-        result, fps = inference_coroutine_generator.send(input_img)
-        if result is not None:
-            window_img = add_rectangle(
-                config.CLASSES,
-                input_img,
-                result,
-                (input_height, input_width)
-            )
-            window_img = add_fps(window_img, fps)
-        else:
-            window_img = input_img
-
-        cv2.imshow(window_name, window_img)
-        key = cv2.waitKey(2)  # Wait for 2ms
-        if key == 27:  # ESC to quit
-            vc.release()
-            cv2.destroyAllWindows()
-            return
-        # --------------------- End of main Loop -----------------------
+# thread
+def io_nn_run(image):
+    global nn, pre_process
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    data = pre_process(image=image)["image"]
+    data = np.expand_dims(data, axis=0)
+    network_output = nn.run(data)
+    return network_output
 
 
-def run_classification(config):
-    # Init
-    global nn
-    nn.init()
-    camera_width = 320
-    camera_height = 240
-    window_name = "Classification Demo"
-    vc = init_camera(camera_width, camera_height)
-    inference_coroutine_generator = inference_coroutine()
-    next(inference_coroutine_generator)
-
-    grabbed, input_img = vc.read()
-    inference_coroutine_generator.send(input_img)
-    #  ----------- Beginning of Main Loop ---------------
-    while vc.isOpened():
-        grabbed, input_img = vc.read()
-        result, fps = inference_coroutine_generator.send(input_img)
-        if result is not None:
-            result_class = np.argmax(result, axis=1)
-            window_img = input_img.copy()
-            add_class_label(window_img, text=str(result[0, result_class][0]), font_scale=0.52, dl_corner=(230, 230))
-            add_class_label(window_img, text=config.CLASSES[result_class[0]], font_scale=0.52, dl_corner=(230, 210))
-            window_img = add_fps(window_img, fps)
-        else:
-            window_img = input_img
-
-        cv2.imshow(window_name, window_img)
-        key = cv2.waitKey(2)  # Wait for 2ms
-        if key == 27:  # ESC to quit
-            vc.release()
-            cv2.destroyAllWindows()
-            return
-        # --------------------- End of main Loop -----------------------
+# process
+def cpu_post_process(network_output):
+    global post_process
+    post_processed = post_process(outputs=network_output)["outputs"]
+    return post_processed
 
 
-def run_semantic_segmentation(config):
-    # Init
-    global nn
-    nn.init()
-    camera_width = 320
-    camera_height = 240
-    window_name = "Semantic Segmentation Demo"
-    vc = init_camera(camera_width, camera_height)
-    inference_coroutine_generator = inference_coroutine()
-    next(inference_coroutine_generator)
+# thread
+def io_object_detection_imshow(image, network_output, config):
+    image_to_show = add_rectangle(config.CLASSES,
+                                  image,
+                                  network_output,
+                                  (config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
+    cv2.imshow("asyncio_object_detection_demo", image_to_show)
+    cv2.waitKey(2)
+
+
+def io_keypoint_detection_imshow(image, network_output, config):
+    image_to_show = visualize_keypoint_detection(image,
+                                                 network_output,
+                                                 (config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
+    cv2.imshow("asyncio_keypoint_detection_demo", image_to_show)
+    cv2.waitKey(2)
+
+
+def io_classification_imshow(image, network_output, config):
+    image_to_show = visualize_keypoint_detection(image,
+                                                 network_output,
+                                                 (config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
+    cv2.imshow("asyncio_keypoint_detection_demo", image_to_show)
+    cv2.waitKey(2)
+
+
+def io_semantic_segmentation_imshow(image, network_output, config):
+    seg_img = label_to_color_image(network_output, config.colormap)
+    seg_img = cv2.resize(seg_img, dsize=(320, 240))
+    image_to_show = cv2.addWeighted(image, 1, seg_img, 0.8, 0)
+    cv2.imshow("asyncio_semantic_segmentation_demo", image_to_show)
+    cv2.waitKey(2)
+
+
+@asyncio.coroutine
+def run_coro(config, imshow_func):
+    vc = init_camera(240, 320)
     colormap = np.array(get_color_map(len(config['CLASSES'])), dtype=np.uint8)
-
-    grabbed, input_img = vc.read()
-    inference_coroutine_generator.send(input_img)
-    #  ----------- Beginning of Main Loop ---------------
+    config.colormap = colormap
+    loop = asyncio.get_event_loop()
     while vc.isOpened():
-        grabbed, input_img = vc.read()
-        result, fps = inference_coroutine_generator.send(input_img)
-        if result is not None:
-            seg_img = label_to_color_image(result, colormap)
-            seg_img = cv2.resize(seg_img, dsize=(camera_width, camera_height))
-            window_img = cv2.addWeighted(input_img, 1, seg_img, 0.8, 0)
-            window_img = add_fps(window_img, fps)
-        else:
-            window_img = input_img
+        image = yield from loop.run_in_executor(vcread_thread_pool, io_vcread,
+                                                vc)
 
-        cv2.imshow(window_name, window_img)
-        key = cv2.waitKey(2)  # Wait for 2ms
-        if key == 27:  # ESC to quit
-            vc.release()
-            cv2.destroyAllWindows()
-            return
-        # --------------------- End of main Loop -----------------------
+        network_ouput = yield from loop.run_in_executor(nn_run_thread_pool, io_nn_run,
+                                                        image)
 
+        post_processed = yield from loop.run_in_executor(post_process_pool, cpu_post_process,
+                                                         network_ouput)
 
-def run_keypoint_detection(config):
-    # Init
-    global nn
-    nn.init()
-    camera_width = 320
-    camera_height = 240
-    window_name = "Keypoint Detection Demo"
-    input_width = config.IMAGE_SIZE[1]
-    input_height = config.IMAGE_SIZE[0]
-    vc = init_camera(camera_width, camera_height)
-    inference_coroutine_generator = inference_coroutine()
-    next(inference_coroutine_generator)
-
-    grabbed, input_img = vc.read()
-    inference_coroutine_generator.send(input_img)
-    #  ----------- Beginning of Main Loop ---------------
-    while vc.isOpened():
-        grabbed, input_img = vc.read()
-        result, fps = inference_coroutine_generator.send(input_img)
-        if result is not None:
-            window_img = visualize_keypoint_detection(input_img, result[0], (input_height, input_width))
-            window_img = add_fps(window_img, fps)
-        else:
-            window_img = input_img
-
-        cv2.imshow(window_name, window_img)
-        key = cv2.waitKey(2)  # Wait for 2ms
-        if key == 27:  # ESC to quit
-            vc.release()
-            cv2.destroyAllWindows()
-            return
-        # --------------------- End of main Loop -----------------------
+        yield from loop.run_in_executor(imshow_thread_pool, imshow_func,
+                                        image, post_processed, config)
 
 
 def run(model, config_file):
@@ -246,18 +178,21 @@ def run(model, config_file):
     if file_extension == '.so':  # Shared library
         nn = NNLib()
         nn.load(model)
+        nn.init()
 
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
         from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
 
-    TASK_HANDLERS = {"IMAGE.CLASSIFICATION": run_classification,
-                     "IMAGE.OBJECT_DETECTION": run_object_detection,
-                     "IMAGE.SEMANTIC_SEGMENTATION": run_semantic_segmentation,
-                     "IMAGE.KEYPOINT_DETECTION": run_keypoint_detection}
+    IMSHOW_FUNCS = {"IMAGE.CLASSIFICATION": io_classification_imshow,
+                    "IMAGE.OBJECT_DETECTION": io_object_detection_imshow,
+                    "IMAGE.SEMANTIC_SEGMENTATION": io_semantic_segmentation_imshow,
+                    "IMAGE.KEYPOINT_DETECTION": io_keypoint_detection_imshow}
 
-    TASK_HANDLERS[config.TASK](config)
+    imshow_func = IMSHOW_FUNCS[config.TASK]
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run_coro(config, imshow_func))
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
