@@ -31,6 +31,9 @@ from lmnet.utils import executor
 from lmnet.utils import horovod as horovod_util
 from lmnet.utils import module_loader
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 def _save_checkpoint(saver, sess, global_step, step):
     checkpoint_file = "save.ckpt"
@@ -57,7 +60,7 @@ def setup_dataset(config, subset, rank):
     enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
     return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch)
 
-
+#%%
 def start_training(config):
     use_horovod = horovod_util.is_enabled()
     print("use_horovod:", use_horovod)
@@ -108,7 +111,8 @@ def start_training(config):
 
         images_placeholder, labels_placeholder = model.placeholders()
 
-        output = model.inference(images_placeholder, is_training_placeholder)
+        output, feature_images_op = model.inference(images_placeholder, is_training_placeholder)
+
         if config.TASK == Tasks.OBJECT_DETECTION:
             loss = model.loss(output, labels_placeholder, global_step)
         else:
@@ -232,6 +236,15 @@ def start_training(config):
                 # options=run_options,
                 # run_metadata=run_metadata,
             )
+
+            # feature_images = sess.run(feature_images_op, feed_dict=feed_dict)
+            # plt.figure(figsize=(32, 32), dpi=300)
+            # for i in np.arange(0, feature_images.shape[-1]):
+            #     plt.subplot(32, 32, i+1)
+            #     plt.axis('off')
+            #     plt.imshow(feature_images[:, :, i])
+            # plt.savefig(os.path.join(environment.OUTPUT_DIR, 'feature_map_%s.png' % config.CELL_SIZE))
+
             # train_writer.add_run_metadata(run_metadata, "step: {}".format(step + 1))
             train_writer.add_summary(summary, step + 1)
 

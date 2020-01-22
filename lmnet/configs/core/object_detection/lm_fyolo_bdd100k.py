@@ -22,17 +22,18 @@ from lmnet.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
 from lmnet.data_processor import Sequence
 from lmnet.datasets.bdd100k import BDD100KObjectDetection
 from lmnet.networks.object_detection.lm_fyolo import LMFYolo
+from lmnet.networks.object_detection.yolo_v2 import YoloV2
 from lmnet.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
 from lmnet.pre_processor import DivideBy255, ResizeWithGtBoxes
 
 IS_DEBUG = False
 
-NETWORK_CLASS = LMFYolo
+NETWORK_CLASS = YoloV2
 DATASET_CLASS = BDD100KObjectDetection
 
-IMAGE_SIZE = [320, 320]
-BATCH_SIZE = 18
-CELL_SIZE = 8
+IMAGE_SIZE = [640, 640]
+BATCH_SIZE = 5
+CELL_SIZE = 32
 DATA_FORMAT = "NHWC"
 TASK = Tasks.OBJECT_DETECTION
 CLASSES = DATASET_CLASS.classes
@@ -81,6 +82,7 @@ POST_PROCESSOR = Sequence([
 ])
 
 NETWORK = EasyDict()
+NETWORK.CELL_SIZE = CELL_SIZE
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
@@ -108,6 +110,7 @@ NETWORK.LOSS_WARMUP_STEPS = int(8000 / BATCH_SIZE)
 
 # dataset
 DATASET = EasyDict()
+DATASET.IS_SHUFFLE = False
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR

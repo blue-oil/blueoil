@@ -37,7 +37,6 @@ class YoloV2(BaseNetwork):
             self,
             num_max_boxes=5,
             anchors=[(0.25, 0.25), (0.5, 0.5), (1.0, 1.0)],
-            cell_size=32,
             leaky_relu_scale=0.1,
             object_scale=5.0,
             no_object_scale=1.0,
@@ -93,10 +92,12 @@ class YoloV2(BaseNetwork):
         self.is_dynamic_image_size = is_dynamic_image_size
         self.change_base_output = change_base_output
 
+        self.anchor_scaling = 2.0
+
         # Assert image size can mod `32`.
         # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
-        assert self.image_size[0] % cell_size == 0, "Image height must be divisible by %s" % cell_size
-        assert self.image_size[1] % cell_size == 0, "Image weight must be divisible by %s" % cell_size
+        assert self.image_size[0] % 32 == 0, "Image height must be divisible by %s" % 32
+        assert self.image_size[1] % 32 == 0, "Image weight must be divisible by %s" % 32
 
         if self.is_dynamic_image_size:
             self.image_size = tf.tuple([
@@ -105,11 +106,12 @@ class YoloV2(BaseNetwork):
 
             # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
             # Number of cell is the spatial dimension of the final convolutional features.
-            image_size0 = tf.cast(self.image_size[0] / cell_size, tf.int32)
-            image_size1 = tf.cast(self.image_size[1] / cell_size, tf.int32)
+            image_size0 = tf.cast(self.anchor_scaling * (self.image_size[0] / 32), tf.int32)
+            image_size1 = tf.cast(self.anchor_scaling * (self.image_size[1] / 32), tf.int32)
             self.num_cell = tf.tuple([image_size0, image_size1])
         else:
-            self.num_cell = self.image_size[0] // cell_size, self.image_size[1] // cell_size
+            self.num_cell = int(self.anchor_scaling * self.image_size[0]) // 32, \
+                            int(self.anchor_scaling * self.image_size[1]) // 32
 
         self.loss_function = YoloV2Loss(
             is_debug=self.is_debug,
@@ -277,7 +279,7 @@ class YoloV2(BaseNetwork):
                     score = tf.concat(scores, axis=0)
                     num_gt_boxes = tf.add_n(num_gt_boxes_list)
 
-                    (average_precision_value, precision_array, recall_array, precision, recall), update_op =\
+                    (average_precision_value, precision_array, recall_array, precision, recall), update_op = \
                         average_precision(num_gt_boxes, tp, fp, score, class_name)
 
                     updates.append(update_op)
@@ -509,7 +511,6 @@ class YoloV2(BaseNetwork):
 
     def post_process(self, output):
         with tf.name_scope("post_process"):
-
             output = self._format_output(output)
             output = self._exclude_low_score_box(output, threshold=self.score_threshold)
             output = self._nms(
@@ -581,7 +582,6 @@ class YoloV2(BaseNetwork):
 
         results = []
         for i in range(self.batch_size):
-
             predicted_per_batch = formatted_output[i]
             score_mask = predicted_per_batch[:, 5] > threshold
             result = tf.boolean_mask(predicted_per_batch, score_mask)
@@ -662,9 +662,9 @@ class YoloV2(BaseNetwork):
 
     def inference(self, images, is_training):
         tf.compat.v1.summary.histogram("images", images)
-        base = self.base(images, is_training)
+        base, feature_images = self.base(images, is_training)
         self.output = tf.identity(base, name="output")
-        return self.output
+        return self.output, feature_images
 
     def _reorg(self, name, inputs, stride, data_format, use_space_to_depth=True, darknet_original=False):
         with tf.name_scope(name):
@@ -707,7 +707,7 @@ class YoloV2(BaseNetwork):
 
                     return outputs
 
-    def base(self, images, is_training):
+    def base(self, feature_images, is_training):
         """Base network.
 
         Returns: Output. output shape depends on parameter.
@@ -728,7 +728,7 @@ class YoloV2(BaseNetwork):
             ]
 
         """
-        self.inputs = self.images = images
+        self.inputs = self.images = feature_images
 
         if self.data_format == "NCHW":
             channel_data_format = "channels_first"
@@ -976,7 +976,7 @@ class YoloV2(BaseNetwork):
             data_format=self.data_format,
         )
 
-        output_filters = (self.num_classes + 5) * self.boxes_per_cell
+        output_filters = (self.num_classes + 5) * self.boxes_per_cell * int(self.anchor_scaling * self.anchor_scaling)
         self.conv_23 = conv2d(
             "conv_23", self.block_22, filters=output_filters, kernel_size=1,
             activation=None, use_bias=True, is_debug=self.is_debug,
@@ -985,6 +985,9 @@ class YoloV2(BaseNetwork):
 
         # assert_num_cell_y = tf.assert_equal(self.num_cell[0], tf.shape(self.conv_23)[1])
         # assert_num_cell_x = tf.assert_equal(self.num_cell[1], tf.shape(self.conv_23)[2])
+
+        feature_layer = self.block_22[0]
+        feature_images = tf.image.convert_image_dtype(feature_layer, dtype=tf.uint8)
 
         if self.change_base_output:
 
@@ -1001,11 +1004,12 @@ class YoloV2(BaseNetwork):
             # with tf.control_dependencies([assert_num_cell_x, assert_num_cell_y]):
             output = self.conv_23
 
-        return output
+        return output, feature_images
 
 
 class YoloV2Loss:
     """YOLO v2 loss function."""
+
     def __init__(
             self,
             is_debug=False,
@@ -1122,7 +1126,7 @@ class YoloV2Loss:
 
                 iou_per_gtbox = self._iou_per_gtbox(current_boxes, gt_box[0:4])
                 filter_iou = iou_per_gtbox > best_iou_per_batch
-                best_iou_per_batch[filter_iou] =\
+                best_iou_per_batch[filter_iou] = \
                     iou_per_gtbox[filter_iou]
 
             best_iou[batch_index, :, :, :] = best_iou_per_batch
@@ -1321,7 +1325,7 @@ class YoloV2Loss:
                         print("best_anchor_index", best_anchor_index)
 
                         pred_conf = predict_confidence[batch_index, cell_y_index, cell_x_index, best_anchor_index, :]
-                        predict_probabilities =\
+                        predict_probabilities = \
                             predict_classes[batch_index, cell_y_index, cell_x_index, best_anchor_index, :]
                         argmax = np.argmax(predict_probabilities)
                         message = "truth_class: {}. pred_class: {}. pred_prob: {}".format(
@@ -1338,8 +1342,8 @@ class YoloV2Loss:
         if self.is_debug:
             message = "num_gt_boxes: {}. num_correct_prediction_conf: {}. avg_iou: {}. avg_conf: {}. avg_diff_conf: {}"
             message = message.format(
-                num_gt_boxes, num_correct_prediction_conf, sum_iou/num_gt_boxes,
-                sum_conf/num_gt_boxes, sum_diff_conf/num_gt_boxes
+                num_gt_boxes, num_correct_prediction_conf, sum_iou / num_gt_boxes,
+                                                           sum_conf / num_gt_boxes, sum_diff_conf / num_gt_boxes
             )
 
             print(message)
@@ -1445,7 +1449,7 @@ class YoloV2Loss:
             # truth_confidence: [batch_size, num_cell, num_cell, box_per_cell, 1]
             # object_mask: [batch_size, num_cell, num_cell, box_per_cell, 1]
             # coordinate_mask: [batch_size, num_cell, num_cell, box_per_cell, 1]
-            cell_gt_boxes, truth_confidence, object_mask, coordinate_mask =\
+            cell_gt_boxes, truth_confidence, object_mask, coordinate_mask = \
                 self._calculate_truth_and_masks(gt_boxes, predict_boxes, global_step,
                                                 predict_classes, predict_confidence)
 
@@ -1547,7 +1551,6 @@ def summary_boxes(tag, images, boxes, image_size, max_outputs=3, data_format="NH
     image_size: python list image size [height, width].
     """
     with tf.name_scope("summary_boxes"):
-
         if data_format == "NCHW":
             images = tf.transpose(images, [0, 2, 3, 1])
 

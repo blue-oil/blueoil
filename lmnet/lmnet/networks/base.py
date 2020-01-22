@@ -47,6 +47,7 @@ class BaseNetwork(object):
             classes=(),
             image_size=(),  # [height, width]
             batch_size=64,
+            cell_size=32,
             data_format='NHWC'
     ):
 
@@ -62,6 +63,7 @@ class BaseNetwork(object):
         self.num_classes = len(classes)
         self.image_size = image_size
         self.batch_size = batch_size
+        self.cell_size = cell_size
         self.data_format = data_format
 
     def base(self, images, is_training, *args, **kwargs):
