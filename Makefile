@@ -50,7 +50,7 @@ test-lmnet-pep8: build
 .PHONY: test-lmnet-main
 test-lmnet-main: build
 	# Run lmnet test with Python3.6
-	docker run $(DOCKER_OPT) -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-pytest"
+	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-pytest-parallel"
 
 .PHONY: test-lmnet-check-dataset-storage
 test-lmnet-check-dataset-storage: build
