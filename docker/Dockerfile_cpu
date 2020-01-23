@@ -1,0 +1,121 @@
+FROM ubuntu:16.04 AS base
+
+LABEL maintainer="admin@blueoil.org"
+
+# TensorBoard
+EXPOSE 6006
+
+# Python version settings
+ARG python_version="3.6.3"
+
+ENV PYENV_ROOT=/usr/local/pyenv
+
+# Add source list entry for GCC 9
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 60C317803A41BA51845E371A1E9377A2BA9EF27F
+RUN echo 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu xenial main' | tee /etc/apt/sources.list.d/ubuntu-toolchain-r-ubuntu-test-xenial.list
+
+RUN apt-get update && apt-get install -y \
+    cmake \
+    locales\
+    python3 \
+    python3-dev \
+    python3-pip \
+    python3-wheel \
+    python3-pil \
+    libjpeg8-dev \
+    zlib1g-dev \
+    python3-matplotlib \
+    liblapack-dev \
+    git \
+    make \
+    build-essential \
+    libssl-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    wget \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    g++-9 \
+    crossbuild-essential-arm64 \
+    g++-5-arm-linux-gnueabihf \
+    openssh-client \
+    openssh-server \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
+
+# Locale setting
+RUN locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
+
+# Install pyenv and virtualenv to deal with different python versions
+# This is to avoid InvocationError which occurs at running tox test by changing python version with pyenv global/local command
+# See also https://github.com/pyenv/pyenv-virtualenv/issues/202
+RUN git clone https://github.com/yyuu/pyenv.git $PYENV_ROOT && \
+    git clone https://github.com/yyuu/pyenv-virtualenv.git $PYENV_ROOT/plugins/pyenv-virtualenv
+
+# Pyenv and pyenv virtualenv environment settings
+ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+RUN eval "$(pyenv init -)" && \
+    eval "$(pyenv virtualenv-init -)"
+
+# Setup python virtualenv
+RUN pyenv install ${python_version} && \
+    pyenv virtualenv -p python${python_version%.*} ${python_version} python${python_version%.*} && \
+    pyenv global python${python_version%.*}
+
+RUN pip install -U pip setuptools
+
+FROM base AS blueoil-base
+# Install requirements
+COPY ./*requirements.txt /home/blueoil/
+RUN pip install -r /home/blueoil/cpu.requirements.txt
+
+# Build coco. It needs numpy.
+COPY lmnet/third_party /home/blueoil/lmnet/third_party
+# https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
+RUN cd /home/blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
+
+WORKDIR /home/blueoil
+
+FROM blueoil-base AS blueoil-dev
+
+# Copy blueoil sources to docker image
+COPY blueoil /home/blueoil/blueoil
+COPY setup.* /home/blueoil/
+COPY output_template /home/blueoil/output_template
+# Install blueoil
+
+RUN python setup.py install
+RUN chmod 777 /home/blueoil
+
+# Copy dlk sources to docker image
+COPY dlk /home/blueoil/dlk
+# Install dlk
+WORKDIR /home/blueoil/dlk
+RUN PYTHONPATH=python/dlk python setup.py install
+RUN chmod 777 /home/blueoil/dlk
+
+# Copy lmnet sources to docker image
+COPY lmnet /home/blueoil/lmnet
+
+# Copy blueoil test code to docker image
+COPY tests /home/blueoil/tests
+
+ENV PYTHONPATH $PYTHONPATH:/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk
+
+# enable blueoil command
+RUN pyenv rehash
+
+# Setup entrypoint
+COPY docker/docker-entrypoint.sh /
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
+WORKDIR /home/blueoil
