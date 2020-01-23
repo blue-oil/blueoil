@@ -50,7 +50,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
     p.device_output_buf = new BIN_CONV_OUTPUT[size]();
 
   assert(kh == kw); // kernel rectangle must be square
-  assert(kh % 2 == 1); // kernel size must be even
+  assert(kh % 2 == 1); // kernel size must be odd
   assert(1 <= kh && kh <= 5); // Only 1x1, 3x3, 5x5 are supported
   assert(ic * kh * kw * maxa <= std::numeric_limits<BIN_CONV_OUTPUT>::max()); // overflow check
 #ifdef RUN_ON_FPGA

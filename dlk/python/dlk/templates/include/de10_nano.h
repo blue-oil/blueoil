@@ -149,7 +149,7 @@ Parameters calcParameters(uint32_t inputHeight, uint32_t inputWidth, uint32_t in
   constexpr std::size_t n_bit = 2;
   constexpr std::size_t maxA = (1 << n_bit) - 1;
   assert(kernelHeight == kernelWidth); // kernel rectangle must be square
-  assert(kernelHeight % 2 == 1); // kernel size must be even
+  assert(kernelHeight % 2 == 1); // kernel size must be odd
   assert(1 <= kernelHeight && kernelHeight <= 5); // Only 1x1, 3x3, 5x5 are supported
   assert(inputChannels * kernelHeight * kernelWidth * maxA <= std::numeric_limits<BIN_CONV_OUTPUT>::max()); // overflow check
 
