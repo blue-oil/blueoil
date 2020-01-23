@@ -141,7 +141,7 @@ def run(experiment_id,
         output_template_dir=None,
         image_size=(None, None),
         project_name=None,
-        save_npy_for_debug=True):
+        save_npy_for_debug=False):
     """Convert from trained model.
 
     Args:
@@ -150,6 +150,7 @@ def run(experiment_id,
         output_template_dir:  (Default value = None)
         image_size: (Default value = (None)
         project_name: (Default value = None)
+        save_npy_for_debug: (Default value = False)
 
     Returns:
         str: Path of exported dir.
@@ -206,7 +207,7 @@ def convert(
     template=None,
     image_size=(None, None),
     project_name=None,
-    save_npy_for_debug=True
+    save_npy_for_debug=False
 ):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
 
