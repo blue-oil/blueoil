@@ -55,7 +55,7 @@ def save_config_file(config_file, dest_dir):
         gfile.makedirs(dest_dir)
 
     config_file_dest = os.path.join(dest_dir, 'blueoil_config.yaml')
-    return gfile.copy(config_file, config_file_dest)
+    return gfile.copy(config_file, config_file_dest, overwrite=True)
 
 
 def train(config, experiment_id=None):
