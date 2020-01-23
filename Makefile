@@ -1,4 +1,4 @@
-IMAGE_NAME:=blueoil_$$(id -un)
+IMAGE_NAME:=blueoil_$$(id -un)_cpu
 BUILD_VERSION:=$(shell git describe --tags --always --dirty --match="v*" 2> /dev/null || cat $(CURDIR/.version 2> /dev/null || echo v0))
 DOCKER_OPT:=--runtime=nvidia
 CWD:=$$(pwd)
@@ -13,7 +13,7 @@ deps:
 .PHONY: build
 build: deps
 	# Build docker image
-	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
+	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile_cpu .
 
 .PHONY: test
 test: build
