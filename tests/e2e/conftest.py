@@ -3,6 +3,7 @@ from pathlib import Path
 import tempfile
 
 import pytest
+import tensorflow as tf
 import yaml
 
 from blueoil.cmd.convert import convert
@@ -55,6 +56,11 @@ def init_env():
 
     train_output_dir.cleanup()
     predict_output_dir.cleanup()
+
+
+def is_gpu_available():
+    """Test TensorFlow can access a GPU"""
+    assert tf.config.experimental.list_physical_devices('GPU')
 
 
 def run_all_steps(dirs, config_file):

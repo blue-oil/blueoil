@@ -1,4 +1,5 @@
 IMAGE_NAME:=blueoil_$$(id -un)
+GPU_IMAGE_NAME:=blueoil_$$(id -un)
 BUILD_VERSION:=$(shell git describe --tags --always --dirty --match="v*" 2> /dev/null || cat $(CURDIR/.version 2> /dev/null || echo v0))
 DOCKER_OPT:=--runtime=nvidia
 CWD:=$$(pwd)
@@ -15,9 +16,18 @@ build: deps
 	# Build docker image
 	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
 
+.PHONY: build-gpu
+build: deps
+	# Build docker image
+	docker build -t $(GPU_IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
+
 .PHONY: test
 test: build
 	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/
+
+.PHONY: test-gpu
+test: build-gpu
+	docker run --rm -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) $(DOCKER_OPT) $(GPU_IMAGE_NAME):$(BUILD_VERSION) pytest tests/e2e/test_gpu_*
 
 .PHONY: test-classification
 test-classification: build
