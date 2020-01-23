@@ -28,8 +28,8 @@ def run(blueoil_config_file, experiment_id):
     """Train from blueoil config.
 
     Args:
-        blueoil_config_file: 
-        experiment_id: 
+        blueoil_config_file:
+        experiment_id:
 
     """
 
@@ -55,17 +55,7 @@ def save_config_file(config_file, dest_dir):
         gfile.makedirs(dest_dir)
 
     config_file_dest = os.path.join(dest_dir, 'blueoil_config.yaml')
-
-    # HACK: This is for tensorflow bug workaround.
-    # We can remove following 2 lines once it's been resolved in tensorflow
-    # issue link: https://github.com/tensorflow/tensorflow/issues/28508
-    if gfile.exists(config_file_dest):
-        gfile.remove(config_file_dest)
-
-    return gfile.copy(
-        config_file,
-        config_file_dest
-    )
+    return gfile.copy(config_file, config_file_dest)
 
 
 def train(config, experiment_id=None):
