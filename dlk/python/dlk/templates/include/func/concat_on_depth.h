@@ -102,7 +102,11 @@ struct ConcatOnDepthImpl<QuantizedPacked<TQOut>, MemoryLayout::ChHWBCl, I, typen
     if (decltype(input)::layout == MemoryLayout::ChHWBCl) {
       const auto bytes = input.size() * sizeof(typename decltype(input)::base_t);
       const auto offset_words = offset_depth * out_height * out_width * bits;
-      std::memcpy(output.data() + offset_words, input.data(), bytes);
+      if (output.data() + offset_words != input.data()) {
+        std::memmove(output.data() + offset_words, input.data(), bytes);
+      } else {
+        // nothing to do
+      }
     } else {
       for (std::size_t d = 0; d < depth; ++d) {
         for (std::size_t h = 0; h < out_height; ++h) {
