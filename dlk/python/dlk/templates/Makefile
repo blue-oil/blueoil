@@ -109,6 +109,7 @@ clean:
 	-$(RM) *.so
 	-$(RM) $(LIB_OBJ)
 	-$(RM) $(LIB_X86_OBJ)
+	-$(RM) $(LIB_X86_AVX_OBJ)
 	-$(RM) $(LIB_ARM_OBJ)
 	-$(RM) $(LIB_FPGA_OBJ)
 	-$(RM) $(LIB_AARCH64_OBJ)
