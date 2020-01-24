@@ -29,6 +29,7 @@ public:
     Network();
     ~Network();
 
+    int memory();
     bool init();
 
     int get_input_rank();

@@ -169,6 +169,32 @@ Network::~Network()
 #endif
 }
 
+int Network::memory() {
+  int total_mem_bytes = 0;
+  {% for node in graph.non_variables -%}
+  {% if node.available_buffer == '' -%}
+  {% for out_k in node.output_ops.keys() -%}
+  {% if node.output_ops.keys()|length > 1 -%}
+  total_mem_bytes += sizeof({{ node.dtype.cpptype() }}) * ({{ node.view.size_in_words_as_cpp }}); // {{ node.name + '_' + out_k }}_raw
+  {% else -%}
+  total_mem_bytes += sizeof({{ node.dtype.cpptype() }}) * ({{ node.view.size_in_words_as_cpp }}); // {{ node.name }}_raw
+  {%- endif %}
+  {%- endfor %}
+  {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 -%}
+  {% for out_k in node.output_ops.keys() -%}
+  {% if out_k != node.output_ops.keys()|list|first -%}
+  total_mem_bytes += sizeof({{ node.dtype.cpptype() }}) * ({{ node.view.size_in_words_as_cpp }}); // {{ node.name + '_' + out_k }}_raw
+  {%- endif %}
+  {%- endfor %}
+  {%- endif %}
+  {%- endfor %}
+#if !defined RUN_ON_FPGA
+  total_mem_bytes += sizeof(QUANTIZED_PACKED) * max_device_input_elems;
+  total_mem_bytes += sizeof(BIN_CONV_OUTPUT) * max_device_output_elems;
+#endif
+  return total_mem_bytes;
+}
+
 bool Network::init()
 {
 
