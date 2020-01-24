@@ -84,11 +84,16 @@ NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 # In the origianl yolov2 Paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
-# Train data num per epoch is 16551
-step_per_epoch = int(16551 / BATCH_SIZE)
+# Train data num per epoch is 69863
+step_per_epoch = int(69863 / BATCH_SIZE)
 NETWORK.LEARNING_RATE_KWARGS = {
-    "values": [1e-4, 2e-2, 5e-3, 5e-4],
-    "boundaries": [step_per_epoch, step_per_epoch * 80, step_per_epoch * 120],
+    "values": [1e-4, 2e-3, 5e-4, 5e-5, 5e-6],
+    "boundaries": [
+        step_per_epoch,
+        step_per_epoch * 80,
+        step_per_epoch * 120,
+        step_per_epoch * 150,
+    ],
 }
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
