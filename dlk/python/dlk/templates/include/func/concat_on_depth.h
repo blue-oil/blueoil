@@ -85,6 +85,41 @@ class ConcatOnDepth;
 template <typename TOut, MemoryLayout output_layout, std::size_t I, typename Enable, typename... TInputs>
 struct ConcatOnDepthImpl;
 
+// ChHWBCl optimization
+template <typename TQOut, std::size_t I, typename...TInputs>
+struct ConcatOnDepthImpl<QuantizedPacked<TQOut>, MemoryLayout::ChHWBCl, I, typename std::enable_if<(I < sizeof...(TInputs))>::type, TInputs...> {
+  void operator()(const std::tuple<TInputs...>& inputs,
+      const std::size_t stride_depth,
+      const std::size_t offset_depth,
+      const TensorView<QuantizedPacked<TQOut>, MemoryLayout::ChHWBCl>& output) {
+    const auto shape = output.get_shape();
+    const auto out_height = shape[1];
+    const auto out_width = shape[2];
+    const auto bits = shape[3];
+    const auto input = std::get<I>(inputs);
+    const auto index_ic = index_channels_high(decltype(input)::layout);
+    const auto depth = input.get_shape()[index_ic];
+    if (decltype(input)::layout == MemoryLayout::ChHWBCl) {
+      const auto bytes = input.size() * sizeof(typename decltype(input)::base_t);
+      const auto offset_words = offset_depth * out_height * out_width * bits;
+      std::memcpy(output.data() + offset_words, input.data(), bytes);
+    } else {
+      for (std::size_t d = 0; d < depth; ++d) {
+        for (std::size_t h = 0; h < out_height; ++h) {
+          for (std::size_t w = 0; w < out_width; ++w) {
+            for (std::size_t digit = 0; digit < bits; ++digit) {
+              access(output, offset_depth + d, h, w, digit)
+                = access(input, d, h, w, digit);
+            }
+          }
+        }
+      }
+    }
+    ConcatOnDepth<QuantizedPacked<TQOut>, MemoryLayout::ChHWBCl, I+1, TInputs...> func;
+    func(inputs, stride_depth, offset_depth + depth, output);
+  }
+};
+
 template <typename TQOut, MemoryLayout output_layout, std::size_t I, typename...TInputs>
 struct ConcatOnDepthImpl<QuantizedPacked<TQOut>, output_layout, I, typename std::enable_if<(I < sizeof...(TInputs))>::type, TInputs...> {
   void operator()(const std::tuple<TInputs...>& inputs,
