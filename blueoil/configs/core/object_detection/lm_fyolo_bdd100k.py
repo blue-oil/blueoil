@@ -90,9 +90,9 @@ NETWORK.LEARNING_RATE_KWARGS = {
     "values": [1e-4, 2e-3, 5e-4, 5e-5, 5e-6],
     "boundaries": [
         step_per_epoch,
-        step_per_epoch * 80,
+        step_per_epoch * 60,
+        step_per_epoch * 90,
         step_per_epoch * 120,
-        step_per_epoch * 150,
     ],
 }
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
