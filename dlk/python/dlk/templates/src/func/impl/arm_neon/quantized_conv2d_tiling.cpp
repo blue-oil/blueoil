@@ -98,8 +98,8 @@ void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::si
 }
 
 void QuantizedConv2DTiling(const tiling_input_t& input,
-                                  const kernel_t& kernel,
-                                  const binary_convolution_parameters &p) {
+    const tiling_kernel_t& kernel,
+    const binary_convolution_parameters &p) {
   constexpr T_UINT InTypeBitWidth = tiling_input_elem_t::BitCount;
   convolution_parameters cp = p.normal_conv_params;
   const T_UINT out_channels = cp.output_channels;

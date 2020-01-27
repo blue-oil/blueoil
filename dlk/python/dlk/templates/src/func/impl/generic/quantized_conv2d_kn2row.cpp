@@ -36,8 +36,8 @@ void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::si
 }
 
 void QuantizedConv2DKn2Row(const kn2row_input_t& input,
-                                  const kernel_t& kernel,
-                                  const binary_convolution_parameters &p) {
+    const kn2row_kernel_t& kernel,
+    const binary_convolution_parameters &p) {
   using namespace dlk;
 
   T_UINT ic = p.normal_conv_params.kernel_depth;
