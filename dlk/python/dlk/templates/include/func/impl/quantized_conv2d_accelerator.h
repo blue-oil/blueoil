@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef DLK_FUNC_IMPL_QUANTIZED_CONV2D_KN2ROW_H_INCLUDED
-#define DLK_FUNC_IMPL_QUANTIZED_CONV2D_KN2ROW_H_INCLUDED
+#ifndef DLK_FUNC_IMPL_QUANTIZED_CONV2D_ACCELERATOR_H_INCLUDED
+#define DLK_FUNC_IMPL_QUANTIZED_CONV2D_ACCELERATOR_H_INCLUDED
 
 #include "types.h"
 #include "operators.h" // FIXME(nikolay): for convolution_parameters definition, rid of it later
@@ -24,20 +24,16 @@ namespace dlk {
 
 namespace impl {
 
-#ifndef RUN_ON_FPGA
-void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::size_t channels);
-using kn2row_input_elem_t = QuantizedPacked<uint32_t>;
-using kn2row_input_t = TensorView<kn2row_input_elem_t, MemoryLayout::HWChBCl>;
-using kn2row_kernel_elem_t = QuantizedPacked<uint32_t>;
-using kn2row_kernel_t = TensorView<kn2row_kernel_elem_t, MemoryLayout::HWOI>;
-void QuantizedConv2DKn2Row(const kn2row_input_t& input,
-    const kn2row_kernel_t& kernel,
+#ifdef RUN_ON_FPGA
+using tca_input_t = TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>;
+using tca_kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>;
+void TCAConv2d(const tca_input_t& input,
+    const tca_kernel_t& kernel,
     const binary_convolution_parameters &p);
 #endif
-
 
 } // namespace impl
 
 } // namespace dlk
 
-#endif // DLK_FUNC_IMPL_QUANTIZED_CONV2D_KN2ROW_H_INCLUDED
+#endif
