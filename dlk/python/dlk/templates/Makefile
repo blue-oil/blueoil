@@ -109,6 +109,7 @@ clean:
 	-$(RM) *.so
 	-$(RM) $(LIB_OBJ)
 	-$(RM) $(LIB_X86_OBJ)
+	-$(RM) $(LIB_X86_AVX_OBJ)
 	-$(RM) $(LIB_ARM_OBJ)
 	-$(RM) $(LIB_FPGA_OBJ)
 	-$(RM) $(LIB_AARCH64_OBJ)
@@ -169,7 +170,7 @@ ar_x86:           NAME = x86
 
 ar_x86_avx:       AR = ar
 ar_x86_avx:       CXX = g++
-ar_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -pthread -g -fopenmp
+ar_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -mavx2 -mfma -pthread -g -fopenmp
 ar_x86_avx:       LDFLAGS += -rcs
 ar_x86_avx:       NAME = x86_avx
 
