@@ -101,7 +101,6 @@ def run(input_path: str,
         project_name: str,
         activate_hard_quantization: bool,
         threshold_skipping: bool = False,
-        num_pe: int = 16,
         debug: bool = False,
         cache_dma: bool = False):
 
@@ -110,8 +109,7 @@ def run(input_path: str,
     optimized_pb_path += '.pb'
     output_project_path = path.join(dest_dir_path, f'{project_name}.prj')
 
-    config = Config(num_pe=num_pe,
-                    activate_hard_quantization=activate_hard_quantization,
+    config = Config(activate_hard_quantization=activate_hard_quantization,
                     threshold_skipping=threshold_skipping,
                     test_dir=output_dlk_test_dir,
                     optimized_pb_path=optimized_pb_path,
@@ -168,13 +166,6 @@ def run(input_path: str,
     help="activate threshold skip optimization",
 )
 @click.option(
-    '-pe',
-    '--num_pe',
-    type=int,
-    default=16,
-    help='set number of PE used in FPGA IP',
-)
-@click.option(
     "-dbg",
     "--debug",
     is_flag=True,
@@ -193,7 +184,6 @@ def main(input_path,
          project_name,
          activate_hard_quantization,
          threshold_skipping,
-         num_pe,
          debug,
          cache_dma):
 
@@ -203,7 +193,6 @@ def main(input_path,
         project_name=project_name,
         activate_hard_quantization=activate_hard_quantization,
         threshold_skipping=threshold_skipping,
-        num_pe=num_pe,
         debug=debug,
         cache_dma=cache_dma)
 
