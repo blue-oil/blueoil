@@ -18,7 +18,7 @@ limitations under the License.
 
 #include <cassert>
 #include <array>
-#include "global.h"
+#include "types.h"
 
 enum class MemoryLayout {
   Atom, // Scalar object
@@ -243,13 +243,5 @@ class TensorView<QuantizedPacked<T>, memory_layout> {
   base_t* ptr;
   tensor_info_t<std::size_t> shape;
 };
-
-#ifdef RUN_ON_FPGA
-using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OhIhHWOlIl>;
-#elif defined USE_NEON || defined USE_AVX
-using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::OHWI>;
-#else
-using kernel_t = TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::HWOI>;
-#endif
 
 #endif
