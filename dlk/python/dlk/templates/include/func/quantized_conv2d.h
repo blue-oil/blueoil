@@ -62,7 +62,7 @@ void QuantizedConv2D(
       p.bin_input_bitwidth,
       QUANTIZED_PACKED::BitCount
     };
-    dlk::impl::tca_input_t tmp(p.device_input_buf, shape);
+    dlk::impl::tca_input_t tmp((QUANTIZED_PACKED*)p.device_input_buf, shape);
     convert_tensor(input, tmp);
     dlk::impl::TCAConv2d(tmp, kernel, p);
 #elif defined USE_NEON || defined USE_AVX
@@ -73,7 +73,7 @@ void QuantizedConv2D(
       p.bin_input_bitwidth,
       TilingInTypeBitWidth
     };
-    dlk::impl::tiling_input_t tmp(p.device_input_buf, shape);
+    dlk::impl::tiling_input_t tmp(reinterpret_cast<dlk::impl::tiling_input_elem_t*>(p.device_input_buf), shape);
     convert_tensor(input, tmp);
     dlk::impl::QuantizedConv2DTiling(tmp, kernel, p);
 #else
@@ -84,7 +84,7 @@ void QuantizedConv2D(
       p.bin_input_bitwidth,
       QUANTIZED_PACKED::BitCount
     };
-    dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
+    dlk::impl::kn2row_input_t tmp(reinterpret_cast<QUANTIZED_PACKED*>(p.device_input_buf), shape);
     convert_tensor(input, tmp);
     dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
 #endif
@@ -121,14 +121,15 @@ void func_QuantizedConv2D(
   auto channel_blocks = true_out_channels / b;
 
   size_t area = ncp.output_height * ncp.output_width;
+  auto out_buf = reinterpret_cast<VOLATILE_IF_FPGA BIN_CONV_OUTPUT*>(p.device_output_buf);
 #pragma omp parallel for
   for (size_t hw = 0; hw < area; ++hw) {
     size_t out_index = hw * true_out_channels;
     for (size_t s = 0; s < channel_blocks; ++s)
       for (size_t d = 0; d < b; ++d)
-        output.data()[out_index++] = coeff * p.device_output_buf[hw * b + s * (area * b) + d];
+        output.data()[out_index++] = coeff * out_buf[hw * b + s * (area * b) + d];
     for (size_t d = 0; d < true_out_channels - channel_blocks*b; ++d)
-      output.data()[out_index++] = coeff * p.device_output_buf[hw * b + channel_blocks * (area * b) + d];
+      output.data()[out_index++] = coeff * out_buf[hw * b + channel_blocks * (area * b) + d];
   }
 
   Measurement::Stop();
@@ -160,14 +161,15 @@ void func_QuantizedConv2D(
   Measurement::Start("QuantizedConv2D_ApplyScalingFactor");
 
   size_t area = ncp.output_height * ncp.output_width;
+  auto out_buf = reinterpret_cast<VOLATILE_IF_FPGA BIN_CONV_OUTPUT*>(p.device_output_buf);
 #pragma omp parallel for
   for (size_t hw = 0; hw < area; ++hw) {
     size_t out_index = hw * true_out_channels;
     for (size_t s = 0; s < channel_blocks; ++s)
       for (size_t d = 0; d < b; ++d)
-        output.data()[out_index++] = (scaling_factor[s*b + d] * post_qtz_factor) * p.device_output_buf[hw * b + s * (area * b) + d];
+        output.data()[out_index++] = (scaling_factor[s*b + d] * post_qtz_factor) * out_buf[hw * b + s * (area * b) + d];
     for (size_t d = 0; d < true_out_channels - channel_blocks*b; ++d)
-      output.data()[out_index++] = (scaling_factor[channel_blocks*b + d] * post_qtz_factor) * p.device_output_buf[hw * b + channel_blocks * (area * b) + d];
+      output.data()[out_index++] = (scaling_factor[channel_blocks*b + d] * post_qtz_factor) * out_buf[hw * b + channel_blocks * (area * b) + d];
   }
 
   Measurement::Stop();
@@ -227,14 +229,14 @@ void func_QuantizedConv2DWithThreshold(
   const auto out_channels = np.output_channels;
   const auto true_out_channels = output.get_shape()[3];
 
-  QUANTIZED_PACKED::base_t* ptr = (QUANTIZED_PACKED::base_t*)p.device_output_buf;
+  auto out_buf = reinterpret_cast<VOLATILE_IF_FPGA QUANTIZED_PACKED::base_t*>(p.device_output_buf);
   for (unsigned r = 0; r < out_height; ++r) {
     for (unsigned c = 0; c < out_width; ++c) {
       for (unsigned d = 0; d < true_out_channels; ++d) {
         const auto i = r * out_width * p.n_bit + c * p.n_bit;
         QUANTIZED_PACKED::base_t bits = 0;
         for (unsigned digit = 0; digit < p.n_bit; ++digit) {
-          bits |= ((ptr[i + digit] >> d) & 1) << digit;
+          bits |= ((out_buf[i + digit] >> d) & 1) << digit;
         }
         T_FLOAT tmp = (T_FLOAT)bits;
         tmp = tmp / n;

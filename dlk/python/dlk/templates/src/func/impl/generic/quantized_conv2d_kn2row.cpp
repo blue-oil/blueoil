@@ -54,12 +54,13 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
 
   Measurement::Start("quantized-kn2row");
 
+  auto out_buf = reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf);
   auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
-      p.device_output_buf, oc, ih * iw);
+      out_buf, oc, ih * iw);
   auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
       kernel.data(), oc * kh * kw, ic / 32);
   if (kh == kw && kw == 3) {
-    std::fill(p.device_output_buf, p.device_output_buf + oc * oh * ow, 0);
+    std::fill(out_buf, out_buf + oc * oh * ow, 0);
     for (std::size_t offset = 0; offset < ih * iw; offset += MAX_SIZE_KN2ROW_COL_BLOCK) {
       const auto col_block = std::min(static_cast<std::size_t>(MAX_SIZE_KN2ROW_COL_BLOCK), ih * iw - offset);
       auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
@@ -74,7 +75,7 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
     auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
         input.data(), ic / 16, ih * iw);
     auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
-        p.device_output_buf, oc, ih * iw);
+        out_buf, oc, ih * iw);
     quantized_matrix_multiplication(kernel_, input_, output_);
   } else {
     std::cerr << "Only 1x1 or 3x3 convolutions are supported." << std::endl;
@@ -85,7 +86,7 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
   if (p.thresholds != nullptr) {
     QUANTIZED_PACKED *buf_ptr = reinterpret_cast<QUANTIZED_PACKED*>(temp_buf_ptr);
     ApplyThresholds(output_, p);
-    pack_16bit(p.device_output_buf, buf_ptr, out_size);
+    pack_16bit(out_buf, buf_ptr, out_size);
     const std::size_t b = 32;
     TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>::tensor_info_t<std::size_t> buf_shape = {
       oh, ow, (oc + b - 1) / b, p.n_bit, b
@@ -98,12 +99,12 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
       p.n_bit,
       b
     };
-    TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl> out((QUANTIZED_PACKED*)p.device_output_buf, out_shape);
+    TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl> out(reinterpret_cast<QUANTIZED_PACKED*>(p.device_output_buf), out_shape);
     convert_tensor(buf_tensor, out);
   } else {
     BIN_CONV_OUTPUT *buf_ptr = reinterpret_cast<BIN_CONV_OUTPUT*>(temp_buf_ptr);
     const std::size_t b = 32;
-    std::copy(p.device_output_buf, p.device_output_buf + out_size, buf_ptr);
+    std::copy(out_buf, out_buf + out_size, buf_ptr);
     TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>::tensor_info_t<std::size_t> buf_shape = {
       oh, ow, oc 
     };
@@ -111,7 +112,7 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
     TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl>::tensor_info_t<std::size_t> out_shape = {
       (oc + b - 1) / b, oh, ow, b
     };
-    TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl> out(p.device_output_buf, out_shape);
+    TensorView<BIN_CONV_OUTPUT, MemoryLayout::ChHWCl> out(reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf), out_shape);
     convert_tensor(buf_tensor, out);
   }
 

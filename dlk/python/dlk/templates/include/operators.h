@@ -44,8 +44,8 @@ struct binary_convolution_parameters {
   T_UINT bin_input_bitwidth;
   T_UINT bin_kernel_ndata;
   T_UINT layer_index;
-  QUANTIZED_PACKED *device_input_buf;
-  BIN_CONV_OUTPUT *device_output_buf;
+  VOLATILE_IF_FPGA void *device_input_buf;
+  VOLATILE_IF_FPGA void *device_output_buf;
   BIN_CONV_OUTPUT *thresholds;
   T_UINT n_bit;
   T_FLOAT max_value;

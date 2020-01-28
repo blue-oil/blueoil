@@ -324,8 +324,8 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                 + (row_high + row) * out_width * OutChUnroll2
                 + (col_high + col) * OutChUnroll2
                 + Om;
-            vst1q_s16(p.device_output_buf + index +  0, v0);
-            vst1q_s16(p.device_output_buf + index +  8, v1);
+            vst1q_s16(reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf) + index +  0, v0);
+            vst1q_s16(reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf) + index +  8, v1);
           }
         }
       }
@@ -588,8 +588,8 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                 + (row_high + row) * out_width * OutChUnroll2
                 + (col_high + col) * OutChUnroll2
                 + Om;
-            vst1q_s16(p.device_output_buf + index +  0, v0);
-            vst1q_s16(p.device_output_buf + index +  8, v1);
+            vst1q_s16(reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf) + index +  0, v0);
+            vst1q_s16(reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf) + index +  8, v1);
           }
         }
       }

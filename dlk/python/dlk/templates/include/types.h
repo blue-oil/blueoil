@@ -81,10 +81,6 @@ struct Base<QuantizedPacked<T>> {
   using type = T;
 };
 
-#if defined RUN_ON_FPGA
-  typedef volatile T_INT16 BIN_CONV_OUTPUT;
-#else
-  typedef T_INT16 BIN_CONV_OUTPUT;
-#endif
+using BIN_CONV_OUTPUT = T_INT16;
 
 #endif // TYPES_H
