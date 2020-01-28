@@ -87,28 +87,26 @@ void func_Split(const TensorView<T, MemoryLayout::ChHWBCl>& input,
   Measurement::Start("func_Split");
 
   const auto in_shape = input.get_shape();
-  T_UINT in_height = in_shape[1];
-  T_UINT in_width = in_shape[2];
-  T_UINT bits = in_shape[3];
+  const auto in_height = in_shape[1];
+  const auto in_width = in_shape[2];
+  const auto bits = in_shape[3];
 
   if (!std::is_same<T, typename Base<T>::type>::value) {
     // quantized and packed inputs
-    for(T_UINT i = 0; i < num_split; i++)
+    for(std::size_t i = 0; i < num_split; i++)
       depths[i] /= 32;
   }
 
-  T_UINT index = 0;
-  for(T_UINT n = 0; n < num_split; n++) {
-    for(T_UINT d = 0; d < depths[n]; d++) {
-      for(T_UINT h = 0; h < in_height; h++) {
-        for(T_UINT w = 0; w < in_width; w++) {
-          for(T_UINT digit = 0; digit < bits; ++digit) {
-            outputs[n](d, h, w, digit, 0) = input(index, h, w, digit, 0);
-          }
-        }
-      }
-      ++index;
+  std::size_t offset = 0;
+  for(std::size_t n = 0; n < num_split; n++) {
+    const auto& output = outputs[n];
+    if (input.data() + offset != output.data()) {
+      const auto bytes = output.size() * sizeof(T);
+      std::memmove(output.data(), input.data() + offset, bytes);
+    } else {
+      // nothing to do
     }
+    offset += output.size();
   }
 
   Measurement::Stop();
