@@ -46,12 +46,6 @@ struct binary_convolution_parameters {
   T_UINT layer_index;
   QUANTIZED_PACKED *device_input_buf;
   BIN_CONV_OUTPUT *device_output_buf;
-  void print_device_output_buf(const std::string message) {
-    std::cout << message << std::endl;
-    for (int i = 0; i < 4; i++) {
-      std::cout << device_output_buf[i] << std::endl;
-    }
-  }
   BIN_CONV_OUTPUT *thresholds;
   T_UINT n_bit;
   T_FLOAT max_value;
