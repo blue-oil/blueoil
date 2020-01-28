@@ -18,12 +18,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import time
 import os
 import sys
-from multiprocessing import Process, Queue
-from time import sleep
-from collections import deque
+import asyncio
+import concurrent.futures
 
 import click
 import cv2
@@ -46,12 +44,16 @@ from lmnet.visualize import (
     label_to_color_image,
     visualize_keypoint_detection,
 )
-from lmnet.pre_processor import resize
-
 
 nn = None
 pre_process = None
 post_process = None
+
+
+vcread_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+nn_run_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+imshow_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+post_process_pool = concurrent.futures.ProcessPoolExecutor(max_workers=1)
 
 
 def init_camera(camera_width, camera_height):
@@ -59,12 +61,13 @@ def init_camera(camera_width, camera_height):
         vc = cv2.VideoCapture(0)
         vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
         vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-        vc.set(cv2.cv.CV_CAP_PROP_FPS, 60)
+        vc.set(cv2.cv.CV_CAP_PROP_FPS, 10)
+
     else:
-        vc = cv2.VideoCapture(0)
+        vc = cv2.VideoCapture(1)
         vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
         vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
-        vc.set(cv2.CAP_PROP_FPS, 60)
+        vc.set(cv2.CAP_PROP_FPS, 10)
 
     return vc
 
@@ -79,112 +82,81 @@ def add_class_label(canvas,
     cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
 
 
-def infer_loop(q_input, q_output):
-    global nn, pre_process, post_process
-    nn.init()
-    while True:
-        img_orig, fps = q_input.get()
-        img = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
-        result, _, _ = run_inference(img, nn, pre_process, post_process)
-        q_output.put((result, fps, img_orig))
+# thread
+def io_vcread(vc):
+    grabbed, current_img = vc.read()
+    return current_img
 
-def show_object_detection(img, result, fps, window_height, window_width, config):
-    window_img = resize(img, size=[window_height, window_width])
 
-    input_width = config.IMAGE_SIZE[1]
-    input_height = config.IMAGE_SIZE[0]
-    window_img = add_rectangle(config.CLASSES,
-        window_img, result, (input_height, input_width)
-    )
-    img = add_fps(window_img, fps)
+# thread
+def io_nn_run(image):
+    global nn, pre_process
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    data = pre_process(image=image)["image"]
+    data = np.expand_dims(data, axis=0)
+    network_output = nn.run(data)
+    return network_output
 
-    window_name = "Object Detection Demo"
-    cv2.imshow(window_name, window_img)
 
-def show_classification(img, result, fps, window_height, window_width, config):
-    window_img = resize(img, size=[window_height, window_width])
+# process
+def cpu_post_process(network_output):
+    global post_process
+    post_processed = post_process(outputs=network_output)["outputs"]
+    return post_processed
 
-    result_class = np.argmax(result, axis=1)
-    add_class_label(window_img, text=str(result[0, result_class][0]), font_scale=0.52, dl_corner=(230, 230))
-    add_class_label(window_img, text=config.CLASSES[result_class[0]], font_scale=0.52, dl_corner=(230, 210))
-    window_img = add_fps(window_img, fps)
 
-    window_name = "Classification Demo"
-    cv2.imshow(window_name, window_img)
+# thread
+def io_object_detection_imshow(image, network_output, config):
+    image_to_show = add_rectangle(config.CLASSES,
+                                  image,
+                                  network_output,
+                                  (config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
+    cv2.imshow("asyncio_object_detection_demo", image_to_show)
+    cv2.waitKey(2)
 
-def show_semantic_segmentation(img, result, fps, window_height, window_width, config):
-    orig_img = resize(img, size=[window_height, window_width])
 
-    seg_img = label_to_color_image(result, colormap)
-    seg_img = cv2.resize(seg_img, dsize=(window_width, window_height))
-    window_img = cv2.addWeighted(orig_img, 1, seg_img, 0.8, 0)
-    window_img = add_fps(window_img, fps)
+def io_keypoint_detection_imshow(image, network_output, config):
+    image_to_show = visualize_keypoint_detection(image,
+                                                 network_output,
+                                                 (config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
+    cv2.imshow("asyncio_keypoint_detection_demo", image_to_show)
+    cv2.waitKey(2)
 
-    window_name = "Semantic Segmentation Demo"
-    cv2.imshow(window_name, window_img)
 
-def show_keypoint_detection(img, result, fps, window_height, window_width, config):
-    window_img = resize(img, size=[window_height, window_width])
+def io_classification_imshow(image, network_output, config):
+    image_to_show = visualize_keypoint_detection(image,
+                                                 network_output,
+                                                 (config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
+    cv2.imshow("asyncio_keypoint_detection_demo", image_to_show)
+    cv2.waitKey(2)
 
-    window_img = visualize_keypoint_detection(window_img, result[0], (input_height, input_width))
-    window_img = add_fps(window_img, fps)
 
-    window_name = "Keypoint Detection Demo"
-    cv2.imshow(window_name, window_img)
+def io_semantic_segmentation_imshow(image, network_output, config):
+    seg_img = label_to_color_image(network_output, config.colormap)
+    seg_img = cv2.resize(seg_img, dsize=(320, 240))
+    image_to_show = cv2.addWeighted(image, 1, seg_img, 0.8, 0)
+    cv2.imshow("asyncio_semantic_segmentation_demo", image_to_show)
+    cv2.waitKey(2)
 
-def capture_loop(q_input):
-    camera_width = 320
-    camera_height = 240
 
-    vc = init_camera(camera_width, camera_height)
+@asyncio.coroutine
+def run_coro(config, imshow_func):
+    vc = init_camera(240, 320)
+    colormap = np.array(get_color_map(len(config['CLASSES'])), dtype=np.uint8)
+    config.colormap = colormap
+    loop = asyncio.get_event_loop()
+    while vc.isOpened():
+        image = yield from loop.run_in_executor(vcread_thread_pool, io_vcread,
+                                                vc)
 
-    count_frames = 10
-    prev_1 = time.clock()
-    prev = deque([prev_1] * count_frames)
+        network_ouput = yield from loop.run_in_executor(nn_run_thread_pool, io_nn_run,
+                                                        image)
 
-    while True:
-        valid, img = vc.read()
-        if valid:
-            now = time.clock()
-            prev.append(now)
-            old = prev.popleft()
-            fps = count_frames / (now - old)
-            q_input.put((img, fps))
+        post_processed = yield from loop.run_in_executor(post_process_pool, cpu_post_process,
+                                                         network_ouput)
 
-def run_impl(config):
-    # Set variables
-    q_input = Queue(2)
-    q_output = Queue(4)
-
-    p_capture = Process(target=capture_loop, args=(q_input,))
-    p_capture.start()
-
-    p_infer = Process(target=infer_loop, args=(q_input, q_output))
-    p_infer.start()
-
-    window_width = 320
-    window_height = 240
-
-    show_handles_table = {
-        "IMAGE.OBJECT_DETECTION": show_object_detection,
-        "IMAGE.CLASSIFICATION": show_classification,
-        "IMAGE.SEMANTIC_SEGMENTATION": show_semantic_segmentation,
-        "IMAGE.KEYPOINT_DETECTION": show_keypoint_detection
-    }
-    show_handle = show_handles_table[config.TASK]
-
-    #  ----------- Beginning of Main Loop ---------------
-    while True:
-        if not q_output.empty():
-            result, fps, img = q_output.get()
-            show_handle(img, result, fps, window_height, window_width, config)
-            key = cv2.waitKey(1)    # Wait for 1ms
-            if key == 27:           # ESC to quit
-                sleep(1.0)          # Wait for worker's current task is finished
-                p_capture.terminate()
-                p_infer.terminate()
-                return
-    # --------------------- End of main Loop -----------------------
+        yield from loop.run_in_executor(imshow_thread_pool, imshow_func,
+                                        image, post_processed, config)
 
 
 def run(model, config_file):
@@ -206,13 +178,21 @@ def run(model, config_file):
     if file_extension == '.so':  # Shared library
         nn = NNLib()
         nn.load(model)
+        nn.init()
 
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
         from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
 
-    run_impl(config)
+    IMSHOW_FUNCS = {"IMAGE.CLASSIFICATION": io_classification_imshow,
+                    "IMAGE.OBJECT_DETECTION": io_object_detection_imshow,
+                    "IMAGE.SEMANTIC_SEGMENTATION": io_semantic_segmentation_imshow,
+                    "IMAGE.KEYPOINT_DETECTION": io_keypoint_detection_imshow}
+
+    imshow_func = IMSHOW_FUNCS[config.TASK]
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run_coro(config, imshow_func))
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
