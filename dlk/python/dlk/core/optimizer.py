@@ -500,7 +500,7 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             width = qtz.width
             depth = qtz.channel
             depth_upper = (depth + b - 1) // b
-            qtz.update_shape([height, width, depth_upper, 2, b], "HWChBCl")
+            qtz.update_shape([depth_upper, height, width, 2, b], "ChHWBCl")
 
 
 def pass_propagate_datatypes(graph) -> None:
@@ -529,10 +529,6 @@ def pass_propagate_format(graph) -> None:
             if m.input_nodes[0].dimension == 'ChHWBCl':
                 b = 32
                 shape = [(m.channel + b - 1) // b, m.height, m.width, 2, b]
-                m.update_shape(shape, m.input_nodes[0].dimension)
-            elif m.input_nodes[0].dimension == 'HWChBCl':
-                b = 32
-                shape = [m.height, m.width, (m.channel + b - 1) // b, 2, b]
                 m.update_shape(shape, m.input_nodes[0].dimension)
 
 
