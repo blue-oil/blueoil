@@ -89,7 +89,7 @@ void pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_
 
   for (size_t i = 0; i < area; ++i) {
     for (size_t j = 0; j < full_words_in_depth; ++j) {
-      for(size_t b = 0; b < bits_per_input; ++b) {
+      for (size_t b = 0; b < bits_per_input; ++b) {
         QUANTIZED_PACKED tmp(0);
         for (size_t d = 0; d < bits_per_word; ++d) {
           QUANTIZED_PACKED::base_t in = input[i*input_depth + j*bits_per_word + d];
@@ -99,10 +99,10 @@ void pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_
       }
     }
 
-    if(!remainder_bits_in_depth)
+    if (!remainder_bits_in_depth)
       continue;
 
-    for(size_t b = 0; b < bits_per_input; ++b) {
+    for (size_t b = 0; b < bits_per_input; ++b) {
       QUANTIZED_PACKED tmp(0);
       for (size_t d = 0; d < remainder_bits_in_depth; ++d) {
         QUANTIZED_PACKED::base_t in = input[i*input_depth + full_words_in_depth*bits_per_word + d];
