@@ -16,7 +16,7 @@ limitations under the License.
 #ifndef DLK_FUNC_IMPL_QUANTIZED_CONV2D_TILING_H_INCLUDED
 #define DLK_FUNC_IMPL_QUANTIZED_CONV2D_TILING_H_INCLUDED
 
-#include "global.h"
+#include "types.h"
 #include "operators.h" // FIXME(nikolay): for binary_convolution_parameters definition, rid of it later
 #include "tensor_view.h"
 
@@ -27,6 +27,9 @@ namespace impl {
 using tiling_input_elem_base_t = uint32_t; // hardcoded, not configurable
 using tiling_input_elem_t = QuantizedPacked<tiling_input_elem_base_t>;
 using tiling_input_t = TensorView<tiling_input_elem_t, MemoryLayout::ChHWBCl>;
+using tiling_kernel_elem_base_t = uint32_t; // hardcoded, not configurable
+using tiling_kernel_elem_t = QuantizedPacked<tiling_kernel_elem_base_t>;
+using tiling_kernel_t = TensorView<tiling_kernel_elem_t, MemoryLayout::OHWI>;
 
 void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::NHWC>& input,
     const tiling_input_t& output);
@@ -34,8 +37,8 @@ void pack_input_for_tiling(const TensorView<QUANTIZED_NOT_PACKED, MemoryLayout::
 void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::size_t channels);
 
 void QuantizedConv2DTiling(const tiling_input_t& input,
-                                  const kernel_t& kernel,
-                                  const binary_convolution_parameters &p);
+    const tiling_kernel_t& kernel,
+    const binary_convolution_parameters &p);
 
 } // namespace impl
 
