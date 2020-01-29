@@ -50,7 +50,6 @@ class TestBinary(TestCaseDLKBase):
                project_name=project_name,
                activate_hard_quantization=False,
                threshold_skipping=False,
-               num_pe=16,
                debug=False,
                cache_dma=False,
                )
