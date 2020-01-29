@@ -299,6 +299,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
           APPLY_PACK(2);
           APPLY_PACK(3);
         } else {
+          auto out_buf = reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf);
 #define OUT(i) \
   if (col + i >= out_width) continue; \
   do { \
@@ -306,7 +307,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
         + row * out_width * OutChUnroll2 \
         + (col + i) * OutChUnroll2 \
         + Om * OutChUnroll; \
-    _mm256_storeu_si256(reinterpret_cast<__m256i*>(p.device_output_buf + out_index), ans##i); \
+    _mm256_storeu_si256(reinterpret_cast<__m256i*>(out_buf + out_index), ans##i); \
   } while(0)
           OUT(0);
           OUT(1);
@@ -512,6 +513,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
           }
         }
       } else {
+        auto out_buf = reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf);
         for (std::size_t row = 0; row < TileHeight; ++row) {
           if (row_high + row >= out_height) break;
           for (std::size_t col = 0; col < TileWidth; ++col) {
@@ -523,7 +525,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                 + (row_high + row) * out_width * OutChUnroll2
                 + (col_high + col) * OutChUnroll2
                 + Om * OutChUnroll;
-            _mm_storeu_si128(reinterpret_cast<__m128i*>(p.device_output_buf + index), vec);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(out_buf + index), vec);
           }
         }
       }
