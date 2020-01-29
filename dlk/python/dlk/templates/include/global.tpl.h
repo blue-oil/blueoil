@@ -23,8 +23,10 @@ limitations under the License.
 #include "types.h"
 
 #if defined RUN_ON_FPGA
+#define VOLATILE_IF_FPGA volatile
   using QUANTIZED_PACKED = QuantizedPacked<volatile {{ params.default_qword_dtype.cpptype() }}>;
 #else
+#define VOLATILE_IF_FPGA
   using QUANTIZED_PACKED = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
 #endif
 using QUANTIZED_PACKED_KERNEL = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
