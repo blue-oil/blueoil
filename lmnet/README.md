@@ -41,6 +41,9 @@ cd dataset/CIFAR_10 && tar xvf cifar-10-python.tar.gz && cd ../..
 python -m venv .venv
 source .venv/bin/activate
 
+# We need to install cython and numpy before "pip install -r" for pycocotools
+pip install --upgrade cython numpy
+
 # install python requirements
 pip install -r ../cpu.requirements.txt
 
