@@ -99,7 +99,7 @@ RUN pip install -U pip setuptools
 FROM base AS blueoil-base
 # Install requirements
 # We need to install cython and numpy before "pip install -r" for pycocotools
-RUN pip install --upgrade cython numpy
+RUN pip install --upgrade cython==0.27.3 numpy==1.17.4
 COPY ./*requirements.txt /home/blueoil/
 RUN pip install -r /home/blueoil/gpu.requirements.txt
 

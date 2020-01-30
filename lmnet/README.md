@@ -42,7 +42,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 # We need to install cython and numpy before "pip install -r" for pycocotools
-pip install --upgrade cython numpy
+pip install --upgrade cython==0.27.3 numpy==1.17.4
 
 # install python requirements
 pip install -r ../cpu.requirements.txt
