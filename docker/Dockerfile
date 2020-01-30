@@ -101,11 +101,6 @@ FROM base AS blueoil-base
 COPY ./*requirements.txt /home/blueoil/
 RUN pip install -r /home/blueoil/gpu.requirements.txt
 
-# Build coco. It needs numpy.
-COPY lmnet/third_party /home/blueoil/lmnet/third_party
-# https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
-RUN cd /home/blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
-
 # Set env to install horovod with nccl and tensorflow option
 ENV HOROVOD_GPU_ALLREDUCE=NCCL \
     HOROVOD_WITH_TENSORFLOW=1
