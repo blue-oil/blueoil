@@ -9,4 +9,4 @@ pytablewriter==0.35
 PyYAML==4.2b4
 tensorflow-datasets==1.0.2
 whaaaaat==0.5.2
-pycocotools==2.0.0
+cython==0.27.3

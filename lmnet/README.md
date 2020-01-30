@@ -41,11 +41,11 @@ cd dataset/CIFAR_10 && tar xvf cifar-10-python.tar.gz && cd ../..
 python -m venv .venv
 source .venv/bin/activate
 
-# We need to install cython and numpy before "pip install -r" for pycocotools
-pip install --upgrade cython==0.27.3 numpy==1.17.4
-
 # install python requirements
 pip install -r ../cpu.requirements.txt
+
+# Install pycocotools manually. pycocotools 2.0 have some problem with installation
+pip install pycocotools==2.0.0
 
 # start sample training by lmnet_v0 and cifar-10. It takes few minutes.
 PYTHONPATH=. python executor/train.py -c configs/example/classification.py
