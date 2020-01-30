@@ -32,6 +32,7 @@ def tf_resize_with_gt_boxes(image, gt_boxes, size=(256,256)):
 class TFResize(Processor):
     """Resize an image
     """
+
     def __init__(self, size=(256,256)):
         """
         Args:
@@ -69,3 +70,11 @@ class TFResizeWithGtBoxes(Processor):
     def __call__(self, image, gt_boxes=None, **kwargs):
         image, gt_boxes = tf_resize_with_gt_boxes(image, gt_boxes, self.size)
         return dict({'image': image, 'gt_boxes': gt_boxes}, **kwargs)
+
+class TFDivideBy255(Processor):
+    """Divide image by 255
+    """
+
+    def __call__(self, image, **kwargs):
+        image = image / 255.0
+        return dict({'image': image}, **kwargs)
