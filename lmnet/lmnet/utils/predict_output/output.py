@@ -219,7 +219,7 @@ class ImageFromJson():
         for result, raw_image, image_file in zip(results, raw_images, image_files):
             predictions = result["prediction"]
 
-            probs = [prediction["probability"] for prediction in predictions]
+            probs = [float(prediction["probability"]) for prediction in predictions]
             highest_index = probs.index(max(probs))
             highest = predictions[highest_index]
 
