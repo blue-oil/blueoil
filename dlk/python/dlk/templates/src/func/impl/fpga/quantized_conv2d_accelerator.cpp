@@ -17,7 +17,7 @@ limitations under the License.
 #include <cstdio>
 
 #include "de10_nano.h"
-#include "func/impl/quantized_conv2d_kn2row.h"
+#include "func/impl/quantized_conv2d_accelerator.h"
 #include "global.h"
 #include "network.h"
 #include "pack_input_to_qwords.h"
@@ -35,8 +35,8 @@ namespace dlk
 namespace impl
 {
 
-void TCAConv2d(const kn2row_input_t& input,
-    const kernel_t& kernel,
+void TCAConv2d(const tca_input_t& input,
+    const tca_kernel_t& kernel,
     const binary_convolution_parameters &p) {
 
   using namespace dlk;

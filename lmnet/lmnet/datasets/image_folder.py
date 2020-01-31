@@ -77,7 +77,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
         for image_class in self.classes:
             image_dir = os.path.join(self.data_dir, image_class)
             for image_path in glob(os.path.join(image_dir, "*")):
-                if os.path.isfile(image_path) and imghdr.what(image_path) in ["jpeg", "png"]:
+                if os.path.isfile(image_path) and imghdr.what(image_path) in {"jpeg", "png"}:
                     all_image_files.append(image_path)
 
         return all_image_files

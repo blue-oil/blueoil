@@ -56,7 +56,7 @@ endif()
 
 if(RUN_ON_FPGA)
     list(APPEND SRC_LIB_ALL src/func/arm_neon/batch_normalization.cpp)
-    list(APPEND SRC_LIB_ALL src/func/impl/fpga/quantized_conv2d_kn2row.cpp)
+    list(APPEND SRC_LIB_ALL src/func/impl/fpga/quantized_conv2d_accelerator.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pop_count.cpp)
 elseif(USE_NEON)
     list(APPEND SRC_LIB_ALL src/func/arm_neon/batch_normalization.cpp)
