@@ -248,13 +248,12 @@ def _generate_tfds_map_func(dataset):
 
 class _TFDSReader:
 
-    def __init__(self, dataset, local_rank, tfds_pre_processor):
+    def __init__(self, dataset, local_rank):
         tf_dataset = dataset.tf_dataset.shuffle(1024) \
-                                       .repeat()
-        if tfds_pre_processor is not None:
-            tf_dataset = tf_dataset.map(map_func=_generate_tfds_map_func(dataset), num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        tf_dataset = tf_dataset.batch(dataset.batch_size) \
-                                .prefetch(tf.data.experimental.AUTOTUNE)
+                    .repeat() \
+                    .map(map_func=_generate_tfds_map_func(dataset), num_parallel_calls=tf.data.experimental.AUTOTUNE) \
+                    .batch(dataset.batch_size) \
+                    .prefetch(tf.data.experimental.AUTOTUNE)
         iterator = tf.data.make_initializable_iterator(tf_dataset)
 
         self.dataset = dataset
@@ -281,14 +280,14 @@ class DatasetIterator:
     available_subsets = ["train", "train_validation_saving", "validation"]
 
     """docstring for DatasetIterator."""
-    def __init__(self, dataset, enable_prefetch=False, seed=0, local_rank=-1, tfds_pre_processor=None):
+    def __init__(self, dataset, enable_prefetch=False, seed=0, local_rank=-1):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
         self.seed = seed
 
         if issubclass(dataset.__class__, TFDSMixin):
             self.enable_prefetch = False
-            self.reader = _TFDSReader(self.dataset, local_rank, tfds_pre_processor)
+            self.reader = _TFDSReader(self.dataset, local_rank)
         else:
             if self.enable_prefetch:
                 self.prefetch_result_queue = queue.Queue(maxsize=200)
