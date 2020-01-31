@@ -20,12 +20,12 @@ from lmnet.common import Tasks
 from lmnet.datasets.delta_mark import ClassificationBase
 from lmnet.networks.classification.lmnet_v0 import LmnetV0Quantize
 from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
-    Resize,
-    PerImageStandardization,
+from lmnet.tfds_pre_processor import (
+    TFResize,
+    TFPerImageStandardization,
 )
-from lmnet.data_augmentor import (
-    FlipLeftRight,
+from lmnet.tfds_augmentor import (
+    TFFlipLeftRight,
 )
 from lmnet.quantizations import (
     binary_mean_scaling_quantizer,
@@ -64,10 +64,7 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-PRE_PROCESSOR = Sequence([
-    Resize(size=IMAGE_SIZE),
-    PerImageStandardization()
-])
+PRE_PROCESSOR = None
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
@@ -90,8 +87,14 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([
-    FlipLeftRight(),
+DATASET.AUGMENTOR = None
+
+DATASET.TFDS_PRE_PROCESSOR = Sequence([
+    TFResize(size=IMAGE_SIZE),
+    TFPerImageStandardization()
+])
+DATASET.TFDS_AUGMENTOR = Sequence([
+    TFFlipLeftRight()
 ])
 DATASET.TFDS_KWARGS = {
     "name": "tfds_classification",
