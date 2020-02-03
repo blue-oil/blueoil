@@ -52,11 +52,6 @@ test-lmnet-main: build
 	# Run lmnet test with Python3.6
 	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-pytest-parallel"
 
-.PHONY: test-lmnet-check-dataset-storage
-test-lmnet-check-dataset-storage: build
-	# Check datasets storage with Python3.6
-	docker run $(DOCKER_OPT) -v /storage/dataset:/storage/dataset -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) -e DATA_DIR=/storage/dataset --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-check_dataset_storage"
-
 .PHONY: test-dlk
 test-dlk: test-dlk-pep8 test-dlk-main test-dlk-x86_64 test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64
 
