@@ -45,12 +45,12 @@ test-lmnet: test-lmnet-pep8 test-lmnet-main
 .PHONY: test-lmnet-pep8
 test-lmnet-pep8: build
 	# Check lmnet pep8
-	docker run --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e flake8"
+	docker run --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; flake8 ."
 
 .PHONY: test-lmnet-main
 test-lmnet-main: build
 	# Run lmnet test with Python3.6
-	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-pytest-parallel"
+	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; pytest -n auto tests/"
 
 .PHONY: test-dlk
 test-dlk: test-dlk-pep8 test-dlk-main test-dlk-x86_64 test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64
