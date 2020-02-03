@@ -488,7 +488,7 @@ class Importer(object):
             op_type = self.convert_operator(node.op_type)
             if op_type == 'Conv':
                 return out_format, [out_format, _default_w_format, 'C']
-            elif op_type in ['QTZ_binary_mean_scaling', 'BinaryChannelWiseMeanScalingQuantizer']:
+            elif op_type in {'QTZ_binary_mean_scaling', 'BinaryChannelWiseMeanScalingQuantizer'}:
                 return _default_w_format, [_default_w_format]
             elif op_type in {'QTZ_linear_mid_tread_half'}:
                 return out_format, [out_format, 'C', 'C']
