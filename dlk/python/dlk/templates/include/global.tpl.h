@@ -20,90 +20,16 @@ limitations under the License.
 #include <inttypes.h>
 #include <limits>
 #include <stdlib.h>
-#include <type_traits>
-#include "func/impl/pop_count.h"
-
-#ifdef __cpp_lib_byte
-#include <cstddef>
-using BYTE = std::byte;
-#else
-enum class byte : unsigned char {};
-using BYTE = byte;
-#endif
-
-typedef uint32_t T_UINT;
-typedef int32_t  T_INT;
-typedef float    T_FLOAT;
-typedef uint8_t  T_UINT8;
-typedef int8_t   T_INT8;
-typedef uint16_t  T_UINT16;
-typedef int16_t   T_INT16;
-
-#define QUANTIZED_NOT_PACKED uint8_t
-
-template <typename pack_type>
-class QuantizedPacked {
- public:
-  using T = pack_type;
-  using base_t = std::remove_cv_t<T>;
-  static constexpr std::size_t BitCount = sizeof(pack_type) * CHAR_BIT;
-  QuantizedPacked() = default;
-  explicit QuantizedPacked(const T val) : val(val) {}
-  explicit operator base_t() const { return val; }
-  template <typename U, std::enable_if_t<std::is_same<base_t, std::remove_cv_t<U>>::value, int> = 0>
-  QuantizedPacked<T>& operator|=(const QuantizedPacked<U>& that) {
-    val |= that.val;
-    return *this;
-  }
-  base_t Raw() const { return val; }
- private:
-  T val;
-} __attribute__ ((packed));
+#include "types.h"
 
 #if defined RUN_ON_FPGA
+#define VOLATILE_IF_FPGA volatile
   using QUANTIZED_PACKED = QuantizedPacked<volatile {{ params.default_qword_dtype.cpptype() }}>;
 #else
+#define VOLATILE_IF_FPGA
   using QUANTIZED_PACKED = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
 #endif
 using QUANTIZED_PACKED_KERNEL = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
-template <typename T1, typename T2,
-    std::enable_if_t<std::is_same<std::remove_cv_t<T1>, std::remove_cv_t<T2>>::value, int> = 0>
-inline auto operator^(const QuantizedPacked<T1>& lhs, const QuantizedPacked<T2>& rhs) {
-  using packed_t = QuantizedPacked<std::remove_cv_t<T1>>;
-  return packed_t(lhs.Raw() ^ rhs.Raw());
-}
-template <typename pack_type>
-inline auto operator~(const QuantizedPacked<pack_type>& x) {
-  return QuantizedPacked<std::remove_cv_t<pack_type>>(~x.Raw());
-}
-template <typename pack_type>
-inline int pop_count(const QuantizedPacked<pack_type>& x) {
-  return dlk::impl::pop_count(x.Raw());
-}
-
-template <typename T>
-struct Base {
-  using type = T;
-};
-
-template <typename T>
-struct Base<QuantizedPacked<T>> {
-  using type = T;
-};
-
-#if defined RUN_ON_FPGA
-  typedef volatile T_INT16 BIN_CONV_OUTPUT;
-#else
-  typedef T_INT16 BIN_CONV_OUTPUT;
-#endif
-
-#define NBIT_QDYPE {{ params.default_nbit_qword }}
-
-#define DEFAULT_GRAPH_INPUT {{ graph_input.dtype.cpptype() }}
-#define DEFAULT_GRAPH_OUTPUT {{ graph_output.dtype.cpptype() }}
-
-#define BIN_CONV_FORMULA_SCALING_FACTOR 3.0
-#define WORD_SIZE 32
 
 #define IP_CSR_ADDR 0xFF200000
 #define TH_IP_CSR_ADDR 0xFF200100
@@ -114,7 +40,6 @@ struct Base<QuantizedPacked<T>> {
 #define KERNEL_ADDR 0x38000000
 #define THRESHOLD_ADDR 0x3F000000
 
-#define NUM_PE {{ config.num_pe }}
 
 {%- if config.activate_hard_quantization %}
 #define HARD_QUANTIZATION_ACTIVE
@@ -126,7 +51,6 @@ struct Base<QuantizedPacked<T>> {
 
 #define NUM_OF_A2W1_THRESHOLD {{ 2**2 }}
 
-#define PS_PL_BANDWIDTH {{ config.bandwidth }}
 
 
 /********************************************************
@@ -148,8 +72,6 @@ struct Base<QuantizedPacked<T>> {
 #define MAX_NBIT_KERNEL 1 // {{ params.max_nbit_qkernel }}
 #define MAX_IN_C 1024
 /********************************************************/
-
-typedef T_INT Quantized_t;
 
 void write_to_file(const char *filename, int id, volatile int32_t* data, int size);
 void write_to_file(const char *filename, int id, BIN_CONV_OUTPUT* data, int size);

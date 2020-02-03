@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import json
+import logging
 import math
 import os
 
@@ -25,6 +27,10 @@ from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
 from lmnet.utils import config as config_util
 from lmnet.utils import executor, module_loader
+from lmnet.utils.predict_output.writer import save_json
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def setup_dataset(config, subset, seed):
@@ -44,7 +50,7 @@ def setup_dataset(config, subset, seed):
     return DatasetIterator(dataset, seed=seed, enable_prefetch=enable_prefetch)
 
 
-def evaluate(config, restore_path):
+def evaluate(config, restore_path, output_dir):
     if restore_path is None:
         restore_file = executor.search_restore_filename(environment.CHECKPOINTS_DIR)
         restore_path = os.path.join(environment.CHECKPOINTS_DIR, restore_file)
@@ -52,7 +58,10 @@ def evaluate(config, restore_path):
     if not os.path.exists("{}.index".format(restore_path)):
         raise Exception("restore file {} dont exists.".format(restore_path))
 
-    print("restore_path:", restore_path)
+    if output_dir is None:
+        output_dir = os.path.join(os.path.dirname(os.path.dirname(restore_path)), "evaluate")
+
+    logger.info(f"restore_path:{restore_path}")
 
     DatasetClass = config.DATASET_CLASS
     ModelClass = config.NETWORK_CLASS
@@ -113,10 +122,10 @@ def evaluate(config, restore_path):
 
     # init metrics values
     test_step_size = int(math.ceil(validation_dataset.num_per_epoch / config.BATCH_SIZE))
-    print("test_step_size", test_step_size)
+    logger.info(f"test_step_size{test_step_size}")
 
     for test_step in range(test_step_size):
-        print("test_step", test_step)
+        logger.info(f"test_step{test_step}")
 
         images, labels = validation_dataset.feed()
         feed_dict = {
@@ -133,12 +142,29 @@ def evaluate(config, restore_path):
 
     metrics_values = sess.run(list(metrics_ops_dict.values()))
     metrics_feed_dict = {
+        # TODO: Fix to avoid the implementation depended on the order of dict implicitly
         placeholder: value for placeholder, value in zip(metrics_placeholders, metrics_values)
     }
     metrics_summary, = sess.run(
         [metrics_summary_op], feed_dict=metrics_feed_dict,
     )
     validation_writer.add_summary(metrics_summary, last_step)
+
+    is_tfds = "TFDS_KWARGS" in config.DATASET
+    dataset_name = config.DATASET.TFDS_KWARGS["name"] if is_tfds else config.DATASET_CLASS.__name__
+    dataset_path = config.DATASET.TFDS_KWARGS["data_dir"] if is_tfds else ""
+
+    metrics_dict = {
+        'task_type': config.TASK.value,
+        'network_name': config.NETWORK_CLASS.__name__,
+        'dataset_name': dataset_name,
+        'dataset_path': dataset_path,
+        'last_step': int(last_step),
+        # TODO: Fix to avoid the implementation depended on the order of dict implicitly
+        'metrics': {k: float(v) for k, v in zip(list(metrics_ops_dict.keys()), metrics_values)},
+    }
+    save_json(output_dir, json.dumps(metrics_dict, indent=4,), metrics_dict["last_step"])
+    validation_dataset.close()
 
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
@@ -167,7 +193,12 @@ def evaluate(config, restore_path):
     "--config_file",
     help="config file path. override(merge) saved experiment config. if it is not provided, it restore from saved experiment config.", # NOQA
 )
-def main(network, dataset, config_file, experiment_id, restore_path):
+@click.option(
+    "-o",
+    "--output_dir",
+    help="Output directory to save a evaluated result",
+)
+def main(network, dataset, config_file, experiment_id, restore_path, output_dir):
     environment.init(experiment_id)
 
     config = config_util.load_from_experiment()
@@ -185,7 +216,7 @@ def main(network, dataset, config_file, experiment_id, restore_path):
     executor.init_logging(config)
     config_util.display(config)
 
-    evaluate(config, restore_path)
+    evaluate(config, restore_path, output_dir)
 
 
 if __name__ == "__main__":

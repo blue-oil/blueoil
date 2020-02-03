@@ -69,10 +69,6 @@ class Params(object):
         return self.nbit_qkernel
 
     @property
-    def num_pe(self):
-        return self.config.num_pe
-
-    @property
     def num_qinputs_in_qword(self):
         return int(self.default_nbit_qword / self.nbit_qinput)
 

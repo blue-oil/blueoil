@@ -24,6 +24,9 @@ Training data is required; validation data is optional. When you only provide tr
 - Task type: `Semantic Segmentation`
   - [CamvidCustom](#camvidcustom)
 
+- Task type: `Keypoint Detection`
+  - [MSCOCO_2017 keypoint detection](#mscoco-2017-keypoint-detection)
+
 ### Caltech 101
 [Caltech 101](http://www.vision.caltech.edu/Image_Datasets/Caltech101/), a dataset format where category names are the names of the subdirectories.
 The subdirectory names under `training_dataset_path` and `validation_dataset_path` represent the class names and images are located under the those directories.
@@ -209,3 +212,28 @@ Ignore
 
 `labels.txt` contains a list of classes. Each class corresponds to an annotation image color value.
 If the `Ignore` class exists, the corresponding class will not be used for training.
+
+
+### MSCOCO_2017 keypoint detection
+
+Download [MSCOCO 2017 dataset](http://cocodataset.org/#download).
+Specifically, you need to download `2017 Train images`, `2017 Val images` and `2017 Train/Val annotations`.
+Then, unzip them and organize dataset files as below. `MSCOCO_2017` should be in your `$DATA_DIR`.
+
+Here is an official [example](https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoDemo.ipynb) about how to use `pycocotools` to load dataset.
+
+
+```
+MSCOCO_2017
+├── annotations
+│   ├── captions_train2017.json
+│   ├── captions_val2017.json
+│   ├── instances_train2017.json
+│   ├── instances_val2017.json
+│   ├── person_keypoints_train2017.json
+│   └── person_keypoints_val2017.json
+├── train2017
+│   ├── 000000000009.jpg
+├── val2017
+│   ├── 000000481404.jpg
+```

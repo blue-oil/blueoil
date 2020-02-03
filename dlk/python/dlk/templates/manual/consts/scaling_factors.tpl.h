@@ -26,7 +26,7 @@ namespace scaling_factors {
 
 extern T_FLOAT {{ conv.name }};
 
-{% elif conv.quantizer.op_type == 'QTZ_binary_channel_wise_mean_scaling' -%}
+{% elif conv.quantizer.op_type == 'BinaryChannelWiseMeanScalingQuantizer' -%}
 
 extern T_FLOAT {{ conv.name }}[{{ conv.depth }}];
 

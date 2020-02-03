@@ -31,7 +31,7 @@ class LmSinglePoseV1(Base):
         self.custom_getter = None
         self.num_joints = 17
 
-        if stride not in [2, 4, 8, 16]:
+        if stride not in {2, 4, 8, 16}:
             raise ValueError("Only stride 2, 4, 8, 16 are supported.")
 
         self.stride = stride

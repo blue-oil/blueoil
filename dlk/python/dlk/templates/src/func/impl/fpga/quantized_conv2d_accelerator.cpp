@@ -17,7 +17,7 @@ limitations under the License.
 #include <cstdio>
 
 #include "de10_nano.h"
-#include "func/impl/quantized_conv2d_kn2row.h"
+#include "func/impl/quantized_conv2d_accelerator.h"
 #include "global.h"
 #include "network.h"
 #include "pack_input_to_qwords.h"
@@ -35,8 +35,8 @@ namespace dlk
 namespace impl
 {
 
-void TCAConv2d(const kn2row_input_t& input,
-    const kernel_t& kernel,
+void TCAConv2d(const tca_input_t& input,
+    const tca_kernel_t& kernel,
     const binary_convolution_parameters &p) {
 
   using namespace dlk;
@@ -44,8 +44,6 @@ void TCAConv2d(const kn2row_input_t& input,
   convolution_parameters cp = p.normal_conv_params;
   const T_UINT b = 32;
   const T_UINT out_c = ((cp.output_channels + b - 1) / b) * b;
-
-  const T_UINT num_qkernel_per_qword = (NBIT_QDYPE / MAX_NBIT_KERNEL);
 
   const T_UINT k_h = cp.kernel_height;
   const T_UINT k_w = cp.kernel_width;
@@ -75,7 +73,7 @@ void TCAConv2d(const kn2row_input_t& input,
 
     Measurement::Start("Conv2D TCA");
     de10_nano::RunTCA(p.device_input_phys_addr, p.device_output_phys_addr, p.device_kernel_phys_addr, p.device_thresholds_phys_addr, in_w, in_h,
-      k_c, MAX_NBIT_QINPUT, out_w, out_h, out_c, k_w, k_h, cp.padding, cp.stride_along_height);
+      k_c, out_w, out_h, out_c, k_w, k_h, cp.padding, cp.stride_along_height);
     Measurement::Stop();
 
     Measurement::Start("Sync UDMABuf Output");

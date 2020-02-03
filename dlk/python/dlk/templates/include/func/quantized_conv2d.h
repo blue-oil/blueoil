@@ -20,19 +20,23 @@ limitations under the License.
 #include <memory>
 #include <stdexcept>
 
+#include "global.h"
 #include "tensor_view.h"
 #include "tensor_convert.h"
 #include "operators.h"
 #include "time_measurement.h"
 #include "func/impl/quantized_conv2d_tiling.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
+#include "func/impl/quantized_conv2d_accelerator.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-template <typename T, MemoryLayout layout>
-void QuantizedConv2D(const TensorView<T, layout>& input,
-    const kernel_t& kernel,
+template <typename T_input, MemoryLayout layout_input,
+         typename T_kernel, MemoryLayout layout_kernel>
+void QuantizedConv2D(
+    const TensorView<QuantizedPacked<T_input>, layout_input>& input,
+    const TensorView<QuantizedPacked<T_kernel>, layout_kernel>& kernel,
     binary_convolution_parameters p) {
   Measurement::Start("QuantizedConv2D");
 
@@ -51,14 +55,14 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
   if ((kh == 3 && kw == 3 && padding == 1) ||
       (kh == 1 && kw == 1 && padding == 0)) {
 #ifdef RUN_ON_FPGA
-    dlk::impl::kn2row_input_t::tensor_info_t<std::size_t> shape = {
+    dlk::impl::tca_input_t::tensor_info_t<std::size_t> shape = {
       (ic + QUANTIZED_PACKED::BitCount - 1) / QUANTIZED_PACKED::BitCount,
       ih,
       iw,
       p.bin_input_bitwidth,
       QUANTIZED_PACKED::BitCount
     };
-    dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
+    dlk::impl::tca_input_t tmp((QUANTIZED_PACKED*)p.device_input_buf, shape);
     convert_tensor(input, tmp);
     dlk::impl::TCAConv2d(tmp, kernel, p);
 #elif defined USE_NEON || defined USE_AVX
@@ -69,7 +73,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       p.bin_input_bitwidth,
       TilingInTypeBitWidth
     };
-    dlk::impl::tiling_input_t tmp(p.device_input_buf, shape);
+    dlk::impl::tiling_input_t tmp(reinterpret_cast<dlk::impl::tiling_input_elem_t*>(p.device_input_buf), shape);
     convert_tensor(input, tmp);
     dlk::impl::QuantizedConv2DTiling(tmp, kernel, p);
 #else
@@ -80,7 +84,7 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
       p.bin_input_bitwidth,
       QUANTIZED_PACKED::BitCount
     };
-    dlk::impl::kn2row_input_t tmp(p.device_input_buf, shape);
+    dlk::impl::kn2row_input_t tmp(reinterpret_cast<QUANTIZED_PACKED*>(p.device_input_buf), shape);
     convert_tensor(input, tmp);
     dlk::impl::QuantizedConv2DKn2Row(tmp, kernel, p);
 #endif
@@ -91,10 +95,11 @@ void QuantizedConv2D(const TensorView<T, layout>& input,
   Measurement::Stop();
 }
 
-template <typename T, MemoryLayout layout>
+template <typename T_input, MemoryLayout layout_input,
+         typename T_kernel, MemoryLayout layout_kernel>
 void func_QuantizedConv2D(
-    const TensorView<T, layout>& input,
-    const kernel_t& kernel,
+    const TensorView<QuantizedPacked<T_input>, layout_input>& input,
+    const TensorView<QuantizedPacked<T_kernel>, layout_kernel>& kernel,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     const T_FLOAT scaling_factor,
     const binary_convolution_parameters& p) {
@@ -108,27 +113,34 @@ void func_QuantizedConv2D(
 
   // temporary: (2^n - 1) * (max - min)
   const T_FLOAT post_qtz_factor = 2.0f / 3.0f;
+  const T_FLOAT coeff = scaling_factor * post_qtz_factor;
 
-  int b = 32;
+  size_t b = 32;
   auto &ncp(p.normal_conv_params);
   auto true_out_channels = output.get_shape()[3];
-  auto channel_blocks = (true_out_channels + b - 1) / b;
+  auto channel_blocks = true_out_channels / b;
 
-  int out_index = 0;
-  for (int h = 0; h < ncp.output_height; ++h)
-    for (int w = 0; w < ncp.output_width; ++w)
-      for (int s = 0; s < channel_blocks; ++s)
-        for (int d = 0; d < std::min(b, (int)true_out_channels - s*b); ++d)
-          output.data()[out_index++] = (scaling_factor * post_qtz_factor) * p.device_output_buf[h * (b * ncp.output_width) + w * b + s * (ncp.output_height * ncp.output_width * b) + d];
+  size_t area = ncp.output_height * ncp.output_width;
+  auto out_buf = reinterpret_cast<VOLATILE_IF_FPGA BIN_CONV_OUTPUT*>(p.device_output_buf);
+#pragma omp parallel for
+  for (size_t hw = 0; hw < area; ++hw) {
+    size_t out_index = hw * true_out_channels;
+    for (size_t s = 0; s < channel_blocks; ++s)
+      for (size_t d = 0; d < b; ++d)
+        output.data()[out_index++] = coeff * out_buf[hw * b + s * (area * b) + d];
+    for (size_t d = 0; d < true_out_channels - channel_blocks*b; ++d)
+      output.data()[out_index++] = coeff * out_buf[hw * b + channel_blocks * (area * b) + d];
+  }
 
   Measurement::Stop();
 
 }
 
-template <typename T, MemoryLayout layout>
+template <typename T_input, MemoryLayout layout_input,
+         typename T_kernel, MemoryLayout layout_kernel>
 void func_QuantizedConv2D(
-    const TensorView<T, layout>& input,
-    const kernel_t& kernel,
+    const TensorView<QuantizedPacked<T_input>, layout_input>& input,
+    const TensorView<QuantizedPacked<T_kernel>, layout_kernel>& kernel,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     T_FLOAT scaling_factor[],
     binary_convolution_parameters p) {
@@ -138,30 +150,36 @@ void func_QuantizedConv2D(
       p.normal_conv_params.output_height * p.normal_conv_params.output_width;
   unsigned out_channels = p.normal_conv_params.output_channels;
 
-  int b = 32;
+  size_t b = 32;
   auto& ncp(p.normal_conv_params);
   auto true_out_channels = output.get_shape()[3];
-  auto channel_blocks = (true_out_channels + b - 1) / b;
+  auto channel_blocks = true_out_channels / b;
 
   // temporary: (2^n - 1) * (max - min)
   T_FLOAT post_qtz_factor = 2.0 / 3.0;
 
   Measurement::Start("QuantizedConv2D_ApplyScalingFactor");
 
-  int out_index = 0;
-  for (int h = 0; h < ncp.output_height; ++h)
-    for (int w = 0; w < ncp.output_width; ++w)
-      for (int s = 0; s < channel_blocks; ++s)
-        for (int d = 0; d < std::min(b, (int)true_out_channels - s*b); ++d)
-          output.data()[out_index++] = (scaling_factor[s*b + d] * post_qtz_factor) * p.device_output_buf[h * (b * ncp.output_width) + w * b + s * (ncp.output_height * ncp.output_width * b) + d];
+  size_t area = ncp.output_height * ncp.output_width;
+  auto out_buf = reinterpret_cast<VOLATILE_IF_FPGA BIN_CONV_OUTPUT*>(p.device_output_buf);
+#pragma omp parallel for
+  for (size_t hw = 0; hw < area; ++hw) {
+    size_t out_index = hw * true_out_channels;
+    for (size_t s = 0; s < channel_blocks; ++s)
+      for (size_t d = 0; d < b; ++d)
+        output.data()[out_index++] = (scaling_factor[s*b + d] * post_qtz_factor) * out_buf[hw * b + s * (area * b) + d];
+    for (size_t d = 0; d < true_out_channels - channel_blocks*b; ++d)
+      output.data()[out_index++] = (scaling_factor[channel_blocks*b + d] * post_qtz_factor) * out_buf[hw * b + channel_blocks * (area * b) + d];
+  }
 
   Measurement::Stop();
 }
 
-template<typename T, MemoryLayout layout>
+template <typename T_input, MemoryLayout layout_input,
+         typename T_kernel, MemoryLayout layout_kernel>
 void func_QuantizedConv2DWithThreshold(
-    const TensorView<T, layout>& input,
-    const kernel_t& kernel,
+    const TensorView<QuantizedPacked<T_input>, layout_input>& input,
+    const TensorView<QuantizedPacked<T_kernel>, layout_kernel>& kernel,
     const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
     const T_FLOAT scaling_factor,
     const binary_convolution_parameters& p) {
@@ -192,10 +210,11 @@ void func_QuantizedConv2DWithThreshold(
   Measurement::Stop();
 }
 
-template <typename T, MemoryLayout layout>
+template <typename T_input, MemoryLayout layout_input,
+         typename T_kernel, MemoryLayout layout_kernel>
 void func_QuantizedConv2DWithThreshold(
-    const TensorView<T, layout>& input,
-    const kernel_t& kernel,
+    const TensorView<QuantizedPacked<T_input>, layout_input>& input,
+    const TensorView<QuantizedPacked<T_kernel>, layout_kernel>& kernel,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     const T_FLOAT scaling_factor,
     const binary_convolution_parameters& p) {
@@ -210,14 +229,14 @@ void func_QuantizedConv2DWithThreshold(
   const auto out_channels = np.output_channels;
   const auto true_out_channels = output.get_shape()[3];
 
-  QUANTIZED_PACKED::base_t* ptr = (QUANTIZED_PACKED::base_t*)p.device_output_buf;
+  auto out_buf = reinterpret_cast<VOLATILE_IF_FPGA QUANTIZED_PACKED::base_t*>(p.device_output_buf);
   for (unsigned r = 0; r < out_height; ++r) {
     for (unsigned c = 0; c < out_width; ++c) {
       for (unsigned d = 0; d < true_out_channels; ++d) {
         const auto i = r * out_width * p.n_bit + c * p.n_bit;
         QUANTIZED_PACKED::base_t bits = 0;
         for (unsigned digit = 0; digit < p.n_bit; ++digit) {
-          bits |= ((ptr[i + digit] >> d) & 1) << digit;
+          bits |= ((out_buf[i + digit] >> d) & 1) << digit;
         }
         T_FLOAT tmp = (T_FLOAT)bits;
         tmp = tmp / n;
@@ -229,10 +248,11 @@ void func_QuantizedConv2DWithThreshold(
   Measurement::Stop();
 }
 
-template <typename T, MemoryLayout layout>
+template <typename T_input, MemoryLayout layout_input,
+         typename T_kernel, MemoryLayout layout_kernel>
 void func_QuantizedConv2DWithThreshold(
-    const TensorView<T, layout>& input,
-    const kernel_t& kernel,
+    const TensorView<QuantizedPacked<T_input>, layout_input>& input,
+    const TensorView<QuantizedPacked<T_kernel>, layout_kernel>& kernel,
     const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
     const T_FLOAT scaling_factor[],
     const binary_convolution_parameters& p) {
@@ -240,10 +260,11 @@ void func_QuantizedConv2DWithThreshold(
                                     p);
 }
 
-template <typename T, MemoryLayout layout>
+template <typename T_input, MemoryLayout layout_input,
+         typename T_kernel, MemoryLayout layout_kernel>
 void func_QuantizedConv2DWithThreshold(
-    const TensorView<T, layout>& input,
-    const kernel_t& kernel,
+    const TensorView<T_input, layout_input>& input,
+    const TensorView<T_kernel, layout_kernel>& kernel,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
     T_FLOAT scaling_factor[],
     binary_convolution_parameters p) {

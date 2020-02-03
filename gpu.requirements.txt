@@ -1,2 +1,2 @@
 -r dev.requirements.txt
-tensorflow-gpu==1.14.0
+tensorflow-gpu==1.15.2

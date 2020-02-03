@@ -57,18 +57,18 @@ pip >= 9.0.1
 ```
 
 ### Tensorflow
-The project is developed and tested in TensorFlow v1.14.0.
+The project is developed and tested in TensorFlow v1.15.2.
 Please ensure specific tensorflow `GPU` version is installed.
 
-> _tensorflow-gpu==1.14.0_ has been used
+> _tensorflow-gpu==1.15.2_ has been used
 
 ```
-$ pip install tensorflow-gpu==1.14.0
+$ pip install tensorflow-gpu==1.15.2
 ```
 
 ### CUDA
 Cuda requirement highly depends on TensorFlow version.
-For TF 1.14.0 we need Cuda 10.0 with Cudnn 7.0.
+For TF 1.15.2 we need Cuda 10.0 with Cudnn 7.0.
 For installation details click [here](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html).
 
 

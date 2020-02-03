@@ -12,6 +12,10 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
     CUDA_HOME=/usr/local/cuda-10.0 \
     PYENV_ROOT=/usr/local/pyenv
 
+# Add source list entry for GCC 9
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 60C317803A41BA51845E371A1E9377A2BA9EF27F
+RUN echo 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu xenial main' | tee /etc/apt/sources.list.d/ubuntu-toolchain-r-ubuntu-test-xenial.list
+
 RUN apt-get update && apt-get install -y \
     cmake \
     locales\
@@ -36,7 +40,7 @@ RUN apt-get update && apt-get install -y \
     libncursesw5-dev \
     xz-utils \
     tk-dev \
-    g++-4.9 \
+    g++-9 \
     crossbuild-essential-arm64 \
     g++-5-arm-linux-gnueabihf \
     openssh-client \
@@ -96,11 +100,7 @@ FROM base AS blueoil-base
 # Install requirements
 COPY ./*requirements.txt /home/blueoil/
 RUN pip install -r /home/blueoil/gpu.requirements.txt
-
-# Build coco. It needs numpy.
-COPY lmnet/third_party /home/blueoil/lmnet/third_party
-# https://github.com/cocodataset/cocoapi/blob/440d145a30b410a2a6032827c568cff5dc1d2abf/PythonAPI/setup.py#L2
-RUN cd /home/blueoil/lmnet/third_party/coco/PythonAPI && pip install -e .
+RUN pip install pycocotools==2.0.0
 
 # Set env to install horovod with nccl and tensorflow option
 ENV HOROVOD_GPU_ALLREDUCE=NCCL \

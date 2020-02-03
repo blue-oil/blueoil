@@ -80,9 +80,9 @@ def strip_binary(output):
 
     """
 
-    if output == "lm_x86.elf":
+    if output in {"lm_x86.elf", "lm_x86_avx.elf"}:
         subprocess.run(("strip", output))
-    elif output == "lib_x86.so":
+    elif output in {"lib_x86.so", "lib_x86_avx.so"}:
         subprocess.run(("strip", "-x", "--strip-unneeded", output))
     elif output in {"lm_arm.elf", "lm_fpga.elf"}:
         subprocess.run(("arm-linux-gnueabihf-strip", output))
@@ -101,18 +101,22 @@ def make_all(project_dir, output_dir):
 
     make_list = [
         ["lm_x86", "lm_x86.elf"],
+        ["lm_x86_avx", "lm_x86_avx.elf"],
         ["lm_arm", "lm_arm.elf"],
         ["lm_fpga", "lm_fpga.elf"],
         ["lm_aarch64", "lm_aarch64.elf"],
         ["lib_x86", "lib_x86.so"],
+        ["lib_x86_avx", "lib_x86_avx.so"],
         ["lib_arm", "lib_arm.so"],
         ["lib_fpga", "lib_fpga.so"],
         ["lib_aarch64", "lib_aarch64.so"],
         ["ar_x86", "libdlk_x86.a"],
+        ["ar_x86_avx", "libdlk_x86_avx.a"],
         ["ar_arm", "libdlk_arm.a"],
         ["ar_fpga", "libdlk_fpga.a"],
         ["ar_aarch64", "libdlk_aarch64.a"],
     ]
+    output_dir = os.path.abspath(output_dir)
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)
@@ -121,7 +125,7 @@ def make_all(project_dir, output_dir):
 
     # Make each target and move output files
     for target, output in make_list:
-        if target in ["lm_x86", "lm_arm", "lm_fpga", "lm_aarch64"]:
+        if target in {"lm_x86", "lm_x86_avx", "lm_arm", "lm_fpga", "lm_aarch64"}:
             os.environ["CXXFLAGS"] = cxxflags_cache + " -DFUNC_TIME_MEASUREMENT"
         else:
             os.environ["CXXFLAGS"] = cxxflags_cache
