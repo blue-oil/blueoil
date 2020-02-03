@@ -10,3 +10,5 @@ PyYAML==4.2b4
 tensorflow-datasets==1.0.2
 whaaaaat==0.5.2
 cython==0.27.3
+tensorflow==1.15.2
+gast==0.2.2

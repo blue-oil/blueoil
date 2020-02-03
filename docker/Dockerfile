@@ -99,7 +99,7 @@ RUN pip install -U pip setuptools
 FROM base AS blueoil-base
 # Install requirements
 COPY ./*requirements.txt /home/blueoil/
-RUN pip install -r /home/blueoil/gpu.requirements.txt
+RUN pip install -r /home/blueoil/dev.requirements.txt
 RUN pip install pycocotools==2.0.0
 
 # Set env to install horovod with nccl and tensorflow option
@@ -131,8 +131,7 @@ RUN chmod 777 /home/blueoil
 COPY dlk /home/blueoil/dlk
 # Install dlk
 WORKDIR /home/blueoil/dlk
-RUN PYTHONPATH=python/dlk python setup.py install
-RUN chmod 777 /home/blueoil/dlk
+RUN python setup.py install
 
 # Copy lmnet sources to docker image
 COPY lmnet /home/blueoil/lmnet
