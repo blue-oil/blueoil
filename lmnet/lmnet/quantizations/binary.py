@@ -28,7 +28,7 @@ def binary_channel_wise_mean_scaling_quantizer(
 
         This method is varient of XNOR-Net [1]_ weight quantization, the differencce from XNOR-Net [1]_ is backward function.
 
-        `op_type` is ``QTZ_binary_channel_wise_mean_scaling``.
+        `op_type` is ``BinaryChannelWiseMeanScalingQuantizer``.
 
         Forward is:
 
@@ -72,7 +72,7 @@ def binary_channel_wise_mean_scaling_quantizer(
         return grad_quantized
 
     @Defun(dtype, python_grad_func=_backward, shape_func=lambda op: [op.inputs[0].get_shape()],
-           func_name='QTZ_binary_channel_wise_mean_scaling')
+           func_name='BinaryChannelWiseMeanScalingQuantizer')
     def _forward(x):
         """Forward.
 
