@@ -68,7 +68,10 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
         return splits
 
     def _generate_examples(self, dataset):
-        for image, annotations in dataset:
+        for sample_dict in dataset:
+            image = sample_dict["image"]
+            annotations = sample_dict["gt_boxes"]
+
             height, width, _ = image.shape
 
             objects = [
@@ -93,5 +96,5 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
     def _num_shards(self, dataset):
         """Decide a number of shards so as not the size of each shard exceeds 256MiB"""
         max_shard_size = 256 * 1024 * 1024  # 256MiB
-        total_size = sum(image.nbytes for image, _ in dataset)
+        total_size = sum(samples_dict["image"].nbytes for samples_dict in dataset)
         return (total_size + max_shard_size - 1) // max_shard_size

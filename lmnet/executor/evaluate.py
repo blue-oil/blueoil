@@ -95,12 +95,12 @@ def evaluate(config, restore_path, output_dir):
         global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, labels_placeholder = model.placeholders()
+        model.placeholders()
 
-        output = model.inference(images_placeholder, is_training)
+        model.inference(is_training)
 
-        metrics_ops_dict, metrics_update_op = model.metrics(output, labels_placeholder)
-        model.summary(output, labels_placeholder)
+        metrics_ops_dict, metrics_update_op = model.metrics()
+        model.summary()
 
         summary_op = tf.compat.v1.summary.merge_all()
 
@@ -127,11 +127,10 @@ def evaluate(config, restore_path, output_dir):
     for test_step in range(test_step_size):
         logger.info(f"test_step{test_step}")
 
-        images, labels = validation_dataset.feed()
-        feed_dict = {
-            images_placeholder: images,
-            labels_placeholder: labels,
-        }
+        samples_dict = validation_dataset.feed()
+
+        feed_dict = {model.placeholders_dict[key]: samples_dict[key]
+                     for key in model.placeholders_dict.keys()}
 
         # Summarize at only last step.
         if test_step == test_step_size - 1:

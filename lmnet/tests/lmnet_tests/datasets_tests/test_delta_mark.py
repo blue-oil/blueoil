@@ -84,7 +84,11 @@ def test_delta_mark_classification():
     assert validation_dataset.num_per_epoch == validation_size * all_data_num
 
     for _ in range(5):
-        images, labels = train_dataset.feed()
+
+        samples_dict = train_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["label"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size
@@ -122,7 +126,10 @@ def test_delta_mark_classification_has_validation_path():
     assert validation_dataset.num_per_epoch == validation_data_num
 
     for _ in range(5):
-        images, labels = train_dataset.feed()
+        samples_dict = train_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["label"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size
@@ -135,7 +142,10 @@ def test_delta_mark_classification_has_validation_path():
         assert labels.shape[1] == train_dataset.num_classes
 
     for _ in range(5):
-        images, labels = validation_dataset.feed()
+        samples_dict = validation_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["label"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size
@@ -178,7 +188,11 @@ def test_delta_mark_object_detection():
     assert validation_dataset.num_per_epoch == validation_size * all_data_num
 
     for _ in range(2):
-        images, labels = train_dataset.feed()
+        samples_dict = train_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["gt_boxes"]
+
         _show_images_with_boxes(images, labels)
 
         assert isinstance(images, np.ndarray)
@@ -222,7 +236,10 @@ def test_delta_mark_object_detection_has_validation_path():
     assert validation_dataset.num_per_epoch == validation_data_num
 
     for _ in range(2):
-        images, labels = train_dataset.feed()
+        samples_dict = train_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["gt_boxes"]
         # _show_images_with_boxes(images, labels)
 
         assert isinstance(images, np.ndarray)
@@ -237,7 +254,10 @@ def test_delta_mark_object_detection_has_validation_path():
         assert labels.shape[2] == 5
 
     for _ in range(2):
-        images, labels = validation_dataset.feed()
+        samples_dict = validation_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["gt_boxes"]
         # _show_images_with_boxes(images, labels)
 
         assert isinstance(images, np.ndarray)

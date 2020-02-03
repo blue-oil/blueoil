@@ -106,7 +106,9 @@ class CamvidBase(SegmentationBase):
         image = get_image(image_files[i])
         label = get_image(label_files[i], convert_rgb=False, ignore_class_idx=self.ignore_class_idx).copy()
 
-        return (image, label)
+        sample = {"image": image, "mask": label}
+
+        return sample
 
     def __len__(self):
         return self.num_per_epoch

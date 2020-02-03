@@ -92,6 +92,8 @@ class YoloV2(BaseNetwork):
         self.is_dynamic_image_size = is_dynamic_image_size
         self.change_base_output = change_base_output
 
+        self.placeholders_dict = {}
+
         # Assert image size can mod `32`.
         # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
         assert self.image_size[0] % 32 == 0
@@ -168,9 +170,14 @@ class YoloV2(BaseNetwork):
             shape=(self.batch_size, self.num_max_boxes, 5),
             name="labels_placeholder")
 
-        return images_placeholder, labels_placeholder
+        self.placeholders_dict["image"] = images_placeholder
+        self.placeholders_dict["gt_boxes"] = labels_placeholder
 
-    def summary(self, output, labels=None):
+    def summary(self):
+
+        output = self.output_tensor
+        labels = self.placeholders_dict["gt_boxes"]
+
         super().summary(output, labels)
 
         with tf.name_scope("post_process"):
@@ -235,7 +242,11 @@ class YoloV2(BaseNetwork):
                     data_format=self.data_format,
                 )
 
-    def metrics(self, output, labels, thresholds=[0.3, 0.5, 0.7]):
+    def metrics(self, thresholds=[0.3, 0.5, 0.7]):
+
+        output = self.output_tensor
+        labels = self.placeholders_dict["gt_boxes"]
+
         with tf.compat.v1.variable_scope("calc_metrics"):
             detect_boxes = self.post_process(output)
             metrics_ops_dict = {}
@@ -642,7 +653,7 @@ class YoloV2(BaseNetwork):
 
         return results
 
-    def loss(self, output, gt_boxes, global_step):
+    def loss(self, global_step):
         """Loss.
 
         Args:
@@ -650,6 +661,10 @@ class YoloV2(BaseNetwork):
                 shape is [batch_size, self.num_cell * self.num_cell * (self.num_classes + self.boxes_per_cell * 5)]
             gt_boxes: ground truth boxes 3D tensor. [batch_size, max_num_boxes, 4(x, y, w, h, class_id)].
         """
+
+        output = self.output_tensor
+        gt_boxes = self.placeholders_dict["gt_boxes"]
+
         if self.change_base_output:
             predict_classes, predict_confidence, predict_boxes = self._split_predictions(output)
         else:
@@ -659,11 +674,14 @@ class YoloV2(BaseNetwork):
         gt_boxes = self.convert_gt_boxes_xywh_to_cxcywh(gt_boxes)
         return self.loss_function(predict_classes, predict_confidence, predict_boxes, gt_boxes, global_step)
 
-    def inference(self, images, is_training):
+    def inference(self, is_training):
+
+        images = self.placeholders_dict["image"]
+
         tf.compat.v1.summary.histogram("images", images)
         base = self.base(images, is_training)
-        self.output = tf.identity(base, name="output")
-        return self.output
+        self.output_tensor = tf.identity(base, name="output")
+        return self.output_tensor
 
     def _reorg(self, name, inputs, stride, data_format, use_space_to_depth=True, darknet_original=False):
         with tf.name_scope(name):

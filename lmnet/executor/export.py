@@ -93,8 +93,8 @@ def _export(config, restore_path, image_path):
 
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, _ = model.placeholders()
-        model.inference(images_placeholder, is_training)
+        model.placeholders()
+        model.inference(is_training)
         init_op = tf.global_variables_initializer()
 
         saver = tf.compat.v1.train.Saver(max_to_keep=50)
@@ -121,7 +121,7 @@ def _export(config, restore_path, image_path):
         image = _pre_process(raw_image, config.PRE_PROCESSOR, config.DATA_FORMAT)
         images = np.expand_dims(image, axis=0)
         feed_dict = {
-            images_placeholder: images,
+            model.placeholders_dict["image"]: images,
         }
 
         all_outputs = []

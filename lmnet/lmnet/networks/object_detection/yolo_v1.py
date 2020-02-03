@@ -51,6 +51,7 @@ class YoloV1(BaseNetwork):
         self.boxes_per_cell = boxes_per_cell
         self.leaky_relu_scale = leaky_relu_scale
         self.num_max_boxes = num_max_boxes
+        self.placeholders_dict = {}
 
         self.loss_function = YoloV1Loss(
             is_debug=self.is_debug,
@@ -79,9 +80,13 @@ class YoloV1(BaseNetwork):
             shape=(self.batch_size, self.num_max_boxes, 5),
             name="labels_placeholder")
 
-        return images_placeholder, labels_placeholder
+        self.placeholders_dict["image"] = images_placeholder
+        self.placeholders_dict["gt_boxes"] = labels_placeholder
 
-    def summary(self, output, labels=None):
+    def summary(self):
+
+        output = self.output_tensor
+
         predict_classes, predict_confidence, predict_boxes = self._predictions(output)
 
         tf.compat.v1.summary.histogram("predict_classes", predict_classes)
@@ -89,7 +94,11 @@ class YoloV1(BaseNetwork):
 
         self._summary_predict_boxes(predict_classes, predict_confidence, predict_boxes, threshold=0.05)
 
-    def metrics(self, output, labels, thresholds=[0.3, 0.5, 0.7]):
+    def metrics(self, thresholds=[0.3, 0.5, 0.7]):
+
+        output = self.output_tensor
+        labels = self.placeholders_dict["gt_boxes"]
+
         predict_boxes = self.predict_boxes(output)
 
         metrics_ops_dict = {}
@@ -430,7 +439,7 @@ class YoloV1(BaseNetwork):
                     self.image_size,
                 )
 
-    def loss(self, output, gt_boxes, *args):
+    def loss(self, *args):
         """Loss.
 
         Args:
@@ -438,6 +447,10 @@ class YoloV1(BaseNetwork):
                 shape is [batch_size, self.cell_size * self.cell_size * (self.num_classes + self.boxes_per_cell * 5)]
             gt_boxes: ground truth boxes 3D tensor. [batch_size, max_num_boxes, 4(x, y, w, h)].
         """
+
+        output = self.output_tensor
+        gt_boxes = self.placeholders_dict["gt_boxes"]
+
         gt_boxes = self.convert_gt_boxes_xywh_to_cxcywh(gt_boxes)
 
         with tf.name_scope("gt_boxes"):
@@ -453,10 +466,13 @@ class YoloV1(BaseNetwork):
 
         return self.loss_function(predict_classes, predict_confidence, predict_boxes, gt_boxes)
 
-    def inference(self, images, is_training):
+    def inference(self, is_training):
+
+        images = self.placeholders_dict["image"]
         base = self.base(images, is_training)
-        self.output = tf.identity(base, name="output")
-        return self.output
+        self.output_tensor = tf.identity(base, name="output")
+
+        return self.output_tensor
 
     def base(self, images, is_training):
         self.images = images

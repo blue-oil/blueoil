@@ -194,17 +194,18 @@ class TrainTunable(Trainable):
 
         self.global_step = tf.Variable(0, name="global_step", trainable=False)
         self.is_training_placeholder = tf.compat.v1.placeholder(tf.bool, name="is_training_placeholder")
-        self.images_placeholder, self.labels_placeholder = model.placeholders()
+        model.placeholders()
+        self.placeholders_dict = model.placeholders_dict
 
-        output = model.inference(self.images_placeholder, self.is_training_placeholder)
+        output = model.inference(self.is_training_placeholder)
         if model_class.__module__.startswith("lmnet.networks.object_detection"):
-            loss = model.loss(output, self.labels_placeholder, self.is_training_placeholder)
+            loss = model.loss(self.is_training_placeholder)
         else:
-            loss = model.loss(output, self.labels_placeholder)
+            loss = model.loss()
         opt = model.optimizer(self.global_step)
 
         train_op = model.train(loss, opt, self.global_step)
-        metrics_ops_dict, metrics_update_op = model.metrics(output, self.labels_placeholder)
+        metrics_ops_dict, metrics_update_op = model.metrics(self.labels_placeholder)
 
         self.train_op = train_op
         self.metrics_ops_dict = metrics_ops_dict
@@ -224,25 +225,24 @@ class TrainTunable(Trainable):
         step_per_epoch = int(self.train_dataset.num_per_epoch / self.lm_config.BATCH_SIZE)
 
         for _ in range(step_per_epoch):
-            images, labels = self.train_dataset.feed()
+            samples_dict = self.train_dataset.feed()
 
-            feed_dict = {
-                self.is_training_placeholder: True,
-                self.images_placeholder: images,
-                self.labels_placeholder: labels,
-            }
+            feed_dict = {self.placeholders_dict[key]: samples_dict[key]
+                         for key in self.placeholders_dict.keys()}
+
+            feed_dict[self.is_training_placeholder] = True
 
             self.sess.run([self.train_op], feed_dict=feed_dict)
 
         self.sess.run(self.reset_metrics_op)
         test_step_size = int(math.ceil(self.validation_dataset.num_per_epoch / self.lm_config.BATCH_SIZE))
         for _ in range(test_step_size):
-            images, labels = self.validation_dataset.feed()
-            feed_dict = {
-                self.is_training_placeholder: False,
-                self.images_placeholder: images,
-                self.labels_placeholder: labels,
-            }
+            samples_dict = self.validation_dataset.feed()
+
+            feed_dict = {self.placeholders_dict[key]: samples_dict[key]
+                         for key in self.placeholders_dict.keys()}
+
+            feed_dict[self.is_training_placeholder] = False
 
             self.sess.run([self.metrics_update_op], feed_dict=feed_dict)
 

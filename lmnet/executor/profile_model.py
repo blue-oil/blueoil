@@ -51,8 +51,8 @@ def _profile(config, restore_path, bit, unquant_layers):
 
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, _ = model.placeholders()
-        model.inference(images_placeholder, is_training)
+        model.placeholders()
+        model.inference(is_training)
 
         init_op = tf.global_variables_initializer()
         saver = tf.compat.v1.train.Saver(max_to_keep=50)

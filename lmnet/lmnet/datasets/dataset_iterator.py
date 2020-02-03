@@ -22,7 +22,6 @@ from multiprocessing import Pool
 import numpy as np
 import tensorflow as tf
 
-from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase, KeypointDetectionBase
 from lmnet.datasets.tfds import TFDSMixin
 
 _dataset = None
@@ -37,20 +36,9 @@ def _prefetch_setup(dataset, seed, do_shuffle):
         _dataset._shuffle()
 
 
-def _apply_augmentations(dataset, image, label):
+def _apply_augmentations(dataset, sample):
     augmentor = dataset.augmentor
     pre_processor = dataset.pre_processor
-
-    sample = {'image': image}
-
-    if issubclass(dataset.__class__, SegmentationBase):
-        sample['mask'] = label
-    elif issubclass(dataset.__class__, ObjectDetectionBase):
-        sample['gt_boxes'] = label
-    elif issubclass(dataset.__class__, KeypointDetectionBase):
-        sample['joints'] = label
-    else:
-        sample['label'] = label
 
     if callable(augmentor) and dataset.subset == 'train':
         sample = augmentor(**sample)
@@ -58,34 +46,26 @@ def _apply_augmentations(dataset, image, label):
     if callable(pre_processor):
         sample = pre_processor(**sample)
 
-    image = sample['image']
-
-    if issubclass(dataset.__class__, SegmentationBase):
-        label = sample['mask']
-    elif issubclass(dataset.__class__, ObjectDetectionBase):
-        label = sample['gt_boxes']
-    elif issubclass(dataset.__class__, KeypointDetectionBase):
-        label = sample['heatmap']
-    else:
-        label = sample['label']
-
     # FIXME(tokunaga): dataset should not have their own data format
     if dataset.data_format == "NCHW":
-        image = np.transpose(image, [2, 0, 1])
+        sample['image'] = np.transpose(sample['image'], [2, 0, 1])
 
-    return (image, label)
+    return sample
 
 
 def _process_one_data(i):
-    image, label = _dataset[i]
-    return _apply_augmentations(_dataset, image, label)
+    sample = _dataset[i]
+    return _apply_augmentations(_dataset, sample)
 
 
-def _concat_data(data_list):
-    images, labels = zip(*data_list)
-    images = np.array(images)
-    labels = np.array(labels)
-    return (images, labels)
+def _concat_data(sample_list):
+
+    samples_dict = {}
+
+    for key in sample_list[0].keys():
+        samples_dict[key] = np.stack([sample[key] for sample in sample_list], axis=0)
+
+    return samples_dict
 
 
 def _xorshift32(r):
@@ -198,9 +178,9 @@ class _SimpleDatasetReader:
         """Return batch size data."""
         result = []
         for i in self._gen_ids(self.dataset.batch_size):
-            image, label = self.dataset[i]
-            image, label = _apply_augmentations(self.dataset, image, label)
-            result.append((image, label))
+            sample = self.dataset[i]
+            sample = _apply_augmentations(self.dataset, sample)
+            result.append(sample)
         return _concat_data(result)
 
 
@@ -221,11 +201,12 @@ class _TFDSReader:
 
     def read(self):
         """Return batch size data."""
-        result = []
         batch = self.session.run(self.next_batch)
-        for image, label in zip(batch['image'], batch['label']):
-            image, label = _apply_augmentations(self.dataset, image, label)
-            result.append((image, label))
+        result = []
+        for i in range(batch["image"].shape[0]):
+            sample = {key: batch[key][i] for key in batch.keys()}
+            sample = _apply_augmentations(self.dataset, sample)
+            result.append(sample)
         return _concat_data(result)
 
 
@@ -280,10 +261,10 @@ class DatasetIterator:
 
     def __next__(self):
         if self.enable_prefetch:
-            (images, labels) = self.prefetch_result_queue.get()
+            samples_dict = self.prefetch_result_queue.get()
         else:
-            images, labels = self.reader.read()
-        return images, labels
+            samples_dict = self.reader.read()
+        return samples_dict
 
     def feed(self):
         return self.__next__()

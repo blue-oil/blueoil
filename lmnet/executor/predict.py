@@ -75,8 +75,8 @@ def _run(input_dir, output_dir, config, restore_path, save_images):
 
         is_training = tf.constant(False, name="is_training")
 
-        images_placeholder, _ = model.placeholders()
-        output_op = model.inference(images_placeholder, is_training)
+        model.placeholders()
+        model.inference(is_training)
 
         init_op = tf.global_variables_initializer()
 
@@ -112,8 +112,8 @@ def _run(input_dir, output_dir, config, restore_path, save_images):
         images, raw_images = _get_images(
             image_files, config.DATASET.PRE_PROCESSOR, config.DATA_FORMAT)
 
-        feed_dict = {images_placeholder: images}
-        outputs = sess.run(output_op, feed_dict=feed_dict)
+        feed_dict = {model.placeholders_dict["image"]: images}
+        outputs = sess.run(model.output_tensor, feed_dict=feed_dict)
 
         if config.POST_PROCESSOR:
             outputs = config.POST_PROCESSOR(outputs=outputs)["outputs"]

@@ -68,7 +68,10 @@ def test_build_tfds_classification():
     assert validation_dataset.num_per_epoch == validation_data_num
 
     for _ in range(train_data_num):
-        images, labels = train_dataset.feed()
+        samples_dict = train_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["label"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == config.BATCH_SIZE
@@ -81,7 +84,10 @@ def test_build_tfds_classification():
         assert labels.shape[1] == train_dataset.num_classes
 
     for _ in range(validation_data_num):
-        images, labels = validation_dataset.feed()
+        samples_dict = validation_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["label"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == config.BATCH_SIZE
@@ -129,7 +135,10 @@ def test_build_tfds_object_detection():
     num_max_boxes = train_dataset.num_max_boxes
 
     for _ in range(train_data_num):
-        images, labels = train_dataset.feed()
+        samples_dict = train_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["label"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == config.BATCH_SIZE
@@ -143,7 +152,10 @@ def test_build_tfds_object_detection():
         assert labels.shape[2] == 5
 
     for _ in range(validation_data_num):
-        images, labels = validation_dataset.feed()
+        samples_dict = validation_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["label"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == config.BATCH_SIZE

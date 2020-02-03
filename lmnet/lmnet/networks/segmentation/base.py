@@ -41,6 +41,7 @@ class Base(BaseNetwork):
             self.label_colors = get_color_map(self.num_classes)
         else:
             self.label_colors = label_colors
+        self.placeholders_dict = {}
 
     def placeholders(self):
         shape = (self.batch_size, self.image_size[0], self.image_size[1], 3) \
@@ -54,11 +55,18 @@ class Base(BaseNetwork):
             shape=(self.batch_size, self.image_size[0], self.image_size[1]),
             name="labels_placeholder")
 
-        return images_placeholder, labels_placeholder
+        self.placeholders_dict["image"] = images_placeholder
+        self.placeholders_dict["mask"] = labels_placeholder
 
-    def inference(self, images, is_training):
+    def inference(self, is_training):
+
+        images = self.placeholders_dict["image"]
+
         base = self.base(images, is_training)
-        return tf.identity(base, name="output")
+
+        self.output_tensor = tf.identity(base, name="output")
+
+        return self.output_tensor
 
     def _color_labels(self, images, name=""):
         with tf.name_scope(name):
@@ -80,7 +88,10 @@ class Base(BaseNetwork):
 
         labels = self._color_labels(labels, name="labels_color")
 
-    def summary(self, output, labels=None):
+    def summary(self):
+
+        output = self.output_tensor
+
         output_transposed = output if self.data_format == 'NHWC' else tf.transpose(output, perm=[0, 2, 3, 1])
         images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
         tf.summary.image("input", images)
@@ -96,7 +107,11 @@ class Base(BaseNetwork):
 
         return overlap_output_input, reversed_image
 
-    def metrics(self, output, labels):
+    def metrics(self):
+
+        output = self.output_tensor
+        labels = self.placeholders_dict["mask"]
+
         output_transposed = output if self.data_format == 'NHWC' else tf.transpose(output, perm=[0, 2, 3, 1])
         self._summary_labels(labels)
 
@@ -158,13 +173,17 @@ class SegnetBase(Base):
 
         self.weight_decay_rate = weight_decay_rate
 
-    def loss(self, output, labels):
+    def loss(self):
         """Loss
 
         Args:
            output: Tensor of network output. shape is (batch_size, output_height, output_width, num_classes).
            labels: Tensor of grayscale image gt labels. shape is (batch_size, height, width).
         """
+
+        output = self.output_tensor
+        labels = self.placeholders_dict["mask"]
+
         if self.data_format == 'NCHW':
             output = tf.transpose(output, perm=[0, 2, 3, 1])
         with tf.name_scope("loss"):

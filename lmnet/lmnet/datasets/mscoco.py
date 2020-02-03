@@ -123,7 +123,9 @@ class MscocoSegmentation(SegmentationBase):
 
         label = self._label_from_image_id(image_id)
 
-        return (image, label)
+        sample = {"image": image, "mask": label}
+
+        return sample
 
     def __len__(self):
         return self.num_per_epoch
@@ -261,7 +263,9 @@ class MscocoObjectDetection(ObjectDetectionBase):
         gt_boxes = np.array(gt_boxes)
         gt_boxes = self._fill_dummy_boxes(gt_boxes)
 
-        return (image, gt_boxes)
+        sample = {"image": image, "gt_boxes": gt_boxes}
+
+        return sample
 
     def __len__(self):
         return self.num_per_epoch

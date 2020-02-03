@@ -318,7 +318,11 @@ class LMBiSeNet(Base):
 
         return tf.add_n(losses) * self.weight_decay_rate
 
-    def loss(self, output, labels):
+    def loss(self):
+
+        output = self.output_tensor
+        labels = self.placeholders_dict["mask"]
+
         x = self.post_process(output)
         context_1 = self.post_process(self.context_1)
         context_2 = self.post_process(self.context_2)
@@ -340,13 +344,14 @@ class LMBiSeNet(Base):
             tf.compat.v1.summary.scalar("loss", loss)
             return loss
 
-    def summary(self, output, labels=None):
-        x = self.post_process(output)
-        return super().summary(x, labels)
+    def summary(self):
+        return super().summary()
 
-    def metrics(self, output, labels):
-        x = self.post_process(output)
-        return super().metrics(x, labels)
+    def inference(self, is_training):
+
+        self.output_tensor = self.post_process(super().inference(is_training))
+
+        return self.output_tensor
 
     def post_process(self, output):
         with tf.name_scope("post_process"):

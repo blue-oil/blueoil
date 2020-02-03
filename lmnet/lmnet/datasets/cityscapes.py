@@ -135,10 +135,12 @@ class Cityscapes(SegmentationBase):
 
     def __getitem__(self, i):
         imgs, labels = self.files_and_annotations()
-        img = Image.open(imgs[i])
-        label = Image.open(labels[i])
+        img = np.array(Image.open(imgs[i]))
+        label = np.array(Image.open(labels[i]))
 
-        return np.array(img), np.array(label)
+        sample = {"image": img, "mask": label}
+
+        return sample
 
     def __len__(self):
         return len(self.files_and_annotations()[0])

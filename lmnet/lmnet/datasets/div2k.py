@@ -45,7 +45,9 @@ class Div2k(Base):
         target_file = self.files[i]
         image = load_image(target_file)
 
-        return image, None
+        sample = {"image": image, "label": None}
+
+        return sample
 
     def __len__(self):
         return self.num_per_epoch

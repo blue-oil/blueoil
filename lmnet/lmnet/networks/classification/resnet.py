@@ -159,7 +159,7 @@ class Resnet(Base):
 
         return self.fc
 
-    def loss(self, softmax, labels):
+    def loss(self):
         """loss.
 
         Args:
@@ -167,6 +167,10 @@ class Resnet(Base):
             labels: onehot labels tensor. shape is (batch_num, num_classes)
 
         """
+
+        softmax = self.output_tensor
+        labels = self.placeholders_dict["label"]
+
         labels = tf.cast(labels, tf.float32)
 
         if self.is_debug:
