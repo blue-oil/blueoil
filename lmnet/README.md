@@ -15,7 +15,6 @@ This project is developed as one part of Blueoil project -- the deep learning mo
 
 * Utils
   * `measure_latency.py`: entry point script for measuring inference latency.
-  * `convert_weight_from_darknet.py`: entry point script for convert weight format form darknet framework.
 
 - - -
 
@@ -341,34 +340,6 @@ Options:
 
 e.g.
 `PYTHONPATH=. python executor/predict.py -in ./dataset/images -o ./outputs -i lmnet_cifar10`
-
-
-# Convert weight from darknet
-Weight converter form darknet framework to tensorflow checkpoints file.
-You can convert [Yolov2](https://pjreddie.com/darknet/yolov2/) and [Darknet19](https://pjreddie.com/darknet/imagenet/#darknet19_448) network weights.
-
-Please download darknet weights at `inputs` dir.
-```
-cd inputs
-wget http://pjreddie.com/media/files/darknet19_448.weights
-wget https://pjreddie.com/media/files/yolo-voc.weights
-```
-
-After execute `convert_weight_from_darknet.py`, You can get checkpoints file on
-* darknet19: `${OUTPUT_DIR}/convert_weight_from_darknet/darknet19/checkpoints/save.ckpt`
-* yolov2: `${OUTPUT_DIR}/convert_weight_from_darknet/yolo_v2/checkpoints/save.ckpt`
-
-```
-# PYTHONPATH=. python executor/convert_weight_from_darknet.py -h
-Usage: convert_weight_from_darknet.py [OPTIONS]
-
-Options:
-  -m, --model [yolov2|darknet19]  yolo2 or darknet19  [required]
-  -h, --help                      Show this message and exit.
-```
-
-e.g.
-`PYTHONPATH=. python executor/convert_weight_from_darknet.py -m yolov2`
 
 
 # Profiling model
