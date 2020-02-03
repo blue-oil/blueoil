@@ -46,7 +46,6 @@ class TestGenerateProject(TestCaseDLKBase):
                project_name='unittest',
                activate_hard_quantization=flag_hq,
                threshold_skipping=flag_thskip,
-               num_pe=16,
                debug=False,
                cache_dma=False
                )

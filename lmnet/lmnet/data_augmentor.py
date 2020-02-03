@@ -37,7 +37,7 @@ class Blur(data_processor.Processor):
 
     def __init__(self, value=(0, 1)):
 
-        if type(value) in [int, float]:
+        if type(value) in {int, float}:
             min_value = 0
             max_value = value
 
@@ -76,7 +76,7 @@ class Brightness(data_processor.Processor):
 
     def __init__(self, value=(0.75, 1.25)):
 
-        if type(value) in [int, float]:
+        if type(value) in {int, float}:
             min_value = value
             max_value = value
 
@@ -116,7 +116,7 @@ class Color(data_processor.Processor):
 
     def __init__(self, value=(0.75, 1.25)):
 
-        if type(value) in [int, float]:
+        if type(value) in {int, float}:
             min_value = value
             max_value = value
 
@@ -156,7 +156,7 @@ class Contrast(data_processor.Processor):
 
     def __init__(self, value=(0.75, 1.25)):
 
-        if type(value) in [int, float]:
+        if type(value) in {int, float}:
             min_value = value
             max_value = value
 
@@ -193,7 +193,7 @@ class Crop(data_processor.Processor):
 
     def __init__(self, size, resize=None):
 
-        if type(size) in [int, float]:
+        if type(size) in {int, float}:
             height = size
             width = size
 
@@ -213,7 +213,7 @@ class Crop(data_processor.Processor):
 
         if resize:
             self.is_resize = True
-            if type(resize) in [int, float]:
+            if type(resize) in {int, float}:
                 resize_height = resize
                 resize_width = resize
 
@@ -353,7 +353,7 @@ class Hue(data_processor.Processor):
 
     def __init__(self, value=(-10, 10)):
 
-        if type(value) in [int, float]:
+        if type(value) in {int, float}:
             min_value = - value
             max_value = value
 
@@ -724,7 +724,7 @@ class Rotate(data_processor.Processor):
 
     def __init__(self, angle_range=(0, 90)):
 
-        if type(angle_range) in [int, float]:
+        if type(angle_range) in {int, float}:
             min_angle = 0
             max_angle = angle_range
 

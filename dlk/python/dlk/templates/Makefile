@@ -34,7 +34,7 @@ LIB_ARM_OBJ := $(patsubst %.cpp, %.o, $(LIB_ARM_OBJ))
 
 LIB_FPGA_SRC := $(wildcard $(SRC_DIR)/*.S) \
     $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
-    $(SRC_DIR)/func/impl/fpga/quantized_conv2d_kn2row.cpp \
+    $(SRC_DIR)/func/impl/fpga/quantized_conv2d_accelerator.cpp \
     $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp
 LIB_FPGA_OBJ := $(patsubst %.S, %.o, $(LIB_FPGA_SRC))
 LIB_FPGA_OBJ := $(patsubst %.cpp, %.o, $(LIB_FPGA_OBJ))
@@ -109,6 +109,7 @@ clean:
 	-$(RM) *.so
 	-$(RM) $(LIB_OBJ)
 	-$(RM) $(LIB_X86_OBJ)
+	-$(RM) $(LIB_X86_AVX_OBJ)
 	-$(RM) $(LIB_ARM_OBJ)
 	-$(RM) $(LIB_FPGA_OBJ)
 	-$(RM) $(LIB_AARCH64_OBJ)
@@ -162,7 +163,7 @@ ar_x86:           NAME = x86
 
 ar_x86_avx:       AR = ar
 ar_x86_avx:       CXX = g++
-ar_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -pthread -g -fopenmp
+ar_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -fPIC -fvisibility=hidden -DUSE_AVX -mavx2 -mfma -pthread -g -fopenmp
 ar_x86_avx:       LDFLAGS += -rcs
 ar_x86_avx:       NAME = x86_avx
 

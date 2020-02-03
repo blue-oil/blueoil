@@ -175,13 +175,13 @@ class Node(object):
         attrs_data = []
         if attr_name == 'padding' or attr_name == 'data_format':
             attrs_data.append(self.nd_.attr[attr_name].s)
-        elif attr_name in ['strides', 'ksize']:
+        elif attr_name in {'strides', 'ksize'}:
             attrs_data.append(self.nd_.attr[attr_name].list.i)
-        elif attr_name in ['epsilon', 'alpha']:
+        elif attr_name in {'epsilon', 'alpha'}:
             attrs_data.append(self.nd_.attr[attr_name].f)
         elif attr_name == 'is_training' or attr_name == 'use_cudnn_on_gpu':
             attrs_data.append(self.nd_.attr[attr_name].b)
-        elif attr_name in ['block_size', 'num_split']:
+        elif attr_name in {'block_size', 'num_split'}:
             attrs_data.append(self.nd_.attr[attr_name].i)
         else:
             raise ValueError(f'{self.op_type} {self.name} doesn\'t have the supported attribute.')
@@ -490,7 +490,7 @@ class Importer(object):
                 return out_format, [out_format, _default_w_format, 'C']
             elif op_type in ['QTZ_binary_mean_scaling', 'BinaryChannelWiseMeanScalingQuantizer']:
                 return _default_w_format, [_default_w_format]
-            elif op_type in ['QTZ_linear_mid_tread_half']:
+            elif op_type in {'QTZ_linear_mid_tread_half'}:
                 return out_format, [out_format, 'C', 'C']
             elif op_type == 'Pad':
                 return out_format, [out_format, 'Padding']
