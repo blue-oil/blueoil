@@ -50,8 +50,6 @@ def test_bdd100k_objdet():
     assert test_image_files.shape[0] == batch_size
     assert test_label_files.shape[0] == batch_size
 
-    print("file annotations are ready")
-
 
 def test_bdd100k_seg():
     batch_size = 1
@@ -72,10 +70,3 @@ def test_bdd100k_seg():
     test_image_files, test_label_files = test_iterator.feed()
     assert test_image_files.shape[0] == batch_size
     assert test_label_files.shape[0] == batch_size
-
-    print("file annotations are ready")
-
-
-if __name__ == '__main__':
-    test_bdd100k_objdet()
-    test_bdd100k_seg()
