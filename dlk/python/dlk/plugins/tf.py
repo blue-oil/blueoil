@@ -86,7 +86,8 @@ DLK_OPERATOR_MAP: Dict[str, str] = {
     'AddV2': 'Add',
     'ConcatV2': 'ConcatOnDepth',
     'GatherV2': 'Gather',
-    'QTZ_binary_channel_wise_mean_scaling': 'BinaryChannelWiseMeanScalingQuantizer'
+    'QTZ_binary_channel_wise_mean_scaling': 'BinaryChannelWiseMeanScalingQuantizer',
+    'QTZ_binary_mean_scaling': 'BinaryMeanScalingQuantizer',
 }
 
 
