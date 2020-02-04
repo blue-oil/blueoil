@@ -37,6 +37,7 @@ class YoloV2(BaseNetwork):
             self,
             num_max_boxes=5,
             anchors=[(0.25, 0.25), (0.5, 0.5), (1.0, 1.0)],
+            anchor_scale=1.0,
             leaky_relu_scale=0.1,
             object_scale=5.0,
             no_object_scale=1.0,
@@ -92,7 +93,7 @@ class YoloV2(BaseNetwork):
         self.is_dynamic_image_size = is_dynamic_image_size
         self.change_base_output = change_base_output
 
-        self.anchor_scaling = 2.0
+        self.anchor_scale = float(anchor_scale)
 
         # Assert image size can mod `32`.
         # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
@@ -106,12 +107,12 @@ class YoloV2(BaseNetwork):
 
             # TODO(wakisaka): Be enable to change `32`. it depends on pooling times.
             # Number of cell is the spatial dimension of the final convolutional features.
-            image_size0 = tf.cast(self.anchor_scaling * (self.image_size[0] / 32), tf.int32)
-            image_size1 = tf.cast(self.anchor_scaling * (self.image_size[1] / 32), tf.int32)
+            image_size0 = tf.cast(self.anchor_scale * (self.image_size[0] / 32), tf.int32)
+            image_size1 = tf.cast(self.anchor_scale * (self.image_size[1] / 32), tf.int32)
             self.num_cell = tf.tuple([image_size0, image_size1])
         else:
-            self.num_cell = int(self.anchor_scaling * self.image_size[0]) // 32, \
-                            int(self.anchor_scaling * self.image_size[1]) // 32
+            self.num_cell = int(self.anchor_scale * self.image_size[0]) // 32, \
+                            int(self.anchor_scale * self.image_size[1]) // 32
 
         self.loss_function = YoloV2Loss(
             is_debug=self.is_debug,
@@ -976,7 +977,7 @@ class YoloV2(BaseNetwork):
             data_format=self.data_format,
         )
 
-        output_filters = (self.num_classes + 5) * self.boxes_per_cell * int(self.anchor_scaling * self.anchor_scaling)
+        output_filters = (self.num_classes + 5) * self.boxes_per_cell * int(self.anchor_scale * self.anchor_scale)
         self.conv_23 = conv2d(
             "conv_23", self.block_22, filters=output_filters, kernel_size=1,
             activation=None, use_bias=True, is_debug=self.is_debug,
@@ -985,9 +986,6 @@ class YoloV2(BaseNetwork):
 
         # assert_num_cell_y = tf.assert_equal(self.num_cell[0], tf.shape(self.conv_23)[1])
         # assert_num_cell_x = tf.assert_equal(self.num_cell[1], tf.shape(self.conv_23)[2])
-
-        feature_layer = self.block_22[0]
-        feature_images = tf.image.convert_image_dtype(feature_layer, dtype=tf.uint8)
 
         if self.change_base_output:
 
@@ -1004,7 +1002,7 @@ class YoloV2(BaseNetwork):
             # with tf.control_dependencies([assert_num_cell_x, assert_num_cell_y]):
             output = self.conv_23
 
-        return output, feature_images
+        return output
 
 
 class YoloV2Loss:

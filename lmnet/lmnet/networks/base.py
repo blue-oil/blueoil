@@ -47,7 +47,6 @@ class BaseNetwork(object):
             classes=(),
             image_size=(),  # [height, width]
             batch_size=64,
-            cell_size=32,
             data_format='NHWC'
     ):
 

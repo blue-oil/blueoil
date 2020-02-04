@@ -124,7 +124,7 @@ class LMFYolo(YoloV2):
         x = darknet_block("block_12", x, filters=128, kernel_size=3)
         x = darknet_block("block_13", x, filters=256, kernel_size=3, activation=self.before_last_activation)
 
-        output_filters = (self.num_classes + 5) * self.boxes_per_cell
+        output_filters = (self.num_classes + 5) * self.boxes_per_cell * int(self.anchor_scale * self.anchor_scale)
         self.block_last = conv2d("block_last", x, filters=output_filters, kernel_size=1,
                                  activation=None, use_bias=True, is_debug=self.is_debug,
                                  data_format=channel_data_format)
