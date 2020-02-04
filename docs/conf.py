@@ -40,7 +40,6 @@ from recommonmark.transform import AutoStructify
 
 sys.path.insert(0, os.path.abspath('../lmnet'))
 sys.path.insert(0, os.path.abspath('../dlk/python'))
-# sys.path.insert(0, os.path.abspath('../dlk/python/dlk'))
 
 
 # -- Project information -----------------------------------------------------
