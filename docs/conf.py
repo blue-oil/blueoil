@@ -34,7 +34,6 @@ import os
 import sys
 from typing import Dict
 
-import sphinx_rtd_theme
 from recommonmark.parser import CommonMarkParser
 from recommonmark.transform import AutoStructify
 
