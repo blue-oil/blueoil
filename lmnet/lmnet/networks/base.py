@@ -50,7 +50,7 @@ class BaseNetwork(object):
             data_format='NHWC'
     ):
 
-        if data_format not in ["NCHW", "NHWC"]:
+        if data_format not in {"NCHW", "NHWC"}:
             raise RuntimeError("data format {} should be in ['NCHW', 'NHWC]'.".format(data_format))
 
         self.is_debug = is_debug

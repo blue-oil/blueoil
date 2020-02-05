@@ -171,9 +171,9 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
 
     exec_list = sort_graph(graph)
     qtypes = [
-        'QTZ_binary_mean_scaling',
+        'BinaryMeanScalingQuantizer',
         'QTZ_linear_mid_tread_half',
-        'QTZ_binary_channel_wise_mean_scaling',
+        'BinaryChannelWiseMeanScalingQuantizer',
         'Lookup'
     ]
 
@@ -295,7 +295,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
             threshold[threshold < -max_th_value] = -max_th_value
 
             for ch_id, th_per_ch in enumerate(threshold):
-                if quantizer_conv_weights.op_type == 'QTZ_binary_channel_wise_mean_scaling':
+                if quantizer_conv_weights.op_type == 'BinaryChannelWiseMeanScalingQuantizer':
                     threshold_table[ch_id, th_id] = int(math.floor(th_per_ch)) \
                         if (scaling_factor[ch_id] < 0) ^ (ch_id in bn_nega_idx) \
                         else int(math.ceil(th_per_ch))
@@ -348,9 +348,9 @@ def pass_pack_weights(graph: Graph) -> None:
     """
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
     quantization_types = [
-        'QTZ_binary_mean_scaling',
+        'BinaryMeanScalingQuantizer',
         'QTZ_linear_mid_tread_half',
-        'QTZ_binary_channel_wise_mean_scaling'
+        'BinaryChannelWiseMeanScalingQuantizer'
     ]
 
     word_size = 32
@@ -500,7 +500,7 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             width = qtz.width
             depth = qtz.channel
             depth_upper = (depth + b - 1) // b
-            qtz.update_shape([height, width, depth_upper, 2, b], "HWChBCl")
+            qtz.update_shape([depth_upper, height, width, 2, b], "ChHWBCl")
 
 
 def pass_propagate_datatypes(graph) -> None:
@@ -529,10 +529,6 @@ def pass_propagate_format(graph) -> None:
             if m.input_nodes[0].dimension == 'ChHWBCl':
                 b = 32
                 shape = [(m.channel + b - 1) // b, m.height, m.width, 2, b]
-                m.update_shape(shape, m.input_nodes[0].dimension)
-            elif m.input_nodes[0].dimension == 'HWChBCl':
-                b = 32
-                shape = [m.height, m.width, (m.channel + b - 1) // b, 2, b]
                 m.update_shape(shape, m.input_nodes[0].dimension)
 
 
@@ -573,9 +569,9 @@ def pass_lookup(graph: Graph) -> None:
 
     """
     quantization_types = [
-        'QTZ_binary_mean_scaling',
+        'BinaryMeanScalingQuantizer',
         'QTZ_linear_mid_tread_half',
-        'QTZ_binary_channel_wise_mean_scaling'
+        'BinaryChannelWiseMeanScalingQuantizer'
     ]
 
     to_be_removed = []

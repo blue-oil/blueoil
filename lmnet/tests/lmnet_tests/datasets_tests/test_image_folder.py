@@ -54,7 +54,7 @@ def test_image_folder():
 
     expected_image_dir = os.path.join(environment.DATA_DIR, Dummy.extend_dir)
     expected_paths = [image_path for image_path in glob(os.path.join(expected_image_dir, "**/*"))
-                      if os.path.isfile(image_path) and imghdr.what(image_path) in ["jpeg", "png"]]
+                      if os.path.isfile(image_path) and imghdr.what(image_path) in {"jpeg", "png"}]
 
     assert len(expected_paths) * (1-validation_size) == train_dataset.num_per_epoch
     assert len(expected_paths) * (validation_size) == validation_dataset.num_per_epoch
@@ -88,13 +88,13 @@ def test_has_validation_path():
 
     expected_train_image_dir = os.path.join(environment.DATA_DIR, DummyHasValidation.extend_dir)
     expected_train_paths = [image_path for image_path in glob(os.path.join(expected_train_image_dir, "**/*"))
-                            if os.path.isfile(image_path) and imghdr.what(image_path) in ["jpeg", "png"]]
+                            if os.path.isfile(image_path) and imghdr.what(image_path) in {"jpeg", "png"}]
 
     assert len(expected_train_paths) == train_dataset.num_per_epoch
 
     expected_validation_image_dir = os.path.join(environment.DATA_DIR, DummyHasValidation.validation_extend_dir)
     expected_validation_paths = [image_path for image_path in glob(os.path.join(expected_validation_image_dir, "**/*"))
-                                 if os.path.isfile(image_path) and imghdr.what(image_path) in ["jpeg", "png"]]
+                                 if os.path.isfile(image_path) and imghdr.what(image_path) in {"jpeg", "png"}]
 
     assert len(expected_validation_paths) == validation_dataset.num_per_epoch
 
@@ -113,13 +113,13 @@ def test_image_folder_onthefly():
 
     expected_train_image_dir = os.path.join(environment.DATA_DIR, DummyHasValidation.extend_dir)
     expected_train_paths = [image_path for image_path in glob(os.path.join(expected_train_image_dir, "**/*"))
-                            if os.path.isfile(image_path) and imghdr.what(image_path) in ["jpeg", "png"]]
+                            if os.path.isfile(image_path) and imghdr.what(image_path) in {"jpeg", "png"}]
 
     assert len(expected_train_paths) == train_dataset.num_per_epoch
 
     expected_validation_image_dir = os.path.join(environment.DATA_DIR, DummyHasValidation.validation_extend_dir)
     expected_validation_paths = [image_path for image_path in glob(os.path.join(expected_validation_image_dir, "**/*"))
-                                 if os.path.isfile(image_path) and imghdr.what(image_path) in ["jpeg", "png"]]
+                                 if os.path.isfile(image_path) and imghdr.what(image_path) in {"jpeg", "png"}]
 
     assert len(expected_validation_paths) == validation_dataset.num_per_epoch
 

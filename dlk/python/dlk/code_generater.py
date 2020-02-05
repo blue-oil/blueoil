@@ -133,7 +133,7 @@ class CodeGenerater(object):
 
             aliased = set()
             for prev_op in prev_ops:
-                if prev_op.op_type in ['Reshape', 'Split']:
+                if prev_op.op_type in {'Reshape', 'Split'}:
                     aliased.add(prev_op.name)
                     for i in prev_op.input_ops.values():
                         aliased.add(i.name)

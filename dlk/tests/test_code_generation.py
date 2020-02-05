@@ -330,7 +330,6 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                project_name=project_name,
                activate_hard_quantization=hard_quantize,
                threshold_skipping=threshold_skipping,
-               num_pe=16,
                debug=False,
                cache_dma=cache_dma,
                )

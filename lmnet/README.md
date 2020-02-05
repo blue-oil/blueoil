@@ -43,7 +43,9 @@ source .venv/bin/activate
 
 # install python requirements
 pip install -r ../cpu.requirements.txt
-pip install -e third_party/coco/PythonAPI
+
+# Install pycocotools manually. pycocotools 2.0 have some problem with installation
+pip install pycocotools==2.0.0
 
 # start sample training by lmnet_v0 and cifar-10. It takes few minutes.
 PYTHONPATH=. python executor/train.py -c configs/example/classification.py
@@ -67,20 +69,6 @@ style.
 `pip install -r ../cpu.requirements.txt`
 - with GPU
 `pip install -r ../gpu.requirements.txt`
-
-Install third_party:
-
-First, init all submodules
-`git submodule update --init --recursive`
-
-
-For developer, install third party packages with `-e` option. It's meaning any changes to the packages would reflect directly.
-
-coco:
-```
-cd third_party/coco/PythonAPI
-pip install -e .
-```
 
 
 - - -
@@ -424,14 +412,12 @@ e.g.
 
 ## How to test locally:
 Go to project root and run following commands:
-- all: `tox`
-- flake8: `tox -e flake8`
-- pytest: `tox -e pytest`
+- flake8: `flake8 .`
+- pytest: `pytest -n auto tests/`
 
 If your code was running in `docker`, go to project root and run:
-- all: `docker-compose run --rm tensorflow tox -e py36`
-- flake8: `docker-compose run --rm tensorflow tox -e flake8`
-- pytest: `docker-compose run --rm tensorflow tox -e pytest`
+- flake8: `docker-compose run --rm tensorflow flake8 .`
+- pytest: `docker-compose run --rm tensorflow pytest -n auto tests/`
 
 
 # Docs

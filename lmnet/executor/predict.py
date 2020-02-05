@@ -55,7 +55,7 @@ def _get_images(filenames, pre_processor, data_format):
 def _all_image_files(directory):
     all_image_files = []
     for file_path in glob(os.path.join(directory, "*")):
-        if os.path.isfile(file_path) and imghdr.what(file_path) in ["jpeg", "png"]:
+        if os.path.isfile(file_path) and imghdr.what(file_path) in {"jpeg", "png"}:
             all_image_files.append(os.path.abspath(file_path))
 
     return all_image_files

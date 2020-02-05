@@ -24,14 +24,8 @@ class Config(object):
     """Class of a collection of configurations."""
 
     def __init__(self,
-                 num_pe=16,
                  activate_hard_quantization=False,
                  threshold_skipping=False,
-                 bandwidth=256,
-                 system_frequency='50MHz',
-                 ip_frequency='50MHz',
-                 pll_frequency='50MHz',
-                 quartus_path='blueoil_de10-nano.prj',
                  placeholder_dtype=float,
                  default_qword_dtype=Uint32,
                  test_dir=None,
@@ -41,14 +35,8 @@ class Config(object):
                  cache_dma: bool = False
                  ) -> None:
         """Init the config object."""
-        self.num_pe: int = num_pe
         self.activate_hard_quantization: bool = activate_hard_quantization
         self.threshold_skipping: bool = threshold_skipping and activate_hard_quantization
-        self.bandwidth = bandwidth
-        self.system_frequency: str = system_frequency
-        self.ip_frequency: str = ip_frequency
-        self.pll_frequency: str = pll_frequency
-        self.quartus_path: str = quartus_path
         self.default_qword_dtype = default_qword_dtype
         self.test_dir: str = test_dir
         self.optimized_pb_path: str = optimized_pb_path

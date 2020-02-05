@@ -40,7 +40,7 @@ class JsonOutput():
         self.classes = classes
         self.image_size = image_size
         self.data_format = data_format
-        self.bench = bench if bench else {}
+        self.bench = bench or {}
 
     def _classification(self, outputs, raw_images, image_files):
         assert outputs.shape == (len(image_files), len(self.classes))
@@ -177,6 +177,7 @@ class JsonOutput():
             "classes": [{"id": i, "name": class_name} for i, class_name in enumerate(self.classes)],
             "date": datetime.now().isoformat(),
             "results": [],
+            "benchmark": self.bench,
         }
 
         if self.task == Tasks.CLASSIFICATION:
@@ -218,7 +219,7 @@ class ImageFromJson():
         for result, raw_image, image_file in zip(results, raw_images, image_files):
             predictions = result["prediction"]
 
-            probs = [prediction["probability"] for prediction in predictions]
+            probs = [float(prediction["probability"]) for prediction in predictions]
             highest_index = probs.index(max(probs))
             highest = predictions[highest_index]
 

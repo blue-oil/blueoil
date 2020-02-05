@@ -12,6 +12,5 @@ dataset/
 config/
 *.github/
 *tmp/
-*.tox/
 *docs/
 .firebase/
