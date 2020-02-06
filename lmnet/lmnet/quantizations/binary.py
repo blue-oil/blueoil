@@ -104,7 +104,7 @@ def binary_mean_scaling_quantizer(
 
         This method is DoReFa-Net [2]_ weight quantization.
 
-        `op_type` is ``QTZ_binary_mean_scaling``.
+        `op_type` is ``BinaryMeanScalingQuantizer``.
 
         Forward is:
 
@@ -148,7 +148,7 @@ def binary_mean_scaling_quantizer(
         return grad_quantized
 
     @Defun(dtype, python_grad_func=_backward, shape_func=lambda op: [op.inputs[0].get_shape()],
-           func_name='QTZ_binary_mean_scaling')
+           func_name='BinaryMeanScalingQuantizer')
     def _forward(x):
         """Forward.
 

@@ -412,14 +412,12 @@ e.g.
 
 ## How to test locally:
 Go to project root and run following commands:
-- all: `tox`
-- flake8: `tox -e flake8`
-- pytest: `tox -e pytest`
+- flake8: `flake8 .`
+- pytest: `pytest -n auto tests/`
 
 If your code was running in `docker`, go to project root and run:
-- all: `docker-compose run --rm tensorflow tox -e py36`
-- flake8: `docker-compose run --rm tensorflow tox -e flake8`
-- pytest: `docker-compose run --rm tensorflow tox -e pytest`
+- flake8: `docker-compose run --rm tensorflow flake8 .`
+- pytest: `docker-compose run --rm tensorflow pytest -n auto tests/`
 
 
 # Docs
