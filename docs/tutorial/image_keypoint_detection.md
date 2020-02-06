@@ -65,7 +65,6 @@ apply quantization at the first layer?  no
 ```
 
 If configuration finishes, the configuration file is generated in the `my_config.yml` under config directory.
-It should be `keypoint_detection_demo.yml` if you use above example initialization.
 
 ## Train a network model
 
