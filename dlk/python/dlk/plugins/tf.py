@@ -28,7 +28,7 @@ from core.data_types import DataType, Float32, Float64, Int8, Int16, Int32, \
     Int64, Uint8, Uint16, Uint32, Uint64, Bool, String
 from core.exceptions import UnsupportedNode, UnsupportedDataType
 from core.graph import Graph
-from core.operators import Operator, Conv, Identity, QTZ_binary_mean_scaling, \
+from core.operators import Operator, Conv, Identity, BinaryMeanScalingQuantizer, \
     BatchNormalization, QTZ_linear_mid_tread_half, Add, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
     Mul, BinaryChannelWiseMeanScalingQuantizer, ConcatOnDepth, Maximum, DepthToSpace, ResizeNearestNeighbor, \
@@ -86,7 +86,8 @@ DLK_OPERATOR_MAP: Dict[str, str] = {
     'AddV2': 'Add',
     'ConcatV2': 'ConcatOnDepth',
     'GatherV2': 'Gather',
-    'QTZ_binary_channel_wise_mean_scaling': 'BinaryChannelWiseMeanScalingQuantizer'
+    'QTZ_binary_channel_wise_mean_scaling': 'BinaryChannelWiseMeanScalingQuantizer',
+    'QTZ_binary_mean_scaling': 'BinaryMeanScalingQuantizer',
 }
 
 
@@ -120,7 +121,7 @@ class Node(object):
     @property
     def tensor_type(self):
         """Get tensor type info."""
-        if self.nd_.op == 'QTZ_binary_mean_scaling' or \
+        if self.nd_.op == 'BinaryMeanScalingQuantizer' or \
            self.nd_.op == 'QTZ_linear_mid_tread_half' or \
            self.nd_.op == 'BinaryChannelWiseMeanScalingQuantizer':
             typep = 1
@@ -313,7 +314,7 @@ class Output(object):
     @property
     def tensor_type(self):
         """Get shape info."""
-        if self.out_.op == 'QTZ_binary_mean_scaling' or \
+        if self.out_.op == 'BinaryMeanScalingQuantizer' or \
                 self.out_.op == 'QTZ_linear_mid_tread_half' or \
                 self.out_.op == 'BinaryChannelWiseMeanScalingQuantizer':
             typep = 1
@@ -456,7 +457,7 @@ class Importer(object):
         then propagate the format from the output. Special case such as:
         - 'Conv': by default of tensorflow, input is 'NHWC', and kernel 'HWIO'
         https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
-        - 'QTZ_binary_mean_scaling', 'BinaryChannelWiseMeanScalingQuantizer':
+        - 'BinaryMeanScalingQuantizer', 'BinaryChannelWiseMeanScalingQuantizer':
         kernel quantizer is also in HWIO
         - 'Transpose': depending on the permutation attribute
         """
@@ -488,7 +489,7 @@ class Importer(object):
             op_type = self.convert_operator(node.op_type)
             if op_type == 'Conv':
                 return out_format, [out_format, _default_w_format, 'C']
-            elif op_type in {'QTZ_binary_mean_scaling', 'BinaryChannelWiseMeanScalingQuantizer'}:
+            elif op_type in ['BinaryMeanScalingQuantizer', 'BinaryChannelWiseMeanScalingQuantizer']:
                 return _default_w_format, [_default_w_format]
             elif op_type in {'QTZ_linear_mid_tread_half'}:
                 return out_format, [out_format, 'C', 'C']
@@ -717,12 +718,12 @@ class Importer(object):
                 input_ops,
                 dimension_format=current_format,
             )
-        elif op_type == 'QTZ_binary_mean_scaling':
+        elif op_type == 'BinaryMeanScalingQuantizer':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = QTZ_binary_mean_scaling(
+            new_op = BinaryMeanScalingQuantizer(
                 node.name,
                 shape,
                 dtype,

@@ -128,6 +128,13 @@ def _export(config, restore_path, image_path):
         index = 0
         for op in all_ops:
             for op_output in op.outputs:
+                # HACK: This is for TensorFlow bug workaround.
+                # We can remove following 4 lines once it's been resolved in TensorFlow
+                # Issue link: https://github.com/tensorflow/tensorflow/issues/36456
+                if (not tf.config.experimental.list_physical_devices('GPU')
+                        and "FusedBatchNormV3" in op_output.name
+                        and int(op_output.name.split(":")[1]) in set(range(1, 6))):
+                    continue
                 val = sess.run(op_output.name, feed_dict=feed_dict)
                 name = '%03d' % index + '_' + op_output.name.replace('/', '_')
                 all_outputs.append({'val': val, 'name': name})
