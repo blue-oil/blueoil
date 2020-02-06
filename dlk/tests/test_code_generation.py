@@ -91,6 +91,20 @@ def dict_codegen_segmentation(cpu_name) -> dict:
             }
 
 
+def dict_codegen_lm_bisenet(cpu_name) -> dict:
+    """Test parameters for testing code generation for segmentation on CPU"""
+    return {'model_path': os.path.join('examples', 'segmentation', 'lm_bisenet_quantize_camvid'),
+            'expected_output_set_name': 'inference_test_data',
+            'prefix': 'lm_bisenet',
+            'input_name': '000_images_placeholder:0.npy',
+            'output_npy_name': '655_output:0.npy',
+            'cpu_name': cpu_name,
+            'hard_quantize': True,
+            'threshold_skipping': False,
+            'use_avx': False
+            }
+
+
 def get_configurations_by_test_cases(test_cases, configuration):
 
     return [updated_dict(configuration,test_case) for test_case in test_cases]
@@ -102,6 +116,7 @@ def get_configurations_by_architecture(test_cases, cpu_name):
     configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_classification_resnet(cpu_name)))
     configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_object_detection(cpu_name)))
     configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_segmentation(cpu_name)))
+    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_lm_bisenet(cpu_name)))
 
     return configurations
 

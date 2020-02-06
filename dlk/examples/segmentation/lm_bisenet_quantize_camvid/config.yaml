@@ -1,0 +1,98 @@
+BATCH_SIZE: 1
+CLASSES:
+- sky
+- building
+- pole
+- road
+- pavement
+- tree
+- signsymbol
+- fence
+- car
+- pedestrian
+- bicyclist
+DATASET:
+  AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
+    processors:
+    - !!python/object:lmnet.pre_processor.Resize
+      size:
+      - 352
+      - 480
+    - !!python/object:lmnet.data_augmentor.Brightness
+      max_value: 1.25
+      min_value: 0.75
+    - !!python/object:lmnet.data_augmentor.Color
+      max_value: 1.25
+      min_value: 0.75
+    - !!python/object:lmnet.data_augmentor.Contrast
+      max_value: 1.25
+      min_value: 0.75
+    - !!python/object:lmnet.data_augmentor.FlipLeftRight
+      probability: 0.5
+    - !!python/object:lmnet.data_augmentor.Hue
+      max_value: 10
+      min_value: -10
+  BATCH_SIZE: 1
+  DATA_FORMAT: NHWC
+  ENABLE_PREFETCH: true
+  PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+    processors:
+    - !!python/object:lmnet.pre_processor.Resize
+      size:
+      - 352
+      - 480
+    - !!python/object:lmnet.pre_processor.PerImageStandardization {}
+DATASET_CLASS: !!python/name:lmnet.datasets.camvid.Camvid ''
+DATA_FORMAT: NHWC
+IMAGE_SIZE:
+- 352
+- 480
+IS_DEBUG: false
+IS_PRETRAIN: false
+KEEP_CHECKPOINT_MAX: 5
+MAX_EPOCHS: 1
+NETWORK:
+  ACTIVATION_QUANTIZER: !!python/name:lmnet.quantizations.linear.linear_mid_tread_half_quantizer ''
+  ACTIVATION_QUANTIZER_KWARGS:
+    bit: 2
+    max_value: 2
+  AUXILIARY_LOSS_WEIGHT: 0.5
+  BATCH_SIZE: 1
+  DATA_FORMAT: NHWC
+  IMAGE_SIZE:
+  - 352
+  - 480
+  OPTIMIZER_CLASS: !!python/name:tensorflow.python.training.adam.AdamOptimizer ''
+  OPTIMIZER_KWARGS:
+    learning_rate: 0.001
+  USE_ATTENTION_REFINEMENT: false
+  USE_FEATURE_FUSION: false
+  USE_TAIL_GAP: false
+  WEIGHT_DECAY_RATE: 0.0
+  WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
+  WEIGHT_QUANTIZER_KWARGS: {}
+NETWORK_CLASS: !!python/name:lmnet.networks.segmentation.lm_bisenet.LMBiSeNetQuantize ''
+POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  processors:
+  - !!python/object:lmnet.post_processor.Bilinear
+    compatible_tensorflow_v1: true
+    data_format: NHWC
+    size:
+    - 352
+    - 480
+  - !!python/object:lmnet.post_processor.Softmax {}
+PRETRAIN_DIR: ''
+PRETRAIN_FILE: ''
+PRETRAIN_VARS: []
+PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  processors:
+  - !!python/object:lmnet.pre_processor.Resize
+    size:
+    - 352
+    - 480
+  - !!python/object:lmnet.pre_processor.PerImageStandardization {}
+SAVE_CHECKPOINT_STEPS: 1000
+SUMMARISE_STEPS: 1000
+TASK: !!python/object/apply:lmnet.common.Tasks
+- IMAGE.SEMANTIC_SEGMENTATION
+TEST_STEPS: 1000

@@ -175,7 +175,7 @@ class LMBiSeNet(Base):
             with tf.compat.v1.variable_scope("block_3"):
                 x = self._space_to_depth(name='s2d_3', inputs=x)
                 x = self._block('conv_1', x, 512, 1)
-                growth_rate = 256
+                growth_rate = 128
                 bottleneck_rate = 1
                 x = densenet_group(
                     "dense",
