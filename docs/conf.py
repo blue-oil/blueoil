@@ -32,7 +32,6 @@
 
 import os
 import sys
-from typing import Dict
 
 from recommonmark.parser import CommonMarkParser
 from recommonmark.transform import AutoStructify
