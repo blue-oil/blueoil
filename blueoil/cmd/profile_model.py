@@ -97,7 +97,11 @@ def _profile(config, restore_path, bit, unquant_layers):
 
 
 def _render(name, image_size, num_classes, bit, res):
-    with open(os.path.join("executor", "profile_template.md"), "r") as f:
+    template_file_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "profile_template.md")
+
+    with open(template_file_path, "r") as f:
         file_data = f.read()
     file_data = file_data.replace("{name}", name)\
                          .replace("{image_size_h}", str(image_size[0]))\
