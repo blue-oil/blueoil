@@ -81,7 +81,7 @@ def _measure_time(config, restore_path, step_size):
     # measure time
     image_files_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        "measure_latency_images/*.jpg")
+        "fixtures", "measure_latency_images", "*.jpg")
 
     image_files = glob.glob(image_files_path)
     overall_times = []

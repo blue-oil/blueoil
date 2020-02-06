@@ -28,7 +28,7 @@ from lmnet.utils import executor
 
 DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "export_inference_test_data_images",
+    "fixtures", "export_inference_test_data_images",
     "5605039097_05baa93bfd_m.jpg")
 
 

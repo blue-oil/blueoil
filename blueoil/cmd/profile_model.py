@@ -99,7 +99,7 @@ def _profile(config, restore_path, bit, unquant_layers):
 def _render(name, image_size, num_classes, bit, res):
     template_file_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        "profile_template.md")
+        "fixtures", "profile_template.md")
 
     with open(template_file_path, "r") as f:
         file_data = f.read()
