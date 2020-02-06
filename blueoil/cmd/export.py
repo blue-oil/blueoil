@@ -32,7 +32,7 @@ DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
     "5605039097_05baa93bfd_m.jpg")
 
 
-# TODO(wakisaka): duplicated function with executor/measure_latency.py
+# TODO(wakisaka): duplicated function with blueoil/cmd/measure_latency.py
 def _pre_process(raw_image, pre_processor, data_format):
     image = pre_processor(image=raw_image)['image']
     if data_format == 'NCHW':

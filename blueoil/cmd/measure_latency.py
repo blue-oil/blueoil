@@ -28,7 +28,7 @@ from lmnet.utils import config as config_util
 from lmnet.utils import executor
 
 
-# TODO(wakisaka): duplicated function with executor/export.py
+# TODO(wakisaka): duplicated function with blueoil/cmd/export.py
 def _pre_process(raw_image, pre_processor, data_format):
     image = pre_processor(image=raw_image)['image']
     if data_format == 'NCHW':

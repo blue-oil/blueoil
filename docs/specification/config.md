@@ -8,8 +8,8 @@ Go to section:
 
 # Config
 
-* In the `executor/train.py`, It needs `training` column config parameter.
-* Others `executor` such as `executor/predict.py` needs `inference` config parameter.
+* In the `blueoil/cmd/train.py`, It needs `training` column config parameter.
+* Other `cmd` scripts such as `blueoil/cmd/predict.py` needs `inference` config parameter.
 * For exporting to Blueoil and Delta-Lite and demo app, the `export` config parameter needs.
 
 
