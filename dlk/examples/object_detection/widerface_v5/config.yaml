@@ -2,23 +2,23 @@ BATCH_SIZE: 1
 CLASSES:
 - face
 DATASET:
-  AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
+  AUGMENTOR: !!python/object:nn.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.data_augmentor.FlipLeftRight
+    - !!python/object:nn.data_augmentor.FlipLeftRight
       probability: 0.5
-    - !!python/object:lmnet.data_augmentor.Brightness
+    - !!python/object:nn.data_augmentor.Brightness
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Color
+    - !!python/object:nn.data_augmentor.Color
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Contrast
+    - !!python/object:nn.data_augmentor.Contrast
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Hue
+    - !!python/object:nn.data_augmentor.Hue
       max_value: 10
       min_value: -10
-    - !!python/object:lmnet.data_augmentor.SSDRandomCrop
+    - !!python/object:nn.data_augmentor.SSDRandomCrop
       aspect_ratio_max: 2
       aspect_ratio_min: 0.5
       min_crop_ratio: 0.5
@@ -42,14 +42,14 @@ DATASET:
   BATCH_SIZE: 1
   DATA_FORMAT: NHWC
   ENABLE_PREFETCH: true
-  PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  PRE_PROCESSOR: !!python/object:nn.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.pre_processor.ResizeWithGtBoxes
+    - !!python/object:nn.pre_processor.ResizeWithGtBoxes
       size:
       - 160
       - 160
-    - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:lmnet.datasets.widerface.WiderFace ''
+    - !!python/object:nn.pre_processor.DivideBy255 {}
+DATASET_CLASS: !!python/name:nn.datasets.widerface.WiderFace ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 160
@@ -59,7 +59,7 @@ IS_PRETRAIN: true
 KEEP_CHECKPOINT_MAX: 5
 MAX_STEPS: 1000000
 NETWORK:
-  ACTIVATION_QUANTIZER: !!python/name:lmnet.quantizations.linear.linear_mid_tread_half_quantizer ''
+  ACTIVATION_QUANTIZER: !!python/name:nn.quantizations.linear.linear_mid_tread_half_quantizer ''
   ACTIVATION_QUANTIZER_KWARGS:
     bit: 2
     max_value: 2.0
@@ -110,13 +110,13 @@ NETWORK:
   QUANTIZE_LAST_CONVOLUTION: false
   SCORE_THRESHOLD: 0.05
   WEIGHT_DECAY_RATE: 0.0005
-  WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
+  WEIGHT_QUANTIZER: !!python/name:nn.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:lmnet.networks.object_detection.lm_fyolo.LMFYoloQuantize ''
-NMS: !!python/name:lmnet.post_processor.NMS ''
-POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+NETWORK_CLASS: !!python/name:nn.networks.object_detection.lm_fyolo.LMFYoloQuantize ''
+NMS: !!python/name:nn.post_processor.NMS ''
+POST_PROCESSOR: !!python/object:nn.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.post_processor.FormatYoloV2
+  - !!python/object:nn.post_processor.FormatYoloV2
     anchors:
     - !!python/tuple
       - 0.25
@@ -139,9 +139,9 @@ POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     - 160
     - 160
     num_classes: 1
-  - !!python/object:lmnet.post_processor.ExcludeLowScoreBox
+  - !!python/object:nn.post_processor.ExcludeLowScoreBox
     threshold: 0.05
-  - !!python/object:lmnet.post_processor.NMS
+  - !!python/object:nn.post_processor.NMS
     classes:
     - face
     iou_threshold: 0.5
@@ -230,15 +230,15 @@ PRETRAIN_VARS:
 - block_13/bn/gamma:0
 - block_13/bn/moving_mean:0
 - block_13/bn/moving_variance:0
-PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+PRE_PROCESSOR: !!python/object:nn.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.pre_processor.ResizeWithGtBoxes
+  - !!python/object:nn.pre_processor.ResizeWithGtBoxes
     size:
     - 160
     - 160
-  - !!python/object:lmnet.pre_processor.DivideBy255 {}
+  - !!python/object:nn.pre_processor.DivideBy255 {}
 SAVE_CHECKPOINT_STEPS: 1000
 SUMMARISE_STEPS: 1000
-TASK: !!python/object/apply:lmnet.common.Tasks
+TASK: !!python/object/apply:nn.common.Tasks
 - IMAGE.OBJECT_DETECTION
 TEST_STEPS: 1000

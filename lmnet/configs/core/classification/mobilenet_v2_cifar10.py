@@ -16,15 +16,15 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
-from lmnet.networks.classification.mobilenet_v2 import MobileNetV2
-from lmnet.datasets.cifar10 import Cifar10
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from nn.common import Tasks
+from nn.networks.classification.mobilenet_v2 import MobileNetV2
+from nn.datasets.cifar10 import Cifar10
+from nn.data_processor import Sequence
+from nn.pre_processor import (
     Resize,
     DivideBy255,
 )
-from lmnet.data_augmentor import (
+from nn.data_augmentor import (
     Crop,
     FlipLeftRight,
     Pad,

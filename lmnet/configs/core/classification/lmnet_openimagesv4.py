@@ -16,15 +16,15 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
-from lmnet.networks.classification import Lmnet
-from lmnet.datasets.open_images_v4 import OpenImagesV4Classification
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from nn.common import Tasks
+from nn.networks.classification import Lmnet
+from nn.datasets.open_images_v4 import OpenImagesV4Classification
+from nn.data_processor import Sequence
+from nn.pre_processor import (
     Resize,
     PerImageStandardization,
 )
-from lmnet.data_augmentor import (
+from nn.data_augmentor import (
     Crop,
     FlipLeftRight,
 )

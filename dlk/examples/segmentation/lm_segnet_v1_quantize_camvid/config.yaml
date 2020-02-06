@@ -12,28 +12,28 @@ CLASSES:
 - pedestrian
 - bicyclist
 DATASET:
-  AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
+  AUGMENTOR: !!python/object:nn.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.data_augmentor.Brightness
+    - !!python/object:nn.data_augmentor.Brightness
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Color
+    - !!python/object:nn.data_augmentor.Color
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Contrast
+    - !!python/object:nn.data_augmentor.Contrast
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.FlipLeftRight
+    - !!python/object:nn.data_augmentor.FlipLeftRight
       probability: 0.5
-    - !!python/object:lmnet.data_augmentor.Hue
+    - !!python/object:nn.data_augmentor.Hue
       max_value: 10
       min_value: -10
   BATCH_SIZE: 1
   DATA_FORMAT: NHWC
-  PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  PRE_PROCESSOR: !!python/object:nn.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:lmnet.datasets.camvid.Camvid ''
+    - !!python/object:nn.pre_processor.DivideBy255 {}
+DATASET_CLASS: !!python/name:nn.datasets.camvid.Camvid ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 360
@@ -43,7 +43,7 @@ IS_PRETRAIN: false
 KEEP_CHECKPOINT_MAX: 5
 MAX_STEPS: 150000
 NETWORK:
-  ACTIVATION_QUANTIZER: !!python/name:lmnet.quantizations.linear.linear_mid_tread_half_quantizer ''
+  ACTIVATION_QUANTIZER: !!python/name:nn.quantizations.linear.linear_mid_tread_half_quantizer ''
   ACTIVATION_QUANTIZER_KWARGS:
     bit: 2
     max_value: 2
@@ -55,18 +55,18 @@ NETWORK:
   OPTIMIZER_CLASS: !!python/name:tensorflow.python.training.adam.AdamOptimizer ''
   OPTIMIZER_KWARGS:
     learning_rate: 0.001
-  WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_mean_scaling_quantizer ''
+  WEIGHT_QUANTIZER: !!python/name:nn.quantizations.binary.binary_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:lmnet.networks.segmentation.lm_segnet_v1.LmSegnetV1Quantize ''
+NETWORK_CLASS: !!python/name:nn.networks.segmentation.lm_segnet_v1.LmSegnetV1Quantize ''
 POST_PROCESSOR: null
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
 PRETRAIN_VARS: []
-PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+PRE_PROCESSOR: !!python/object:nn.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.pre_processor.DivideBy255 {}
+  - !!python/object:nn.pre_processor.DivideBy255 {}
 SAVE_CHECKPOINT_STEPS: 3000
 SUMMARISE_STEPS: 1000
-TASK: !!python/object/apply:lmnet.common.Tasks
+TASK: !!python/object/apply:nn.common.Tasks
 - IMAGE.SEMANTIC_SEGMENTATION
 TEST_STEPS: 1000

@@ -21,13 +21,13 @@ import os
 import click
 import tensorflow as tf
 
-from lmnet import environment
-from lmnet.datasets.base import ObjectDetectionBase
-from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
-from lmnet.utils import config as config_util
-from lmnet.utils import executor, module_loader
-from lmnet.utils.predict_output.writer import save_json
+from nn import environment
+from nn.datasets.base import ObjectDetectionBase
+from nn.datasets.dataset_iterator import DatasetIterator
+from nn.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from nn.utils import config as config_util
+from nn.utils import executor, module_loader
+from nn.utils.predict_output.writer import save_json
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ def evaluate(config, restore_path, output_dir):
     graph = tf.Graph()
     with graph.as_default():
 
-        if ModelClass.__module__.startswith("lmnet.networks.object_detection"):
+        if ModelClass.__module__.startswith("nn.networks.object_detection"):
             model = ModelClass(
                 classes=validation_dataset.classes,
                 num_max_boxes=validation_dataset.num_max_boxes,

@@ -16,15 +16,15 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
-from lmnet.networks.classification.lmnet import Lmnet
-from lmnet.datasets.cifar100 import Cifar100
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from nn.common import Tasks
+from nn.networks.classification.lmnet import Lmnet
+from nn.datasets.cifar100 import Cifar100
+from nn.data_processor import Sequence
+from nn.pre_processor import (
     Resize,
     PerImageStandardization,
 )
-from lmnet.data_augmentor import (
+from nn.data_augmentor import (
     Crop,
     FlipLeftRight,
     Pad,

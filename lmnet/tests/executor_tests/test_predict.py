@@ -17,7 +17,7 @@ import pytest
 
 from executor.predict import run
 from executor.train import run as train_run
-from lmnet.environment import setup_test_environment
+from nn.environment import setup_test_environment
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 # Set test environment

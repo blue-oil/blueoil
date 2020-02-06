@@ -20,10 +20,10 @@ from glob import glob
 import numpy as np
 import pytest
 
-from lmnet import environment
-from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.datasets.image_folder import ImageFolderBase
-from lmnet.pre_processor import Resize
+from nn import environment
+from nn.datasets.dataset_iterator import DatasetIterator
+from nn.datasets.image_folder import ImageFolderBase
+from nn.pre_processor import Resize
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")
@@ -125,7 +125,7 @@ def test_image_folder_onthefly():
 
 
 if __name__ == '__main__':
-    from lmnet.environment import setup_test_environment
+    from nn.environment import setup_test_environment
     setup_test_environment()
 
     test_image_folder()

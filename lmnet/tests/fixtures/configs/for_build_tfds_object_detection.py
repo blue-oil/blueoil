@@ -16,23 +16,23 @@
 import tensorflow as tf
 from easydict import EasyDict
 
-from lmnet.common import Tasks
-from lmnet.datasets.delta_mark import ObjectDetectionBase
-from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from nn.common import Tasks
+from nn.datasets.delta_mark import ObjectDetectionBase
+from nn.networks.object_detection.lm_fyolo import LMFYoloQuantize
+from nn.data_processor import Sequence
+from nn.pre_processor import (
     ResizeWithGtBoxes,
     PerImageStandardization,
 )
-from lmnet.post_processor import (
+from nn.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,
 )
-from lmnet.data_augmentor import (
+from nn.data_augmentor import (
     FlipLeftRight,
 )
-from lmnet.quantizations import (
+from nn.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

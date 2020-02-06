@@ -20,12 +20,12 @@ import os
 import sys
 import time
 
-from lmnet.nnlib import NNLib as NNLib
+from nn.nnlib import NNLib as NNLib
 
-from lmnet.utils.image import load_image
-from lmnet.common import Tasks
-from lmnet.utils.output import JsonOutput, ImageFromJson
-from lmnet.utils.config import (
+from nn.utils.image import load_image
+from nn.common import Tasks
+from nn.utils.output import JsonOutput, ImageFromJson
+from nn.utils.config import (
     load_yaml,
     build_pre_process,
     build_post_process,
@@ -88,7 +88,7 @@ def _run(model, image_data, config):
 
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
-        from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
+        from nn.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
         nn.init()
 

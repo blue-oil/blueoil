@@ -19,14 +19,14 @@ import tensorflow as tf
 from easydict import EasyDict
 
 from executor.train import start_training
-from lmnet import environment
-from lmnet.common import Tasks
-from lmnet.data_processor import Sequence
-from lmnet.datasets.camvid import Camvid
-from lmnet.networks.segmentation.lm_bisenet import LMBiSeNet
-from lmnet.post_processor import Bilinear, Softmax
-from lmnet.pre_processor import Resize
-from lmnet.utils.executor import prepare_dirs
+from nn import environment
+from nn.common import Tasks
+from nn.data_processor import Sequence
+from nn.datasets.camvid import Camvid
+from nn.networks.segmentation.lm_bisenet import LMBiSeNet
+from nn.post_processor import Bilinear, Softmax
+from nn.pre_processor import Resize
+from nn.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() and set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("reset_default_graph", "set_test_environment")

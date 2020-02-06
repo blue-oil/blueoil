@@ -29,24 +29,24 @@ import click
 import cv2
 import numpy as np
 
-from lmnet.common import get_color_map
-from lmnet.nnlib import NNLib
-from lmnet.utils.config import (
+from nn.common import get_color_map
+from nn.nnlib import NNLib
+from nn.utils.config import (
     load_yaml,
     build_pre_process,
     build_post_process,
 )
-from lmnet.utils.demo import (
+from nn.utils.demo import (
     add_rectangle,
     add_fps,
     run_inference,
 )
 
-from lmnet.visualize import (
+from nn.visualize import (
     label_to_color_image,
     visualize_keypoint_detection,
 )
-from lmnet.pre_processor import resize
+from nn.pre_processor import resize
 
 
 nn = None
@@ -209,7 +209,7 @@ def run(model, config_file):
 
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
-        from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
+        from nn.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
 
     run_impl(config)

@@ -15,8 +15,8 @@
 # =============================================================================
 import pytest
 
-from lmnet.datasets.cityscapes import Cityscapes
-from lmnet.datasets.dataset_iterator import DatasetIterator
+from nn.datasets.cityscapes import Cityscapes
+from nn.datasets.dataset_iterator import DatasetIterator
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")

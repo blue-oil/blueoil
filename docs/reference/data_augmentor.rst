@@ -3,7 +3,7 @@ data_augmentor module
 
 
 
-.. automodule:: lmnet.data_augmentor
+.. automodule:: nn.data_augmentor
     :members: Blur,
         Brightness,
         Color,

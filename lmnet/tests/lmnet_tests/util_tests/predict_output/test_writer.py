@@ -5,11 +5,11 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from lmnet.common import Tasks
-from lmnet.utils.predict_output.writer import OutputWriter
-from lmnet.utils.predict_output.writer import save_json
-from lmnet.utils.predict_output.writer import save_npy
-from lmnet.utils.predict_output.writer import save_materials
+from nn.common import Tasks
+from nn.utils.predict_output.writer import OutputWriter
+from nn.utils.predict_output.writer import save_json
+from nn.utils.predict_output.writer import save_npy
+from nn.utils.predict_output.writer import save_materials
 
 
 def test_write(temp_dir):

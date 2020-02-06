@@ -16,10 +16,10 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
-from lmnet.datasets.ilsvrc_2012 import Ilsvrc2012
-from lmnet.data_processor import Sequence
-from lmnet.data_augmentor import (
+from nn.common import Tasks
+from nn.datasets.ilsvrc_2012 import Ilsvrc2012
+from nn.data_processor import Sequence
+from nn.data_augmentor import (
     Brightness,
     Color,
     Contrast,
@@ -27,12 +27,12 @@ from lmnet.data_augmentor import (
     FlipLeftRight,
     Hue,
 )
-from lmnet.networks.classification.darknet import DarknetQuantize
-from lmnet.pre_processor import (
+from nn.networks.classification.darknet import DarknetQuantize
+from nn.pre_processor import (
     Resize,
     DivideBy255,
 )
-from lmnet.quantizations import (
+from nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

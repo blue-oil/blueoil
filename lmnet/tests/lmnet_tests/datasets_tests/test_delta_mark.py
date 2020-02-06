@@ -16,9 +16,9 @@
 import numpy as np
 import pytest
 
-from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.pre_processor import Resize, ResizeWithGtBoxes
-from lmnet.datasets.delta_mark import (
+from nn.datasets.dataset_iterator import DatasetIterator
+from nn.pre_processor import Resize, ResizeWithGtBoxes
+from nn.datasets.delta_mark import (
     ClassificationBase,
     ObjectDetectionBase,
 )
@@ -253,7 +253,7 @@ def test_delta_mark_object_detection_has_validation_path():
 
 
 if __name__ == '__main__':
-    from lmnet.environment import setup_test_environment
+    from nn.environment import setup_test_environment
     setup_test_environment()
 
     test_delta_mark_classification()

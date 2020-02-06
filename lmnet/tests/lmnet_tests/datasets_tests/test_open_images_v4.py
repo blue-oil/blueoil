@@ -16,11 +16,11 @@
 import numpy as np
 import pytest
 
-from lmnet.pre_processor import Resize, ResizeWithGtBoxes
-from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBox
-from lmnet.datasets.open_images_v4 import OpenImagesV4Classification
-from lmnet.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
-from lmnet.datasets.dataset_iterator import DatasetIterator
+from nn.pre_processor import Resize, ResizeWithGtBoxes
+from nn.datasets.open_images_v4 import OpenImagesV4BoundingBox
+from nn.datasets.open_images_v4 import OpenImagesV4Classification
+from nn.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
+from nn.datasets.dataset_iterator import DatasetIterator
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")
@@ -198,7 +198,7 @@ def test_custom_has_validation_open_images_v4_object_detection():
 
 
 if __name__ == '__main__':
-    from lmnet.environment import setup_test_environment
+    from nn.environment import setup_test_environment
     setup_test_environment()
 
     test_open_images_v4_classification()

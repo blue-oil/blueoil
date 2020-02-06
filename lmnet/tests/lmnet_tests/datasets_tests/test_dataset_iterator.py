@@ -16,8 +16,8 @@
 import numpy as np
 import pytest
 
-from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.datasets.image_folder import ImageFolderBase
+from nn.datasets.dataset_iterator import DatasetIterator
+from nn.datasets.image_folder import ImageFolderBase
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")
@@ -64,7 +64,7 @@ def test_dataset_iterator_batch_order():
 
 
 if __name__ == '__main__':
-    from lmnet import environment
+    from nn import environment
     environment.setup_test_environment()
     test_dataset_iterator_batch_size()
     test_dataset_iterator_batch_order()

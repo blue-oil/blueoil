@@ -11,32 +11,32 @@ CLASSES:
 - ship
 - truck
 DATASET:
-  AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
+  AUGMENTOR: !!python/object:nn.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.data_augmentor.FlipLeftRight
+    - !!python/object:nn.data_augmentor.FlipLeftRight
       probability: 0.5
-    - !!python/object:lmnet.data_augmentor.Brightness
+    - !!python/object:nn.data_augmentor.Brightness
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Color
+    - !!python/object:nn.data_augmentor.Color
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Contrast
+    - !!python/object:nn.data_augmentor.Contrast
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Hue
+    - !!python/object:nn.data_augmentor.Hue
       max_value: 10
       min_value: -10
   BATCH_SIZE: 32
   DATA_FORMAT: NHWC
-  PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  PRE_PROCESSOR: !!python/object:nn.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.pre_processor.Resize
+    - !!python/object:nn.pre_processor.Resize
       size:
       - 28
       - 28
-    - !!python/object:lmnet.pre_processor.PerImageStandardization {}
-DATASET_CLASS: !!python/name:lmnet.datasets.cifar10.Cifar10 ''
+    - !!python/object:nn.pre_processor.PerImageStandardization {}
+DATASET_CLASS: !!python/name:nn.datasets.cifar10.Cifar10 ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 28
@@ -46,7 +46,7 @@ IS_PRETRAIN: false
 KEEP_CHECKPOINT_MAX: 5
 MAX_EPOCHS: 1
 NETWORK:
-  ACTIVATION_QUANTIZER: !!python/name:lmnet.quantizations.linear.linear_mid_tread_half_quantizer ''
+  ACTIVATION_QUANTIZER: !!python/name:nn.quantizations.linear.linear_mid_tread_half_quantizer ''
   ACTIVATION_QUANTIZER_KWARGS:
     bit: 2
     max_value: 2
@@ -59,9 +59,9 @@ NETWORK:
   OPTIMIZER_KWARGS:
     learning_rate: 0.001
   WEIGHT_DECAY_RATE: 0.0005
-  WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_mean_scaling_quantizer ''
+  WEIGHT_QUANTIZER: !!python/name:nn.quantizations.binary.binary_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:lmnet.networks.classification.lmnet_v0.LmnetV0Quantize ''
+NETWORK_CLASS: !!python/name:nn.networks.classification.lmnet_v0.LmnetV0Quantize ''
 POST_PROCESSOR: null
 PRETRAIN_DIR: saved/lmnet_0.01_caltech101/checkpoints
 PRETRAIN_FILE: save.ckpt-99001
@@ -78,15 +78,15 @@ PRETRAIN_VARS:
 - 'conv5/bias:'
 - 'conv6/kernel:'
 - 'conv6/bias:'
-PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+PRE_PROCESSOR: !!python/object:nn.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.pre_processor.Resize
+  - !!python/object:nn.pre_processor.Resize
     size:
     - 28
     - 28
-  - !!python/object:lmnet.pre_processor.PerImageStandardization {}
+  - !!python/object:nn.pre_processor.PerImageStandardization {}
 SAVE_CHECKPOINT_STEPS: 100
 SUMMARISE_STEPS: 10
-TASK: !!python/object/apply:lmnet.common.Tasks
+TASK: !!python/object/apply:nn.common.Tasks
 - IMAGE.CLASSIFICATION
 TEST_STEPS: 100

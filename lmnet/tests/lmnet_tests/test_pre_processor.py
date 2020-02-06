@@ -16,7 +16,7 @@
 import numpy as np
 import pytest
 
-from lmnet.pre_processor import (
+from nn.pre_processor import (
     Resize,
     ResizeWithJoints,
     JointsToGaussianHeatmap

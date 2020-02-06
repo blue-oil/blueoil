@@ -19,12 +19,12 @@ import tensorflow as tf
 from easydict import EasyDict
 
 from executor.train import start_training
-from lmnet import environment
-from lmnet.common import Tasks
-from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
-from lmnet.networks.object_detection.yolo_v1 import YoloV1
-from lmnet.pre_processor import ResizeWithGtBoxes
-from lmnet.utils.executor import prepare_dirs
+from nn import environment
+from nn.common import Tasks
+from nn.datasets.pascalvoc_2007 import Pascalvoc2007
+from nn.networks.object_detection.yolo_v1 import YoloV1
+from nn.pre_processor import ResizeWithGtBoxes
+from nn.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 # Set test environment

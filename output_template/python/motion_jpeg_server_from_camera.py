@@ -28,17 +28,17 @@ from SocketServer import ThreadingMixIn
 
 import click
 
-from lmnet.nnlib import NNLib
-from lmnet.utils.config import (
+from nn.nnlib import NNLib
+from nn.utils.config import (
     load_yaml,
     build_pre_process,
     build_post_process,
 )
-from lmnet.utils.demo import (
+from nn.utils.demo import (
     VideoStream,
     run_inference,
 )
-from lmnet.visualize import (
+from nn.visualize import (
     draw_fps,
     visualize_classification,
     visualize_object_detection,
@@ -152,7 +152,7 @@ def run(model, config_file, port=80):
 
     elif file_extension == '.pb':  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
-        from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
+        from nn.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
 
     nn = NNLib()

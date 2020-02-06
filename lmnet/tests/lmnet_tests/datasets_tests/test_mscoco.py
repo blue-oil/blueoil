@@ -15,7 +15,7 @@
 # =============================================================================
 import pytest
 
-from lmnet.datasets.mscoco import MscocoObjectDetection
+from nn.datasets.mscoco import MscocoObjectDetection
 
 
 pytestmark = pytest.mark.usefixtures("set_test_environment")

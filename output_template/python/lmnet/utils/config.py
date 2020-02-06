@@ -20,7 +20,7 @@ import imp
 import yaml
 from easydict import EasyDict
 
-from lmnet.data_processor import Sequence
+from nn.data_processor import Sequence
 
 
 # derived from LeapMind/lmnet/lmnet/utils/config.py

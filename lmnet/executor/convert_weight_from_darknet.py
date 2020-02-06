@@ -20,11 +20,11 @@ import click
 import numpy as np
 import tensorflow as tf
 
-from lmnet import environment
-from lmnet.networks.classification.darknet import Darknet
-from lmnet.networks.object_detection.yolo_v2 import YoloV2
-from lmnet.utils import config as config_util
-from lmnet.utils import executor
+from nn import environment
+from nn.networks.classification.darknet import Darknet
+from nn.networks.object_detection.yolo_v2 import YoloV2
+from nn.utils import config as config_util
+from nn.utils import executor
 
 
 def convert(config, weight_file):

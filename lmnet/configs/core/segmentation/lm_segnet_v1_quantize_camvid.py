@@ -16,22 +16,22 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
-from lmnet.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
-from lmnet.datasets.camvid import Camvid
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from nn.common import Tasks
+from nn.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
+from nn.datasets.camvid import Camvid
+from nn.data_processor import Sequence
+from nn.pre_processor import (
     Resize,
     DivideBy255,
 )
-from lmnet.data_augmentor import (
+from nn.data_augmentor import (
     Brightness,
     Color,
     Contrast,
     FlipLeftRight,
     Hue,
 )
-from lmnet.quantizations import (
+from nn.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

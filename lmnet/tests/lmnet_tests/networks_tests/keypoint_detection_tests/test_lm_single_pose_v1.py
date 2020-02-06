@@ -17,18 +17,18 @@ from easydict import EasyDict
 import pytest
 import tensorflow as tf
 
-from lmnet import environment
-from lmnet.common import Tasks
-from lmnet.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
-from lmnet.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
-from lmnet.utils.executor import prepare_dirs
-from lmnet.pre_processor import (
+from nn import environment
+from nn.common import Tasks
+from nn.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
+from nn.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
+from nn.utils.executor import prepare_dirs
+from nn.pre_processor import (
     DivideBy255,
     ResizeWithJoints,
     JointsToGaussianHeatmap
 )
-from lmnet.data_processor import Sequence
-from lmnet.quantizations import (
+from nn.data_processor import Sequence
+from nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

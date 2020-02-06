@@ -17,8 +17,8 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from lmnet.datasets.camvid import Camvid, CamvidCustom, get_image
-from lmnet.datasets.dataset_iterator import DatasetIterator
+from nn.datasets.camvid import Camvid, CamvidCustom, get_image
+from nn.datasets.dataset_iterator import DatasetIterator
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")

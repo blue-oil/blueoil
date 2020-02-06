@@ -18,13 +18,13 @@ import tensorflow as tf
 from easydict import EasyDict
 
 from executor.train import start_training
-from lmnet import environment
-from lmnet.common import Tasks
-from lmnet.datasets.image_folder import ImageFolderBase
-from lmnet.networks.classification.lm_resnet import LmResnetQuantize
-from lmnet.pre_processor import Resize
-from lmnet.quantizations import binary_mean_scaling_quantizer, linear_mid_tread_half_quantizer
-from lmnet.utils.executor import prepare_dirs
+from nn import environment
+from nn.common import Tasks
+from nn.datasets.image_folder import ImageFolderBase
+from nn.networks.classification.lm_resnet import LmResnetQuantize
+from nn.pre_processor import Resize
+from nn.quantizations import binary_mean_scaling_quantizer, linear_mid_tread_half_quantizer
+from nn.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 # Set test environment

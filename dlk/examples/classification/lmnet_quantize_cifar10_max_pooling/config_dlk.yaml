@@ -1,35 +1,35 @@
 BATCH_SIZE: 1
 DATASET:
   AUGMENTOR: 
-    lmnet.data_processor.Sequence:
+    nn.data_processor.Sequence:
       processors:
       - 
-        lmnet.data_augmentor.Pad:
+        nn.data_augmentor.Pad:
           bottom: 2
           fill: 0
           left: 2
           right: 2
           top: 2
       - 
-        lmnet.data_augmentor.Crop:
+        nn.data_augmentor.Crop:
           height: 32
           is_resize: false
           width: 32
       - 
-        lmnet.data_augmentor.FlipLeftRight:
+        nn.data_augmentor.FlipLeftRight:
           probability: 0.5
   BATCH_SIZE: 100
   PRE_PROCESSOR: 
-    lmnet.data_processor.Sequence:
+    nn.data_processor.Sequence:
       processors:
       - 
-        lmnet.pre_processor.Resize:
+        nn.pre_processor.Resize:
           size:
           - 32
           - 32
       - 
-        lmnet.pre_processor.DivideBy255: {}
-DATASET_CLASS: lmnet.datasets.cifar10.Cifar10
+        nn.pre_processor.DivideBy255: {}
+DATASET_CLASS: nn.datasets.cifar10.Cifar10
 IMAGE_SIZE:
 - 32
 - 32
@@ -38,7 +38,7 @@ IS_PRETRAIN: false
 KEEP_CHECKPOINT_MAX: 5
 MAX_STEPS: 70000
 NETWORK:
-  ACTIVATION_QUANTIZER: lmnet.quantizations.linear.linear_mid_tread_half_quantizer
+  ACTIVATION_QUANTIZER: nn.quantizations.linear.linear_mid_tread_half_quantizer
   ACTIVATION_QUANTIZER_KWARGS:
     bit: 2
     max_value: 2
@@ -61,9 +61,9 @@ NETWORK:
   OPTIMIZER_KWARGS:
     momentum: 0.9
   WEIGHT_DECAY_RATE: 0.0005
-  WEIGHT_QUANTIZER: lmnet.quantizations.binary.binary_mean_scaling_quantizer
+  WEIGHT_QUANTIZER: nn.quantizations.binary.binary_mean_scaling_quantizer
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: lmnet.networks.classification.lmnet_quantize.LmnetQuantize
+NETWORK_CLASS: nn.networks.classification.lmnet_quantize.LmnetQuantize
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
 PRETRAIN_VARS: []

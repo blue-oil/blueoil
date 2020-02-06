@@ -18,10 +18,10 @@ import pytest
 
 from executor.build_tfds import run
 from executor.train import run as train_run
-from lmnet import environment
-from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
-from lmnet.utils import config as config_util
+from nn import environment
+from nn.datasets.dataset_iterator import DatasetIterator
+from nn.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from nn.utils import config as config_util
 
 _RUN_AS_A_SCRIPT = False
 

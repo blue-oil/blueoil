@@ -15,11 +15,11 @@
 # =============================================================================
 from easydict import EasyDict
 
-from lmnet.common import Tasks
-from lmnet.datasets.ilsvrc_2012 import Ilsvrc2012
-from lmnet.networks.classification.darknet import Darknet
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from nn.common import Tasks
+from nn.datasets.ilsvrc_2012 import Ilsvrc2012
+from nn.networks.classification.darknet import Darknet
+from nn.data_processor import Sequence
+from nn.pre_processor import (
     Resize,
     DivideBy255,
 )

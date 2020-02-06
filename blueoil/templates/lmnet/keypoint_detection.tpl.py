@@ -16,24 +16,24 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
-from lmnet.networks.keypoint_detection.{{network_module}} import {{network_class}}
-from lmnet.datasets.{{dataset_module}} import {{dataset_class}}
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from nn.common import Tasks
+from nn.networks.keypoint_detection.{{network_module}} import {{network_class}}
+from nn.datasets.{{dataset_module}} import {{dataset_class}}
+from nn.data_processor import Sequence
+from nn.pre_processor import (
     DivideBy255,
     ResizeWithJoints,
     JointsToGaussianHeatmap
 )
-from lmnet.post_processor import (
+from nn.post_processor import (
     GaussianHeatmapToJoints
 )
-from lmnet.data_augmentor import (
+from nn.data_augmentor import (
     Brightness,
     Color,
     Contrast
 )
-from lmnet.quantizations import (
+from nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

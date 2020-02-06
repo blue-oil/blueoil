@@ -22,10 +22,10 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 
-from lmnet import environment
-from lmnet.utils.image import load_image
-from lmnet.utils import config as config_util
-from lmnet.utils import executor
+from nn import environment
+from nn.utils.image import load_image
+from nn.utils import config as config_util
+from nn.utils import executor
 
 
 # TODO(wakisaka): duplicated function with executor/export.py
