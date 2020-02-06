@@ -30,8 +30,8 @@ from lmnet.quantizations import (
     linear_mid_tread_half_quantizer,
 )
 
-{% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
-    {{ augmentor[0] }},{% endfor %}
+{% if data_augmentation %}from lmnet.data_augmentor import ({% for aug_name in data_augmentation %}
+    {{ aug_name }},{% endfor %}
 ){% endif %}
 
 IS_DEBUG = False
@@ -90,7 +90,7 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([{% if data_augmentation %}{% for augmentor in data_augmentation %}
-    {{ augmentor[0] }}({% for d_name, d_value in augmentor[1] %}{{ d_name }}={{ d_value }}, {% endfor %}),{% endfor %}
+DATASET.AUGMENTOR = Sequence([{% if data_augmentation %}{% for aug_name, aug_val in data_augmentation.items() %}
+    {{ aug_name }}({% for param_name, param_value in aug_val %}{{ param_name }}={{ param_value }}, {% endfor %}),{% endfor %}
 {% endif %}])
 DATASET.ENABLE_PREFETCH = {{ dataset_prefetch }}
