@@ -40,7 +40,7 @@ from lmnet.data_augmentor import (
     SSDRandomCrop,
 )
 
-from lmnet.quantizations import (
+from nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

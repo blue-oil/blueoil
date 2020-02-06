@@ -144,9 +144,9 @@ class LmSinglePoseV1Quantize(LmSinglePoseV1):
     ``weight_quantizer``, ``weight_quantizer_kwargs``.
 
     Args:
-        activation_quantizer (callable): Weight quantizater. See more at `lmnet.quantizations`.
+        activation_quantizer (callable): Weight quantizater. See more at `nn.quantizations`.
         activation_quantizer_kwargs (dict): Kwargs for `activation_quantizer`.
-        weight_quantizer (callable): Activation quantizater. See more at `lmnet.quantizations`.
+        weight_quantizer (callable): Activation quantizater. See more at `nn.quantizations`.
         weight_quantizer_kwargs (dict): Kwargs for `weight_quantizer`.
 
     """
