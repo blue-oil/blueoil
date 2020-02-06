@@ -18,7 +18,7 @@ import os
 import pytest
 import tensorflow as tf
 
-from executor.output_event import output
+from blueoil.cmd.output_event import output
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("reset_default_graph")

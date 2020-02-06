@@ -33,7 +33,7 @@ def _get_tfds_settings(config_file):
 
     if "tfds_kwargs" not in dataset_kwargs:
         raise ValueError("The given config file does not contain settings for building TFDS datasets.\n"
-                         "Please see help messages (python executor/build_tfds.py -h) for detail.")
+                         "Please see help messages (python blueoil/cmd/build_tfds.py -h) for detail.")
 
     tfds_kwargs = dataset_kwargs.pop("tfds_kwargs")
     dataset_name = tfds_kwargs["name"]
@@ -145,8 +145,8 @@ def main(config_file, overwrite):
 
     \b
     ```
-    python executor/build_tfds.py -c common_config_file.py
-    python executor/train.py      -c common_config_file.py
+    python blueoil/cmd/build_tfds.py -c common_config_file.py
+    python blueoil/cmd/train.py      -c common_config_file.py
     ```
     """
 

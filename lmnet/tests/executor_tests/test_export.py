@@ -15,7 +15,7 @@
 # =============================================================================
 import pytest
 
-from executor.export import run
+from blueoil.cmd.export import run
 from executor.train import run as train_run
 from lmnet.environment import setup_test_environment
 

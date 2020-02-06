@@ -28,7 +28,7 @@ from lmnet.utils import config as config_util
 from lmnet.utils import executor
 
 
-# TODO(wakisaka): duplicated function with executor/export.py
+# TODO(wakisaka): duplicated function with blueoil/cmd/export.py
 def _pre_process(raw_image, pre_processor, data_format):
     image = pre_processor(image=raw_image)['image']
     if data_format == 'NCHW':
@@ -79,7 +79,11 @@ def _measure_time(config, restore_path, step_size):
         config.POST_PROCESSOR(**{"outputs": output_np})
 
     # measure time
-    image_files = glob.glob("executor/measure_latency_images/*.jpg")
+    image_files_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "fixtures", "measure_latency_images", "*.jpg")
+
+    image_files = glob.glob(image_files_path)
     overall_times = []
     only_network_times = []
 
