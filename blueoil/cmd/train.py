@@ -19,16 +19,15 @@ from datetime import datetime
 from tensorflow.io import gfile
 import yaml
 
-from blueoil.generate_lmnet_config import generate
 from executor.train import run as run_train
 from lmnet.utils import horovod as horovod_util
 
 
-def run(blueoil_config_file, experiment_id):
+def run(config_file, experiment_id):
     """Train from blueoil config.
 
     Args:
-        blueoil_config_file:
+        config_file:
         experiment_id:
 
     """
@@ -36,26 +35,8 @@ def run(blueoil_config_file, experiment_id):
     if horovod_util.is_enabled():
         horovod_util.setup()
 
-    if horovod_util.is_rank0():
-        # Copy bueoil config yaml.
-        output_dir = os.environ.get('OUTPUT_DIR', 'saved')
-        experiment_dir = os.path.join(output_dir, experiment_id)
-        save_config_file(blueoil_config_file, experiment_dir)
-
-    # Generete lmnet config from blueoil config.
-    # this lmnet_config_file cannot be reuse from multiprocesses as the file is a named temporary file.
-    lmnet_config_file = generate(blueoil_config_file)
-
     # Start training
-    run_train(network=None, dataset=None, config_file=lmnet_config_file, experiment_id=experiment_id, recreate=False)
-
-
-def save_config_file(config_file, dest_dir):
-    if not gfile.exists(dest_dir):
-        gfile.makedirs(dest_dir)
-
-    config_file_dest = os.path.join(dest_dir, 'blueoil_config.yaml')
-    return gfile.copy(config_file, config_file_dest, overwrite=True)
+    run_train(network=None, dataset=None, config_file=config_file, experiment_id=experiment_id, recreate=False)
 
 
 def train(config, experiment_id=None):
