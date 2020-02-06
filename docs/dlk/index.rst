@@ -6,7 +6,8 @@
 DLK Documentation
 ================================
 
-Welcome to DLK documentation.
+Welcome to Blueoil DLK documentation.
+DLK is a converter part in Blueoil for edge devices.
 
 Contents
 -------------------
@@ -14,17 +15,8 @@ Contents
 .. toctree::
    :maxdepth: 1
 
-   policy
-   our_api
-   optimization
-   C++ API <http://192.168.1.200/dlk-docs/cpp/html/index.html>
+   modules
    auto_script
    setup_board
-   docker
    shared_library
    archive_file
-   packages
-
-Indices
-------------------
-* :ref:`genindex`
