@@ -16,7 +16,7 @@
 import numpy as np
 import pytest
 
-from executor.build_tfds import run
+from blueoil.cmd.build_tfds import run
 from executor.train import run as train_run
 from lmnet import environment
 from lmnet.datasets.dataset_iterator import DatasetIterator
