@@ -277,7 +277,8 @@ class BDD100KSegmentation(SegmentationBase):
         label_paths = glob.glob(file_path)
         label_paths.sort()
 
-        assert (len(image_paths) == len(label_paths)), "Number of Images and Labels does not match."
+        assert (len(image_paths) == len(label_paths)), "Number of Images[%s] and Labels[%s] does not match." \
+                                                       % (image_paths, label_paths)
 
         return image_paths, label_paths
 

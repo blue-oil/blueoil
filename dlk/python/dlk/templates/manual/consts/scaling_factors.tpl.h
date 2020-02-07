@@ -22,7 +22,7 @@ namespace scaling_factors {
 
 {% for conv in quantized_convs -%}
 
-{% if conv.quantizer.op_type == 'QTZ_binary_mean_scaling' -%}
+{% if conv.quantizer.op_type == 'BinaryMeanScalingQuantizer' -%}
 
 extern T_FLOAT {{ conv.name }};
 

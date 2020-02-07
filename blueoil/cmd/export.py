@@ -28,11 +28,11 @@ from lmnet.utils import executor
 
 DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    "export_inference_test_data_images",
+    "fixtures", "export_inference_test_data_images",
     "5605039097_05baa93bfd_m.jpg")
 
 
-# TODO(wakisaka): duplicated function with executor/measure_latency.py
+# TODO(wakisaka): duplicated function with blueoil/cmd/measure_latency.py
 def _pre_process(raw_image, pre_processor, data_format):
     image = pre_processor(image=raw_image)['image']
     if data_format == 'NCHW':
@@ -128,6 +128,13 @@ def _export(config, restore_path, image_path):
         index = 0
         for op in all_ops:
             for op_output in op.outputs:
+                # HACK: This is for TensorFlow bug workaround.
+                # We can remove following 4 lines once it's been resolved in TensorFlow
+                # Issue link: https://github.com/tensorflow/tensorflow/issues/36456
+                if (not tf.config.experimental.list_physical_devices('GPU')
+                        and "FusedBatchNormV3" in op_output.name
+                        and int(op_output.name.split(":")[1]) in set(range(1, 6))):
+                    continue
                 val = sess.run(op_output.name, feed_dict=feed_dict)
                 name = '%03d' % index + '_' + op_output.name.replace('/', '_')
                 all_outputs.append({'val': val, 'name': name})

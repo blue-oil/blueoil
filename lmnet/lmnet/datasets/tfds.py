@@ -94,7 +94,7 @@ class TFDSMixin:
         else:
             if not tf.io.gfile.exists(os.path.join(data_dir, name)):
                 raise ValueError("Dataset directory does not exist: {}\n"
-                                 "Please run `python executor/build_tfds.py -c <config file>` before training."
+                                 "Please run `python blueoil/cmd/build_tfds.py -c <config file>` before training."
                                  .format(os.path.join(data_dir, name)))
 
             self._builder = self.builder_class(name, data_dir=data_dir)

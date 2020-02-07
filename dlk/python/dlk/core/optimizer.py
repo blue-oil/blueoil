@@ -171,7 +171,7 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
 
     exec_list = sort_graph(graph)
     qtypes = [
-        'QTZ_binary_mean_scaling',
+        'BinaryMeanScalingQuantizer',
         'QTZ_linear_mid_tread_half',
         'BinaryChannelWiseMeanScalingQuantizer',
         'Lookup'
@@ -348,7 +348,7 @@ def pass_pack_weights(graph: Graph) -> None:
     """
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
     quantization_types = [
-        'QTZ_binary_mean_scaling',
+        'BinaryMeanScalingQuantizer',
         'QTZ_linear_mid_tread_half',
         'BinaryChannelWiseMeanScalingQuantizer'
     ]
@@ -569,7 +569,7 @@ def pass_lookup(graph: Graph) -> None:
 
     """
     quantization_types = [
-        'QTZ_binary_mean_scaling',
+        'BinaryMeanScalingQuantizer',
         'QTZ_linear_mid_tread_half',
         'BinaryChannelWiseMeanScalingQuantizer'
     ]
