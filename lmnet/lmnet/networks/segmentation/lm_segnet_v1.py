@@ -99,10 +99,10 @@ class LmSegnetV1Quantize(LmSegnetV1):
 
     Args:
         activation_quantizer (callable): Weight quantizater.
-            See more at `nn.quantizations`.
+            See more at `blueoil.nn.quantizations`.
         activation_quantizer_kwargs (dict): Kwargs for `activation_quantizer`.
         weight_quantizer (callable): Activation quantizater.
-            See more at `nn.quantizations`.
+            See more at `blueoil.nn.quantizations`.
         weight_quantizer_kwargs (dict): Kwargs for `weight_quantizer`.
 
     """

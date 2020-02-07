@@ -35,7 +35,7 @@ from lmnet.data_augmentor import (
     FlipLeftRight,
     Hue,
 )
-from nn.quantizations import (
+from blueoil.nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
