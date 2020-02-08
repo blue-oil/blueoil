@@ -29,7 +29,7 @@ DATASET:
           - 32
       - 
         lmnet.pre_processor.DivideBy255: {}
-DATASET_CLASS: lmnet.datasets.cifar10.Cifar10
+DATASET_CLASS: blueoil.nn.datasets.cifar10.Cifar10
 IMAGE_SIZE:
 - 32
 - 32

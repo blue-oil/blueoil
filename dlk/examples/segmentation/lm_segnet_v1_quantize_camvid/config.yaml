@@ -33,7 +33,7 @@ DATASET:
   PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     processors:
     - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:lmnet.datasets.camvid.Camvid ''
+DATASET_CLASS: !!python/name:blueoil.nn.datasets.camvid.Camvid ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 360

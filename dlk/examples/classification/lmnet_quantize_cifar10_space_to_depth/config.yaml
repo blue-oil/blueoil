@@ -22,7 +22,7 @@ DATASET:
       - 32
       - 32
     - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:lmnet.datasets.cifar10.Cifar10 ''
+DATASET_CLASS: !!python/name:blueoil.nn.datasets.cifar10.Cifar10 ''
 IMAGE_SIZE:
 - 32
 - 32
