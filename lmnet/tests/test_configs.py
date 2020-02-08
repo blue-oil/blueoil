@@ -34,15 +34,6 @@ def test_core_configs():
         check_config(config, "inference")
 
 
-def test_convert_weight_from_darknet_configs():
-    """Test that all config files in `configs/convert_weight_from_darknet` dir include requirement keys."""
-    dir_path = os.path.join("configs", "convert_weight_from_darknet")
-
-    for config_file in glob.glob(os.path.join(dir_path, "**", "*.py"), recursive=True):
-        config = _load_py(config_file)
-        check_config(config, "inference")
-
-
 def test_example_config():
     """Test that example config python file include requirement keys."""
 
@@ -111,7 +102,6 @@ def test_example_object_detection_config_yaml():
 
 if __name__ == '__main__':
     test_core_configs()
-    test_convert_weight_from_darknet_configs()
     test_example_config()
     test_example_classification_config_yaml()
     test_example_object_detection_config_yaml()
