@@ -18,7 +18,7 @@ import os.path
 import numpy as np
 
 from lmnet.utils.image import load_image
-from lmnet.datasets.base import KeypointDetectionBase
+from blueoil.nn.datasets.base import KeypointDetectionBase
 
 
 class YoutubeFacialLandmarks(KeypointDetectionBase):

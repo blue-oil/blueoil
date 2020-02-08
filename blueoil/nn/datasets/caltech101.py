@@ -17,7 +17,7 @@ import functools
 import os
 import os.path
 
-from lmnet.datasets.image_folder import ImageFolderBase
+from blueoil.nn.datasets.image_folder import ImageFolderBase
 
 
 class Caltech101(ImageFolderBase):

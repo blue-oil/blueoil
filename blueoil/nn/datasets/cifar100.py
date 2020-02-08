@@ -20,7 +20,7 @@ import pickle
 import numpy as np
 
 from lmnet import data_processor
-from lmnet.datasets.base import Base
+from blueoil.nn.datasets.base import Base
 from lmnet.utils.random import shuffle
 
 

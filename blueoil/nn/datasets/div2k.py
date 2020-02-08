@@ -17,7 +17,7 @@ import functools
 import os
 from glob import glob
 
-from lmnet.datasets.base import Base
+from blueoil.nn.datasets.base import Base
 from lmnet.utils.image import load_image
 
 

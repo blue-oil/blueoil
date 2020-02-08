@@ -22,7 +22,7 @@ import pandas as pd
 
 from lmnet import data_processor
 from lmnet.utils.image import load_image
-from lmnet.datasets.base import Base
+from blueoil.nn.datasets.base import Base
 
 
 class Ilsvrc2012(Base):

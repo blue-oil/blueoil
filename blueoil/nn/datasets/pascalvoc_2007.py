@@ -16,7 +16,7 @@
 import os
 import os.path
 
-from lmnet.datasets.pascalvoc_base import PascalvocBase
+from blueoil.nn.datasets.pascalvoc_base import PascalvocBase
 
 
 class Pascalvoc2007(PascalvocBase):

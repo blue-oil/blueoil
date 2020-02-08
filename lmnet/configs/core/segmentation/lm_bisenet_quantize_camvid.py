@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.segmentation.lm_bisenet import LMBiSeNetQuantize
-from lmnet.datasets.camvid import Camvid
+from blueoil.nn.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,

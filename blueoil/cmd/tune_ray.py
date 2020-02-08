@@ -23,9 +23,9 @@ import tensorflow as tf
 from easydict import EasyDict
 
 import ray
-from lmnet.datasets.base import ObjectDetectionBase
-from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from blueoil.nn.datasets.base import ObjectDetectionBase
+from blueoil.nn.datasets.dataset_iterator import DatasetIterator
+from blueoil.nn.datasets.tfds import TFDSClassification, TFDSObjectDetection
 from lmnet.utils import config as config_util
 from lmnet.utils import executor
 from ray.tune import Trainable, register_trainable, run_experiments

@@ -16,8 +16,8 @@
 import numpy as np
 import pytest
 
-from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.datasets.image_folder import ImageFolderBase
+from blueoil.nn.datasets.dataset_iterator import DatasetIterator
+from blueoil.nn.datasets.image_folder import ImageFolderBase
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")

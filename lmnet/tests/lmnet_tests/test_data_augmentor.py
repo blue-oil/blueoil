@@ -20,9 +20,9 @@ import PIL.Image
 import PIL.ImageDraw
 import pytest
 
-from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
+from blueoil.nn.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.utils.image import load_image
-from lmnet.datasets.dataset_iterator import DatasetIterator
+from blueoil.nn.datasets.dataset_iterator import DatasetIterator
 from lmnet.pre_processor import ResizeWithGtBoxes
 from lmnet.data_processor import (
     Sequence

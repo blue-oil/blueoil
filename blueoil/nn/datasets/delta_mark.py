@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 
 from lmnet import data_processor
-from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
+from blueoil.nn.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
 from lmnet.utils.image import load_image
 from lmnet.utils.random import shuffle, train_test_split
 

@@ -17,8 +17,8 @@ import numpy as np
 import pytest
 
 from lmnet.pre_processor import ResizeWithJoints, JointsToGaussianHeatmap
-from lmnet.datasets.ytfaces import YoutubeFacialLandmarks
-from lmnet.datasets.dataset_iterator import DatasetIterator
+from blueoil.nn.datasets.ytfaces import YoutubeFacialLandmarks
+from blueoil.nn.datasets.dataset_iterator import DatasetIterator
 from lmnet.data_processor import Sequence
 
 

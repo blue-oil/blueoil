@@ -19,7 +19,7 @@ import numpy as np
 from pycocotools.coco import COCO
 
 from lmnet.utils.image import load_image
-from lmnet.datasets.base import KeypointDetectionBase
+from blueoil.nn.datasets.base import KeypointDetectionBase
 
 
 class MscocoSinglePersonKeypoints(KeypointDetectionBase):
