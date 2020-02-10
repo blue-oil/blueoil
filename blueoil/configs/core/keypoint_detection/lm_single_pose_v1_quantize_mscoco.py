@@ -28,7 +28,7 @@ from lmnet.pre_processor import (
 from lmnet.post_processor import (
     GaussianHeatmapToJoints
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast

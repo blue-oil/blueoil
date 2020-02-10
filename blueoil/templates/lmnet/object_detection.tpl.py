@@ -19,7 +19,7 @@ import tensorflow as tf
 from lmnet.common import Tasks
 from lmnet.networks.object_detection.{{network_module}} import {{network_class}}
 from lmnet.datasets.{{dataset_module}} import {{dataset_class}}
-{% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
+{% if data_augmentation %}from blueoil.data_augmentor import ({% for augmentor in data_augmentation %}
     {{ augmentor[0] }},{% endfor %}
 ){% endif %}
 from lmnet.data_processor import Sequence

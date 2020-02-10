@@ -24,7 +24,7 @@ from lmnet.pre_processor import (
     Resize,
     PerImageStandardization,
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     FlipLeftRight,
 )
 from blueoil.nn.quantizations import (

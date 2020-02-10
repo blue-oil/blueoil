@@ -30,7 +30,7 @@ from blueoil.nn.quantizations import (
     linear_mid_tread_half_quantizer,
 )
 
-{% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
+{% if data_augmentation %}from blueoil.data_augmentor import ({% for augmentor in data_augmentation %}
     {{ augmentor[0] }},{% endfor %}
 ){% endif %}
 

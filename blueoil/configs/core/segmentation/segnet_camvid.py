@@ -23,7 +23,7 @@ from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     PerImageStandardization,
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast,

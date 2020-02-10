@@ -21,7 +21,7 @@ from collections import OrderedDict
 import whaaaaat
 from jinja2 import Environment, FileSystemLoader
 
-import lmnet.data_augmentor as augmentor
+import blueoil.data_augmentor as augmentor
 from lmnet.data_processor import Processor
 
 

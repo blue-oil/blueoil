@@ -4,21 +4,21 @@ CLASSES:
 DATASET:
   AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.data_augmentor.FlipLeftRight
+    - !!python/object:blueoil.data_augmentor.FlipLeftRight
       probability: 0.5
-    - !!python/object:lmnet.data_augmentor.Brightness
+    - !!python/object:blueoil.data_augmentor.Brightness
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Color
+    - !!python/object:blueoil.data_augmentor.Color
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Contrast
+    - !!python/object:blueoil.data_augmentor.Contrast
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Hue
+    - !!python/object:blueoil.data_augmentor.Hue
       max_value: 10
       min_value: -10
-    - !!python/object:lmnet.data_augmentor.SSDRandomCrop
+    - !!python/object:blueoil.data_augmentor.SSDRandomCrop
       aspect_ratio_max: 2
       aspect_ratio_min: 0.5
       min_crop_ratio: 0.5
