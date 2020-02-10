@@ -17,7 +17,7 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from blueoil.nn.datasets.pascalvoc_2007 import Pascalvoc2007
+from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
@@ -32,7 +32,7 @@ from lmnet.post_processor import (
 from lmnet.data_augmentor import (
     FlipLeftRight,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

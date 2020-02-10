@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
-from blueoil.nn.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
+from blueoil.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     ResizeWithGtBoxes,
@@ -37,7 +37,7 @@ from lmnet.data_augmentor import (
     Hue,
     SSDRandomCrop,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

@@ -17,10 +17,10 @@ import numpy as np
 import pytest
 
 from lmnet.pre_processor import Resize, ResizeWithGtBoxes
-from blueoil.nn.datasets.open_images_v4 import OpenImagesV4BoundingBox
-from blueoil.nn.datasets.open_images_v4 import OpenImagesV4Classification
-from blueoil.nn.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
-from blueoil.nn.datasets.dataset_iterator import DatasetIterator
+from blueoil.datasets.open_images_v4 import OpenImagesV4BoundingBox
+from blueoil.datasets.open_images_v4 import OpenImagesV4Classification
+from blueoil.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
+from blueoil.datasets.dataset_iterator import DatasetIterator
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")

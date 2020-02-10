@@ -21,7 +21,7 @@ from easydict import EasyDict
 from executor.train import start_training
 from lmnet import environment
 from lmnet.common import Tasks
-from blueoil.nn.datasets.pascalvoc_2007 import Pascalvoc2007
+from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.networks.object_detection.yolo_v1 import YoloV1
 from lmnet.pre_processor import ResizeWithGtBoxes
 from lmnet.utils.executor import prepare_dirs

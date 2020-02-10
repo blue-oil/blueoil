@@ -20,7 +20,7 @@ from lmnet.common import Tasks
 from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
 
 
-from blueoil.nn.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
+from blueoil.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     ResizeWithGtBoxes,
@@ -40,7 +40,7 @@ from lmnet.data_augmentor import (
     SSDRandomCrop,
 )
 
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

@@ -16,8 +16,8 @@
 import numpy as np
 import pytest
 
-from blueoil.nn.datasets.dataset_iterator import DatasetIterator
-from blueoil.nn.datasets.div2k import Div2k
+from blueoil.datasets.dataset_iterator import DatasetIterator
+from blueoil.datasets.div2k import Div2k
 
 
 def test_train_files(set_test_environment):

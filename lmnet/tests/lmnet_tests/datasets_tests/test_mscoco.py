@@ -15,7 +15,7 @@
 # =============================================================================
 import pytest
 
-from blueoil.nn.datasets.mscoco import MscocoObjectDetection
+from blueoil.datasets.mscoco import MscocoObjectDetection
 
 
 pytestmark = pytest.mark.usefixtures("set_test_environment")

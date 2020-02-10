@@ -17,7 +17,7 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from blueoil.nn.datasets.ilsvrc_2012 import Ilsvrc2012
+from blueoil.datasets.ilsvrc_2012 import Ilsvrc2012
 from lmnet.data_processor import Sequence
 from lmnet.data_augmentor import (
     Brightness,
@@ -32,7 +32,7 @@ from lmnet.pre_processor import (
     Resize,
     DivideBy255,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from lmnet import environment
 from lmnet.common import Tasks
-from blueoil.nn.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
+from blueoil.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
 from lmnet.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
 from lmnet.utils.executor import prepare_dirs
 from lmnet.pre_processor import (
@@ -28,7 +28,7 @@ from lmnet.pre_processor import (
     JointsToGaussianHeatmap
 )
 from lmnet.data_processor import Sequence
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

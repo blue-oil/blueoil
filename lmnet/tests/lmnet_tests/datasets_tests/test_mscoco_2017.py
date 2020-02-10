@@ -17,8 +17,8 @@ import numpy as np
 import pytest
 
 from lmnet.pre_processor import ResizeWithJoints, JointsToGaussianHeatmap
-from blueoil.nn.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
-from blueoil.nn.datasets.dataset_iterator import DatasetIterator
+from blueoil.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
+from blueoil.datasets.dataset_iterator import DatasetIterator
 from lmnet.data_processor import Sequence
 
 

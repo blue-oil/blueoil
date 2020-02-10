@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.classification import LmnetQuantize
-from blueoil.nn.datasets.cifar10 import Cifar10
+from blueoil.datasets.cifar10 import Cifar10
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
@@ -29,7 +29,7 @@ from lmnet.data_augmentor import (
     FlipLeftRight,
     Pad,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

@@ -16,9 +16,9 @@
 import numpy as np
 import pytest
 
-from blueoil.nn.datasets.dataset_iterator import DatasetIterator
+from blueoil.datasets.dataset_iterator import DatasetIterator
 from lmnet.pre_processor import Resize, ResizeWithGtBoxes
-from blueoil.nn.datasets.delta_mark import (
+from blueoil.datasets.delta_mark import (
     ClassificationBase,
     ObjectDetectionBase,
 )

@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
-from blueoil.nn.datasets.cityscapes import Cityscapes
+from blueoil.datasets.cityscapes import Cityscapes
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     DivideBy255,
@@ -31,7 +31,7 @@ from lmnet.data_augmentor import (
     FlipLeftRight,
     Hue,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
