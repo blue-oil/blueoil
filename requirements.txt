@@ -5,7 +5,7 @@ numpy==1.17.4
 pandas==0.19.2
 Pillow==6.2.1
 prompt_toolkit==1.0.15
-pytablewriter==0.35
+pytablewriter==0.47.0
 PyYAML==4.2b4
 tensorflow-datasets==1.0.2
 whaaaaat==0.5.2
