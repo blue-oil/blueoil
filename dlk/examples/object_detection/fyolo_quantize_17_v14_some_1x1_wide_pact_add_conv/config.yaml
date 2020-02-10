@@ -68,7 +68,7 @@ DATASET:
       - 320
       - 320
     - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:blueoil.nn.datasets.pascalvoc_2007_2012.Pascalvoc20072012 ''
+DATASET_CLASS: !!python/name:blueoil.datasets.pascalvoc_2007_2012.Pascalvoc20072012 ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 320

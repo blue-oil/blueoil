@@ -35,7 +35,7 @@ DATASET:
       - 32
       - 32
     - !!python/object:lmnet.pre_processor.PerImageStandardization {}
-DATASET_CLASS: !!python/name:blueoil.nn.datasets.cifar10.Cifar10 ''
+DATASET_CLASS: !!python/name:blueoil.datasets.cifar10.Cifar10 ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 32

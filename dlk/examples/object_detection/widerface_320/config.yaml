@@ -49,7 +49,7 @@ DATASET:
       - 320
       - 320
     - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:blueoil.nn.datasets.widerface.WiderFace ''
+DATASET_CLASS: !!python/name:blueoil.datasets.widerface.WiderFace ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 320
