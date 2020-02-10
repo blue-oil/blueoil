@@ -19,7 +19,7 @@ import tensorflow as tf
 from tensorflow.python.framework import ops
 
 from lmnet.blocks import lmnet_block
-from blueoil.nn.layers.experiment import max_unpool_with_argmax
+from blueoil.layers.experiment import max_unpool_with_argmax
 from lmnet.networks.segmentation.base import SegnetBase
 
 

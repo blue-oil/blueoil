@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from blueoil.nn.layers.layers import *  # NOQA
+from blueoil.layers.layers import *  # NOQA
