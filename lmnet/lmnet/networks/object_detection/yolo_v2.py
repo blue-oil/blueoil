@@ -18,7 +18,7 @@ import math
 import numpy as np
 import tensorflow as tf
 
-from lmnet.blocks import darknet as darknet_block
+from blueoil.blocks import darknet as darknet_block
 from lmnet.layers import conv2d, max_pooling2d
 from lmnet.metrics.mean_average_precision import average_precision, tp_fp_in_the_image
 from lmnet.networks.base import BaseNetwork
