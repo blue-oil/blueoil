@@ -22,8 +22,8 @@ import pandas as pd
 
 from lmnet import data_processor
 from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
-from lmnet.utils.image import load_image
-from lmnet.utils.random import shuffle, train_test_split
+from blueoil.utils.image import load_image
+from blueoil.utils.random import shuffle, train_test_split
 
 
 @functools.lru_cache(maxsize=None)

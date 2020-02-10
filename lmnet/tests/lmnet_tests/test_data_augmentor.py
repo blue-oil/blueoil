@@ -21,7 +21,7 @@ import PIL.ImageDraw
 import pytest
 
 from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
-from lmnet.utils.image import load_image
+from blueoil.utils.image import load_image
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.pre_processor import ResizeWithGtBoxes
 from lmnet.data_processor import (
@@ -40,7 +40,7 @@ from lmnet.data_augmentor import (
     RandomPatchCut,
     SSDRandomCrop
 )
-from lmnet.utils.box import iou, crop_boxes
+from blueoil.utils.box import iou, crop_boxes
 
 
 # Apply reset_default_graph() and set_test_environment() in conftest.py to all tests in this file.

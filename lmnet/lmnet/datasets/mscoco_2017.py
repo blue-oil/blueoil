@@ -18,7 +18,7 @@ import os.path
 import numpy as np
 from pycocotools.coco import COCO
 
-from lmnet.utils.image import load_image
+from blueoil.utils.image import load_image
 from lmnet.datasets.base import KeypointDetectionBase
 
 

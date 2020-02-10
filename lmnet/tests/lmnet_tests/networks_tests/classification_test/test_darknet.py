@@ -23,7 +23,7 @@ from lmnet.common import Tasks
 from lmnet.datasets.image_folder import ImageFolderBase
 from lmnet.networks.classification.darknet import Darknet
 from lmnet.pre_processor import Resize
-from lmnet.utils.executor import prepare_dirs
+from blueoil.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
 # Set test environment

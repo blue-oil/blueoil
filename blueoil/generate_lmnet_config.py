@@ -23,7 +23,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 from tensorflow.io import gfile
 
-from lmnet.utils.module_loader import load_class
+from blueoil.utils.module_loader import load_class
 
 
 _TASK_TYPE_TEMPLATE_FILE = {

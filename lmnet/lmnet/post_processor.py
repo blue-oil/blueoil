@@ -19,7 +19,7 @@ import numpy as np
 
 from lmnet.data_augmentor import iou
 from lmnet.data_processor import Processor
-from lmnet.utils.box import format_cxcywh_to_xywh
+from blueoil.utils.box import format_cxcywh_to_xywh
 
 
 def _softmax(x):

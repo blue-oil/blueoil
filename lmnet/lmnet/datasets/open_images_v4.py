@@ -25,8 +25,8 @@ import numpy as np
 
 from lmnet import data_processor
 from lmnet.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
-from lmnet.utils.image import load_image
-from lmnet.utils.random import train_test_split
+from blueoil.utils.image import load_image
+from blueoil.utils.random import train_test_split
 
 
 class OpenImagesV4(Base):

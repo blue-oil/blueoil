@@ -22,9 +22,9 @@ from glob import glob
 import numpy as np
 
 from lmnet import data_processor
-from lmnet.utils.image import load_image
+from blueoil.utils.image import load_image
 from lmnet.datasets.base import Base, StoragePathCustomizable
-from lmnet.utils.random import train_test_split
+from blueoil.utils.random import train_test_split
 
 
 class ImageFolderBase(StoragePathCustomizable, Base):
