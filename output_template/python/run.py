@@ -100,9 +100,9 @@ def _run(model, image_data, config):
 
 def _timerfunc(func, extraArgs, trial):
     if sys.version_info.major == 2:
-        get_time = time.clock
+        get_time = time.time
     else:
-        get_time = time.process_time
+        get_time = time.perf_counter
 
     runtime = 0.
     for i in range(trial):
