@@ -15,7 +15,7 @@
 # =============================================================================
 import tensorflow as tf
 
-from lmnet.metrics.metrics import tp_tn_fp_fn, tp_tn_fp_fn_for_each
+from blueoil.nn.metrics.metrics import tp_tn_fp_fn, tp_tn_fp_fn_for_each
 
 
 def safe_log(arg):

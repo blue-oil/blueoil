@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 
 from lmnet.layers import conv2d, fully_connected, max_pooling2d
-from lmnet.metrics.mean_average_precision import average_precision, tp_fp_in_the_image
+from blueoil.nn.metrics.mean_average_precision import average_precision, tp_fp_in_the_image
 from lmnet.networks.base import BaseNetwork
 
 

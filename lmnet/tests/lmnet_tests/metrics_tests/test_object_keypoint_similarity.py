@@ -16,7 +16,7 @@
 import pytest
 import numpy as np
 
-from lmnet.metrics.object_keypoint_similarity import compute_object_keypoint_similarity, _compute_oks
+from blueoil.nn.metrics.object_keypoint_similarity import compute_object_keypoint_similarity, _compute_oks
 
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
