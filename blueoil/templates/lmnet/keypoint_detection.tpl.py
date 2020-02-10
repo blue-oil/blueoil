@@ -16,7 +16,7 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from lmnet.networks.keypoint_detection.{{network_module}} import {{network_class}}
 from lmnet.datasets.{{dataset_module}} import {{dataset_class}}
 from lmnet.data_processor import Sequence

@@ -16,7 +16,7 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from lmnet.networks.classification.{{network_module}} import {{network_class}}
 from lmnet.datasets.{{dataset_module}} import {{dataset_class}}
 {% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
