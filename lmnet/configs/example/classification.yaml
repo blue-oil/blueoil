@@ -46,7 +46,7 @@ IS_PRETRAIN: false
 KEEP_CHECKPOINT_MAX: 5
 MAX_EPOCHS: 1
 NETWORK:
-  ACTIVATION_QUANTIZER: !!python/name:lmnet.quantizations.linear.linear_mid_tread_half_quantizer ''
+  ACTIVATION_QUANTIZER: !!python/name:blueoil.nn.quantizations.linear.linear_mid_tread_half_quantizer ''
   ACTIVATION_QUANTIZER_KWARGS:
     bit: 2
     max_value: 2
@@ -59,7 +59,7 @@ NETWORK:
   OPTIMIZER_KWARGS:
     learning_rate: 0.001
   WEIGHT_DECAY_RATE: 0.0005
-  WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_mean_scaling_quantizer ''
+  WEIGHT_QUANTIZER: !!python/name:blueoil.nn.quantizations.binary.binary_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
 NETWORK_CLASS: !!python/name:lmnet.networks.classification.lmnet_v0.LmnetV0Quantize ''
 POST_PROCESSOR: null
