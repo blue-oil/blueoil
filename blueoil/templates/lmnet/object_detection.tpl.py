@@ -33,7 +33,7 @@ from lmnet.post_processor import (
     ExcludeLowScoreBox,
     NMS,
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
