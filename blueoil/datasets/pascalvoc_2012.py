@@ -16,7 +16,7 @@
 import os
 import os.path
 
-from blueoil.nn.datasets.pascalvoc_base import PascalvocBase
+from blueoil.datasets.pascalvoc_base import PascalvocBase
 
 
 class Pascalvoc2012(PascalvocBase):

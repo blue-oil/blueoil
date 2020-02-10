@@ -18,7 +18,7 @@ import tensorflow as tf
 
 from lmnet.common import Tasks
 from lmnet.networks.object_detection.{{network_module}} import {{network_class}}
-from blueoil.nn.datasets.{{dataset_module}} import {{dataset_class}}
+from blueoil.datasets.{{dataset_module}} import {{dataset_class}}
 {% if data_augmentation %}from lmnet.data_augmentor import ({% for augmentor in data_augmentation %}
     {{ augmentor[0] }},{% endfor %}
 ){% endif %}
@@ -33,7 +33,7 @@ from lmnet.post_processor import (
     ExcludeLowScoreBox,
     NMS,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

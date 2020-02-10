@@ -19,7 +19,7 @@ import os
 import numpy as np
 
 from lmnet.utils.image import load_image
-from blueoil.nn.datasets.base import ObjectDetectionBase
+from blueoil.datasets.base import ObjectDetectionBase
 
 
 class WiderFace(ObjectDetectionBase):

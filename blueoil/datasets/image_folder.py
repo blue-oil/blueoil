@@ -23,7 +23,7 @@ import numpy as np
 
 from lmnet import data_processor
 from lmnet.utils.image import load_image
-from blueoil.nn.datasets.base import Base, StoragePathCustomizable
+from blueoil.datasets.base import Base, StoragePathCustomizable
 from lmnet.utils.random import train_test_split
 
 

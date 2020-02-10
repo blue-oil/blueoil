@@ -164,7 +164,7 @@ def _blueoil_to_lmnet(blueoil_config):
         dataset_class_property = {"extend_dir": dataset_class_extend_dir}
 
     # load dataset python module from string.
-    _loaded_dataset_module = importlib.import_module("blueoil.nn.datasets.{}".format(dataset_module))
+    _loaded_dataset_module = importlib.import_module("blueoil.datasets.{}".format(dataset_module))
     # load dataset python module from string.
     _loaded_dataset_class = load_class(_loaded_dataset_module, dataset_class)
     _dataset_class = type('DATASET_CLASS', (_loaded_dataset_class,), dataset_class_property)

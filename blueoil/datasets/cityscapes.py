@@ -23,7 +23,7 @@ import os.path
 import numpy as np
 from PIL import Image
 
-from blueoil.nn.datasets.base import SegmentationBase
+from blueoil.datasets.base import SegmentationBase
 
 
 class Cityscapes(SegmentationBase):
