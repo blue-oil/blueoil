@@ -30,7 +30,7 @@ from lmnet.data_augmentor import (
     FlipLeftRight,
     Hue,
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

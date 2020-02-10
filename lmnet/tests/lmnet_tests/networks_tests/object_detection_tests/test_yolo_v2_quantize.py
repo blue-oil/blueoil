@@ -23,7 +23,7 @@ from lmnet.common import Tasks
 from blueoil.nn.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
 from lmnet.pre_processor import ResizeWithGtBoxes
-from lmnet.quantizations import binary_channel_wise_mean_scaling_quantizer, linear_mid_tread_half_quantizer
+from blueoil.nn.quantizations import binary_channel_wise_mean_scaling_quantizer, linear_mid_tread_half_quantizer
 from lmnet.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.

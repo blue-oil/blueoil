@@ -28,7 +28,7 @@ from lmnet.pre_processor import (
     JointsToGaussianHeatmap
 )
 from lmnet.data_processor import Sequence
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
