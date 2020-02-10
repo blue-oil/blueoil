@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from lmnet.utils.predict_output.writer import OutputWriter
 from lmnet.utils.predict_output.writer import save_json
 from lmnet.utils.predict_output.writer import save_npy

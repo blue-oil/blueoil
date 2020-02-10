@@ -19,7 +19,7 @@ from easydict import EasyDict
 
 from executor.train import start_training
 from lmnet import environment
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from lmnet.datasets.image_folder import ImageFolderBase
 from lmnet.networks.classification.lmnet_quantize import LmnetQuantize
 from lmnet.pre_processor import Resize

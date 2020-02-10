@@ -29,7 +29,7 @@ import click
 import cv2
 import numpy as np
 
-from lmnet.common import get_color_map
+from blueoil.common import get_color_map
 from lmnet.nnlib import NNLib
 from lmnet.utils.config import (
     load_yaml,

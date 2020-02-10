@@ -22,7 +22,7 @@ from tensorflow.core.util.event_pb2 import SessionLog
 from tensorflow.keras.utils import Progbar
 
 from lmnet import environment
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from lmnet.datasets.base import ObjectDetectionBase
 from lmnet.datasets.dataset_iterator import DatasetIterator
 from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
