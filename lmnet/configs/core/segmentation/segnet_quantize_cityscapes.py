@@ -17,7 +17,7 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
+from blueoil.nn.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
 from lmnet.datasets.cityscapes import Cityscapes
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (

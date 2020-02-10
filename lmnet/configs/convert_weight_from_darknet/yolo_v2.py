@@ -16,7 +16,7 @@
 from easydict import EasyDict
 
 from lmnet.common import Tasks
-from lmnet.networks.object_detection.yolo_v2 import YoloV2
+from blueoil.nn.networks.object_detection.yolo_v2 import YoloV2
 from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (

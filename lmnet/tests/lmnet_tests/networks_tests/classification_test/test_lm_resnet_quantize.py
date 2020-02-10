@@ -21,7 +21,7 @@ from executor.train import start_training
 from lmnet import environment
 from lmnet.common import Tasks
 from lmnet.datasets.image_folder import ImageFolderBase
-from lmnet.networks.classification.lm_resnet import LmResnetQuantize
+from blueoil.nn.networks.classification.lm_resnet import LmResnetQuantize
 from lmnet.pre_processor import Resize
 from lmnet.quantizations import binary_mean_scaling_quantizer, linear_mid_tread_half_quantizer
 from lmnet.utils.executor import prepare_dirs

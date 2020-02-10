@@ -14,6 +14,6 @@
 # limitations under the License.
 # =============================================================================
 # this file exists for backward compatibility, to make it possible
-# to import by from `lmnet.networks.classification.lmnet_quantize import Lmnet`
+# to import by from `blueoil.nn.networks.classification.lmnet_quantize import Lmnet`
 
-from lmnet.networks.classification import LmnetQuantize  # NOQA
+from blueoil.nn.networks.classification import LmnetQuantize  # NOQA

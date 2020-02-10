@@ -98,7 +98,7 @@ def load_network_class(name):
         name (str):  Name of network
 
     Returns:
-        lmnet.networks.Base: network class object
+        blueoil.nn.networks.Base: network class object
 
     """
 

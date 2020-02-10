@@ -67,7 +67,7 @@ NETWORK:
   OPTIMIZER_KWARGS:
     momentum: 0.9
   WEIGHT_DECAY_RATE: 0.0005
-NETWORK_CLASS: !!python/name:lmnet.networks.classification.lmnet_v1.LmnetV1GC ''
+NETWORK_CLASS: !!python/name:blueoil.nn.networks.classification.lmnet_v1.LmnetV1GC ''
 POST_PROCESSOR: null
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''

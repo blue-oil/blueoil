@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from lmnet.blocks import darknet as darknet_block
 from lmnet.layers import conv2d, max_pooling2d
-from lmnet.networks.classification.base import Base
+from blueoil.nn.networks.classification.base import Base
 
 
 class Darknet(Base):

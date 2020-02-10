@@ -171,14 +171,14 @@ class TrainTunable(Trainable):
         self.train_dataset = setup_dataset(self.lm_config, "train", 0)
         self.validation_dataset = setup_dataset(self.lm_config, "validation", 0)
 
-        if model_class.__module__.startswith("lmnet.networks.object_detection"):
+        if model_class.__module__.startswith("blueoil.nn.networks.object_detection"):
             model = model_class(
                 classes=self.train_dataset.classes,
                 num_max_boxes=self.train_dataset.num_max_boxes,
                 is_debug=self.lm_config.IS_DEBUG,
                 **network_kwargs,
             )
-        elif model_class.__module__.startswith("lmnet.networks.segmentation"):
+        elif model_class.__module__.startswith("blueoil.nn.networks.segmentation"):
             model = model_class(
                 classes=self.train_dataset.classes,
                 label_colors=self.train_dataset.label_colors,
@@ -197,7 +197,7 @@ class TrainTunable(Trainable):
         self.images_placeholder, self.labels_placeholder = model.placeholders()
 
         output = model.inference(self.images_placeholder, self.is_training_placeholder)
-        if model_class.__module__.startswith("lmnet.networks.object_detection"):
+        if model_class.__module__.startswith("blueoil.nn.networks.object_detection"):
             loss = model.loss(output, self.labels_placeholder, self.is_training_placeholder)
         else:
             loss = model.loss(output, self.labels_placeholder)
@@ -246,7 +246,7 @@ class TrainTunable(Trainable):
 
             self.sess.run([self.metrics_update_op], feed_dict=feed_dict)
 
-        if self.lm_config.NETWORK_CLASS.__module__.startswith("lmnet.networks.segmentation"):
+        if self.lm_config.NETWORK_CLASS.__module__.startswith("blueoil.nn.networks.segmentation"):
             metric_accuracy = self.sess.run(self.metrics_ops_dict["mean_iou"])
         else:
             metric_accuracy = self.sess.run(self.metrics_ops_dict["accuracy"])

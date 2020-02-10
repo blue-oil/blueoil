@@ -21,7 +21,7 @@ from executor.train import start_training
 from lmnet import environment
 from lmnet.common import Tasks
 from lmnet.datasets.image_folder import ImageFolderBase
-from lmnet.networks.classification.darknet import Darknet
+from blueoil.nn.networks.classification.darknet import Darknet
 from lmnet.pre_processor import Resize
 from lmnet.utils.executor import prepare_dirs
 
