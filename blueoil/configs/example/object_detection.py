@@ -37,7 +37,7 @@ from lmnet.data_augmentor import (
     Hue,
     SSDRandomCrop,
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
@@ -47,123 +47,24 @@ IS_DEBUG = False
 NETWORK_CLASS = YoloV2Quantize
 DATASET_CLASS = Pascalvoc20072012
 
-IMAGE_SIZE = [416, 416]
-BATCH_SIZE = 8
+IMAGE_SIZE = [320, 320]
+BATCH_SIZE = 16
 DATA_FORMAT = "NCHW"
 TASK = Tasks.OBJECT_DETECTION
 CLASSES = DATASET_CLASS.classes
 
-MAX_STEPS = 1000000
-SAVE_CHECKPOINT_STEPS = 50000
 KEEP_CHECKPOINT_MAX = 5
-TEST_STEPS = 5000
-SUMMARISE_STEPS = 1000
-
-
-# for debug
-# IS_DEBUG = True
-# SUMMARISE_STEPS = 100
-# TEST_STEPS = 1000
-# SAVE_CHECKPOINT_STEPS = 1000
+MAX_EPOCHS = 100
+SAVE_CHECKPOINT_STEPS = 100
+TEST_STEPS = 100
+SUMMARISE_STEPS = 10
 
 
 # pretrain
-IS_PRETRAIN = True
-PRETRAIN_VARS = [
-    'block_1/conv/kernel:0',
-    'block_1/bn/beta:0',
-    'block_1/bn/gamma:0',
-    'block_1/bn/moving_mean:0',
-    'block_1/bn/moving_variance:0',
-    'block_2/conv/kernel:0',
-    'block_2/bn/beta:0',
-    'block_2/bn/gamma:0',
-    'block_2/bn/moving_mean:0',
-    'block_2/bn/moving_variance:0',
-    'block_3/conv/kernel:0',
-    'block_3/bn/beta:0',
-    'block_3/bn/gamma:0',
-    'block_3/bn/moving_mean:0',
-    'block_3/bn/moving_variance:0',
-    'block_4/conv/kernel:0',
-    'block_4/bn/beta:0',
-    'block_4/bn/gamma:0',
-    'block_4/bn/moving_mean:0',
-    'block_4/bn/moving_variance:0',
-    'block_5/conv/kernel:0',
-    'block_5/bn/beta:0',
-    'block_5/bn/gamma:0',
-    'block_5/bn/moving_mean:0',
-    'block_5/bn/moving_variance:0',
-    'block_6/conv/kernel:0',
-    'block_6/bn/beta:0',
-    'block_6/bn/gamma:0',
-    'block_6/bn/moving_mean:0',
-    'block_6/bn/moving_variance:0',
-    'block_7/conv/kernel:0',
-    'block_7/bn/beta:0',
-    'block_7/bn/gamma:0',
-    'block_7/bn/moving_mean:0',
-    'block_7/bn/moving_variance:0',
-    'block_8/conv/kernel:0',
-    'block_8/bn/beta:0',
-    'block_8/bn/gamma:0',
-    'block_8/bn/moving_mean:0',
-    'block_8/bn/moving_variance:0',
-    'block_9/conv/kernel:0',
-    'block_9/bn/beta:0',
-    'block_9/bn/gamma:0',
-    'block_9/bn/moving_mean:0',
-    'block_9/bn/moving_variance:0',
-    'block_10/conv/kernel:0',
-    'block_10/bn/beta:0',
-    'block_10/bn/gamma:0',
-    'block_10/bn/moving_mean:0',
-    'block_10/bn/moving_variance:0',
-    'block_11/conv/kernel:0',
-    'block_11/bn/beta:0',
-    'block_11/bn/gamma:0',
-    'block_11/bn/moving_mean:0',
-    'block_11/bn/moving_variance:0',
-    'block_12/conv/kernel:0',
-    'block_12/bn/beta:0',
-    'block_12/bn/gamma:0',
-    'block_12/bn/moving_mean:0',
-    'block_12/bn/moving_variance:0',
-    'block_13/conv/kernel:0',
-    'block_13/bn/beta:0',
-    'block_13/bn/gamma:0',
-    'block_13/bn/moving_mean:0',
-    'block_13/bn/moving_variance:0',
-    'block_14/conv/kernel:0',
-    'block_14/bn/beta:0',
-    'block_14/bn/gamma:0',
-    'block_14/bn/moving_mean:0',
-    'block_14/bn/moving_variance:0',
-    'block_15/conv/kernel:0',
-    'block_15/bn/beta:0',
-    'block_15/bn/gamma:0',
-    'block_15/bn/moving_mean:0',
-    'block_15/bn/moving_variance:0',
-    'block_16/conv/kernel:0',
-    'block_16/bn/beta:0',
-    'block_16/bn/gamma:0',
-    'block_16/bn/moving_mean:0',
-    'block_16/bn/moving_variance:0',
-    'block_17/conv/kernel:0',
-    'block_17/bn/beta:0',
-    'block_17/bn/gamma:0',
-    'block_17/bn/moving_mean:0',
-    'block_17/bn/moving_variance:0',
-    'block_18/conv/kernel:0',
-    'block_18/bn/beta:0',
-    'block_18/bn/gamma:0',
-    'block_18/bn/moving_mean:0',
-    'block_18/bn/moving_variance:0',
-]
-
-PRETRAIN_DIR = "saved/core/classification/quantize_darknet_ilsvrc_2012/checkpoints"
-PRETRAIN_FILE = "save.ckpt-1450000"
+IS_PRETRAIN = False
+PRETRAIN_VARS = []
+PRETRAIN_DIR = ""
+PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     ResizeWithGtBoxes(size=IMAGE_SIZE),
@@ -190,13 +91,10 @@ NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-# In the yolov2 paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
-# Train data num per epoch is 16551
-# In first 5000 steps, use small learning rate for warmup.
 _epoch_steps = int(16551 / BATCH_SIZE)
 NETWORK.LEARNING_RATE_KWARGS = {
     "values": [1e-6, 1e-4, 1e-5, 1e-6, 1e-7],
-    "boundaries": [5000, _epoch_steps * 10, _epoch_steps * 60, _epoch_steps * 90],
+    "boundaries": [_epoch_steps, _epoch_steps * 10, _epoch_steps * 60, _epoch_steps * 90],
 }
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
@@ -211,7 +109,7 @@ NETWORK.WEIGHT_DECAY_RATE = 0.0005
 NETWORK.SCORE_THRESHOLD = score_threshold
 NETWORK.NMS_IOU_THRESHOLD = nms_iou_threshold
 NETWORK.NMS_MAX_OUTPUT_SIZE = nms_max_output_size
-NETWORK.LOSS_WARMUP_STEPS = int(12800 / BATCH_SIZE)
+NETWORK.LOSS_WARMUP_STEPS = int(1280 / BATCH_SIZE)
 
 # quantization
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer

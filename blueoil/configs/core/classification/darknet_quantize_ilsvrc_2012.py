@@ -17,48 +17,42 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
-from lmnet.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
+from lmnet.datasets.ilsvrc_2012 import Ilsvrc2012
 from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
-    ResizeWithGtBoxes,
-    DivideBy255,
-)
-from lmnet.post_processor import (
-    FormatYoloV2,
-    ExcludeLowScoreBox,
-    NMS,
-)
 from lmnet.data_augmentor import (
     Brightness,
     Color,
     Contrast,
+    Crop,
     FlipLeftRight,
     Hue,
-    SSDRandomCrop,
 )
-from lmnet.quantizations import (
+from lmnet.networks.classification.darknet import DarknetQuantize
+from lmnet.pre_processor import (
+    Resize,
+    DivideBy255,
+)
+from blueoil.nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
 
 IS_DEBUG = False
 
-NETWORK_CLASS = YoloV2Quantize
-DATASET_CLASS = Pascalvoc20072012
+NETWORK_CLASS = DarknetQuantize
+DATASET_CLASS = Ilsvrc2012
 
-IMAGE_SIZE = [320, 320]
-BATCH_SIZE = 16
+IMAGE_SIZE = [224, 224]
+BATCH_SIZE = 48
 DATA_FORMAT = "NCHW"
-TASK = Tasks.OBJECT_DETECTION
+TASK = Tasks.CLASSIFICATION
 CLASSES = DATASET_CLASS.classes
 
+MAX_STEPS = 2000000
+SAVE_CHECKPOINT_STEPS = 50000
 KEEP_CHECKPOINT_MAX = 5
-MAX_EPOCHS = 100
-SAVE_CHECKPOINT_STEPS = 100
-TEST_STEPS = 100
-SUMMARISE_STEPS = 10
-
+TEST_STEPS = 50000
+SUMMARISE_STEPS = 10000
 
 # pretrain
 IS_PRETRAIN = False
@@ -66,56 +60,35 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
+
+# for debug
+# MAX_STEPS = 10
+# BATCH_SIZE = 31
+# SAVE_CHECKPOINT_STEPS = 2
+# TEST_STEPS = 10
+# SUMMARISE_STEPS = 2
+# IS_DEBUG = True
+
 PRE_PROCESSOR = Sequence([
-    ResizeWithGtBoxes(size=IMAGE_SIZE),
+    Resize(size=IMAGE_SIZE),
     DivideBy255()
 ])
-anchors = [
-    (1.3221, 1.73145), (3.19275, 4.00944), (5.05587, 8.09892), (9.47112, 4.84053), (11.2364, 10.0071)
-]
-score_threshold = 0.05
-nms_iou_threshold = 0.5
-nms_max_output_size = 100
-POST_PROCESSOR = Sequence([
-    FormatYoloV2(
-        image_size=IMAGE_SIZE,
-        classes=CLASSES,
-        anchors=anchors,
-        data_format=DATA_FORMAT,
-    ),
-    ExcludeLowScoreBox(threshold=score_threshold),
-    NMS(iou_threshold=nms_iou_threshold, max_output_size=nms_max_output_size, classes=CLASSES,),
-])
+POST_PROCESSOR = None
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-_epoch_steps = int(16551 / BATCH_SIZE)
-NETWORK.LEARNING_RATE_KWARGS = {
-    "values": [1e-6, 1e-4, 1e-5, 1e-6, 1e-7],
-    "boundaries": [_epoch_steps, _epoch_steps * 10, _epoch_steps * 60, _epoch_steps * 90],
-}
+NETWORK.LEARNING_RATE_FUNC = tf.train.polynomial_decay
+# TODO(wakiska): It is same as original yolov2 paper (batch size = 128).
+NETWORK.LEARNING_RATE_KWARGS = {"learning_rate": 1e-1, "decay_steps": 1600000, "power": 4.0, "end_learning_rate": 0.0}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
-NETWORK.ANCHORS = anchors
-NETWORK.OBJECT_SCALE = 5.0
-NETWORK.NO_OBJECT_SCALE = 1.0
-NETWORK.CLASS_SCALE = 1.0
-NETWORK.COORDINATE_SCALE = 1.0
-NETWORK.LOSS_IOU_THRESHOLD = 0.6
 NETWORK.WEIGHT_DECAY_RATE = 0.0005
-NETWORK.SCORE_THRESHOLD = score_threshold
-NETWORK.NMS_IOU_THRESHOLD = nms_iou_threshold
-NETWORK.NMS_MAX_OUTPUT_SIZE = nms_max_output_size
-NETWORK.LOSS_WARMUP_STEPS = int(1280 / BATCH_SIZE)
-
-# quantization
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
 NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,
-    'max_value': 2.0
+    'max_value': 2.0,
 }
 NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
@@ -128,10 +101,10 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
+    Crop(size=IMAGE_SIZE, resize=256),
     FlipLeftRight(),
     Brightness((0.75, 1.25)),
     Color((0.75, 1.25)),
     Contrast((0.75, 1.25)),
     Hue((-10, 10)),
-    SSDRandomCrop(min_crop_ratio=0.7),
 ])

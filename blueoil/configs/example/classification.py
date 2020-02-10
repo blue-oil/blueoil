@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2019 The Blueoil Authors. All Rights Reserved.
+# Copyright 2018 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,12 +17,12 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
-from lmnet.datasets.cityscapes import Cityscapes
+from lmnet.datasets.cifar10 import Cifar10
+from lmnet.networks.classification.lmnet_v0 import LmnetV0Quantize
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
-    DivideBy255,
-    Resize
+    Resize,
+    PerImageStandardization,
 )
 from lmnet.data_augmentor import (
     Brightness,
@@ -31,43 +31,51 @@ from lmnet.data_augmentor import (
     FlipLeftRight,
     Hue,
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
 
-IS_DEBUG = False
+IS_DEBUG = True
 
-NETWORK_CLASS = LmSegnetQuantize
-DATASET_CLASS = Cityscapes
+NETWORK_CLASS = LmnetV0Quantize
+DATASET_CLASS = Cifar10
 
-IMAGE_SIZE = [160, 320]
-BATCH_SIZE = 8
+IMAGE_SIZE = [28, 28]
+BATCH_SIZE = 32
 DATA_FORMAT = "NHWC"
-TASK = Tasks.SEMANTIC_SEGMENTATION
+TASK = Tasks.CLASSIFICATION
 CLASSES = DATASET_CLASS.classes
 
-MAX_STEPS = 150000
-SAVE_CHECKPOINT_STEPS = 3000
 KEEP_CHECKPOINT_MAX = 5
-TEST_STEPS = 1000
-SUMMARISE_STEPS = 1000
+MAX_EPOCHS = 1  # MAX_STEPS = 1561
+SAVE_CHECKPOINT_STEPS = 100
+TEST_STEPS = 100
+SUMMARISE_STEPS = 10
 
 
 # pretrain
 IS_PRETRAIN = False
-PRETRAIN_VARS = []
-PRETRAIN_DIR = ""
-PRETRAIN_FILE = ""
-
-# for debug
-# BATCH_SIZE = 2
-# SUMMARISE_STEPS = 1
-# IS_DEBUG = True
+PRETRAIN_VARS = [
+    "conv1/kernel:",
+    "conv1/bias:",
+    "conv2/kernel:",
+    "conv2/bias:",
+    "conv3/kernel:",
+    "conv3/bias:",
+    "conv4/kernel:",
+    "conv4/bias:",
+    "conv5/kernel:",
+    "conv5/bias:",
+    "conv6/kernel:",
+    "conv6/bias:",
+]
+PRETRAIN_DIR = "saved/lmnet_0.01_caltech101/checkpoints"
+PRETRAIN_FILE = "save.ckpt-99001"
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    DivideBy255()
+    PerImageStandardization()
 ])
 POST_PROCESSOR = None
 
@@ -77,6 +85,7 @@ NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
+NETWORK.WEIGHT_DECAY_RATE = 0.0005
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
 NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,
@@ -85,15 +94,15 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
+# dataset
 DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
+    FlipLeftRight(),
     Brightness((0.75, 1.25)),
     Color((0.75, 1.25)),
     Contrast((0.75, 1.25)),
-    FlipLeftRight(),
     Hue((-10, 10)),
 ])
-DATASET.ENABLE_PREFETCH = True

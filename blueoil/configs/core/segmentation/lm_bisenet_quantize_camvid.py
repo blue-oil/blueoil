@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 The Blueoil Authors. All Rights Reserved.
+# Copyright 2019 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,46 +17,46 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
-from lmnet.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
+from lmnet.networks.segmentation.lm_bisenet import LMBiSeNetQuantize
+from lmnet.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
-    DivideBy255,
-    ResizeWithJoints,
-    JointsToGaussianHeatmap
+    Resize,
+    PerImageStandardization,
 )
 from lmnet.post_processor import (
-    GaussianHeatmapToJoints
+    Bilinear,
+    Softmax,
 )
 from lmnet.data_augmentor import (
     Brightness,
     Color,
-    Contrast
+    Contrast,
+    FlipLeftRight,
+    Hue,
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
 
 IS_DEBUG = False
 
-NETWORK_CLASS = LmSinglePoseV1Quantize
-DATASET_CLASS = MscocoSinglePersonKeypoints
+NETWORK_CLASS = LMBiSeNetQuantize
+DATASET_CLASS = Camvid
 
-IMAGE_SIZE = [256, 320]
+IMAGE_SIZE = [352, 480]
 BATCH_SIZE = 8
 DATA_FORMAT = "NHWC"
-TASK = Tasks.KEYPOINT_DETECTION
+TASK = Tasks.SEMANTIC_SEGMENTATION
 CLASSES = DATASET_CLASS.classes
 
-MAX_STEPS = 2000000
-SAVE_CHECKPOINT_STEPS = 3000
+MAX_EPOCHS = 400
+SAVE_CHECKPOINT_STEPS = 1000
 KEEP_CHECKPOINT_MAX = 5
-TEST_STEPS = 10000
-SUMMARISE_STEPS = 200
+TEST_STEPS = 1000
+SUMMARISE_STEPS = 1000
 
-# distributed training
-IS_DISTRIBUTION = False
 
 # pretrain
 IS_PRETRAIN = False
@@ -69,33 +69,27 @@ PRETRAIN_FILE = ""
 # SUMMARISE_STEPS = 1
 # IS_DEBUG = True
 
-# stride of output heatmap. the smaller, the slower.
-STRIDE = 8
-
 PRE_PROCESSOR = Sequence([
-    ResizeWithJoints(image_size=IMAGE_SIZE),
-    JointsToGaussianHeatmap(image_size=IMAGE_SIZE,
-                            stride=STRIDE, sigma=2),
-    DivideBy255()
+    Resize(size=IMAGE_SIZE),
+    PerImageStandardization(),
 ])
 POST_PROCESSOR = Sequence([
-    GaussianHeatmapToJoints(num_dimensions=2, stride=STRIDE, confidence_threshold=0.1)
+    Bilinear(size=IMAGE_SIZE, data_format=DATA_FORMAT, compatible_tensorflow_v1=True),
+    Softmax(),
 ])
 
-step_per_epoch = 149813 // BATCH_SIZE
 
 NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
-NETWORK.OPTIMIZER_KWARGS = {}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-NETWORK.LEARNING_RATE_KWARGS = {
-        "values": [1e-4, 1e-3, 1e-4, 1e-5],
-        "boundaries": [5000, step_per_epoch * 5, step_per_epoch * 10],
-}
-NETWORK.STRIDE = STRIDE
+NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
+NETWORK.WEIGHT_DECAY_RATE = 0.
+NETWORK.AUXILIARY_LOSS_WEIGHT = 0.5
+NETWORK.USE_FEATURE_FUSION = True
+NETWORK.USE_ATTENTION_REFINEMENT = True
+NETWORK.USE_TAIL_GAP = True
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
 NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,
@@ -105,13 +99,15 @@ NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
 DATASET = EasyDict()
-DATASET.IMAGE_SIZE = IMAGE_SIZE
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
+    Resize(size=IMAGE_SIZE),
     Brightness((0.75, 1.25)),
     Color((0.75, 1.25)),
-    Contrast((0.75, 1.25))
+    Contrast((0.75, 1.25)),
+    FlipLeftRight(),
+    Hue((-10, 10)),
 ])
 DATASET.ENABLE_PREFETCH = True

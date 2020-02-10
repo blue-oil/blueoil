@@ -17,7 +17,7 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.classification.darknet import DarknetQuantize
+from lmnet.networks.classification.lmnet_v1 import LmnetV1Quantize
 from lmnet.datasets.cifar10 import Cifar10
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
@@ -29,24 +29,24 @@ from lmnet.data_augmentor import (
     FlipLeftRight,
     Pad,
 )
-from lmnet.quantizations import (
-    binary_channel_wise_mean_scaling_quantizer,
+from blueoil.nn.quantizations import (
+    binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
 
 IS_DEBUG = False
 
-NETWORK_CLASS = DarknetQuantize
+NETWORK_CLASS = LmnetV1Quantize
 DATASET_CLASS = Cifar10
 
 IMAGE_SIZE = [32, 32]
-BATCH_SIZE = 200
-DATA_FORMAT = "NCHW"
+BATCH_SIZE = 100
+DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
 CLASSES = DATASET_CLASS.classes
 
 MAX_STEPS = 100000
-SAVE_CHECKPOINT_STEPS = 100000
+SAVE_CHECKPOINT_STEPS = 1000
 KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 1000
 SUMMARISE_STEPS = 100
@@ -75,10 +75,10 @@ NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-step_per_epoch = int(50000 / 200)
+step_per_epoch = int(50000 / BATCH_SIZE)
 NETWORK.LEARNING_RATE_KWARGS = {
     "values": [0.01, 0.001, 0.0001, 0.00001],
-    "boundaries": [step_per_epoch * 200, step_per_epoch * 300, step_per_epoch * 350],
+    "boundaries": [step_per_epoch * 50, step_per_epoch * 100, step_per_epoch * 150],
 }
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
@@ -89,10 +89,8 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,
     'max_value': 2
 }
-NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
+NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
-NETWORK.QUANTIZE_FIRST_CONVOLUTION = False
-NETWORK.QUANTIZE_LAST_CONVOLUTION = False
 
 # dataset
 DATASET = EasyDict()
@@ -104,3 +102,4 @@ DATASET.AUGMENTOR = Sequence([
     Crop(size=IMAGE_SIZE),
     FlipLeftRight(),
 ])
+DATASET.TRAIN_VALIDATION_SAVING_SIZE = 5000

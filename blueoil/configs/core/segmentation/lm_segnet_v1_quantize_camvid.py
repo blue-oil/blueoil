@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2019 The Blueoil Authors. All Rights Reserved.
+# Copyright 2018 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,25 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import tensorflow as tf
 from easydict import EasyDict
+import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
-                                  Hue)
+from lmnet.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
+from lmnet.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
-from lmnet.datasets.bdd100k import BDD100KSegmentation
-from lmnet.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
-from lmnet.pre_processor import DivideBy255, Resize
-from lmnet.quantizations import (binary_mean_scaling_quantizer,
-                                 linear_mid_tread_half_quantizer)
+from lmnet.pre_processor import (
+    Resize,
+    DivideBy255,
+)
+from lmnet.data_augmentor import (
+    Brightness,
+    Color,
+    Contrast,
+    FlipLeftRight,
+    Hue,
+)
+from blueoil.nn.quantizations import (
+    binary_mean_scaling_quantizer,
+    linear_mid_tread_half_quantizer,
+)
 
 IS_DEBUG = False
 
-NETWORK_CLASS = LmSegnetQuantize
-DATASET_CLASS = BDD100KSegmentation
+NETWORK_CLASS = LmSegnetV1Quantize
+DATASET_CLASS = Camvid
 
-IMAGE_SIZE = [160, 320]
+IMAGE_SIZE = [360, 480]
 BATCH_SIZE = 8
 DATA_FORMAT = "NHWC"
 TASK = Tasks.SEMANTIC_SEGMENTATION
@@ -43,8 +53,6 @@ KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 1000
 SUMMARISE_STEPS = 1000
 
-# distributed training
-IS_DISTRIBUTION = False
 
 # pretrain
 IS_PRETRAIN = False
@@ -59,7 +67,7 @@ PRETRAIN_FILE = ""
 
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    DivideBy255()
+    DivideBy255(),
 ])
 POST_PROCESSOR = None
 
@@ -88,4 +96,4 @@ DATASET.AUGMENTOR = Sequence([
     FlipLeftRight(),
     Hue((-10, 10)),
 ])
-DATASET.ENABLE_PREFETCH = True
+# DATASET.ENABLE_PREFETCH = True

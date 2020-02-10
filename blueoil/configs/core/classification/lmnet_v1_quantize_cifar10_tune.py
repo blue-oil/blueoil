@@ -29,10 +29,12 @@ from lmnet.data_augmentor import (
     FlipLeftRight,
     Pad,
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
+
+from hyperopt import hp
 
 IS_DEBUG = False
 
@@ -46,44 +48,71 @@ TASK = Tasks.CLASSIFICATION
 CLASSES = DATASET_CLASS.classes
 
 MAX_STEPS = 100000
-SAVE_CHECKPOINT_STEPS = 1000
+SAVE_CHECKPOINT_STEPS = 5000
 KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 1000
 SUMMARISE_STEPS = 100
+
+
 # pretrain
 IS_PRETRAIN = False
 PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-
-# for debug
-# MAX_STEPS = 10
-# BATCH_SIZE = 31
-# SAVE_CHECKPOINT_STEPS = 2
-# TEST_STEPS = 10
-# SUMMARISE_STEPS = 2
-# IS_DEBUG = True
-
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    DivideBy255()
+    DivideBy255(),
 ])
 POST_PROCESSOR = None
 
-NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-step_per_epoch = int(50000 / BATCH_SIZE)
-NETWORK.LEARNING_RATE_KWARGS = {
-    "values": [0.01, 0.001, 0.0001, 0.00001],
-    "boundaries": [step_per_epoch * 50, step_per_epoch * 100, step_per_epoch * 150],
+STEP_PER_EPOCH = int(50000 / BATCH_SIZE)
+
+TUNE_SPEC = {
+        'run': 'tunable',
+        'resources_per_trial': {"cpu": 2, "gpu": 0.5},
+        'stop': {
+            'mean_accuracy': 0.87,
+            'training_iteration': 200,
+        },
+        'config': {
+            'lm_config': {},
+        },
+        "local_dir": None,
+        "num_samples": 300,
 }
+
+TUNE_SPACE = {
+    'optimizer_class': hp.choice(
+        'optimizer_class', [
+            {
+                'optimizer': tf.train.MomentumOptimizer,
+                'momentum': 0.9,
+            },
+        ]
+    ),
+    'learning_rate': hp.uniform('learning_rate', 0, 0.01),
+    'learning_rate_func': hp.choice(
+        'learning_rate_func', [
+            {
+                'scheduler': tf.train.piecewise_constant,
+                'scheduler_factor': hp.uniform('scheduler_factor', 0.05, 0.5),
+                'scheduler_steps': [25000, 50000, 75000],
+            },
+        ]
+    ),
+    'weight_decay_rate': 0.0001,
+}
+
+NETWORK = EasyDict()
+NETWORK.OPTIMIZER_CLASS = None
+NETWORK.OPTIMIZER_KWARGS = {}
+NETWORK.LEARNING_RATE_FUNC = None
+NETWORK.LEARNING_RATE_KWARGS = {}
+NETWORK.WEIGHT_DECAY_RATE = None
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
-NETWORK.WEIGHT_DECAY_RATE = 0.0005
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
 NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,

@@ -17,7 +17,7 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
+from lmnet.networks.segmentation.lm_segnet_v0 import LmSegnetV0Quantize
 from lmnet.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
@@ -25,23 +25,19 @@ from lmnet.pre_processor import (
     DivideBy255,
 )
 from lmnet.data_augmentor import (
-    Brightness,
-    Color,
-    Contrast,
     FlipLeftRight,
-    Hue,
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
 
 IS_DEBUG = False
 
-NETWORK_CLASS = LmSegnetV1Quantize
+NETWORK_CLASS = LmSegnetV0Quantize
 DATASET_CLASS = Camvid
 
-IMAGE_SIZE = [360, 480]
+IMAGE_SIZE = [352, 480]
 BATCH_SIZE = 8
 DATA_FORMAT = "NHWC"
 TASK = Tasks.SEMANTIC_SEGMENTATION
@@ -90,10 +86,6 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
-    Brightness((0.75, 1.25)),
-    Color((0.75, 1.25)),
-    Contrast((0.75, 1.25)),
     FlipLeftRight(),
-    Hue((-10, 10)),
 ])
-# DATASET.ENABLE_PREFETCH = True
+DATASET.ENABLE_PREFETCH = True

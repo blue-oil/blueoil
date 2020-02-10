@@ -17,8 +17,8 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.classification.lmnet_quantize import LmnetQuantize
-from lmnet.datasets.cifar100 import Cifar100
+from lmnet.networks.classification import LmnetQuantize
+from lmnet.datasets.cifar10 import Cifar10
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
@@ -29,7 +29,7 @@ from lmnet.data_augmentor import (
     FlipLeftRight,
     Pad,
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
@@ -37,10 +37,10 @@ from lmnet.quantizations import (
 IS_DEBUG = False
 
 NETWORK_CLASS = LmnetQuantize
-DATASET_CLASS = Cifar100
+DATASET_CLASS = Cifar10
 
 IMAGE_SIZE = [32, 32]
-BATCH_SIZE = 200
+BATCH_SIZE = 100
 DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
 CLASSES = DATASET_CLASS.classes
@@ -61,6 +61,7 @@ PRETRAIN_FILE = ""
 # MAX_STEPS = 10
 # BATCH_SIZE = 31
 # SAVE_CHECKPOINT_STEPS = 2
+# KEEP_CHECKPOINT_MAX = 5
 # TEST_STEPS = 10
 # SUMMARISE_STEPS = 2
 # IS_DEBUG = True
@@ -75,10 +76,10 @@ NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-step_per_epoch = int(50000 / 200)
+step_per_epoch = int(50000 / BATCH_SIZE)
 NETWORK.LEARNING_RATE_KWARGS = {
-    "values": [0.01, 0.001, 0.0001, 0.00001],
-    "boundaries": [step_per_epoch * 200, step_per_epoch * 300, step_per_epoch * 350],
+    "values": [0.01, 0.1, 0.01, 0.001, 0.0001],
+    "boundaries": [step_per_epoch, step_per_epoch * 50, step_per_epoch * 100, step_per_epoch * 198],
 }
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
@@ -98,7 +99,7 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
-    Pad(4),
+    Pad(2),
     Crop(size=IMAGE_SIZE),
     FlipLeftRight(),
 ])

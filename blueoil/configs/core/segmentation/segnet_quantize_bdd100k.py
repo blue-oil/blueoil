@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 The Blueoil Authors. All Rights Reserved.
+# Copyright 2019 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,46 +13,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
 import tensorflow as tf
+from easydict import EasyDict
 
 from lmnet.common import Tasks
-from lmnet.datasets.ilsvrc_2012 import Ilsvrc2012
+from lmnet.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
+                                  Hue)
 from lmnet.data_processor import Sequence
-from lmnet.data_augmentor import (
-    Brightness,
-    Color,
-    Contrast,
-    Crop,
-    FlipLeftRight,
-    Hue,
-)
-from lmnet.networks.classification.darknet import DarknetQuantize
-from lmnet.pre_processor import (
-    Resize,
-    DivideBy255,
-)
-from lmnet.quantizations import (
-    binary_channel_wise_mean_scaling_quantizer,
-    linear_mid_tread_half_quantizer,
-)
+from lmnet.datasets.bdd100k import BDD100KSegmentation
+from lmnet.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
+from lmnet.pre_processor import DivideBy255, Resize
+from blueoil.nn.quantizations import (binary_mean_scaling_quantizer,
+                                      linear_mid_tread_half_quantizer)
 
 IS_DEBUG = False
 
-NETWORK_CLASS = DarknetQuantize
-DATASET_CLASS = Ilsvrc2012
+NETWORK_CLASS = LmSegnetQuantize
+DATASET_CLASS = BDD100KSegmentation
 
-IMAGE_SIZE = [224, 224]
-BATCH_SIZE = 48
-DATA_FORMAT = "NCHW"
-TASK = Tasks.CLASSIFICATION
+IMAGE_SIZE = [160, 320]
+BATCH_SIZE = 8
+DATA_FORMAT = "NHWC"
+TASK = Tasks.SEMANTIC_SEGMENTATION
 CLASSES = DATASET_CLASS.classes
 
-MAX_STEPS = 2000000
-SAVE_CHECKPOINT_STEPS = 50000
+MAX_STEPS = 150000
+SAVE_CHECKPOINT_STEPS = 3000
 KEEP_CHECKPOINT_MAX = 5
-TEST_STEPS = 50000
-SUMMARISE_STEPS = 10000
+TEST_STEPS = 1000
+SUMMARISE_STEPS = 1000
+
+# distributed training
+IS_DISTRIBUTION = False
 
 # pretrain
 IS_PRETRAIN = False
@@ -60,13 +52,9 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-
 # for debug
-# MAX_STEPS = 10
-# BATCH_SIZE = 31
-# SAVE_CHECKPOINT_STEPS = 2
-# TEST_STEPS = 10
-# SUMMARISE_STEPS = 2
+# BATCH_SIZE = 2
+# SUMMARISE_STEPS = 1
 # IS_DEBUG = True
 
 PRE_PROCESSOR = Sequence([
@@ -76,35 +64,28 @@ PRE_PROCESSOR = Sequence([
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.polynomial_decay
-# TODO(wakiska): It is same as original yolov2 paper (batch size = 128).
-NETWORK.LEARNING_RATE_KWARGS = {"learning_rate": 1e-1, "decay_steps": 1600000, "power": 4.0, "end_learning_rate": 0.0}
+NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
+NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
-NETWORK.WEIGHT_DECAY_RATE = 0.0005
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
 NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,
-    'max_value': 2.0,
+    'max_value': 2
 }
-NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
+NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
-NETWORK.QUANTIZE_FIRST_CONVOLUTION = True
-NETWORK.QUANTIZE_LAST_CONVOLUTION = False
 
-# dataset
 DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
-    Crop(size=IMAGE_SIZE, resize=256),
-    FlipLeftRight(),
     Brightness((0.75, 1.25)),
     Color((0.75, 1.25)),
     Contrast((0.75, 1.25)),
+    FlipLeftRight(),
     Hue((-10, 10)),
 ])
+DATASET.ENABLE_PREFETCH = True

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2019 The Blueoil Authors. All Rights Reserved.
+# Copyright 2018 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,16 +17,12 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.segmentation.lm_bisenet import LMBiSeNetQuantize
+from lmnet.networks.segmentation.lm_segnet_v1 import LmSegnetV1Quantize
 from lmnet.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
-    PerImageStandardization,
-)
-from lmnet.post_processor import (
-    Bilinear,
-    Softmax,
+    DivideBy255,
 )
 from lmnet.data_augmentor import (
     Brightness,
@@ -35,24 +31,25 @@ from lmnet.data_augmentor import (
     FlipLeftRight,
     Hue,
 )
-from lmnet.quantizations import (
-    binary_channel_wise_mean_scaling_quantizer,
+from blueoil.nn.quantizations import (
+    binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
+from hyperopt import hp
 
 IS_DEBUG = False
 
-NETWORK_CLASS = LMBiSeNetQuantize
+NETWORK_CLASS = LmSegnetV1Quantize
 DATASET_CLASS = Camvid
 
-IMAGE_SIZE = [352, 480]
+IMAGE_SIZE = [360, 480]
 BATCH_SIZE = 8
 DATA_FORMAT = "NHWC"
 TASK = Tasks.SEMANTIC_SEGMENTATION
 CLASSES = DATASET_CLASS.classes
 
-MAX_EPOCHS = 400
-SAVE_CHECKPOINT_STEPS = 1000
+MAX_STEPS = 150000
+SAVE_CHECKPOINT_STEPS = 3000
 KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 1000
 SUMMARISE_STEPS = 1000
@@ -64,38 +61,60 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-# for debug
-# BATCH_SIZE = 2
-# SUMMARISE_STEPS = 1
-# IS_DEBUG = True
-
 PRE_PROCESSOR = Sequence([
     Resize(size=IMAGE_SIZE),
-    PerImageStandardization(),
+    DivideBy255(),
 ])
-POST_PROCESSOR = Sequence([
-    Bilinear(size=IMAGE_SIZE, data_format=DATA_FORMAT, compatible_tensorflow_v1=True),
-    Softmax(),
-])
+POST_PROCESSOR = None
 
+TUNE_SPEC = {
+        'run': 'tunable',
+        'resources_per_trial': {"cpu": 2, "gpu": 1},
+        'stop': {
+            'mean_accuracy': 1.0,
+            'training_iteration': 200,
+        },
+        'config': {
+            'lm_config': {},
+        },
+        'local_dir': None,
+        'num_samples': 100,
+}
+
+TUNE_SPACE = {
+    'optimizer_class': hp.choice(
+        'optimizer_class', [
+            {
+                'optimizer': tf.train.AdamOptimizer,
+            },
+        ]
+    ),
+    'learning_rate': hp.uniform('learning_rate', 0, 0.01),
+    'learning_rate_func': hp.choice(
+        'learning_rate_func', [
+            {
+                'scheduler': tf.train.piecewise_constant,
+                'scheduler_factor': 1.0,
+                'scheduler_steps': [25000, 50000, 75000],
+            },
+        ]
+    ),
+}
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
-NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
+NETWORK.OPTIMIZER_CLASS = None
+NETWORK.OPTIMIZER_KWARGS = {}
+NETWORK.LEARNING_RATE_FUNC = None
+NETWORK.LEARNING_RATE_KWARGS = {}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
-NETWORK.WEIGHT_DECAY_RATE = 0.
-NETWORK.AUXILIARY_LOSS_WEIGHT = 0.5
-NETWORK.USE_FEATURE_FUSION = True
-NETWORK.USE_ATTENTION_REFINEMENT = True
-NETWORK.USE_TAIL_GAP = True
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
 NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
     'bit': 2,
     'max_value': 2
 }
-NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
+NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
 DATASET = EasyDict()
@@ -103,11 +122,11 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
 DATASET.AUGMENTOR = Sequence([
-    Resize(size=IMAGE_SIZE),
     Brightness((0.75, 1.25)),
     Color((0.75, 1.25)),
     Contrast((0.75, 1.25)),
     FlipLeftRight(),
     Hue((-10, 10)),
 ])
-DATASET.ENABLE_PREFETCH = True
+
+DATASET.ENABLE_PREFETCH = False
