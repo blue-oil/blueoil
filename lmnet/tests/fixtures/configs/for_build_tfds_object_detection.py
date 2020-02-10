@@ -32,7 +32,7 @@ from lmnet.post_processor import (
 from lmnet.data_augmentor import (
     FlipLeftRight,
 )
-from blueoil.quantizations import (
+from blueoil.nn.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

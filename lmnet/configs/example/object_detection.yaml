@@ -77,7 +77,7 @@ IS_PRETRAIN: false
 KEEP_CHECKPOINT_MAX: 5
 MAX_EPOCHS: 100
 NETWORK:
-  ACTIVATION_QUANTIZER: !!python/name:blueoil.quantizations.linear.linear_mid_tread_half_quantizer ''
+  ACTIVATION_QUANTIZER: !!python/name:blueoil.nn.quantizations.linear.linear_mid_tread_half_quantizer ''
   ACTIVATION_QUANTIZER_KWARGS:
     bit: 2
     max_value: 2.0
@@ -130,7 +130,7 @@ NETWORK:
   QUANTIZE_LAST_CONVOLUTION: false
   SCORE_THRESHOLD: 0.05
   WEIGHT_DECAY_RATE: 0.0005
-  WEIGHT_QUANTIZER: !!python/name:blueoil.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
+  WEIGHT_QUANTIZER: !!python/name:blueoil.nn.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
 NETWORK_CLASS: !!python/name:lmnet.networks.object_detection.yolo_v2_quantize.YoloV2Quantize ''
 NMS: !!python/name:lmnet.post_processor.NMS ''
