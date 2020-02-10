@@ -23,7 +23,7 @@ from lmnet import environment
 from lmnet.common import Tasks
 from lmnet.data_processor import Sequence
 from lmnet.datasets.camvid import Camvid
-from blueoil.nn.networks.segmentation.lm_bisenet import LMBiSeNet
+from blueoil.networks.segmentation.lm_bisenet import LMBiSeNet
 from lmnet.post_processor import Bilinear, Softmax
 from lmnet.pre_processor import Resize
 from lmnet.utils.executor import prepare_dirs

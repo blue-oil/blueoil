@@ -20,7 +20,7 @@ import tensorflow as tf
 from lmnet import environment
 from lmnet.common import Tasks
 from lmnet.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
-from blueoil.nn.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
+from blueoil.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
 from lmnet.utils.executor import prepare_dirs
 from lmnet.pre_processor import (
     DivideBy255,

@@ -77,7 +77,7 @@ def evaluate(config, restore_path, output_dir):
     graph = tf.Graph()
     with graph.as_default():
 
-        if ModelClass.__module__.startswith("blueoil.nn.networks.object_detection"):
+        if ModelClass.__module__.startswith("blueoil.networks.object_detection"):
             model = ModelClass(
                 classes=validation_dataset.classes,
                 num_max_boxes=validation_dataset.num_max_boxes,

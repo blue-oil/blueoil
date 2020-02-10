@@ -18,7 +18,7 @@ from easydict import EasyDict
 
 from lmnet.common import Tasks
 from lmnet.datasets.delta_mark import ObjectDetectionBase
-from blueoil.nn.networks.object_detection.lm_fyolo import LMFYoloQuantize
+from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     ResizeWithGtBoxes,

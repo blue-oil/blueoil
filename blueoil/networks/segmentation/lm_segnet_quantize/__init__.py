@@ -14,6 +14,6 @@
 # limitations under the License.
 # =============================================================================
 # this file exists for backward compatibility, to make it possible
-# to import by from `blueoil.nn.networks.segmentation.lm_segnet_quantize import LmSegnet`
+# to import by from `blueoil.networks.segmentation.lm_segnet_quantize import LmSegnet`
 
-from blueoil.nn.networks.segmentation import LmSegnetQuantize  # NOQA
+from blueoil.networks.segmentation import LmSegnetQuantize  # NOQA

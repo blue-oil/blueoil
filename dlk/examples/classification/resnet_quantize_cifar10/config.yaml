@@ -70,7 +70,7 @@ NETWORK:
     momentum: 0.9
   WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:blueoil.nn.networks.classification.lm_resnet.LmResnetQuantize ''
+NETWORK_CLASS: !!python/name:blueoil.networks.classification.lm_resnet.LmResnetQuantize ''
 POST_PROCESSOR: null
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''

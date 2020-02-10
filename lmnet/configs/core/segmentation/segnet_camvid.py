@@ -17,7 +17,7 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from blueoil.nn.networks.segmentation.lm_segnet import LmSegnet
+from blueoil.networks.segmentation.lm_segnet import LmSegnet
 from lmnet.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
