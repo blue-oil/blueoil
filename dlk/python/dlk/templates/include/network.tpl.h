@@ -43,11 +43,7 @@ private:
     {% for node in graph.non_variables %}
     {% if node.available_buffer == '' %}
     {% for out_k in node.output_ops.keys() -%}
-    {% if node.output_ops.keys()|length > 1 %}
     {{ node.dtype.cpptype() }} *{{ node.name + '_' + out_k }}_raw = 0;
-    {% else %}
-    {{ node.dtype.cpptype() }} *{{ node.name }}_raw = 0;
-    {% endif %}
     {%- endfor %}
     {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 %}
     {% for out_k in node.output_ops.keys() -%}

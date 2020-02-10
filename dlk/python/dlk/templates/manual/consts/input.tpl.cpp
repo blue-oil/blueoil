@@ -20,9 +20,9 @@ limitations under the License.
 {% if node.is_scalar -%}
 
 static {{ node.dtype.cpptype() }} {{ node.name }}_data = {{ node.data[0] }};
-static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape;
+static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape;
 const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom>
-  {{ node.name }}(&{{ node.name }}_data, {{ node.name }}_shape);
+  {{ node.name }}_output(&{{ node.name }}_data, {{ node.name }}_shape);
 
 {% else -%}
 
@@ -34,12 +34,12 @@ static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {{- d -}},
   {%- endfor %}
 };
-static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape = {
+static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape = {
   {% for l in node.transposed_shape -%}
   {{- l -}},
   {%- endfor %}
 };
-const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }}(
+const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }}_output(
     reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
     {{ node.name }}_shape);
 #elif defined USE_NEON || defined USE_AVX
@@ -48,12 +48,12 @@ static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {{- d -}},
   {%- endfor %}
 };
-static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape = {
+static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape = {
   {% for l in node.shape -%}
   {{- l -}},
   {%- endfor %}
 };
-const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}(
+const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}_output(
     reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
     {{ node.name }}_shape);
 #else
@@ -62,12 +62,12 @@ static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {{- d -}},
   {%- endfor %}
 };
-static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape = {
+static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape = {
   {% for l in node.kn2row_shape -%}
   {{- l -}},
   {%- endfor %}
 };
-const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.kn2row_dimension_format }}> {{ node.name }}(
+const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.kn2row_dimension_format }}> {{ node.name }}_output(
     reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
     {{ node.name }}_shape);
 #endif
@@ -79,12 +79,12 @@ static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {{- d -}},
   {%- endfor %}
 };
-static constexpr decltype({{ node.name }})::tensor_info_t<std::size_t> {{ node.name }}_shape = {
+static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape = {
   {% for l in node.shape -%}
   {{- l -}},
   {%- endfor %}
 };
-const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}(
+const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}_output(
     reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
     {{ node.name }}_shape);
 
