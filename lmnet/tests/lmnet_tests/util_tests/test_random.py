@@ -18,7 +18,7 @@ import random
 import numpy as np
 import pytest
 
-from lmnet.utils.random import shuffle, train_test_split
+from blueoil.utils.random import shuffle, train_test_split
 
 
 def test_shuffle():

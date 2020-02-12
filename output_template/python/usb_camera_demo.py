@@ -31,7 +31,7 @@ import numpy as np
 
 from lmnet.common import get_color_map
 from lmnet.nnlib import NNLib
-from lmnet.utils.config import (
+from blueoil.utils.config import (
     load_yaml,
     build_pre_process,
     build_post_process,
