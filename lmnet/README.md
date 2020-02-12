@@ -213,9 +213,9 @@ Exporting a trained model to proto buffer files and meta config yaml.
 In the case with `images` option, create each layer output value npy files in `export/{restore_path}/{image_size}/{image_name}/**.npy` for debug.
 
 * Load config file from saved experiment dir.
-* Export config file to yaml. See also [Config specification](docs/specification/config.md).
-  * `config.yaml` can be used for training and evaluation in python. i.e. [classification.yaml](configs/example/classification.yaml) is exported from [classification.py](configs/example/classification.py)
-  * `meta.yaml` include only few parameter for application such as demo. i.e. [classification_meta.yaml](configs/example/classification_meta.yaml) is exported from [classification.py](configs/example/classification.py)
+* Export config file to yaml. See also [Config specification](../blueoil/docs/specification/config.md).
+  * `config.yaml` can be used for training and evaluation in python. i.e. [classification.yaml](../blueoil/configs/example/classification.yaml) is exported from [classification.py](../blueoil/configs/example/classification.py)
+  * `meta.yaml` include only few parameter for application such as demo. i.e. [classification_meta.yaml](../blueoil/configs/example/classification_meta.yaml) is exported from [classification.py](../blueoil/configs/example/classification.py)
 * Save the model protocol buffer files (tf) for DLK converter.
 * Output each layer npy files for DLK converter debug.
 * Write summary in tensorboard `export` dir.
