@@ -34,7 +34,7 @@ DATASET:
       - 32
       - 32
     - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:lmnet.datasets.cifar10.Cifar10 ''
+DATASET_CLASS: !!python/name:blueoil.datasets.cifar10.Cifar10 ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 32
@@ -72,7 +72,7 @@ NETWORK:
   WEIGHT_DECAY_RATE: 0.0005
   WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:lmnet.networks.classification.lmnet_v1.LmnetV1Quantize ''
+NETWORK_CLASS: !!python/name:blueoil.networks.classification.lmnet_v1.LmnetV1Quantize ''
 POST_PROCESSOR: null
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
