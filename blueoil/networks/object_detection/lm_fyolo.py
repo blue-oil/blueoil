@@ -17,7 +17,7 @@ from functools import partial
 
 import tensorflow as tf
 
-from lmnet.blocks import darknet
+from blueoil.blocks import darknet
 from blueoil.networks.object_detection.yolo_v2 import YoloV2
 from blueoil.layers import conv2d
 
