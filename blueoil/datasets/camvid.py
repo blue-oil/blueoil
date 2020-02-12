@@ -21,7 +21,7 @@ import pandas as pd
 from PIL import Image
 
 from lmnet.common import get_color_map
-from lmnet.datasets.base import SegmentationBase, StoragePathCustomizable
+from blueoil.datasets.base import SegmentationBase, StoragePathCustomizable
 from lmnet.utils.random import shuffle, train_test_split
 
 

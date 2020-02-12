@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 
-from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
+from blueoil.datasets.base import ObjectDetectionBase, SegmentationBase
 from lmnet.utils.image import load_image
 
 
