@@ -395,6 +395,9 @@ please modify manually after config exported.)"
         'model_name': model_name,
         'task_type': task_type,
         'network_name': network_name,
+        'network': {
+            'quantize_first_convolution': quantize_first_convolution,
+        },
         'dataset': {
             'format': dataset_format,
             'train_path': train_path,
@@ -408,9 +411,6 @@ please modify manually after config exported.)"
             'initial_learning_rate': float(initial_learning_rate_value),
             'save_checkpoint_steps': 1000,
             'keep_checkpoint_max': 5,
-        },
-        'network': {
-            'quantize_first_convolution': quantize_first_convolution,
         },
         'common': {
             'image_size': [int(val) for val in image_size],
