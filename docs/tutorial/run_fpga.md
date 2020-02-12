@@ -22,6 +22,7 @@ Make sure the camera is recognized by the device.
 demo
  ├── fpga
  │   └── soc_system.rbf
+ │   └── preloader-mkpimage.bin
  ├── models
  │   ├── lib
  │   │   └── lib_fpga.so
@@ -45,6 +46,10 @@ Explore into the `demo/fpga` directory, and copy `soc_system.rbf` to the boot pa
 Explore into the `demo/python` directory, and execute the following commands on the device.
 
     $ cd demo/python
+    $ export LC_ALL=C # for the first time only
+    $ sudo pip install -r requirements.txt  # for the first time only
     $ python usb_camera_demo.py \
           -m ../models/lib/lib_fpga.so \
           -c ../models/meta.yaml
+
+Press [ESC], to stop the demo.
