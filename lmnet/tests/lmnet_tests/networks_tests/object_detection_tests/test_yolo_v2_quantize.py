@@ -20,8 +20,8 @@ from easydict import EasyDict
 from executor.train import start_training
 from lmnet import environment
 from lmnet.common import Tasks
+from blueoil.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
 from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
-from lmnet.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
 from lmnet.pre_processor import ResizeWithGtBoxes
 from blueoil.nn.quantizations import binary_channel_wise_mean_scaling_quantizer, linear_mid_tread_half_quantizer
 from lmnet.utils.executor import prepare_dirs

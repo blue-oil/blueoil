@@ -16,7 +16,7 @@
 import tensorflow as tf
 import numpy as np
 
-from lmnet.networks.base import BaseNetwork
+from blueoil.networks.base import BaseNetwork
 from lmnet.metrics.object_keypoint_similarity import compute_object_keypoint_similarity
 from lmnet.post_processor import gaussian_heatmap_to_joints
 from lmnet.visualize import visualize_keypoint_detection
