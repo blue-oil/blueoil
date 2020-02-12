@@ -20,7 +20,7 @@ import numpy as np
 from pycocotools.coco import COCO
 
 from blueoil.utils.image import load_image
-from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
+from blueoil.datasets.base import ObjectDetectionBase, SegmentationBase
 
 DEFAULT_CLASSES = [
     'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',

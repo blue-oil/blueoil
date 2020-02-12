@@ -19,9 +19,9 @@ import os
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from lmnet.datasets.base import Base, ObjectDetectionBase
 from blueoil.utils.tfds_builders.classification import ClassificationBuilder
 from blueoil.utils.tfds_builders.object_detection import ObjectDetectionBuilder
+from blueoil.datasets.base import Base, ObjectDetectionBase
 
 
 def _grayscale_to_rgb(record):

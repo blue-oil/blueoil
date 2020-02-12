@@ -22,8 +22,8 @@ from multiprocessing import Pool
 import numpy as np
 import tensorflow as tf
 
-from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase, KeypointDetectionBase
-from lmnet.datasets.tfds import TFDSMixin
+from blueoil.datasets.base import ObjectDetectionBase, SegmentationBase, KeypointDetectionBase
+from blueoil.datasets.tfds import TFDSMixin
 
 _dataset = None
 
@@ -315,7 +315,7 @@ class DatasetIterator:
 
 if __name__ == '__main__':
 
-    from lmnet.datasets.cifar10 import Cifar10
+    from blueoil.datasets.cifar10 import Cifar10
     from lmnet.data_processor import Sequence
     from lmnet.data_augmentor import FlipLeftRight, Hue, Blur
 

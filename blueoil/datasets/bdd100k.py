@@ -6,8 +6,8 @@ import os
 
 import numpy as np
 
-from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
 from blueoil.utils.image import load_image
+from blueoil.datasets.base import ObjectDetectionBase, SegmentationBase
 
 
 class BDD100KObjectDetection(ObjectDetectionBase):

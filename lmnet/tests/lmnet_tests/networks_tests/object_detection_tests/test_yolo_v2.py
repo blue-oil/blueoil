@@ -22,7 +22,7 @@ from executor.train import start_training
 from lmnet import environment
 from lmnet.common import Tasks
 from lmnet.data_processor import Sequence
-from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
+from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.networks.object_detection.yolo_v2 import YoloV2
 from lmnet.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
 from lmnet.pre_processor import ResizeWithGtBoxes

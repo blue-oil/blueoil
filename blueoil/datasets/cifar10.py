@@ -20,15 +20,26 @@ import pickle
 import numpy as np
 
 from lmnet import data_processor
-from lmnet.datasets.base import Base
 from blueoil.utils.random import shuffle
+from blueoil.datasets.base import Base
 
 
-class Cifar100(Base):
-    classes = ["apple", "aquarium_fish", "baby", "bear", "beaver", "bed", "bee", "beetle", "bicycle", "bottle", "bowl", "boy", "bridge", "bus", "butterfly", "camel", "can", "castle", "caterpillar", "cattle", "chair", "chimpanzee", "clock", "cloud", "cockroach", "couch", "cra", "crocodile", "cup", "dinosaur", "dolphin", "elephant", "flatfish", "forest", "fox", "girl", "hamster", "house", "kangaroo", "keyboard", "lamp", "lawn_mower", "leopard", "lion", "lizard", "lobster", "man", "maple_tree", "motorcycle", "mountain", "mouse", "mushroom", "oak_tree", "orange", "orchid", "otter", "palm_tree", "pear", "pickup_truck", "pine_tree", "plain", "plate", "poppy", "porcupine", "possum", "rabbit", "raccoon", "ray", "road", "rocket", "rose", "sea", "seal", "shark", "shrew", "skunk", "skyscraper", "snail", "snake", "spider", "squirrel", "streetcar", "sunflower", "sweet_pepper", "table", "tank", "telephone", "television", "tiger", "tractor", "train", "trout", "tulip", "turtle", "wardrobe", "whale", "willow_tree", "wolf", "woman", "worm"] # NOQA
+class Cifar10(Base):
+    classes = [
+        "airplane",
+        "automobile",
+        "bird",
+        "cat",
+        "deer",
+        "dog",
+        "frog",
+        "horse",
+        "ship",
+        "truck",
+    ]
 
     num_classes = len(classes)
-    extend_dir = "CIFAR_100/cifar-100-python"
+    extend_dir = "CIFAR_10/cifar-10-batches-py"
     available_subsets = ["train", "train_validation_saving", "validation"]
 
     def __init__(
@@ -46,7 +57,6 @@ class Cifar100(Base):
             **kwargs,
         )
         self.train_validation_saving_size = train_validation_saving_size
-
         self._init_images_and_labels()
 
     @property
@@ -71,10 +81,10 @@ class Cifar100(Base):
     @functools.lru_cache(maxsize=None)
     def _images_and_labels(self):
         if self.subset == "train" or self.subset == "train_validation_saving":
-            files = ["train"]
+            files = ["data_batch_1", "data_batch_2", "data_batch_3", "data_batch_4", "data_batch_5"]
 
         else:
-            files = ["test"]
+            files = ["test_batch"]
 
         data = [self._load_data(filename) for filename in files]
 
@@ -100,8 +110,8 @@ class Cifar100(Base):
 
     def _unpickle(self, filename):
         filename = os.path.join(self.data_dir, filename)
-        with open(filename, "rb") as file:
-            data = pickle.load(file, encoding="bytes")
+        with open(filename, 'rb') as file:
+            data = pickle.load(file, encoding='bytes')
             return data
 
     @functools.lru_cache(maxsize=None)
@@ -110,10 +120,10 @@ class Cifar100(Base):
         data = self._unpickle(filename)
 
         # Get the raw images.
-        images = data[b"data"]
+        images = data[b'data']
 
         # Get the class-numbers for each image. Convert to numpy-array.
-        labels = np.array(data[b"fine_labels"])
+        labels = np.array(data[b'labels'])
 
         return images, labels
 

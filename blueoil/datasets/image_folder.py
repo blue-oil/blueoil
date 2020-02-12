@@ -23,8 +23,8 @@ import numpy as np
 
 from lmnet import data_processor
 from blueoil.utils.image import load_image
-from lmnet.datasets.base import Base, StoragePathCustomizable
 from blueoil.utils.random import train_test_split
+from blueoil.datasets.base import Base, StoragePathCustomizable
 
 
 class ImageFolderBase(StoragePathCustomizable, Base):
