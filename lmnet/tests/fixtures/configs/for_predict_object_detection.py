@@ -17,7 +17,7 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.datasets.pascalvoc_2007 import Pascalvoc2007
+from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
