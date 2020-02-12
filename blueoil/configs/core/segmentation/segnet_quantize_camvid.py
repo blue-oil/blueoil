@@ -17,8 +17,8 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
-from lmnet.datasets.camvid import Camvid
+from blueoil.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
+from blueoil.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     DivideBy255,
