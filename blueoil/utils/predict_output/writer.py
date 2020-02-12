@@ -3,8 +3,8 @@ import os
 
 import numpy as np
 
-from lmnet.utils.predict_output.output import ImageFromJson
-from lmnet.utils.predict_output.output import JsonOutput
+from blueoil.utils.predict_output.output import ImageFromJson
+from blueoil.utils.predict_output.output import JsonOutput
 
 logger = logging.getLogger(__name__)
 
