@@ -34,7 +34,7 @@ from blueoil.utils.config import (
     build_pre_process,
     build_post_process,
 )
-from blueoil.utils.demo import (
+from lmnet.utils.demo import (
     VideoStream,
     run_inference,
 )
