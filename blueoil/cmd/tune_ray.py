@@ -26,8 +26,8 @@ import ray
 from blueoil.datasets.base import ObjectDetectionBase
 from blueoil.datasets.dataset_iterator import DatasetIterator
 from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
-from lmnet.utils import config as config_util
-from lmnet.utils import executor
+from blueoil.utils import config as config_util
+from blueoil.utils import executor
 from ray.tune import Trainable, register_trainable, run_experiments
 from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.suggest import HyperOptSearch
