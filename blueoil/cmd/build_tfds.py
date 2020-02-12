@@ -25,6 +25,7 @@ from blueoil.utils import config as config_util
 from blueoil.utils.tfds_builders.classification import ClassificationBuilder
 from blueoil.utils.tfds_builders.object_detection import ObjectDetectionBuilder
 
+
 def _get_tfds_settings(config_file):
     config = config_util.load(config_file)
     dataset_class = config.DATASET_CLASS
