@@ -19,7 +19,7 @@ import os
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from lmnet.datasets.base import Base, ObjectDetectionBase
+from blueoil.datasets.base import Base, ObjectDetectionBase
 from lmnet.utils.tfds_builders.classification import ClassificationBuilder
 from lmnet.utils.tfds_builders.object_detection import ObjectDetectionBuilder
 
