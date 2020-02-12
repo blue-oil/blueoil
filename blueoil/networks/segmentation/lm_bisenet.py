@@ -17,7 +17,7 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.blocks import conv_bn_act, densenet_group
+from blueoil.blocks import conv_bn_act, densenet_group
 from blueoil.networks.segmentation.base import Base
 
 

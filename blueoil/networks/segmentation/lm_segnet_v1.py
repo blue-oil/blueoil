@@ -17,7 +17,7 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.blocks import lmnet_block
+from blueoil.blocks import lmnet_block
 from blueoil.networks.segmentation.base import SegnetBase
 
 
