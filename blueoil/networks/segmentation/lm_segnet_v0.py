@@ -19,8 +19,8 @@ import tensorflow as tf
 from tensorflow.python.framework import ops
 
 from lmnet.blocks import lmnet_block
-from lmnet.layers.experiment import max_unpool_with_argmax
 from blueoil.networks.segmentation.base import SegnetBase
+from blueoil.layers.experiment import max_unpool_with_argmax
 
 
 class LmSegnetV0(SegnetBase):
