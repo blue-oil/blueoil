@@ -17,7 +17,7 @@
 import numpy as np
 import tensorflow as tf
 
-from lmnet.metrics.mean_average_precision import (
+from blueoil.metrics.mean_average_precision import (
     _mean_average_precision,
     _calc_average_precision,
     _average_precision,
