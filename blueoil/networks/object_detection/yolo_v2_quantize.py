@@ -17,7 +17,7 @@ from functools import partial
 
 import tensorflow as tf
 
-from lmnet.networks.object_detection.yolo_v2 import YoloV2
+from blueoil.networks.object_detection.yolo_v2 import YoloV2
 
 
 class YoloV2Quantize(YoloV2):

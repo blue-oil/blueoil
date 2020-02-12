@@ -17,8 +17,8 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.blocks import lmnet_block
-from lmnet.networks.keypoint_detection.base import Base
+from blueoil.blocks import lmnet_block
+from blueoil.networks.keypoint_detection.base import Base
 
 
 class LmSinglePoseV1(Base):

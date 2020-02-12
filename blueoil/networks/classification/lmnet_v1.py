@@ -17,8 +17,8 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.blocks import lmnet_block
-from lmnet.networks.classification.base import Base
+from blueoil.blocks import lmnet_block
+from blueoil.networks.classification.base import Base
 
 
 class LmnetV1(Base):

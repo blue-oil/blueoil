@@ -14,6 +14,6 @@
 # limitations under the License.
 # =============================================================================
 # this file exists for backward compatibility, to make it possible
-# to import by from `lmnet.networks.classification.lmnet import Lmnet`
+# to import by from `blueoil.networks.segmentation.lm_segnet import LmSegnet`
 
-from lmnet.networks.classification import Lmnet  # NOQA
+from blueoil.networks.segmentation import LmSegnet  # NOQA

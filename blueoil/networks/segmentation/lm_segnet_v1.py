@@ -17,14 +17,14 @@ import functools
 
 import tensorflow as tf
 
-from lmnet.blocks import lmnet_block
-from lmnet.networks.classification.base import Base
+from blueoil.blocks import lmnet_block
+from blueoil.networks.segmentation.base import SegnetBase
 
 
-class LmnetV0(Base):
-    """Lmnet network for classification, version 0.
+class LmSegnetV1(SegnetBase):
+    """LM original semantic segmentation network.
+       This network is composed of 11 convolution layers with space_to_depth and depth_to_space.
     """
-    version = 0.01
 
     def __init__(
             self,
@@ -48,76 +48,64 @@ class LmnetV0(Base):
                                  use_bias=False,
                                  data_format=channels_data_format)
 
+    def _space_to_depth(self, inputs=None, block_size=2, name=''):
+        if self.data_format != 'NHWC':
+            inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
+        output = tf.space_to_depth(inputs, block_size=block_size, name=name)
+        if self.data_format != 'NHWC':
+            output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
+        return output
+
+    def _depth_to_space(self, inputs=None, block_size=2, name=''):
+        if self.data_format != 'NHWC':
+            inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
+        output = tf.depth_to_space(inputs, block_size=block_size, name=name)
+        if self.data_format != 'NHWC':
+            output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
+        return output
+
     def base(self, images, is_training, *args, **kwargs):
-        """Base network.
-
-        Args:
-            images: Input images.
-            is_training: A flag for if is training.
-        Returns:
-            tf.Tensor: Inference result.
-        """
-
         channels_data_format = 'channels_last' if self.data_format == 'NHWC' else 'channels_first'
-        _lmnet_block = self._get_lmnet_block(is_training, channels_data_format)
-        _max_pooling2d = functools.partial(tf.layers.max_pooling2d, pool_size=2, strides=2, padding='SAME',
-                                           data_format=channels_data_format)
+        lmnet_block = self._get_lmnet_block(is_training, channels_data_format)
 
         self.images = images
 
-        x = _lmnet_block('conv1', images, 32, 3)
-        x = _max_pooling2d(name='pool1', inputs=x)
-        x = _lmnet_block('conv2', x, 64, 3)
-        x = _max_pooling2d(name='pool2', inputs=x)
-        x = _lmnet_block('conv3', x, 128, 3)
-        x = _max_pooling2d(name='pool3', inputs=x)
-        x = _lmnet_block('conv4', x, 256, 3)
-        x = _max_pooling2d(name='pool4', inputs=x)
-        x = _lmnet_block('conv5', x, 256, 3)
-        x = _max_pooling2d(name='pool5', inputs=x)
-        x = _lmnet_block('conv6', x, 64, 1, activation=tf.nn.relu)
+        x = self._space_to_depth(name='space2depth1', inputs=images)
+        x = lmnet_block('conv1', x, 16, 1)
+        x = self._space_to_depth(name='space2depth2', inputs=x)
+        x = lmnet_block('conv2', x, 64, 3)
+        x = lmnet_block('conv3', x, 64, 3)
+        x = self._space_to_depth(name='space2depth3', inputs=x)
+        x = lmnet_block('conv4', x, 256, 3)
+        x = lmnet_block('conv5', x, 256, 3)
+        x = lmnet_block('conv6', x, 256, 3)
+        x = lmnet_block('conv7', x, 256, 3)
+        x = self._depth_to_space(name='depth2space1', inputs=x)
+        x = lmnet_block('conv8', x, 128, 3)
+        x = self._depth_to_space(name='depth2space2', inputs=x)
+        x = lmnet_block('conv9', x, 128, 3)
+        x = self._depth_to_space(name='depth2space3', inputs=x)
+        x = lmnet_block('conv10', x, 32, 3)
+        x = lmnet_block('conv11', x, self.num_classes, 3)
 
-        x = tf.layers.dropout(x, training=is_training)
-
-        kernel_initializer = tf.random_normal_initializer(mean=0.0, stddev=0.01)
-        x = tf.layers.conv2d(name='conv7',
-                             inputs=x,
-                             filters=self.num_classes,
-                             kernel_size=1,
-                             kernel_initializer=kernel_initializer,
-                             activation=None,
-                             use_bias=True,
-                             data_format=channels_data_format)
-
-        self._heatmap_layer = x
-
-        h = x.get_shape()[1].value if self.data_format == 'NHWC' else x.get_shape()[2].value
-        w = x.get_shape()[2].value if self.data_format == 'NHWC' else x.get_shape()[3].value
-        x = tf.layers.average_pooling2d(name='pool7',
-                                        inputs=x,
-                                        pool_size=[h, w],
-                                        padding='VALID',
-                                        strides=1,
-                                        data_format=channels_data_format)
-
-        self.base_output = tf.reshape(x, [-1, self.num_classes], name='pool7_reshape')
-
-        return self.base_output
+        return x
 
 
-class LmnetV0Quantize(LmnetV0):
-    """Lmnet quantize network for classification, version 1.0
+class LmSegnetV1Quantize(LmSegnetV1):
+    """LM original quantize semantic segmentation network.
 
     Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
     ``weight_quantizer``, ``weight_quantizer_kwargs``.
 
     Args:
-        activation_quantizer (callable): Weight quantizater. See more at `blueoil.nn.quantizations`.
+        activation_quantizer (callable): Weight quantizater.
+            See more at `blueoil.nn.quantizations`.
         activation_quantizer_kwargs (dict): Kwargs for `activation_quantizer`.
-        weight_quantizer (callable): Activation quantizater. See more at `blueoil.nn.quantizations`.
+        weight_quantizer (callable): Activation quantizater.
+            See more at `blueoil.nn.quantizations`.
         weight_quantizer_kwargs (dict): Kwargs for `weight_quantizer`.
+
     """
-    version = 1.0
 
     def __init__(
             self,
@@ -156,6 +144,7 @@ class LmnetV0Quantize(LmnetV0):
             weight_quantization: Callable object which quantize variable.
             args: Args.
             kwargs: Kwargs.
+
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)

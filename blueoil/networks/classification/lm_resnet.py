@@ -17,8 +17,8 @@ import functools
 
 import tensorflow as tf
 
+from blueoil.networks.classification.base import Base
 from blueoil.layers import fully_connected
-from lmnet.networks.classification.base import Base
 
 
 class LmResnet(Base):

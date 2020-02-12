@@ -61,7 +61,7 @@ NETWORK:
   WEIGHT_DECAY_RATE: 0.0005
   WEIGHT_QUANTIZER: !!python/name:blueoil.nn.quantizations.binary.binary_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:lmnet.networks.classification.lmnet_v0.LmnetV0Quantize ''
+NETWORK_CLASS: !!python/name:blueoil.networks.classification.lmnet_v0.LmnetV0Quantize ''
 POST_PROCESSOR: null
 PRETRAIN_DIR: saved/lmnet_0.01_caltech101/checkpoints
 PRETRAIN_FILE: save.ckpt-99001
