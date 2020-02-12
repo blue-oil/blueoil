@@ -17,23 +17,9 @@ Blueoil supports 2 formats for keypoint detection.
 
 For details, please refer to **MSCOCO_2017 keypoint detection** section in <a href="../usage/dataset.html">Prepare training dataset</a>
 
-### Environment variables
-
-For example, if you have prepared MSCOCO_2017 dataset successfully as `/storage/dataset/MSCOCO_2017`.
-Export `DATA_DIR` to make sure dataset loader can locate it properly.
-
-    export DATA_DIR=/storage/dataset
-
-Optionally, you can also export `OUTPUT_DIR`. if not, default 
-`OUTPUT_DIR` will be `saved/` under blueoil root path.
-
-    export OUTPUT_DIR=/storage/saved
-
-In this tutorial, we assume we have exported both variables as above.
-
 ## Generate a configuration file
 
-Note: Below instructions assume your current path is blueoil root path.
+Note: Below instructions assume your current path is blueoil root path and the MSCOCO_2017 dataset is successfully at `/storage/dataset/MSCOCO_2017`. .
 
 Generate your model configuration file interactively by running the `blueoil init` command.
 
@@ -72,6 +58,8 @@ Train your model by running `blueoil train` with a model configuration.
 
     $ docker run --rm \
         -e CUDA_VISIBLE_DEVICES=0 \
+        -e DATA_DIR=/home/blueoil \
+        -e OUTPUT_DIR=/home/blueoil/saved \
         -v /storage/dataset/MSCOCO_2017:/home/blueoil/MSCOCO_2017 \
         -v $(pwd)/config:/home/blueoil/config \
         -v $(pwd)/saved:/home/blueoil/saved \
@@ -80,6 +68,9 @@ Train your model by running `blueoil train` with a model configuration.
 
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
 Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
+
+When training has started, the training log and checkpoints are generated under `./saved/{MODEL_NAME}`.
+The value of `{MODEL_NAME}` will be `{Configuration file}_{TIMESTAMP}`.
 
 Training runs on the TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
@@ -121,7 +112,7 @@ Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 - Compiles for x86, ARM and FPGA.
 
 If conversion is successful, output files are generated under
-`./saved/train_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
+`./saved/{MODEL_NAME}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
 
 ```
 output
@@ -210,6 +201,12 @@ output
 
 ```
 {
+    "benchmark": {
+        "inference": 0.12950640000000008,
+        "post": 0.002501737000000004,
+        "pre": 0.001524048,
+        "total": 0.13353218500000008
+    },
     "classes": [
         {
             "id": 0,
