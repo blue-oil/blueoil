@@ -22,8 +22,8 @@ import click
 import tensorflow as tf
 
 from lmnet import environment
-from lmnet.utils import config as config_util
-from lmnet.utils import executor
+from blueoil.utils import config as config_util
+from blueoil.utils import executor
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

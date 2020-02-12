@@ -18,7 +18,7 @@ import os
 from glob import glob
 
 from blueoil.datasets.base import Base
-from lmnet.utils.image import load_image
+from blueoil.utils.image import load_image
 
 
 class Div2k(Base):
