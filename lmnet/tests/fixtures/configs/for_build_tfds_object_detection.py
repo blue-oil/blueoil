@@ -17,8 +17,8 @@ import tensorflow as tf
 from easydict import EasyDict
 
 from lmnet.common import Tasks
-from lmnet.datasets.delta_mark import ObjectDetectionBase
-from lmnet.networks.object_detection.lm_fyolo import LMFYoloQuantize
+from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
+from blueoil.datasets.delta_mark import ObjectDetectionBase
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     ResizeWithGtBoxes,
@@ -32,7 +32,7 @@ from lmnet.post_processor import (
 from lmnet.data_augmentor import (
     FlipLeftRight,
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

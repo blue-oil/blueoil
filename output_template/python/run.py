@@ -22,10 +22,10 @@ import time
 
 from lmnet.nnlib import NNLib as NNLib
 
-from lmnet.utils.image import load_image
+from blueoil.utils.image import load_image
 from lmnet.common import Tasks
-from lmnet.utils.output import JsonOutput, ImageFromJson
-from lmnet.utils.config import (
+from blueoil.utils.predict_output.output import JsonOutput, ImageFromJson
+from blueoil.utils.config import (
     load_yaml,
     build_pre_process,
     build_post_process,
@@ -102,9 +102,9 @@ def _run(nn, image_data):
 
 def _timerfunc(func, extraArgs, trial):
     if sys.version_info.major == 2:
-        get_time = time.clock
+        get_time = time.time
     else:
-        get_time = time.process_time
+        get_time = time.perf_counter
 
     runtime = 0.
     for i in range(trial):
