@@ -19,9 +19,9 @@ import pytest
 from blueoil.cmd.build_tfds import run
 from executor.train import run as train_run
 from lmnet import environment
-from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
-from lmnet.utils import config as config_util
+from blueoil.datasets.dataset_iterator import DatasetIterator
+from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from blueoil.utils import config as config_util
 
 _RUN_AS_A_SCRIPT = False
 

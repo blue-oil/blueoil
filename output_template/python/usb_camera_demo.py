@@ -31,7 +31,7 @@ import numpy as np
 
 from lmnet.common import get_color_map
 from lmnet.nnlib import NNLib
-from lmnet.utils.config import (
+from blueoil.utils.config import (
     load_yaml,
     build_pre_process,
     build_post_process,
@@ -126,6 +126,8 @@ def show_semantic_segmentation(img, result, fps, window_height, window_width, co
 def show_keypoint_detection(img, result, fps, window_height, window_width, config):
     window_img = resize(img, size=[window_height, window_width])
 
+    input_width = config.IMAGE_SIZE[1]
+    input_height = config.IMAGE_SIZE[0]
     window_img = visualize_keypoint_detection(window_img, result[0], (input_height, input_width))
     window_img = add_fps(window_img, fps)
 
