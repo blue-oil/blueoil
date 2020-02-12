@@ -16,15 +16,15 @@
 import functools
 
 import tensorflow as tf
+from tensorflow.python.framework import ops
 
 from lmnet.blocks import lmnet_block
-from lmnet.networks.classification.base import Base
+from blueoil.networks.segmentation.base import SegnetBase
+from blueoil.layers.experiment import max_unpool_with_argmax
 
 
-class LmnetV1(Base):
-    """Lmnet v1 for classification.
-    """
-    version = 1.0
+class LmSegnetV0(SegnetBase):
+    """LM customized SegNet Network."""
 
     def __init__(
             self,
@@ -48,71 +48,62 @@ class LmnetV1(Base):
                                  use_bias=False,
                                  data_format=channels_data_format)
 
-    def _space_to_depth(self, inputs=None, block_size=2, name=''):
+    def _max_pool_with_argmax(self, inputs=None, ksize=None, strides=None, padding=None, name=''):
         if self.data_format != 'NHWC':
             inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
-
-        output = tf.space_to_depth(inputs, block_size=block_size, name=name)
-
+        output, argmax = tf.nn.max_pool_with_argmax(inputs, ksize=ksize, strides=strides, padding=padding, name=name)
         if self.data_format != 'NHWC':
             output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
-        return output
+        return output, argmax
+
+    def _unpool_with_argmax(self, inputs=None, mask=None, ksize=None, name=''):
+        with ops.name_scope(name, "Unpool"):
+            return max_unpool_with_argmax(inputs,
+                                          mask,
+                                          ksize,
+                                          self.data_format)
 
     def base(self, images, is_training, *args, **kwargs):
-        """Base network.
-
-        Args:
-            images: Input images.
-            is_training: A flag for if is training.
-        Returns:
-            tf.Tensor: Inference result.
-        """
-
         channels_data_format = 'channels_last' if self.data_format == 'NHWC' else 'channels_first'
-        _lmnet_block = self._get_lmnet_block(is_training, channels_data_format)
+        lmnet_block = self._get_lmnet_block(is_training, channels_data_format)
 
+        max_pool_with_argmax = functools.partial(self._max_pool_with_argmax,
+                                                 ksize=(1, 2, 2, 1),
+                                                 strides=(1, 2, 2, 1),
+                                                 padding='SAME')
+
+        unpool_with_argmax = functools.partial(self._unpool_with_argmax,
+                                               ksize=(1, 2, 2, 1))
         self.images = images
 
-        x = _lmnet_block('conv1', images, 32, 3)
-        x = _lmnet_block('conv2', x, 64, 3)
-        x = self._space_to_depth(name='pool2', inputs=x)
-        x = _lmnet_block('conv3', x, 128, 3)
-        x = _lmnet_block('conv4', x, 64, 3)
-        x = self._space_to_depth(name='pool4', inputs=x)
-        x = _lmnet_block('conv5', x, 128, 3)
-        x = self._space_to_depth(name='pool5', inputs=x)
-        x = _lmnet_block('conv6', x, 64, 1, activation=tf.nn.relu)
+        x = lmnet_block('conv1', images, 32, 3)
+        x, i_1 = max_pool_with_argmax(name='pool1', inputs=x)
+        x = lmnet_block('conv2', x, 64, 3)
+        x, i_2 = max_pool_with_argmax(name='pool2', inputs=x)
+        x = lmnet_block('conv3', x, 128, 3)
+        x, i_3 = max_pool_with_argmax(name='pool3', inputs=x)
+        x = lmnet_block('conv4', x, 256, 3)
+        x, i_4 = max_pool_with_argmax(name='pool4', inputs=x)
+        x = lmnet_block('conv5', x, 256, 3)
+        x, i_5 = max_pool_with_argmax(name='pool5', inputs=x)
 
-        x = tf.layers.dropout(x, training=is_training)
+        x = unpool_with_argmax(name='unpool6', inputs=x, mask=i_5)
+        x = lmnet_block('conv6', x, 256, 3)
+        x = unpool_with_argmax(name='unpool7', inputs=x, mask=i_4)
+        x = lmnet_block('conv7', x, 128, 3)
+        x = unpool_with_argmax(name='unpool8', inputs=x, mask=i_3)
+        x = lmnet_block('conv8', x, 64, 3)
+        x = unpool_with_argmax(name='unpool9', inputs=x, mask=i_2)
+        x = lmnet_block('conv9', x, 32, 3)
+        x = unpool_with_argmax(name='unpool10', inputs=x, mask=i_1)
+        x = lmnet_block('conv10', x, 32, 3)
+        x = lmnet_block('conv11', x, self.num_classes, 3)
 
-        kernel_initializer = tf.random_normal_initializer(mean=0.0, stddev=0.01)
-        x = tf.layers.conv2d(name='conv7',
-                             inputs=x,
-                             filters=self.num_classes,
-                             kernel_size=1,
-                             kernel_initializer=kernel_initializer,
-                             activation=None,
-                             use_bias=True,
-                             data_format=channels_data_format)
-
-        self._heatmap_layer = x
-
-        h = x.get_shape()[1].value if self.data_format == 'NHWC' else x.get_shape()[2].value
-        w = x.get_shape()[2].value if self.data_format == 'NHWC' else x.get_shape()[3].value
-        x = tf.layers.average_pooling2d(name='pool7',
-                                        inputs=x,
-                                        pool_size=[h, w],
-                                        padding='VALID',
-                                        strides=1,
-                                        data_format=channels_data_format)
-
-        self.base_output = tf.reshape(x, [-1, self.num_classes], name='pool7_reshape')
-
-        return self.base_output
+        return x
 
 
-class LmnetV1Quantize(LmnetV1):
-    """Lmnet quantize network for classification, version 1.0
+class LmSegnetV0Quantize(LmSegnetV0):
+    """LM customized Segnet quantize network.
 
     Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,
     ``weight_quantizer``, ``weight_quantizer_kwargs``.
@@ -123,7 +114,6 @@ class LmnetV1Quantize(LmnetV1):
         weight_quantizer (callable): Activation quantizater. See more at `blueoil.nn.quantizations`.
         weight_quantizer_kwargs (dict): Kwargs for `weight_quantizer`.
     """
-    version = 1.0
 
     def __init__(
             self,

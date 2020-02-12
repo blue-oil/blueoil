@@ -18,13 +18,13 @@ import functools
 import tensorflow as tf
 
 from lmnet.blocks import lmnet_block
-from lmnet.networks.classification.base import Base
+from blueoil.networks.classification.base import Base
 
 
-class LmnetV0(Base):
-    """Lmnet network for classification, version 0.
+class LmnetV1(Base):
+    """Lmnet v1 for classification.
     """
-    version = 0.01
+    version = 1.0
 
     def __init__(
             self,
@@ -48,6 +48,16 @@ class LmnetV0(Base):
                                  use_bias=False,
                                  data_format=channels_data_format)
 
+    def _space_to_depth(self, inputs=None, block_size=2, name=''):
+        if self.data_format != 'NHWC':
+            inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
+
+        output = tf.space_to_depth(inputs, block_size=block_size, name=name)
+
+        if self.data_format != 'NHWC':
+            output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
+        return output
+
     def base(self, images, is_training, *args, **kwargs):
         """Base network.
 
@@ -60,21 +70,17 @@ class LmnetV0(Base):
 
         channels_data_format = 'channels_last' if self.data_format == 'NHWC' else 'channels_first'
         _lmnet_block = self._get_lmnet_block(is_training, channels_data_format)
-        _max_pooling2d = functools.partial(tf.layers.max_pooling2d, pool_size=2, strides=2, padding='SAME',
-                                           data_format=channels_data_format)
 
         self.images = images
 
         x = _lmnet_block('conv1', images, 32, 3)
-        x = _max_pooling2d(name='pool1', inputs=x)
         x = _lmnet_block('conv2', x, 64, 3)
-        x = _max_pooling2d(name='pool2', inputs=x)
+        x = self._space_to_depth(name='pool2', inputs=x)
         x = _lmnet_block('conv3', x, 128, 3)
-        x = _max_pooling2d(name='pool3', inputs=x)
-        x = _lmnet_block('conv4', x, 256, 3)
-        x = _max_pooling2d(name='pool4', inputs=x)
-        x = _lmnet_block('conv5', x, 256, 3)
-        x = _max_pooling2d(name='pool5', inputs=x)
+        x = _lmnet_block('conv4', x, 64, 3)
+        x = self._space_to_depth(name='pool4', inputs=x)
+        x = _lmnet_block('conv5', x, 128, 3)
+        x = self._space_to_depth(name='pool5', inputs=x)
         x = _lmnet_block('conv6', x, 64, 1, activation=tf.nn.relu)
 
         x = tf.layers.dropout(x, training=is_training)
@@ -105,7 +111,7 @@ class LmnetV0(Base):
         return self.base_output
 
 
-class LmnetV0Quantize(LmnetV0):
+class LmnetV1Quantize(LmnetV1):
     """Lmnet quantize network for classification, version 1.0
 
     Following `args` are used for inference: ``activation_quantizer``, ``activation_quantizer_kwargs``,

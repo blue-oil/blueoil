@@ -132,7 +132,7 @@ NETWORK:
   WEIGHT_DECAY_RATE: 0.0005
   WEIGHT_QUANTIZER: !!python/name:blueoil.nn.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:lmnet.networks.object_detection.yolo_v2_quantize.YoloV2Quantize ''
+NETWORK_CLASS: !!python/name:blueoil.networks.object_detection.yolo_v2_quantize.YoloV2Quantize ''
 NMS: !!python/name:lmnet.post_processor.NMS ''
 POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
   processors:

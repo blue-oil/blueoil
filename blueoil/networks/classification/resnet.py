@@ -15,8 +15,8 @@
 # =============================================================================
 import tensorflow as tf
 
+from blueoil.networks.classification.base import Base
 from blueoil.layers import average_pooling2d, batch_norm, conv2d, fully_connected
-from lmnet.networks.classification.base import Base
 
 
 class Resnet(Base):
