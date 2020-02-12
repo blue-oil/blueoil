@@ -1,3 +1,3 @@
-# What this patch does to fix the issue.
+## What this patch does to fix the issue.
 
-Link to any relevant issues or pull requests.
+## Link to any relevant issues or pull requests.
