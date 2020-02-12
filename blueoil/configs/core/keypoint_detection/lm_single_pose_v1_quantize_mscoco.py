@@ -17,8 +17,8 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
-from lmnet.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
+from blueoil.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
+from blueoil.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     DivideBy255,

@@ -20,8 +20,8 @@ from lmnet.common import Tasks
 from blueoil.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
                                   Hue, SSDRandomCrop)
 from lmnet.data_processor import Sequence
-from lmnet.datasets.bdd100k import BDD100KObjectDetection
-from lmnet.networks.object_detection.lm_fyolo import LMFYolo
+from blueoil.networks.object_detection.lm_fyolo import LMFYolo
+from blueoil.datasets.bdd100k import BDD100KObjectDetection
 from lmnet.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
 from lmnet.pre_processor import DivideBy255, ResizeWithGtBoxes
 

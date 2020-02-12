@@ -23,9 +23,9 @@ import tensorflow as tf
 from tensorflow.python.client import device_lib
 
 from lmnet import environment
-from lmnet.utils.image import load_image
-from lmnet.utils import config as config_util
-from lmnet.utils import executor
+from blueoil.utils.image import load_image
+from blueoil.utils import config as config_util
+from blueoil.utils import executor
 
 
 # TODO(wakisaka): duplicated function with blueoil/cmd/export.py

@@ -76,7 +76,7 @@ Just like init, set the value of `{TAG}` to the value obtained by `docker images
 Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
 
 When training has started, the training log and checkpoints are generated under `./saved/{MODEL_NAME}`.
-The value of `{MODEL_NAME}` will be `train_{TIMESTAMP}`.
+The value of `{MODEL_NAME}` will be `{Configuration file}_{TIMESTAMP}`.
 
 Training runs on the TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
@@ -114,7 +114,7 @@ Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 - Generates source code for executable binary.
 - Compiles for x86, ARM and FPGA.
 
-If conversion is successful, output files are generated under `./saved/train_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
+If conversion is successful, output files are generated under `./saved/{MODEL_NAME}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
 
 ```
 output

@@ -17,8 +17,8 @@ from easydict import EasyDict
 import tensorflow as tf
 
 from lmnet.common import Tasks
-from lmnet.networks.classification.lmnet_quantize import LmnetQuantize
-from lmnet.datasets.cifar100 import Cifar100
+from blueoil.networks.classification.lmnet_quantize import LmnetQuantize
+from blueoil.datasets.cifar100 import Cifar100
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,

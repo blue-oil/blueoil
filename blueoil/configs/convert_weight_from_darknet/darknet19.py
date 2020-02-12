@@ -16,8 +16,8 @@
 from easydict import EasyDict
 
 from lmnet.common import Tasks
-from lmnet.datasets.ilsvrc_2012 import Ilsvrc2012
-from lmnet.networks.classification.darknet import Darknet
+from blueoil.networks.classification.darknet import Darknet
+from blueoil.datasets.ilsvrc_2012 import Ilsvrc2012
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,

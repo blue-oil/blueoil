@@ -17,8 +17,8 @@ import tensorflow as tf
 from easydict import EasyDict
 
 from lmnet.common import Tasks
-from lmnet.datasets.delta_mark import ClassificationBase
-from lmnet.networks.classification.lmnet_v0 import LmnetV0Quantize
+from blueoil.networks.classification.lmnet_v0 import LmnetV0Quantize
+from blueoil.datasets.delta_mark import ClassificationBase
 from lmnet.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
