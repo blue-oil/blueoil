@@ -63,7 +63,7 @@ NETWORK:
   WEIGHT_DECAY_RATE: 0.0005
   WEIGHT_QUANTIZER: lmnet.quantizations.binary.binary_mean_scaling_quantizer
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: lmnet.networks.classification.lmnet_quantize.LmnetQuantize
+NETWORK_CLASS: blueoil.networks.classification.lmnet_quantize.LmnetQuantize
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
 PRETRAIN_VARS: []
