@@ -27,7 +27,7 @@ from lmnet.pre_processor import ResizeWithGtBoxes
 from lmnet.data_processor import (
     Sequence
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Blur,
     Brightness,
     Color,

@@ -19,7 +19,7 @@ import tensorflow as tf
 from lmnet.common import Tasks
 from blueoil.datasets.ilsvrc_2012 import Ilsvrc2012
 from lmnet.data_processor import Sequence
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast,

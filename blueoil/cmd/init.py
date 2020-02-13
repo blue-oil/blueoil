@@ -22,8 +22,8 @@ import shutil
 import whaaaaat
 from jinja2 import Environment, FileSystemLoader
 
+import blueoil.data_augmentor as augmentor
 from blueoil.generate_lmnet_config import generate
-import lmnet.data_augmentor as augmentor
 from lmnet.data_processor import Processor
 
 
