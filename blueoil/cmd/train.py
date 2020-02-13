@@ -378,13 +378,13 @@ def run(network, dataset, config_file, experiment_id, recreate):
     start_training(config)
 
 
-def train(config_file, experiment_id=None, recreate=False, network=None, dataset=None):
+def train(config_file, experiment_id=None, recreate=False):
     if not experiment_id:
         # Default model_name will be taken from config file: {model_name}.yml.
         model_name = os.path.splitext(os.path.basename(config_file))[0]
         experiment_id = '{}_{:%Y%m%d%H%M%S}'.format(model_name, datetime.now())
 
-    run(network, dataset, config_file, experiment_id, recreate)
+    run(None, None, config_file, experiment_id, recreate)
 
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
     experiment_dir = os.path.join(output_dir, experiment_id)

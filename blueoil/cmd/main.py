@@ -75,20 +75,8 @@ def init(output):
     help='Delete and recreate experiment id dir',
     default=False,
 )
-@click.option(
-    '-n',
-    '--network',
-    help='Network name which you want to use for this training. override config.DATASET_CLASS',
-    default=None,
-)
-@click.option(
-    '-d',
-    '--dataset',
-    help='Dataset name which is the source of this training. override config.NETWORK_CLASS',
-    default=None,
-)
-def train(config, experiment_id, recreate, network, dataset):
-    experiment_id, checkpoint_name = run_train(config, experiment_id, recreate, network, dataset)
+def train(config, experiment_id, recreate):
+    experiment_id, checkpoint_name = run_train(config, experiment_id, recreate)
     click.echo('Next step: blueoil convert -e {} -p {}'.format(
         experiment_id,
         checkpoint_name
