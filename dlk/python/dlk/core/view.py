@@ -406,6 +406,7 @@ class View(object):
         elif self.op.op_type == 'Reshape':
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
+            input_string = self.input_to_string(op, input_ops['data'])
             in_shape = input_ops['data'].shape
             out_shape = op.shape
 
@@ -414,8 +415,8 @@ class View(object):
             return self.format_string(
                 f"""
                 // Reshape from {in_shape} to {out_shape}'
-                std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data()"""
-                f""" + {input_ops["data"].name}.size(), {op.name}_reshaped.data());
+                std::copy({input_string}.data(), {input_string}.data()"""
+                f""" + {input_string}.size(), {outputs_string}.data());
                 """
             )
 
@@ -560,15 +561,14 @@ class View(object):
 
         return indent(string, '  ', should_be_indent)
 
+    def input_to_string(self, op, in_op):
+        for k, v in in_op.output_ops.items():
+            if op in v:
+                return str(in_op.name) + '_' + str(k)
+        raise ValueError(f'invalid graph structure: {in_op.name} must have {op.name} as one of its output ops')
+
     def inputs_to_string(self, op, inputs):
-
-        def input_to_string(op, in_op):
-            for k, v in in_op.output_ops.items():
-                if op in v:
-                    return str(in_op.name) + '_' + str(k)
-            raise ValueError(f'invalid graph structure: {in_op.name} must have {op.name} as one of its output ops')
-
-        return ', '.join(map(lambda x: input_to_string(op, x), inputs.values()))
+        return ', '.join(map(lambda x: self.input_to_string(op, x), inputs.values()))
 
     def outputs_to_string(self, node, outputs):
         return ', '.join(map(lambda x: str(node.name + '_' + x), outputs.keys()))
