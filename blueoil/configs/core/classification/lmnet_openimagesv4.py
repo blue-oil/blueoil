@@ -19,7 +19,7 @@ import tensorflow as tf
 from lmnet.common import Tasks
 from blueoil.networks.classification import Lmnet
 from blueoil.datasets.open_images_v4 import OpenImagesV4Classification
-from lmnet.data_processor import Sequence
+from blueoil.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
     PerImageStandardization,
