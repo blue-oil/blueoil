@@ -18,7 +18,7 @@ import PIL.Image
 import pytest
 import tensorflow as tf
 
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,

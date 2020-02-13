@@ -133,10 +133,10 @@ NETWORK:
   WEIGHT_QUANTIZER: !!python/name:blueoil.nn.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
 NETWORK_CLASS: !!python/name:blueoil.networks.object_detection.yolo_v2_quantize.YoloV2Quantize ''
-NMS: !!python/name:lmnet.post_processor.NMS ''
+NMS: !!python/name:blueoil.post_processor.NMS ''
 POST_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.post_processor.FormatYoloV2
+  - !!python/object:blueoil.post_processor.FormatYoloV2
     anchors:
     - !!python/tuple
       - 1.3221
@@ -159,9 +159,9 @@ POST_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     - 320
     - 320
     num_classes: 20
-  - !!python/object:lmnet.post_processor.ExcludeLowScoreBox
+  - !!python/object:blueoil.post_processor.ExcludeLowScoreBox
     threshold: 0.05
-  - !!python/object:lmnet.post_processor.NMS
+  - !!python/object:blueoil.post_processor.NMS
     classes:
     - aeroplane
     - bicycle

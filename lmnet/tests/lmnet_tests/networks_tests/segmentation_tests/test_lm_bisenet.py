@@ -24,7 +24,7 @@ from blueoil.common import Tasks
 from blueoil.data_processor import Sequence
 from blueoil.networks.segmentation.lm_bisenet import LMBiSeNet
 from blueoil.datasets.camvid import Camvid
-from lmnet.post_processor import Bilinear, Softmax
+from blueoil.post_processor import Bilinear, Softmax
 from lmnet.pre_processor import Resize
 from blueoil.utils.executor import prepare_dirs
 

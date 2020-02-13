@@ -24,7 +24,7 @@ from blueoil.common import Tasks
 from blueoil.data_processor import Sequence
 from blueoil.networks.object_detection.yolo_v2 import YoloV2
 from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
-from lmnet.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
+from blueoil.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
 from lmnet.pre_processor import ResizeWithGtBoxes
 from blueoil.utils.executor import prepare_dirs
 
