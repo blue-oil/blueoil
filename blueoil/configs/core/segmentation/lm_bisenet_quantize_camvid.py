@@ -24,7 +24,7 @@ from lmnet.pre_processor import (
     Resize,
     PerImageStandardization,
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     Bilinear,
     Softmax,
 )
