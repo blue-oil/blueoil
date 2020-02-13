@@ -49,7 +49,7 @@ DATASET:
       - 320
       - 320
     - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:lmnet.datasets.widerface.WiderFace ''
+DATASET_CLASS: !!python/name:blueoil.datasets.widerface.WiderFace ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 320
@@ -112,7 +112,7 @@ NETWORK:
   WEIGHT_DECAY_RATE: 0.0005
   WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:lmnet.networks.object_detection.lm_fyolo.LMFYoloQuantize ''
+NETWORK_CLASS: !!python/name:blueoil.networks.object_detection.lm_fyolo.LMFYoloQuantize ''
 NMS: !!python/name:lmnet.post_processor.NMS ''
 POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
   processors:

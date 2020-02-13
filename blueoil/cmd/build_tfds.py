@@ -19,11 +19,11 @@ import tempfile
 import click
 import tensorflow as tf
 
-from lmnet.datasets.base import ObjectDetectionBase, SegmentationBase
-from lmnet.datasets.tfds import TFDSMixin
-from lmnet.utils import config as config_util
-from lmnet.utils.tfds_builders.classification import ClassificationBuilder
-from lmnet.utils.tfds_builders.object_detection import ObjectDetectionBuilder
+from blueoil.datasets.base import ObjectDetectionBase, SegmentationBase
+from blueoil.datasets.tfds import TFDSMixin
+from blueoil.utils import config as config_util
+from blueoil.utils.tfds_builders.classification import ClassificationBuilder
+from blueoil.utils.tfds_builders.object_detection import ObjectDetectionBuilder
 
 
 def _get_tfds_settings(config_file):

@@ -15,7 +15,7 @@
 # =============================================================================
 from easydict import EasyDict
 
-from lmnet.utils import config as config_util
+from blueoil.utils import config as config_util
 
 
 def test_merge():
