@@ -24,7 +24,7 @@ from lmnet.pre_processor import (
     DivideBy255,
     Resize
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast,

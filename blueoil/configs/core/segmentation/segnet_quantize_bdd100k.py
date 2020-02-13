@@ -17,7 +17,7 @@ import tensorflow as tf
 from easydict import EasyDict
 
 from lmnet.common import Tasks
-from lmnet.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
+from blueoil.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
                                   Hue)
 from lmnet.data_processor import Sequence
 from blueoil.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
