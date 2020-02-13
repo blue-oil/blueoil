@@ -8,7 +8,7 @@ from blueoil.cmd.convert import convert
 from blueoil.cmd.predict import predict
 from blueoil.cmd.train import train
 from lmnet import environment
-from lmnet.utils.config import load
+from blueoil.utils.config import load
 
 
 @pytest.fixture
