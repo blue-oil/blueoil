@@ -150,7 +150,7 @@ def run_prediction(input_image, model, config_file, trial=1):
         image_size=config.IMAGE_SIZE,
         data_format=config.DATA_FORMAT,
         bench={
-            "total": (bench_pre + bench_post + bench_inference),
+            "total": bench_pre + bench_post + bench_inference,
             "pre": bench_pre,
             "post": bench_post,
             "inference": bench_inference,
