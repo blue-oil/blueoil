@@ -18,7 +18,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from lmnet import environment
+from blueoil import environment
 
 
 class Base(metaclass=ABCMeta):

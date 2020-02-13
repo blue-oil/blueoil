@@ -22,7 +22,7 @@ from easydict import EasyDict
 from tensorflow.io import gfile
 from yaml.representer import Representer
 
-from lmnet import environment
+from blueoil import environment
 from blueoil.common import Tasks
 from lmnet.data_processor import Processor, Sequence
 

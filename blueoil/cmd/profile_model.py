@@ -21,7 +21,7 @@ import os
 import click
 import tensorflow as tf
 
-from lmnet import environment
+from blueoil import environment
 from blueoil.utils import config as config_util
 from blueoil.utils import executor
 
