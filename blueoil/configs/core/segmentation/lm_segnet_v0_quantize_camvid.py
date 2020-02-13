@@ -20,7 +20,7 @@ from blueoil.common import Tasks
 from blueoil.networks.segmentation.lm_segnet_v0 import LmSegnetV0Quantize
 from blueoil.datasets.camvid import Camvid
 from blueoil.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.pre_processor import (
     Resize,
     DivideBy255,
 )

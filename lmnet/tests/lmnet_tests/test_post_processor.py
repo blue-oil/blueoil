@@ -303,7 +303,7 @@ def test_resize_bilinear_pillow():
 
 def test_gaussian_heatmap_to_joints():
 
-    from lmnet.pre_processor import JointsToGaussianHeatmap
+    from blueoil.pre_processor import JointsToGaussianHeatmap
 
     image_size = (160, 160)
 
