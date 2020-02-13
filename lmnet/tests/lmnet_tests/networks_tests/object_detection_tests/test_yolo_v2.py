@@ -19,7 +19,7 @@ import tensorflow as tf
 from easydict import EasyDict
 
 from executor.train import start_training
-from lmnet import environment
+from blueoil import environment
 from lmnet.common import Tasks
 from lmnet.data_processor import Sequence
 from blueoil.networks.object_detection.yolo_v2 import YoloV2

@@ -17,7 +17,7 @@ from easydict import EasyDict
 import pytest
 import tensorflow as tf
 
-from lmnet import environment
+from blueoil import environment
 from lmnet.common import Tasks
 from blueoil.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
 from blueoil.datasets.mscoco_2017 import MscocoSinglePersonKeypoints

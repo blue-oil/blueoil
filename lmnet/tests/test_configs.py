@@ -18,7 +18,7 @@ import os
 
 import pytest
 
-from lmnet import environment
+from blueoil import environment
 from blueoil.utils.config import _load_py, check_config, save_yaml
 
 pytestmark = pytest.mark.usefixtures("set_test_environment")

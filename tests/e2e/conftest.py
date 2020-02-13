@@ -23,7 +23,7 @@ def init_env():
     environment_originals = {}
     environ_originals = {}
 
-    # TODO: Remove this setting after lmnet.environment has been refactored.
+    # TODO: Remove this setting after blueoil.environment has been refactored.
     envs = {
         "DATA_DIR": os.path.join(blueoil_dir, "lmnet", "tests", "fixtures", "datasets"),
         "OUTPUT_DIR": train_output_dir.name,
@@ -70,7 +70,7 @@ def run_all_steps(dirs, config_file):
         config = yaml.load(f)
 
     # Train
-    # TODO: Remove this setting after lmnet.environment has been refactored.
+    # TODO: Remove this setting after blueoil.environment has been refactored.
     environment._init_flag = False
     experiment_id, checkpoint_name = train(config_path)
 
@@ -79,7 +79,7 @@ def run_all_steps(dirs, config_file):
     assert os.path.exists(os.path.join(train_output_dir, 'checkpoints'))
 
     # Convert
-    # TODO: Remove this setting after lmnet.environment has been refactored.
+    # TODO: Remove this setting after blueoil.environment has been refactored.
     environment._init_flag = False
     convert(experiment_id)
 
@@ -104,7 +104,7 @@ def run_all_steps(dirs, config_file):
     predict_input_dir = os.path.join(dirs["blueoil_dir"], "lmnet/tests/fixtures/sample_images")
     predict_output_dir = dirs["predict_output_dir"]
 
-    # TODO: Remove this setting after lmnet.environment has been refactored.
+    # TODO: Remove this setting after blueoil.environment has been refactored.
     environment._init_flag = False
     predict(predict_input_dir, predict_output_dir, experiment_id, checkpoint_name)
 

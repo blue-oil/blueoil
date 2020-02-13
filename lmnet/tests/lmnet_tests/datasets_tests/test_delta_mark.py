@@ -253,7 +253,7 @@ def test_delta_mark_object_detection_has_validation_path():
 
 
 if __name__ == '__main__':
-    from lmnet.environment import setup_test_environment
+    from blueoil.environment import setup_test_environment
     setup_test_environment()
 
     test_delta_mark_classification()

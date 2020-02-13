@@ -22,7 +22,7 @@ import click
 import numpy as np
 import tensorflow as tf
 
-from lmnet import environment
+from blueoil import environment
 from blueoil.utils.image import load_image
 from blueoil.utils import config as config_util
 from blueoil.utils.executor import search_restore_filename

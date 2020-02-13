@@ -20,7 +20,7 @@ import click
 import numpy as np
 import tensorflow as tf
 
-from lmnet import environment
+from blueoil import environment
 from blueoil.networks.classification.darknet import Darknet
 from blueoil.networks.object_detection.yolo_v2 import YoloV2
 from blueoil.utils import config as config_util

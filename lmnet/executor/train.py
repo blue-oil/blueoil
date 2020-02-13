@@ -21,7 +21,7 @@ import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 from tensorflow.keras.utils import Progbar
 
-from lmnet import environment
+from blueoil import environment
 from lmnet.common import Tasks
 from blueoil.datasets.base import ObjectDetectionBase
 from blueoil.datasets.dataset_iterator import DatasetIterator

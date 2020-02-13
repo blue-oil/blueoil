@@ -64,7 +64,7 @@ def test_dataset_iterator_batch_order():
 
 
 if __name__ == '__main__':
-    from lmnet import environment
+    from blueoil import environment
     environment.setup_test_environment()
     test_dataset_iterator_batch_size()
     test_dataset_iterator_batch_order()
