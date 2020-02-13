@@ -197,6 +197,6 @@ PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
   - !!python/object:lmnet.pre_processor.DivideBy255 {}
 SAVE_CHECKPOINT_STEPS: 10000
 SUMMARISE_STEPS: 1000
-TASK: !!python/object/apply:lmnet.common.Tasks
+TASK: !!python/object/apply:blueoil.common.Tasks
 - IMAGE.OBJECT_DETECTION
 TEST_STEPS: 1000
