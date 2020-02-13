@@ -19,7 +19,7 @@ import tensorflow as tf
 from blueoil.common import Tasks
 from blueoil.networks.keypoint_detection.{{network_module}} import {{network_class}}
 from blueoil.datasets.{{dataset_module}} import {{dataset_class}}
-from lmnet.data_processor import Sequence
+from blueoil.data_processor import Sequence
 from lmnet.pre_processor import (
     DivideBy255,
     ResizeWithJoints,

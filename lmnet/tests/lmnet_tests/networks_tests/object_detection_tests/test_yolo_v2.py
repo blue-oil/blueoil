@@ -21,7 +21,7 @@ from easydict import EasyDict
 from executor.train import start_training
 from blueoil import environment
 from blueoil.common import Tasks
-from lmnet.data_processor import Sequence
+from blueoil.data_processor import Sequence
 from blueoil.networks.object_detection.yolo_v2 import YoloV2
 from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2

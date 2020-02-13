@@ -1,7 +1,7 @@
 BATCH_SIZE: 1
 DATASET:
   AUGMENTOR: 
-    lmnet.data_processor.Sequence:
+    blueoil.data_processor.Sequence:
       processors:
       - 
         blueoil.data_augmentor.Pad:
@@ -20,7 +20,7 @@ DATASET:
           probability: 0.5
   BATCH_SIZE: 200
   PRE_PROCESSOR: 
-    lmnet.data_processor.Sequence:
+    blueoil.data_processor.Sequence:
       processors:
       -
         lmnet.pre_processor.Resize:

@@ -19,7 +19,7 @@ import tensorflow as tf
 from blueoil.common import Tasks
 from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
-from lmnet.data_processor import Sequence
+from blueoil.data_processor import Sequence
 from lmnet.pre_processor import (
     ResizeWithGtBoxes,
     PerImageStandardization,
