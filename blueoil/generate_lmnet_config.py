@@ -92,46 +92,19 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
 }
 
 
-def generate(blueoil_config_filename):
-
-    blueoil_config = _load_yaml(blueoil_config_filename)
+def generate(blueoil_config):
     lmnet_config = _blueoil_to_lmnet(blueoil_config)
-    config_file = _save(lmnet_config)
-
-    return config_file
-
-
-def _load_yaml(blueoil_config_filename):
-    """load blueoil config yaml
-
-    Args:
-        blueoil_config_filename (str): File path of blueoil config yaml file.
-
-    Returns:
-        dict: blueoil config.
-
-    """
-    if not gfile.exists(blueoil_config_filename):
-        FileNotFoundError("File not found: {}".format(blueoil_config_filename))
-
-    with gfile.GFile(blueoil_config_filename, "r") as f:
-        blueoil_config = yaml.load(f, Loader=yaml.SafeLoader)
-
-    model_name, _ = os.path.splitext(os.path.basename(blueoil_config_filename))
-
-    blueoil_config["model_name"] = model_name
-
-    return blueoil_config
+    return _save(lmnet_config)
 
 
 def _blueoil_to_lmnet(blueoil_config):
     """
 
     Args:
-        blueoil_config(dict): 
+        blueoil_config(dict):
 
     Returns:
-        dict: 
+        dict:
 
     """
 
@@ -275,17 +248,7 @@ def _blueoil_to_lmnet(blueoil_config):
     # common
     image_size = blueoil_config["common"]["image_size"]
     dataset_prefetch = blueoil_config["common"]["dataset_prefetch"]
-
-    data_augmentation = []
-    for augmentor in blueoil_config["common"].get("data_augmentation", []):
-        key = list(augmentor.keys())[0]
-        values = []
-        for v in list(list(augmentor.values())[0]):
-            v_key, v_value = list(v.keys())[0], list(v.values())[0]
-            only_str = isinstance(v_value, str) and re.match('^[\w-]+$', v_value) is not None
-            value = (v_key, "'{}'".format(v_value) if only_str else v_value)
-            values.append(value)
-        data_augmentation.append((key, values))
+    data_augmentation = blueoil_config["common"]["data_augmentation"]
 
     # quantize first layer
     quantize_first_convolution = blueoil_config["network"]["quantize_first_convolution"]
@@ -344,21 +307,3 @@ def _save(lmnet_config):
         fp.write(applied)
         return fp.name
 
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("blueoil_config_filename",
-                        help="File path of blueoil config yaml.")
-
-    args = parser.parse_args()
-
-    blueoil_config_filename = args.blueoil_config_filename
-
-    lmnet_config_filename = generate(blueoil_config_filename)
-
-    print('Convert configuration file from {} to: {}'.format(
-        blueoil_config_filename, lmnet_config_filename))
-
-
-if __name__ == '__main__':
-    main()
