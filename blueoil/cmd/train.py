@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+from datetime import datetime
 import math
 import os
 
@@ -20,6 +21,7 @@ import click
 import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 from tensorflow.keras.utils import Progbar
+import yaml
 
 from blueoil import environment
 from blueoil.common import Tasks
@@ -376,40 +378,23 @@ def run(network, dataset, config_file, experiment_id, recreate):
     start_training(config)
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option(
-    "-c",
-    "--config_file",
-    help="config file path for this training",
-    default=os.path.join("configs", "example", "classification.py"),
-    required=True,
-)
-@click.option(
-    "-i",
-    "--experiment_id",
-    help="id of this training",
-    default="experiment",
-    required=True,
-)
-@click.option(
-    '--recreate',
-    is_flag=True,
-    help="delete and recreate experiment id dir",
-    default=False,
-)
-@click.option(
-    "-n",
-    "--network",
-    help="network name which you want to use for this training. override config.DATASET_CLASS",
-)
-@click.option(
-    "-d",
-    "--dataset",
-    help="dataset name which is the source of this training. override config.NETWORK_CLASS",
-)
-def main(network, dataset, config_file, experiment_id, recreate):
+def train(config_file, experiment_id=None, recreate=False, network=None, dataset=None):
+    if not experiment_id:
+        # Default model_name will be taken from config file: {model_name}.yml.
+        model_name = os.path.splitext(os.path.basename(config_file))[0]
+        experiment_id = '{}_{:%Y%m%d%H%M%S}'.format(model_name, datetime.now())
+
     run(network, dataset, config_file, experiment_id, recreate)
 
+    output_dir = os.environ.get('OUTPUT_DIR', 'saved')
+    experiment_dir = os.path.join(output_dir, experiment_id)
+    checkpoint = os.path.join(experiment_dir, 'checkpoints', 'checkpoint')
 
-if __name__ == '__main__':
-    main()
+    if not os.path.isfile(checkpoint):
+        raise Exception('Checkpoints are not created in {}'.format(experiment_dir))
+
+    with open(checkpoint) as stream:
+        data = yaml.load(stream)
+    checkpoint_name = os.path.basename(data['model_checkpoint_path'])
+
+    return experiment_id, checkpoint_name
