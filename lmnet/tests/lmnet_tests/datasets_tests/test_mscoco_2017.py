@@ -19,7 +19,7 @@ import pytest
 from lmnet.pre_processor import ResizeWithJoints, JointsToGaussianHeatmap
 from blueoil.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
 from blueoil.datasets.dataset_iterator import DatasetIterator
-from lmnet.data_processor import Sequence
+from blueoil.data_processor import Sequence
 
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
