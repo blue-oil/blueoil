@@ -42,7 +42,7 @@ from lmnet.utils.demo import (
     run_inference,
 )
 
-from lmnet.visualize import (
+from blueoil.visualize import (
     label_to_color_image,
     visualize_keypoint_detection,
 )
