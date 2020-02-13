@@ -20,7 +20,7 @@ from glob import glob
 import numpy as np
 import pytest
 
-from lmnet import environment
+from blueoil import environment
 from blueoil.datasets.dataset_iterator import DatasetIterator
 from blueoil.datasets.image_folder import ImageFolderBase
 from lmnet.pre_processor import Resize
@@ -125,7 +125,7 @@ def test_image_folder_onthefly():
 
 
 if __name__ == '__main__':
-    from lmnet.environment import setup_test_environment
+    from blueoil.environment import setup_test_environment
     setup_test_environment()
 
     test_image_folder()

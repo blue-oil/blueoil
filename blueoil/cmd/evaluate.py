@@ -21,7 +21,7 @@ import os
 import click
 import tensorflow as tf
 
-from lmnet import environment
+from blueoil import environment
 from blueoil.datasets.base import ObjectDetectionBase
 from blueoil.datasets.dataset_iterator import DatasetIterator
 from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection

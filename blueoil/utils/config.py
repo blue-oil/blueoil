@@ -22,8 +22,8 @@ from easydict import EasyDict
 from tensorflow.io import gfile
 from yaml.representer import Representer
 
-from lmnet import environment
 from blueoil.data_processor import Processor, Sequence
+from blueoil import environment
 from blueoil.common import Tasks
 
 PARAMS_FOR_EXPORT = [

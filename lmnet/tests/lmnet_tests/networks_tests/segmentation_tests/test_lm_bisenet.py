@@ -19,8 +19,8 @@ import tensorflow as tf
 from easydict import EasyDict
 
 from executor.train import start_training
-from lmnet import environment
 from blueoil.data_processor import Sequence
+from blueoil import environment
 from blueoil.common import Tasks
 from blueoil.networks.segmentation.lm_bisenet import LMBiSeNet
 from blueoil.datasets.camvid import Camvid
