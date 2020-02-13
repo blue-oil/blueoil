@@ -13,15 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
-import inspect
-import re
 from collections import OrderedDict
+import inspect
+import os
+import re
+import shutil
 
 import whaaaaat
 from jinja2 import Environment, FileSystemLoader
 
-import lmnet.data_augmentor as augmentor
+import blueoil.data_augmentor as augmentor
+from blueoil.generate_lmnet_config import generate
 from lmnet.data_processor import Processor
 
 
@@ -215,19 +217,12 @@ def image_size_filter(raw):
 
 
 def save_config(blueoil_config, output=None):
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    template_dir = os.path.join(base_dir, "templates")
-
-    env = Environment(loader=FileSystemLoader(template_dir, encoding='utf8'))
-    tpl = env.get_template('blueoil-config.tpl.yml')
-
-    applied = tpl.render(blueoil_config)
-
     if not output:
-        output = blueoil_config['model_name'] + ".yml"
+        output = blueoil_config['model_name'] + ".py"
 
-    with open(output, 'w') as fp:
-        fp.write(applied)
+    tmpfile = generate(blueoil_config)
+    shutil.copy(tmpfile, output)
+
     return output
 
 
@@ -396,8 +391,31 @@ please modify manually after config exported.)"
     }
     quantize_first_convolution = prompt(quantize_first_convolution_question)
 
-    r = {}
-    for k, v in locals().items():
-        if k != 'r' and not k.endswith("question"):
-            r[k] = v
-    return r
+    return {
+        'model_name': model_name,
+        'task_type': task_type,
+        'network_name': network_name,
+        'network': {
+            'quantize_first_convolution': quantize_first_convolution,
+        },
+        'dataset': {
+            'format': dataset_format,
+            'train_path': train_path,
+            'test_path': test_path,
+        },
+        'trainer': {
+            'batch_size': int(batch_size),
+            'epochs': int(training_epochs),
+            'optimizer': training_optimizer,
+            'learning_rate_schedule': learning_rate_schedule,
+            'initial_learning_rate': float(initial_learning_rate_value),
+            'save_checkpoint_steps': 1000,
+            'keep_checkpoint_max': 5,
+        },
+        'common': {
+            'image_size': [int(val) for val in image_size],
+            'pretrain_model': False,
+            'dataset_prefetch': True,
+            'data_augmentation': data_augmentation,
+        },
+    }

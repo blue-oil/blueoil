@@ -29,7 +29,7 @@ import click
 import cv2
 import numpy as np
 
-from lmnet.common import get_color_map
+from blueoil.common import get_color_map
 from lmnet.nnlib import NNLib
 from blueoil.utils.config import (
     load_yaml,
@@ -42,7 +42,7 @@ from lmnet.utils.demo import (
     run_inference,
 )
 
-from lmnet.visualize import (
+from blueoil.visualize import (
     label_to_color_image,
     visualize_keypoint_detection,
 )

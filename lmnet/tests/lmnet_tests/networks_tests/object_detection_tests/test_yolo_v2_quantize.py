@@ -19,7 +19,7 @@ from easydict import EasyDict
 
 from executor.train import start_training
 from blueoil import environment
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
 from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
 from lmnet.pre_processor import ResizeWithGtBoxes

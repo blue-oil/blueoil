@@ -38,7 +38,7 @@ from lmnet.utils.demo import (
     VideoStream,
     run_inference,
 )
-from lmnet.visualize import (
+from blueoil.visualize import (
     draw_fps,
     visualize_classification,
     visualize_object_detection,

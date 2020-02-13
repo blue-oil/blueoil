@@ -3,12 +3,12 @@ from pathlib import Path
 import tempfile
 
 import pytest
-import yaml
 
 from blueoil.cmd.convert import convert
 from blueoil.cmd.predict import predict
 from blueoil.cmd.train import train
 from blueoil import environment
+from blueoil.utils.config import load
 
 
 @pytest.fixture
@@ -66,8 +66,7 @@ def run_all_steps(dirs, config_file):
     - Predict using training result.
     """
     config_path = os.path.join(dirs["config_dir"], config_file)
-    with open(config_path, 'r') as f:
-        config = yaml.load(f)
+    config = load(config_path)
 
     # Train
     # TODO: Remove this setting after blueoil.environment has been refactored.
@@ -75,7 +74,6 @@ def run_all_steps(dirs, config_file):
     experiment_id, checkpoint_name = train(config_path)
 
     train_output_dir = os.path.join(dirs["train_output_dir"], experiment_id)
-    assert os.path.exists(os.path.join(train_output_dir, 'blueoil_config.yaml'))
     assert os.path.exists(os.path.join(train_output_dir, 'checkpoints'))
 
     # Convert
@@ -86,7 +84,7 @@ def run_all_steps(dirs, config_file):
     convert_output_dir = os.path.join(train_output_dir, 'export', checkpoint_name)
     lib_dir = os.path.join(
         convert_output_dir,
-        "{}x{}".format(config['common']['image_size'][0], config['common']['image_size'][1]),
+        "{}x{}".format(config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]),
         'output',
         'models',
         'lib',

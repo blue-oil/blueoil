@@ -13,17 +13,17 @@ CLASSES:
 DATASET:
   AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.data_augmentor.Pad
+    - !!python/object:blueoil.data_augmentor.Pad
       bottom: 2
       fill: 0
       left: 2
       right: 2
       top: 2
-    - !!python/object:lmnet.data_augmentor.Crop
+    - !!python/object:blueoil.data_augmentor.Crop
       height: 32
       is_resize: false
       width: 32
-    - !!python/object:lmnet.data_augmentor.FlipLeftRight
+    - !!python/object:blueoil.data_augmentor.FlipLeftRight
       is_bounding_box: false
       probability: 0.5
   BATCH_SIZE: 1
@@ -84,7 +84,7 @@ PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
   - !!python/object:lmnet.pre_processor.PerImageStandardization {}
 SAVE_CHECKPOINT_STEPS: 2500
 SUMMARISE_STEPS: 2500
-TASK: !!python/object/apply:lmnet.common.Tasks
+TASK: !!python/object/apply:blueoil.common.Tasks
 - IMAGE.CLASSIFICATION
 TEST_STEPS: 2500
 USE_RECOVERY: true

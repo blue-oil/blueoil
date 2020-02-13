@@ -16,7 +16,7 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.segmentation.lm_bisenet import LMBiSeNetQuantize
 from blueoil.datasets.camvid import Camvid
 from lmnet.data_processor import Sequence
@@ -28,7 +28,7 @@ from lmnet.post_processor import (
     Bilinear,
     Softmax,
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast,

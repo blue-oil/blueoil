@@ -14,18 +14,18 @@ CLASSES:
 DATASET:
   AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.data_augmentor.Brightness
+    - !!python/object:blueoil.data_augmentor.Brightness
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Color
+    - !!python/object:blueoil.data_augmentor.Color
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Contrast
+    - !!python/object:blueoil.data_augmentor.Contrast
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.FlipLeftRight
+    - !!python/object:blueoil.data_augmentor.FlipLeftRight
       probability: 0.5
-    - !!python/object:lmnet.data_augmentor.Hue
+    - !!python/object:blueoil.data_augmentor.Hue
       max_value: 10
       min_value: -10
   BATCH_SIZE: 1
@@ -67,6 +67,6 @@ PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
   - !!python/object:lmnet.pre_processor.DivideBy255 {}
 SAVE_CHECKPOINT_STEPS: 3000
 SUMMARISE_STEPS: 1000
-TASK: !!python/object/apply:lmnet.common.Tasks
+TASK: !!python/object/apply:blueoil.common.Tasks
 - IMAGE.SEMANTIC_SEGMENTATION
 TEST_STEPS: 1000

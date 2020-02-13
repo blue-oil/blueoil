@@ -17,7 +17,7 @@ from __future__ import division
 
 import numpy as np
 
-from lmnet.data_augmentor import iou
+from blueoil.data_augmentor import iou
 from lmnet.data_processor import Processor
 from blueoil.utils.box import format_cxcywh_to_xywh
 

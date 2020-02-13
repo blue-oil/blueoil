@@ -48,7 +48,7 @@ common:
         - probability: 0.5
 ```
 
-Please see <a href="../reference/data_augmentor.html">the data augmentor reference page</a>, when you want to know about augmentation methods. All of the augmentation methods and the required parameters are explained there. Method names in the generated yaml file correspond to class names under `lmnet.data_augmentor` in the reference.
+Please see <a href="../reference/data_augmentor.html">the data augmentor reference page</a>, when you want to know about augmentation methods. All of the augmentation methods and the required parameters are explained there. Method names in the generated yaml file correspond to class names under `blueoil.data_augmentor` in the reference.
 
 
 #### optimizer

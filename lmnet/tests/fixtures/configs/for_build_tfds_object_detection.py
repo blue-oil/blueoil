@@ -16,7 +16,7 @@
 import tensorflow as tf
 from easydict import EasyDict
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from blueoil.datasets.delta_mark import ObjectDetectionBase
 from lmnet.data_processor import Sequence
@@ -29,7 +29,7 @@ from lmnet.post_processor import (
     ExcludeLowScoreBox,
     NMS,
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     FlipLeftRight,
 )
 from blueoil.nn.quantizations import (

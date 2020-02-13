@@ -20,7 +20,7 @@ from easydict import EasyDict
 
 from executor.train import start_training
 from blueoil import environment
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from lmnet.data_processor import Sequence
 from blueoil.networks.segmentation.lm_bisenet import LMBiSeNet
 from blueoil.datasets.camvid import Camvid

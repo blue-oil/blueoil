@@ -17,7 +17,7 @@ from easydict import EasyDict
 import numpy as np
 import PIL.Image
 
-from lmnet.visualize import (
+from blueoil.visualize import (
     draw_fps,
     visualize_classification,
     visualize_object_detection,
