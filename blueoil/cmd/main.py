@@ -68,10 +68,27 @@ def init(output):
     '--experiment_id',
     help='ID of this training.',
     default=None,
-    required=False,
 )
-def train(config, experiment_id=None):
-    experiment_id, checkpoint_name = run_train(config, experiment_id)
+@click.option(
+    '--recreate',
+    is_flag=True,
+    help='Delete and recreate experiment id dir',
+    default=False,
+)
+@click.option(
+    '-n',
+    '--network',
+    help='Network name which you want to use for this training. override config.DATASET_CLASS',
+    default=None,
+)
+@click.option(
+    '-d',
+    '--dataset',
+    help='Dataset name which is the source of this training. override config.NETWORK_CLASS',
+    default=None,
+)
+def train(config, experiment_id, recreate, network, dataset):
+    experiment_id, checkpoint_name = run_train(config, experiment_id, recreate, network, dataset)
     click.echo('Next step: blueoil convert -e {} -p {}'.format(
         experiment_id,
         checkpoint_name
@@ -137,6 +154,12 @@ def convert(experiment_id, checkpoint, template, image_size, project_name):
     required=True,
 )
 @click.option(
+    '-c',
+    '--config',
+    help='Path of config file.',
+    default=None,
+)
+@click.option(
     '-p',
     '--checkpoint',
     help='Checkpoint name. e.g. save.ckpt-10001',
@@ -147,8 +170,8 @@ def convert(experiment_id, checkpoint, template, image_size, project_name):
     help="Flag of saving images. Default is True.",
     default=True,
 )
-def predict(input, output, experiment_id, checkpoint, save_images):
-    run_predict(input, output, experiment_id, checkpoint, save_images)
+def predict(input, output, experiment_id, config, checkpoint, save_images):
+    run_predict(input, output, experiment_id, config, checkpoint, save_images)
 
     click.echo('Result files are created: {}'.format(output))
 
