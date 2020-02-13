@@ -16,7 +16,7 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.classification.lmnet_v0 import LmnetV0Quantize
 from blueoil.datasets.image_folder import ImageFolderBase
 from blueoil.data_processor import Sequence

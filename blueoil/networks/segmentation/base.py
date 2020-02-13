@@ -15,7 +15,7 @@
 # =============================================================================
 import tensorflow as tf
 
-from lmnet.common import get_color_map
+from blueoil.common import get_color_map
 from blueoil.networks.base import BaseNetwork
 
 

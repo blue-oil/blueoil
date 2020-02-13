@@ -16,7 +16,7 @@
 import tensorflow as tf
 from easydict import EasyDict
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
                                   Hue, SSDRandomCrop)
 from blueoil.data_processor import Sequence

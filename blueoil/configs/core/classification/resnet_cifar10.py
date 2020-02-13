@@ -16,7 +16,7 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.classification.resnet import Resnet
 from blueoil.datasets.cifar10 import Cifar10
 from blueoil.data_processor import Sequence

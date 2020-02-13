@@ -18,7 +18,7 @@ import pytest
 import tensorflow as tf
 
 from lmnet import environment
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
 from blueoil.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
 from blueoil.utils.executor import prepare_dirs
