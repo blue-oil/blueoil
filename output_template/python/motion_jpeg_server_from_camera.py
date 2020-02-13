@@ -29,7 +29,7 @@ from SocketServer import ThreadingMixIn
 import click
 
 from lmnet.nnlib import NNLib
-from lmnet.utils.config import (
+from blueoil.utils.config import (
     load_yaml,
     build_pre_process,
     build_post_process,
@@ -38,7 +38,7 @@ from lmnet.utils.demo import (
     VideoStream,
     run_inference,
 )
-from lmnet.visualize import (
+from blueoil.visualize import (
     draw_fps,
     visualize_classification,
     visualize_object_detection,

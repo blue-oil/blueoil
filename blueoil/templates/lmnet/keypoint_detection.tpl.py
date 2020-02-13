@@ -16,10 +16,10 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
-from lmnet.networks.keypoint_detection.{{network_module}} import {{network_class}}
-from lmnet.datasets.{{dataset_module}} import {{dataset_class}}
-from lmnet.data_processor import Sequence
+from blueoil.common import Tasks
+from blueoil.networks.keypoint_detection.{{network_module}} import {{network_class}}
+from blueoil.datasets.{{dataset_module}} import {{dataset_class}}
+from blueoil.data_processor import Sequence
 from lmnet.pre_processor import (
     DivideBy255,
     ResizeWithJoints,
@@ -28,12 +28,12 @@ from lmnet.pre_processor import (
 from lmnet.post_processor import (
     GaussianHeatmapToJoints
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

@@ -15,7 +15,7 @@
 # =============================================================================
 import pytest
 
-from lmnet.common import get_color_map
+from blueoil.common import get_color_map
 
 pytestmark = pytest.mark.usefixtures("set_test_environment")
 

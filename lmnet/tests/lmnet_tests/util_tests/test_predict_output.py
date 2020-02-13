@@ -20,8 +20,8 @@ from io import BytesIO
 import numpy as np
 import PIL.Image
 
-from lmnet.common import Tasks
-from lmnet.utils.predict_output.output import JsonOutput
+from blueoil.common import Tasks
+from blueoil.utils.predict_output.output import JsonOutput
 
 
 def test_classification_json():

@@ -21,15 +21,15 @@ import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 from tensorflow.keras.utils import Progbar
 
-from lmnet import environment
-from lmnet.common import Tasks
-from lmnet.datasets.base import ObjectDetectionBase
-from lmnet.datasets.dataset_iterator import DatasetIterator
-from lmnet.datasets.tfds import TFDSClassification, TFDSObjectDetection
-from lmnet.utils import config as config_util
-from lmnet.utils import executor
-from lmnet.utils import horovod as horovod_util
-from lmnet.utils import module_loader
+from blueoil import environment
+from blueoil.common import Tasks
+from blueoil.datasets.base import ObjectDetectionBase
+from blueoil.datasets.dataset_iterator import DatasetIterator
+from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from blueoil.utils import config as config_util
+from blueoil.utils import executor
+from blueoil.utils import horovod as horovod_util
+from blueoil.utils import module_loader
 
 
 def _save_checkpoint(saver, sess, global_step, step):

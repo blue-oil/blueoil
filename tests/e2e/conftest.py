@@ -3,12 +3,12 @@ from pathlib import Path
 import tempfile
 
 import pytest
-import yaml
 
 from blueoil.cmd.convert import convert
 from blueoil.cmd.predict import predict
 from blueoil.cmd.train import train
-from lmnet import environment
+from blueoil import environment
+from blueoil.utils.config import load
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def init_env():
     environment_originals = {}
     environ_originals = {}
 
-    # TODO: Remove this setting after lmnet.environment has been refactored.
+    # TODO: Remove this setting after blueoil.environment has been refactored.
     envs = {
         "DATA_DIR": os.path.join(blueoil_dir, "lmnet", "tests", "fixtures", "datasets"),
         "OUTPUT_DIR": train_output_dir.name,
@@ -66,27 +66,25 @@ def run_all_steps(dirs, config_file):
     - Predict using training result.
     """
     config_path = os.path.join(dirs["config_dir"], config_file)
-    with open(config_path, 'r') as f:
-        config = yaml.load(f)
+    config = load(config_path)
 
     # Train
-    # TODO: Remove this setting after lmnet.environment has been refactored.
+    # TODO: Remove this setting after blueoil.environment has been refactored.
     environment._init_flag = False
     experiment_id, checkpoint_name = train(config_path)
 
     train_output_dir = os.path.join(dirs["train_output_dir"], experiment_id)
-    assert os.path.exists(os.path.join(train_output_dir, 'blueoil_config.yaml'))
     assert os.path.exists(os.path.join(train_output_dir, 'checkpoints'))
 
     # Convert
-    # TODO: Remove this setting after lmnet.environment has been refactored.
+    # TODO: Remove this setting after blueoil.environment has been refactored.
     environment._init_flag = False
-    convert(experiment_id, save_npy_for_debug=False)
+    convert(experiment_id)
 
     convert_output_dir = os.path.join(train_output_dir, 'export', checkpoint_name)
     lib_dir = os.path.join(
         convert_output_dir,
-        "{}x{}".format(config['common']['image_size'][0], config['common']['image_size'][1]),
+        "{}x{}".format(config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]),
         'output',
         'models',
         'lib',
@@ -104,7 +102,7 @@ def run_all_steps(dirs, config_file):
     predict_input_dir = os.path.join(dirs["blueoil_dir"], "lmnet/tests/fixtures/sample_images")
     predict_output_dir = dirs["predict_output_dir"]
 
-    # TODO: Remove this setting after lmnet.environment has been refactored.
+    # TODO: Remove this setting after blueoil.environment has been refactored.
     environment._init_flag = False
     predict(predict_input_dir, predict_output_dir, experiment_id, checkpoint_name)
 

@@ -12,28 +12,28 @@ CLASSES:
 - pedestrian
 - bicyclist
 DATASET:
-  AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
+  AUGMENTOR: !!python/object:blueoil.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.data_augmentor.Brightness
+    - !!python/object:blueoil.data_augmentor.Brightness
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Color
+    - !!python/object:blueoil.data_augmentor.Color
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Contrast
+    - !!python/object:blueoil.data_augmentor.Contrast
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.FlipLeftRight
+    - !!python/object:blueoil.data_augmentor.FlipLeftRight
       probability: 0.5
-    - !!python/object:lmnet.data_augmentor.Hue
+    - !!python/object:blueoil.data_augmentor.Hue
       max_value: 10
       min_value: -10
   BATCH_SIZE: 1
   DATA_FORMAT: NHWC
-  PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     processors:
     - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:lmnet.datasets.camvid.Camvid ''
+DATASET_CLASS: !!python/name:blueoil.datasets.camvid.Camvid ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 360
@@ -57,16 +57,16 @@ NETWORK:
     learning_rate: 0.001
   WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:lmnet.networks.segmentation.lm_segnet_v1.LmSegnetV1Quantize ''
+NETWORK_CLASS: !!python/name:blueoil.networks.segmentation.lm_segnet_v1.LmSegnetV1Quantize ''
 POST_PROCESSOR: null
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
 PRETRAIN_VARS: []
-PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
   - !!python/object:lmnet.pre_processor.DivideBy255 {}
 SAVE_CHECKPOINT_STEPS: 3000
 SUMMARISE_STEPS: 1000
-TASK: !!python/object/apply:lmnet.common.Tasks
+TASK: !!python/object/apply:blueoil.common.Tasks
 - IMAGE.SEMANTIC_SEGMENTATION
 TEST_STEPS: 1000

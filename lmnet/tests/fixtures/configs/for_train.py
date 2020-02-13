@@ -16,18 +16,18 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
-from lmnet.datasets.image_folder import ImageFolderBase
-from lmnet.networks.classification.lmnet_v0 import LmnetV0Quantize
-from lmnet.data_processor import Sequence
+from blueoil.common import Tasks
+from blueoil.networks.classification.lmnet_v0 import LmnetV0Quantize
+from blueoil.datasets.image_folder import ImageFolderBase
+from blueoil.data_processor import Sequence
 from lmnet.pre_processor import (
     Resize,
     DivideBy255,
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     FlipLeftRight,
 )
-from lmnet.quantizations import (
+from blueoil.nn.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )

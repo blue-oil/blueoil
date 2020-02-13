@@ -1,26 +1,26 @@
 BATCH_SIZE: 1
 DATASET:
   AUGMENTOR: 
-    lmnet.data_processor.Sequence:
+    blueoil.data_processor.Sequence:
       processors:
       - 
-        lmnet.data_augmentor.Pad:
+        blueoil.data_augmentor.Pad:
           bottom: 2
           fill: 0
           left: 2
           right: 2
           top: 2
       - 
-        lmnet.data_augmentor.Crop:
+        blueoil.data_augmentor.Crop:
           height: 32
           is_resize: false
           width: 32
       - 
-        lmnet.data_augmentor.FlipLeftRight:
+        blueoil.data_augmentor.FlipLeftRight:
           probability: 0.5
   BATCH_SIZE: 200
   PRE_PROCESSOR: 
-    lmnet.data_processor.Sequence:
+    blueoil.data_processor.Sequence:
       processors:
       - 
         lmnet.pre_processor.Resize:
@@ -29,7 +29,7 @@ DATASET:
           - 32
       - 
         lmnet.pre_processor.DivideBy255: {}
-DATASET_CLASS: lmnet.datasets.cifar10.Cifar10
+DATASET_CLASS: blueoil.datasets.cifar10.Cifar10
 IMAGE_SIZE:
 - 32
 - 32
@@ -63,7 +63,7 @@ NETWORK:
   WEIGHT_DECAY_RATE: 0.0005
   WEIGHT_QUANTIZER: lmnet.quantizations.binary.binary_mean_scaling_quantizer
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: lmnet.networks.classification.lmnet_v1.LmnetV1Quantize
+NETWORK_CLASS: blueoil.networks.classification.lmnet_v1.LmnetV1Quantize
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
 PRETRAIN_VARS: []
