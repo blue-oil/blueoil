@@ -11,7 +11,7 @@ CLASSES:
 - ship
 - truck
 DATASET:
-  AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
+  AUGMENTOR: !!python/object:blueoil.data_processor.Sequence
     processors:
     - !!python/object:blueoil.data_augmentor.FlipLeftRight
       probability: 0.5
@@ -29,7 +29,7 @@ DATASET:
       min_value: -10
   BATCH_SIZE: 32
   DATA_FORMAT: NHWC
-  PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     processors:
     - !!python/object:lmnet.pre_processor.Resize
       size:
@@ -78,7 +78,7 @@ PRETRAIN_VARS:
 - 'conv5/bias:'
 - 'conv6/kernel:'
 - 'conv6/bias:'
-PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
   - !!python/object:lmnet.pre_processor.Resize
     size:
