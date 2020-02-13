@@ -81,6 +81,6 @@ PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
   - !!python/object:lmnet.pre_processor.PerImageStandardization {}
 SAVE_CHECKPOINT_STEPS: 1000
 SUMMARISE_STEPS: 100
-TASK: !!python/object/apply:lmnet.common.Tasks
+TASK: !!python/object/apply:blueoil.common.Tasks
 - IMAGE.CLASSIFICATION
 TEST_STEPS: 1000
