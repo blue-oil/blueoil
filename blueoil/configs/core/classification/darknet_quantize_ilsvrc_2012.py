@@ -16,7 +16,7 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.datasets.ilsvrc_2012 import Ilsvrc2012
 from lmnet.data_processor import Sequence
 from blueoil.data_augmentor import (
