@@ -22,7 +22,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 
-from lmnet import environment
+from blueoil import environment
 from blueoil.utils.image import load_image
 from blueoil.utils import config as config_util
 from blueoil.utils import executor
