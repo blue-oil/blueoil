@@ -20,7 +20,7 @@ import os.path
 import numpy as np
 import pandas as pd
 
-from lmnet import data_processor
+from blueoil import data_processor
 from blueoil.utils.image import load_image
 from blueoil.datasets.base import Base
 
