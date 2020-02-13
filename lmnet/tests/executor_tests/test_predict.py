@@ -15,7 +15,7 @@
 # =============================================================================
 import pytest
 
-from executor.predict import run
+from blueoil.cmd.predict import run
 from executor.train import run as train_run
 from blueoil.environment import setup_test_environment
 

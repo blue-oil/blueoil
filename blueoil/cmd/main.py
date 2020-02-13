@@ -137,6 +137,12 @@ def convert(experiment_id, checkpoint, template, image_size, project_name):
     required=True,
 )
 @click.option(
+    '-c',
+    '--config',
+    help='Path of config file.',
+    default=None,
+)
+@click.option(
     '-p',
     '--checkpoint',
     help='Checkpoint name. e.g. save.ckpt-10001',
@@ -147,8 +153,8 @@ def convert(experiment_id, checkpoint, template, image_size, project_name):
     help="Flag of saving images. Default is True.",
     default=True,
 )
-def predict(input, output, experiment_id, checkpoint, save_images):
-    run_predict(input, output, experiment_id, checkpoint, save_images)
+def predict(input, output, experiment_id, config, checkpoint, save_images):
+    run_predict(input, output, experiment_id, config, checkpoint, save_images)
 
     click.echo('Result files are created: {}'.format(output))
 

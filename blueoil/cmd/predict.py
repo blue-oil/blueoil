@@ -157,50 +157,16 @@ def run(input_dir, output_dir, experiment_id, config_file, restore_path, save_im
     print("---- end predict ----")
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option(
-    "-in",
-    "--input_dir",
-    help="Input directory which contains images to make predictions",
-    required=True
-)
-@click.option(
-    "-o",
-    "--output_dir",
-    help="Output directory to save a predicted result",
-    required=True
-)
-@click.option(
-    "-i",
-    "--experiment_id",
-    help="Experiment id",
-    required=True
-)
-@click.option(
-    "-c",
-    "--config_file",
-    help="config file path. override saved experiment config.",
-)
-@click.option(
-    "--restore_path",
-    help="restore ckpt file base path. e.g. saved/experiment/checkpoints/save.ckpt-10001",
-    default=None,
-)
-@click.option(
-    "--save_images/--no_save_images",
-    help="Flag of saving images. Default is True.",
-    default=True,
-)
-def main(input_dir, output_dir, experiment_id, config_file, restore_path, save_images):
+def predict(input_dir, output_dir, experiment_id, config_file=None, checkpoint=None, save_images=True):
     """Make predictions from input dir images by using trained model.
         Save the predictions npy, json, images results to output dir.
         npy: `{output_dir}/npy/{batch number}.npy`
         json: `{output_dir}/json/{batch number}.json`
         images: `{output_dir}/images/{some type}/{input image file name}`
     """
+    restore_path = None
+    if checkpoint:
+        saved_dir = os.environ.get("OUTPUT_DIR", "saved")
+        restore_path = os.path.join(saved_dir, experiment_id, "checkpoints", checkpoint)
 
     run(input_dir, output_dir, experiment_id, config_file, restore_path, save_images)
-
-
-if __name__ == '__main__':
-    main()
