@@ -18,7 +18,7 @@ import pytest
 import tensorflow as tf
 from easydict import EasyDict
 
-from executor.train import start_training
+from blueoil.cmd.train import start_training
 from blueoil import environment
 from blueoil.common import Tasks
 from lmnet.data_processor import Sequence
