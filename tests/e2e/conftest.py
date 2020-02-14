@@ -25,7 +25,7 @@ def init_env():
 
     # TODO: Remove this setting after blueoil.environment has been refactored.
     envs = {
-        "DATA_DIR": os.path.join(blueoil_dir, "lmnet", "tests", "fixtures", "datasets"),
+        "DATA_DIR": os.path.join(blueoil_dir, "tests", "unit", "fixtures", "datasets"),
         "OUTPUT_DIR": train_output_dir.name,
         "_EXPERIMENT_DIR": os.path.join(train_output_dir.name, "{experiment_id}"),
         "_TENSORBOARD_DIR": os.path.join(train_output_dir.name, "{experiment_id}", "tensorboard"),
@@ -99,12 +99,12 @@ def run_all_steps(dirs, config_file):
     assert os.path.exists(os.path.join(lib_dir, 'lm_x86.elf'))
 
     # Predict
-    predict_input_dir = os.path.join(dirs["blueoil_dir"], "lmnet/tests/fixtures/sample_images")
+    predict_input_dir = os.path.join(dirs["blueoil_dir"], "tests/unit/fixtures/sample_images")
     predict_output_dir = dirs["predict_output_dir"]
 
     # TODO: Remove this setting after blueoil.environment has been refactored.
     environment._init_flag = False
-    predict(predict_input_dir, predict_output_dir, experiment_id, checkpoint_name)
+    predict(predict_input_dir, predict_output_dir, experiment_id, checkpoint=checkpoint_name)
 
     assert os.path.exists(os.path.join(predict_output_dir, 'images'))
     assert os.path.exists(os.path.join(predict_output_dir, 'json', '0.json'))

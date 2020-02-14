@@ -28,7 +28,7 @@ from blueoil.data_augmentor import (
     Hue,
 )
 from blueoil.networks.classification.darknet import DarknetQuantize
-from lmnet.pre_processor import (
+from blueoil.pre_processor import (
     Resize,
     DivideBy255,
 )

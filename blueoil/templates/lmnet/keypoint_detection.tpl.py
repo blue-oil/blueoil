@@ -20,12 +20,12 @@ from blueoil.common import Tasks
 from blueoil.networks.keypoint_detection.{{network_module}} import {{network_class}}
 from blueoil.datasets.{{dataset_module}} import {{dataset_class}}
 from blueoil.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.pre_processor import (
     DivideBy255,
     ResizeWithJoints,
     JointsToGaussianHeatmap
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     GaussianHeatmapToJoints
 )
 from blueoil.data_augmentor import (

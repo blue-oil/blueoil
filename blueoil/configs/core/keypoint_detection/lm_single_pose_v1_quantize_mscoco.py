@@ -20,12 +20,12 @@ from blueoil.common import Tasks
 from blueoil.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
 from blueoil.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
 from blueoil.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.pre_processor import (
     DivideBy255,
     ResizeWithJoints,
     JointsToGaussianHeatmap
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     GaussianHeatmapToJoints
 )
 from blueoil.data_augmentor import (

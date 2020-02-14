@@ -23,12 +23,12 @@ from blueoil.datasets.{{dataset_module}} import {{dataset_class}}
     {{ aug_name }},{% endfor %}
 ){% endif %}
 from blueoil.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.pre_processor import (
     ResizeWithGtBoxes,
     DivideBy255,
     PerImageStandardization,
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,

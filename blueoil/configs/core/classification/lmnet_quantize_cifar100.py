@@ -20,7 +20,7 @@ from blueoil.common import Tasks
 from blueoil.networks.classification.lmnet_quantize import LmnetQuantize
 from blueoil.datasets.cifar100 import Cifar100
 from blueoil.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.pre_processor import (
     Resize,
     DivideBy255,
 )

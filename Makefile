@@ -40,17 +40,17 @@ test-keypoint-detection: build
 	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_keypoint_detection.py
 
 .PHONY: test-lmnet
-test-lmnet: test-lmnet-pep8 test-lmnet-main
+test-lmnet: test-lmnet-pep8 test-unit-main
 
 .PHONY: test-lmnet-pep8
 test-lmnet-pep8: build
 	# Check lmnet pep8
 	docker run --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; flake8 ."
 
-.PHONY: test-lmnet-main
-test-lmnet-main: build
+.PHONY: test-unit-main
+test-unit-main: build
 	# Run lmnet test with Python3.6
-	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; pytest -n auto tests/"
+	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; pytest -n auto unit/"
 
 .PHONY: test-dlk
 test-dlk: test-dlk-pep8 test-dlk-main test-dlk-x86_64 test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64
