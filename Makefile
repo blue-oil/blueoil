@@ -44,7 +44,7 @@ test-lmnet: test-blueoil-pep8 test-lmnet-main
 
 .PHONY: test-blueoil-pep8
 test-blueoil-pep8: build
-	# Check lmnet pep8
+	# Check blueoil pep8
 	# FIXME: blueoil/templates have a lot of errors with flake8
 	docker run --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd blueoil; flake8 . --exclude=./templates"
 
