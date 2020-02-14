@@ -104,7 +104,7 @@ def run_all_steps(dirs, config_file):
 
     # TODO: Remove this setting after blueoil.environment has been refactored.
     environment._init_flag = False
-    predict(predict_input_dir, predict_output_dir, experiment_id, checkpoint_name)
+    predict(predict_input_dir, predict_output_dir, experiment_id, checkpoint=checkpoint_name)
 
     assert os.path.exists(os.path.join(predict_output_dir, 'images'))
     assert os.path.exists(os.path.join(predict_output_dir, 'json', '0.json'))
