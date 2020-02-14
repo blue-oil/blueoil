@@ -84,7 +84,7 @@ def _show_image(image):
 
 
 def _image():
-    image = load_image("tests/fixtures/sample_images/cat.jpg")
+    image = load_image("unit/fixtures/sample_images/cat.jpg")
 
     return image
 

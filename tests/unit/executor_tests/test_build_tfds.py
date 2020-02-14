@@ -40,7 +40,7 @@ def test_build_tfds_classification():
     environment.setup_test_environment()
 
     # Build TFDS Dataset
-    config_file = "tests/fixtures/configs/for_build_tfds_classification.py"
+    config_file = "unit/fixtures/configs/for_build_tfds_classification.py"
     run(config_file, overwrite=True)
 
     # Check if the builded dataset can be loaded with the same config file
@@ -98,7 +98,7 @@ def test_build_tfds_object_detection():
     environment.setup_test_environment()
 
     # Build TFDS Dataset
-    config_file = "tests/fixtures/configs/for_build_tfds_object_detection.py"
+    config_file = "unit/fixtures/configs/for_build_tfds_object_detection.py"
     run(config_file, overwrite=True)
 
     # Check if the builded dataset can be loaded with the same config file

@@ -25,7 +25,7 @@ pytestmark = pytest.mark.usefixtures("reset_default_graph", "set_test_environmen
 def test_train():
     """Test only didn't get error"""
 
-    config_file = "tests/fixtures/configs/for_train.py"
+    config_file = "unit/fixtures/configs/for_train.py"
     expriment_id = "for_test"
     run(None, None, config_file, expriment_id, recreate=True)
 

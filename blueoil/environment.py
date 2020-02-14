@@ -65,7 +65,7 @@ def setup_test_environment():
 
     _init_flag = False
 
-    DATA_DIR = "tests/fixtures/datasets"
+    DATA_DIR = "unit/fixtures/datasets"
 
     OUTPUT_DIR = "tmp/tests/saved"
 

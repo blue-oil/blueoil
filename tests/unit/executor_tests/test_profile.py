@@ -15,7 +15,7 @@
 # =============================================================================
 import pytest
 
-from blueoil.cmd.predict import run
+from blueoil.cmd.profile_model import run
 from blueoil.cmd.train import run as train_run
 from blueoil.environment import setup_test_environment
 
@@ -24,33 +24,17 @@ from blueoil.environment import setup_test_environment
 pytestmark = pytest.mark.usefixtures("reset_default_graph", "set_test_environment")
 
 
-def test_predict_classification():
+def test_profile():
 
-    config_file = "tests/fixtures/configs/for_predict_classification.py"
-    expriment_id = "test_predict_classification"
+    config_file = "unit/fixtures/configs/for_profile.py"
+    expriment_id = "test_profile"
     train_run(None, None, config_file, expriment_id, recreate=True)
 
     setup_test_environment()
 
-    run("tests/fixtures/sample_images", "outputs", expriment_id, None, None, save_images=True)
+    run(expriment_id, None, None, 2, [])
 
-
-def test_predict_object_detection():
-
-    config_file = "tests/fixtures/configs/for_predict_object_detection.py"
-    expriment_id = "test_predict_object_detection"
-    train_run(None, None, config_file, expriment_id, recreate=True)
-
-    setup_test_environment()
-
-    run("tests/fixtures/sample_images", "outputs", expriment_id, None, None, save_images=True)
-
-
-# TODO(wakisaka): Do test semantic_segmentation. It need to dataset class for segmentation.
 
 if __name__ == '__main__':
     setup_test_environment()
-    test_predict_classification()
-
-    setup_test_environment()
-    test_predict_object_detection()
+    test_profile()
