@@ -27,15 +27,15 @@ pytestmark = pytest.mark.usefixtures("set_test_environment")
 @pytest.mark.parametrize(
     "subset, num_classes, files, annotations", [
         ('train', 80, [
-            'tests/fixtures/datasets/MSCOCO/train2014/COCO_train2014_000000000001.jpg',
-            'tests/fixtures/datasets/MSCOCO/train2014/COCO_train2014_000000000002.jpg',
+            'unit/fixtures/datasets/MSCOCO/train2014/COCO_train2014_000000000001.jpg',
+            'unit/fixtures/datasets/MSCOCO/train2014/COCO_train2014_000000000002.jpg',
         ], [
             # [x, y, w, h, class_id]
             [[0, 0, 3, 3, 0], [7, 7, 3, 3, 0]], [[3, 3, 3, 3, 0], [6, 6, 3, 3, 0]]
         ]),
         ('validation', 80, [
-            'tests/fixtures/datasets/MSCOCO/val2014/COCO_val2014_000000000001.jpg',
-            'tests/fixtures/datasets/MSCOCO/val2014/COCO_val2014_000000000002.jpg',
+            'unit/fixtures/datasets/MSCOCO/val2014/COCO_val2014_000000000001.jpg',
+            'unit/fixtures/datasets/MSCOCO/val2014/COCO_val2014_000000000002.jpg',
         ], [
             [[0, 0, 3, 3, 0], [7, 7, 3, 3, 0]], [[3, 3, 3, 3, 0], [6, 6, 3, 3, 0]]
         ]),

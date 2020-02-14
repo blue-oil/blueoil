@@ -15,7 +15,7 @@
 # =============================================================================
 import pytest
 
-from blueoil.cmd.profile_model import run
+from blueoil.cmd.export import run
 from blueoil.cmd.train import run as train_run
 from blueoil.environment import setup_test_environment
 
@@ -24,17 +24,17 @@ from blueoil.environment import setup_test_environment
 pytestmark = pytest.mark.usefixtures("reset_default_graph", "set_test_environment")
 
 
-def test_profile():
+def test_export():
 
-    config_file = "tests/fixtures/configs/for_profile.py"
-    expriment_id = "test_profile"
+    config_file = "unit/fixtures/configs/for_export.py"
+    expriment_id = "test_export"
     train_run(None, None, config_file, expriment_id, recreate=True)
 
     setup_test_environment()
 
-    run(expriment_id, None, None, 2, [])
+    run(expriment_id, None, (None, None), [], None)
 
 
 if __name__ == '__main__':
     setup_test_environment()
-    test_profile()
+    test_export()
