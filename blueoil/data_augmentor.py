@@ -22,7 +22,7 @@ import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
 
 from blueoil import data_processor
-from lmnet import pre_processor
+from blueoil import pre_processor
 from blueoil.utils.box import fill_dummy_boxes, crop_boxes, iou
 
 

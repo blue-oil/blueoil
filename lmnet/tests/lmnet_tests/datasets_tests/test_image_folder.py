@@ -23,7 +23,7 @@ import pytest
 from blueoil import environment
 from blueoil.datasets.dataset_iterator import DatasetIterator
 from blueoil.datasets.image_folder import ImageFolderBase
-from lmnet.pre_processor import Resize
+from blueoil.pre_processor import Resize
 
 # Apply set_test_environment() in conftest.py to all tests in this file.
 pytestmark = pytest.mark.usefixtures("set_test_environment")

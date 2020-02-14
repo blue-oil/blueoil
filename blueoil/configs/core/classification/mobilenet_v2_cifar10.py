@@ -20,7 +20,7 @@ from blueoil.common import Tasks
 from blueoil.networks.classification.mobilenet_v2 import MobileNetV2
 from blueoil.datasets.cifar10 import Cifar10
 from blueoil.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.pre_processor import (
     Resize,
     DivideBy255,
 )

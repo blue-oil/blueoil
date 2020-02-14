@@ -53,7 +53,7 @@ class Sequence:
         """
 
         # Avoid circular import
-        from lmnet.pre_processor import Resize, ResizeWithGtBoxes, ResizeWithMask, LetterBoxes
+        from blueoil.pre_processor import Resize, ResizeWithGtBoxes, ResizeWithMask, LetterBoxes
         from blueoil.post_processor import FormatYoloV2
 
         for process in self.processors:

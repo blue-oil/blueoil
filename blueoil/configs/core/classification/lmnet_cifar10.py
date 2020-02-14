@@ -20,7 +20,7 @@ from blueoil.common import Tasks
 from blueoil.networks.classification import Lmnet
 from blueoil.datasets.cifar10 import Cifar10
 from blueoil.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.pre_processor import (
     Resize,
     PerImageStandardization,
 )

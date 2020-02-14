@@ -16,7 +16,7 @@
 import numpy as np
 import pytest
 
-from lmnet.pre_processor import Resize, ResizeWithGtBoxes
+from blueoil.pre_processor import Resize, ResizeWithGtBoxes
 from blueoil.datasets.open_images_v4 import OpenImagesV4BoundingBox
 from blueoil.datasets.open_images_v4 import OpenImagesV4Classification
 from blueoil.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
