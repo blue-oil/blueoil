@@ -44,11 +44,11 @@ DATASET:
   ENABLE_PREFETCH: true
   PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.pre_processor.ResizeWithGtBoxes
+    - !!python/object:blueoil.pre_processor.ResizeWithGtBoxes
       size: !!python/tuple
       - 320
       - 320
-    - !!python/object:lmnet.pre_processor.DivideBy255 {}
+    - !!python/object:blueoil.pre_processor.DivideBy255 {}
 DATASET_CLASS: !!python/name:blueoil.datasets.widerface.WiderFace ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
@@ -152,11 +152,11 @@ PRETRAIN_FILE: ''
 PRETRAIN_VARS: []
 PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.pre_processor.ResizeWithGtBoxes
+  - !!python/object:blueoil.pre_processor.ResizeWithGtBoxes
     size: !!python/tuple
     - 320
     - 320
-  - !!python/object:lmnet.pre_processor.DivideBy255 {}
+  - !!python/object:blueoil.pre_processor.DivideBy255 {}
 SAVE_CHECKPOINT_STEPS: 10000
 SUMMARISE_STEPS: 1000
 TASK: !!python/object/apply:blueoil.common.Tasks

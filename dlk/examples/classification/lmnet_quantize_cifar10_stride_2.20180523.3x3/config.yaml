@@ -17,11 +17,11 @@ DATASET:
   BATCH_SIZE: 100
   PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.pre_processor.Resize
+    - !!python/object:blueoil.pre_processor.Resize
       size:
       - 32
       - 32
-    - !!python/object:lmnet.pre_processor.DivideBy255 {}
+    - !!python/object:blueoil.pre_processor.DivideBy255 {}
 DATASET_CLASS: !!python/name:blueoil.datasets.cifar10.Cifar10 ''
 IMAGE_SIZE:
 - 32

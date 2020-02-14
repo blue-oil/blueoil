@@ -30,11 +30,11 @@ DATASET:
   DATA_FORMAT: NHWC
   PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.pre_processor.Resize
+    - !!python/object:blueoil.pre_processor.Resize
       size:
       - 32
       - 32
-    - !!python/object:lmnet.pre_processor.PerImageStandardization {}
+    - !!python/object:blueoil.pre_processor.PerImageStandardization {}
 DATASET_CLASS: !!python/name:blueoil.datasets.cifar10.Cifar10 ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
@@ -77,11 +77,11 @@ PRETRAIN_FILE: ''
 PRETRAIN_VARS: []
 PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.pre_processor.Resize
+  - !!python/object:blueoil.pre_processor.Resize
     size:
     - 32
     - 32
-  - !!python/object:lmnet.pre_processor.PerImageStandardization {}
+  - !!python/object:blueoil.pre_processor.PerImageStandardization {}
 SAVE_CHECKPOINT_STEPS: 2500
 SUMMARISE_STEPS: 2500
 TASK: !!python/object/apply:blueoil.common.Tasks
