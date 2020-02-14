@@ -61,4 +61,4 @@ def test_output_event(tmpdir):
 
 
 if __name__ == '__main__':
-    test_output_event("./tmp/unit/")
+    test_output_event("./tmp/tests/")
