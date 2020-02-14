@@ -69,7 +69,7 @@ If you need to run the generated binary on FPGA, please follow Custom project ge
 >> PYTHONPATH=python/dlk python python/dlk/scripts/generate_project.py -i examples/classification/lmnet_quantize_cifar10/minimal_graph_with_shape.pb -o tmp/ -p classification
 >> cd tmp/classification.prj
 >> make lib_x86 -j 4
->> PYTHONPATH=python/dlk python utils/run_test.py  -i <path to input image>/raw_image.png -l <path to generated library>/lib_x86.so -e <path to expected output>/xxx_output\:0.npy
+>> PYTHONPATH=python/dlk python utils/run_test.py  -i <path to input image>/raw_image.png -l <path to generated library>/libdlk_x86.so -e <path to expected output>/xxx_output\:0.npy
 ```
 Here the npy file `xxx_output\:0.npy` starts with a certain number, followed by "_output".
 

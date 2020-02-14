@@ -25,7 +25,7 @@ demo
  │   └── preloader-mkpimage.bin
  ├── models
  │   ├── lib
- │   │   └── lib_fpga.so
+ │   │   └── libdlk_fpga.so
  │   └── meta.yaml
  └── python
      ├── lmnet
@@ -49,7 +49,7 @@ Explore into the `demo/python` directory, and execute the following commands on 
     $ export LC_ALL=C # for the first time only
     $ sudo pip install -r requirements.txt  # for the first time only
     $ python usb_camera_demo.py \
-          -m ../models/lib/lib_fpga.so \
+          -m ../models/lib/libdlk_fpga.so \
           -c ../models/meta.yaml
 
 Press [ESC], to stop the demo.
