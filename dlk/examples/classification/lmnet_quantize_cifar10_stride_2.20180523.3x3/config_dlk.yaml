@@ -1,7 +1,7 @@
 BATCH_SIZE: 1
 DATASET:
   AUGMENTOR: 
-    lmnet.data_processor.Sequence:
+    blueoil.data_processor.Sequence:
       processors:
       - 
         blueoil.data_augmentor.Pad:
@@ -20,15 +20,15 @@ DATASET:
           probability: 0.5
   BATCH_SIZE: 100
   PRE_PROCESSOR:
-    lmnet.data_processor.Sequence:
+    blueoil.data_processor.Sequence:
       processors:
       -
-        lmnet.pre_processor.Resize:
+        blueoil.pre_processor.Resize:
           size:
           - 32
           - 32
       - 
-        lmnet.pre_processor.DivideBy255: {}
+        blueoil.pre_processor.DivideBy255: {}
 DATASET_CLASS: blueoil.datasets.cifar10.Cifar10
 IMAGE_SIZE:
 - 32

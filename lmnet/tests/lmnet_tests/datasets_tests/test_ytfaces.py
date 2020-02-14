@@ -16,10 +16,10 @@
 import numpy as np
 import pytest
 
-from lmnet.pre_processor import ResizeWithJoints, JointsToGaussianHeatmap
+from blueoil.pre_processor import ResizeWithJoints, JointsToGaussianHeatmap
 from blueoil.datasets.ytfaces import YoutubeFacialLandmarks
 from blueoil.datasets.dataset_iterator import DatasetIterator
-from lmnet.data_processor import Sequence
+from blueoil.data_processor import Sequence
 
 
 # Apply set_test_environment() in conftest.py to all tests in this file.

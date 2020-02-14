@@ -17,12 +17,12 @@ import pytest
 import tensorflow as tf
 from easydict import EasyDict
 
-from executor.train import start_training
+from blueoil.cmd.train import start_training
 from blueoil import environment
 from blueoil.common import Tasks
 from blueoil.networks.classification.darknet import Darknet
 from blueoil.datasets.image_folder import ImageFolderBase
-from lmnet.pre_processor import Resize
+from blueoil.pre_processor import Resize
 from blueoil.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.

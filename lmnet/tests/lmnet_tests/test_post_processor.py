@@ -18,7 +18,7 @@ import PIL.Image
 import pytest
 import tensorflow as tf
 
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,
@@ -303,7 +303,7 @@ def test_resize_bilinear_pillow():
 
 def test_gaussian_heatmap_to_joints():
 
-    from lmnet.pre_processor import JointsToGaussianHeatmap
+    from blueoil.pre_processor import JointsToGaussianHeatmap
 
     image_size = (160, 160)
 

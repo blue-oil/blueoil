@@ -16,7 +16,7 @@
 import pytest
 
 from blueoil.cmd.predict import run
-from executor.train import run as train_run
+from blueoil.cmd.train import run as train_run
 from blueoil.environment import setup_test_environment
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.

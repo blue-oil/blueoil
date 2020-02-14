@@ -23,8 +23,8 @@ import pytest
 from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
 from blueoil.utils.image import load_image
 from blueoil.datasets.dataset_iterator import DatasetIterator
-from lmnet.pre_processor import ResizeWithGtBoxes
-from lmnet.data_processor import (
+from blueoil.pre_processor import ResizeWithGtBoxes
+from blueoil.data_processor import (
     Sequence
 )
 from blueoil.data_augmentor import (

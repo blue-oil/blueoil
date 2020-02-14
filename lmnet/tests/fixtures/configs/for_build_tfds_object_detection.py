@@ -19,12 +19,12 @@ from easydict import EasyDict
 from blueoil.common import Tasks
 from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from blueoil.datasets.delta_mark import ObjectDetectionBase
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
     ResizeWithGtBoxes,
     PerImageStandardization,
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,

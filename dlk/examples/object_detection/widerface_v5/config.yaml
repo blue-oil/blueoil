@@ -2,7 +2,7 @@ BATCH_SIZE: 1
 CLASSES:
 - face
 DATASET:
-  AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
+  AUGMENTOR: !!python/object:blueoil.data_processor.Sequence
     processors:
     - !!python/object:blueoil.data_augmentor.FlipLeftRight
       probability: 0.5
@@ -42,13 +42,13 @@ DATASET:
   BATCH_SIZE: 1
   DATA_FORMAT: NHWC
   ENABLE_PREFETCH: true
-  PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.pre_processor.ResizeWithGtBoxes
+    - !!python/object:blueoil.pre_processor.ResizeWithGtBoxes
       size:
       - 160
       - 160
-    - !!python/object:lmnet.pre_processor.DivideBy255 {}
+    - !!python/object:blueoil.pre_processor.DivideBy255 {}
 DATASET_CLASS: !!python/name:blueoil.datasets.widerface.WiderFace ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
@@ -113,10 +113,10 @@ NETWORK:
   WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
 NETWORK_CLASS: !!python/name:blueoil.networks.object_detection.lm_fyolo.LMFYoloQuantize ''
-NMS: !!python/name:lmnet.post_processor.NMS ''
-POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+NMS: !!python/name:blueoil.post_processor.NMS ''
+POST_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.post_processor.FormatYoloV2
+  - !!python/object:blueoil.post_processor.FormatYoloV2
     anchors:
     - !!python/tuple
       - 0.25
@@ -139,9 +139,9 @@ POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     - 160
     - 160
     num_classes: 1
-  - !!python/object:lmnet.post_processor.ExcludeLowScoreBox
+  - !!python/object:blueoil.post_processor.ExcludeLowScoreBox
     threshold: 0.05
-  - !!python/object:lmnet.post_processor.NMS
+  - !!python/object:blueoil.post_processor.NMS
     classes:
     - face
     iou_threshold: 0.5
@@ -230,13 +230,13 @@ PRETRAIN_VARS:
 - block_13/bn/gamma:0
 - block_13/bn/moving_mean:0
 - block_13/bn/moving_variance:0
-PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.pre_processor.ResizeWithGtBoxes
+  - !!python/object:blueoil.pre_processor.ResizeWithGtBoxes
     size:
     - 160
     - 160
-  - !!python/object:lmnet.pre_processor.DivideBy255 {}
+  - !!python/object:blueoil.pre_processor.DivideBy255 {}
 SAVE_CHECKPOINT_STEPS: 1000
 SUMMARISE_STEPS: 1000
 TASK: !!python/object/apply:blueoil.common.Tasks

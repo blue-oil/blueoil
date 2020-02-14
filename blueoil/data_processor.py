@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Copyright 2018 The Blueoil Authors. All Rights Reserved.
 #
@@ -17,7 +18,6 @@ import pprint
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
-import six
 
 
 class Sequence:
@@ -53,8 +53,8 @@ class Sequence:
         """
 
         # Avoid circular import
-        from lmnet.pre_processor import Resize, ResizeWithGtBoxes, ResizeWithMask, LetterBoxes
-        from lmnet.post_processor import FormatYoloV2
+        from blueoil.pre_processor import Resize, ResizeWithGtBoxes, ResizeWithMask, LetterBoxes
+        from blueoil.post_processor import FormatYoloV2
 
         for process in self.processors:
             class_list = (Resize, ResizeWithGtBoxes, ResizeWithMask, LetterBoxes)
@@ -65,8 +65,7 @@ class Sequence:
                 process.image_size = image_size
 
 
-@six.add_metaclass(ABCMeta)
-class Processor():
+class Processor(metaclass=ABCMeta):
 
     @abstractmethod
     def __call__(self, **kwargs):

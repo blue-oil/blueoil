@@ -17,12 +17,12 @@ import pytest
 import tensorflow as tf
 from easydict import EasyDict
 
-from executor.train import start_training
+from blueoil.cmd.train import start_training
 from blueoil import environment
 from blueoil.common import Tasks
 from blueoil.networks.classification.lmnet_quantize import LmnetQuantize
 from blueoil.datasets.image_folder import ImageFolderBase
-from lmnet.pre_processor import Resize
+from blueoil.pre_processor import Resize
 from blueoil.nn.quantizations import binary_mean_scaling_quantizer, linear_mid_tread_half_quantizer
 from blueoil.utils.executor import prepare_dirs
 

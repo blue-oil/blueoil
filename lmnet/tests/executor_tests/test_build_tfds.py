@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 
 from blueoil.cmd.build_tfds import run
-from executor.train import run as train_run
+from blueoil.cmd.train import run as train_run
 from blueoil import environment
 from blueoil.datasets.dataset_iterator import DatasetIterator
 from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection

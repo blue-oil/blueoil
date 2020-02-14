@@ -19,12 +19,12 @@ import tensorflow as tf
 from blueoil.common import Tasks
 from blueoil.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
 from blueoil.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
     ResizeWithGtBoxes,
     DivideBy255,
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,

@@ -24,7 +24,7 @@ from jinja2 import Environment, FileSystemLoader
 
 import blueoil.data_augmentor as augmentor
 from blueoil.generate_lmnet_config import generate
-from lmnet.data_processor import Processor
+from blueoil.data_processor import Processor
 
 
 task_type_choices = [

@@ -46,7 +46,7 @@ from blueoil.visualize import (
     label_to_color_image,
     visualize_keypoint_detection,
 )
-from lmnet.pre_processor import resize
+from blueoil.pre_processor import resize
 
 
 nn = None
