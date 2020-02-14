@@ -25,7 +25,7 @@ from blueoil.pre_processor import (
     ResizeWithJoints,
     JointsToGaussianHeatmap
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     GaussianHeatmapToJoints
 )
 from blueoil.data_augmentor import (

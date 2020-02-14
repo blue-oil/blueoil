@@ -32,7 +32,7 @@ from blueoil.nn.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
-from executor.train import start_training
+from blueoil.cmd.train import start_training
 
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.

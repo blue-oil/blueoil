@@ -28,7 +28,7 @@ from blueoil.pre_processor import (
     DivideBy255,
     PerImageStandardization,
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,

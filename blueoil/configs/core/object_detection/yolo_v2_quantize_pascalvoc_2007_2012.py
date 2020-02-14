@@ -24,7 +24,7 @@ from blueoil.pre_processor import (
     ResizeWithGtBoxes,
     DivideBy255,
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,
