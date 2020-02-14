@@ -160,6 +160,6 @@ def test_camvid_custom_without_ignore():
 
 
 def test_get_image():
-    path = "tests/fixtures/datasets/camvid_custom/trainannot/0001TP_006690.png"
+    path = "unit/fixtures/datasets/camvid_custom/trainannot/0001TP_006690.png"
     loaded_image = get_image(path, convert_rgb=False, ignore_class_idx=3)
     assert _ignore_label_validator(path, loaded_image, 3)
