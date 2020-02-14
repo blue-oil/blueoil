@@ -22,22 +22,22 @@ from blueoil.datasets.div2k import Div2k
 
 def test_train_files(set_test_environment):
     expected = [
-        "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0001.png",
-        "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0002.png",
-        "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0003.png",
-        "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0004.png",
-        "tests/fixtures/datasets/DIV2K/DIV2K_train_HR/0005.png",
+        "unit/fixtures/datasets/DIV2K/DIV2K_train_HR/0001.png",
+        "unit/fixtures/datasets/DIV2K/DIV2K_train_HR/0002.png",
+        "unit/fixtures/datasets/DIV2K/DIV2K_train_HR/0003.png",
+        "unit/fixtures/datasets/DIV2K/DIV2K_train_HR/0004.png",
+        "unit/fixtures/datasets/DIV2K/DIV2K_train_HR/0005.png",
     ]
     assert sorted(Div2k("train").files) == expected
 
 
 def test_validation_files(set_test_environment):
     expected = [
-        "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0001.png",
-        "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0002.png",
-        "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0003.png",
-        "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0004.png",
-        "tests/fixtures/datasets/DIV2K/DIV2K_valid_HR/0005.png",
+        "unit/fixtures/datasets/DIV2K/DIV2K_valid_HR/0001.png",
+        "unit/fixtures/datasets/DIV2K/DIV2K_valid_HR/0002.png",
+        "unit/fixtures/datasets/DIV2K/DIV2K_valid_HR/0003.png",
+        "unit/fixtures/datasets/DIV2K/DIV2K_valid_HR/0004.png",
+        "unit/fixtures/datasets/DIV2K/DIV2K_valid_HR/0005.png",
     ]
     assert sorted(Div2k("validation").files) == expected
 

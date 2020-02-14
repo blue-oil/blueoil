@@ -95,6 +95,6 @@ DATASET.AUGMENTOR = Sequence([
 ])
 DATASET.TFDS_KWARGS = {
     "name": "tfds_classification",
-    "data_dir": "tmp/tests/datasets",
+    "data_dir": "tmp/unit/datasets",
     "image_size": IMAGE_SIZE,
 }

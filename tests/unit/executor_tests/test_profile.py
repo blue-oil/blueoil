@@ -26,7 +26,7 @@ pytestmark = pytest.mark.usefixtures("reset_default_graph", "set_test_environmen
 
 def test_profile():
 
-    config_file = "tests/fixtures/configs/for_profile.py"
+    config_file = "unit/fixtures/configs/for_profile.py"
     expriment_id = "test_profile"
     train_run(None, None, config_file, expriment_id, recreate=True)
 
