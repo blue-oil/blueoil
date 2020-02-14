@@ -17,7 +17,6 @@ from datetime import datetime
 import math
 import os
 
-import click
 import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 from tensorflow.keras.utils import Progbar

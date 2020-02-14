@@ -18,7 +18,7 @@ from easydict import EasyDict
 
 from blueoil.common import Tasks
 from blueoil.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
-                                  Hue, SSDRandomCrop)
+                                    Hue, SSDRandomCrop)
 from blueoil.data_processor import Sequence
 from blueoil.networks.object_detection.lm_fyolo import LMFYolo
 from blueoil.datasets.bdd100k import BDD100KObjectDetection
