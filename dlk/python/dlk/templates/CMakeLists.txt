@@ -126,7 +126,7 @@ target_compile_definitions(lm PUBLIC -DFUNC_TIME_MEASUREMENT)
 add_library(lib SHARED ${SRC_LIB_ALL})
 add_dlk_target_compile_properties(lib)
 set_target_properties(lib PROPERTIES PREFIX "")
-set_target_properties(lib PROPERTIES SUFFIX "_${CMAKE_SYSTEM_PROCESSOR}${FPGA_SUFFIX}.so")
+set_target_properties(lib PROPERTIES SUFFIX "dlk_${CMAKE_SYSTEM_PROCESSOR}${FPGA_SUFFIX}.so")
 set_target_properties(lib PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 #
