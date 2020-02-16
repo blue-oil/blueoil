@@ -18,7 +18,7 @@ import shutil
 import subprocess
 
 from blueoil.cmd.export import run as run_export
-from scripts.generate_project import run as run_generate_project
+from blueoi.converter.generate_project import run as run_generate_project
 
 
 def create_output_directory(output_root_dir, output_template_dir=None):

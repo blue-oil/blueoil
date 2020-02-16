@@ -19,11 +19,11 @@ from os import path
 from pathlib import Path
 from typing import cast
 
-import utils
-from core.config import Config
-from core.graph import Graph
-from core.operators import Conv
-from template import Template
+from blueoil.converter import util
+from blueoil.converter.core.config import Config
+from blueoil.converter.core.graph import Graph
+from blueoil.converter.core.operators import Conv
+from blueoil.converter.template import Template
 
 
 class CodeGenerater(object):

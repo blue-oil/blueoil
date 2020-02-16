@@ -16,8 +16,8 @@
 """Configuration module."""
 import os
 
-import env
-from core.data_types import Uint32
+from blueoil.converter import env
+from blueoil.converter.core.data_types import Uint32
 
 
 class Config(object):

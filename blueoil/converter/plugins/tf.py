@@ -23,15 +23,17 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type
 import numpy as np
 from tensorflow.core.framework import types_pb2
 
-import core.operators as dlk_op
-from core.data_types import DataType, Float32, Float64, Int8, Int16, Int32, \
+import blueoil.converter.core.operators as dlk_op
+from blueoil.converter.core.data_types import DataType, Float32, Float64, Int8, Int16, Int32, \
     Int64, Uint8, Uint16, Uint32, Uint64, Bool, String
-from core.exceptions import UnsupportedNode, UnsupportedDataType
-from core.graph import Graph
-from core.operators import Operator, Conv, Identity, BinaryMeanScalingQuantizer, \
+from blueoil.converter.core.exceptions import UnsupportedNode, UnsupportedDataType
+from blueoil.converter.core.graph import Graph
+from blueoil.converter.core.operators import Operator, Conv, \
+    Identity, BinaryMeanScalingQuantizer, \
     BatchNormalization, QTZ_linear_mid_tread_half, Add, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
-    Mul, BinaryChannelWiseMeanScalingQuantizer, ConcatOnDepth, Maximum, DepthToSpace, ResizeNearestNeighbor, \
+    Mul, BinaryChannelWiseMeanScalingQuantizer, ConcatOnDepth, Maximum, \
+    DepthToSpace, ResizeNearestNeighbor, \
     Split, Pad, MatMul, Gather, Unique, Cast, Minimum, StridedSlice, Prod, Shape, LeakyRelu
 
 DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
@@ -575,7 +577,7 @@ class Importer(object):
         """
         op_type = self.convert_operator(node.op_type)
         try:
-            module = importlib.import_module('core.operators')
+            module = importlib.import_module('blueoil.converter.core.operators')
             class_def = getattr(module, op_type)
         except AttributeError:
             message = f'Operator {op_type} is not supported.'

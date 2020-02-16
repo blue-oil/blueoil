@@ -19,7 +19,7 @@ import click
 import numpy as np
 from PIL import Image
 
-from scripts.pylib.nnlib import NNLib as NNLib
+from blueoil.converter.nnlib import NNLib as NNLib
 
 
 def main_test(input_image: str, library: str, expected_output: str,

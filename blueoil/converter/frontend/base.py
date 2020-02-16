@@ -16,7 +16,7 @@
 """Base IO module."""
 from abc import ABCMeta, abstractmethod
 
-from core.graph import Graph
+from blueoil.converter.core.graph import Graph
 
 
 class BaseIO(metaclass=ABCMeta):
@@ -28,7 +28,7 @@ class BaseIO(metaclass=ABCMeta):
 
         Args:
             path (str): Path to the file to be read
-        
+
         """
         pass
 
@@ -38,6 +38,6 @@ class BaseIO(metaclass=ABCMeta):
 
         Args:
             model (Model): Model to be written
-        
+
         """
         pass

@@ -17,8 +17,8 @@
 from collections import OrderedDict, defaultdict
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, cast
 
-from core.graph_pattern_matching import sort_graph
-from core.operators import Conv, Operator
+from blueoil.converter.core.graph_pattern_matching import sort_graph
+from blueoil.converter.core.operators import Conv, Operator
 
 
 class Graph(object):
@@ -73,7 +73,7 @@ class Graph(object):
         """Add an operator and its inputs recursively.
 
         Args:
-            op (Operator): 
+            op (Operator):
 
         """
         self.add_op(op)
@@ -123,7 +123,7 @@ class Graph(object):
 
         Returns:
             list[str]: Operators that have the op_type
-        
+
         """
         return list(self.__op_type_list[op_type])
 
@@ -136,7 +136,7 @@ class Graph(object):
 
         Returns:
             list:
-        
+
         """
 
         return list(cast(List['Conv'], self.__op_type_list['Conv'])) \
@@ -145,7 +145,7 @@ class Graph(object):
 
     def check_nodes(self) -> bool:
         """Check whether all operators defined in this graph.
-        
+
         Currently it checks:
         - for all operators op, for all input in op.inputs, input.outputs includes op.
 
@@ -153,7 +153,7 @@ class Graph(object):
 
         Returns:
             bool: Whether the graph passes the test.
-        
+
         """
         # check the input-output consistency
         for op_name in self.__ops:

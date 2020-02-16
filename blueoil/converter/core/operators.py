@@ -22,13 +22,13 @@ from abc import abstractmethod
 from itertools import dropwhile
 from typing import TYPE_CHECKING, Any, Dict, Optional, cast
 
-from core.view import View
-from utils import classproperty
+from blueoil.converter.core.view import View
+from blueoil.converter.util import classproperty
 
 from .data_types import *
 
 if TYPE_CHECKING:
-    import core.operators as ops
+    import blueoil.converter.core.operators as ops
 
 Ops = Dict[str, 'Operator']
 OutOps = Dict[str, List['Operator']]
@@ -2718,11 +2718,11 @@ class Split(Operator):
             out_shape[ch_idx] = int(in_shape[ch_idx] / split)
 
         return out_shape
-                     
+
     @property
     def preserve_quantization(self) -> bool:
         return True
-                     
+
 
 class Pad(Operator):
     """Pad operator.
@@ -2783,7 +2783,7 @@ class Pad(Operator):
                 new_shape.append(sum(padding) + dim)
 
         return new_shape
-     
+
     @property
     def preserve_quantization(self) -> bool:
         return False
@@ -2849,7 +2849,7 @@ class MatMul(Operator):
         b_data = self.input_ops['B'].data
         self._data = np.matmul(a_data, b_data)
         return self._data
-                     
+
     @property
     def preserve_quantization(self) -> bool:
         return False

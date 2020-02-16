@@ -21,11 +21,13 @@ from typing import Any, List, cast
 
 import numpy as np
 
-from core.data_types import QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, Int32, PackedUint32, Uint32
-from core.graph import Graph
-from core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from core.operators import Constant, Conv, Lookup, Operator, BatchNormalizationOptimized
-from modules.packer import Packer
+from blueoil.converter.core.data_types import QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, \
+    QUANTIZED_PACKED_KERNEL, Int32, PackedUint32, Uint32
+from blueoil.converter.core.graph import Graph
+from blueoil.converter.core.graph_pattern_matching import get_nodes_in_branch, sort_graph
+from blueoil.converter.core.operators import Constant, Conv, Lookup, \
+    Operator, BatchNormalizationOptimized
+from  blueoil.converter.modules.packer import Packer
 
 
 def pass_remove_identities(graph: Graph) -> None:
@@ -33,7 +35,7 @@ def pass_remove_identities(graph: Graph) -> None:
 
     Args:
         graph (Graph): The input graph. It will be modified in-place.
-    
+
     """
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'Identity']
     to_be_removed = list()
@@ -69,7 +71,7 @@ def pass_transpose(graph: Graph) -> None:
 
     Args:
         graph (Graph): The input graph. It will be modified in-place.
-    
+
     """
     exec_list = sort_graph(graph)
 
@@ -93,7 +95,7 @@ def pass_constant_folding(graph: Graph) -> None:
     Args:
         graph (Graph): The input graph. It will be modified in-place.
         processed_nodes (list): The list of the processed nodes so far.
-    
+
     """
 
     done = False
@@ -151,15 +153,15 @@ def pass_constant_folding(graph: Graph) -> None:
 
 def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
     """Given a node N, it will propagate information about quantization into the convolution nodes.
-    
+
        There are two types of nodes. Those which preserve quantization (for example, Space2Depth because
        does not affect the actual values of the input data, only changes it positions) and those which
        destroy quantization (for example, BatchNormalization, because it involves float operations).
-    
+
        If there is path in the Graph which connect a Quantizer node Q to a Conv node C and every node between
        Q and C preserve quantization (for example, Q -> Space2Depth -> Concat > Conv) then the details about the
        quantizer Q should be propagated into the convolution node C.
-    
+
        This pass allows us to further process the convolution nodes later and maybe quantize these convolutions
        based on these quantization details. Note that a convolution node has two inputs, input data and weights.
        We propagate quantization details through both the input node branch and the weight node branch.
@@ -227,7 +229,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
 
     Args:
         graph (Graph): The input graph. It will be modified in-place.
-    
+
     """
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'QTZ_linear_mid_tread_half']
     to_be_removed = []
@@ -344,7 +346,7 @@ def pass_pack_weights(graph: Graph) -> None:
 
     Args:
         graph (Graph): The input graph. It will be modified in-place.
-    
+
     """
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
     quantization_types = [
@@ -402,7 +404,7 @@ def pass_pack_weights(graph: Graph) -> None:
                                 idx = g * (kw * kh * kd * b) + p * b + h * (kw * kd) + w * kd + o * (kw * kh * kd) + d
                                 tca_output[out_index] = padded_data[idx]
                                 out_index += 1
-                                
+
         kn2row_output = np.zeros(oc * kh * kw * kd)
         out_index = 0
         for h in range(kh):
@@ -466,7 +468,7 @@ def pass_quantize_convolutions(graph: Graph) -> None:
 
     Args:
         graph (Graph): The input graph. It will be modified in-place.
-    
+
     """
     b = 32
 
@@ -508,7 +510,7 @@ def pass_propagate_datatypes(graph) -> None:
 
     Args:
         graph (Graph): The input graph. It will be modified in-place.
-    
+
     """
     exec_list = sort_graph(graph)
     for m in exec_list:
@@ -536,7 +538,7 @@ def pass_propagate_output_type_backward(graph: Graph) -> None:
     """It is assumed that the output data type of a Graph is float.
        We should propagate this assumption backwards from the output node of the graph to the
        latest quantized convolution available.
-    
+
        There could be cases where the latest convolution node Q is a quantized convolution and we also apply
        thresholds to its outputs. In this cases, the quantized convolution output data type should be float
        even if thresholds are applied.

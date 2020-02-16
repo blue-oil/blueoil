@@ -18,7 +18,7 @@ from sys import argv
 import numpy as np
 from PIL import Image
 
-from scripts.pylib.nnlib import NNLib as NNLib
+from blueoil.converter.nnlib import NNLib as NNLib
 
 input_image_path = argv[1]
 lib_path = argv[2]

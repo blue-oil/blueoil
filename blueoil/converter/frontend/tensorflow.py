@@ -18,8 +18,8 @@ from os import path
 
 from tensorflow.core.framework import graph_pb2
 
-from core.graph import Graph
-from plugins.tf import Importer
+from blueoil.converter.core.graph import Graph
+from blueoil.converter.plugins.tf import Importer
 
 from .base import BaseIO
 

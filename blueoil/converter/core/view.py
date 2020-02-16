@@ -16,7 +16,7 @@
 import copy
 from textwrap import dedent, indent
 
-from core.data_types import *
+from blueoil.converter.core.data_types import *
 
 
 class View(object):

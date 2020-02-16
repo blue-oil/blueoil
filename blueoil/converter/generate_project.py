@@ -20,19 +20,21 @@ Script that automatically runs all of the folllowing steps.
 - Generate all cpp source headers and other control files like Makefile.
 """
 import click
-import utils
 from os import path
 
-from core.config import Config
-from core.graph import Graph
-from core.params import Params
-from code_generater import CodeGenerater
-from frontend import TensorFlowIO
-from core.optimizer import pass_remove_identities, pass_transpose, pass_constant_folding, \
+from blueoil.converter.core.config import Config
+from blueoil.converter.core.graph import Graph
+from blueoil.converter.core.params import Params
+from blueoil.converter.code_generater import CodeGenerater
+from blueoil.converter.frontend import TensorFlowIO
+from blueoil.converter.core.optimizer import pass_remove_identities, \
+    pass_transpose, pass_constant_folding, \
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
     pass_quantize_convolutions, pass_propagate_datatypes, \
     pass_propagate_format, pass_propagate_output_type_backward, \
     pass_lookup, pass_simplify_batchnorm
+from blueoil.converter import util
+
 
 SCRITPS_DIR = path.abspath(path.dirname(__file__))
 DLK_ROOT_DIR = path.abspath(path.join(SCRITPS_DIR, '..'))
@@ -48,7 +50,7 @@ def optimize_graph_step(graph: Graph, config: Config) -> None:
 
     Returns:
 
-    
+
     """
 
     pass_remove_identities(graph)
@@ -77,7 +79,7 @@ def generate_code_step(graph: Graph, config: Config) -> None:
     Args:
         graph (Graph): Graph the code generation is based on
         config (Config): Collection of configurations
-    
+
     """
     params = Params(graph, config)
 

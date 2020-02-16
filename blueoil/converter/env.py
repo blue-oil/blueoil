@@ -18,14 +18,8 @@ from os import path
 MAX_CPU_COUNT = 8
 
 ROOT_DIR = path.abspath(path.dirname(__file__))
-PYTHON_DIR = path.join(ROOT_DIR, 'python')
-DLK_DIR = path.join(PYTHON_DIR, 'dlk')
-DLK_CORE_DIR = path.join(DLK_DIR, 'core')
-
 
 __all__ = [
     'MAX_CPU_COUNT',
     'ROOT_DIR',
-    'PYTHON_DIR',
-    'DLK_DIR',
 ]

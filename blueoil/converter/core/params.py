@@ -16,15 +16,15 @@
 """Parameter module."""
 from typing import List
 
-from core.config import Config
-from core.data_types import *
-from core.operators import Conv
+from blueoil.converter.core.config import Config
+from blueoil.converter.core.data_types import *
+from blueoil.converter.core.operators import Conv
 
 
 class Params(object):
     """Parameter class."""
 
-    from core.graph import Graph
+    from blueoil.converter.core.graph import Graph
 
     def __init__(self, graph: Graph, config: Config) -> None:
         """Init this parameter object.
