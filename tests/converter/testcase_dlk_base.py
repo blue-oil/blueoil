@@ -50,7 +50,7 @@ class TestCaseDLKBase(TestCase):
 
         # Setup the board. For now, DE10 Nano board
         output_path = '/tmp'
-        hw_path = os.path.abspath(os.path.join('..', FPGA_FILES))
+        hw_path = os.path.abspath(os.path.join('.', FPGA_FILES))
 
         board_available = setup_de10nano(hw_path, output_path)
 
