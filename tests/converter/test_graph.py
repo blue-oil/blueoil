@@ -18,9 +18,9 @@ import unittest
 
 import numpy as np
 
-from core.data_types import Float32
-from core.graph import Graph
-from core.operators import Constant, Conv, Input, Output
+from blueoil.converter.core.data_types import Float32
+from blueoil.converter.core.graph import Graph
+from blueoil.converter.core.operators import Constant, Conv, Input, Output
 
 
 class TestGraph(unittest.TestCase):

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-PROJECT_TAG = 'dlk'
+PROJECT_TAG = 'converter'
 DO_CLEANUP = True
 DO_CLEANUP_OLDBUILD = False
 HOURS_ELAPSED_TO_ERASE = 24

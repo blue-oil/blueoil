@@ -20,8 +20,8 @@ from typing import List
 
 import numpy as np
 
-from core.data_types import Float32
-from core.operators import Constant
+from blueoil.converter.core.data_types import Float32
+from blueoil.converter.core.operators import Constant
 
 
 class TestDynamicCreateOp(unittest.TestCase):
@@ -53,7 +53,7 @@ class TestDynamicCreateOp(unittest.TestCase):
 
         for op in unary_ops:
             shape = [1, 3, 3, 3]
-            module = importlib.import_module('core.operators')
+            module = importlib.import_module('blueoil.converter.core.operators')
             try:
                 op_def = getattr(module, op)
                 input_ops = {n: x for n in op_def.input_names}
@@ -96,7 +96,7 @@ class TestDynamicCreateOp(unittest.TestCase):
 
         for op in binary_ops:
             shape = [1, 3, 3, 3]
-            module = importlib.import_module('core.operators')
+            module = importlib.import_module('blueoil.converter.core.operators')
             try:
                 op_def = getattr(module, op)
                 shape = [1, 2, 2, 3] if op == 'Conv' else shape
@@ -128,7 +128,7 @@ class TestDynamicCreateOp(unittest.TestCase):
         dtype = Float32()
 
         for op in nary_ops:
-            module = importlib.import_module('core.operators')
+            module = importlib.import_module('blueoil.converter.core.operators')
             try:
                 op_def = getattr(module, op)
                 input_ops = {n: x for n in op_def.input_names}

@@ -24,11 +24,9 @@ import unittest
 
 from parameterized import parameterized
 
-from scripts import generate_project as gp
-from scripts.pylib.nnlib import NNLib as NNLib
-
-sys.path.append("utils")  # PEP8:ignore
-import run_test as inference  # PEP8:ignore
+from blueoil.converter import generate_project as gp
+from blueoil.converter.nnlib import NNLib as NNLib
+import blueoil.converter.utils.run_test as inference  # PEP8:ignore
 
 from testcase_dlk_base import TestCaseDLKBase
 from tstconf import CURRENT_TEST_LEVEL
@@ -37,7 +35,7 @@ from tstutils import updated_dict, run_and_check, TEST_LEVEL_FUTURE_TARGET, FPGA
 
 def dict_codegen_classification(cpu_name) -> dict:
     """Test parameters for testing code generation for classification on CPU """
-    return {'model_path': os.path.join('examples', 'classification', 'lmnet_quantize_cifar10_space_to_depth'),
+    return {'model_path': os.path.join('fixtures', 'classification', 'lmnet_quantize_cifar10_space_to_depth'),
             'expected_output_set_name': '1000_dog.png',
             'prefix': 'cls',
             'input_name': '000_images_placeholder:0.npy',
@@ -51,7 +49,7 @@ def dict_codegen_classification(cpu_name) -> dict:
 
 def dict_codegen_classification_resnet(cpu_name) -> dict:
     """Test parameters for testing code generation for classification on CPU (float only)"""
-    return {'model_path': os.path.join('examples', 'classification', 'resnet_quantize_cifar10'),
+    return {'model_path': os.path.join('fixtures', 'classification', 'resnet_quantize_cifar10'),
             'expected_output_set_name': '9984_horse.png',
             'prefix': 'cls_resnet',
             'input_name': '000_images_placeholder:0.npy',
@@ -65,7 +63,7 @@ def dict_codegen_classification_resnet(cpu_name) -> dict:
 
 def dict_codegen_object_detection(cpu_name) -> dict:
     """Test parameters for testing code generation for object detection on CPU"""
-    return {'model_path': os.path.join('examples', 'object_detection', 'fyolo_quantize_4_v4'),
+    return {'model_path': os.path.join('fixtures', 'object_detection', 'fyolo_quantize_4_v4'),
             'expected_output_set_name': 'network_input_output',
             'prefix': 'det',
             'input_name': '000_images_placeholder:0.npy',
@@ -79,7 +77,7 @@ def dict_codegen_object_detection(cpu_name) -> dict:
 
 def dict_codegen_segmentation(cpu_name) -> dict:
     """Test parameters for testing code generation for segmentation on CPU"""
-    return {'model_path': os.path.join('examples', 'segmentation', 'lm_segnet_v1_quantize_camvid'),
+    return {'model_path': os.path.join('fixtures', 'segmentation', 'lm_segnet_v1_quantize_camvid'),
             'expected_output_set_name': 'network_input_output',
             'prefix': 'seg',
             'input_name': '000_images_placeholder:0.npy',

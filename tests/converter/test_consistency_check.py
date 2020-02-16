@@ -20,8 +20,8 @@ from typing import List, cast
 
 import numpy as np
 
-from core.data_types import Float32
-from core.operators import Add, Constant, Conv, Input, MaxPool, Operator
+from blueoil.converter.core.data_types import Float32
+from blueoil.converter.core.operators import Add, Constant, Conv, Input, MaxPool, Operator
 
 
 class TestConsistencyCheck(unittest.TestCase):

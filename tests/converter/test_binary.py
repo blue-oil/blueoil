@@ -18,7 +18,7 @@ import os
 import unittest
 from os.path import join
 
-from scripts import generate_project as gp
+from blueoi.converter import generate_project as gp
 from testcase_dlk_base import TestCaseDLKBase
 from tstutils import run_and_check
 

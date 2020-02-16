@@ -19,7 +19,7 @@ import unittest
 
 import numpy as np
 
-from modules.packer import Packer
+from blueoil.converter.modules.packer import Packer
 
 
 class TestPacker(unittest.TestCase):

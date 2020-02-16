@@ -19,7 +19,7 @@ import unittest
 
 from parameterized import parameterized
 
-from scripts import generate_project as gp
+from blueoil.converter import generate_project as gp
 from testcase_dlk_base import TestCaseDLKBase
 
 
