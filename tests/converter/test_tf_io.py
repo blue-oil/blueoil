@@ -24,7 +24,7 @@ from blueoil.converter.core import Operator
 from blueoil.converter.core.data_types import Float32
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.operators import Constant, Conv, Input, Output
-from frontend import TensorFlowIO
+from blueoil.converter.frontend import TensorFlowIO
 
 
 class TestTensorFlowIO(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestTensorFlowIO(unittest.TestCase):
 
     def test_tf_import(self) -> None:
         """Test code for importing Tensorflow file with TensorflowIO."""
-        tf_path = path.join('examples',
+        tf_path = path.join('tests', 'fixtures',
                             'classification',
                             'lmnet_v1_toy_graph',
                             'minimal_graph_with_shape.pb')
@@ -49,7 +49,7 @@ class TestTensorFlowIO(unittest.TestCase):
 
     def test_import_classification(self) -> None:
         """Test code for importing Tensorflow file with TensorflowIO."""
-        tf_path = path.join('examples',
+        tf_path = path.join('tests', 'fixtures',
                             'classification',
                             'lmnet_quantize_cifar10_stride_2.20180523.3x3',
                             'minimal_graph_with_shape.pb')
@@ -66,7 +66,7 @@ class TestTensorFlowIO(unittest.TestCase):
 
     def test_import_group_convolution_classification(self) -> None:
         """Test code for importing Tensorflow file with TensorflowIO."""
-        tf_path = path.join('examples',
+        tf_path = path.join('tests', 'fixtures',
                             'classification',
                             'lmnet_v1_group_conv',
                             'minimal_graph_with_shape.pb')
@@ -85,7 +85,7 @@ class TestTensorFlowIO(unittest.TestCase):
         """Test code for importing tf pb file of object detection
         (lack of shape info for some operator) with TensorflowIO.
         """
-        tf_path = path.join('examples',
+        tf_path = path.join('tests', 'fixtures',
                             'object_detection',
                             'fyolo_quantize_17_v14_some_1x1_wide_pact_add_conv',
                             'minimal_graph_with_shape.pb')

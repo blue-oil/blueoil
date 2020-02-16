@@ -35,7 +35,7 @@ class TestGenerateProject(TestCaseDLKBase):
 
         input_path = os.path.abspath(
             os.path.join(os.getcwd(),
-                         'examples',
+                         'tests', 'fixtures',
                          'classification',
                          #  'lmnet_quantize_cifar10_stride_2.20180523.3x3',
                          'minimal_graph_with_shape.pb'))

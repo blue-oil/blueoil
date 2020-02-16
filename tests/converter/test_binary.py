@@ -18,7 +18,7 @@ import os
 import unittest
 from os.path import join
 
-from blueoi.converter import generate_project as gp
+from blueoil.converter import generate_project as gp
 from testcase_dlk_base import TestCaseDLKBase
 from tstutils import run_and_check
 
@@ -29,10 +29,10 @@ class TestBinary(TestCaseDLKBase):
     def test_time_measurement_with_x86(self) -> None:
         """Test code for time measurement on x86."""
         model_path = os.path.join(
-            'examples',
+            'tests',
+            'fixtures',
             'classification',
             'lmnet_quantize_cifar10')
-
         output_path = self.build_dir
         project_name = 'test_binary'
         project_dir = os.path.join(output_path, project_name + '.prj')
@@ -52,7 +52,7 @@ class TestBinary(TestCaseDLKBase):
                threshold_skipping=False,
                debug=False,
                cache_dma=False,
-               )
+        )
         self.assertTrue(os.path.exists(project_dir))
 
         run_and_check(['cmake', '.'],
@@ -75,7 +75,7 @@ class TestBinary(TestCaseDLKBase):
                       join(output_path, "tar_xvzf.err"),
                       self,
                       check_stdout_include=[debug_data_filename + '/raw_image.npy']
-                      )
+        )
 
         self.assertTrue(os.path.exists(debug_data_input))
         self.assertTrue(os.path.exists(debug_data_output))
@@ -86,7 +86,7 @@ class TestBinary(TestCaseDLKBase):
                       join(project_dir, "elf.err"),
                       self,
                       check_stdout_include=['TotalRunTime ']
-                      )
+        )
 
         print(f"Binary time-measurement test : passed!")
 

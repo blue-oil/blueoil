@@ -118,10 +118,10 @@ def run(input_path: str,
                     output_pj_path=output_project_path,
                     debug=debug,
                     cache_dma=cache_dma
-                    )
+    )
 
     dest_dir_path = path.abspath(dest_dir_path)
-    utils.make_dirs(dest_dir_path)
+    util.make_dirs(dest_dir_path)
 
     click.echo('import pb file')
     io = TensorFlowIO()

@@ -48,7 +48,7 @@ class CodeGenerater(object):
 
     def generate_files_from_template(self) -> None:
         src_dir_path = self.template.root_dir
-        file_pathes = utils.get_files(src_dir_path, excepts='/templates/manual')
+        file_pathes = util.get_files(src_dir_path, excepts='/templates/manual')
 
         for src_file_path in file_pathes:
             src_file = Path(src_file_path)
@@ -60,7 +60,7 @@ class CodeGenerater(object):
                 dest_file_dir_path = path.dirname(dest_file_path)
 
                 # if the file's dir not exist, make it
-                utils.make_dirs([dest_file_dir_path])
+                util.make_dirs([dest_file_dir_path])
 
                 if 'tpl' in path.basename(src_file_path) and path.basename(src_file_path)[0] != '.':
                     relative_src_file_path = str(src_file.relative_to(self.template.root_dir))
@@ -72,7 +72,7 @@ class CodeGenerater(object):
     def generate_inputs(self) -> None:
         input_src_dir_path = path.join(self.src_dir, 'inputs')
         input_header_dir_path = path.join(self.header_dir, 'inputs')
-        utils.make_dirs([input_src_dir_path, input_header_dir_path])
+        util.make_dirs([input_src_dir_path, input_header_dir_path])
 
         input_src_template_path = path.join('consts', 'input.tpl.cpp')
         input_header_template_path = path.join('consts', 'input.tpl.h')
