@@ -99,7 +99,6 @@ RUN pip install -U pip setuptools
 
 FROM base AS blueoil-base
 
-
 # COPY resources required for blueoil installation
 COPY setup.* /home/blueoil/
 COPY blueoil /home/blueoil/blueoil
