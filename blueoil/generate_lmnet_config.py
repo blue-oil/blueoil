@@ -13,15 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import argparse
 import importlib
 import os
-import re
 from tempfile import NamedTemporaryFile
 
-import yaml
 from jinja2 import Environment, FileSystemLoader
-from tensorflow.io import gfile
 
 from blueoil.utils.module_loader import load_class
 
@@ -114,7 +110,6 @@ def _blueoil_to_lmnet(blueoil_config):
         "summarise_steps": 100,
     }
     dataset = {}
-
 
     model_name = blueoil_config["model_name"]
 
@@ -306,4 +301,3 @@ def _save(lmnet_config):
             suffix=".py", delete=False, mode="w") as fp:
         fp.write(applied)
         return fp.name
-

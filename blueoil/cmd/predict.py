@@ -18,7 +18,6 @@ import math
 import os
 from glob import glob
 
-import click
 import numpy as np
 import tensorflow as tf
 

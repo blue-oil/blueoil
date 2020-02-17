@@ -40,12 +40,13 @@ test-keypoint-detection: build
 	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_keypoint_detection.py
 
 .PHONY: test-lmnet
-test-lmnet: test-lmnet-pep8 test-unit-main
+test-lmnet: test-blueoil-pep8 test-unit-main
 
-.PHONY: test-lmnet-pep8
-test-lmnet-pep8: build
-	# Check lmnet pep8
-	docker run --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; flake8 ."
+.PHONY: test-blueoil-pep8
+test-blueoil-pep8: build
+	# Check blueoil pep8
+	# FIXME: blueoil/templates have a lot of errors with flake8
+	docker run --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd blueoil; flake8 . --exclude=./templates"
 
 .PHONY: test-unit-main
 test-unit-main: build
