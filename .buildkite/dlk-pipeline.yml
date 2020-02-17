@@ -54,4 +54,4 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
       DEVICE_TEST_INPUT_PATH: './output/TestCodeGenerationAarch64'
-      PYTHONPATH: 'dlk/python/dlk/scripts/pylib'
+      PYTHONPATH: '.'
