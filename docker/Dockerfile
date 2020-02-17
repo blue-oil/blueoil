@@ -1,5 +1,6 @@
 FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu16.04 AS base
 
+
 LABEL maintainer="admin@blueoil.org"
 
 # TensorBoard
@@ -100,8 +101,8 @@ RUN pip install -U pip setuptools
 FROM base AS blueoil-base
 # Install blueoil with extras_requires[gpu]
 COPY setup.* /home/blueoil/
-RUN pip install -e .[gpu,test,docs]
-RUN pip install pycocotools==2.0.0
+COPY blueoil /home/blueoil/blueoil
+COPY output_template /home/blueoil/output_template
 
 # Set env to install horovod with nccl and tensorflow option
 ENV HOROVOD_GPU_ALLREDUCE=NCCL \
@@ -109,8 +110,10 @@ ENV HOROVOD_GPU_ALLREDUCE=NCCL \
 
 # Install requirements for distributed training temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs && \
+    pip install -e .[gpu,test,docs] && \
     pip install -e .[dist] && \
     ldconfig
+RUN pip install pycocotools==2.0.0
 
 # we cannot customize the path of this temporal directory...
 RUN mkdir /.horovod && chmod 777 /.horovod
@@ -119,8 +122,6 @@ RUN mkdir /.horovod && chmod 777 /.horovod
 FROM blueoil-base AS blueoil-dev
 
 # Copy blueoil sources to docker image
-COPY blueoil /home/blueoil/blueoil
-COPY output_template /home/blueoil/output_template
 
 RUN chmod 777 /home/blueoil
 
@@ -131,13 +132,10 @@ WORKDIR /home/blueoil/dlk
 RUN PYTHONPATH=python/dlk python setup.py install
 RUN chmod 777 /home/blueoil/dlk
 
-# Copy lmnet sources to docker image
-COPY lmnet /home/blueoil/lmnet
-
 # Copy blueoil test code to docker image
 COPY tests /home/blueoil/tests
 
-ENV PYTHONPATH $PYTHONPATH:/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk
+ENV PYTHONPATH $PYTHONPATH:/home/blueoil:/home/blueoil/dlk/python/dlk
 
 # enable blueoil command
 RUN pyenv rehash
