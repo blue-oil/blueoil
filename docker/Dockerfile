@@ -1,6 +1,5 @@
 FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu16.04 AS base
 
-
 LABEL maintainer="admin@blueoil.org"
 
 # TensorBoard
@@ -99,7 +98,9 @@ WORKDIR /home/blueoil
 RUN pip install -U pip setuptools
 
 FROM base AS blueoil-base
-# Install blueoil with extras_requires[gpu]
+
+
+# COPY resources required for blueoil installation
 COPY setup.* /home/blueoil/
 COPY blueoil /home/blueoil/blueoil
 COPY output_template /home/blueoil/output_template
