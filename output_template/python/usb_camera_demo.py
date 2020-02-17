@@ -29,9 +29,9 @@ import click
 import cv2
 import numpy as np
 
-from lmnet.common import get_color_map
+from blueoil.common import get_color_map
 from lmnet.nnlib import NNLib
-from lmnet.utils.config import (
+from blueoil.utils.config import (
     load_yaml,
     build_pre_process,
     build_post_process,
@@ -42,11 +42,11 @@ from lmnet.utils.demo import (
     run_inference,
 )
 
-from lmnet.visualize import (
+from blueoil.visualize import (
     label_to_color_image,
     visualize_keypoint_detection,
 )
-from lmnet.pre_processor import resize
+from blueoil.pre_processor import resize
 
 
 nn = None
@@ -227,7 +227,7 @@ def run(model, config_file):
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
-    default="../models/lib/lib_fpga.so",
+    default="../models/lib/libdlk_fpga.so",
 )
 @click.option(
     "-c",

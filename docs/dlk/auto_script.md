@@ -52,9 +52,9 @@ You'll see the following files.
 * lm_x86.elf
 * lm_arm.elf
 * lm_fpga.elf
-* lib_x86.so
-* lib_arm.so
-* lib_fpga.so
+* libdlk_x86.so
+* libdlk_arm.so
+* libdlk_fpga.so
 * <FPGA_DIR>/preloader-mkpimage.bin
 * <FPGA_DIR>/soc_system.rbf
 

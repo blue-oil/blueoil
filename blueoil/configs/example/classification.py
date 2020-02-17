@@ -16,15 +16,15 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
-from lmnet.datasets.cifar10 import Cifar10
-from lmnet.networks.classification.lmnet_v0 import LmnetV0Quantize
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.common import Tasks
+from blueoil.networks.classification.lmnet_v0 import LmnetV0Quantize
+from blueoil.datasets.cifar10 import Cifar10
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
     Resize,
     PerImageStandardization,
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast,

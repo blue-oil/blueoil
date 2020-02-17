@@ -22,10 +22,10 @@ import time
 
 from lmnet.nnlib import NNLib as NNLib
 
-from lmnet.utils.image import load_image
-from lmnet.common import Tasks
-from lmnet.utils.output import JsonOutput, ImageFromJson
-from lmnet.utils.config import (
+from blueoil.utils.image import load_image
+from blueoil.common import Tasks
+from blueoil.utils.predict_output.output import JsonOutput, ImageFromJson
+from blueoil.utils.config import (
     load_yaml,
     build_pre_process,
     build_post_process,
@@ -69,7 +69,7 @@ def _save_images(output_dir, filename_images):
         logger.info("save image: {}".format(output_file_name))
 
 
-def _run(model, image_data, config):
+def _init(model, config):
     filename, file_extension = os.path.splitext(model)
     supported_files = ['.so', '.pb']
 
@@ -92,17 +92,19 @@ def _run(model, image_data, config):
         nn = TensorflowGraphRunner(model)
         nn.init()
 
-    # run the graph
-    output = nn.run(image_data)
+    return nn
 
-    return output
+
+def _run(nn, image_data):
+    # run the graph
+    return nn.run(image_data)
 
 
 def _timerfunc(func, extraArgs, trial):
     if sys.version_info.major == 2:
-        get_time = time.clock
+        get_time = time.time
     else:
-        get_time = time.process_time
+        get_time = time.perf_counter
 
     runtime = 0.
     for i in range(trial):
@@ -116,7 +118,7 @@ def _timerfunc(func, extraArgs, trial):
     return value, runtime / trial
 
 
-def run_prediction(input_image, model, config_file, max_percent_incorrect_values=0.1, trial=1):
+def run_prediction(input_image, model, config_file, trial=1):
     if not input_image or not model or not config_file:
         logger.error('Please check usage with --help option')
         exit(1)
@@ -127,6 +129,9 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
     image_data = load_image(input_image)
     raw_image = image_data
 
+    # initialize Network
+    nn = _init(model, config)
+
     # pre process for image
     image_data, bench_pre = _timerfunc(_pre_process, (image_data, config.PRE_PROCESSOR, config.DATA_FORMAT), trial)
 
@@ -134,7 +139,7 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
     image_data = np.expand_dims(image_data, axis=0)
 
     # run the model to inference
-    output, bench_inference = _timerfunc(_run, (model, image_data, config), trial)
+    output, bench_inference = _timerfunc(_run, (nn, image_data), trial)
 
     logger.info('Output: (before post process)\n{}'.format(output))
 
@@ -150,10 +155,10 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
         image_size=config.IMAGE_SIZE,
         data_format=config.DATA_FORMAT,
         bench={
-            "total": (bench_pre + bench_post + bench_inference) / trial,
-            "pre": bench_pre / trial,
-            "post": bench_post / trial,
-            "inference": bench_inference / trial,
+            "total": bench_pre + bench_post + bench_inference,
+            "pre": bench_pre,
+            "post": bench_post,
+            "inference": bench_inference,
         },
     )
 
@@ -192,7 +197,7 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
-    default="../models/lib/lib_fpga.so",
+    default="../models/lib/libdlk_fpga.so",
 )
 @click.option(
     "-c",
@@ -208,7 +213,7 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
 )
 def main(input_image, model, config_file, trial):
     _check_deprecated_arguments()
-    run_prediction(input_image, model, config_file, trial)
+    run_prediction(input_image, model, config_file, trial=trial)
 
 
 def _check_deprecated_arguments():

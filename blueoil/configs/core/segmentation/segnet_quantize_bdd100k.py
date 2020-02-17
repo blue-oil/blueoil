@@ -16,13 +16,13 @@
 import tensorflow as tf
 from easydict import EasyDict
 
-from lmnet.common import Tasks
-from lmnet.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
-                                  Hue)
-from lmnet.data_processor import Sequence
-from lmnet.datasets.bdd100k import BDD100KSegmentation
-from lmnet.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
-from lmnet.pre_processor import DivideBy255, Resize
+from blueoil.common import Tasks
+from blueoil.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
+                                    Hue)
+from blueoil.data_processor import Sequence
+from blueoil.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
+from blueoil.datasets.bdd100k import BDD100KSegmentation
+from blueoil.pre_processor import DivideBy255, Resize
 from blueoil.nn.quantizations import (binary_mean_scaling_quantizer,
                                       linear_mid_tread_half_quantizer)
 

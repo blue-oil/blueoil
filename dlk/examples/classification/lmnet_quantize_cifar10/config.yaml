@@ -11,30 +11,30 @@ CLASSES:
 - ship
 - truck
 DATASET:
-  AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
+  AUGMENTOR: !!python/object:blueoil.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.data_augmentor.Pad
+    - !!python/object:blueoil.data_augmentor.Pad
       bottom: 2
       fill: 0
       left: 2
       right: 2
       top: 2
-    - !!python/object:lmnet.data_augmentor.Crop
+    - !!python/object:blueoil.data_augmentor.Crop
       height: 32
       is_resize: false
       width: 32
-    - !!python/object:lmnet.data_augmentor.FlipLeftRight
+    - !!python/object:blueoil.data_augmentor.FlipLeftRight
       probability: 0.5
   BATCH_SIZE: 1
   DATA_FORMAT: NHWC
-  PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.pre_processor.Resize
+    - !!python/object:blueoil.pre_processor.Resize
       size:
       - 32
       - 32
-    - !!python/object:lmnet.pre_processor.DivideBy255 {}
-DATASET_CLASS: !!python/name:lmnet.datasets.cifar10.Cifar10 ''
+    - !!python/object:blueoil.pre_processor.DivideBy255 {}
+DATASET_CLASS: !!python/name:blueoil.datasets.cifar10.Cifar10 ''
 DATA_FORMAT: NHWC
 IMAGE_SIZE:
 - 32
@@ -72,20 +72,20 @@ NETWORK:
   WEIGHT_DECAY_RATE: 0.0005
   WEIGHT_QUANTIZER: !!python/name:lmnet.quantizations.binary.binary_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
-NETWORK_CLASS: !!python/name:lmnet.networks.classification.lmnet_v1.LmnetV1Quantize ''
+NETWORK_CLASS: !!python/name:blueoil.networks.classification.lmnet_v1.LmnetV1Quantize ''
 POST_PROCESSOR: null
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
 PRETRAIN_VARS: []
-PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.pre_processor.Resize
+  - !!python/object:blueoil.pre_processor.Resize
     size:
     - 32
     - 32
-  - !!python/object:lmnet.pre_processor.DivideBy255 {}
+  - !!python/object:blueoil.pre_processor.DivideBy255 {}
 SAVE_CHECKPOINT_STEPS: 100000
 SUMMARISE_STEPS: 100
-TASK: !!python/object/apply:lmnet.common.Tasks
+TASK: !!python/object/apply:blueoil.common.Tasks
 - IMAGE.CLASSIFICATION
 TEST_STEPS: 1000
