@@ -18,7 +18,7 @@ import os
 import pathlib
 import unittest
 
-from blueoil.converter.nnlib import NNLib
+from nnlib import NNLib
 
 import numpy as np
 
