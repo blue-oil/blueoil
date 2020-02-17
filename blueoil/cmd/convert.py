@@ -25,7 +25,7 @@ def create_output_directory(output_root_dir, output_template_dir=None):
     """Create output directory from template.
 
     Args:
-        output_root_dir: 
+        output_root_dir:
         output_template_dir:  (Default value = None)
 
     Returns:
@@ -76,7 +76,7 @@ def strip_binary(output):
     """Strip binary file.
 
     Args:
-        output: 
+        output:
 
     """
 
@@ -148,8 +148,8 @@ def run(experiment_id,
     """Convert from trained model.
 
     Args:
-        experiment_id: 
-        restore_path: 
+        experiment_id:
+        restore_path:
         output_template_dir:  (Default value = None)
         image_size: (Default value = (None)
         project_name: (Default value = None)
@@ -165,7 +165,6 @@ def run(experiment_id,
         export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size)
     else:
         export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=None)
-
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")

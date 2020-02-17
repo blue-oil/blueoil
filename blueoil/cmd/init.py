@@ -15,12 +15,10 @@
 # =============================================================================
 from collections import OrderedDict
 import inspect
-import os
 import re
 import shutil
 
 import whaaaaat
-from jinja2 import Environment, FileSystemLoader
 
 import blueoil.data_augmentor as augmentor
 from blueoil.generate_lmnet_config import generate
@@ -131,7 +129,11 @@ learning_rate_schedule_map = OrderedDict([
     ("cosine", "'cosine' -> cosine learning rate."),
     ("2-step-decay", "'2-step-decay' -> learning rate decrease by 1/10 on {epochs}/2 and {epochs}-1."),
     ("3-step-decay", "'3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1"),
-    ("3-step-decay-with-warmup", "'3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'"),
+    (
+     "3-step-decay-with-warmup",
+     "'3-step-decay-with-warmup' -> "
+     "warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'"
+    ),
 ])
 
 

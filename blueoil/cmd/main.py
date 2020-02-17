@@ -82,6 +82,7 @@ def train(config, experiment_id, recreate):
         checkpoint_name
     ))
 
+
 @main.command(help='Convert trained model to binary files.')
 @click.option(
     '-e',
