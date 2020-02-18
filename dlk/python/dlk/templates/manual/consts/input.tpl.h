@@ -20,21 +20,21 @@ limitations under the License.
 
 {% if node.is_scalar -%}
 
-extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom> {{ node.name }};
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom> {{ node.name }}_output;
 
 {% elif node.transposed_data -%}
 
 #ifdef RUN_ON_FPGA
-extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }};
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }}_output;
 #elif defined USE_NEON || defined USE_AVX
-extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension}}> {{ node.name }};
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension}}> {{ node.name }}_output;
 #else
-extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.kn2row_dimension_format }}> {{ node.name }};
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.kn2row_dimension_format }}> {{ node.name }}_output;
 #endif
 
 {% else -%}
 
-extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension}}> {{ node.name }};
+extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension}}> {{ node.name }}_output;
 
 {%- endif %}
 

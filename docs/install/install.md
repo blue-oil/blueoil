@@ -40,9 +40,9 @@ Note: **Install nvidia-docker before installing Blueoil.**
 
 #### Download Blueoil source code from github
 
-Clone the Blueoil repository with recursive option.
+Clone the [Blueoil repository](https://github.com/blue-oil/blueoil.git) with recursive option.
 
-    $ git clone --recursive [this repository]
+    $ git clone --recursive [Blueoil repository]
 
 You should run below to update some submodules if cloned without recursive option.
 

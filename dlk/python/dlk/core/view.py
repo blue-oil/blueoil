@@ -44,13 +44,11 @@ class View(object):
         input_ops = op.input_ops
         output_ops = op.output_ops
         inputs_string = self.inputs_to_string(op, input_ops)
+        outputs_string = self.outputs_to_string(op, output_ops)
         shape_string = self.shape_to_string(op.shape)
 
         if op.available_buffer != '':
-            if len(op.output_ops.keys()) > 1:
-                op_name = op.name + '_' + str(list(op.output_ops.keys())[0])
-            else:
-                op_name = op.name
+            op_name = op.name + '_' + str(list(op.output_ops.keys())[0])
 
             shape_string = self.shape_to_string(op.shape, channel_active=True)
 
@@ -69,7 +67,7 @@ class View(object):
 
             return self.format_string(
                 f"""
-                func_QTZ_binary_mean_scaling({inputs_string}, {op.name});
+                func_QTZ_binary_mean_scaling({inputs_string}, {outputs_string});
                 """
             )
 
@@ -77,11 +75,9 @@ class View(object):
             if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_QTZ_linear_mid_tread_half({inputs_string}, {op.name}, quantize_tmp_buffer.get());
+                func_QTZ_linear_mid_tread_half({inputs_string}, {outputs_string}, quantize_tmp_buffer.get());
                 """
             )
 
@@ -165,7 +161,7 @@ class View(object):
                     binConv2D_struct.device_thresholds_phys_addr = {thresholds_addr};
                     #endif
 
-                    {conv_func}({inputs_string}, {op.name}, scaling_factors::{op.name}, binConv2D_struct);
+                    {conv_func}({inputs_string}, {outputs_string}, scaling_factors::{op.name}, binConv2D_struct);
                     """
                 )
 
@@ -195,7 +191,7 @@ class View(object):
                     Conv2D_struct.stride_along_width = {stride};
                     Conv2D_struct.temporary_buf = conv_tmp_buffer.get();
 
-                    func_Conv2D({inputs_string}, {op.name}, Conv2D_struct);
+                    func_Conv2D({inputs_string}, {outputs_string}, Conv2D_struct);
                     """
                 )
 
@@ -211,11 +207,9 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Minimum({inputs_string}, {op.name});
+                func_Minimum({inputs_string}, {outputs_string});
                 """
             )
 
@@ -256,7 +250,7 @@ class View(object):
                 MaxPool_struct.padding = {pad};
                 MaxPool_struct.stride = {stride};
 
-                func_MaxPool({inputs_string}, {op.name}, MaxPool_struct);
+                func_MaxPool({inputs_string}, {outputs_string}, MaxPool_struct);
                 """
             )
 
@@ -264,11 +258,9 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_RealDiv({inputs_string}, {op.name});
+                func_RealDiv({inputs_string}, {outputs_string});
                 """
             )
 
@@ -281,11 +273,9 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Max({inputs_string}, {op.name});
+                func_Max({inputs_string}, {outputs_string});
                 """
             )
 
@@ -306,11 +296,9 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Softmax({inputs_string}, {op.name});
+                func_Softmax({inputs_string}, {outputs_string});
                 """
             )
 
@@ -318,11 +306,9 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Round({inputs_string}, {op.name});
+                func_Round({inputs_string}, {outputs_string});
                 """,
             )
 
@@ -330,11 +316,9 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Add({inputs_string}, {op.name});
+                func_Add({inputs_string}, {outputs_string});
                 """
             )
 
@@ -342,11 +326,9 @@ class View(object):
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Sub({inputs_string}, {op.name});
+                func_Sub({inputs_string}, {outputs_string});
                 """
             )
 
@@ -354,11 +336,9 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Relu({inputs_string}, {op.name});
+                func_Relu({inputs_string}, {outputs_string});
                 """
             )
 
@@ -366,13 +346,11 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             alpha = op.alpha
 
             return self.format_string(
                 f"""
-                func_LeakyRelu({inputs_string}, {op.name}, {alpha}f);
+                func_LeakyRelu({inputs_string}, {outputs_string}, {alpha}f);
                 """
             )
 
@@ -380,11 +358,9 @@ class View(object):
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Sqrt({inputs_string}, {op.name});
+                func_Sqrt({inputs_string}, {outputs_string});
                 """
             )
 
@@ -408,8 +384,6 @@ class View(object):
             pad = op.pads[0]
             stride = op.strides[0]
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
                 AveragePool_struct.input_height = {ih};
@@ -425,13 +399,14 @@ class View(object):
                 AveragePool_struct.padding = {pad};
                 AveragePool_struct.stride = {stride};
 
-                func_AveragePool({inputs_string}, {op.name}, AveragePool_struct);
+                func_AveragePool({inputs_string}, {outputs_string}, AveragePool_struct);
                 """
             )
 
         elif self.op.op_type == 'Reshape':
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
+            input_string = self.input_to_string(op, input_ops['data'])
             in_shape = input_ops['data'].shape
             out_shape = op.shape
 
@@ -440,8 +415,8 @@ class View(object):
             return self.format_string(
                 f"""
                 // Reshape from {in_shape} to {out_shape}'
-                std::copy({input_ops["data"].name}.data(), {input_ops["data"].name}.data()"""
-                f""" + {input_ops["data"].name}.size(), {op.name}.data());
+                std::copy({input_string}.data(), {input_string}.data()"""
+                f""" + {input_string}.size(), {outputs_string}.data());
                 """
             )
 
@@ -449,43 +424,31 @@ class View(object):
             if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_BatchNormalizationOptimized({inputs_string}, {op.name});
+                func_BatchNormalizationOptimized({inputs_string}, {outputs_string});
                 """
             )
 
         elif self.op.op_type == 'SpaceToDepth':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(op, input_ops)
             shape_string = self.shape_to_string(op.shape)
 
             bs = op.block_size
-            x_op = input_ops['input']
-            iw = x_op.width
-            ic = x_op.channel
-
-            args1 = f"{inputs_string}, {op.name}, "
-            args2 = f"{bs}, {bs}"
 
             return self.format_string(
                 f"""
-                func_ExtractImagePatches({args1}{args2});
+                func_ExtractImagePatches({inputs_string}, {outputs_string}, {bs}, {bs});
                 """
             )
         elif self.op.op_type == 'Mul':
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Mul({inputs_string}, {op.name});
+                func_Mul({inputs_string}, {outputs_string});
                 """
             )
         elif self.op.op_type == 'ConcatOnDepth':
@@ -505,56 +468,44 @@ class View(object):
 
             return self.format_string(
                 f"""
-                func_ConcatOnDepth(std::make_tuple({inputs_string}), {op.name});
+                func_ConcatOnDepth(std::make_tuple({inputs_string}), {outputs_string});
                 """
             )
         elif self.op.op_type == 'Maximum':
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Max({inputs_string}, {op.name});
+                func_Max({inputs_string}, {outputs_string});
                 """
             )
         elif self.op.op_type == 'DepthToSpace':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             bs = op.block_size
             x_op = input_ops['input']
             iw = x_op.width
             ic = x_op.channel
 
-            args1 = f"{inputs_string}, {op.name}, {iw}, "
-            args2 = f"{ic}, {bs}, {bs}"
-
             return self.format_string(
                 f"""
-                func_DepthToSpace({args1}{args2});
+                func_DepthToSpace({inputs_string}, {outputs_string}, {iw}, {ic}, {bs}, {bs});
                 """
             )
         elif self.op.op_type == 'ResizeNearestNeighbor':
-
-            inputs_string = self.inputs_to_string(op, input_ops)
 
             args1 = f"{inputs_string}, {op.name}"
 
             return self.format_string(
                 f"""
-                func_ResizeNearestNeighbor({args1});
+                func_ResizeNearestNeighbor({inputs_string}, {outputs_string});
                 """
             )
         elif self.op.op_type == 'Split':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
-
-            inputs_string = self.inputs_to_string(op, input_ops)
-            outputs_string = self.outputs_to_string(op, output_ops)
 
             ns = op.num_splits
 
@@ -563,42 +514,34 @@ class View(object):
 
             return self.format_string(
                 f"""
-                TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}[] = {{ {outputs_string} }};
+                TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}_ary[] = {{ {outputs_string} }};
                 T_UINT {depth_list_name}[] = {{ {depth_list} }};
-                func_Split({inputs_string}, {op.name}, {depth_list_name}, {ns});
+                func_Split({inputs_string}, {op.name}_ary, {depth_list_name}, {ns});
                 """
             )
         elif self.op.op_type == 'Pad':
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
-            a_op = input_ops['A']
-
             return self.format_string(
                 f"""
-                func_Pad({inputs_string}, {op.name});
+                func_Pad({inputs_string}, {outputs_string});
                 """
             )
         elif self.op.op_type == 'MatMul':
             if len(input_ops) != 2:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
             return self.format_string(
                 f"""
-                func_Matmul({inputs_string}, {op.name});
+                func_Matmul({inputs_string}, {outputs_string});
                 """
             )
         elif self.op.op_type == 'Lookup':
             if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            inputs_string = self.inputs_to_string(op, input_ops)
-
-            return self.format_string(f"""func_Lookup({inputs_string}, {op.name});""")
+            return self.format_string(f"""func_Lookup({inputs_string}, {outputs_string});""")
 
         raise TypeError(f"{self.op.op_type} is not supported in View.run().")
 
@@ -618,18 +561,14 @@ class View(object):
 
         return indent(string, '  ', should_be_indent)
 
+    def input_to_string(self, op, in_op):
+        for k, v in in_op.output_ops.items():
+            if op in v:
+                return str(in_op.name) + '_' + str(k)
+        raise ValueError(f'invalid graph structure: {in_op.name} must have {op.name} as one of its output ops')
+
     def inputs_to_string(self, op, inputs):
-
-        def input_to_string(op, in_op):
-            if in_op.op_type == 'Split':
-                for k, v in in_op.output_ops.items():
-                    if op in v:
-                        return str(in_op.name) + '_' + str(k)
-                raise ValueError(f'invalid graph structure: {in_op.name} must have {op.name} as one of its output ops')
-            else:
-                return str(in_op.name)
-
-        return ', '.join(map(lambda x: input_to_string(op, x), inputs.values()))
+        return ', '.join(map(lambda x: self.input_to_string(op, x), inputs.values()))
 
     def outputs_to_string(self, node, outputs):
         return ', '.join(map(lambda x: str(node.name + '_' + x), outputs.keys()))
