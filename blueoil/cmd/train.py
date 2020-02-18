@@ -391,7 +391,7 @@ def train(config_file, experiment_id=None, recreate=False):
     experiment_dir = os.path.join(output_dir, experiment_id)
     checkpoint = os.path.join(experiment_dir, 'checkpoints', 'checkpoint')
 
-    if not os.path.isfile(checkpoint):
+    if not tf.io.gfile.exists(checkpoint):
         raise Exception('Checkpoints are not created in {}'.format(experiment_dir))
 
     with open(checkpoint) as stream:
