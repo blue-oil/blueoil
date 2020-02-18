@@ -204,15 +204,64 @@ class _SimpleDatasetReader:
         return _concat_data(result)
 
 
+def _generate_tfds_map_func(dataset):
+    """
+    Return callable object
+    """
+    pre_processor = dataset.tfds_pre_processor
+    augmentor = dataset.tfds_augmentor
+
+    print("PRE_PROCESSOR : {}".format(repr(pre_processor)))
+    print("AUGMENTOR     : {}".format(repr(augmentor)))
+
+    @tf.function
+    def _tfds_map_func(arg):
+        """
+        Arg:
+            arg(dict): with 'image' and 'label' keys
+        """
+        image, label = arg['image'], arg['label']
+        sample = {'image': image}
+
+        if issubclass(dataset.__class__, ObjectDetectionBase):
+            sample['gt_boxes'] = tf.cast(label, tf.float32)
+        else:
+            sample['label'] = label
+
+        if callable(augmentor) and dataset.subset == 'train':
+            sample = augmentor(**sample)
+
+        if callable(pre_processor):
+            sample = pre_processor(**sample)
+        print(sample)
+        image = sample['image']
+
+        if issubclass(dataset.__class__, ObjectDetectionBase):
+            label = sample['gt_boxes']
+        else:
+            label = sample['label']
+
+        return (image, label)
+
+    return _tfds_map_func
+
+
 class _TFDSReader:
 
     def __init__(self, dataset, local_rank):
         tf_dataset = dataset.tf_dataset.shuffle(1024) \
-                                       .repeat() \
-                                       .batch(dataset.batch_size) \
-                                       .prefetch(tf.data.experimental.AUTOTUNE)
+            .repeat()
+        if dataset.pre_processor is None:
+            tf_dataset = tf_dataset.map(map_func=_generate_tfds_map_func(
+                dataset), num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
+<<<<<<< HEAD
         iterator = tf.compat.v1.data.make_initializable_iterator(tf_dataset)
+=======
+        tf_dataset = tf_dataset.batch(dataset.batch_size) \
+            .prefetch(tf.data.experimental.AUTOTUNE)
+        iterator = tf.data.make_initializable_iterator(tf_dataset)
+>>>>>>> settings to use tfds_preprocessors and augmentors
 
         self.dataset = dataset
         if local_rank != -1:
@@ -231,12 +280,16 @@ class _TFDSReader:
 
     def read(self):
         """Return batch size data."""
-        result = []
-        batch = self.session.run(self.next_batch)
-        for image, label in zip(batch['image'], batch['label']):
-            image, label = _apply_augmentations(self.dataset, image, label)
-            result.append((image, label))
-        return _concat_data(result)
+        if self.dataset.pre_processor is not None:
+            # if normal pre_processor is defined, use this
+            result = []
+            batch = self.session.run(self.next_batch)
+            for image, label in zip(batch['image'], batch['label']):
+                image, label = _apply_augmentations(self.dataset, image, label)
+                result.append((image, label))
+            return _concat_data(result)
+
+        return self.session.run(self.next_batch)
 
 
 class DatasetIterator:
@@ -244,6 +297,7 @@ class DatasetIterator:
     available_subsets = ["train", "train_validation_saving", "validation"]
 
     """docstring for DatasetIterator."""
+
     def __init__(self, dataset, enable_prefetch=False, seed=0, local_rank=-1):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
