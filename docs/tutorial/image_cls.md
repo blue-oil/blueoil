@@ -162,9 +162,9 @@ output
  │   └── soc_system.dtb
  ├── models
  │   ├── lib (include trained model library)
- │   │   ├── lib_arm.so
- │   │   ├── lib_fpga.so
- │   │   └── lib_x86.so
+ │   │   ├── libdlk_arm.so
+ │   │   ├── libdlk_fpga.so
+ │   │   └── libdlk_x86.so
  │   └── meta.yaml (model configuration)
  ├── python
  │   ├── lmnet (include pre-process/post-process)
@@ -194,7 +194,7 @@ output
       $ sudo pip install -r requirements.txt  # only the first time
       $ python run.py \
           -i {inference image path} \
-          -m ../models/lib/lib_x86.so \
+          -m ../models/lib/libdlk_x86.so \
           -c ../models/meta.yaml
 
 - Check inference result. Should look like the example below.
