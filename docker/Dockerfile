@@ -128,8 +128,6 @@ RUN chmod 777 /home/blueoil
 # Copy blueoil test code to docker image
 COPY tests /home/blueoil/tests
 
-ENV PYTHONPATH $PYTHONPATH:/home/blueoil
-
 # enable blueoil command
 RUN pyenv rehash
 
