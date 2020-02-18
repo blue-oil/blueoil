@@ -1,8 +1,0 @@
--r test.requirements.txt
--r docs.requirements.txt
--r requirements.txt
-ipdb==0.10.2
-ray==0.6.4
-psutil==5.6.1
-setproctitle==1.1.10
-hyperopt==0.1.2
