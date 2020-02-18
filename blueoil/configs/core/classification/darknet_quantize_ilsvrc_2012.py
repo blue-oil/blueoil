@@ -16,10 +16,10 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.datasets.ilsvrc_2012 import Ilsvrc2012
-from lmnet.data_processor import Sequence
-from lmnet.data_augmentor import (
+from blueoil.data_processor import Sequence
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast,
@@ -28,7 +28,7 @@ from lmnet.data_augmentor import (
     Hue,
 )
 from blueoil.networks.classification.darknet import DarknetQuantize
-from lmnet.pre_processor import (
+from blueoil.pre_processor import (
     Resize,
     DivideBy255,
 )

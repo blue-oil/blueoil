@@ -316,8 +316,8 @@ class DatasetIterator:
 if __name__ == '__main__':
 
     from blueoil.datasets.cifar10 import Cifar10
-    from lmnet.data_processor import Sequence
-    from lmnet.data_augmentor import FlipLeftRight, Hue, Blur
+    from blueoil.data_processor import Sequence
+    from blueoil.data_augmentor import FlipLeftRight, Hue, Blur
 
     cifar10 = Cifar10()
 

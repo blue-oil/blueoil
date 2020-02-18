@@ -15,11 +15,11 @@
 # =============================================================================
 from easydict import EasyDict
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.classification.darknet import Darknet
 from blueoil.datasets.ilsvrc_2012 import Ilsvrc2012
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
     Resize,
     DivideBy255,
 )

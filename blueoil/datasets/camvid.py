@@ -20,9 +20,9 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-from lmnet.common import get_color_map
+from blueoil.common import get_color_map
 from blueoil.datasets.base import SegmentationBase, StoragePathCustomizable
-from lmnet.utils.random import shuffle, train_test_split
+from blueoil.utils.random import shuffle, train_test_split
 
 
 def get_image(filename, convert_rgb=True, ignore_class_idx=None):

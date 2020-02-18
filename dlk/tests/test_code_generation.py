@@ -334,7 +334,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                cache_dma=cache_dma,
                )
 
-        lib_name = 'lib_' + cpu_name
+        lib_name = 'libdlk_' + cpu_name
         project_dir = os.path.join(output_path, project_name + '.prj')
         generated_lib = os.path.join(project_dir, lib_name + '.so')
         npy_targz = os.path.join(input_dir_path, expected_output_set_name + '.tar.gz')

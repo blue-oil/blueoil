@@ -1,5 +1,5 @@
 steps:
-  - command: "make test-lmnet-main"
+  - command: "make test-unit-main"
     label: "main"
     agents:
     - "agent-type=gpu"
@@ -7,7 +7,7 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-  - command: "make test-lmnet-pep8"
+  - command: "make test-blueoil-pep8"
     label: "pep8"
     agents:
     - "agent-type=normal"

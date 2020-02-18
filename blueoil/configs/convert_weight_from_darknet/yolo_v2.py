@@ -15,15 +15,15 @@
 # =============================================================================
 from easydict import EasyDict
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.object_detection.yolo_v2 import YoloV2
 from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
     ResizeWithGtBoxes,
     DivideBy255,
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,

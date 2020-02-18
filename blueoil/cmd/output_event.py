@@ -22,7 +22,7 @@ import pytablewriter
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 from tensorboard.backend.event_processing.io_wrapper import GetLogdirSubdirectories
 
-from lmnet import environment
+from blueoil import environment
 
 
 def _get_metrics_keys(event_accumulator):

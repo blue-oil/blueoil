@@ -21,10 +21,10 @@ import PIL
 import numpy as np
 import tensorflow as tf
 
-from lmnet import environment
-from lmnet.utils.image import load_image
-from lmnet.utils import config as config_util
-from lmnet.utils import executor
+from blueoil import environment
+from blueoil.utils.image import load_image
+from blueoil.utils import config as config_util
+from blueoil.utils import executor
 
 DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),

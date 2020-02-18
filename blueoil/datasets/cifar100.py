@@ -19,9 +19,9 @@ import pickle
 
 import numpy as np
 
-from lmnet import data_processor
+from blueoil import data_processor
 from blueoil.datasets.base import Base
-from lmnet.utils.random import shuffle
+from blueoil.utils.random import shuffle
 
 
 class Cifar100(Base):
