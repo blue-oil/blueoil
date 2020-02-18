@@ -135,7 +135,7 @@ def pass_constant_folding(graph: Graph) -> None:
             # get nodes to be removed after being disconnected
             get_nodes_in_branch(m, None, to_be_removed)
 
-            new_constant.add_outputs({'output': m.output_ops.values()})
+            new_constant.add_outputs({'output': m.output_op_list})
             for output_name, consumer_list in m.output_ops.items():
                 for consumer_node in consumer_list:
                     for input_name, input_node in consumer_node.input_ops.items():
