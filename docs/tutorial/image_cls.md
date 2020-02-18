@@ -162,9 +162,9 @@ output
  │   └── soc_system.dtb
  ├── models
  │   ├── lib (include trained model library)
- │   │   ├── libdlk_arm.so
- │   │   ├── libdlk_fpga.so
- │   │   └── libdlk_x86.so
+ │   │   ├── lib_arm.so
+ │   │   ├── lib_fpga.so
+ │   │   └── lib_x86.so
  │   └── meta.yaml (model configuration)
  ├── python
  │   ├── lmnet (include pre-process/post-process)
