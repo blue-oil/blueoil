@@ -19,18 +19,18 @@ from easydict import EasyDict
 from blueoil.common import Tasks
 from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from blueoil.datasets.delta_mark import ObjectDetectionBase
-from blueoil.data_processor import Sequence
-from blueoil.pre_processor import (
-    ResizeWithGtBoxes,
-    PerImageStandardization,
+from blueoil.tfds_data_processor import TFSequence
+from blueoil.tfds_pre_processor import (
+    TFResizeWithGtBoxes,
+    TFPerImageStandardization,
 )
 from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,
 )
-from blueoil.data_augmentor import (
-    FlipLeftRight,
+from blueoil.tfds_augmentor import (
+    TFFlipLeftRight,
 )
 from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
@@ -70,10 +70,7 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-PRE_PROCESSOR = Sequence([
-    ResizeWithGtBoxes(IMAGE_SIZE),
-    PerImageStandardization()
-])
+PRE_PROCESSOR = None
 
 anchors = [
     (0.5, 0.25), (1.0, 0.75),
@@ -110,8 +107,13 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([
-    FlipLeftRight(),
+DATASET.AUGMENTOR = None
+DATASET.TFDS_PRE_PROCESSOR = Sequence([
+    TFResizeWithGtBoxes(IMAGE_SIZE),
+    TFPerImageStandardization()
+])
+DATASET.TFDS_AUGMENTOR = Sequence([
+    TFFlipLeftRight()
 ])
 DATASET.TFDS_KWARGS = {
     "name": "tfds_object_detection",

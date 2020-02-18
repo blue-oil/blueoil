@@ -19,13 +19,13 @@ from easydict import EasyDict
 from blueoil.common import Tasks
 from blueoil.networks.classification.lmnet_v0 import LmnetV0Quantize
 from blueoil.datasets.delta_mark import ClassificationBase
-from blueoil.data_processor import Sequence
-from blueoil.pre_processor import (
-    Resize,
-    PerImageStandardization,
+from blueoil.tfds_data_processor import TFSequence
+from blueoil.tfds_pre_processor import (
+    TFResize,
+    TFPerImageStandardization,
 )
-from blueoil.data_augmentor import (
-    FlipLeftRight,
+from blueoil.tfds_augmentor import (
+    TFFlipLeftRight,
 )
 from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
@@ -64,10 +64,7 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-PRE_PROCESSOR = Sequence([
-    Resize(size=IMAGE_SIZE),
-    PerImageStandardization()
-])
+PRE_PROCESSOR = None
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
@@ -90,8 +87,14 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([
-    FlipLeftRight(),
+DATASET.AUGMENTOR = None
+
+DATASET.TFDS_PRE_PROCESSOR = Sequence([
+    TFResize(size=IMAGE_SIZE),
+    TFPerImageStandardization()
+])
+DATASET.TFDS_AUGMENTOR = Sequence([
+    TFFlipLeftRight()
 ])
 DATASET.TFDS_KWARGS = {
     "name": "tfds_classification",
