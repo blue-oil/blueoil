@@ -72,6 +72,13 @@ Below is an example configuration.
   batch size (integer):  64
   image size (integer x integer):  32x32
   how many epochs do you run training (integer):  100
+  select optimizer:  Momentum
+  initial learning rate:  0.001
+  choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
+  enable data augmentation: Yes
+  Please choose augmentors:  done (5 selections)
+-> select Brightness, Color, FlipLeftRight, Hue, SSDRandomCrop
+  apply quantization at the first layer?  no 
 ```
 
 - Model name: (Any)
@@ -84,6 +91,12 @@ Below is an example configuration.
 - Batch size: (Any)
 - Image size: 32x32
 - Number of epoch: (Any number)
+- Optimizer:  Momentum
+- Initial learning rate: 0.001
+- Learning rate schedule: 3-step-decay
+- Enable data augmentation:  Yes
+- Augmentors: (Random)
+- Quantization on the first layer: No
 
 If configuration finishes, the configuration file is generated in the `my_config.yml` under config directory.
 
