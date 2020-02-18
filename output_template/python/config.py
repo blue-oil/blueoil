@@ -23,7 +23,6 @@ from easydict import EasyDict
 from blueoil.data_processor import Sequence
 
 
-# derived from LeapMind/lmnet/lmnet/utils/config.py
 def load_yaml(config_file):
     with open(config_file) as config_file_stream:
         config = yaml.load(config_file_stream, Loader=yaml.Loader)
