@@ -134,11 +134,11 @@ class CodeGenerater(object):
             aliased = set()
             for prev_op in prev_ops:
                 if prev_op.op_type in {'Reshape', 'Split'}:
-                    aliased.add(prev_op.name)
+                    aliased.add(prev_op.name + '_' + prev_op.output_names[0])
                     for i in prev_op.input_ops.values():
-                        aliased.add(i.name)
+                        aliased.add(i.name + '_' + i.output_names[0])
                 if prev_op.name not in next_inputs and prev_op.size >= op.size and prev_op.dtype == op.dtype:
-                    candidates[op.name].add(prev_op.name)
+                    candidates[op.name].add(prev_op.name + '_' + prev_op.output_names[0])
 
             candidates[op.name] = candidates[op.name].difference(aliased)
 
@@ -156,4 +156,4 @@ class CodeGenerater(object):
                 if reusable_buffer:
                     op.available_buffer = reusable_buffer
                     being_reused.append(reusable_buffer)
-                    reusing.append(op.name)
+                    reusing.append(op.name + '_' + op.output_names[0])
