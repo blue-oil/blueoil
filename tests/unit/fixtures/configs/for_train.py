@@ -27,7 +27,7 @@ from blueoil.pre_processor import (
 from blueoil.data_augmentor import (
     FlipLeftRight,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
