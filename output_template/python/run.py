@@ -20,7 +20,7 @@ import os
 import sys
 import time
 
-from lmnet.nnlib import NNLib as NNLib
+from lmnet.nnlib import NNLib
 
 from blueoil.utils.image import load_image
 from blueoil.common import Tasks
