@@ -47,9 +47,11 @@ choose network  LMFYoloQuantize
 choose dataset format  OpenImagesV4
 training dataset path:  /home/blueoil/openimages_face/
 set validataion dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  no
+validation dataset path:  /home/blueoil/openimages_face/
 batch size (integer):  16
 image size (integer x integer):  224x224
 how many epochs do you run training (integer):  1000
+select optimizer:  Adam
 initial learning rate:  0.001
 choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
 enable data augmentation?  Yes
@@ -76,7 +78,7 @@ Just like init, set the value of `{TAG}` to the value obtained by `docker images
 Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
 
 When training has started, the training log and checkpoints are generated under `./saved/{MODEL_NAME}`.
-The value of `{MODEL_NAME}` will be `train_{TIMESTAMP}`.
+The value of `{MODEL_NAME}` will be `{Configuration file}_{TIMESTAMP}`.
 
 Training runs on the TensorFlow backend. So you can use TensorBoard to visualize your training process.
 
@@ -114,7 +116,7 @@ Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 - Generates source code for executable binary.
 - Compiles for x86, ARM and FPGA.
 
-If conversion is successful, output files are generated under `./saved/train_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
+If conversion is successful, output files are generated under `./saved/{MODEL_NAME}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
 
 ```
 output
@@ -124,9 +126,9 @@ output
  │   └── soc_system.dtb
  ├── models
  │   ├── lib (include trained model library)
- │   │   ├── lib_arm.so
- │   │   ├── lib_fpga.so
- │   │   └── lib_x86.so
+ │   │   ├── libdlk_arm.so
+ │   │   ├── libdlk_fpga.so
+ │   │   └── libdlk_x86.so
  │   └── meta.yaml (model configuration)
  ├── python
  │   ├── lmnet (include pre-process/post-process)
@@ -157,7 +159,7 @@ output
 	$ sudo pip install -r requirements.txt  # for the first time only
 	$ python run.py \
 	      -i {inference image path} \
-	      -m ../models/lib/lib_x86.so \
+	      -m ../models/lib/libdlk_x86.so \
 	      -c ../models/meta.yaml
 	```
 

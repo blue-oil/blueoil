@@ -56,7 +56,7 @@ endif()
 
 if(RUN_ON_FPGA)
     list(APPEND SRC_LIB_ALL src/func/arm_neon/batch_normalization.cpp)
-    list(APPEND SRC_LIB_ALL src/func/impl/fpga/quantized_conv2d_kn2row.cpp)
+    list(APPEND SRC_LIB_ALL src/func/impl/fpga/quantized_conv2d_accelerator.cpp)
     list(APPEND SRC_LIB_ALL src/func/impl/arm_neon/pop_count.cpp)
 elseif(USE_NEON)
     list(APPEND SRC_LIB_ALL src/func/arm_neon/batch_normalization.cpp)
@@ -126,7 +126,7 @@ target_compile_definitions(lm PUBLIC -DFUNC_TIME_MEASUREMENT)
 add_library(lib SHARED ${SRC_LIB_ALL})
 add_dlk_target_compile_properties(lib)
 set_target_properties(lib PROPERTIES PREFIX "")
-set_target_properties(lib PROPERTIES SUFFIX "_${CMAKE_SYSTEM_PROCESSOR}${FPGA_SUFFIX}.so")
+set_target_properties(lib PROPERTIES SUFFIX "dlk_${CMAKE_SYSTEM_PROCESSOR}${FPGA_SUFFIX}.so")
 set_target_properties(lib PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 #

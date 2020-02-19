@@ -15,7 +15,6 @@ This project is developed as one part of Blueoil project -- the deep learning mo
 
 * Utils
   * `measure_latency.py`: entry point script for measuring inference latency.
-  * `convert_weight_from_darknet.py`: entry point script for convert weight format form darknet framework.
 
 - - -
 
@@ -43,7 +42,9 @@ source .venv/bin/activate
 
 # install python requirements
 pip install -r ../cpu.requirements.txt
-pip install -e third_party/coco/PythonAPI
+
+# Install pycocotools manually. pycocotools 2.0 have some problem with installation
+pip install pycocotools==2.0.0
 
 # start sample training by lmnet_v0 and cifar-10. It takes few minutes.
 PYTHONPATH=. python executor/train.py -c configs/example/classification.py
@@ -67,20 +68,6 @@ style.
 `pip install -r ../cpu.requirements.txt`
 - with GPU
 `pip install -r ../gpu.requirements.txt`
-
-Install third_party:
-
-First, init all submodules
-`git submodule update --init --recursive`
-
-
-For developer, install third party packages with `-e` option. It's meaning any changes to the packages would reflect directly.
-
-coco:
-```
-cd third_party/coco/PythonAPI
-pip install -e .
-```
 
 
 - - -
@@ -226,9 +213,9 @@ Exporting a trained model to proto buffer files and meta config yaml.
 In the case with `images` option, create each layer output value npy files in `export/{restore_path}/{image_size}/{image_name}/**.npy` for debug.
 
 * Load config file from saved experiment dir.
-* Export config file to yaml. See also [Config specification](docs/specification/config.md).
-  * `config.yaml` can be used for training and evaluation in python. i.e. [classification.yaml](configs/example/classification.yaml) is exported from [classification.py](configs/example/classification.py)
-  * `meta.yaml` include only few parameter for application such as demo. i.e. [classification_meta.yaml](configs/example/classification_meta.yaml) is exported from [classification.py](configs/example/classification.py)
+* Export config file to yaml. See also [Config specification](../blueoil/docs/specification/config.md).
+  * `config.yaml` can be used for training and evaluation in python. i.e. [classification.yaml](../blueoil/configs/example/classification.yaml) is exported from [classification.py](../blueoil/configs/example/classification.py)
+  * `meta.yaml` include only few parameter for application such as demo. i.e. [classification_meta.yaml](../blueoil/configs/example/classification_meta.yaml) is exported from [classification.py](../blueoil/configs/example/classification.py)
 * Save the model protocol buffer files (tf) for DLK converter.
 * Output each layer npy files for DLK converter debug.
 * Write summary in tensorboard `export` dir.
@@ -355,34 +342,6 @@ e.g.
 `PYTHONPATH=. python executor/predict.py -in ./dataset/images -o ./outputs -i lmnet_cifar10`
 
 
-# Convert weight from darknet
-Weight converter form darknet framework to tensorflow checkpoints file.
-You can convert [Yolov2](https://pjreddie.com/darknet/yolov2/) and [Darknet19](https://pjreddie.com/darknet/imagenet/#darknet19_448) network weights.
-
-Please download darknet weights at `inputs` dir.
-```
-cd inputs
-wget http://pjreddie.com/media/files/darknet19_448.weights
-wget https://pjreddie.com/media/files/yolo-voc.weights
-```
-
-After execute `convert_weight_from_darknet.py`, You can get checkpoints file on
-* darknet19: `${OUTPUT_DIR}/convert_weight_from_darknet/darknet19/checkpoints/save.ckpt`
-* yolov2: `${OUTPUT_DIR}/convert_weight_from_darknet/yolo_v2/checkpoints/save.ckpt`
-
-```
-# PYTHONPATH=. python executor/convert_weight_from_darknet.py -h
-Usage: convert_weight_from_darknet.py [OPTIONS]
-
-Options:
-  -m, --model [yolov2|darknet19]  yolo2 or darknet19  [required]
-  -h, --help                      Show this message and exit.
-```
-
-e.g.
-`PYTHONPATH=. python executor/convert_weight_from_darknet.py -m yolov2`
-
-
 # Profiling model
 Profiling a trained model.
 
@@ -424,14 +383,12 @@ e.g.
 
 ## How to test locally:
 Go to project root and run following commands:
-- all: `tox`
-- flake8: `tox -e flake8`
-- pytest: `tox -e pytest`
+- flake8: `flake8 .`
+- pytest: `pytest -n auto tests/`
 
 If your code was running in `docker`, go to project root and run:
-- all: `docker-compose run --rm tensorflow tox -e py36`
-- flake8: `docker-compose run --rm tensorflow tox -e flake8`
-- pytest: `docker-compose run --rm tensorflow tox -e pytest`
+- flake8: `docker-compose run --rm tensorflow flake8 .`
+- pytest: `docker-compose run --rm tensorflow pytest -n auto tests/`
 
 
 # Docs

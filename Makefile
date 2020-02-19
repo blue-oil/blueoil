@@ -40,22 +40,18 @@ test-keypoint-detection: build
 	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_keypoint_detection.py
 
 .PHONY: test-lmnet
-test-lmnet: test-lmnet-pep8 test-lmnet-main
+test-lmnet: test-blueoil-pep8 test-unit-main
 
-.PHONY: test-lmnet-pep8
-test-lmnet-pep8: build
-	# Check lmnet pep8
-	docker run --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e flake8"
+.PHONY: test-blueoil-pep8
+test-blueoil-pep8: build
+	# Check blueoil pep8
+	# FIXME: blueoil/templates have a lot of errors with flake8
+	docker run --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd blueoil; flake8 . --exclude=./templates"
 
-.PHONY: test-lmnet-main
-test-lmnet-main: build
+.PHONY: test-unit-main
+test-unit-main: build
 	# Run lmnet test with Python3.6
-	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-pytest-parallel"
-
-.PHONY: test-lmnet-check-dataset-storage
-test-lmnet-check-dataset-storage: build
-	# Check datasets storage with Python3.6
-	docker run $(DOCKER_OPT) -v /storage/dataset:/storage/dataset -e CUDA_VISIBLE_DEVICES=$(CUDA_VISIBLE_DEVICES) -e DATA_DIR=/storage/dataset --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd lmnet; tox -e py36-check_dataset_storage"
+	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; pytest -n auto unit/"
 
 .PHONY: test-dlk
 test-dlk: test-dlk-pep8 test-dlk-main test-dlk-x86_64 test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64

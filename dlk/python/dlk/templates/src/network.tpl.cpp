@@ -146,11 +146,7 @@ Network::~Network()
   {% for node in graph.non_variables -%}
   {% if node.available_buffer == '' -%}
   {% for out_k in node.output_ops.keys() -%}
-  {% if node.output_ops.keys()|length > 1 %}
   delete []{{ node.name + '_' + out_k }}_raw;
-  {% else %}
-  delete []{{ node.name }}_raw;
-  {% endif %}
   {%- endfor %}
   {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 %}
   {% for out_k in node.output_ops.keys() -%}
@@ -247,11 +243,7 @@ bool Network::init()
   {% for node in graph.non_variables -%}
   {% if node.available_buffer == '' %}
   {% for out_k in node.output_ops.keys() -%}
-  {% if node.output_ops.keys()|length > 1 %}
   {{ node.name + '_' + out_k }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.size_in_words_as_cpp }}]();
-  {% else %}
-  {{ node.name }}_raw = new {{ node.dtype.cpptype() }}[{{ node.view.size_in_words_as_cpp }}]();
-  {% endif %}
   {%- endfor %}
   {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 %}
   {% for out_k in node.output_ops.keys() -%}
@@ -268,7 +260,7 @@ bool Network::init()
   auto kernel_buffer = reinterpret_cast<uint8_t*>(kernel_mmap.get());
   {% for qconv in graph.convs(quantized_only=True) -%}
   {%    set kernel = qconv.input_nodes[1] -%}
-  std::memcpy(kernel_buffer + {{qconv.name}}_kernel_offset, {{kernel.name}}.data(), {{qconv.name}}_kernel_size);
+  std::memcpy(kernel_buffer + {{qconv.name}}_kernel_offset, {{kernel.name}}_output.data(), {{qconv.name}}_kernel_size);
   {% endfor -%}
 
   MappedMem thresholds_mmap(THRESHOLD_ADDR, total_thresholds_size);
@@ -334,13 +326,12 @@ bool Network::run(float *network_input, float *network_output)
     {{- len -}},
     {%- endfor %}
   };
-  TensorView<{{ graph_input.dtype.cpptype() }}, MemoryLayout::{{ graph_input.dimension }}> {{ graph_input.name }}(network_input, {{ graph_input.name }}_shape);
+  TensorView<{{ graph_input.dtype.cpptype() }}, MemoryLayout::{{ graph_input.dimension }}> {{ graph_input.name }}_output(network_input, {{ graph_input.name }}_shape);
   {{ '\n' -}}
 
   {% for node in graph.non_variables -%}
   {% if node.available_buffer == '' %}
   {% for out_k in node.output_ops.keys() -%}
-  {% if node.output_ops.keys()|length > 1 %}
   TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>::tensor_info_t<std::size_t> {{ node.name + '_' + out_k }}_shape = {
     {% for len in node.shape -%}
     {{- len -}},
@@ -348,14 +339,6 @@ bool Network::run(float *network_input, float *network_output)
   };
   TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>
     {{ node.name + '_' + out_k }}({{ node.name + '_' + out_k }}_raw, {{ node.name + '_' + out_k }}_shape);
-  {% else %}
-  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>::tensor_info_t<std::size_t> {{ node.name }}_shape = {
-    {% for len in node.shape -%}
-    {{- len -}},
-    {%- endfor %}
-  };
-  TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}({{ node.name }}_raw, {{ node.name }}_shape);
-  {% endif %}
   {%- endfor %}
   {% elif node.available_buffer != '' and node.output_ops.keys()|length > 1 %}
   {% for out_k in node.output_ops.keys() -%}
@@ -376,29 +359,28 @@ bool Network::run(float *network_input, float *network_output)
   {{- node.view.run() }}
 
   {% if config.debug -%}
-    {# Temporary: better access to the quantizer #}
+  {# Temporary: better access to the quantizer #}
 
-    {% if node.dtype.cpptype() in ['int', 'int32_t'] -%}
-      save_int32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 3.0 / 2.0 );
-    {% elif node.dtype.cpptype() in ['unsigned', 'uint32_t'] -%}
-      save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 1.0);
-    {% elif node.dtype.cpptype() == 'QUANTIZED_PACKED' -%}
-      save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, reinterpret_cast<uint32_t*>({{ node.name }}.data()), 1.0);
-    {% elif node.dtype.cpptype() == 'float' -%}
-      {% if node.output_ops.keys()|length > 1 %}
-        {% for k in node.output_ops.keys() -%}
-          save_float32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, {{ loop.index0 }}, {{ node.name }}[{{ loop.index0 }}].data(), 1.0);
-          {{ '\n' -}}
-        {%- endfor %}
-      {% else %}
-        save_float32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 1.0);
-      {% endif %}
-    {% endif %}
+  {% if node.dtype.cpptype() in ['int', 'int32_t'] -%}
+  save_int32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 3.0 / 2.0 );
+  {% elif node.dtype.cpptype() in ['unsigned', 'uint32_t'] -%}
+  save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 1.0);
+  {% elif node.dtype.cpptype() == 'QUANTIZED_PACKED' -%}
+  save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, reinterpret_cast<uint32_t*>({{ node.name }}.data()), 1.0);
+  {% elif node.dtype.cpptype() == 'float' -%}
+  {% for out_k in node.output_ops.keys() -%}
+  save_float32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, {{ loop.index0 }}, {{ node.name + '_' + out_k }}.data(), 1.0);
+  {{ '\n' -}}
+  {%- endfor %}
+  {% endif %}
   {% endif %}
 
   {% endfor -%}
 
-  std::copy({{ graph_output.name }}.data(), {{ graph_output.name }}.data() + {{ graph_output.view.size_in_words_as_cpp }}, network_output);
+  // TODO: support multiple output
+  {% for out_k in graph_output.output_ops.keys() -%}
+  std::copy({{ graph_output.name }}_{{ out_k }}.data(), {{ graph_output.name }}_{{ out_k }}.data() + {{ graph_output.view.size_in_words_as_cpp }}, network_output);
+  {% endfor -%}
 
   return true;
 }

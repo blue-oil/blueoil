@@ -29,7 +29,7 @@ from SocketServer import ThreadingMixIn
 import click
 
 from lmnet.nnlib import NNLib
-from lmnet.utils.config import (
+from config import (
     load_yaml,
     build_pre_process,
     build_post_process,
@@ -38,7 +38,7 @@ from lmnet.utils.demo import (
     VideoStream,
     run_inference,
 )
-from lmnet.visualize import (
+from blueoil.visualize import (
     draw_fps,
     visualize_classification,
     visualize_object_detection,
@@ -192,7 +192,7 @@ def run(model, config_file, port=80):
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
-    default="../models/lib/lib_fpga.so",
+    default="../models/lib/libdlk_fpga.so",
 )
 @click.option(
     "-c",

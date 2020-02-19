@@ -17,7 +17,7 @@ import os
 import shutil
 import subprocess
 
-from executor.export import run as run_export
+from blueoil.cmd.export import run as run_export
 from scripts.generate_project import run as run_generate_project
 
 
@@ -25,7 +25,7 @@ def create_output_directory(output_root_dir, output_template_dir=None):
     """Create output directory from template.
 
     Args:
-        output_root_dir: 
+        output_root_dir:
         output_template_dir:  (Default value = None)
 
     Returns:
@@ -76,17 +76,17 @@ def strip_binary(output):
     """Strip binary file.
 
     Args:
-        output: 
+        output:
 
     """
 
-    if output == "lm_x86.elf":
+    if output in {"lm_x86.elf", "lm_x86_avx.elf"}:
         subprocess.run(("strip", output))
-    elif output == "lib_x86.so":
+    elif output in {"libdlk_x86.so", "libdlk_x86_avx.so"}:
         subprocess.run(("strip", "-x", "--strip-unneeded", output))
     elif output in {"lm_arm.elf", "lm_fpga.elf"}:
         subprocess.run(("arm-linux-gnueabihf-strip", output))
-    elif output in {"lib_arm.so", "lib_fpga.so"}:
+    elif output in {"libdlk_arm.so", "libdlk_fpga.so"}:
         subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
 
 
@@ -101,14 +101,17 @@ def make_all(project_dir, output_dir):
 
     make_list = [
         ["lm_x86", "lm_x86.elf"],
+        ["lm_x86_avx", "lm_x86_avx.elf"],
         ["lm_arm", "lm_arm.elf"],
         ["lm_fpga", "lm_fpga.elf"],
         ["lm_aarch64", "lm_aarch64.elf"],
-        ["lib_x86", "lib_x86.so"],
-        ["lib_arm", "lib_arm.so"],
-        ["lib_fpga", "lib_fpga.so"],
-        ["lib_aarch64", "lib_aarch64.so"],
+        ["lib_x86", "libdlk_x86.so"],
+        ["lib_x86_avx", "libdlk_x86_avx.so"],
+        ["lib_arm", "libdlk_arm.so"],
+        ["lib_fpga", "libdlk_fpga.so"],
+        ["lib_aarch64", "libdlk_aarch64.so"],
         ["ar_x86", "libdlk_x86.a"],
+        ["ar_x86_avx", "libdlk_x86_avx.a"],
         ["ar_arm", "libdlk_arm.a"],
         ["ar_fpga", "libdlk_fpga.a"],
         ["ar_aarch64", "libdlk_aarch64.a"],
@@ -122,7 +125,7 @@ def make_all(project_dir, output_dir):
 
     # Make each target and move output files
     for target, output in make_list:
-        if target in ["lm_x86", "lm_arm", "lm_fpga", "lm_aarch64"]:
+        if target in {"lm_x86", "lm_x86_avx", "lm_arm", "lm_fpga", "lm_aarch64"}:
             os.environ["CXXFLAGS"] = cxxflags_cache + " -DFUNC_TIME_MEASUREMENT"
         else:
             os.environ["CXXFLAGS"] = cxxflags_cache
@@ -145,8 +148,8 @@ def run(experiment_id,
     """Convert from trained model.
 
     Args:
-        experiment_id: 
-        restore_path: 
+        experiment_id:
+        restore_path:
         output_template_dir:  (Default value = None)
         image_size: (Default value = (None)
         project_name: (Default value = None)
@@ -162,7 +165,6 @@ def run(experiment_id,
         export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size)
     else:
         export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=None)
-
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")

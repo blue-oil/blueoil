@@ -99,8 +99,8 @@ void convert_thresholds(BIN_CONV_OUTPUT *input, BIN_CONV_OUTPUT *output, std::si
 }
 
 void QuantizedConv2DTiling(const tiling_input_t& input,
-                                  const kernel_t& kernel,
-                                  const binary_convolution_parameters &p) {
+    const tiling_kernel_t& kernel,
+    const binary_convolution_parameters &p) {
   constexpr T_UINT InTypeBitWidth = tiling_input_elem_t::BitCount;
   convolution_parameters cp = p.normal_conv_params;
   const T_UINT out_channels = cp.output_channels;
@@ -327,8 +327,8 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                 + (row_high + row) * out_width * OutChUnroll2
                 + (col_high + col) * OutChUnroll2
                 + Om;
-            vst1q_s16(p.device_output_buf + index +  0, v0);
-            vst1q_s16(p.device_output_buf + index +  8, v1);
+            vst1q_s16(reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf) + index +  0, v0);
+            vst1q_s16(reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf) + index +  8, v1);
           }
         }
       }
@@ -591,8 +591,8 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
                 + (row_high + row) * out_width * OutChUnroll2
                 + (col_high + col) * OutChUnroll2
                 + Om;
-            vst1q_s16(p.device_output_buf + index +  0, v0);
-            vst1q_s16(p.device_output_buf + index +  8, v1);
+            vst1q_s16(reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf) + index +  0, v0);
+            vst1q_s16(reinterpret_cast<BIN_CONV_OUTPUT*>(p.device_output_buf) + index +  8, v1);
           }
         }
       }

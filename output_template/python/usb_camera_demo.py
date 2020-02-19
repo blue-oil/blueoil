@@ -29,9 +29,9 @@ import click
 import cv2
 import numpy as np
 
-from lmnet.common import get_color_map
+from blueoil.common import get_color_map
 from lmnet.nnlib import NNLib
-from lmnet.utils.config import (
+from config import (
     load_yaml,
     build_pre_process,
     build_post_process,
@@ -42,11 +42,11 @@ from lmnet.utils.demo import (
     run_inference,
 )
 
-from lmnet.visualize import (
+from blueoil.visualize import (
     label_to_color_image,
     visualize_keypoint_detection,
 )
-from lmnet.pre_processor import resize
+from blueoil.pre_processor import resize
 
 
 nn = None
@@ -126,6 +126,8 @@ def show_semantic_segmentation(img, result, fps, window_height, window_width, co
 def show_keypoint_detection(img, result, fps, window_height, window_width, config):
     window_img = resize(img, size=[window_height, window_width])
 
+    input_width = config.IMAGE_SIZE[1]
+    input_height = config.IMAGE_SIZE[0]
     window_img = visualize_keypoint_detection(window_img, result[0], (input_height, input_width))
     window_img = add_fps(window_img, fps)
 
@@ -225,7 +227,7 @@ def run(model, config_file):
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
-    default="../models/lib/lib_fpga.so",
+    default="../models/lib/libdlk_fpga.so",
 )
 @click.option(
     "-c",

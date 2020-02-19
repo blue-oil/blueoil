@@ -28,10 +28,10 @@ from core.data_types import DataType, Float32, Float64, Int8, Int16, Int32, \
     Int64, Uint8, Uint16, Uint32, Uint64, Bool, String
 from core.exceptions import UnsupportedNode, UnsupportedDataType
 from core.graph import Graph
-from core.operators import Operator, Conv, Identity, QTZ_binary_mean_scaling, \
+from core.operators import Operator, Conv, Identity, BinaryMeanScalingQuantizer, \
     BatchNormalization, QTZ_linear_mid_tread_half, Add, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
-    Mul, QTZ_binary_channel_wise_mean_scaling, ConcatOnDepth, Maximum, DepthToSpace, ResizeNearestNeighbor, \
+    Mul, BinaryChannelWiseMeanScalingQuantizer, ConcatOnDepth, Maximum, DepthToSpace, ResizeNearestNeighbor, \
     Split, Pad, MatMul, Gather, Unique, Cast, Minimum, StridedSlice, Prod, Shape, LeakyRelu
 
 DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
@@ -85,7 +85,9 @@ DLK_OPERATOR_MAP: Dict[str, str] = {
     'BiasAdd': 'Add',
     'AddV2': 'Add',
     'ConcatV2': 'ConcatOnDepth',
-    'GatherV2': 'Gather'
+    'GatherV2': 'Gather',
+    'QTZ_binary_channel_wise_mean_scaling': 'BinaryChannelWiseMeanScalingQuantizer',
+    'QTZ_binary_mean_scaling': 'BinaryMeanScalingQuantizer',
 }
 
 
@@ -119,9 +121,9 @@ class Node(object):
     @property
     def tensor_type(self):
         """Get tensor type info."""
-        if self.nd_.op == 'QTZ_binary_mean_scaling' or \
+        if self.nd_.op == 'BinaryMeanScalingQuantizer' or \
            self.nd_.op == 'QTZ_linear_mid_tread_half' or \
-           self.nd_.op == 'QTZ_binary_channel_wise_mean_scaling':
+           self.nd_.op == 'BinaryChannelWiseMeanScalingQuantizer':
             typep = 1
         else:
             typep = self.nd_.attr["T"].type
@@ -174,13 +176,13 @@ class Node(object):
         attrs_data = []
         if attr_name == 'padding' or attr_name == 'data_format':
             attrs_data.append(self.nd_.attr[attr_name].s)
-        elif attr_name in ['strides', 'ksize']:
+        elif attr_name in {'strides', 'ksize'}:
             attrs_data.append(self.nd_.attr[attr_name].list.i)
-        elif attr_name in ['epsilon', 'alpha']:
+        elif attr_name in {'epsilon', 'alpha'}:
             attrs_data.append(self.nd_.attr[attr_name].f)
         elif attr_name == 'is_training' or attr_name == 'use_cudnn_on_gpu':
             attrs_data.append(self.nd_.attr[attr_name].b)
-        elif attr_name in ['block_size', 'num_split']:
+        elif attr_name in {'block_size', 'num_split'}:
             attrs_data.append(self.nd_.attr[attr_name].i)
         else:
             raise ValueError(f'{self.op_type} {self.name} doesn\'t have the supported attribute.')
@@ -312,9 +314,9 @@ class Output(object):
     @property
     def tensor_type(self):
         """Get shape info."""
-        if self.out_.op == 'QTZ_binary_mean_scaling' or \
+        if self.out_.op == 'BinaryMeanScalingQuantizer' or \
                 self.out_.op == 'QTZ_linear_mid_tread_half' or \
-                self.out_.op == 'QTZ_binary_channel_wise_mean_scaling':
+                self.out_.op == 'BinaryChannelWiseMeanScalingQuantizer':
             typep = 1
         else:
             typep = self.out_.attr["T"].type
@@ -455,7 +457,7 @@ class Importer(object):
         then propagate the format from the output. Special case such as:
         - 'Conv': by default of tensorflow, input is 'NHWC', and kernel 'HWIO'
         https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
-        - 'QTZ_binary_mean_scaling', 'QTZ_binary_channel_wise_mean_scaling':
+        - 'BinaryMeanScalingQuantizer', 'BinaryChannelWiseMeanScalingQuantizer':
         kernel quantizer is also in HWIO
         - 'Transpose': depending on the permutation attribute
         """
@@ -487,9 +489,9 @@ class Importer(object):
             op_type = self.convert_operator(node.op_type)
             if op_type == 'Conv':
                 return out_format, [out_format, _default_w_format, 'C']
-            elif op_type in ['QTZ_binary_mean_scaling', 'QTZ_binary_channel_wise_mean_scaling']:
+            elif op_type in ['BinaryMeanScalingQuantizer', 'BinaryChannelWiseMeanScalingQuantizer']:
                 return _default_w_format, [_default_w_format]
-            elif op_type in ['QTZ_linear_mid_tread_half']:
+            elif op_type in {'QTZ_linear_mid_tread_half'}:
                 return out_format, [out_format, 'C', 'C']
             elif op_type == 'Pad':
                 return out_format, [out_format, 'Padding']
@@ -716,12 +718,12 @@ class Importer(object):
                 input_ops,
                 dimension_format=current_format,
             )
-        elif op_type == 'QTZ_binary_mean_scaling':
+        elif op_type == 'BinaryMeanScalingQuantizer':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = QTZ_binary_mean_scaling(
+            new_op = BinaryMeanScalingQuantizer(
                 node.name,
                 shape,
                 dtype,
@@ -926,13 +928,13 @@ class Importer(object):
                 input_ops,
                 dimension_format=current_format,
             )
-        elif op_type == 'QTZ_binary_channel_wise_mean_scaling':
+        elif op_type == 'BinaryChannelWiseMeanScalingQuantizer':
 
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = QTZ_binary_channel_wise_mean_scaling(
+            new_op = BinaryChannelWiseMeanScalingQuantizer(
                 node.name,
                 shape,
                 dtype,
