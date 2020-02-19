@@ -23,7 +23,10 @@ from blueoil.common import Tasks
 from blueoil.networks.classification.lmnet_quantize import LmnetQuantize
 from blueoil.datasets.image_folder import ImageFolderBase
 from blueoil.pre_processor import Resize
-from blueoil.quantizations import binary_mean_scaling_quantizer, linear_mid_tread_half_quantizer
+from blueoil.quantizations import (
+    binary_mean_scaling_quantizer, 
+    linear_mid_tread_half_quantizer,
+    )
 from blueoil.utils.executor import prepare_dirs
 
 # Apply reset_default_graph() in conftest.py to all tests in this file.
