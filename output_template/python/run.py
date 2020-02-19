@@ -25,7 +25,7 @@ from lmnet.nnlib import NNLib
 from blueoil.utils.image import load_image
 from blueoil.common import Tasks
 from blueoil.utils.predict_output.output import JsonOutput, ImageFromJson
-from blueoil.utils.config import (
+from config import (
     load_yaml,
     build_pre_process,
     build_post_process,
