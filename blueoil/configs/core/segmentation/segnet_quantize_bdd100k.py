@@ -25,7 +25,7 @@ from blueoil.datasets.bdd100k import BDD100KSegmentation
 from blueoil.pre_processor import DivideBy255, Resize
 from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
-    linear_mid_tread_half_quantizer,                                  
+    linear_mid_tread_half_quantizer,
     )
 
 IS_DEBUG = False
