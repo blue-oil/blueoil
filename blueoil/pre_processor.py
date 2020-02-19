@@ -67,7 +67,7 @@ def square(image, gt_boxes, fill=127.5):
         result = np.full((size, size, image.shape[2]), fill, dtype=image.dtype)
 
         if diff % 2 == 0:
-            left = right = int(diff / 2)
+            left = right = diff // 2
         else:
             left = diff // 2
             right = left + 1
@@ -80,7 +80,7 @@ def square(image, gt_boxes, fill=127.5):
         result = np.full((size, size, image.shape[2]), fill, dtype=image.dtype)
 
         if diff % 2 == 0:
-            top = bottom = int(diff / 2)
+            top = bottom = diff // 2
         else:
             top = diff // 2
             bottom = top + 1
@@ -151,11 +151,11 @@ def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256)):
 
     if origin_width < origin_height:
         height = size[0]
-        width = int(origin_width * height / origin_height)
+        width = origin_width * height // origin_height
 
     else:
         width = size[1]
-        height = int(origin_height * width / origin_width)
+        height = origin_height * width // origin_width
 
     resized_image = resize(image, (height, width))
 
@@ -279,11 +279,11 @@ def joints_to_gaussian_heatmap(joints, image_size,
     for i in range(num_joints):
 
         if joints[i, 2] > 0:
-            center_x = int(joints[i, 0] / stride)
-            center_y = int(joints[i, 1] / stride)
+            center_x = joints[i, 0] // stride
+            center_y = joints[i, 1] // stride
 
-            up_left = [int(center_x - tmp_size), int(center_y - tmp_size)]
-            bottom_right = [int(center_x + tmp_size + 1), int(center_y + tmp_size + 1)]
+            up_left = [center_x - tmp_size, center_y - tmp_size]
+            bottom_right = [center_x + tmp_size + 1, center_y + tmp_size + 1]
 
             if center_x >= width or center_x < 0:
                 continue
