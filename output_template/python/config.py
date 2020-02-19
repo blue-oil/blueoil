@@ -26,12 +26,8 @@ from blueoil.data_processor import Sequence
 def load_yaml(config_file):
     with open(config_file) as config_file_stream:
         config = yaml.load(config_file_stream, Loader=yaml.Loader)
-
     # use only upper key.
-    keys = [key for key in config.keys() if key.isupper()]
-    config_dict = {key: config[key] for key in keys}
-    config = EasyDict(config_dict)
-    return config
+    return EasyDict({k: v for k, v in config.items() if k.isupper()})
 
 
 def build_pre_process(pre_processor_config):
@@ -47,7 +43,7 @@ def build_pre_process(pre_processor_config):
             if class_args is None:
                 class_args = {}
             cls = getattr(module, class_name)
-            # Create none initialized processor `cls` instance.
+            # Create a new initialized processor `cls` instance.
             processor = cls.__new__(cls)
             # Fill processor instance member.
             for k in class_args:
