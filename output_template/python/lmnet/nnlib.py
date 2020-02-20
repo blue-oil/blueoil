@@ -1,1 +1,1 @@
-../../../dlk/python/dlk/scripts/pylib/nnlib.py
+../../../blueoil/converter/nnlib.py
