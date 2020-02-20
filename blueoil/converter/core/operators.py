@@ -346,8 +346,8 @@ class Operator(object):
 
     @property
     def is_scalar(self) -> bool:
-        """Return if this node is a scalar node (i.e. `size == 1`)."""
-        return self.size == 1
+        """Return if this node is a scalar node (i.e. `ndim == 0`)."""
+        return self.ndim == 0
 
     @property
     def height(self) -> int:
