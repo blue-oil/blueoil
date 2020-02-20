@@ -61,6 +61,8 @@ def _get_pname(pid):
 
 # return True if the parent process is mpirun or horovodrun
 def is_enabled():
+    if os.getenv("USE_HOROVOD"):
+        return True
     ppid = os.getppid()
     if ppid <= 1:
         return False
