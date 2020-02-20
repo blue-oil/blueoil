@@ -121,12 +121,12 @@ RUN mkdir /.horovod && chmod 777 /.horovod
 
 FROM blueoil-base AS blueoil-dev
 
-# Copy blueoil sources to docker image
-
-RUN chmod 777 /home/blueoil
-
 # Copy blueoil test code to docker image
 COPY tests /home/blueoil/tests
+
+# Add permission for all users
+RUN chmod 777 /home/blueoil
+RUN chmod 777 /home/blueoil/tests
 
 # enable blueoil command
 RUN pyenv rehash
