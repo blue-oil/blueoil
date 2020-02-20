@@ -271,28 +271,3 @@ class DatasetIterator:
         print(random_indices[0:10])
         self.seed += 1
         return random_indices
-
-
-if __name__ == '__main__':
-
-    from lmnet.datasets.cifar10 import Cifar10
-    from lmnet.data_processor import Sequence
-    from lmnet.data_augmentor import FlipLeftRight, Hue, Blur
-    cifar10 = Cifar10()
-    augmentor = Sequence([
-        FlipLeftRight(0.5),
-        Hue((-10, 10)),
-        Blur(),
-    ])
-    dataset_iterator = DatasetIterator(dataset=cifar10, enable_prefetch=True, augmentor=augmentor)
-    time.sleep(2)
-    import time
-    t0 = time.time()
-    data_batch = next(dataset_iterator)
-    t1 = time.time()
-    print("time of prefetch: {}".format(t1 - t0))
-    dataset_iterator2 = DatasetIterator(dataset=cifar10, enable_prefetch=False, augmentor=augmentor)
-    t0 = time.time()
-    data_batch = next(dataset_iterator2)
-    t1 = time.time()
-    print("time with/o prefetch: {}".format(t1 - t0))
