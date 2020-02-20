@@ -45,8 +45,8 @@ test-lmnet: test-blueoil-pep8 test-unit-main
 .PHONY: test-blueoil-pep8
 test-blueoil-pep8: build
 	# Check blueoil pep8
-	# FIXME: blueoil/templates have a lot of errors with flake8
-	docker run --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd blueoil; flake8 . --exclude=./templates"
+	# FIXME: blueoil/templates and blueoil/converter have a lot of errors with flake8
+	docker run --rm $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil --exclude=templates,converter"
 
 .PHONY: test-unit-main
 test-unit-main: build
@@ -54,44 +54,39 @@ test-unit-main: build
 	docker run --rm -e CUDA_VISIBLE_DEVICES=-1 $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; pytest -n auto unit/"
 
 .PHONY: test-dlk
-test-dlk: test-dlk-pep8 test-dlk-main test-dlk-x86_64 test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64
-
-.PHONY: test-dlk-pep8
-test-dlk-pep8: build
-	# Check dlk PEP8
-	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pycodestyle --ignore=W --max-line-length=120 --exclude='*static/pb*','*docs/*','*.eggs*','*tests/*','backends/*' ."
+test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64
 
 .PHONY: test-dlk-main
 test-dlk-main: build
 	# Run dlk test
-	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pytest tests/ --ignore=tests/test_code_generation.py"
+	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest tests/converter --ignore=tests/converter/test_code_generation.py"
 
 .PHONY: test-dlk-x86_64
 test-dlk-x86_64: build
 	# Run dlk test of code_generation for x86_64
-	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pytest -n auto tests/test_code_generation.py::TestCodeGenerationX8664"
+	docker run --rm -t $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationX8664"
 
 .PHONY: test-dlk-arm
 test-dlk-arm: build
 	# Run dlk test of code_generation for arm
-	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && pytest tests/test_code_generation.py::TestCodeGenerationArm"
+	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && pytest tests/converter/test_code_generation.py::TestCodeGenerationArm"
 
 .PHONY: test-dlk-arm_fpga
 test-dlk-arm_fpga: build
 	# Run dlk test of code_generation for arm_fpga
-	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && cd dlk && pytest tests/test_code_generation.py::TestCodeGenerationArmFpga"
+	docker run --rm -t -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && pytest tests/converter/test_code_generation.py::TestCodeGenerationArmFpga"
 
 .PHONY: test-dlk-aarch64
 test-dlk-aarch64: build
 	# Run dlk test of code_generation for aarch64
-	docker run --rm -t -v $(CWD)/output:/home/blueoil/dlk/output $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd dlk && pytest -n auto tests/test_code_generation.py::TestCodeGenerationAarch64"
+	docker run --rm -t -v $(CWD)/output:/home/blueoil/output $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationAarch64"
 
 .PHONY: rootfs-docker
 rootfs-docker:
 	docker build -t $(IMAGE_NAME)_os -f docker/Dockerfile_make_os . #--no-cache=true
 
 .PHONY: rootfs-armhf
-rootfs-armhf: rootfs-docker 
+rootfs-armhf: rootfs-docker
 	docker run -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh armhf
 
 .PHONY: rootfs-arm64
