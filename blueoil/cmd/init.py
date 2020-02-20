@@ -160,14 +160,13 @@ def dataset_format_choices(task_type):
 
 
 def default_batch_size(task_type):
-    if task_type == 'classification':
-        return '10'
-    elif task_type == 'object_detection':
-        return '16'
-    elif task_type == 'semantic_segmentation':
-        return '8'
-    elif task_type == 'keypoint_detection':
-        return '4'
+    default_task_type_batch_sizes = {
+        'classification': '10',
+        'object_detection': '16',
+        'semantic_segmentation': '8',
+        'keypoint_detection': '4',
+    }
+    return default_task_type_batch_sizes[task_type]
 
 
 def prompt(question):
