@@ -16,7 +16,6 @@
 import os
 import queue
 import threading
-import time
 from multiprocessing import Pool
 
 import numpy as np
