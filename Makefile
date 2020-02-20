@@ -79,6 +79,7 @@ test-dlk-arm_fpga: build
 .PHONY: test-dlk-aarch64
 test-dlk-aarch64: build
 	# Run dlk test of code_generation for aarch64
+	mkdir -p $(CWD)/output
 	docker run ${DOCKER_OPT} -v $(CWD)/output:/home/blueoil/output $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationAarch64"
 
 .PHONY: rootfs-docker
