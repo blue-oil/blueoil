@@ -69,12 +69,12 @@ test-dlk-x86_64: build
 .PHONY: test-dlk-arm
 test-dlk-arm: build
 	# Run dlk test of code_generation for arm
-	docker run ${DOCKER_OPT} -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && pytest tests/converter/test_code_generation.py::TestCodeGenerationArm"
+	docker run --rm -it -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && pytest tests/converter/test_code_generation.py::TestCodeGenerationArm"
 
 .PHONY: test-dlk-arm_fpga
 test-dlk-arm_fpga: build
 	# Run dlk test of code_generation for arm_fpga
-	docker run ${DOCKER_OPT} -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && pytest tests/converter/test_code_generation.py::TestCodeGenerationArmFpga"
+	docker run --rm -it -v $(HOME)/.ssh:/tmp/.ssh -e FPGA_HOST --net=host $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cp -R /tmp/.ssh /root/.ssh && apt-get update && apt-get install -y iputils-ping && pytest tests/converter/test_code_generation.py::TestCodeGenerationArmFpga"
 
 .PHONY: test-dlk-aarch64
 test-dlk-aarch64: build
