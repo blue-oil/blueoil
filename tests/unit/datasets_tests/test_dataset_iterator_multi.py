@@ -30,12 +30,10 @@ class Dummy(ImageFolderBase):
 
     def __getitem__(self, i, type=None):
         target_file = self.files[i]
-
         image = load_image(target_file)
         label = self.get_label(target_file)
-
         label = data_processor.binarize(label, self.num_classes)
-        label = np.reshape(label, (self.num_classes))
+        label = np.reshape(label, self.num_classes)
         return {"image": image, "label": label}
 
 
@@ -43,18 +41,15 @@ def test_dataset_iterator_batch_size():
     batch_size = 8
     dataset = Dummy(subset="train", batch_size=batch_size)
     dataset_iterator = DatasetIterator(dataset)
-
     for i in range(0, 10):
         samples_dict = next(dataset_iterator)
         images = samples_dict["image"]
         labels = samples_dict["label"]
         assert images.shape[0] == batch_size
         assert labels.shape[0] == batch_size
-
     batch_size = 32
     dataset = Dummy(subset="train", batch_size=batch_size)
     dataset_iterator = DatasetIterator(dataset)
-
     for i in range(0, 10):
         samples_dict = next(dataset_iterator)
         images = samples_dict["image"]
@@ -65,12 +60,10 @@ def test_dataset_iterator_batch_size():
 
 def test_dataset_iterator_batch_order():
     """Assert that data given by iterator is same whether enabele_prefetch ture or false."""
-
     batch_size = 8
     dataset = Dummy(subset="train", batch_size=batch_size)
     dataset_iterator = DatasetIterator(dataset, seed=10, enable_prefetch=False)
     prefetch_dataset_iterator = DatasetIterator(dataset, seed=10, enable_prefetch=True)
-
     for i in range(0, 30):
         samples_dict = next(dataset_iterator)
         images = samples_dict["image"]

@@ -39,17 +39,13 @@ def _prefetch_setup(dataset, seed, do_shuffle):
 def _apply_augmentations(dataset, sample):
     augmentor = dataset.augmentor
     pre_processor = dataset.pre_processor
-
     if callable(augmentor) and dataset.subset == 'train':
         sample = augmentor(**sample)
-
     if callable(pre_processor):
         sample = pre_processor(**sample)
-
     # FIXME(tokunaga): dataset should not have their own data format
     if dataset.data_format == "NCHW":
         sample['image'] = np.transpose(sample['image'], [2, 0, 1])
-
     return sample
 
 
@@ -59,12 +55,9 @@ def _process_one_data(i):
 
 
 def _concat_data(sample_list):
-
     samples_dict = {}
-
     for key in sample_list[0].keys():
         samples_dict[key] = np.stack([sample[key] for sample in sample_list], axis=0)
-
     return samples_dict
 
 
@@ -144,9 +137,7 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
                 if self.terminate:
                     print("break")
                     break
-
                 self.loop_body()
-
                 count += 1
         finally:
             self.pool.close()
@@ -171,7 +162,6 @@ class _SimpleDatasetReader:
                     self.seed = _xorshift32(self.seed)
                     random_state = np.random.RandomState(self.seed)
                     random_state.shuffle(self.data_ids)
-
             yield self.data_ids.pop()
 
     def read(self):
@@ -191,9 +181,7 @@ class _TFDSReader:
                                        .repeat() \
                                        .batch(dataset.batch_size) \
                                        .prefetch(tf.data.experimental.AUTOTUNE)
-
         iterator = tf.data.make_initializable_iterator(tf_dataset)
-
         self.dataset = dataset
         self.session = tf.Session()
         self.session.run(iterator.initializer)
@@ -211,15 +199,12 @@ class _TFDSReader:
 
 
 class DatasetIterator:
-
     available_subsets = ["train", "train_validation_saving", "validation"]
-
     """docstring for DatasetIterator."""
     def __init__(self, dataset, enable_prefetch=False, seed=0):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
         self.seed = seed
-
         if issubclass(dataset.__class__, TFDSMixin):
             self.enable_prefetch = False
             self.reader = _TFDSReader(self.dataset)
@@ -293,15 +278,12 @@ if __name__ == '__main__':
     from lmnet.datasets.cifar10 import Cifar10
     from lmnet.data_processor import Sequence
     from lmnet.data_augmentor import FlipLeftRight, Hue, Blur
-
     cifar10 = Cifar10()
-
     augmentor = Sequence([
         FlipLeftRight(0.5),
         Hue((-10, 10)),
         Blur(),
     ])
-
     dataset_iterator = DatasetIterator(dataset=cifar10, enable_prefetch=True, augmentor=augmentor)
     time.sleep(2)
     import time
@@ -309,7 +291,6 @@ if __name__ == '__main__':
     data_batch = next(dataset_iterator)
     t1 = time.time()
     print("time of prefetch: {}".format(t1 - t0))
-
     dataset_iterator2 = DatasetIterator(dataset=cifar10, enable_prefetch=False, augmentor=augmentor)
     t0 = time.time()
     data_batch = next(dataset_iterator2)
