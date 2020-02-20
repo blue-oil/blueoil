@@ -12,32 +12,69 @@ steps:
   - wait
   - command: "make test-classification"
     label: "classification"
+    key: "classification"
     agents:
     - "agent-type=gpu"
     - "env=production"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+    artifact_paths:
+    - "tmp/*/export/*/*/output/**/*"
+    - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-object-detection"
     label: "object-detection"
+    key: "object-detection"
     agents:
     - "agent-type=gpu"
     - "env=production"
     timeout_in_minutes: "40"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+    artifact_paths:
+    - "tmp/*/export/*/*/output/**/*"
+    - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-semantic-segmentation"
     label: "semantic-segmentation"
+    key: "semantic-segmentation"
     agents:
     - "agent-type=gpu"
     - "env=production"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+    artifact_paths:
+    - "tmp/*/export/*/*/output/**/*"
+    - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-keypoint-detection"
-    label: "keypoint_detection"
+    label: "keypoint-detection"
+    key: "keypoint-detection"
     agents:
     - "agent-type=gpu"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+    artifact_paths:
+    - "tmp/*/export/*/*/output/**/*"
+    - "tmp/*/export/*/*/inference_test_data/raw_image.png"
+  - command: |
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      for TEST_CASE in \$(ls tmp/)
+      do
+        echo \${TEST_CASE}
+        cd tmp/\${TEST_CASE}/export/*/*/output/python
+        pip3 install -r requirements.txt
+        python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so
+      done
+    label: "inference on raspberry-pi"
+    depends_on:
+    - "classification"
+    - "object-detection"
+    - "semantic-segmentation"
+    - "keypoint-detection"
+    agents:
+    - "agent-type=raspberry-pi"
     - "env=production"
     timeout_in_minutes: "30"
     env:
