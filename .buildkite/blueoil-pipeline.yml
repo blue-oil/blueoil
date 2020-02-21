@@ -90,7 +90,6 @@ steps:
         cd tmp/\${TEST_CASE}/export/*/*/output/python
         sudo pip install -r requirements.txt --no-cache-dir
         sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so
-        sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_fpga.so
         cd \$(CWD)
       done
     label: "inference on de10nano"
