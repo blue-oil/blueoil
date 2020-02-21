@@ -2683,7 +2683,7 @@ class Split(Operator):
                  num_split: int = 1) -> None:
         """Init the split operator."""
         self._split = num_split
-        self._axis = input_ops['A'].data[0]
+        self._axis = np.asscalar(input_ops['A'].data)
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
