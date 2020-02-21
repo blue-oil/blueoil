@@ -60,7 +60,7 @@ steps:
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
-      CWD=\$(pwd)
+      export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
         echo \${TEST_CASE}
@@ -83,7 +83,7 @@ steps:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
-      CWD=\$(pwd)
+      export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
         echo \${TEST_CASE}
