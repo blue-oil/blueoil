@@ -60,12 +60,14 @@ steps:
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
         echo \${TEST_CASE}
         cd tmp/\${TEST_CASE}/export/*/*/output/python
         pip3 install -r requirements.txt
         python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_aarch64.so
+        cd \$(CWD)
       done
     label: "inference on raspberry-pi"
     depends_on:
@@ -81,6 +83,7 @@ steps:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
         echo \${TEST_CASE}
@@ -88,6 +91,7 @@ steps:
         sudo pip install -r requirements.txt
         sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so
         sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_fpga.so
+        cd \$(CWD)
       done
     label: "inference on de10nano"
     depends_on:
