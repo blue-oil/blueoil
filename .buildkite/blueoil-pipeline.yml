@@ -65,7 +65,7 @@ steps:
         echo \${TEST_CASE}
         cd tmp/\${TEST_CASE}/export/*/*/output/python
         pip3 install -r requirements.txt
-        python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so
+        python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_aarch64.so
       done
     label: "inference on raspberry-pi"
     depends_on:
@@ -75,7 +75,29 @@ steps:
     - "keypoint-detection"
     agents:
     - "agent-type=raspberry-pi"
-    - "env=production"
+    - "env=benchmark"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: |
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      for TEST_CASE in \$(ls tmp/)
+      do
+        echo \${TEST_CASE}
+        cd tmp/\${TEST_CASE}/export/*/*/output/python
+        sudo pip install -r requirements.txt
+        sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so
+        sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_fpga.so
+      done
+    label: "inference on de10nano"
+    depends_on:
+    - "classification"
+    - "object-detection"
+    - "semantic-segmentation"
+    - "keypoint-detection"
+    agents:
+    - "agent-type=de10nano"
+    - "env=benchmark"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
