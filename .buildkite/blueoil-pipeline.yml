@@ -77,9 +77,9 @@ steps:
       do
         echo \${TEST_CASE}
         cd tmp/\${TEST_CASE}/export/*/*/output/python
-        pip3 install -r requirements.txt --no-cache-dir
+        pip3 install -r requirements.txt
         python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_aarch64.so
-        cd \$(CWD)
+        cd \${CWD}
       done
     label: "inference on raspberry-pi"
     depends_on:
@@ -103,7 +103,7 @@ steps:
         sudo pip install -r requirements.txt --no-cache-dir
         sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so
         sudo chown -R buildkite-agent:buildkite-agent output
-        cd \$(CWD)
+        cd \${CWD}
       done
     label: "inference on de10nano"
     depends_on:
