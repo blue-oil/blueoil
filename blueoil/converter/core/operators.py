@@ -337,7 +337,7 @@ class Operator(object):
         """Get the whole size of the output data."""
         import operator
         pred = functools.partial(functools.reduce, operator.mul)
-        return int(pred(self._shape))  # type: ignore
+        return int(pred(self._shape, 1))  # type: ignore
 
     @property
     def is_variable(self) -> bool:
@@ -1444,11 +1444,11 @@ class QTZ_linear_mid_tread_half(Quantizer):
 
     @property
     def nbit(self) -> int:
-        return self._input_ops['Y'].data[0]
+        return np.asscalar(self._input_ops['Y'].data)
 
     @property
     def max_v(self) -> float:
-        return self._input_ops['Z'].data[0]
+        return np.asscalar(self._input_ops['Z'].data)
 
     @property
     def is_monotonic(self) -> bool:
