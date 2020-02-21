@@ -44,6 +44,7 @@ list(APPEND SRC_LIB_ALL
     src/pack_input_to_qwords.cpp
     src/time_measurement.cpp
     src/quantizer.cpp
+    src/tensor_save.cpp
 )
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/src/scaling_factors.cpp)

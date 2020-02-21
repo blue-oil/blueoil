@@ -68,64 +68,7 @@ limitations under the License.
 #endif
 
 {% if config.debug -%}
-#include "c2numpy.h"
-
-void save_float32_data(const std::string &name, uint32_t size, uint32_t postfix, float *data, float scale)
-{
-  c2numpy_writer writer;
-  c2numpy_init(&writer, name.c_str(), postfix, 1<<31);
-  c2numpy_addcolumn(&writer, "data", C2NUMPY_FLOAT32);
-  c2numpy_addcolumn(&writer, "scale", C2NUMPY_FLOAT32);
-
-  for(int i = 0; i < size; i++) {
-    c2numpy_float32(&writer, data[i]);
-    c2numpy_float32(&writer, scale);
-  }
-  c2numpy_close(&writer);
-}
-
-void save_int32_data(const std::string &name, uint32_t size, uint32_t postfix, int32_t *data, float scale)
-{
-  c2numpy_writer writer;
-  c2numpy_init(&writer, name.c_str(), postfix, 1<<31);
-  c2numpy_addcolumn(&writer, "data", C2NUMPY_INT32);
-  c2numpy_addcolumn(&writer, "scale", C2NUMPY_FLOAT32);
-
-  for(int i = 0; i < size; i++) {
-    c2numpy_int32(&writer, data[i]);
-    c2numpy_float32(&writer, scale);
-  }
-  c2numpy_close(&writer);
-}
-
-void save_int16_data(const std::string &name, uint32_t size, uint32_t postfix, int16_t *data, float scale)
-{
-  c2numpy_writer writer;
-  c2numpy_init(&writer, name.c_str(), postfix, 1<<31);
-  c2numpy_addcolumn(&writer, "data", C2NUMPY_INT16);
-  c2numpy_addcolumn(&writer, "scale", C2NUMPY_FLOAT32);
-
-  for(int i = 0; i < size; i++) {
-    c2numpy_int16(&writer, data[i]);
-    c2numpy_float32(&writer, scale);
-  }
-  c2numpy_close(&writer);
-}
-
-void save_uint32_data(const std::string &name, uint32_t size, uint32_t postfix, uint32_t *data, float scale)
-{
-  c2numpy_writer writer;
-  c2numpy_init(&writer, name.c_str(), postfix, 1<<31);
-  c2numpy_addcolumn(&writer, "data", C2NUMPY_UINT32);
-  c2numpy_addcolumn(&writer, "scale", C2NUMPY_FLOAT32);
-
-  for(int i = 0; i < size; i++) {
-    c2numpy_uint32(&writer, data[i]);
-    c2numpy_float32(&writer, scale);
-  }
-  c2numpy_close(&writer);
-}
-
+#include "tensor_save.h"
 {% endif %}
 {{ '\n' -}}
 
@@ -360,22 +303,10 @@ bool Network::run(float *network_input, float *network_output)
   {{- node.view.run() }}
 
   {% if config.debug -%}
-  {# Temporary: better access to the quantizer #}
-
   {% for out_k in node.output_ops.keys() -%}
-  {% if node.dtype.cpptype() in ['int', 'int32_t'] -%}
-  save_int32_data("debug/{{ node.name }}_{{ out_k }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}_{{ out_k }}.data(), 3.0 / 2.0 );
-  {% elif node.dtype.cpptype() in ['unsigned', 'uint32_t'] -%}
-  save_uint32_data("debug/{{ node.name }}_{{ out_k }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}_{{ out_k }}.data(), 1.0);
-  {% elif node.dtype.cpptype() == 'QUANTIZED_PACKED' -%}
-  save_uint32_data("debug/{{ node.name }}_{{ out_k }}", {{ node.view.size_in_words_as_cpp }}, 0, reinterpret_cast<uint32_t*>({{ node.name }}_{{ out_k }}.data()), 1.0);
-  {% elif node.dtype.cpptype() == 'float' -%}
-  save_float32_data("debug/{{ node.name }}_{{ out_k }}", {{ node.view.size_in_words_as_cpp }}, {{ loop.index0 }}, {{ node.name }}_{{ out_k }}.data(), 1.0);
-  {{ '\n' -}}
+  save_tensor({{ node.name + '_' + out_k }}, "debug/{{ node.name }}", {{ loop.index0 }});
+  {% endfor -%}
   {% endif %}
-  {%- endfor %}
-  {% endif %}
-
   {% endfor -%}
 
   // TODO: support multiple output
