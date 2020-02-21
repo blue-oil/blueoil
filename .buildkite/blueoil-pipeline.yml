@@ -20,7 +20,9 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
     artifact_paths:
-    - "tmp/*/export/*/*/output/**/*"
+    - "tmp/*/export/*/*/output/**/*.py"
+    - "tmp/*/export/*/*/output/**/*.yaml"
+    - "tmp/*/export/*/*/output/**/*.so"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-object-detection"
     label: "object-detection"
@@ -32,7 +34,9 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
     artifact_paths:
-    - "tmp/*/export/*/*/output/**/*"
+    - "tmp/*/export/*/*/output/**/*.py"
+    - "tmp/*/export/*/*/output/**/*.yaml"
+    - "tmp/*/export/*/*/output/**/*.so"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-semantic-segmentation"
     label: "semantic-segmentation"
@@ -44,7 +48,9 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
     artifact_paths:
-    - "tmp/*/export/*/*/output/**/*"
+    - "tmp/*/export/*/*/output/**/*.py"
+    - "tmp/*/export/*/*/output/**/*.yaml"
+    - "tmp/*/export/*/*/output/**/*.so"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-keypoint-detection"
     label: "keypoint-detection"
@@ -56,7 +62,9 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
     artifact_paths:
-    - "tmp/*/export/*/*/output/**/*"
+    - "tmp/*/export/*/*/output/**/*.py"
+    - "tmp/*/export/*/*/output/**/*.yaml"
+    - "tmp/*/export/*/*/output/**/*.so"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
