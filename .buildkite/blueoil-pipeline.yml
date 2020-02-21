@@ -23,6 +23,7 @@ steps:
     - "tmp/*/export/*/*/output/**/*.py"
     - "tmp/*/export/*/*/output/**/*.yaml"
     - "tmp/*/export/*/*/output/**/*.so"
+    - "tmp/*/export/*/*/output/**/*.txt"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-object-detection"
     label: "object-detection"
@@ -37,6 +38,7 @@ steps:
     - "tmp/*/export/*/*/output/**/*.py"
     - "tmp/*/export/*/*/output/**/*.yaml"
     - "tmp/*/export/*/*/output/**/*.so"
+    - "tmp/*/export/*/*/output/**/*.txt"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-semantic-segmentation"
     label: "semantic-segmentation"
@@ -51,6 +53,7 @@ steps:
     - "tmp/*/export/*/*/output/**/*.py"
     - "tmp/*/export/*/*/output/**/*.yaml"
     - "tmp/*/export/*/*/output/**/*.so"
+    - "tmp/*/export/*/*/output/**/*.txt"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-keypoint-detection"
     label: "keypoint-detection"
@@ -65,6 +68,7 @@ steps:
     - "tmp/*/export/*/*/output/**/*.py"
     - "tmp/*/export/*/*/output/**/*.yaml"
     - "tmp/*/export/*/*/output/**/*.so"
+    - "tmp/*/export/*/*/output/**/*.txt"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
@@ -98,6 +102,7 @@ steps:
         cd tmp/\${TEST_CASE}/export/*/*/output/python
         sudo pip install -r requirements.txt --no-cache-dir
         sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so
+        sudo chown -R buildkite-agent:buildkite-agent output
         cd \$(CWD)
       done
     label: "inference on de10nano"
