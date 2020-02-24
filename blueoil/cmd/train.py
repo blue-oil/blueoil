@@ -176,7 +176,8 @@ def start_training(config):
     if rank == 0:
         train_writer = tf.compat.v1.summary.FileWriter(environment.TENSORBOARD_DIR + "/train", sess.graph)
         if use_train_validation_saving:
-            train_val_saving_writer = tf.compat.v1.summary.FileWriter(environment.TENSORBOARD_DIR + "/train_validation_saving")
+            train_val_saving_writer = tf.compat.v1.summary.FileWriter(
+                environment.TENSORBOARD_DIR + "/train_validation_saving")
         val_writer = tf.compat.v1.summary.FileWriter(environment.TENSORBOARD_DIR + "/validation")
 
         if config.IS_PRETRAIN:

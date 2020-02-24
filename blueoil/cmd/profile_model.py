@@ -145,7 +145,8 @@ def _save_json(name, image_size, num_classes, node_param_dict, node_flops_dict):
 
 
 def _profile_flops(graph, res, scopes):
-    float_prof = tf.compat.v1.profiler.profile(graph, options=tf.compat.v1.profiler.ProfileOptionBuilder.float_operation())
+    float_prof = tf.compat.v1.profiler.profile(
+        graph, options=tf.compat.v1.profiler.ProfileOptionBuilder.float_operation())
     float_res_dict = collections.defaultdict(int)
     float_res_dict["total"] = float_prof.total_float_ops
     for node in float_prof.children:
@@ -172,7 +173,8 @@ def _profile_flops(graph, res, scopes):
 
 
 def _profile_params(graph, res, bit, unquant_layers):
-    prof = tf.compat.v1.profiler.profile(graph, options=tf.compat.v1.profiler.ProfileOptionBuilder.trainable_variables_parameter())
+    prof = tf.compat.v1.profiler.profile(
+        graph, options=tf.compat.v1.profiler.ProfileOptionBuilder.trainable_variables_parameter())
 
     # helper func to make profile res
     def helper(node, level):
