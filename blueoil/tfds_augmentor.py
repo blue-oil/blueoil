@@ -18,7 +18,7 @@ class TFPad(Processor):
         if type(value) is int:
             left = top = right = bottom = value
 
-        elif hasattr(value, "__len__") and len(value) in [2,4]:
+        elif hasattr(value, "__len__") and len(value) in [2, 4]:
             if len(value) == 2:
                 left, top = right, bottom = value
 

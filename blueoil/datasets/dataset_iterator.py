@@ -248,7 +248,8 @@ class _TFDSReader:
     def __init__(self, dataset, local_rank):
         tf_dataset = dataset.tf_dataset.shuffle(1024).repeat()
         if dataset.pre_processor is None:
-            tf_dataset = tf_dataset.map(map_func=_generate_tfds_map_func(dataset),                                           num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            tf_dataset = tf_dataset.map(map_func=_generate_tfds_map_func(dataset),
+                                        num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
 <<<<<<< HEAD
         iterator = tf.compat.v1.data.make_initializable_iterator(tf_dataset)
@@ -285,6 +286,7 @@ class _TFDSReader:
             for image, label in zip(batch['image'], batch['label'])
         ]
         return _concat_data(result)
+
 
 class DatasetIterator:
 
