@@ -11,8 +11,8 @@ def tf_resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
         size: [height, width]
 
     """
-    orig_width, orig_height, _ = image.get_shape().as_list()
-    width, height = size
+    orig_height, orig_width, _ = image.get_shape().as_list()
+    height, width = size
 
     image = tf.image.resize(image, size)
     if gt_boxes is None:

@@ -18,14 +18,14 @@ class TFPad(Processor):
         if type(value) is int:
             left = top = right = bottom = value
 
-        elif type(value) is tuple:
+        elif hasattr(value, "__len__") and len(value) in [2,4]:
             if len(value) == 2:
                 left, top = right, bottom = value
 
             if len(value) == 4:
                 left, top, right, bottom = value
         else:
-            raise Exception("Expected int, tuple/list with 2 or 4 entries. Got %s." % (type(value)))
+            raise ValueError("Expected int, tuple/list with 2 or 4 entries. Got {}.".format(type(value)))
         self.paddings = [[top, bottom], [left, right], [0, 0]]
         self.fill = fill
 
@@ -143,13 +143,13 @@ class TFSaturation(Processor):
     """
 
     def __init__(self, value=(0.75, 1.25), seed=0):
-        if value is float:
+        if type(value) is float:
             self.lower = 1 - value
             self.upper = 1 + value
-        elif len(value) == 2:
+        elif hasattr(value, "__len__") and len(value) == 2:
             self.lower, self.upper = value
         else:
-            raise Exception("Expected float, tuple/list with 2 entries. Got %s." % (type(value)))
+            raise ValueError("Expected float, tuple/list with 2 entries. Got {}.".format(type(value)))
         self.seed = seed
 
     def __call__(self, image, **kwargs):
@@ -170,13 +170,13 @@ class TFContrast(Processor):
     """
 
     def __init__(self, value=(0.75, 1.25), seed=0):
-        if value is float:
+        if type(value) is float:
             self.lower = 1 - value
             self.upper = 1 + value
-        elif len(value) == 2:
+        elif hasattr(value, "__len__") and len(value) == 2:
             self.lower, self.upper = value
         else:
-            raise Exception("Expected float, tuple/list with 2 entries. Got %s." % (type(value)))
+            raise ValueError("Expected float, tuple/list with 2 entries. Got {}.".format(type(value)))
         self.seed = seed
 
     def __call__(self, image, **kwargs):
