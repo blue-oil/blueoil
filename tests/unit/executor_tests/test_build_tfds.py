@@ -55,13 +55,11 @@ def test_build_tfds_classification():
     train_dataset = setup_dataset(TFDSClassification,
                                   subset="train",
                                   batch_size=config.BATCH_SIZE,
-                                  pre_processor=config.PRE_PROCESSOR,
                                   **config.DATASET.TFDS_KWARGS)
 
     validation_dataset = setup_dataset(TFDSClassification,
                                        subset="validation",
                                        batch_size=config.BATCH_SIZE,
-                                       pre_processor=config.PRE_PROCESSOR,
                                        **config.DATASET.TFDS_KWARGS)
 
     assert train_dataset.num_per_epoch == train_data_num
@@ -113,13 +111,11 @@ def test_build_tfds_object_detection():
     train_dataset = setup_dataset(TFDSObjectDetection,
                                   subset="train",
                                   batch_size=config.BATCH_SIZE,
-                                  pre_processor=config.PRE_PROCESSOR,
                                   **config.DATASET.TFDS_KWARGS)
 
     validation_dataset = setup_dataset(TFDSObjectDetection,
                                        subset="validation",
                                        batch_size=config.BATCH_SIZE,
-                                       pre_processor=config.PRE_PROCESSOR,
                                        **config.DATASET.TFDS_KWARGS)
 
     assert train_dataset.num_per_epoch == train_data_num
