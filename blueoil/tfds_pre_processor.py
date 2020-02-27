@@ -29,7 +29,7 @@ def tf_resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
         ], 1)
         gt_boxes = tf.concat([
             tf.expand_dims(tf.minimum(gt_boxes[:, 0], width - gt_boxes[:, 2]), 1),
-            tf.expand_dims(tf.minimum(gt_boxes[:, 1], width - gt_boxes[:, 3]), 1),
+            tf.expand_dims(tf.minimum(gt_boxes[:, 1], height - gt_boxes[:, 3]), 1),
             gt_boxes[:, 2:]
         ], 1)
     return image, gt_boxes
