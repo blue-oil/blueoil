@@ -70,7 +70,10 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-PRE_PROCESSOR = None
+TFDS_PRE_PROCESSOR = TFSequence([
+    TFResizeWithGtBoxes(IMAGE_SIZE),
+    TFPerImageStandardization()
+])
 
 anchors = [
     (0.5, 0.25), (1.0, 0.75),
@@ -107,10 +110,7 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = None
-DATASET.TFDS_PRE_PROCESSOR = TFSequence([
-    TFResizeWithGtBoxes(IMAGE_SIZE),
-    TFPerImageStandardization()
-])
+DATASET.TFDS_PRE_PROCESSOR = TFDS_PRE_PROCESSOR
 DATASET.TFDS_AUGMENTOR = TFSequence([
     TFFlipLeftRight()
 ])
