@@ -279,11 +279,11 @@ class _TFDSReader:
             return self.session.run(self.next_batch)
 
         # if normal pre_processor is defined, use this
-        result = []
         batch = self.session.run(self.next_batch)
-        for image, label in zip(batch['image'], batch['label']):
-            image, label = _apply_augmentations(self.dataset, image, label)
-            result.append((image, label))
+        result = [
+            _apply_augmentations(self.dataset, image, label)
+            for image, label in zip(batch['image'], batch['label'])
+        ]
         return _concat_data(result)
 
 class DatasetIterator:
