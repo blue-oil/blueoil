@@ -91,7 +91,7 @@ NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-_epoch_steps = int(16551 / BATCH_SIZE)
+_epoch_steps = 16551 // BATCH_SIZE
 NETWORK.LEARNING_RATE_KWARGS = {
     "values": [1e-6, 1e-4, 1e-5, 1e-6, 1e-7],
     "boundaries": [_epoch_steps, _epoch_steps * 10, _epoch_steps * 60, _epoch_steps * 90],
@@ -109,7 +109,7 @@ NETWORK.WEIGHT_DECAY_RATE = 0.0005
 NETWORK.SCORE_THRESHOLD = score_threshold
 NETWORK.NMS_IOU_THRESHOLD = nms_iou_threshold
 NETWORK.NMS_MAX_OUTPUT_SIZE = nms_max_output_size
-NETWORK.LOSS_WARMUP_STEPS = int(1280 / BATCH_SIZE)
+NETWORK.LOSS_WARMUP_STEPS = 1280 // BATCH_SIZE
 
 # quantization
 NETWORK.ACTIVATION_QUANTIZER = linear_mid_tread_half_quantizer
