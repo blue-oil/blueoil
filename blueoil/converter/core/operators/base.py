@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, cast
 from blueoil.converter.core.view import View
 from blueoil.converter.util import classproperty
 
-from .data_types import *
+from blueoil.converter.core.data_types import *
 
 if TYPE_CHECKING:
     import blueoil.converter.core.operators as ops
