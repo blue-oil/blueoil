@@ -18,7 +18,8 @@ import inspect
 import re
 import shutil
 
-import whaaaaat
+import inquirer
+from Cython.Compiler.TypeSlots import inquiry
 
 import blueoil.data_augmentor as augmentor
 from blueoil.generate_lmnet_config import generate
@@ -169,13 +170,19 @@ def default_batch_size(task_type):
     return default_task_type_batch_sizes[task_type]
 
 
-def prompt(question):
-    input_type = (not ('input_type' in question)) or question.pop('input_type')
+def prompt(question, input_type):
+    """Execute prompt answer and validate integer input (Note that this should be remove and change to validation)
 
-    answers = whaaaaat.prompt(question)
+        Args:
+            question (list): list of inquirer question, input_type (string): use to identify integer
+
+        Returns:
+        return string of answer
+        """
+    answers = inquirer.prompt(question)
     if input_type == 'integer' and not answers['value'].isdigit():
-        question['input_type'] = input_type
-        return prompt(question)
+        return prompt(question, input_type)
+
     return answers['value']
 
 
@@ -185,23 +192,23 @@ def generate_image_size_validate(network_name):
     Args:
         network_name (string): network name.
 
-    Returns: validate funciton.
+    Returns: validate function.
 
     """
     max_size = IMAGE_SIZE_VALIDATION[network_name]["max_size"]
     divider = IMAGE_SIZE_VALIDATION[network_name]["divider"]
 
-    def image_size_validate(raw):
+    def image_size_validate(answers, current):
         # change to tuple (height, width).
-        image_size = image_size_filter(raw)
+        image_size = image_size_filter(current)
         image_size = (int(size) for size in image_size)
 
         for size in image_size:
             if not size % divider == 0:
-                return "Image size should be multiple of {}, but image size is {}".format(divider, raw)
+                raise inquirer.errors.ValidationError('', reason="Image size should be multiple of {}, but image size is {}".format(divider, current))
 
             if size > max_size:
-                return "Image size should be lower than {} but image size is {}".format(max_size, raw)
+                raise inquirer.errors.ValidationError('', reason="Image size should be lower than {} but image size is {}".format(max_size, current))
 
         return True
 
@@ -228,131 +235,115 @@ def save_config(blueoil_config, output=None):
 
 
 def ask_questions():
-    model_name_question = {
-        'type': 'input',
-        'name': 'value',
-        'message': 'your model name ():',
-        'input_type': 'name_identifier'
-    }
-    model_name = prompt(model_name_question)
+    model_name_question = [
+        inquirer.Text(
+            name='value',
+            message='your model name ()')
+    ]
+    model_name = prompt(model_name_question, None)
 
-    task_type_question = {
-        'type': 'rawlist',
-        'name': 'value',
-        'message': 'choose task type',
-        'choices': task_type_choices
-    }
-    task_type = prompt(task_type_question)
+    task_type_question = [
+        inquirer.List(name='value',
+                      message='choose task type',
+                      choices=task_type_choices)
+    ]
+    task_type = prompt(task_type_question, None)
 
-    network_name_question = {
-        'type': 'rawlist',
-        'name': 'value',
-        'message': 'choose network',
-        'choices': network_name_choices(task_type)
-    }
-    network_name = prompt(network_name_question)
+    network_name_question = [
+        inquirer.List(name='value',
+                      message='choose network',
+                      choices=network_name_choices(task_type))
+    ]
+    network_name = prompt(network_name_question, None)
 
-    dataset_format_question = {
-        'type': 'rawlist',
-        'name': 'value',
-        'message': 'choose dataset format',
-        'choices': dataset_format_choices(task_type)
-    }
-    dataset_format = prompt(dataset_format_question)
+    dataset_format_question = [
+        inquirer.List(name='value',
+                      message='choose dataset format',
+                      choices=dataset_format_choices(task_type))
+    ]
+    dataset_format = prompt(dataset_format_question, None)
 
-    enable_data_augmentation = {
-        'type': 'confirm',
-        'name': 'value',
-        'message': 'enable data augmentation?',
-        'default': True
-    }
+    enable_data_augmentation = [
+        inquirer.Confirm(name='value',
+                         message='enable data augmentation?',
+                         default=True)
+    ]
 
-    train_dataset_path_question = {
-        'type': 'input',
-        'name': 'value',
-        'message': 'training dataset path:',
-    }
-    train_path = prompt(train_dataset_path_question)
+    train_dataset_path_question = [
+        inquirer.Text(name='value',
+                      message='training dataset path')
+    ]
+    train_path = prompt(train_dataset_path_question, None)
 
-    enable_test_dataset_path_question = {
-        'type': 'rawlist',
-        'name': 'value',
-        'message': 'set validation dataset? \
+    enable_test_dataset_path_question = [
+        inquirer.List(name='value',
+                      message='set validation dataset? \
 (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)',
-        'choices': ['yes', 'no']
-    }
-    enable_test_dataset_path = prompt(enable_test_dataset_path_question)
+                      choices=['yes', 'no'])
+    ]
+    enable_test_dataset_path = prompt(enable_test_dataset_path_question, None)
 
-    test_dataset_path_question = {
-        'type': 'input',
-        'name': 'value',
-        'message': 'validation dataset path:',
-    }
+    test_dataset_path_question = [
+        inquirer.Text(name='value',
+                      message='validation dataset path')
+    ]
     if enable_test_dataset_path == 'yes':
-        test_path = prompt(test_dataset_path_question)
+        test_path = prompt(test_dataset_path_question, None)
     else:
         test_path = ''
 
-    batch_size_question = {
-        'type': 'input',
-        'name': 'value',
-        'message': 'batch size (integer):',
-        'input_type': 'integer',
-        'default': default_batch_size(task_type),
-    }
-    batch_size = prompt(batch_size_question)
+    batch_size_question = [
+        inquirer.Text(name='value',
+                      message='batch size (integer)',
+                      default=default_batch_size(task_type))
+    ]
+    batch_size = prompt(batch_size_question, 'integer')
 
-    image_size_question = {
-        'type': 'input',
-        'name': 'value',
-        'message': 'image size (integer x integer):',
-        'default': '128x128',
-        'filter': image_size_filter,
-        'validate': generate_image_size_validate(network_name),
-    }
-    image_size = prompt(image_size_question)
+    image_size_question = [
+        inquirer.Text(name='value',
+                      message='image size (integer x integer)',
+                      default='128x128',
+                      validate=generate_image_size_validate(network_name))
+    ]
+    image_size = image_size_filter(prompt(image_size_question, None))
 
-    training_epochs_question = {
-        'type': 'input',
-        'name': 'value',
-        'message': 'how many epochs do you run training (integer):',
-        'input_type': 'integer',
-        'default': '100'
-    }
-    training_epochs = prompt(training_epochs_question)
+    training_epochs_question = [
+        inquirer.Text(name='value',
+                      message='how many epochs do you run training (integer)',
+                      default='100')
+    ]
+    training_epochs = prompt(training_epochs_question, 'integer')
 
-    training_optimizer_question = {
-        'type': 'rawlist',
-        'name': 'value',
-        'message': 'select optimizer:',
-        'choices': ['Momentum', 'Adam'],
-        'default': 'Momentum'
-    }
-    training_optimizer = prompt(training_optimizer_question)
+    training_optimizer_question = [
+        inquirer.List(name='value',
+                      message='select optimizer',
+                      choices=['Momentum', 'Adam'],
+                      default='Momentum')
+    ]
+    training_optimizer = prompt(training_optimizer_question, None)
 
-    initial_learning_rate_value_question = {
-        'type': 'input',
-        'name': 'value',
-        'message': 'initial learning rate:',
-        'default': '0.001'
-    }
-    initial_learning_rate_value = prompt(initial_learning_rate_value_question)
+    initial_learning_rate_value_question = [
+        inquirer.Text(name='value',
+                      message='initial learning rate',
+                      default='0.001')
+    ]
+    initial_learning_rate_value = prompt(initial_learning_rate_value_question, None)
 
     # learning rate schedule
-    learning_rate_schedule_question = {
-        'type': 'rawlist',
-        'name': 'value',
-        'message': 'choose learning rate schedule \
-({epochs} is the number of training epochs you entered before):',
-        'choices': list(learning_rate_schedule_map.values()),
-        'default': learning_rate_schedule_map["constant"],
-    }
-    _tmp_learning_rate_schedule = prompt(learning_rate_schedule_question)
+    learning_rate_schedule_question = [
+        inquirer.List(name='value',
+                      message='choose learning rate schedule \
+({{epochs}} is the number of training epochs you entered before)',
+                      choices=list(learning_rate_schedule_map.values()),
+                      default=learning_rate_schedule_map["constant"])
+    ]
+    _tmp_learning_rate_schedule = prompt(learning_rate_schedule_question, None)
     for key, value in learning_rate_schedule_map.items():
         if value == _tmp_learning_rate_schedule:
             learning_rate_schedule = key
 
-    if prompt(enable_data_augmentation):
+    data_augmentation = {}
+    if prompt(enable_data_augmentation, None):
         all_augmentor = {}
         checkboxes = []
         for name, obj in inspect.getmembers(augmentor):
@@ -371,26 +362,27 @@ def ask_questions():
 please modify manually after config exported.)"
 
                 all_augmentor[name + default_str] = {"name": name, "defaults": default_val}
-                checkboxes.append({"name": name + default_str, "value": name})
-        data_augmentation_question = {
-            'type': 'checkbox',
-            'name': 'value',
-            'message': 'Please choose augmentors:',
-            'choices': checkboxes
-        }
-        data_augmentation_res = prompt(data_augmentation_question)
-        data_augmentation = {}
+                checkboxes.append(name + default_str)
+        data_augmentation_question = [
+            inquirer.Checkbox(name='value',
+                              message='Please choose augmentors',
+                              choices=checkboxes)
+        ]
+        data_augmentation_res = prompt(data_augmentation_question, None)
         if data_augmentation_res:
             for v in data_augmentation_res:
                 data_augmentation[all_augmentor[v]["name"]] = all_augmentor[v]["defaults"]
 
-    quantize_first_convolution_question = {
-        'type': 'rawlist',
-        'name': 'value',
-        'message': 'apply quantization at the first layer?',
-        'choices': ['yes', 'no']
-    }
-    quantize_first_convolution = prompt(quantize_first_convolution_question)
+    quantize_first_convolution_question = [
+        inquirer.Confirm(name='value',
+                         message='apply quantization at the first layer?',
+                         default=True
+                        )
+    ]
+    if prompt(quantize_first_convolution_question, None):
+        quantize_first_convolution = 'yes'
+    else:
+        quantize_first_convolution = 'no'
 
     return {
         'model_name': model_name,
