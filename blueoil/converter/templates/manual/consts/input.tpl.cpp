@@ -17,15 +17,6 @@ limitations under the License.
 #include "tensor_view.h"
 #include "inputs/{{ node.name }}.h"
 
-{% if node.is_scalar -%}
-
-static {{ node.dtype.cpptype() }} {{ node.name }}_data = {{ node.data[0] }};
-static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape;
-const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom>
-  {{ node.name }}_output(&{{ node.name }}_data, {{ node.name }}_shape);
-
-{% else -%}
-
 {% if node.transposed_data %}
 
 #ifdef RUN_ON_FPGA
@@ -89,5 +80,3 @@ const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>
     {{ node.name }}_shape);
 
 {% endif %}
-
-{%- endif %}

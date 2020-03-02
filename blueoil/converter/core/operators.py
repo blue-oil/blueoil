@@ -337,7 +337,7 @@ class Operator(object):
         """Get the whole size of the output data."""
         import operator
         pred = functools.partial(functools.reduce, operator.mul)
-        return int(pred(self._shape))  # type: ignore
+        return int(pred(self._shape, 1))  # type: ignore
 
     @property
     def is_variable(self) -> bool:
@@ -346,8 +346,8 @@ class Operator(object):
 
     @property
     def is_scalar(self) -> bool:
-        """Return if this node is a scalar node (i.e. `size == 1`)."""
-        return self.size == 1
+        """Return if this node is a scalar node (i.e. `ndim == 0`)."""
+        return self.ndim == 0
 
     @property
     def height(self) -> int:
@@ -1444,11 +1444,11 @@ class QTZ_linear_mid_tread_half(Quantizer):
 
     @property
     def nbit(self) -> int:
-        return self._input_ops['Y'].data[0]
+        return np.asscalar(self._input_ops['Y'].data)
 
     @property
     def max_v(self) -> float:
-        return self._input_ops['Z'].data[0]
+        return np.asscalar(self._input_ops['Z'].data)
 
     @property
     def is_monotonic(self) -> bool:
@@ -2683,7 +2683,7 @@ class Split(Operator):
                  num_split: int = 1) -> None:
         """Init the split operator."""
         self._split = num_split
-        self._axis = input_ops['A'].data[0]
+        self._axis = np.asscalar(input_ops['A'].data)
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:

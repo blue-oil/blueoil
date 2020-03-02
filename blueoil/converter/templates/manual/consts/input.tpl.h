@@ -18,11 +18,7 @@ limitations under the License.
 
 #include "global.h"
 
-{% if node.is_scalar -%}
-
-extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::Atom> {{ node.name }}_output;
-
-{% elif node.transposed_data -%}
+{% if node.transposed_data -%}
 
 #ifdef RUN_ON_FPGA
 extern const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }}_output;
