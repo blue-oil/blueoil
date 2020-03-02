@@ -378,10 +378,7 @@ please modify manually after config exported.)"
                          default=True
                         )
     ]
-    if prompt(quantize_first_convolution_question, None):
-        quantize_first_convolution = 'yes'
-    else:
-        quantize_first_convolution = 'no'
+    quantize_first_convolution = prompt(quantize_first_convolution_question, None)
 
     return {
         'model_name': model_name,
