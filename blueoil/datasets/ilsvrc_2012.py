@@ -91,8 +91,8 @@ class Ilsvrc2012(Base):
         image = load_image(filename)
 
         label = data_processor.binarize(self.annotations[i], self.num_classes)
-        label = np.reshape(label, (self.num_classes))
-        return (image, label)
+        label = np.reshape(label, self.num_classes)
+        return {"image": image, "label": label}
 
     def __len__(self):
         return self.num_per_epoch

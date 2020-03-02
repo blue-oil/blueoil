@@ -157,7 +157,7 @@ class MscocoSinglePersonKeypoints(KeypointDetectionBase):
 
         cropped_image, joints = self.crop_from_full_image(full_image, box, joints)
 
-        return cropped_image, joints
+        return {"image": cropped_image, "joints": joints}
 
     def __len__(self):
         return len(self.files)

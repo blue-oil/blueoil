@@ -149,7 +149,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         gt_boxes = gt_boxes.copy()  # is it really needed?
         gt_boxes = self._fill_dummy_boxes(gt_boxes)
 
-        return image, gt_boxes
+        return {"image": image, "gt_boxes": gt_boxes}
 
     def __len__(self):
         return self.num_per_epoch

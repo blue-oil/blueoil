@@ -114,8 +114,8 @@ class ImageFolderBase(StoragePathCustomizable, Base):
         label = self.get_label(target_file)
 
         label = data_processor.binarize(label, self.num_classes)
-        label = np.reshape(label, (self.num_classes))
-        return (image, label)
+        label = np.reshape(label, self.num_classes)
+        return {"image": image, "label": label}
 
     def __len__(self):
         return self.num_per_epoch

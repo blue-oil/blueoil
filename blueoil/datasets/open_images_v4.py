@@ -214,7 +214,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
 
         gt_boxes = self._fill_dummy_boxes(gt_boxes)
 
-        return (image, gt_boxes)
+        return {"image": image, "gt_boxes": gt_boxes}
 
     def __len__(self):
         return self.num_per_epoch
@@ -268,8 +268,9 @@ class OpenImagesV4Classification(OpenImagesV4):
         image = load_image(filename)
 
         label = data_processor.binarize(labels[i], self.num_classes)
-        label = np.reshape(label, (self.num_classes))
-        return (image, label)
+        label = np.reshape(label, self.num_classes)
+
+        return {"image": image, "label": label}
 
     def __len__(self):
         return self.num_per_epoch

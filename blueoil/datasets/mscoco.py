@@ -261,7 +261,7 @@ class MscocoObjectDetection(ObjectDetectionBase):
         gt_boxes = np.array(gt_boxes)
         gt_boxes = self._fill_dummy_boxes(gt_boxes)
 
-        return (image, gt_boxes)
+        return {"image": image, "gt_boxes": gt_boxes}
 
     def __len__(self):
         return self.num_per_epoch
