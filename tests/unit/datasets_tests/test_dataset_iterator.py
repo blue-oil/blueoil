@@ -33,18 +33,18 @@ def test_dataset_iterator_batch_size():
     dataset_iterator = DatasetIterator(dataset)
 
     for i in range(0, 10):
-        images, labels = next(dataset_iterator)
-        assert images.shape[0] == batch_size
-        assert labels.shape[0] == batch_size
+        samples_dict = next(dataset_iterator)
+        assert samples_dict["image"].shape[0] == batch_size
+        assert samples_dict["label"].shape[0] == batch_size
 
     batch_size = 32
     dataset = Dummy(subset="train", batch_size=batch_size)
     dataset_iterator = DatasetIterator(dataset)
 
     for i in range(0, 10):
-        images, labels = next(dataset_iterator)
-        assert images.shape[0] == batch_size
-        assert labels.shape[0] == batch_size
+        samples_dict = next(dataset_iterator)
+        assert samples_dict["image"].shape[0] == batch_size
+        assert samples_dict["label"].shape[0] == batch_size
 
 
 def test_dataset_iterator_batch_order():
@@ -56,11 +56,11 @@ def test_dataset_iterator_batch_order():
     prefetch_dataset_iterator = DatasetIterator(dataset, seed=10, enable_prefetch=True)
 
     for i in range(0, 30):
-        images, labels = next(dataset_iterator)
-        prefetch_images, prefetch_labels = next(prefetch_dataset_iterator)
+        samples_dict = next(dataset_iterator)
+        prefetch_samples_dict = next(prefetch_dataset_iterator)
 
-        assert np.all(images == prefetch_images)
-        assert np.all(labels == prefetch_labels)
+        assert np.all(samples_dict["image"] == prefetch_samples_dict["image"])
+        assert np.all(samples_dict["label"] == prefetch_samples_dict["label"])
 
 
 if __name__ == '__main__':

@@ -42,13 +42,13 @@ def test_bdd100k_objdet():
     colors = train_iterator.label_colors
     assert len(colors) == 10
 
-    train_image_files, train_label_files = train_iterator.feed()
-    assert train_image_files.shape[0] == batch_size
-    assert train_label_files.shape[0] == batch_size
+    samples_dict = train_iterator.feed()
+    assert samples_dict["image"].shape[0] == batch_size
+    assert samples_dict["gt_boxes"].shape[0] == batch_size
 
-    test_image_files, test_label_files = test_iterator.feed()
-    assert test_image_files.shape[0] == batch_size
-    assert test_label_files.shape[0] == batch_size
+    samples_dict = test_iterator.feed()
+    assert samples_dict["image"].shape[0] == batch_size
+    assert samples_dict["gt_boxes"].shape[0] == batch_size
 
 
 def test_bdd100k_seg():
@@ -63,10 +63,10 @@ def test_bdd100k_seg():
     colors = train_dataset.label_colors
     assert len(colors) == 41
 
-    train_image_files, train_label_files = train_iterator.feed()
-    assert train_image_files.shape[0] == batch_size
-    assert train_label_files.shape[0] == batch_size
+    samples_dict = train_iterator.feed()
+    assert samples_dict["image"].shape[0] == batch_size
+    assert samples_dict["mask"].shape[0] == batch_size
 
-    test_image_files, test_label_files = test_iterator.feed()
-    assert test_image_files.shape[0] == batch_size
-    assert test_label_files.shape[0] == batch_size
+    samples_dict = test_iterator.feed()
+    assert samples_dict["image"].shape[0] == batch_size
+    assert samples_dict["mask"].shape[0] == batch_size

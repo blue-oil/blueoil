@@ -43,7 +43,10 @@ def test_ytfaces_facial_landmarks_detection():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        samples_dict = dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["joints"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size
@@ -63,7 +66,10 @@ def test_ytfaces_facial_landmarks_detection():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        samples_dict = dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["joints"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size

@@ -60,7 +60,10 @@ def test_image_folder():
     assert len(expected_paths) * (validation_size) == validation_dataset.num_per_epoch
 
     for _ in range(5):
-        images, labels = train_dataset.feed()
+        samples_dict = train_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["label"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size

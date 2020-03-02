@@ -34,7 +34,10 @@ def test_open_images_v4_classification():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        samples_dict = dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["label"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size
@@ -83,7 +86,10 @@ def test_open_images_v4_object_detection():
     assert dataset.num_max_boxes == OpenImagesV4BoundingBox.count_max_boxes()
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        samples_dict = dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["gt_boxes"]
 
         # _show_images_with_boxes(images, labels)
 
@@ -125,9 +131,10 @@ def test_custom_open_images_v4_object_detection():
     assert validation_dataset.num_per_epoch == 10 * (validation_size)
 
     for _ in range(13):
-        images, labels = train_dataset.feed()
+        samples_dict = train_dataset.feed()
 
-        # _show_images_with_boxes(images, labels)
+        images = samples_dict["image"]
+        labels = samples_dict["gt_boxes"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size
@@ -165,7 +172,10 @@ def test_custom_has_validation_open_images_v4_object_detection():
     assert len(validation_dataset.classes) == 44
 
     for _ in range(3):
-        images, labels = train_dataset.feed()
+        samples_dict = train_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["gt_boxes"]
 
         # _show_images_with_boxes(images, labels)
 
@@ -181,7 +191,10 @@ def test_custom_has_validation_open_images_v4_object_detection():
         assert labels.shape[2] == 5
 
     for _ in range(3):
-        images, labels = validation_dataset.feed()
+        samples_dict = validation_dataset.feed()
+
+        images = samples_dict["image"]
+        labels = samples_dict["gt_boxes"]
 
         # _show_images_with_boxes(images, labels)
 
