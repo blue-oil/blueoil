@@ -16,13 +16,11 @@
 import os
 import queue
 import threading
-import time
 from multiprocessing import Pool
 
 import numpy as np
 import tensorflow as tf
 
-from blueoil.datasets.base import ObjectDetectionBase, SegmentationBase, KeypointDetectionBase
 from blueoil.datasets.tfds import TFDSMixin
 
 _dataset = None
@@ -37,55 +35,29 @@ def _prefetch_setup(dataset, seed, do_shuffle):
         _dataset._shuffle()
 
 
-def _apply_augmentations(dataset, image, label):
+def _apply_augmentations(dataset, sample):
     augmentor = dataset.augmentor
     pre_processor = dataset.pre_processor
-
-    sample = {'image': image}
-
-    if issubclass(dataset.__class__, SegmentationBase):
-        sample['mask'] = label
-    elif issubclass(dataset.__class__, ObjectDetectionBase):
-        sample['gt_boxes'] = label
-    elif issubclass(dataset.__class__, KeypointDetectionBase):
-        sample['joints'] = label
-    else:
-        sample['label'] = label
-
     if callable(augmentor) and dataset.subset == 'train':
         sample = augmentor(**sample)
-
     if callable(pre_processor):
         sample = pre_processor(**sample)
-
-    image = sample['image']
-
-    if issubclass(dataset.__class__, SegmentationBase):
-        label = sample['mask']
-    elif issubclass(dataset.__class__, ObjectDetectionBase):
-        label = sample['gt_boxes']
-    elif issubclass(dataset.__class__, KeypointDetectionBase):
-        label = sample['heatmap']
-    else:
-        label = sample['label']
-
     # FIXME(tokunaga): dataset should not have their own data format
     if dataset.data_format == "NCHW":
-        image = np.transpose(image, [2, 0, 1])
-
-    return (image, label)
+        sample['image'] = np.transpose(sample['image'], [2, 0, 1])
+    return sample
 
 
 def _process_one_data(i):
-    image, label = _dataset[i]
-    return _apply_augmentations(_dataset, image, label)
+    sample = _dataset[i]
+    return _apply_augmentations(_dataset, sample)
 
 
-def _concat_data(data_list):
-    images, labels = zip(*data_list)
-    images = np.array(images)
-    labels = np.array(labels)
-    return (images, labels)
+def _concat_data(sample_list):
+    samples_dict = {}
+    for key in sample_list[0].keys():
+        samples_dict[key] = np.stack([sample[key] for sample in sample_list], axis=0)
+    return samples_dict
 
 
 def _xorshift32(r):
@@ -164,9 +136,7 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
                 if self.terminate:
                     print("break")
                     break
-
                 self.loop_body()
-
                 count += 1
         finally:
             self.pool.close()
@@ -191,67 +161,52 @@ class _SimpleDatasetReader:
                     self.seed = _xorshift32(self.seed)
                     random_state = np.random.RandomState(self.seed)
                     random_state.shuffle(self.data_ids)
-
             yield self.data_ids.pop()
 
     def read(self):
         """Return batch size data."""
         result = []
         for i in self._gen_ids(self.dataset.batch_size):
-            image, label = self.dataset[i]
-            image, label = _apply_augmentations(self.dataset, image, label)
-            result.append((image, label))
+            sample = self.dataset[i]
+            sample = _apply_augmentations(self.dataset, sample)
+            result.append(sample)
         return _concat_data(result)
 
 
 class _TFDSReader:
 
-    def __init__(self, dataset, local_rank):
+    def __init__(self, dataset):
         tf_dataset = dataset.tf_dataset.shuffle(1024) \
                                        .repeat() \
                                        .batch(dataset.batch_size) \
                                        .prefetch(tf.data.experimental.AUTOTUNE)
-
         iterator = tf.data.make_initializable_iterator(tf_dataset)
-
         self.dataset = dataset
-        if local_rank != -1:
-            # For distributed training
-            session_config = tf.ConfigProto(
-                gpu_options=tf.GPUOptions(
-                    allow_growth=True,
-                    visible_device_list=str(local_rank)
-                )
-            )
-        else:
-            session_config = tf.ConfigProto()
-        self.session = tf.Session(config=session_config)
+        self.session = tf.Session()
         self.session.run(iterator.initializer)
         self.next_batch = iterator.get_next()
 
     def read(self):
         """Return batch size data."""
-        result = []
         batch = self.session.run(self.next_batch)
-        for image, label in zip(batch['image'], batch['label']):
-            image, label = _apply_augmentations(self.dataset, image, label)
-            result.append((image, label))
+        result = []
+        for i in range(batch["image"].shape[0]):
+            sample = {key: batch[key][i] for key in batch.keys()}
+            sample = _apply_augmentations(self.dataset, sample)
+            result.append(sample)
         return _concat_data(result)
 
 
 class DatasetIterator:
-
     available_subsets = ["train", "train_validation_saving", "validation"]
-
     """docstring for DatasetIterator."""
-    def __init__(self, dataset, enable_prefetch=False, seed=0, local_rank=-1):
+    def __init__(self, dataset, enable_prefetch=False, seed=0):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
         self.seed = seed
-
         if issubclass(dataset.__class__, TFDSMixin):
             self.enable_prefetch = False
-            self.reader = _TFDSReader(self.dataset, local_rank)
+            self.reader = _TFDSReader(self.dataset)
         else:
             if self.enable_prefetch:
                 self.prefetch_result_queue = queue.Queue(maxsize=200)
@@ -290,10 +245,10 @@ class DatasetIterator:
 
     def __next__(self):
         if self.enable_prefetch:
-            (images, labels) = self.prefetch_result_queue.get()
+            samples_dict = self.prefetch_result_queue.get()
         else:
-            images, labels = self.reader.read()
-        return images, labels
+            samples_dict = self.reader.read()
+        return samples_dict
 
     def feed(self):
         return self.__next__()
@@ -314,39 +269,4 @@ class DatasetIterator:
         print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
         print(random_indices[0:10])
         self.seed += 1
-        return random_indices
-
-    def close(self):
-        if self.enable_prefetch:
-            self.prefetcher.terminate = True
-            self.prefetcher.pool.close()
-            self.prefetcher.pool.join()
-
-
-if __name__ == '__main__':
-
-    from blueoil.datasets.cifar10 import Cifar10
-    from blueoil.data_processor import Sequence
-    from blueoil.data_augmentor import FlipLeftRight, Hue, Blur
-
-    cifar10 = Cifar10()
-
-    augmentor = Sequence([
-        FlipLeftRight(0.5),
-        Hue((-10, 10)),
-        Blur(),
-    ])
-
-    dataset_iterator = DatasetIterator(dataset=cifar10, enable_prefetch=True, augmentor=augmentor)
-    time.sleep(2)
-    import time
-    t0 = time.time()
-    data_batch = next(dataset_iterator)
-    t1 = time.time()
-    print("time of prefetch: {}".format(t1 - t0))
-
-    dataset_iterator2 = DatasetIterator(dataset=cifar10, enable_prefetch=False, augmentor=augmentor)
-    t0 = time.time()
-    data_batch = next(dataset_iterator2)
-    t1 = time.time()
-    print("time with/o prefetch: {}".format(t1 - t0))
+        return random_indice
