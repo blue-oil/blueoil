@@ -19,7 +19,6 @@ import re
 import shutil
 
 import inquirer
-from Cython.Compiler.TypeSlots import inquiry
 
 import blueoil.data_augmentor as augmentor
 from blueoil.generate_lmnet_config import generate
