@@ -204,10 +204,12 @@ def generate_image_size_validate(network_name):
 
         for size in image_size:
             if not size % divider == 0:
-                raise inquirer.errors.ValidationError('', reason="Image size should be multiple of {}, but image size is {}".format(divider, current))
+                raise inquirer.errors.ValidationError('',
+                        reason="Image size should be multiple of {}, but image size is {}".format(divider, current))
 
             if size > max_size:
-                raise inquirer.errors.ValidationError('', reason="Image size should be lower than {} but image size is {}".format(max_size, current))
+                raise inquirer.errors.ValidationError('',
+                        reason="Image size should be lower than {} but image size is {}".format(max_size, current))
 
         return True
 
@@ -375,8 +377,7 @@ please modify manually after config exported.)"
     quantize_first_convolution_question = [
         inquirer.Confirm(name='value',
                          message='apply quantization at the first layer?',
-                         default=True
-                        )
+                         default=True)
     ]
     quantize_first_convolution = prompt(quantize_first_convolution_question, None)
 
