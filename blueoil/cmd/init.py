@@ -169,19 +169,16 @@ def default_batch_size(task_type):
     return default_task_type_batch_sizes[task_type]
 
 
-def prompt(question, input_type):
-    """Execute prompt answer and validate integer input (Note that this should be remove and change to validation)
+def prompt(question):
+    """Execute prompt answer
 
         Args:
-            question (list): list of inquirer question, input_type (string): use to identify integer
+            question (list): list of inquirer question
 
         Returns:
         return string of answer
         """
     answers = inquirer.prompt(question)
-    if input_type == 'integer' and not answers['value'].isdigit():
-        return prompt(question, input_type)
-
     return answers['value']
 
 
@@ -216,6 +213,13 @@ def generate_image_size_validate(network_name):
     return image_size_validate
 
 
+def integer_validate(answers, current):
+    if not current.isdigit():
+        raise inquirer.errors.ValidationError('',  reason='Input value should be integer')
+
+    return True
+
+
 def image_size_filter(raw):
     match = re.match(r"([0-9]+)[^0-9]+([0-9]+)", raw)
 
@@ -241,28 +245,28 @@ def ask_questions():
             name='value',
             message='your model name ()')
     ]
-    model_name = prompt(model_name_question, None)
+    model_name = prompt(model_name_question)
 
     task_type_question = [
         inquirer.List(name='value',
                       message='choose task type',
                       choices=task_type_choices)
     ]
-    task_type = prompt(task_type_question, None)
+    task_type = prompt(task_type_question)
 
     network_name_question = [
         inquirer.List(name='value',
                       message='choose network',
                       choices=network_name_choices(task_type))
     ]
-    network_name = prompt(network_name_question, None)
+    network_name = prompt(network_name_question)
 
     dataset_format_question = [
         inquirer.List(name='value',
                       message='choose dataset format',
                       choices=dataset_format_choices(task_type))
     ]
-    dataset_format = prompt(dataset_format_question, None)
+    dataset_format = prompt(dataset_format_question)
 
     enable_data_augmentation = [
         inquirer.Confirm(name='value',
@@ -274,7 +278,7 @@ def ask_questions():
         inquirer.Text(name='value',
                       message='training dataset path')
     ]
-    train_path = prompt(train_dataset_path_question, None)
+    train_path = prompt(train_dataset_path_question)
 
     enable_test_dataset_path_question = [
         inquirer.List(name='value',
@@ -282,23 +286,24 @@ def ask_questions():
 (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)',
                       choices=['yes', 'no'])
     ]
-    enable_test_dataset_path = prompt(enable_test_dataset_path_question, None)
+    enable_test_dataset_path = prompt(enable_test_dataset_path_question)
 
     test_dataset_path_question = [
         inquirer.Text(name='value',
                       message='validation dataset path')
     ]
     if enable_test_dataset_path == 'yes':
-        test_path = prompt(test_dataset_path_question, None)
+        test_path = prompt(test_dataset_path_question)
     else:
         test_path = ''
 
     batch_size_question = [
         inquirer.Text(name='value',
                       message='batch size (integer)',
-                      default=default_batch_size(task_type))
+                      default=default_batch_size(task_type),
+                      validate=integer_validate)
     ]
-    batch_size = prompt(batch_size_question, 'integer')
+    batch_size = prompt(batch_size_question)
 
     image_size_question = [
         inquirer.Text(name='value',
@@ -306,14 +311,15 @@ def ask_questions():
                       default='128x128',
                       validate=generate_image_size_validate(network_name))
     ]
-    image_size = image_size_filter(prompt(image_size_question, None))
+    image_size = image_size_filter(prompt(image_size_question))
 
     training_epochs_question = [
         inquirer.Text(name='value',
                       message='how many epochs do you run training (integer)',
-                      default='100')
+                      default='100',
+                      validate=integer_validate)
     ]
-    training_epochs = prompt(training_epochs_question, 'integer')
+    training_epochs = prompt(training_epochs_question)
 
     training_optimizer_question = [
         inquirer.List(name='value',
@@ -321,14 +327,14 @@ def ask_questions():
                       choices=['Momentum', 'Adam'],
                       default='Momentum')
     ]
-    training_optimizer = prompt(training_optimizer_question, None)
+    training_optimizer = prompt(training_optimizer_question)
 
     initial_learning_rate_value_question = [
         inquirer.Text(name='value',
                       message='initial learning rate',
                       default='0.001')
     ]
-    initial_learning_rate_value = prompt(initial_learning_rate_value_question, None)
+    initial_learning_rate_value = prompt(initial_learning_rate_value_question)
 
     # learning rate schedule
     learning_rate_schedule_question = [
@@ -338,13 +344,13 @@ def ask_questions():
                       choices=list(learning_rate_schedule_map.values()),
                       default=learning_rate_schedule_map["constant"])
     ]
-    _tmp_learning_rate_schedule = prompt(learning_rate_schedule_question, None)
+    _tmp_learning_rate_schedule = prompt(learning_rate_schedule_question)
     for key, value in learning_rate_schedule_map.items():
         if value == _tmp_learning_rate_schedule:
             learning_rate_schedule = key
 
     data_augmentation = {}
-    if prompt(enable_data_augmentation, None):
+    if prompt(enable_data_augmentation):
         all_augmentor = {}
         checkboxes = []
         for name, obj in inspect.getmembers(augmentor):
@@ -369,7 +375,7 @@ please modify manually after config exported.)"
                               message='Please choose augmentors',
                               choices=checkboxes)
         ]
-        data_augmentation_res = prompt(data_augmentation_question, None)
+        data_augmentation_res = prompt(data_augmentation_question)
         if data_augmentation_res:
             for v in data_augmentation_res:
                 data_augmentation[all_augmentor[v]["name"]] = all_augmentor[v]["defaults"]
@@ -379,7 +385,7 @@ please modify manually after config exported.)"
                          message='apply quantization at the first layer?',
                          default=True)
     ]
-    quantize_first_convolution = prompt(quantize_first_convolution_question, None)
+    quantize_first_convolution = prompt(quantize_first_convolution_question)
 
     return {
         'model_name': model_name,
