@@ -123,7 +123,6 @@ keypoint_detection_dataset_formats = [
     },
 ]
 
-
 learning_rate_schedule_map = OrderedDict([
     ("constant", "'constant' -> constant learning rate."),
     ("cosine", "'cosine' -> cosine learning rate."),
@@ -202,11 +201,13 @@ def generate_image_size_validate(network_name):
         for size in image_size:
             if not size % divider == 0:
                 raise inquirer.errors.ValidationError('',
-                        reason="Image size should be multiple of {}, but image size is {}".format(divider, current))
+                                                      reason="Image size should be multiple of {}, but image size is {}"
+                                                      .format(divider, current))
 
             if size > max_size:
                 raise inquirer.errors.ValidationError('',
-                        reason="Image size should be lower than {} but image size is {}".format(max_size, current))
+                                                      reason="Image size should be lower than {} but image size is {}"
+                                                      .format(max_size, current))
 
         return True
 
@@ -215,7 +216,7 @@ def generate_image_size_validate(network_name):
 
 def integer_validate(answers, current):
     if not current.isdigit():
-        raise inquirer.errors.ValidationError('',  reason='Input value should be integer')
+        raise inquirer.errors.ValidationError('', reason='Input value should be integer')
 
     return True
 
