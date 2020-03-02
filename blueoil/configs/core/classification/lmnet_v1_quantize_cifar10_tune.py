@@ -66,7 +66,7 @@ PRE_PROCESSOR = Sequence([
 ])
 POST_PROCESSOR = None
 
-STEP_PER_EPOCH = int(50000 / BATCH_SIZE)
+STEP_PER_EPOCH = 50000 // BATCH_SIZE
 
 TUNE_SPEC = {
         'run': 'tunable',
