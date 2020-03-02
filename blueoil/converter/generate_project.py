@@ -72,7 +72,6 @@ def optimize_graph_step(graph: Graph, config: Config) -> None:
     pass_constant_folding(graph)
     pass_simplify_batchnorm(graph)
 
-
 def generate_code_step(graph: Graph, config: Config) -> None:
     """Generate code for the model.
 
