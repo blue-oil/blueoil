@@ -65,7 +65,7 @@ class Sequence:
                 process.image_size = image_size
 
 
-class Processor(metaclass=ABCMeta):
+class Processor():
 
     @abstractmethod
     def __call__(self, **kwargs):
