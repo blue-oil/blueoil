@@ -138,7 +138,7 @@ class Node(object):
             raise UnsupportedDataType(f'Type {dtype_str} is not supported.')
         return DLK_DTYPE_MAP[dtype_str]
 
-    def get_shape(self) -> List[str]:
+    def get_shape(self) -> List[int]:
         """Get the output shape info."""
         out_shapes = []
         shapes = self.nd_.attr.get('_output_shapes')
