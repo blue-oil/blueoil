@@ -40,7 +40,7 @@ def darknet(name, inputs, filters, kernel_size, is_training=tf.constant(False), 
 
         conv = conv2d("conv", inputs, filters=filters, kernel_size=kernel_size,
                       activation=None, use_bias=False, data_format=channel_data_format,
-                      kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),)  # he initializer
+                      kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=2.0),)  # he initializer
 
         # TODO(wakisaka): Should be the same as darknet batch norm.
         # https://github.com/tensorflow/tensorflow/blob/r1.1/tensorflow/contrib/layers/python/layers/layers.py
@@ -89,7 +89,7 @@ def lmnet_block(
         tf.Tensor: Output of current layer block.
     """
     with tf.compat.v1.variable_scope(name, custom_getter=custom_getter):
-        conv = tf.layers.conv2d(inputs, filters=filters, kernel_size=kernel_size, padding='SAME', use_bias=False,
+        conv = tf.compat.v1.layers.conv2d(inputs, filters=filters, kernel_size=kernel_size, padding='SAME', use_bias=False,
                                 data_format=data_format)
 
         if use_batch_norm:
@@ -112,7 +112,7 @@ def lmnet_block(
             batch_normed = conv
 
         if use_bias:
-            bias = tf.get_variable('bias', shape=filters, initializer=tf.zeros_initializer)
+            bias = tf.compat.v1.get_variable('bias', shape=filters, initializer=tf.compat.v1.zeros_initializer)
             biased = batch_normed + bias
         else:
             biased = batch_normed
@@ -169,15 +169,15 @@ def conv_bn_act(
         raise ValueError("data format must be 'NCHW' or 'NHWC'. got {}.".format(data_format))
 
     with tf.compat.v1.variable_scope(name):
-        conved = tf.layers.conv2d(
+        conved = tf.compat.v1.layers.conv2d(
             inputs,
             filters=filters,
             kernel_size=kernel_size,
             padding='SAME',
             use_bias=False,
-            kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),  # he initializer
+            kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=2.0),  # he initializer
             data_format=channel_data_format,
-            kernel_regularizer=tf.contrib.layers.l2_regularizer(weight_decay_rate),
+            kernel_regularizer=tf.keras.regularizers.l2(0.5 * (weight_decay_rate)),
         )
 
         batch_normed = tf.contrib.layers.batch_norm(
