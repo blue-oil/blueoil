@@ -77,12 +77,12 @@ def _run(input_dir, output_dir, config, restore_path, save_images):
         images_placeholder, _ = model.placeholders()
         output_op = model.inference(images_placeholder, is_training)
 
-        init_op = tf.global_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
 
         saver = tf.compat.v1.train.Saver(max_to_keep=None)
 
-    session_config = tf.ConfigProto()
-    sess = tf.Session(graph=graph, config=session_config)
+    session_config = tf.compat.v1.ConfigProto()
+    sess = tf.compat.v1.Session(graph=graph, config=session_config)
     sess.run(init_op)
     saver.restore(sess, restore_path)
 

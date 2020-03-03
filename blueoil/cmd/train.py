@@ -129,8 +129,8 @@ def start_training(config):
 
         metrics_summary_op, metrics_placeholders = executor.prepare_metrics(metrics_ops_dict)
 
-        init_op = tf.global_variables_initializer()
-        reset_metrics_op = tf.local_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
+        reset_metrics_op = tf.compat.v1.local_variables_initializer()
         if use_horovod:
             # add Horovod broadcasting variables from rank 0 to all
             bcast_global_variables_op = hvd.broadcast_global_variables(0)
@@ -141,7 +141,7 @@ def start_training(config):
             saver = tf.compat.v1.train.Saver(max_to_keep=config.KEEP_CHECKPOINT_MAX)
 
         if config.IS_PRETRAIN:
-            all_vars = tf.global_variables()
+            all_vars = tf.compat.v1.global_variables()
             pretrain_var_list = [
                 var for var in all_vars if var.name.startswith(tuple(config.PRETRAIN_VARS))
             ]
@@ -152,8 +152,8 @@ def start_training(config):
 
     if use_horovod:
         # For distributed training
-        session_config = tf.ConfigProto(
-            gpu_options=tf.GPUOptions(
+        session_config = tf.compat.v1.ConfigProto(
+            gpu_options=tf.compat.v1.GPUOptions(
                 allow_growth=True,
                 visible_device_list=str(hvd.local_rank())
             )
@@ -166,23 +166,24 @@ def start_training(config):
         #         per_process_gpu_memory_fraction=0.1
         #     )
         # )
-        session_config = tf.ConfigProto()  # tf.ConfigProto(log_device_placement=True)
+        session_config = tf.compat.v1.ConfigProto()  # tf.ConfigProto(log_device_placement=True)
     # TODO(wakisaka): XLA JIT
     # session_config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions.ON_1
 
-    sess = tf.Session(graph=graph, config=session_config)
+    sess = tf.compat.v1.Session(graph=graph, config=session_config)
     sess.run([init_op, reset_metrics_op])
 
     if rank == 0:
-        train_writer = tf.summary.FileWriter(environment.TENSORBOARD_DIR + "/train", sess.graph)
+        train_writer = tf.compat.v1.summary.FileWriter(environment.TENSORBOARD_DIR + "/train", sess.graph)
         if use_train_validation_saving:
-            train_val_saving_writer = tf.summary.FileWriter(environment.TENSORBOARD_DIR + "/train_validation_saving")
-        val_writer = tf.summary.FileWriter(environment.TENSORBOARD_DIR + "/validation")
+            train_val_saving_writer = tf.compat.v1.summary.FileWriter(
+                environment.TENSORBOARD_DIR + "/train_validation_saving")
+        val_writer = tf.compat.v1.summary.FileWriter(environment.TENSORBOARD_DIR + "/validation")
 
         if config.IS_PRETRAIN:
             print("------- Load pretrain data ----------")
             pretrain_saver.restore(sess, os.path.join(config.PRETRAIN_DIR, config.PRETRAIN_FILE))
-            sess.run(tf.assign(global_step, 0))
+            sess.run(tf.compat.v1.assign(global_step, 0))
 
         last_step = 0
 
@@ -301,7 +302,7 @@ def start_training(config):
 
             if step == 0:
                 # check create pb on only first step.
-                minimal_graph = tf.graph_util.convert_variables_to_constants(
+                minimal_graph = tf.compat.v1.graph_util.convert_variables_to_constants(
                     sess,
                     sess.graph.as_graph_def(add_shapes=True),
                     ["output"],
