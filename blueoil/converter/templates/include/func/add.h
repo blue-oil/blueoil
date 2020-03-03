@@ -17,7 +17,6 @@ limitations under the License.
 
 #include <functional>
 
-#include "global.h"
 #include "tensor_view.h"
 #include "func/impl/binary_op.h"
 #include "time_measurement.h"

@@ -15,7 +15,7 @@ limitations under the License.
 
 #include <cmath>
 
-#include "global.h"
+#include "types.h"
 #include "func/softmax.h"
 #include "time_measurement.h"
 
