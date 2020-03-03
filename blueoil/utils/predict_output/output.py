@@ -124,11 +124,13 @@ class JsonOutput():
                 img[label == i] = 255
                 img = PIL.Image.fromarray(img, mode="L").convert('1')
                 img = img.resize((raw_image.shape[1], raw_image.shape[0]))
+
                 # base64 encode
                 buffered = BytesIO()
                 img.save(buffered, format="PNG")
                 encoded = base64.b64encode(buffered.getvalue())
                 encoded = encoded.decode("ascii")
+
                 prediction.append({
                     "class": {"id": i, "name": class_name},
                     "mask": encoded,
