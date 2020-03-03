@@ -21,7 +21,7 @@ import numpy as np
 from blueoil import environment
 
 
-class Base():
+class Base(metaclass=ABCMeta):
     """Dataset base class"""
 
     def __init__(
@@ -99,7 +99,7 @@ class Base():
         raise NotImplementedError()
 
 
-class SegmentationBase(Base):
+class SegmentationBase(Base, metaclass=ABCMeta):
 
     def __init__(self, *args, label_colors=None, **kwargs):
         super(SegmentationBase, self).__init__(*args, **kwargs)
@@ -114,7 +114,7 @@ class SegmentationBase(Base):
         return self._label_colors
 
 
-class ObjectDetectionBase(Base):
+class ObjectDetectionBase(Base, metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
@@ -159,7 +159,7 @@ class ObjectDetectionBase(Base):
         return np.array(results)
 
 
-class KeypointDetectionBase(Base):
+class KeypointDetectionBase(Base, metaclass=ABCMeta):
 
     @staticmethod
     def crop_from_full_image(full_image, box, joints):
@@ -198,7 +198,7 @@ class KeypointDetectionBase(Base):
         return cropped_image, new_joints
 
 
-class DistributionInterface():
+class DistributionInterface(metaclass=ABCMeta):
 
     @abstractmethod
     def update_dataset(self, indices):

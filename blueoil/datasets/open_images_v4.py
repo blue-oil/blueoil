@@ -125,16 +125,14 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
         f = open(os.path.join(self.data_dir, 'bbox_labels_600_hierarchy.json'), 'r')
         json_dict = json.load(f)
         for sub in json_dict["Subcategory"]:
-            pass
-            # yield from self._search_subcategory(json_dict["LabelName"], sub, 0)
+            yield from self._search_subcategory(json_dict["LabelName"], sub, 0)
 
     def _search_subcategory(self, parent_label_name, d, level):
         current_label_name = d["LabelName"]
         target_label_name = parent_label_name if level > self._class_level else current_label_name
         next_level = level + 1
         for sub in d.get("Subcategory", []):
-            pass
-            # yield from self._search_subcategory(target_label_name, sub, next_level)
+            yield from self._search_subcategory(target_label_name, sub, next_level)
 
         yield current_label_name, target_label_name
 
