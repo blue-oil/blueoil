@@ -171,12 +171,12 @@ def default_batch_size(task_type):
 def prompt(question):
     """Execute prompt answer
 
-        Args:
-            question (list): list of inquirer question
+    Args:
+        question (list): list of inquirer question
 
-        Returns:
-        return string of answer
-        """
+    Returns: string of answer
+
+    """
     answers = inquirer.prompt(question)
     return answers['value']
 
@@ -283,8 +283,9 @@ def ask_questions():
 
     enable_test_dataset_path_question = [
         inquirer.List(name='value',
-                      message='set validation dataset? \
-(if answer no, the dataset will be separated for training and validation by 9:1 ratio.)',
+                      message='set validation dataset?'
+                              ' (if answer no, the dataset will be separated for training and validation'
+                              ' by 9:1 ratio.)',
                       choices=['yes', 'no'])
     ]
     enable_test_dataset_path = prompt(enable_test_dataset_path_question)
@@ -340,8 +341,8 @@ def ask_questions():
     # learning rate schedule
     learning_rate_schedule_question = [
         inquirer.List(name='value',
-                      message='choose learning rate schedule \
-({{epochs}} is the number of training epochs you entered before)',
+                      message='choose learning rate schedule'
+                              ' ({{epochs}} is the number of training epochs you entered before)',
                       choices=list(learning_rate_schedule_map.values()),
                       default=learning_rate_schedule_map["constant"])
     ]
