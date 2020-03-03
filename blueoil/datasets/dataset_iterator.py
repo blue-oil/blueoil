@@ -175,7 +175,7 @@ class _SimpleDatasetReader:
 
 class _TFDSReader:
 
-    def __init__(self, dataset):
+    def __init__(self, dataset, local_rank):
         tf_dataset = dataset.tf_dataset.shuffle(1024) \
                                        .repeat() \
                                        .batch(dataset.batch_size) \
@@ -183,6 +183,18 @@ class _TFDSReader:
         iterator = tf.data.make_initializable_iterator(tf_dataset)
         self.dataset = dataset
         self.session = tf.Session()
+        if local_rank != -1:
+            self.session = tf.Session()
+            # For distributed training
+            session_config = tf.ConfigProto(
+                gpu_options=tf.GPUOptions(
+                    allow_growth=True,
+                    visible_device_list=str(local_rank)
+                )
+            )
+        else:
+            session_config = tf.ConfigProto()
+        self.session = tf.Session(config=session_config)
         self.session.run(iterator.initializer)
         self.next_batch = iterator.get_next()
 
@@ -200,13 +212,13 @@ class _TFDSReader:
 class DatasetIterator:
     available_subsets = ["train", "train_validation_saving", "validation"]
     """docstring for DatasetIterator."""
-    def __init__(self, dataset, enable_prefetch=False, seed=0):
+    def __init__(self, dataset, enable_prefetch=False, seed=0, local_rank=-1):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
         self.seed = seed
         if issubclass(dataset.__class__, TFDSMixin):
             self.enable_prefetch = False
-            self.reader = _TFDSReader(self.dataset)
+            self.reader = _TFDSReader(self.dataset, local_rank)
         else:
             if self.enable_prefetch:
                 self.prefetch_result_queue = queue.Queue(maxsize=200)
@@ -269,4 +281,10 @@ class DatasetIterator:
         print("Shuffle {} train dataset with random state {}.".format(self.__class__.__name__, self.seed))
         print(random_indices[0:10])
         self.seed += 1
-        return random_indice
+        return random_indices
+
+    def close(self):
+        if self.enable_prefetch:
+            self.prefetcher.terminate = True
+            self.prefetcher.pool.close()
+            self.prefetcher.pool.join()
