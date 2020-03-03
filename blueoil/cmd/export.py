@@ -95,12 +95,12 @@ def _export(config, restore_path, image_path):
 
         images_placeholder, _ = model.placeholders()
         model.inference(images_placeholder, is_training)
-        init_op = tf.global_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
 
         saver = tf.compat.v1.train.Saver(max_to_keep=50)
 
-    session_config = tf.ConfigProto()
-    sess = tf.Session(graph=graph, config=session_config)
+    session_config = tf.compat.v1.ConfigProto()
+    sess = tf.compat.v1.Session(graph=graph, config=session_config)
     sess.run(init_op)
 
     saver.restore(sess, restore_path)
