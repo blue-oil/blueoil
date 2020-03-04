@@ -54,11 +54,11 @@ def _profile(config, restore_path, bit, unquant_layers):
         images_placeholder, _ = model.placeholders()
         model.inference(images_placeholder, is_training)
 
-        init_op = tf.global_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
         saver = tf.compat.v1.train.Saver(max_to_keep=50)
 
-    session_config = tf.ConfigProto()
-    sess = tf.Session(graph=graph, config=session_config)
+    session_config = tf.compat.v1.ConfigProto()
+    sess = tf.compat.v1.Session(graph=graph, config=session_config)
     sess.run(init_op)
 
     if restore_path:
@@ -145,7 +145,8 @@ def _save_json(name, image_size, num_classes, node_param_dict, node_flops_dict):
 
 
 def _profile_flops(graph, res, scopes):
-    float_prof = tf.profiler.profile(graph, options=tf.profiler.ProfileOptionBuilder.float_operation())
+    float_prof = tf.compat.v1.profiler.profile(
+        graph, options=tf.compat.v1.profiler.ProfileOptionBuilder.float_operation())
     float_res_dict = collections.defaultdict(int)
     float_res_dict["total"] = float_prof.total_float_ops
     for node in float_prof.children:
@@ -172,7 +173,8 @@ def _profile_flops(graph, res, scopes):
 
 
 def _profile_params(graph, res, bit, unquant_layers):
-    prof = tf.profiler.profile(graph, options=tf.profiler.ProfileOptionBuilder.trainable_variables_parameter())
+    prof = tf.compat.v1.profiler.profile(
+        graph, options=tf.compat.v1.profiler.ProfileOptionBuilder.trainable_variables_parameter())
 
     # helper func to make profile res
     def helper(node, level):

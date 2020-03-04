@@ -138,7 +138,7 @@ class Node(object):
             raise UnsupportedDataType(f'Type {dtype_str} is not supported.')
         return DLK_DTYPE_MAP[dtype_str]
 
-    def get_shape(self) -> List[str]:
+    def get_shape(self) -> List[int]:
         """Get the output shape info."""
         out_shapes = []
         shapes = self.nd_.attr.get('_output_shapes')
@@ -273,16 +273,16 @@ class Input(object):
         else:
             dtype = type(self)._TF_TO_NP[self.tensor.dtype]
             if self.tensor.dtype == 3:
-                return np.asarray(self.tensor.int_val, dtype=dtype)
+                return np.asarray(self.tensor.int_val, dtype=dtype).reshape(self.get_shape())
             if self.tensor.dtype == 1:
-                return np.asarray(self.tensor.float_val, dtype=dtype)
+                return np.asarray(self.tensor.float_val, dtype=dtype).reshape(self.get_shape())
 
     def get_shape(self) -> List[str]:
         """Get shape info."""
         if self.is_placeholder:
             return [d.size for d in self.in_.attr.get('shape').shape.dim]
         else:
-            return [d.size for d in self.tensor.tensor_shape.dim] or [self.get_data().size]
+            return [d.size for d in self.tensor.tensor_shape.dim]
 
     def set_shape(self, val: List[str]) -> None:
         """Set shape info."""
@@ -467,7 +467,7 @@ class Importer(object):
         _default_format = 'NHWC'
         _default_w_format = 'HWIO'
 
-        rank_to_format = {1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC', 5: 'NHWCT'}
+        rank_to_format = {0: 'Atom', 1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC', 5: 'NHWCT'}
 
         def guess_node_format(input_node: Any) -> str:
             """Provide the node format from references
@@ -477,8 +477,6 @@ class Importer(object):
             the format follows 'C', 'HW', and 'HWC' respectively of rank 1, 2, 3.
             Note: Ensure the tf node always has valid value of attribute _output_shape defined.
             """
-            assert len(input_node.get_shape()) != 0, \
-                f'output shape of {input_node.name} of {input_node.op_type} is not properly defined in .pb file'
             node_rank = len(input_node.get_shape())
             return out_format if node_rank == len(out_format) else rank_to_format[node_rank]
 
@@ -494,7 +492,7 @@ class Importer(object):
             elif op_type in ['BinaryMeanScalingQuantizer', 'BinaryChannelWiseMeanScalingQuantizer']:
                 return _default_w_format, [_default_w_format]
             elif op_type in {'QTZ_linear_mid_tread_half'}:
-                return out_format, [out_format, 'C', 'C']
+                return out_format, [out_format, 'Atom', 'Atom']
             elif op_type == 'Pad':
                 return out_format, [out_format, 'Padding']
             elif op_type == 'Transpose':
