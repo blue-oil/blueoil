@@ -93,21 +93,8 @@ def lmnet_block(
                                 data_format=data_format)
 
         if use_batch_norm:
-            # TODO(wenhao) hw supports `tf.contrib.layers.batch_norm` currently. change it when supported.
-            # batch_normed = tf.layers.batch_normalization(conv,
-            #                                              momentum=0.99,
-            #                                              scale=True,
-            #                                              center=True,
-            #                                              training=is_training)
-            four_letter_data_format = 'NHWC' if data_format == 'channels_last' else 'NCHW'
-            batch_normed = tf.contrib.layers.batch_norm(conv,
-                                                        decay=0.99,
-                                                        scale=True,
-                                                        center=True,
-                                                        updates_collections=None,
-                                                        is_training=is_training,
-                                                        data_format=four_letter_data_format)
-
+            axis = -1 if data_format == 'channels_last' else 1
+            batch_normed = tf.compat.v1.layers.batch_normalization(conv, axis=axis, training=is_training)
         else:
             batch_normed = conv
 
