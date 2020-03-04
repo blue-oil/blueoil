@@ -15,6 +15,7 @@ Contents
 .. toctree::
    :maxdepth: 1
 
+   overview
    modules
    auto_script
    shared_library
