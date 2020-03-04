@@ -23,6 +23,20 @@ converter contains following 3 separable steps.
 
 # Installation
 
+
+## Setup.py installation
+To install converter run the command:
+```
+$ python setup.py install
+[long output, could take some minutes depending on your environment]
+```
+
+If you fail in installing python packages like numpy, tensorflow, etc., try upgrading `setuptools` first, then install converter again.
+```
+$ pip install --upgrade setuptools
+```
+
+
 Now you should be able to successfully run:
 ```
 $ python blueoil/converter/generate_project.py --help
