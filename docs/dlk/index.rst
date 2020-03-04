@@ -17,6 +17,5 @@ Contents
 
    modules
    auto_script
-   setup_board
    shared_library
    archive_file
