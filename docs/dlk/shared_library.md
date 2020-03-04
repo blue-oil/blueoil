@@ -60,7 +60,7 @@ In above sample code `utils/run_inference.py`, you can run the graph with an inp
 The result would be like below.
 
 ```
-> PYTHONPATH=python/dlk python utils/run_inference.py input_image.png ./libdlk_x86.so
+> PYTHONPATH=python/dlk python utils/run_inference.py input_image.png ./libdlk_x86.so
 Output: [[0.10000502 0.10004324 0.09995745 0.10000631 0.10003947 0.09993229 0.10000196 0.09998367 0.1000008  0.10002969]]
 ```
 
