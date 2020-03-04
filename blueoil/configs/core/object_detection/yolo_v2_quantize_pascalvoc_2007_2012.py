@@ -37,7 +37,7 @@ from blueoil.data_augmentor import (
     Hue,
     SSDRandomCrop,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
@@ -193,7 +193,7 @@ NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
 # In the yolov2 paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
 # Train data num per epoch is 16551
 # In first 5000 steps, use small learning rate for warmup.
-_epoch_steps = int(16551 / BATCH_SIZE)
+_epoch_steps = 16551 // BATCH_SIZE
 NETWORK.LEARNING_RATE_KWARGS = {
     "values": [1e-6, 1e-4, 1e-5, 1e-6, 1e-7],
     "boundaries": [5000, _epoch_steps * 10, _epoch_steps * 60, _epoch_steps * 90],

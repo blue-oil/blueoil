@@ -15,8 +15,8 @@ Contents
 .. toctree::
    :maxdepth: 1
 
+   overview
    modules
    auto_script
-   setup_board
    shared_library
    archive_file

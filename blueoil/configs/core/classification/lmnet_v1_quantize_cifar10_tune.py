@@ -29,7 +29,7 @@ from blueoil.data_augmentor import (
     FlipLeftRight,
     Pad,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
@@ -66,7 +66,7 @@ PRE_PROCESSOR = Sequence([
 ])
 POST_PROCESSOR = None
 
-STEP_PER_EPOCH = int(50000 / BATCH_SIZE)
+STEP_PER_EPOCH = 50000 // BATCH_SIZE
 
 TUNE_SPEC = {
         'run': 'tunable',

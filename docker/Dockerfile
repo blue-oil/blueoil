@@ -121,21 +121,12 @@ RUN mkdir /.horovod && chmod 777 /.horovod
 
 FROM blueoil-base AS blueoil-dev
 
-# Copy blueoil sources to docker image
-
-RUN chmod 777 /home/blueoil
-
-# Copy dlk sources to docker image
-COPY dlk /home/blueoil/dlk
-# Install dlk
-WORKDIR /home/blueoil/dlk
-RUN PYTHONPATH=python/dlk python setup.py install
-RUN chmod 777 /home/blueoil/dlk
-
 # Copy blueoil test code to docker image
 COPY tests /home/blueoil/tests
 
-ENV PYTHONPATH $PYTHONPATH:/home/blueoil:/home/blueoil/dlk/python/dlk
+# Add permission for all users
+RUN chmod 777 /home/blueoil
+RUN chmod 777 /home/blueoil/tests
 
 # enable blueoil command
 RUN pyenv rehash

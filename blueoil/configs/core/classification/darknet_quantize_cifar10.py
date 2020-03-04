@@ -29,7 +29,7 @@ from blueoil.data_augmentor import (
     FlipLeftRight,
     Pad,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
@@ -75,7 +75,7 @@ NETWORK = EasyDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
-step_per_epoch = int(50000 / 200)
+step_per_epoch = 50000 // 200
 NETWORK.LEARNING_RATE_KWARGS = {
     "values": [0.01, 0.001, 0.0001, 0.00001],
     "boundaries": [step_per_epoch * 200, step_per_epoch * 300, step_per_epoch * 350],

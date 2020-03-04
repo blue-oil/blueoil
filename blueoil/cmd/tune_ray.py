@@ -116,14 +116,14 @@ def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
             network_kwargs['optimizer_kwargs'][key] = chosen_kwargs['optimizer_class'][key]
     network_kwargs['learning_rate_func'] = chosen_kwargs['learning_rate_func']['scheduler']
     base_lr = chosen_kwargs['learning_rate']
-    if network_kwargs['learning_rate_func'] is tf.train.piecewise_constant:
+    if network_kwargs['learning_rate_func'] is tf.compat.v1.train.piecewise_constant:
         lr_factor = chosen_kwargs['learning_rate_func']['scheduler_factor']
         network_kwargs['learning_rate_kwargs']['values'] = [base_lr,
                                                             base_lr * lr_factor,
                                                             base_lr * lr_factor * lr_factor,
                                                             base_lr * lr_factor * lr_factor * lr_factor]
         network_kwargs['learning_rate_kwargs']['boundaries'] = chosen_kwargs['learning_rate_func']['scheduler_steps']
-    elif network_kwargs['learning_rate_func'] is tf.train.polynomial_decay:
+    elif network_kwargs['learning_rate_func'] is tf.compat.v1.train.polynomial_decay:
         network_kwargs['learning_rate_kwargs']['learning_rate'] = base_lr
         network_kwargs['learning_rate_kwargs']['power'] = chosen_kwargs['learning_rate_func']['scheduler_power']
         network_kwargs['learning_rate_kwargs']['decay_steps'] = chosen_kwargs['learning_rate_func']['scheduler_decay']
@@ -210,12 +210,12 @@ class TrainTunable(Trainable):
         self.metrics_ops_dict = metrics_ops_dict
         self.metrics_update_op = metrics_update_op
 
-        init_op = tf.global_variables_initializer()
-        self.reset_metrics_op = tf.local_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
+        self.reset_metrics_op = tf.compat.v1.local_variables_initializer()
 
-        session_config = tf.ConfigProto(
-            gpu_options=tf.GPUOptions(allow_growth=True))
-        self.sess = tf.Session(config=session_config)
+        session_config = tf.compat.v1.ConfigProto(
+            gpu_options=tf.compat.v1.GPUOptions(allow_growth=True))
+        self.sess = tf.compat.v1.Session(config=session_config)
         self.sess.run([init_op, self.reset_metrics_op])
         self.iterations = 0
         self.saver = tf.compat.v1.train.Saver()
