@@ -217,7 +217,17 @@ def start_training(config):
     for step in range(last_step, max_steps):
 
         samples_dict = train_dataset.feed()
-        images, labels = samples_dict.values()
+
+        # TODO: temporary solution, update when supporting network_multi
+        images = samples_dict["image"]
+        if config.TASK == Tasks.OBJECT_DETECTION:
+            labels = samples_dict["gt_boxes"]
+        elif config.TASK == Tasks.SEMANTIC_SEGMENTATION:
+            labels = samples_dict["mask"]
+        elif config.TASK == Tasks.KEYPOINT_DETECTION:
+            labels = samples_dict["joints"]
+        else:
+            labels = samples_dict["label"]
 
         feed_dict = {
             is_training_placeholder: True,
@@ -266,7 +276,15 @@ def start_training(config):
                     print("train_validation_saving_step", train_validation_saving_step)
 
                     samples_dict = train_validation_saving_dataset.feed()
-                    images, labels = samples_dict.values()
+                    images = samples_dict["image"]
+                    if config.TASK == Tasks.OBJECT_DETECTION:
+                        labels = samples_dict["gt_boxes"]
+                    elif config.TASK == Tasks.SEMANTIC_SEGMENTATION:
+                        labels = samples_dict["mask"]
+                    elif config.TASK == Tasks.KEYPOINT_DETECTION:
+                        labels = samples_dict["joints"]
+                    else:
+                        labels = samples_dict["label"]
                     feed_dict = {
                         is_training_placeholder: False,
                         images_placeholder: images,
@@ -321,7 +339,15 @@ def start_training(config):
             for test_step in range(test_step_size):
 
                 samples_dict = validation_dataset.feed()
-                images, labels = samples_dict.values()
+                images = samples_dict["image"]
+                if config.TASK == Tasks.OBJECT_DETECTION:
+                    labels = samples_dict["gt_boxes"]
+                elif config.TASK == Tasks.SEMANTIC_SEGMENTATION:
+                    labels = samples_dict["mask"]
+                elif config.TASK == Tasks.KEYPOINT_DETECTION:
+                    labels = samples_dict["joints"]
+                else:
+                    labels = samples_dict["label"]
 
                 feed_dict = {
                     is_training_placeholder: False,
