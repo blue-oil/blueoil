@@ -32,68 +32,57 @@ void matrix_shift_add(MatrixView<float, MatrixOrder::ColMajor>& buf,
                       MatrixView<float, MatrixOrder::ColMajor>& result,
                       const struct convolution_parameters& p,
                       const int block_offset) {
-  Measurement::Start("matrix_shift_add_f1");
+  Measurement::Start("matrix_shift_add_f");
 
-  const int h = p.input_height;
-  const int w = p.input_width;
-  const int oc = p.output_channels;
-  const int kh = p.kernel_height;
-  const int kw = p.kernel_width;
-  const auto col_block = buf.cols();
+  const std::ptrdiff_t h = p.input_height;
+  const std::ptrdiff_t w = p.input_width;
+  const std::ptrdiff_t oc = p.output_channels;
+  const std::ptrdiff_t kh = p.kernel_height;
+  const std::ptrdiff_t kw = p.kernel_width;
+  const std::ptrdiff_t col_block = buf.cols();
+  const std::ptrdiff_t pad = p.padding;
 
-  // only 3x3 kernel is supported.
-  assert(kh == 3 && kw == 3);
+  // only 3x3 or 5x5 kernel is supported.
+  assert(kh == kw);
+  assert(kh % 2 == 1);
+  assert(3 <= kh && kh <= 5);
 
-  for (unsigned int j = 0; j < col_block; ++j) {
-    const bool is_first = is_first_column(j + block_offset, w);
-    const bool is_last = is_last_column(j + block_offset, w);
-    if (!is_first && !is_last) continue;
-    for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first && is_cfi(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      } else if (is_last && is_adg(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      }
-    }
-  }
-
-  Measurement::Stop();
-
-  Measurement::Start("matrix_shift_add_f2");
-
-  const auto res_col_start = std::max(0, block_offset - w - 1);
-  const auto res_col_end = std::min(h * w, block_offset + col_block + w + 1);
+  const auto res_col_start = std::max<std::ptrdiff_t>(0, block_offset - pad * w - pad);
+  const auto res_col_end = std::min(h * w, block_offset + col_block + pad * w + pad);
 #pragma omp parallel for
   for (int k = res_col_start; k < res_col_end; ++k) {
-    const auto buf_k = k - block_offset;
-    for (unsigned int i = 0; i < kh * kw; ++i) {
-      int offset = calc_offset(i, w);
-      if ((buf_k - offset < 0) || (buf_k - offset >= col_block)) {
-        continue;
-      }
+    const auto row = k / w;
+    const auto col = k % w;
+    for (int kr = 0; kr < kh; ++kr) {
+      for (int kc = 0; kc < kw; ++kc) {
+        if (row + kr < pad || row + kr >= h + pad || col + kc < pad || col + kc >= w + pad) continue;
+        const auto offset = (kr - pad) * w + (kc - pad);
+        const auto b_col = k - block_offset + offset;
+        if (b_col < 0 || col_block <= b_col) continue;
 
-      float* r = result.data(0, k);
-      float* b = buf.data(i*oc, buf_k - offset);
+        float* r = result.data(0, k);
+        float* b = buf.data((kr*kw + kc)*oc, b_col);
 
 
-      unsigned int j = 0;
+        unsigned int j = 0;
 #ifdef USE_NEON
-      for (; j + 3 < oc; j += 4) {
-        float32x4_t b_ = vld1q_f32(b+j);
-        float32x4_t r_ = vld1q_f32(r+j);
-        float32x4_t r__ = vaddq_f32(b_, r_);
-        vst1q_f32(r+j, r__);
-      }
+        for (; j + 3 < oc; j += 4) {
+          float32x4_t b_ = vld1q_f32(b+j);
+          float32x4_t r_ = vld1q_f32(r+j);
+          float32x4_t r__ = vaddq_f32(b_, r_);
+          vst1q_f32(r+j, r__);
+        }
 #elif defined USE_AVX
-      for (; j + 7 < oc; j += 8) {
-        auto vb = _mm256_loadu_ps(b+j);
-        auto vr = _mm256_loadu_ps(r+j);
-        auto res = _mm256_add_ps(vr, vb);
-        _mm256_storeu_ps(r+j, res);
-      }
+        for (; j + 7 < oc; j += 8) {
+          auto vb = _mm256_loadu_ps(b+j);
+          auto vr = _mm256_loadu_ps(r+j);
+          auto res = _mm256_add_ps(vr, vb);
+          _mm256_storeu_ps(r+j, res);
+        }
 #endif
-      for (; j < oc; ++j) {
-        r[j] += b[j];
+        for (; j < oc; ++j) {
+          r[j] += b[j];
+        }
       }
     }
   }
@@ -106,65 +95,57 @@ void matrix_shift_add(MatrixView<int32_t, MatrixOrder::ColMajor>& buf,
                       MatrixView<int32_t, MatrixOrder::ColMajor>& result,
                       const struct convolution_parameters& p,
                       const int block_offset) {
-  Measurement::Start("matrix_shift_add_i1");
+  Measurement::Start("matrix_shift_add_i");
 
-  const int h = p.input_height;
-  const int w = p.input_width;
-  const int oc = p.output_channels;
-  const int kh = p.kernel_height;
-  const int kw = p.kernel_width;
-  const auto col_block = buf.cols();
+  const std::ptrdiff_t h = p.input_height;
+  const std::ptrdiff_t w = p.input_width;
+  const std::ptrdiff_t oc = p.output_channels;
+  const std::ptrdiff_t kh = p.kernel_height;
+  const std::ptrdiff_t kw = p.kernel_width;
+  const std::ptrdiff_t col_block = buf.cols();
+  const std::ptrdiff_t pad = p.padding;
 
-  // only 3x3 kernel is supported.
-  assert(kh == 3 && kw == 3);
+  // only 3x3 or 5x5 kernel is supported.
+  assert(kh == kw);
+  assert(kh % 2 == 1);
+  assert(3 <= kh && kh <= 5);
 
-  for (unsigned int j = 0; j < col_block; ++j) {
-    for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first_column(j + block_offset, w) && is_cfi(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      } else if (is_last_column(j + block_offset, w) && is_adg(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      }
-    }
-  }
-
-  Measurement::Stop();
-
-  Measurement::Start("matrix_shift_add_i2");
-
-  const auto res_col_start = std::max(0, block_offset - w - 1);
-  const auto res_col_end = std::min(h * w, block_offset + col_block + w + 1);
+  const auto res_col_start = std::max<std::ptrdiff_t>(0, block_offset - pad * w - pad);
+  const auto res_col_end = std::min(h * w, block_offset + col_block + pad * w + pad);
 #pragma omp parallel for
   for (int k = res_col_start; k < res_col_end; ++k) {
-    const auto buf_k = k - block_offset;
-    for (unsigned int i = 0; i < kh * kw; ++i) {
-      int offset = calc_offset(i, w);
-      if ((buf_k - offset < 0) || (buf_k - offset >= col_block)) {
-        continue;
-      }
+    const auto row = k / w;
+    const auto col = k % w;
+    for (int kr = 0; kr < kh; ++kr) {
+      for (int kc = 0; kc < kw; ++kc) {
+        if (row + kr < pad || row + kr >= h + pad || col + kc < pad || col + kc >= w + pad) continue;
+        const auto offset = (kr - pad) * w + (kc - pad);
+        const auto b_col = k - block_offset + offset;
+        if (b_col < 0 || col_block <= b_col) continue;
 
-      int32_t* r = result.data(0, k);
-      int32_t* b = buf.data(i*oc, buf_k - offset);
+        int32_t* r = result.data(0, k);
+        int32_t* b = buf.data((kr*kw + kc)*oc, b_col);
 
 
-      unsigned int j = 0;
+        unsigned int j = 0;
 #ifdef USE_NEON
-      for (; j + 3 < oc; j += 4) {
-        int32x4_t b_ = vld1q_s32(b+j);
-        int32x4_t r_ = vld1q_s32(r+j);
-        int32x4_t r__ = vaddq_s32(b_, r_);
-        vst1q_s32(r+j, r__);
-      }
+        for (; j + 3 < oc; j += 4) {
+          int32x4_t b_ = vld1q_s32(b+j);
+          int32x4_t r_ = vld1q_s32(r+j);
+          int32x4_t r__ = vaddq_s32(b_, r_);
+          vst1q_s32(r+j, r__);
+        }
 #elif defined USE_AVX
-      for (; j + 7 < oc; j += 8) {
-        auto vb = _mm256_loadu_si256(reinterpret_cast<__m256i*>(b+j));
-        auto vr = _mm256_loadu_si256(reinterpret_cast<__m256i*>(r+j));
-        auto res = _mm256_add_epi32(vr, vb);
-        _mm256_storeu_si256(reinterpret_cast<__m256i*>(r+j), res);
-      }
+        for (; j + 7 < oc; j += 8) {
+          auto vb = _mm256_loadu_si256(reinterpret_cast<__m256i*>(b+j));
+          auto vr = _mm256_loadu_si256(reinterpret_cast<__m256i*>(r+j));
+          auto res = _mm256_add_epi32(vr, vb);
+          _mm256_storeu_si256(reinterpret_cast<__m256i*>(r+j), res);
+        }
 #endif
-      for (; j < oc; ++j) {
-        r[j] += b[j];
+        for (; j < oc; ++j) {
+          r[j] += b[j];
+        }
       }
     }
   }

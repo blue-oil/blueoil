@@ -22,96 +22,37 @@ limitations under the License.
 
 namespace dlk {
 
-inline bool is_first_column(int j, int w) {
-  return (j % w == 0);
-}
-
-inline bool is_last_column(int j, int w) {
-  return (j % w == (w - 1));
-}
-
- // 3x3 matrix
- /* A B C */
- /* D E F */
- /* G H I */
-
-// is the right most column for the kernel matrix?
-inline bool is_cfi(int i, int oc) {
-  return int(i / oc) == 2 or int(i / oc) == 5 or int(i / oc) == 8;
-}
-
-// is the left most column for the kernel matrix?
-inline bool is_adg(int i, int oc) {
-  return int(i / oc) == 0 or int(i / oc) == 3 or int(i / oc) == 6;
-}
-
-// Note: this function is only for 3x3 kernel
-inline int calc_offset(int i, int w) {
-  switch (i) {
-  case 0:
-    return w+1;
-  case 1:
-    return w;
-  case 2:
-    return w-1;
-  case 3:
-    return 1;
-  case 4:
-    return 0;
-  case 5:
-    return -1;
-  case 6:
-    return -w+1;
-  case 7:
-    return -w;
-  case 8:
-    return -w-1;
-  }
-
-  // must not come here
-  assert(false);
-}
-
 template<typename T>
 void matrix_shift_add(MatrixView<T, MatrixOrder::ColMajor>& buf,
                       MatrixView<T, MatrixOrder::ColMajor>& result,
                       const struct convolution_parameters& p,
                       const int block_offset) {
-  Measurement::Start("matrix_shift_add1");
+  Measurement::Start("matrix_shift_add");
 
-  const int h = p.input_height;
-  const int w = p.input_width;
-  const int oc = p.output_channels;
-  const int kh = p.kernel_height;
-  const int kw = p.kernel_width;
-  const auto col_block = buf.cols();
+  const std::ptrdiff_t h = p.input_height;
+  const std::ptrdiff_t w = p.input_width;
+  const std::ptrdiff_t oc = p.output_channels;
+  const std::ptrdiff_t kh = p.kernel_height;
+  const std::ptrdiff_t kw = p.kernel_width;
+  const std::ptrdiff_t col_block = buf.cols();
+  const std::ptrdiff_t pad = p.padding;
 
-  // only 3x3 kernel is supported.
-  assert(kh == 3 && kw == 3);
-
-  for (unsigned int j = 0; j < col_block; ++j) {
-    for (unsigned int i = 0; i < buf.rows(); ++i) {
-      if (is_first_column(j + block_offset, w) && is_cfi(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      } else if (is_last_column(j + block_offset, w) && is_adg(i, p.output_channels)) {
-        buf.set(i, j, 0);
-      }
-    }
-  }
-
-  Measurement::Stop();
-
-  Measurement::Start("matrix_shift_add2");
+  // only 3x3 or 5x5 kernel is supported.
+  assert(kh == kw);
+  assert(kh % 2 == 1);
+  assert(3 <= kh && kh <= 5);
 
   for (int k = 0; k < col_block; ++k) {
     const auto true_k = k + block_offset;
+    const auto row = true_k / w;
+    const auto col = true_k % w;
     for (unsigned int i = 0; i < kh * kw; ++i) {
-      int offset = calc_offset(i, w);
-      if ((true_k + offset < 0) || (true_k + offset >= h * w)) {
-        continue;
-      }
+      int kr = i / kw;
+      int kc = i % kw;
+      if (row - kr + pad < 0 || row - kr + pad >= h || col - kc + pad < 0 || col - kc + pad >= w) continue;
 
-      T* r = result.data(0, true_k + offset);
+      int offset = (kr - pad) * w + (kc - pad);
+      T* r = result.data(0, true_k - offset);
       T* b = buf.data(i*oc, k);
 
       for (unsigned int j = 0; j < oc; ++j) {
