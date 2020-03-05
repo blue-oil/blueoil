@@ -225,7 +225,7 @@ def start_training(config):
         elif config.TASK == Tasks.SEMANTIC_SEGMENTATION:
             labels = samples_dict["mask"]
         elif config.TASK == Tasks.KEYPOINT_DETECTION:
-            labels = samples_dict["joints"]
+            labels = samples_dict["heatmap"]
         else:
             labels = samples_dict["label"]
 
@@ -282,7 +282,7 @@ def start_training(config):
                     elif config.TASK == Tasks.SEMANTIC_SEGMENTATION:
                         labels = samples_dict["mask"]
                     elif config.TASK == Tasks.KEYPOINT_DETECTION:
-                        labels = samples_dict["joints"]
+                        labels = samples_dict["heatmap"]
                     else:
                         labels = samples_dict["label"]
                     feed_dict = {
@@ -345,7 +345,7 @@ def start_training(config):
                 elif config.TASK == Tasks.SEMANTIC_SEGMENTATION:
                     labels = samples_dict["mask"]
                 elif config.TASK == Tasks.KEYPOINT_DETECTION:
-                    labels = samples_dict["joints"]
+                    labels = samples_dict["heatmap"]
                 else:
                     labels = samples_dict["label"]
 
