@@ -1,4 +1,4 @@
-dlk package
+converter package
 ============
 
 Subpackages
@@ -6,32 +6,32 @@ Subpackages
 
 .. toctree::
 
-    dlk.core
-    dlk.modules
+    converter.core
+    converter.modules
 
 Submodules
 ----------
 
-dlk.code\_generater module
+converter.code\_generater module
 ---------------------------
 
-.. automodule:: dlk.code_generater
+.. automodule:: converter.code_generater
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.template module
+converter.template module
 --------------------
 
-.. automodule:: dlk.template
+.. automodule:: converter.template
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.utils module
+converter.utils module
 -----------------
 
-.. automodule:: dlk.utils
+.. automodule:: converter.utils
     :members:
     :undoc-members:
     :show-inheritance:
@@ -40,7 +40,7 @@ dlk.utils module
 Module contents
 ---------------
 
-.. automodule:: dlk
+.. automodule:: converter
     :members:
     :undoc-members:
     :show-inheritance:

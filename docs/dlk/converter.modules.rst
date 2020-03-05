@@ -1,13 +1,13 @@
-dlk.modules package
+converter.modules package
 ====================
 
 Submodules
 ----------
 
-dlk.modules.packer module
+converter.modules.packer module
 --------------------------
 
-.. automodule:: dlk.modules.packer
+.. automodule:: converter.modules.packer
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ dlk.modules.packer module
 Module contents
 ---------------
 
-.. automodule:: dlk.modules
+.. automodule:: converter.modules
     :members:
     :undoc-members:
     :show-inheritance:

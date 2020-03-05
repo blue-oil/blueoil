@@ -1,125 +1,125 @@
-dlk.core package
+converter.core package
 =================
 
 Submodules
 ----------
 
-dlk.core.base module
+converter.core.base module
 ---------------------
 
-.. automodule:: dlk.core.base
+.. automodule:: converter.core.base
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.config module
+converter.core.config module
 -----------------------
 
-.. automodule:: dlk.core.config
+.. automodule:: converter.core.config
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.dlk\_test module
+converter.core.converter\_test module
 --------------------------
 
-.. automodule:: dlk.core.dlk_test
+.. automodule:: converter.core.converter_test
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.exceptions module
+converter.core.exceptions module
 ---------------------------
 
-.. automodule:: dlk.core.exceptions
+.. automodule:: converter.core.exceptions
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.initializer module
+converter.core.initializer module
 ----------------------------
 
-.. automodule:: dlk.core.initializer
+.. automodule:: converter.core.initializer
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.input module
+converter.core.input module
 ----------------------
 
-.. automodule:: dlk.core.input
+.. automodule:: converter.core.input
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.io module
+converter.core.io module
 -------------------
 
-.. automodule:: dlk.core.io
+.. automodule:: converter.core.io
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.node module
+converter.core.node module
 ---------------------
 
-.. automodule:: dlk.core.node
+.. automodule:: converter.core.node
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.nodes module
+converter.core.nodes module
 ----------------------
 
-.. automodule:: dlk.core.nodes
+.. automodule:: converter.core.nodes
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.optimizer module
+converter.core.optimizer module
 --------------------------
 
-.. automodule:: dlk.core.optimizer
+.. automodule:: converter.core.optimizer
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.output module
+converter.core.output module
 -----------------------
 
-.. automodule:: dlk.core.output
+.. automodule:: converter.core.output
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.params module
+converter.core.params module
 -----------------------
 
-.. automodule:: dlk.core.params
+.. automodule:: converter.core.params
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.render module
+converter.core.render module
 -----------------------
 
-.. automodule:: dlk.core.render
+.. automodule:: converter.core.render
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.test module
+converter.core.test module
 ---------------------
 
-.. automodule:: dlk.core.test
+.. automodule:: converter.core.test
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.view module
+converter.core.view module
 ---------------------
 
-.. automodule:: dlk.core.view
+.. automodule:: converter.core.view
     :members:
     :undoc-members:
     :show-inheritance:
@@ -128,7 +128,7 @@ dlk.core.view module
 Module contents
 ---------------
 
-.. automodule:: dlk.core
+.. automodule:: converter.core
     :members:
     :undoc-members:
     :show-inheritance:
