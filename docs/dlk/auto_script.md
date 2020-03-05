@@ -64,4 +64,3 @@ You'll see the following files.
 * SEG ---> <FPGA_DIR> is segmentation.
 
 Please refer to "run_on_board" page about usage of these files.
-
