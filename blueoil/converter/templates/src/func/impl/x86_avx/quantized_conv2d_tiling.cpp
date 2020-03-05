@@ -15,6 +15,7 @@ limitations under the License.
 
 #include <cassert>
 #include <climits>
+#include <limits>
 
 #include "global.h"
 #include "func/impl/quantized_conv2d_tiling.h"
@@ -143,8 +144,10 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   const std::size_t out_height = cp.output_height;
   const std::size_t out_width = cp.output_width;
   const std::size_t out_size = out_height * out_width * out_channels;
+  const std::size_t maxa = (1 << in_bitwidth) - 1;
 
-  //assert(kh * kw < 32);
+  assert(kh * kw < 32);
+  assert(in_channels * kh * kw * maxa <= std::numeric_limits<BIN_CONV_OUTPUT>::max());
   assert(in_height * in_width == out_height * out_width);
   assert((in_channels % InTypeBitWidth) == 0);
 
