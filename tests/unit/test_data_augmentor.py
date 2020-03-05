@@ -105,7 +105,7 @@ def test_sequence():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        images, labels = dataset.feed().values()
         _show_images_with_boxes(images, labels)
 
 
@@ -119,7 +119,7 @@ def test_blur():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        images, labels = dataset.feed().values()
         _show_images_with_boxes(images, labels)
 
 
@@ -133,7 +133,7 @@ def test_brightness():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        images, labels = dataset.feed().values()
         _show_images_with_boxes(images, labels)
 
 
@@ -147,7 +147,7 @@ def test_color():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        images, labels = dataset.feed().values()
         _show_images_with_boxes(images, labels)
 
 
@@ -161,7 +161,7 @@ def test_contrast():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        images, labels = dataset.feed().values()
         _show_images_with_boxes(images, labels)
 
 
@@ -189,7 +189,7 @@ def test_filp_left_right():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        images, labels = dataset.feed().values()
         _show_images_with_boxes(images, labels)
 
 
@@ -203,7 +203,7 @@ def test_filp_top_bottom():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        images, labels = dataset.feed().values()
         _show_images_with_boxes(images, labels)
 
 
@@ -217,7 +217,7 @@ def test_hue():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        images, labels = dataset.feed().values()
         _show_images_with_boxes(images, labels)
 
 
@@ -276,7 +276,7 @@ def test_ssd_random_crop():
     dataset = DatasetIterator(dataset)
 
     for _ in range(5):
-        images, labels = dataset.feed()
+        images, labels = dataset.feed().values()
         _show_images_with_boxes(images, labels)
         assert np.all(labels[:, :, 2] <= 512)
         assert np.all(labels[:, :, 3] <= 256)
