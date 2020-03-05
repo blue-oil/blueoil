@@ -89,8 +89,8 @@ def lmnet_block(
         tf.Tensor: Output of current layer block.
     """
     with tf.compat.v1.variable_scope(name, custom_getter=custom_getter):
-        conv = tf.compat.v1.layers.conv2d(inputs, filters=filters, kernel_size=kernel_size, padding='SAME', use_bias=False,
-                                data_format=data_format)
+        conv = tf.compat.v1.layers.conv2d(inputs, filters=filters, kernel_size=kernel_size,
+                                          padding='SAME', use_bias=False, data_format=data_format)
 
         if use_batch_norm:
             axis = -1 if data_format == 'channels_last' else 1
