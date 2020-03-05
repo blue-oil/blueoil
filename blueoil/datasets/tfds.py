@@ -207,12 +207,12 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
     @classmethod
     @functools.lru_cache(maxsize=None)
     def count_max_boxes(cls, builder):
-        sess = tf.Session()
+        sess = tf.compat.v1.Session()
         max_boxes = 0
 
         for split in builder.info.splits:
             tf_dataset = builder.as_dataset(split=split)
-            iterator = tf_dataset.make_one_shot_iterator()
+            iterator = tf.compat.v1.data.make_one_shot_iterator(tf_dataset)
             next_batch = iterator.get_next()
 
             while True:
