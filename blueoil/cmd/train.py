@@ -216,7 +216,8 @@ def start_training(config):
         progbar.update(last_step)
     for step in range(last_step, max_steps):
 
-        images, labels = train_dataset.feed()
+        samples_dict = train_dataset.feed()
+        images, labels = samples_dict.values()
 
         feed_dict = {
             is_training_placeholder: True,
@@ -264,7 +265,8 @@ def start_training(config):
                 for train_validation_saving_step in range(train_validation_saving_step_size):
                     print("train_validation_saving_step", train_validation_saving_step)
 
-                    images, labels = train_validation_saving_dataset.feed()
+                    samples_dict = train_validation_saving_dataset.feed()
+                    images, labels = samples_dict.values()
                     feed_dict = {
                         is_training_placeholder: False,
                         images_placeholder: images,
@@ -318,7 +320,9 @@ def start_training(config):
 
             for test_step in range(test_step_size):
 
-                images, labels = validation_dataset.feed()
+                samples_dict = validation_dataset.feed()
+                images, labels = samples_dict.values()
+
                 feed_dict = {
                     is_training_placeholder: False,
                     images_placeholder: images,
