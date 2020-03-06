@@ -6,13 +6,13 @@ Subpackages
 
 .. toctree::
 
-    blueoil.converter.core
-    blueoil.converter.modules
+    converter.core
+    converter.modules
 
 Submodules
 ----------
 
-blueoil.converter.code\_generater module
+blueoil.converter.code_generater module
 ---------------------------
 
 .. automodule:: blueoil.converter.code_generater
@@ -40,7 +40,7 @@ blueoil.converter.utils module
 Module contents
 ---------------
 
-.. automodule:: converter
+.. automodule:: blueoil.converter
     :members:
     :undoc-members:
     :show-inheritance:
