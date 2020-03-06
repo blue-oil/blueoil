@@ -78,22 +78,30 @@ def _show_image_with_annotation(image, label, colors):
 
 def _test_camvid_basic(train_dataset, test_dataset):
     # test train dataset
-    train_image_files, train_label_files = train_dataset.feed().values()
+    samples_dict = train_dataset.feed()
+    train_image_files = samples_dict["image"]
+    train_label_files = samples_dict["mask"]
     assert train_image_files.shape[0] == 1
     assert train_label_files.shape[0] == 1
 
-    train_images, train_labels = train_dataset.feed().values()
+    samples_dict = train_dataset.feed()
+    train_images = samples_dict["image"]
+    train_labels = samples_dict["mask"]
     assert isinstance(train_images, np.ndarray)
     assert train_images.shape == (1, 360, 480, 3)
     assert train_labels.shape == (1, 360, 480)
     # _show_image_with_annotation(train_images[0], train_labels[0], colors)
 
     # test test dataset
-    test_image_files, test_label_files = test_dataset.feed().values()
+    samples_dict = test_dataset.feed()
+    test_image_files = samples_dict["image"]
+    test_label_files = samples_dict["mask"]
     assert test_image_files.shape[0] == 1
     assert test_label_files.shape[0] == 1
 
-    test_images, test_labels = test_dataset.feed().values()
+    samples_dict = test_dataset.feed()
+    test_images = samples_dict["image"]
+    test_labels = samples_dict["mask"]
     assert isinstance(test_images, np.ndarray)
     assert test_images.shape == (1, 360, 480, 3)
     assert test_labels.shape == (1, 360, 480)
@@ -112,7 +120,9 @@ def test_camvid():
     colors = train_dataset.label_colors
     assert len(colors) == 12
 
-    train_image_files, train_label_files = train_dataset.feed().values()
+    samples_dict = test_dataset.feed()
+    train_image_files = samples_dict["image"]
+    train_label_files = samples_dict["mask"]
     assert train_image_files.shape[0] == 1
     assert train_label_files.shape[0] == 1
 
