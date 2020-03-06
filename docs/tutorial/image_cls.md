@@ -68,7 +68,7 @@ Below is an example configuration.
   choose network:  LmnetV1Quantize
   choose dataset format:  Caltech101
   training dataset path:  /home/blueoil/cifar/train/
-  set validataion dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  yes
+  set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.):  yes
   validataion dataset path:  /home/blueoil/cifar/test/
   batch size (integer):  64
   image size (integer x integer):  32x32
@@ -76,10 +76,10 @@ Below is an example configuration.
   select optimizer:  Momentum
   initial learning rate:  0.001
   choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
-  enable data augmentation: Yes
+  enable data augmentation?  (Y/n):  Yes
   Please choose augmentors:  done (5 selections)
 -> select Brightness, Color, FlipLeftRight, Hue, SSDRandomCrop
-  apply quantization at the first layer?  no 
+  apply quantization at the first layer? (Y/n):  no 
 ```
 
 - Model name: (Any)

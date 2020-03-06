@@ -43,11 +43,11 @@ Below is an example of initialization.
 ```
 #### Generate config ####
 your model name ():  objectdetection
-choose task type  object_detection
-choose network  LMFYoloQuantize
-choose dataset format  OpenImagesV4
+choose task type:  object_detection
+choose network:  LMFYoloQuantize
+choose dataset format:  OpenImagesV4
 training dataset path:  /home/blueoil/openimages_face/
-set validataion dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  no
+set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.):  yes
 validation dataset path:  /home/blueoil/openimages_face/
 batch size (integer):  16
 image size (integer x integer):  224x224
@@ -55,10 +55,10 @@ how many epochs do you run training (integer):  1000
 select optimizer:  Adam
 initial learning rate:  0.001
 choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
-enable data augmentation?  Yes
+enable data augmentation?  (Y/n):  Yes
 Please choose augmentors:  done (5 selections)
 -> select Brightness, Color, FlipLeftRight, Hue, SSDRandomCrop
-apply quantization at the first layer?  no
+apply quantization at the first layer? (Y/n):  no
 ```
 
 If configuration finishes, the configuration file is generated in the `objectdetection.py` under config directory.

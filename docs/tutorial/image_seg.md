@@ -72,11 +72,11 @@ Below is an example of initialization.
 ```
 #### Generate config ####
 your model name ():  camvid
-choose task type  semantic_segmentation
-choose network  LmSegnetV1Quantize
-choose dataset format  CamvidCustom
+choose task type:  semantic_segmentation
+choose network:  LmSegnetV1Quantize
+choose dataset format:  CamvidCustom
 training dataset path:  /home/blueoil/CamVid/
-set validataion dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  yes
+set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.):  yes
 test dataset path:  /home/blueoil/CamVid/
 batch size (integer):  8
 image size (integer x integer):  360x480
@@ -84,10 +84,10 @@ how many epochs do you run training (integer):  1000
 choose optimizer: Adam
 initial learning rate:  0.001
 choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
-enable data augmentation?  Yes
+enable data augmentation?  (Y/n):  Yes
 Please choose augmentors:  done (5 selections)
 -> select Brightness, Color, Contrast, FlipLeftRight, Hue
-apply quantization at the first layer?  no
+apply quantization at the first layer? (Y/n):  no
 ```
 
 If configuration finishes, the configuration file is generated in the `camvid.py` under config directory.
