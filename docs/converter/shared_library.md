@@ -5,7 +5,7 @@ After you generate your project from your protocol buffer, you can build librari
 The compile command would be like below.
 
 ```
-make libdlk_x86
+make lib_x86
 make lib_arm
 make lib_fpga
 ```
