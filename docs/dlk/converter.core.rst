@@ -1,125 +1,125 @@
-converter.core package
+blueoil.converter.core package
 =================
 
 Submodules
 ----------
 
-converter.core.base module
+blueoil.converter.core.base module
 ---------------------
 
-.. automodule:: converter.core.base
+.. automodule:: blueoil.converter.core.base
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.config module
+blueoil.converter.core.config module
 -----------------------
 
-.. automodule:: converter.core.config
+.. automodule:: blueoil.converter.core.config
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.converter\_test module
+blueoil.converter.core.converter\_test module
 --------------------------
 
-.. automodule:: converter.core.converter_test
+.. automodule:: blueoil.converter.core.converter_test
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.exceptions module
+blueoil.converter.core.exceptions module
 ---------------------------
 
-.. automodule:: converter.core.exceptions
+.. automodule:: blueoil.converter.core.exceptions
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.initializer module
+blueoil.converter.core.initializer module
 ----------------------------
 
-.. automodule:: converter.core.initializer
+.. automodule:: blueoil.converter.core.initializer
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.input module
+blueoil.converter.core.input module
 ----------------------
 
-.. automodule:: converter.core.input
+.. automodule:: blueoil.converter.core.input
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.io module
+blueoil.converter.core.io module
 -------------------
 
-.. automodule:: converter.core.io
+.. automodule:: blueoil.converter.core.io
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.node module
+blueoil.converter.core.node module
 ---------------------
 
-.. automodule:: converter.core.node
+.. automodule:: blueoil.converter.core.node
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.nodes module
+blueoil.converter.core.nodes module
 ----------------------
 
-.. automodule:: converter.core.nodes
+.. automodule:: blueoil.converter.core.nodes
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.optimizer module
+blueoil.converter.core.optimizer module
 --------------------------
 
-.. automodule:: converter.core.optimizer
+.. automodule:: blueoil.converter.core.optimizer
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.output module
+blueoil.converter.core.output module
 -----------------------
 
-.. automodule:: converter.core.output
+.. automodule:: blueoil.converter.core.output
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.params module
+blueoil.converter.core.params module
 -----------------------
 
-.. automodule:: converter.core.params
+.. automodule:: blueoil.converter.core.params
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.render module
+blueoil.converter.core.render module
 -----------------------
 
-.. automodule:: converter.core.render
+.. automodule:: blueoil.converter.core.render
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.test module
+blueoil.converter.core.test module
 ---------------------
 
-.. automodule:: converter.core.test
+.. automodule:: blueoil.converter.core.test
     :members:
     :undoc-members:
     :show-inheritance:
 
-converter.core.view module
+blueoil.converter.core.view module
 ---------------------
 
-.. automodule:: converter.core.view
+.. automodule:: blueoil.converter.core.view
     :members:
     :undoc-members:
     :show-inheritance:
@@ -128,7 +128,7 @@ converter.core.view module
 Module contents
 ---------------
 
-.. automodule:: converter.core
+.. automodule:: blueoil.converter.core
     :members:
     :undoc-members:
     :show-inheritance:

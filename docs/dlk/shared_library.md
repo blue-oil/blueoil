@@ -5,16 +5,16 @@ After you generate your project from your protocol buffer, you can build librari
 The compile command would be like below.
 
 ```
-make lib_x86
+make libdlk_x86
 make lib_arm
 make lib_fpga
 ```
 
 These commands will generate the following files:
 ```
-lib_x86.so
-lib_arm.so
-lib_fpga.so
+libdlk_x86.so
+libdlk_arm.so
+libdlk_fpga.so
 ```
 
 After generating the shared librariues, you can use them from, for example, Python and C++.
@@ -60,7 +60,7 @@ In above sample code `utils/run_inference.py`, you can run the graph with an inp
 The result would be like below.
 
 ```
-> python utils/run_inference.py input_image.png ./lib_x86.so
+> python utils/run_inference.py input_image.png ./libdlk_x86.so
 Output: [[0.10000502 0.10004324 0.09995745 0.10000631 0.10003947 0.09993229 0.10000196 0.09998367 0.1000008  0.10002969]]
 ```
 
@@ -78,7 +78,7 @@ For example, there is `expected.npy` that is the output tensor data you expect f
 When you run it with the input image and the library, the result would be like below.
 
 ```
-> python utils/run_test.py -i input_image.png -l ./lib_x86.so -e expected.npy
+> python utils/run_test.py -i input_image.png -l ./libdlk_x86.so -e expected.npy
 Output:
 [[0.10000502 0.10004324 0.09995745 0.10000631 0.10003947 0.09993229 0.10000196 0.09998367 0.1000008 0.10002969]]
 Test: 100.000% of the output values are correct

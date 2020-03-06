@@ -11,7 +11,7 @@ Current use of opimization passes
 .. highlight:: python
 
 Currently, the optimization passes are implemented as methods of a class. 
-And these methods are called in `converter.scripts.generate_project#optimize_graph_step`:: 
+And these methods are called in `blueoil.converter.generate_project#optimize_graph_step`:: 
 
     optimizer.remove_concatv2_axis(nodes)
 
@@ -44,10 +44,10 @@ And these methods are called in `converter.scripts.generate_project#optimize_gra
 
 Optimizer class
 ------------------
-Class ``converter.core.optimizer.Optimizer`` is the current implementation of the optimization passes.
+Class ``blueoil.converter.core.optimizer.Optimizer`` is the current implementation of the optimization passes.
 These passes are implemented as six methods in the class as the following.
 
-.. autoclass:: converter.core.optimizer.Optimizer
+.. autoclass:: blueoil.converter.core.optimizer.Optimizer
     :members:
     :noindex:
 ..    :undoc-members:

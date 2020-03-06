@@ -1,13 +1,13 @@
-converter.modules package
+blueoil.converter.modules package
 ====================
 
 Submodules
 ----------
 
-converter.modules.packer module
+blueoil.converter.modules.packer module
 --------------------------
 
-.. automodule:: converter.modules.packer
+.. automodule:: blueoil.converter.modules.packer
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ converter.modules.packer module
 Module contents
 ---------------
 
-.. automodule:: converter.modules
+.. automodule:: blueoil.converter.modules
     :members:
     :undoc-members:
     :show-inheritance:
