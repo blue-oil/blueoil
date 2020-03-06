@@ -30,11 +30,12 @@ This dataset consists of 2866 Human Face images and 5170 annotation boxes.
 Generate your model configuration file interactively by running the `blueoil init` command.
 
     $ docker run --rm -it \
+	    -v $(pwd)/openimages_face:/home/blueoil/openimages_face \
 	    -v $(pwd)/config:/home/blueoil/config \
 	    blueoil_$(id -un):{TAG} \
-	    blueoil init -o config/my_config.yml
+	    blueoil init -o config/objectdetection.py
 
-The `{TAG}` value must be set to a value like `v0.15.0-15-gf493ec9` that can be obtained with the `docker images` command.
+The `{TAG}` value must be set to a value like `v0.20.0-11-gf1e07c8` that can be obtained with the `docker images` command.
 This value depends on your environment.
 
 Below is an example of initialization.
@@ -60,7 +61,7 @@ Please choose augmentors:  done (5 selections)
 apply quantization at the first layer?  no
 ```
 
-If configuration finishes, the configuration file is generated in the `my_config.yml` under config directory.
+If configuration finishes, the configuration file is generated in the `objectdetection.py` under config directory.
 
 ## Train a network model
 
@@ -72,7 +73,7 @@ Train your model by running `blueoil train` with a model configuration.
 	    -v $(pwd)/config:/home/blueoil/config \
 	    -v $(pwd)/saved:/home/blueoil/saved \
 	    blueoil_$(id -un):{TAG} \
-	    blueoil train -c config/my_config.yml
+	    blueoil train -c config/objectdetection.py
 
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
 Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
