@@ -76,9 +76,9 @@ PRE_PROCESSOR = Sequence([
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.polynomial_decay
+NETWORK.LEARNING_RATE_FUNC = tf.compat.v1.train.polynomial_decay
 # TODO(wakiska): It is same as original yolov2 paper (batch size = 128).
 NETWORK.LEARNING_RATE_KWARGS = {"learning_rate": 1e-1, "decay_steps": 1600000, "power": 4.0, "end_learning_rate": 0.0}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
