@@ -45,7 +45,7 @@ def test_mscoco_2017_single_pose_estimation():
         samples_dict = dataset.feed()
 
         images = samples_dict["image"]
-        labels = samples_dict["joints"]
+        labels = samples_dict["heatmap"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size
@@ -68,7 +68,7 @@ def test_mscoco_2017_single_pose_estimation():
         samples_dict = dataset.feed()
 
         images = samples_dict["image"]
-        labels = samples_dict["joints"]
+        labels = samples_dict["heatmap"]
 
         assert isinstance(images, np.ndarray)
         assert images.shape[0] == batch_size
