@@ -16,6 +16,7 @@ limitations under the License.
 #include <cassert>
 #include <cstring>
 #include <algorithm>
+#include <limits>
 
 #include "global.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
@@ -48,6 +49,7 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
   T_UINT ow = p.normal_conv_params.output_width;
   T_UINT kh = p.normal_conv_params.kernel_height;
   T_UINT kw = p.normal_conv_params.kernel_width;
+  T_UINT maxa = (1 << p.n_bit) - 1;
   BYTE *temp_buf_ptr = p.normal_conv_params.temporary_buf;
 
   assert(ih * iw == oh * ow);
@@ -59,7 +61,13 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
       out_buf, oc, ih * iw);
   auto kernel_ = MatrixView<QUANTIZED_PACKED_KERNEL, MatrixOrder::RowMajor>(
       kernel.data(), oc * kh * kw, ic / 32);
-  if (kh == kw && kw == 3) {
+
+  assert(kh == kw);
+  assert(kh % 2 == 1);
+  assert(1 <= kh && kh <= 5);
+  assert(ic * kh * kw * maxa <= std::numeric_limits<BIN_CONV_OUTPUT>::max());
+
+  if (kh >= 3) {
     std::fill(out_buf, out_buf + oc * oh * ow, 0);
     for (std::size_t offset = 0; offset < ih * iw; offset += MAX_SIZE_KN2ROW_COL_BLOCK) {
       const auto col_block = std::min(static_cast<std::size_t>(MAX_SIZE_KN2ROW_COL_BLOCK), ih * iw - offset);
@@ -71,15 +79,12 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
       quantized_matrix_multiplication(kernel_, input_, buf_);
       matrix_shift_add(buf_, output_, p.normal_conv_params, offset);
     }
-  } else if (kh == kw && kw == 1) {
+  } else {
     auto input_ = MatrixView<QUANTIZED_PACKED, MatrixOrder::ColMajor>(
         input.data(), ic / 16, ih * iw);
     auto output_ = MatrixView<BIN_CONV_OUTPUT, MatrixOrder::ColMajor>(
         out_buf, oc, ih * iw);
     quantized_matrix_multiplication(kernel_, input_, output_);
-  } else {
-    std::cerr << "Only 1x1 or 3x3 convolutions are supported." << std::endl;
-    assert(false);
   }
 
   const auto out_size = oc * oh * ow;

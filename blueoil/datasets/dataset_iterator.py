@@ -212,20 +212,20 @@ class _TFDSReader:
                                        .batch(dataset.batch_size) \
                                        .prefetch(tf.data.experimental.AUTOTUNE)
 
-        iterator = tf.data.make_initializable_iterator(tf_dataset)
+        iterator = tf.compat.v1.data.make_initializable_iterator(tf_dataset)
 
         self.dataset = dataset
         if local_rank != -1:
             # For distributed training
-            session_config = tf.ConfigProto(
-                gpu_options=tf.GPUOptions(
+            session_config = tf.compat.v1.ConfigProto(
+                gpu_options=tf.compat.v1.GPUOptions(
                     allow_growth=True,
                     visible_device_list=str(local_rank)
                 )
             )
         else:
-            session_config = tf.ConfigProto()
-        self.session = tf.Session(config=session_config)
+            session_config = tf.compat.v1.ConfigProto()
+        self.session = tf.compat.v1.Session(config=session_config)
         self.session.run(iterator.initializer)
         self.next_batch = iterator.get_next()
 
