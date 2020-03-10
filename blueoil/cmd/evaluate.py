@@ -106,15 +106,15 @@ def evaluate(config, restore_path, output_dir):
 
         metrics_summary_op, metrics_placeholders = executor.prepare_metrics(metrics_ops_dict)
 
-        init_op = tf.global_variables_initializer()
-        reset_metrics_op = tf.local_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
+        reset_metrics_op = tf.compat.v1.local_variables_initializer()
         saver = tf.compat.v1.train.Saver(max_to_keep=None)
 
     session_config = None  # tf.ConfigProto(log_device_placement=True)
-    sess = tf.Session(graph=graph, config=session_config)
+    sess = tf.compat.v1.Session(graph=graph, config=session_config)
     sess.run([init_op, reset_metrics_op])
 
-    validation_writer = tf.summary.FileWriter(environment.TENSORBOARD_DIR + "/evaluate")
+    validation_writer = tf.compat.v1.summary.FileWriter(environment.TENSORBOARD_DIR + "/evaluate")
 
     saver.restore(sess, restore_path)
 

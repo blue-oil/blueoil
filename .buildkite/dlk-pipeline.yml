@@ -1,12 +1,15 @@
 steps:
-  - command: "make test-dlk-pep8"
-    label: "dlk: pep8"
+  - command: "make build"
+    label: "docker build in normal agent"
     agents:
     - "agent-type=normal"
     - "env=production"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+    concurrency: 1
+    concurrency_group: "docker/normal/${BUILDKITE_COMMIT}"
+  - wait
   - command: "make test-dlk-main"
     label: "dlk: main"
     agents:
@@ -62,4 +65,4 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
       DEVICE_TEST_INPUT_PATH: './output/TestCodeGenerationAarch64'
-      PYTHONPATH: 'dlk/python/dlk/scripts/pylib'
+      PYTHONPATH: '.'

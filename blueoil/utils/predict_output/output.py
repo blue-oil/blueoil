@@ -118,10 +118,11 @@ class JsonOutput():
             }
 
             prediction = []
+            label = np.argmax(output, axis=2)
             for i, class_name in enumerate(self.classes):
-                img = output[:, :, i] * 255
-                img = PIL.Image.fromarray(img, mode="F")
-                img = img.convert("L")
+                img = np.zeros(label.shape[:2], dtype=np.uint8)
+                img[label == i] = 255
+                img = PIL.Image.fromarray(img, mode="L")
                 img = img.resize((raw_image.shape[1], raw_image.shape[0]))
 
                 # base64 encode

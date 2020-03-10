@@ -132,8 +132,10 @@ class LMBiSeNet(Base):
     def _context(self, x):
         with tf.compat.v1.variable_scope("context"):
             with tf.compat.v1.variable_scope("block_1"):
-                x = self._space_to_depth(name='s2d_1', inputs=x, block_size=8)
+                x = self._space_to_depth(name='s2d_1', inputs=x, block_size=4)
                 x = self._block('conv_1', x, 128, 1)
+                x = self._space_to_depth(name='s2d_2', inputs=x, block_size=2)
+                x = self._block('conv_2', x, 128, 1)
                 growth_rate = 32
                 bottleneck_rate = 2
                 x = densenet_group(
@@ -166,16 +168,16 @@ class LMBiSeNet(Base):
                 )
                 if self.use_attention_refinement and self.use_attention_refinement_16:
                     # attention module needs float inputs.
-                    x_down_16 = self._block('conv_2', x, 256, 1, activation=tf.nn.relu)
+                    x_down_16 = self._block('conv_2', x, 128, 1, activation=tf.nn.relu)
                     x = self.activation(x_down_16)
                 else:
-                    x_down_16 = self._block('conv_2', x, 256, 1)
+                    x_down_16 = self._block('conv_2', x, 128, 1)
                     x = x_down_16
 
             with tf.compat.v1.variable_scope("block_3"):
                 x = self._space_to_depth(name='s2d_3', inputs=x)
-                x = self._block('conv_1', x, 512, 1)
-                growth_rate = 256
+                x = self._block('conv_1', x, 256, 1)
+                growth_rate = 128
                 bottleneck_rate = 1
                 x = densenet_group(
                     "dense",
@@ -190,9 +192,9 @@ class LMBiSeNet(Base):
                 )
                 if self.use_attention_refinement or self.use_tail_gap:
                     # attention module and tail gap needs float inputs.
-                    x_down_32 = self._block('conv_2', x, 1024, 1, activation=tf.nn.relu)
+                    x_down_32 = self._block('conv_2', x, 512, 1, activation=tf.nn.relu)
                 else:
-                    x_down_32 = self._block('conv_2', x, 1024, 1)
+                    x_down_32 = self._block('conv_2', x, 512, 1)
 
             return x_down_32, x_down_16
 
@@ -363,9 +365,9 @@ class LMBiSeNetQuantize(LMBiSeNet):
        ``weight_quantizer``, ``weight_quantizer_kwargs``.
 
     Args:
-        activation_quantizer (callable): Weight quantizer. See more at `blueoil.nn.quantizations`.
+        activation_quantizer (callable): Weight quantizer. See more at `blueoil.quantizations`.
         activation_quantizer_kwargs (dict): Kwargs for `activation_quantizer`.
-        weight_quantizer (callable): Activation quantizer. See more at `blueoil.nn.quantizations`.
+        weight_quantizer (callable): Activation quantizer. See more at `blueoil.quantizations`.
         weight_quantizer_kwargs (dict): Kwargs for `weight_quantizer`.
     """
 
