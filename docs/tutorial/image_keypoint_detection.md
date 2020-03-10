@@ -24,33 +24,38 @@ Note: Below instructions assume your current path is blueoil root path and the M
 Generate your model configuration file interactively by running the `blueoil init` command.
 
     $ docker run --rm -it \
+        -v /storage/dataset/MSCOCO_2017:/home/blueoil/MSCOCO_2017 \
         -v $(pwd)/config:/home/blueoil/config \
         blueoil_$(id -un):{TAG} \
-        blueoil init -o config/my_config.yml
+        blueoil init -o config/keypoint_detection_demo.py
+
+The `{TAG}` value must be set to a value like `v0.20.0-11-gf1e07c8` that can be obtained with the `docker images` command.
+This value depends on your environment.
 
 Below is an example of initialization.
 
 ```
 #### Generate config ####
 your model name ():  keypoint_detection_demo
-choose task type  keypoint_detection
-choose network  LmSinglePoseV1Quantize
-choose dataset format  Mscoco for Single-Person Pose Estimation
+choose task type:  keypoint_detection
+choose network:  LmSinglePoseV1Quantize
+choose dataset format:  Mscoco for Single-Person Pose Estimation
 training dataset path:  /home/blueoil/MSCOCO_2017/
-set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  yes
+set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.):  yes
 validation dataset path:  /home/blueoil/MSCOCO_2017/
 batch size (integer):  4
 image size (integer x integer):  160x160
 how many epochs do you run training (integer):  100
 select optimizer:  Adam
 initial learning rate:  0.001
-choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-d
-enable data augmentation?  Yes
+choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'
+enable data augmentation? (Y/n):  Yes
 Please choose augmentors:  done (6 selections)
-apply quantization at the first layer?  no
+-> select Blue, Brightness, Color, Contrast, FlipLeftRight, Hue
+apply quantization at the first layer? (Y/n):  no
 ```
 
-If configuration finishes, the configuration file is generated in the `my_config.yml` under config directory.
+If configuration finishes, the configuration file is generated in the `keypoint_detection_demo.py` under config directory.
 
 ## Train a network model
 
@@ -64,7 +69,7 @@ Train your model by running `blueoil train` with a model configuration.
         -v $(pwd)/config:/home/blueoil/config \
         -v $(pwd)/saved:/home/blueoil/saved \
         blueoil_$(id -un):{TAG} \
-        blueoil train -c config/my_config.yml
+        blueoil train -c config/keypoint_detection_demo.py
 
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
 Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.

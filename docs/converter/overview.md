@@ -1,4 +1,3 @@
-# Converter
 # Overview
 Converter is a tool which automatically convert DNN graph
 representation into executable binary working in multi device environments throughout

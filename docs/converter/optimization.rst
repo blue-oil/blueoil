@@ -1,9 +1,9 @@
-DLK Optimization passes (tentative, only for v0.2.0)
+Converter Optimization passes (tentative, only for v0.2.0)
 =======================================
 | author: Takeo Imai  
 | date: 2018.4.25
 
-| This is the document for checking the current status of optimization structure in DLK.
+| This is the document for checking the current status of optimization structure in Converter.
 | The structure would be changed/restructured, so this document would be deleted accordingly.
 
 Current use of opimization passes
@@ -11,7 +11,7 @@ Current use of opimization passes
 .. highlight:: python
 
 Currently, the optimization passes are implemented as methods of a class. 
-And these methods are called in `dlk.scripts.generate_project#optimize_graph_step`:: 
+And these methods are called in `blueoil.converter.generate_project#optimize_graph_step`:: 
 
     optimizer.remove_concatv2_axis(nodes)
 
@@ -44,10 +44,10 @@ And these methods are called in `dlk.scripts.generate_project#optimize_graph_ste
 
 Optimizer class
 ------------------
-Class ``dlk.core.optimizer.Optimizer`` is the current implementation of the optimization passes.
+Class ``blueoil.converter.core.optimizer.Optimizer`` is the current implementation of the optimization passes.
 These passes are implemented as six methods in the class as the following.
 
-.. autoclass:: dlk.core.optimizer.Optimizer
+.. autoclass:: blueoil.converter.core.optimizer.Optimizer
     :members:
     :noindex:
 ..    :undoc-members:
