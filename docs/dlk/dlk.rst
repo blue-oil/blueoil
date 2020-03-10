@@ -12,10 +12,10 @@ Subpackages
 Submodules
 ----------
 
-dlk.code\_generater module
+dlk.code_generator module
 ---------------------------
 
-.. automodule:: dlk.code_generater
+.. automodule:: dlk.code_generator
     :members:
     :undoc-members:
     :show-inheritance:
