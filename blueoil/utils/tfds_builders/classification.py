@@ -65,14 +65,14 @@ class ClassificationBuilder(tfds.core.GeneratorBasedBuilder):
         return splits
 
     def _generate_examples(self, dataset):
-        for image, label in dataset:
+        for samples_dict in dataset:
             yield {
-                "image": image,
-                "label": label.tolist().index(1)
+                "image": samples_dict["image"],
+                "label": samples_dict["label"].tolist().index(1)
             }
 
     def _num_shards(self, dataset):
         """Decide a number of shards so as not the size of each shard exceeds 256MiB"""
         max_shard_size = 256 * 1024 * 1024  # 256MiB
-        total_size = sum(image.nbytes for image, _ in dataset)
+        total_size = sum(samples_dict["image"].nbytes for samples_dict in dataset)
         return (total_size + max_shard_size - 1) // max_shard_size

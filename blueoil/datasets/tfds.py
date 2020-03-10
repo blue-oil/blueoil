@@ -64,7 +64,7 @@ def _format_object_detection_record(record, image_size, num_max_boxes):
     gt_boxes = tf.concat([gt_boxes, dummy_boxes], axis=0)
     gt_boxes = tf.slice(gt_boxes, [0, 0], [num_max_boxes, 5])
 
-    return {"image": image, "label": gt_boxes}
+    return {"image": image, "gt_boxes": gt_boxes}
 
 
 class TFDSMixin:
