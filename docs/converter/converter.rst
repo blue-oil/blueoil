@@ -1,4 +1,4 @@
-dlk package
+converter package
 ============
 
 Subpackages
@@ -6,8 +6,8 @@ Subpackages
 
 .. toctree::
 
-    dlk.core
-    dlk.modules
+    converter.core
+    converter.modules
 
 Submodules
 ----------
@@ -20,18 +20,18 @@ dlk.code_generator module
     :undoc-members:
     :show-inheritance:
 
-dlk.template module
+blueoil.converter.template module
 --------------------
 
-.. automodule:: dlk.template
+.. automodule:: blueoil.converter.template
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.utils module
+blueoil.converter.utils module
 -----------------
 
-.. automodule:: dlk.utils
+.. automodule:: blueoil.converter.utils
     :members:
     :undoc-members:
     :show-inheritance:
@@ -40,7 +40,7 @@ dlk.utils module
 Module contents
 ---------------
 
-.. automodule:: dlk
+.. automodule:: blueoil.converter
     :members:
     :undoc-members:
     :show-inheritance:
