@@ -53,7 +53,7 @@ def test_num_per_epoch(set_test_environment):
 
 
 def test_get_item(set_test_environment):
-    assert all(isinstance(image, np.ndarray) for image, _ in Div2k("train"))
+    assert all(isinstance(samples_dict["image"], np.ndarray) for samples_dict in Div2k("train"))
 
 
 @pytest.mark.parametrize("subset", ["train", "validation"])
