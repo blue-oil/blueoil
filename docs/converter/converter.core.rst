@@ -1,125 +1,125 @@
-dlk.core package
+blueoil.converter.core package
 =================
 
 Submodules
 ----------
 
-dlk.core.base module
+blueoil.converter.core.base module
 ---------------------
 
-.. automodule:: dlk.core.base
+.. automodule:: blueoil.converter.core.base
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.config module
+blueoil.converter.core.config module
 -----------------------
 
-.. automodule:: dlk.core.config
+.. automodule:: blueoil.converter.core.config
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.dlk\_test module
+blueoil.converter.core.converter\_test module
 --------------------------
 
-.. automodule:: dlk.core.dlk_test
+.. automodule:: blueoil.converter.core.converter_test
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.exceptions module
+blueoil.converter.core.exceptions module
 ---------------------------
 
-.. automodule:: dlk.core.exceptions
+.. automodule:: blueoil.converter.core.exceptions
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.initializer module
+blueoil.converter.core.initializer module
 ----------------------------
 
-.. automodule:: dlk.core.initializer
+.. automodule:: blueoil.converter.core.initializer
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.input module
+blueoil.converter.core.input module
 ----------------------
 
-.. automodule:: dlk.core.input
+.. automodule:: blueoil.converter.core.input
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.io module
+blueoil.converter.core.io module
 -------------------
 
-.. automodule:: dlk.core.io
+.. automodule:: blueoil.converter.core.io
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.node module
+blueoil.converter.core.node module
 ---------------------
 
-.. automodule:: dlk.core.node
+.. automodule:: blueoil.converter.core.node
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.nodes module
+blueoil.converter.core.nodes module
 ----------------------
 
-.. automodule:: dlk.core.nodes
+.. automodule:: blueoil.converter.core.nodes
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.optimizer module
+blueoil.converter.core.optimizer module
 --------------------------
 
-.. automodule:: dlk.core.optimizer
+.. automodule:: blueoil.converter.core.optimizer
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.output module
+blueoil.converter.core.output module
 -----------------------
 
-.. automodule:: dlk.core.output
+.. automodule:: blueoil.converter.core.output
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.params module
+blueoil.converter.core.params module
 -----------------------
 
-.. automodule:: dlk.core.params
+.. automodule:: blueoil.converter.core.params
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.render module
+blueoil.converter.core.render module
 -----------------------
 
-.. automodule:: dlk.core.render
+.. automodule:: blueoil.converter.core.render
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.test module
+blueoil.converter.core.test module
 ---------------------
 
-.. automodule:: dlk.core.test
+.. automodule:: blueoil.converter.core.test
     :members:
     :undoc-members:
     :show-inheritance:
 
-dlk.core.view module
+blueoil.converter.core.view module
 ---------------------
 
-.. automodule:: dlk.core.view
+.. automodule:: blueoil.converter.core.view
     :members:
     :undoc-members:
     :show-inheritance:
@@ -128,7 +128,7 @@ dlk.core.view module
 Module contents
 ---------------
 
-.. automodule:: dlk.core
+.. automodule:: blueoil.converter.core
     :members:
     :undoc-members:
     :show-inheritance:
