@@ -25,7 +25,7 @@ from os import path
 from blueoil.converter.core.config import Config
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.params import Params
-from blueoil.converter.code_generater import CodeGenerater
+from blueoil.converter.code_generator import CodeGenerator
 from blueoil.converter.frontend import TensorFlowIO
 from blueoil.converter.core.optimizer import pass_remove_identities, \
     pass_transpose, pass_constant_folding, \
@@ -82,7 +82,7 @@ def generate_code_step(graph: Graph, config: Config) -> None:
     """
     params = Params(graph, config)
 
-    builder = CodeGenerater(graph,
+    builder = CodeGenerator(graph,
                             params,
                             config)
 

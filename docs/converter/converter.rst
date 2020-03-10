@@ -12,10 +12,10 @@ Subpackages
 Submodules
 ----------
 
-blueoil.converter.code_generater module
+dlk.code_generator module
 ---------------------------
 
-.. automodule:: blueoil.converter.code_generater
+.. automodule:: dlk.code_generator
     :members:
     :undoc-members:
     :show-inheritance:
