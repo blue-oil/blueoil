@@ -146,9 +146,14 @@ Parameters calcParameters(uint32_t inputHeight, uint32_t inputWidth, uint32_t in
   constexpr uint32_t maxBurst = 32;
   constexpr uint32_t b = 32;
 
-  assert((kernelHeight == 3 && kernelWidth == 3) || (kernelHeight == 1 && kernelWidth == 1));
+  constexpr std::size_t n_bit = 2;
+  constexpr std::size_t maxA = (1 << n_bit) - 1;
+  assert(kernelHeight == kernelWidth); // kernel rectangle must be square
+  assert(kernelHeight % 2 == 1); // kernel size must be odd
+  assert(1 <= kernelHeight && kernelHeight <= 3); // Currently, only 1x1, 3x3 conv are supported
+  assert(inputChannels * kernelHeight * kernelWidth * maxA <= std::numeric_limits<BIN_CONV_OUTPUT>::max()); // overflow check
 
-  uint32_t pad = (kernelHeight == 1) ? 0 : 1;
+  uint32_t pad = kernelHeight / 2;
   uint32_t dep = kernelHeight - 1;
 
   auto outputHeight = inputHeight + 2 * pad - dep;
@@ -235,15 +240,8 @@ Parameters calcParameters(uint32_t inputHeight, uint32_t inputWidth, uint32_t in
   p.a2fKernelVCount = kernelHeight;
   p.a2fKernelHCount = kernelWidth;
 
-  if (kernelHeight == 1) {
-    p.a2fTileStep = 1u;
-    p.a2fTileGap = 1u;
-  }
-  else {
-    // TODO: 3x3 stride one assumed here
-    p.a2fTileStep = 1u;
-    p.a2fTileGap = 3u;
-  }
+  p.a2fTileStep = 1u; // stride one assumed
+  p.a2fTileGap = kernelHeight; // stride one assumed
 
   p.a2fOutputHCount = hCount;
   p.a2fOutputWCount = wCount;

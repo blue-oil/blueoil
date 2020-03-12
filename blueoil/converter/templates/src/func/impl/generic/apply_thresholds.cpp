@@ -47,11 +47,11 @@ void ApplyThresholds(
         else
           new_d = 3;
       } else if (flag == -1) { // decreasing function
-        if (d > ts2)
+        if (d > ts0)
           new_d = 0;
         else if (d > ts1)
           new_d = 1;
-        else if (d > ts0)
+        else if (d > ts2)
           new_d = 2;
         else
           new_d = 3;

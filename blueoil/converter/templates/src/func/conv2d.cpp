@@ -29,7 +29,7 @@ limitations under the License.
 namespace {
 
 template<typename T, typename U>
-void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
+void conv_nxn_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
     const TensorView<T, MemoryLayout::HWOI>& kernels,
     const TensorView<U, MemoryLayout::NHWC>& output,
     struct convolution_parameters& p) {
@@ -44,7 +44,8 @@ void conv3x3_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
 
   // assertions
   assert(ih * iw == oh * ow);
-  assert(kh == 3 && kw == 3);
+  assert(kh == kw);
+  assert(3 <= kh && kh <= 5);
 
   // need to initialize output
   std::memset(output.data(), 0, oc * ih * iw * sizeof(U));
@@ -184,7 +185,7 @@ void convolution(
     int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
     conv1x1_kn2row(input, kernels, output, p);
     return;
-  } else if (p.kernel_height == 3 && p.kernel_width == 3 && p.padding == 1) {
+  } else if (p.kernel_height == p.kernel_width && 3 <= p.kernel_height && p.kernel_height <= 5 && p.padding == p.kernel_height / 2) {
     int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
     T* buf = reinterpret_cast<T*>(p.temporary_buf);
     using hwoi_t = TensorView<T, MemoryLayout::HWOI>;
@@ -196,7 +197,7 @@ void convolution(
     };
     hwoi_t kernels_hwoi(buf, hwoi_shape);
     ohwi_to_hwoi(kernels, kernels_hwoi, p);
-    conv3x3_kn2row(input, kernels_hwoi, output, p);
+    conv_nxn_kn2row(input, kernels_hwoi, output, p);
     return;
   }
 

@@ -85,7 +85,7 @@ TUNE_SPACE = {
     'optimizer_class': hp.choice(
         'optimizer_class', [
             {
-                'optimizer': tf.train.AdamOptimizer,
+                'optimizer': tf.compat.v1.train.AdamOptimizer,
             },
         ]
     ),
@@ -93,7 +93,7 @@ TUNE_SPACE = {
     'learning_rate_func': hp.choice(
         'learning_rate_func', [
             {
-                'scheduler': tf.train.piecewise_constant,
+                'scheduler': tf.compat.v1.train.piecewise_constant,
                 'scheduler_factor': 1.0,
                 'scheduler_steps': [25000, 50000, 75000],
             },

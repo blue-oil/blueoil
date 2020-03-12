@@ -20,7 +20,7 @@ libdlk_fpga.so
 After generating the shared librariues, you can use them from, for example, Python and C++.
 
 ## Usage
-You can use the generated library from python with the helper script provided in `python/dlk/scripts/pylib`.
+You can use the generated library from python with the helper script provided in `blueoil/converter/nnlib`.
 
 ```python
 # utils/run_inference.py
@@ -28,7 +28,7 @@ import numpy as np
 from sys import argv
 from os import path
 from PIL import Image
-from scripts.pylib.nnlib import NNLib as NNLib
+from nnlib import NNLib
 
 
 input_image_path = argv[1]
@@ -60,7 +60,7 @@ In above sample code `utils/run_inference.py`, you can run the graph with an inp
 The result would be like below.
 
 ```
-> PYTHONPATH=python/dlk python utils/run_inference.py input_image.png ./libdlk_x86.so
+> python utils/run_inference.py input_image.png ./libdlk_x86.so
 Output: [[0.10000502 0.10004324 0.09995745 0.10000631 0.10003947 0.09993229 0.10000196 0.09998367 0.1000008  0.10002969]]
 ```
 
@@ -78,7 +78,7 @@ For example, there is `expected.npy` that is the output tensor data you expect f
 When you run it with the input image and the library, the result would be like below.
 
 ```
-> PYTHONPATH=python/dlk python utils/run_test.py -i input_image.png -l ./libdlk_x86.so -e expected.npy
+> python utils/run_test.py -i input_image.png -l ./libdlk_x86.so -e expected.npy
 Output:
 [[0.10000502 0.10004324 0.09995745 0.10000631 0.10003947 0.09993229 0.10000196 0.09998367 0.1000008 0.10002969]]
 Test: 100.000% of the output values are correct
