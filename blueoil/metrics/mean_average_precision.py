@@ -63,7 +63,7 @@ def average_precision(
 
     average_precision = _average_precision(precision_array, recall_array)
 
-    return tf.tuple([average_precision, precision_array, recall_array, precision, recall]), update_op
+    return tf.tuple(tensors=[average_precision, precision_array, recall_array, precision, recall]), update_op
 
 
 def _streaming_tp_fp_array(
@@ -98,9 +98,9 @@ def _streaming_tp_fp_array(
             mask = tf.math.logical_or(tp, fp)
             rm_threshold = 1e-4
             mask = tf.math.logical_and(mask, tf.greater(scores, rm_threshold))
-            tp = tf.boolean_mask(tp, mask)
-            fp = tf.boolean_mask(fp, mask)
-            scores = tf.boolean_mask(scores, mask)
+            tp = tf.boolean_mask(tensor=tp, mask=mask)
+            fp = tf.boolean_mask(tensor=fp, mask=mask)
+            scores = tf.boolean_mask(tensor=scores, mask=mask)
 
         # Local variables accumlating information over batches.
         tp_value = metrics_impl.metric_variable(
@@ -113,10 +113,10 @@ def _streaming_tp_fp_array(
             shape=[], dtype=tf.int64, name="num_gt_boxes_value")
 
         # Update operations.
-        tp_op = tf.assign(tp_value, tf.concat([tp_value, tp], axis=0), validate_shape=False)
-        fp_op = tf.assign(fp_value, tf.concat([fp_value, fp], axis=0), validate_shape=False)
-        scores_op = tf.assign(scores_value, tf.concat([scores_value, scores], axis=0), validate_shape=False)
-        num_gt_boxes_op = tf.assign_add(num_gt_boxes_value, num_gt_boxes)
+        tp_op = tf.compat.v1.assign(tp_value, tf.concat([tp_value, tp], axis=0), validate_shape=False)
+        fp_op = tf.compat.v1.assign(fp_value, tf.concat([fp_value, fp], axis=0), validate_shape=False)
+        scores_op = tf.compat.v1.assign(scores_value, tf.concat([scores_value, scores], axis=0), validate_shape=False)
+        num_gt_boxes_op = tf.compat.v1.assign_add(num_gt_boxes_value, num_gt_boxes)
 
         # Value and update ops.
         values = (tp_value, fp_value, scores_value, num_gt_boxes_value)
@@ -136,7 +136,7 @@ def _average_precision(precision, recall, name=None):
     The implementation follows Pascal 2012 and ILSVRC guidelines.
     See also: https://sanchom.wordpress.com/tag/average-precision/
     """
-    with tf.name_scope(name, 'average_precision', [precision, recall]):
+    with tf.compat.v1.name_scope(name, 'average_precision', [precision, recall]):
         # Convert to float64 to decrease error on Riemann sums.
         precision = tf.cast(precision, dtype=tf.float64)
         recall = tf.cast(recall, dtype=tf.float64)
@@ -151,7 +151,7 @@ def _average_precision(precision, recall, name=None):
         # mean_pre = (precision[1:] + precision[:-1]) / 2.
         mean_pre = precision[1:]
         diff_rec = recall[1:] - recall[:-1]
-        ap = tf.reduce_sum(mean_pre * diff_rec)
+        ap = tf.reduce_sum(input_tensor=mean_pre * diff_rec)
         return ap
 
 
@@ -164,7 +164,7 @@ def _safe_div_zeros(numerator, denominator, name):
     Returns:
       0 if `denominator` <= 0, else `numerator` / `denominator`
     """
-    return tf.where(
+    return tf.compat.v1.where(
         tf.greater(denominator, 0),
         tf.divide(numerator, denominator),
         tf.zeros_like(numerator),
@@ -180,7 +180,7 @@ def _safe_div_ones(numerator, denominator, name):
     Returns:
       1 if `denominator` <= 0, else `numerator` / `denominator`
     """
-    return tf.where(
+    return tf.compat.v1.where(
         tf.greater(denominator, 0),
         tf.divide(numerator, denominator),
         tf.ones_like(numerator),
@@ -200,8 +200,8 @@ def _precision_recall(
     """
     default_name = 'precision_recall_{}'.format(class_name)
     # Sort by score.
-    with tf.name_scope(scope, default_name, [num_gt_boxes, tp, fp, scores]):
-        num_detections = tf.size(scores)
+    with tf.compat.v1.name_scope(scope, default_name, [num_gt_boxes, tp, fp, scores]):
+        num_detections = tf.size(input=scores)
         # Sort detections by score.
         scores, idxes = tf.nn.top_k(scores, k=num_detections, sorted=True)
         tp = tf.gather(tp, idxes)
@@ -214,20 +214,20 @@ def _precision_recall(
         precision = _safe_div_zeros(tp, tp + fp, 'precision')
 
         scalar_precision = tf.cond(
-            tf.equal(tf.size(precision), 0),
-            lambda: tf.constant(0, dtype=dtype),
-            lambda: precision[-1],
+            pred=tf.equal(tf.size(input=precision), 0),
+            true_fn=lambda: tf.constant(0, dtype=dtype),
+            false_fn=lambda: precision[-1],
             name="scalar_precision"
         )
 
         scalar_recall = tf.cond(
-            tf.equal(tf.size(recall), 0),
-            lambda: tf.constant(0, dtype=dtype),
-            lambda: recall[-1],
+            pred=tf.equal(tf.size(input=recall), 0),
+            true_fn=lambda: tf.constant(0, dtype=dtype),
+            false_fn=lambda: recall[-1],
             name="scalar_recall"
         )
 
-        return tf.tuple([precision, recall, scalar_precision, scalar_recall])
+        return tf.tuple(tensors=[precision, recall, scalar_precision, scalar_recall])
 
 
 def _cummax(x, reverse=False, name=None):
@@ -244,7 +244,7 @@ def _cummax(x, reverse=False, name=None):
     Returns:
     A `Tensor`. Has the same type as `x`.
     """
-    with tf.name_scope(name, "Cummax", [x]) as name:
+    with tf.compat.v1.name_scope(name, "Cummax", [x]) as name:
         # x = tf.convert_to_tensor(x, name="x")
         # Not very optimal: should directly integrate reverse into tf.scan.
         if reverse:
