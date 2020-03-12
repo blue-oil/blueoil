@@ -308,7 +308,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
 
         for c in range(ch):
             threshold_table[c, -1] = 1 \
-                if np.all(threshold_table[c, 1:-1] > threshold_table[c, :-2], axis=0) else -1
+                if np.all(threshold_table[c, 1:-1] >= threshold_table[c, :-2], axis=0) else -1
             if np.all(threshold_table[c, 1:-1] == threshold_table[c, :-2], axis=0):
                 threshold_table[c, -1] = 1
                 threshold_table[c, 0:-1] = max_th_value
