@@ -37,7 +37,3 @@ def test_cityscapes():
     samples_dict = train_dataset.feed()
     assert samples_dict["image"].shape[0] == batch_size
     assert samples_dict["mask"].shape[0] == batch_size
-
-    samples_dict = test_dataset.feed()
-    assert samples_dict["image"].shape[0] == batch_size
-    assert samples_dict["mask"].shape[0] == batch_size
