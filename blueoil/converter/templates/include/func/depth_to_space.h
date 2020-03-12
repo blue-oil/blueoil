@@ -16,7 +16,7 @@ limitations under the License.
 #ifndef DLK_FUNC_DEPTH_TO_SPACE_H_INCLUDED
 #define DLK_FUNC_DEPTH_TO_SPACE_H_INCLUDED
 
-#include "global.h"
+#include "types.h"
 #include "time_measurement.h"
 #include "tensor_view.h"
 
@@ -48,8 +48,9 @@ inline void func_DepthToSpace(const TensorView<float, MemoryLayout::NHWC>& input
   Measurement::Stop();
 }
 
-inline void func_DepthToSpace(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& input,
-    const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& output,
+template <typename T>
+void func_DepthToSpace(const TensorView<QuantizedPacked<T>, MemoryLayout::HWChBCl>& input,
+    const TensorView<QuantizedPacked<T>, MemoryLayout::HWChBCl>& output,
     T_UINT a, T_UINT b, T_UINT kernel_size, T_UINT stride) {
   Measurement::Start("DepthToSpace");
 
@@ -79,8 +80,9 @@ inline void func_DepthToSpace(const TensorView<QUANTIZED_PACKED, MemoryLayout::H
   Measurement::Stop();
 }
 
-inline void func_DepthToSpace(const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& input,
-    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
+template <typename T>
+void func_DepthToSpace(const TensorView<QuantizedPacked<T>, MemoryLayout::ChHWBCl>& input,
+    const TensorView<QuantizedPacked<T>, MemoryLayout::ChHWBCl>& output,
     T_UINT a, T_UINT b, T_UINT kernel_size, T_UINT stride) {
   Measurement::Start("DepthToSpace");
 
