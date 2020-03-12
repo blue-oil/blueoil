@@ -37,16 +37,16 @@ class TensorflowGraphRunner:
 
         with graph.as_default():
             with open(self.model_path, 'rb') as f:
-                graph_def = tf.GraphDef()
+                graph_def = tf.compat.v1.GraphDef()
                 graph_def.ParseFromString(f.read())
                 tf.import_graph_def(graph_def, name="")
-            init_op = tf.global_variables_initializer()
+            init_op = tf.compat.v1.global_variables_initializer()
             self.images_placeholder = graph.get_tensor_by_name('images_placeholder:0')
             self.output_op = graph.get_tensor_by_name('output:0')
 
-        session_config = tf.ConfigProto()
+        session_config = tf.compat.v1.ConfigProto()
         session_config.gpu_options.allow_growth = True
-        self.sess = tf.Session(graph=graph, config=session_config)
+        self.sess = tf.compat.v1.Session(graph=graph, config=session_config)
 
         self.sess.run(init_op)
 
