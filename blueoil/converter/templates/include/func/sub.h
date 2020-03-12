@@ -16,7 +16,6 @@ limitations under the License.
 #ifndef DLK_FUNC_SUB_H_INCLUDED
 #define DLK_FUNC_SUB_H_INCLUDED
 
-#include "global.h"
 #include "tensor_view.h"
 #include "func/impl/binary_op.h"
 #include "time_measurement.h"

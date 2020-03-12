@@ -16,7 +16,7 @@ limitations under the License.
 #include <cmath>
 #include <memory>
 
-#include "global.h"
+#include "types.h"
 #include "func/batch_normalization.h"
 #include "time_measurement.h"
 
