@@ -82,9 +82,9 @@ def linear_mid_tread_half_quantizer(
         if backward:
             return backward(op, grad_quantized)
         x = op.inputs[0]
-        true = tf.ones(tf.shape(x))
-        false = tf.zeros(tf.shape(x))
-        dx = tf.where((x < max_value) & (x > min_value), true, false)
+        true = tf.ones(tf.shape(input=x))
+        false = tf.zeros(tf.shape(input=x))
+        dx = tf.compat.v1.where((x < max_value) & (x > min_value), true, false)
         return grad_quantized * dx, None, None
 
     def _forward(x):

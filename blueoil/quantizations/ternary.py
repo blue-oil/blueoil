@@ -44,17 +44,17 @@ def ttq_weight_quantizer(threshold=0.05, dtype=tf.float32):
             tf.Tensor: The gradient w.r.t. threshold. It be ignore because of the threshold is constant value.
 
         """ # NOQA
-        ternary_threshold = tf.reduce_max(tf.abs(weights)) * threshold
+        ternary_threshold = tf.reduce_max(input_tensor=tf.abs(weights)) * threshold
         mask_positive = (weights > ternary_threshold)
         mask_negative = (weights < -ternary_threshold)
         mask_middle = ~mask_positive & ~mask_negative
 
-        grad_positive = tf.reduce_sum(tf.where(mask_positive, grad_quantized, tf.zeros_like(weights)))
-        grad_negative = tf.reduce_sum(tf.where(mask_negative, grad_quantized, tf.zeros_like(weights)))
+        grad_positive = tf.reduce_sum(input_tensor=tf.compat.v1.where(mask_positive, grad_quantized, tf.zeros_like(weights)))
+        grad_negative = tf.reduce_sum(input_tensor=tf.compat.v1.where(mask_negative, grad_quantized, tf.zeros_like(weights)))
 
-        positive_grad_weights = tf.where(mask_positive, grad_quantized * positive, tf.zeros_like(weights))
-        negative_grad_weights = tf.where(mask_negative, grad_quantized * negative, tf.zeros_like(weights))
-        middle_grad_weights = tf.where(mask_middle, grad_quantized, tf.zeros_like(weights))
+        positive_grad_weights = tf.compat.v1.where(mask_positive, grad_quantized * positive, tf.zeros_like(weights))
+        negative_grad_weights = tf.compat.v1.where(mask_negative, grad_quantized * negative, tf.zeros_like(weights))
+        middle_grad_weights = tf.compat.v1.where(mask_middle, grad_quantized, tf.zeros_like(weights))
 
         grad_weights = positive_grad_weights + negative_grad_weights + middle_grad_weights
 
@@ -76,12 +76,12 @@ def ttq_weight_quantizer(threshold=0.05, dtype=tf.float32):
             tf.Variable: The quantized weights.
 
         """
-        ternary_threshold = tf.reduce_max(tf.abs(weights)) * threshold
+        ternary_threshold = tf.reduce_max(input_tensor=tf.abs(weights)) * threshold
         mask_positive = (weights > ternary_threshold)
         mask_negative = (weights < -ternary_threshold)
 
-        positive_weights = tf.where(mask_positive, tf.ones_like(weights) * positive, tf.zeros_like(weights))
-        negative_weights = - tf.where(mask_negative, tf.ones_like(weights) * negative, tf.zeros_like(weights))
+        positive_weights = tf.compat.v1.where(mask_positive, tf.ones_like(weights) * positive, tf.zeros_like(weights))
+        negative_weights = - tf.compat.v1.where(mask_negative, tf.ones_like(weights) * negative, tf.zeros_like(weights))
         quantized = positive_weights + negative_weights
         return quantized
 
@@ -91,8 +91,8 @@ def ttq_weight_quantizer(threshold=0.05, dtype=tf.float32):
         # TODO(wakisaka): These vars should be constrain to be more than 0.
         # tf.get_variable's constrain argument needs tensorflow v1.4.
         # See https://stackoverflow.com/questions/33694368/what-is-the-best-way-to-implement-weight-constraints-in-tensorflow/37426800  # NOQA
-        positive = tf.get_variable("positive", initializer=1.0)
-        negative = tf.get_variable("negative", initializer=1.0)
+        positive = tf.compat.v1.get_variable("positive", initializer=1.0)
+        negative = tf.compat.v1.get_variable("negative", initializer=1.0)
         tf.compat.v1.summary.scalar("positive", positive)
         tf.compat.v1.summary.scalar("negative", negative)
         return forward(weights, positive, negative, threshold)
@@ -132,16 +132,16 @@ def twn_weight_quantizer(threshold=0.7, dtype=tf.float32):
             tf.Variable: The quantized weights.
 
         """
-        ternary_threshold = tf.reduce_sum(tf.abs(weights)) * threshold / tf.cast(tf.size(weights), tf.float32)
+        ternary_threshold = tf.reduce_sum(input_tensor=tf.abs(weights)) * threshold / tf.cast(tf.size(input=weights), tf.float32)
         mask_positive = (weights > ternary_threshold)
         mask_negative = (weights < -ternary_threshold)
         mask_p_or_n = mask_positive | mask_negative
 
-        p_or_n_weights = tf.where(mask_p_or_n, weights, tf.zeros_like(weights))
-        scaling_factor = tf.reduce_sum(tf.abs(p_or_n_weights)) / tf.reduce_sum(tf.cast(mask_p_or_n, tf.float32))
+        p_or_n_weights = tf.compat.v1.where(mask_p_or_n, weights, tf.zeros_like(weights))
+        scaling_factor = tf.reduce_sum(input_tensor=tf.abs(p_or_n_weights)) / tf.reduce_sum(input_tensor=tf.cast(mask_p_or_n, tf.float32))
 
-        positive_weights = scaling_factor * tf.where(mask_positive, tf.ones_like(weights), tf.zeros_like(weights))
-        negative_weights = - scaling_factor * tf.where(mask_negative, tf.ones_like(weights), tf.zeros_like(weights))
+        positive_weights = scaling_factor * tf.compat.v1.where(mask_positive, tf.ones_like(weights), tf.zeros_like(weights))
+        negative_weights = - scaling_factor * tf.compat.v1.where(mask_negative, tf.ones_like(weights), tf.zeros_like(weights))
 
         quantized = positive_weights + negative_weights
         return quantized
