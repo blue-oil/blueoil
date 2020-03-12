@@ -21,8 +21,8 @@ import glob
 import os.path
 
 import numpy as np
-from PIL import Image
 
+from blueoil.utils.image import load_image
 from blueoil.datasets.base import SegmentationBase
 
 
@@ -135,8 +135,8 @@ class Cityscapes(SegmentationBase):
 
     def __getitem__(self, i):
         imgs, labels = self.files_and_annotations()
-        img = np.array(Image.open(imgs[i]))
-        label = np.array(Image.open(labels[i]))
+        img = load_image(imgs[i])
+        label = load_image(labels[i])
 
         return {"image": img, "mask": label}
 
