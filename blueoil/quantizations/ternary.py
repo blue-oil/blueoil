@@ -140,8 +140,10 @@ def twn_weight_quantizer(threshold=0.7, dtype=tf.float32):
         p_or_n_weights = tf.compat.v1.where(mask_p_or_n, weights, tf.zeros_like(weights))
         scaling_factor = tf.reduce_sum(tf.abs(p_or_n_weights)) / tf.reduce_sum(tf.cast(mask_p_or_n, tf.float32))
 
-        positive_weights = scaling_factor * tf.compat.v1.where(mask_positive, tf.ones_like(weights), tf.zeros_like(weights))
-        negative_weights = - scaling_factor * tf.compat.v1.where(mask_negative, tf.ones_like(weights), tf.zeros_like(weights))
+        positive_weights = scaling_factor * \
+            tf.compat.v1.where(mask_positive, tf.ones_like(weights), tf.zeros_like(weights))
+        negative_weights = - scaling_factor * \
+            tf.compat.v1.where(mask_negative, tf.ones_like(weights), tf.zeros_like(weights))
 
         quantized = positive_weights + negative_weights
         return quantized
