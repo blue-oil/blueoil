@@ -63,7 +63,7 @@ def average_precision(
 
     average_precision = _average_precision(precision_array, recall_array)
 
-    return tf.tuple(tensors=[average_precision, precision_array, recall_array, precision, recall]), update_op
+    return tf.tuple([average_precision, precision_array, recall_array, precision, recall]), update_op
 
 
 def _streaming_tp_fp_array(
@@ -98,9 +98,9 @@ def _streaming_tp_fp_array(
             mask = tf.math.logical_or(tp, fp)
             rm_threshold = 1e-4
             mask = tf.math.logical_and(mask, tf.greater(scores, rm_threshold))
-            tp = tf.boolean_mask(tensor=tp, mask=mask)
-            fp = tf.boolean_mask(tensor=fp, mask=mask)
-            scores = tf.boolean_mask(tensor=scores, mask=mask)
+            tp = tf.boolean_mask(tp, mask)
+            fp = tf.boolean_mask(fp, mask)
+            scores = tf.boolean_mask(scores, mask)
 
         # Local variables accumlating information over batches.
         tp_value = metrics_impl.metric_variable(
@@ -151,7 +151,7 @@ def _average_precision(precision, recall, name=None):
         # mean_pre = (precision[1:] + precision[:-1]) / 2.
         mean_pre = precision[1:]
         diff_rec = recall[1:] - recall[:-1]
-        ap = tf.reduce_sum(input_tensor=mean_pre * diff_rec)
+        ap = tf.reduce_sum(mean_pre * diff_rec)
         return ap
 
 
@@ -201,7 +201,7 @@ def _precision_recall(
     default_name = 'precision_recall_{}'.format(class_name)
     # Sort by score.
     with tf.compat.v1.name_scope(scope, default_name, [num_gt_boxes, tp, fp, scores]):
-        num_detections = tf.size(input=scores)
+        num_detections = tf.size(scores)
         # Sort detections by score.
         scores, idxes = tf.nn.top_k(scores, k=num_detections, sorted=True)
         tp = tf.gather(tp, idxes)
@@ -214,20 +214,20 @@ def _precision_recall(
         precision = _safe_div_zeros(tp, tp + fp, 'precision')
 
         scalar_precision = tf.cond(
-            pred=tf.equal(tf.size(input=precision), 0),
+            tf.equal(tf.size(precision), 0),
             true_fn=lambda: tf.constant(0, dtype=dtype),
             false_fn=lambda: precision[-1],
             name="scalar_precision"
         )
 
         scalar_recall = tf.cond(
-            pred=tf.equal(tf.size(input=recall), 0),
+            tf.equal(tf.size(recall), 0),
             true_fn=lambda: tf.constant(0, dtype=dtype),
             false_fn=lambda: recall[-1],
             name="scalar_recall"
         )
 
-        return tf.tuple(tensors=[precision, recall, scalar_precision, scalar_recall])
+        return tf.tuple([precision, recall, scalar_precision, scalar_recall])
 
 
 def _cummax(x, reverse=False, name=None):

@@ -30,13 +30,13 @@ def tp_tn_fp_fn_for_each(output, labels, threshold=0.5):
 
     """
     predicted = tf.greater_equal(output, threshold)
-    gt_positive = tf.reduce_sum(input_tensor=tf.cast(labels, tf.int32), axis=0, keepdims=True)
-    gt_negative = tf.reduce_sum(input_tensor=tf.cast(tf.logical_not(labels), tf.int32), axis=0, keepdims=True)
+    gt_positive = tf.reduce_sum(tf.cast(labels, tf.int32), axis=0, keepdims=True)
+    gt_negative = tf.reduce_sum(tf.cast(tf.logical_not(labels), tf.int32), axis=0, keepdims=True)
     true_positive = tf.math.logical_and(predicted, labels)
-    true_positive = tf.reduce_sum(input_tensor=tf.cast(true_positive, tf.int32), axis=0, keepdims=True)
+    true_positive = tf.reduce_sum(tf.cast(true_positive, tf.int32), axis=0, keepdims=True)
 
     true_negative = tf.math.logical_and(tf.logical_not(predicted), tf.math.logical_not(labels))
-    true_negative = tf.reduce_sum(input_tensor=tf.cast(true_negative, tf.int32), axis=0, keepdims=True)
+    true_negative = tf.reduce_sum(tf.cast(true_negative, tf.int32), axis=0, keepdims=True)
     false_negative = gt_positive - true_positive
     false_positive = gt_negative - true_negative
 
@@ -54,14 +54,14 @@ def tp_tn_fp_fn(output, labels, threshold=0.5):
     """
     predicted = tf.greater_equal(output, threshold)
 
-    gt_positive = tf.reduce_sum(input_tensor=tf.cast(labels, tf.int32))
-    gt_negative = tf.reduce_sum(input_tensor=tf.cast(tf.logical_not(labels), tf.int32))
+    gt_positive = tf.reduce_sum(tf.cast(labels, tf.int32))
+    gt_negative = tf.reduce_sum(tf.cast(tf.logical_not(labels), tf.int32))
 
     true_positive = tf.math.logical_and(predicted, labels)
-    true_positive = tf.reduce_sum(input_tensor=tf.cast(true_positive, tf.int32))
+    true_positive = tf.reduce_sum(tf.cast(true_positive, tf.int32))
 
     true_negative = tf.math.logical_and(tf.logical_not(predicted), tf.math.logical_not(labels))
-    true_negative = tf.reduce_sum(input_tensor=tf.cast(true_negative, tf.int32))
+    true_negative = tf.reduce_sum(tf.cast(true_negative, tf.int32))
 
     false_negative = gt_positive - true_positive
 
