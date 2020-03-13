@@ -79,7 +79,7 @@ class MscocoSegmentation(SegmentationBase):
     def _image_ids(self):
         """Return all files and gt_boxes list."""
 
-        classes = [class_name for class_name in self.classes if class_name is not "__background__"]
+        classes = [class_name for class_name in self.classes if class_name != "__background__"]
         target_class_ids = self.coco.getCatIds(catNms=classes)
         image_ids = []
         for target_class_id in target_class_ids:
@@ -96,7 +96,7 @@ class MscocoSegmentation(SegmentationBase):
         width = coco_image["width"]
         label = np.zeros((height, width), dtype='uint8')
 
-        classes = [class_name for class_name in self.classes if class_name is not "__background__"]
+        classes = [class_name for class_name in self.classes if class_name != "__background__"]
         for target_class in classes:
             target_class_id = self.coco.getCatIds(catNms=[target_class])[0]
             annotation_ids = self.coco.getAnnIds(imgIds=[image_id], catIds=[target_class_id], iscrowd=None)
@@ -197,7 +197,7 @@ class MscocoObjectDetection(ObjectDetectionBase):
     @functools.lru_cache(maxsize=None)
     def _image_ids(self):
         """Return all files and gt_boxes list."""
-        classes = [class_name for class_name in self.classes if class_name is not "__background__"]
+        classes = [class_name for class_name in self.classes if class_name != "__background__"]
         target_class_ids = self.coco.getCatIds(catNms=classes)
         image_ids = []
         for target_class_id in target_class_ids:
@@ -225,7 +225,7 @@ class MscocoObjectDetection(ObjectDetectionBase):
     @functools.lru_cache(maxsize=None)
     def _gt_boxes_from_image_id(self, image_id):
         """Return gt boxes list ([[x, y, w, h, class_id]]) of a image."""
-        classes = [class_name for class_name in self.classes if class_name is not "__background__"]
+        classes = [class_name for class_name in self.classes if class_name != "__background__"]
         class_ids = set(self.coco.getCatIds(catNms=classes))
 
         boxes = []
