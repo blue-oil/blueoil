@@ -16,6 +16,7 @@ Contents
    :maxdepth: 1
 
    overview
+   limitation
    modules
    auto_script
    shared_library
