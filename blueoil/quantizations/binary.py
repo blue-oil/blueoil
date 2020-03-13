@@ -84,7 +84,7 @@ def binary_channel_wise_mean_scaling_quantizer(
 
         """
         # x kernel shape is [height, width, in_channels, out_channels]
-        scaling_factor = tf.reduce_mean(input_tensor=tf.abs(x), axis=[0, 1, 2])
+        scaling_factor = tf.reduce_mean(tf.abs(x), axis=[0, 1, 2])
         # TODO(wakisaka): tensorflow raise error.
         # tf.compat.v1.summary.histogram("scaling_factor", scaling_factor)
         quantized = tf.sign(x) * scaling_factor
@@ -159,7 +159,7 @@ def binary_mean_scaling_quantizer(
             tf.Variable: The quantized input.
 
         """
-        expectation = tf.reduce_mean(input_tensor=tf.abs(x))
+        expectation = tf.reduce_mean(tf.abs(x))
         return tf.sign(x) * expectation
 
     return _forward
