@@ -33,6 +33,11 @@ build: deps
 setup-test:
 	mkdir -p $(CWD)/tmp
 
+.PHONY: test_fixtures
+test_fixtures:
+	wget --quiet https://storage.googleapis.com/blueoil-asia-northeast1/fixtures.tar.gz
+	tar xzf fixtures.tar.gz --directory tests/
+
 .PHONY: test
 test: build
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/

@@ -121,8 +121,11 @@ RUN mkdir /.horovod && chmod 777 /.horovod
 
 FROM blueoil-base AS blueoil-dev
 
-# Copy blueoil test code to docker image
+# Copy blueoil test codes and fixtures to docker image
 COPY tests /home/blueoil/tests
+RUN wget --quiet https://storage.googleapis.com/blueoil-asia-northeast1/fixtures.tar.gz && \
+    tar xzf fixtures.tar.gz --directory /home/blueoil/tests/ && \
+    rm -f fixtures.tar.gz
 
 # Add permission for all users
 RUN chmod 777 /home/blueoil
