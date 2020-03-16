@@ -97,9 +97,9 @@ def max_unpool_with_argmax(x, argmax, ksize, data_format='NHWC'):
             channel_range = tf.range(output_shape[3], dtype=tf.int32)
             c = one_like_argmax * channel_range
             # transpose indices & reshape update values to one dimension
-            inputs_size = tf.size(inputs)
+            inputs_size = tf.size(input=inputs)
 
-            indices = tf.transpose(tf.reshape(tf.stack([b, y, x, c]), [4, inputs_size]))
+            indices = tf.transpose(a=tf.reshape(tf.stack([b, y, x, c]), [4, inputs_size]))
 
             values = tf.reshape(inputs, [inputs_size])
             ret = tf.scatter_nd(indices, values, output_shape)
@@ -110,6 +110,6 @@ def max_unpool_with_argmax(x, argmax, ksize, data_format='NHWC'):
     if data_format == "NHWC":
         return _forward(x, argmax, ksize)
     else:  # NCHW
-        x = tf.transpose(x, perm=(0, 2, 3, 1))
+        x = tf.transpose(a=x, perm=(0, 2, 3, 1))
         unpooled = _forward(x, argmax, ksize)
-        return tf.transpose(unpooled, perm=(0, 3, 1, 2))
+        return tf.transpose(a=unpooled, perm=(0, 3, 1, 2))

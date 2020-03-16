@@ -50,12 +50,13 @@ def conv2d(
     strides=1,
     padding="SAME",
     activation=tf.nn.relu,
+    kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"),
     is_debug=False,
     *args,
     **kwargs
 ):
 
-    output = tf.layers.conv2d(
+    output = tf.compat.v1.layers.conv2d(
         name=name,
         inputs=inputs,
         filters=filters,
@@ -115,7 +116,7 @@ def max_pooling2d(
     **kwargs
 ):
 
-    output = tf.layers.max_pooling2d(
+    output = tf.compat.v1.layers.max_pooling2d(
         name=name,
         inputs=inputs,
         pool_size=pool_size,
@@ -160,7 +161,7 @@ def average_pooling2d(
     **kwargs
 ):
 
-    output = tf.layers.average_pooling2d(
+    output = tf.compat.v1.layers.average_pooling2d(
         name=name,
         inputs=inputs,
         pool_size=pool_size,
