@@ -2562,7 +2562,7 @@ class DepthToSpace(Operator):
     def _check_consistency(self) -> None:
         """
         This check the following constraints:
-            1. quantized-packed data requires depth of input must be multiple of kernel_size^2 * 32
+            1. qunatized-packed data requires depth of input must be multiple of kernel_size^2 * 32
         """
         super()._check_consistency()
         if self.input_ops['input'].op_type == 'QTZ_linear_mid_tread_half' and \

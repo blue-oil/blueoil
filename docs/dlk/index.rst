@@ -16,7 +16,7 @@ Contents
    :maxdepth: 1
 
    overview
-   limitation
+   supported_ops
    modules
    auto_script
    shared_library
