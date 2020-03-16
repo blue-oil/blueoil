@@ -16,7 +16,7 @@ limitations under the License.
 #ifndef DLK_FUNC_RESIZE_NEAREST_NEIGHBOR_H_INCLUDED
 #define DLK_FUNC_RESIZE_NEAREST_NEIGHBOR_H_INCLUDED
 
-#include "global.h"
+#include "types.h"
 #include "time_measurement.h"
 #include "tensor_view.h"
 
@@ -51,8 +51,9 @@ inline void func_ResizeNearestNeighbor(const TensorView<float, MemoryLayout::NHW
 }
 
 
-inline void func_ResizeNearestNeighbor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& input,
-    const TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>& output) {
+template <typename T>
+void func_ResizeNearestNeighbor(const TensorView<QuantizedPacked<T>, MemoryLayout::HWChBCl>& input,
+    const TensorView<QuantizedPacked<T>, MemoryLayout::HWChBCl>& output) {
   Measurement::Start("ResizeNearestNeighbor");
 
   const auto in_shape = input.get_shape();
@@ -83,8 +84,9 @@ inline void func_ResizeNearestNeighbor(const TensorView<QUANTIZED_PACKED, Memory
 }
 
 
-inline void func_ResizeNearestNeighbor(const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& input,
-    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output) {
+template <typename T>
+void func_ResizeNearestNeighbor(const TensorView<QuantizedPacked<T>, MemoryLayout::ChHWBCl>& input,
+    const TensorView<QuantizedPacked<T>, MemoryLayout::ChHWBCl>& output) {
   Measurement::Start("ResizeNearestNeighbor");
 
   const auto in_shape = input.get_shape();

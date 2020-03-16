@@ -361,18 +361,18 @@ bool Network::run(float *network_input, float *network_output)
   {% if config.debug -%}
   {# Temporary: better access to the quantizer #}
 
-  {% if node.dtype.cpptype() in ['int', 'int32_t'] -%}
-  save_int32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 3.0 / 2.0 );
-  {% elif node.dtype.cpptype() in ['unsigned', 'uint32_t'] -%}
-  save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}.data(), 1.0);
-  {% elif node.dtype.cpptype() == 'QUANTIZED_PACKED' -%}
-  save_uint32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, 0, reinterpret_cast<uint32_t*>({{ node.name }}.data()), 1.0);
-  {% elif node.dtype.cpptype() == 'float' -%}
   {% for out_k in node.output_ops.keys() -%}
-  save_float32_data("debug/{{ node.name }}", {{ node.view.size_in_words_as_cpp }}, {{ loop.index0 }}, {{ node.name + '_' + out_k }}.data(), 1.0);
+  {% if node.dtype.cpptype() in ['int', 'int32_t'] -%}
+  save_int32_data("debug/{{ node.name }}_{{ out_k }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}_{{ out_k }}.data(), 3.0 / 2.0 );
+  {% elif node.dtype.cpptype() in ['unsigned', 'uint32_t'] -%}
+  save_uint32_data("debug/{{ node.name }}_{{ out_k }}", {{ node.view.size_in_words_as_cpp }}, 0, {{ node.name }}_{{ out_k }}.data(), 1.0);
+  {% elif node.dtype.cpptype() == 'QUANTIZED_PACKED' -%}
+  save_uint32_data("debug/{{ node.name }}_{{ out_k }}", {{ node.view.size_in_words_as_cpp }}, 0, reinterpret_cast<uint32_t*>({{ node.name }}_{{ out_k }}.data()), 1.0);
+  {% elif node.dtype.cpptype() == 'float' -%}
+  save_float32_data("debug/{{ node.name }}_{{ out_k }}", {{ node.view.size_in_words_as_cpp }}, {{ loop.index0 }}, {{ node.name }}_{{ out_k }}.data(), 1.0);
   {{ '\n' -}}
-  {%- endfor %}
   {% endif %}
+  {%- endfor %}
   {% endif %}
 
   {% endfor -%}

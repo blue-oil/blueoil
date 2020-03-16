@@ -23,7 +23,7 @@ limitations under the License.
 #include <sstream>
 #include <fstream>
 #include <vector>
-#include "global.h"
+#include "types.h"
 
 template <class T_SIZE, class T>
 struct Diff {

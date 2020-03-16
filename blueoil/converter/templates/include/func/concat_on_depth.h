@@ -19,7 +19,7 @@ limitations under the License.
 #include <tuple>
 #include <type_traits>
 
-#include "global.h"
+#include "types.h"
 #include "tensor_view.h"
 #include "time_measurement.h"
 

@@ -1,7 +1,7 @@
 #ifndef DLK_FUNC_PAD_H_INCLUDED
 #define DLK_FUNC_PAD_H_INCLUDED
 
-#include "global.h"
+#include "types.h"
 #include "tensor_view.h"
 
 void func_Pad(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
