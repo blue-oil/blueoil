@@ -28,17 +28,25 @@ def batch_norm(
         *args,
         **kwargs
 ):
+    if "data_format" in kwargs:
+        axis = -1 if kwargs["data_format"] == 'NHWC' else 1
+        kwargs.pop("data_format")
+    else:
+        axis = -1
 
-    output = tf.contrib.layers.batch_norm(
+    output = tf.compat.v1.layers.batch_normalization(
         inputs,
-        updates_collections=None,
-        is_training=is_training,
-        scope=name,
-        activation_fn=activation,
+        axis=axis,
+        training=is_training,
+        name=name,
         scale=scale,
         *args,
         **kwargs,
     )
+
+    if activation:
+        output = activation(output)
+
     return output
 
 
