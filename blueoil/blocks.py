@@ -94,7 +94,7 @@ def lmnet_block(
 
         if use_batch_norm:
             axis = -1 if data_format == 'channels_last' else 1
-            batch_normed = tf.compat.v1.layers.batch_normalization(conv, axis=axis, training=is_training)
+            batch_normed = tf.keras.layers.BatchNormalization(axis=axis)(conv, training=is_training)
         else:
             batch_normed = conv
 
