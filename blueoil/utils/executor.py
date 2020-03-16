@@ -88,7 +88,7 @@ def search_restore_filename(checkpoints_dir):
 
 
 def convert_variables_to_constants(sess, output_node_names=["output"]):
-    minimal_graph_def = tf.graph_util.convert_variables_to_constants(
+    minimal_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
         sess,
         sess.graph.as_graph_def(add_shapes=True),
         output_node_names,
@@ -114,7 +114,7 @@ def prepare_metrics(metrics_ops_dict):
         metrics_placeholders: list of metrics placeholder.
 
     """
-    with tf.name_scope("metrics"):
+    with tf.compat.v1.name_scope("metrics"):
         metrics_placeholders = []
         metrics_summaries = []
         for (metrics_key, metrics_op) in metrics_ops_dict.items():
@@ -125,6 +125,6 @@ def prepare_metrics(metrics_ops_dict):
             metrics_placeholders.append(metrics_placeholder)
             metrics_summaries.append(summary)
 
-        metrics_summary_op = tf.summary.merge(metrics_summaries)
+        metrics_summary_op = tf.compat.v1.summary.merge(metrics_summaries)
 
     return metrics_summary_op, metrics_placeholders
