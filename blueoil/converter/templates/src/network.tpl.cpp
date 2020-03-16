@@ -280,6 +280,7 @@ bool Network::init()
   {% endfor -%}
 #endif // RUN_ON_FPGA
 
+// Initialize OpenMP Thread-pool
 #pragma omp parallel
   std::cout << std::flush;
 
