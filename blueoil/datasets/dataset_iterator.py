@@ -251,13 +251,9 @@ class _TFDSReader:
             tf_dataset = tf_dataset.map(map_func=_generate_tfds_map_func(dataset),
                                         num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-<<<<<<< HEAD
-        iterator = tf.compat.v1.data.make_initializable_iterator(tf_dataset)
-=======
         tf_dataset = tf_dataset.batch(dataset.batch_size) \
                                .prefetch(tf.data.experimental.AUTOTUNE)
-        iterator = tf.data.make_initializable_iterator(tf_dataset)
->>>>>>> settings to use tfds_preprocessors and augmentors
+        iterator = tf.compat.v1.data.make_initializable_iterator(tf_dataset)
 
         self.dataset = dataset
         if local_rank != -1:
