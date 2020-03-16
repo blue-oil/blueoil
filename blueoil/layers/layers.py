@@ -50,7 +50,8 @@ def conv2d(
     strides=1,
     padding="SAME",
     activation=tf.nn.relu,
-    kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"),
+    kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(
+        scale=1.0, mode="fan_avg", distribution="uniform"),
     is_debug=False,
     *args,
     **kwargs
