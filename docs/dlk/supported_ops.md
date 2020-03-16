@@ -98,3 +98,6 @@
 - **Struct**
     - **TENSOR, t**
     - **GRAPH, g**
+- **Struct vectors**
+    - **TENSORS**
+    - **GRAPHS**
