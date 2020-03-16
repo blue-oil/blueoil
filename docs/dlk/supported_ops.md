@@ -2,7 +2,7 @@
 ## Converter Ops with Limitations
 ### Base Limitations
 - **Output**
-    - Require each output channel size <= `1024`
+    - Requires each output channel size <= `1024`
 
 ### Blueoil Customized Ops
 - **QTZ_binary_channel_wise_mean_scaling**
@@ -10,6 +10,8 @@
 - **QTZ_linear_mid_tread_half**
 
 ### Tensorflow Supported with Limitations
+- **[tf.concat](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/concat)**
+    - Do not support concat of mixed data types (e.g., quantized values and float values)
 - **[tf.layers.Conv2D](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Conv2D)**
     - Support only convolution `2D`
     - Requires kernel size = `1x1` or `3x3`
@@ -37,7 +39,6 @@
 ###  Tensorflow Supported without Limitations
 - **[tf.math.add](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/math/add)**
 - **[tf.cast](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/cast)**
-- **[tf.concat](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/concat)**
 - **[tf.gather](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/gather)**
 - **[tf.identity](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/identity)**
 - **[tf.nn.leaky_relu](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/leaky_relu)**
@@ -56,6 +57,7 @@
  ### Not supported operators 
  TensorFlow importer cannot convert these operator node.
  - **[tf.layers.batch_normalization](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/batch_normalization)**
+ - **[tf.layers.conv2d_transpose](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/conv2d_transpose)**
  - **[tf.layers.Dropout](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Dropout)**
  - **[tf.layers.Flatten](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Flatten)**
   - **Gemm**
