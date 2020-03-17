@@ -1,4 +1,4 @@
-#include "global.h"
+#include "types.h"
 #include <string>
 #include <fstream>
 

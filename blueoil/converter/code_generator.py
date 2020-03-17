@@ -26,7 +26,7 @@ from blueoil.converter.core.operators import Conv
 from blueoil.converter.template import Template
 
 
-class CodeGenerater(object):
+class CodeGenerator(object):
 
     def __init__(self,
                  graph: Graph,

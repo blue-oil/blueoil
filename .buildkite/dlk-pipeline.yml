@@ -1,4 +1,15 @@
 steps:
+  - command: "make build"
+    label: "docker build in normal agent"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+    concurrency: 1
+    concurrency_group: "docker/normal/${BUILDKITE_COMMIT}"
+  - wait
   - command: "make test-dlk-main"
     label: "dlk: main"
     agents:

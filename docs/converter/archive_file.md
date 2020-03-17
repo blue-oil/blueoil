@@ -26,7 +26,7 @@ Here we show the example that generates binary behaves same than `lm_x86` for cl
 
 #### generate project (common process)
 ```
->> PYTHONPATH=python/dlk python python/dlk/scripts/generate_project.py -i examples/classification/lmnet_quantize_cifar10/minimal_graph_with_shape.pb -o ./ -p cls -hq
+>> python blueoil/converter/generate_project.py -i examples/classification/lmnet_quantize_cifar10/minimal_graph_with_shape.pb -o ./ -p cls -hq
 >> cd cls.prj
 ```
 

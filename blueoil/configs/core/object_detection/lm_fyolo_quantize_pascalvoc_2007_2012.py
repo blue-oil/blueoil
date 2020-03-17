@@ -99,9 +99,9 @@ POST_PROCESSOR = Sequence([
 ])
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
+NETWORK.LEARNING_RATE_FUNC = tf.compat.v1.train.piecewise_constant
 # In the origianl yolov2 Paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
 # Train data num per epoch is 16551
 step_per_epoch = 16551 // BATCH_SIZE

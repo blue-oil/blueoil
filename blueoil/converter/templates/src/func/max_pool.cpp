@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 #include <cassert>
 #include <cstring>
-#include "global.h"
+#include "types.h"
 #include "func/max_pool.h"
 #include "time_measurement.h"
 

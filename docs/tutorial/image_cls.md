@@ -51,11 +51,12 @@ The CIFAR-10 dataset consists of 60,000 32x32 color images split into 10 classe
 Generate your model configuration file interactively by running the `blueoil init` command.
 
     $ docker run --rm -it \
+        -v $(pwd)/cifar:/home/blueoil/cifar \
         -v $(pwd)/config:/home/blueoil/config \
         blueoil_$(id -un):{TAG} \
-        blueoil init -o config/my_config.yml
+        blueoil init -o config/cifar10_test.py
 
-The `{TAG}` value must be set to a value like `v0.15.0-15-gf493ec9` that can be obtained with the `docker images` command.
+The `{TAG}` value must be set to a value like `v0.20.0-11-gf1e07c8` that can be obtained with the `docker images` command.
 This value depends on your environment.
 
 Below is an example configuration.
@@ -67,7 +68,7 @@ Below is an example configuration.
   choose network:  LmnetV1Quantize
   choose dataset format:  Caltech101
   training dataset path:  /home/blueoil/cifar/train/
-  set validataion dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  yes
+  set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.):  yes
   validataion dataset path:  /home/blueoil/cifar/test/
   batch size (integer):  64
   image size (integer x integer):  32x32
@@ -75,10 +76,10 @@ Below is an example configuration.
   select optimizer:  Momentum
   initial learning rate:  0.001
   choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
-  enable data augmentation: Yes
+  enable data augmentation?  (Y/n):  Yes
   Please choose augmentors:  done (5 selections)
 -> select Brightness, Color, FlipLeftRight, Hue, SSDRandomCrop
-  apply quantization at the first layer?  no 
+  apply quantization at the first layer? (Y/n):  no 
 ```
 
 - Model name: (Any)
@@ -98,7 +99,7 @@ Below is an example configuration.
 - Augmentors: (Random)
 - Quantization on the first layer: No
 
-If configuration finishes, the configuration file is generated in the `my_config.yml` under config directory.
+If configuration finishes, the configuration file is generated in the `cifar10_test.py` under config directory.
 
 ## Train a neural network
 
@@ -110,7 +111,7 @@ Train your model by running `blueoil train` with model configuration.
         -v $(pwd)/config:/home/blueoil/config \
         -v $(pwd)/saved:/home/blueoil/saved \
         blueoil_$(id -un):{TAG} \
-        blueoil train -c config/my_config.yml
+        blueoil train -c config/cifar10_test.py
 
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
 Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
