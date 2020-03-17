@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import numpy as np
+import tensorflow as tf
 import pytest
 
 from blueoil.tfds_augmentor import (
