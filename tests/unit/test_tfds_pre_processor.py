@@ -42,7 +42,7 @@ def test_tf_resize_with_gt_boxes():
     IMAGE_SIZE = [32, 32]
     NUM_GT_BOXES = 10
     orig_image = tf.zeros((1024, 1024, 3), dtype=tf.dtypes.uint8)
-    gt_boxes = tf.zeros((5, NUM_GT_BOXES))
+    gt_boxes = tf.zeros((NUM_GT_BOXES, 5))
 
     pre_processor = TFResizeWithGtBoxes(IMAGE_SIZE)
     resized = pre_processor(image=orig_image, gt_boxes=gt_boxes)
@@ -56,7 +56,7 @@ def test_tf_resize_with_gt_boxes():
     assert resized_image.shape[2] == 3
 
     assert isinstance(resized_gt_boxes, np.ndarray)
-    assert resized_gt_boxes.shape == (5, NUM_GT_BOXES)
+    assert resized_gt_boxes.shape == (NUM_GT_BOXES, 5)
 
 if __name__ == '__main__':
     tf.reset_default_graph()
