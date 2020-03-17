@@ -25,7 +25,7 @@
 - **[tf.nn.depth_to_space](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/depth_to_space)**
     - Requires `depth of input = multiple of kernel_size^2 * 32`.
 - **[tf.nn.fused_batch_norm](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/fused_batch_norm)**
-    - Currently this function is only used by threshold skipping optimization pass for recursively calculating thresholds of the skipping patterns.
+    - `scale`, `offset`, `mean`, `variance`, and `epsilon` must be constants or computable from constants.
 - **[tf.linalg.matmul](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/linalg/matmul)**
     - **Do not** support `scalar`.
 - **[tf.layers.max_pooling2d](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/max_pooling2d)**
