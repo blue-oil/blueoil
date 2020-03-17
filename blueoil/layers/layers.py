@@ -99,14 +99,15 @@ def fully_connected(
         flattened_shape = reduce(lambda x, y: x*y, shape[1:])  # shp[1].value * shp[2].value * shp[3].value
         inputs = tf.reshape(inputs, [-1, flattened_shape], name=name + "_reshape")
 
-    output = tf.contrib.layers.fully_connected(
-        scope=name,
-        inputs=inputs,
-        num_outputs=filters,
-        activation_fn=activation,
+    output = tf.keras.layers.Dense(
+        filters,
+        activation=activation,
+        name=name,
+        kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(
+            scale=1.0, mode="fan_avg", distribution="uniform"),
         *args,
         **kwargs,
-    )
+    )(inputs)
 
     if is_debug:
         tf.compat.v1.summary.histogram(name + "/output", output)
