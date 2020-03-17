@@ -125,10 +125,7 @@ def make_all(project_dir, output_dir):
 
     # Make each target and move output files
     for target, output in make_list:
-        if target in {"lm_x86", "lm_x86_avx", "lm_arm", "lm_fpga", "lm_aarch64"}:
-            os.environ["CXXFLAGS"] = cxxflags_cache + " -DFUNC_TIME_MEASUREMENT"
-        else:
-            os.environ["CXXFLAGS"] = cxxflags_cache
+        os.environ["CXXFLAGS"] = cxxflags_cache
 
         subprocess.run(("make", "clean", "--quiet"))
         subprocess.run(("make", target, "-j4", "--quiet"))
