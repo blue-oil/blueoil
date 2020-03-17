@@ -50,13 +50,13 @@
 - **[tf.nn.softmax](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/softmax)**
 - **[tf.transpose](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/transpose)**
 
- ### Unsupported operators 
+### Unsupported operators 
 TensorFlow importer cannot convert these operator node.
  - **[tf.layers.batch_normalization](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/batch_normalization)**
  - **[tf.layers.conv2d_transpose](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/conv2d_transpose)**
  - **[tf.layers.Dropout](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Dropout)**
  - **[tf.layers.Flatten](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Flatten)**
- 
+
 These operators are not supported by runtime.
 -  **[tf.cast](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/cast)**
 - **[tf.gather](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/gather)**
