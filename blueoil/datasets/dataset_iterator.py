@@ -272,7 +272,7 @@ class _TFDSReader:
 
     def read(self):
         """Return batch size data."""
-        if hasattr(dataset, 'tfds_pre_processor') or hasattr(dataset, 'tfds_augmentor'):
+        if hasattr(self.dataset, 'tfds_pre_processor') or hasattr(self.dataset, 'tfds_augmentor'):
             return self.session.run(self.next_batch)
 
         # if normal pre_processor is defined, use this
