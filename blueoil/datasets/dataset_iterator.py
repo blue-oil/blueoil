@@ -247,7 +247,7 @@ class _TFDSReader:
 
     def __init__(self, dataset, local_rank):
         tf_dataset = dataset.tf_dataset.shuffle(1024).repeat()
-        if dataset.pre_processor is None:
+        if hasattr(dataset, 'tfds_pre_processor') or hasattr(dataset, 'tfds_augmentor'):
             tf_dataset = tf_dataset.map(map_func=_generate_tfds_map_func(dataset),
                                         num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
@@ -272,7 +272,7 @@ class _TFDSReader:
 
     def read(self):
         """Return batch size data."""
-        if self.dataset.pre_processor is None:
+        if hasattr(dataset, 'tfds_pre_processor') or hasattr(dataset, 'tfds_augmentor'):
             return self.session.run(self.next_batch)
 
         # if normal pre_processor is defined, use this
