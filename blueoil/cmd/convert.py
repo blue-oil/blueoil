@@ -121,12 +121,8 @@ def make_all(project_dir, output_dir):
     # Change current directory to project directory
     os.chdir(project_dir)
 
-    cxxflags_cache = os.getenv("CXXFLAGS", "")
-
     # Make each target and move output files
     for target, output in make_list:
-        os.environ["CXXFLAGS"] = cxxflags_cache
-
         subprocess.run(("make", "clean", "--quiet"))
         subprocess.run(("make", target, "-j4", "--quiet"))
         strip_binary(output)
