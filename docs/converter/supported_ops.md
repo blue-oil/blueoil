@@ -15,15 +15,16 @@
     - **Do not** support `kernel depth = 1`.
 - **[tf.concat](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/concat)**
     - **Do not** support concat of mixed data types (e.g., quantized values and float values).
+    - If inputs are quantized, requires `Each input channel size = multiple of 32`.
 - **[tf.layers.Conv2D](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Conv2D)**
     - Support only convolution `2D`.
-    - Requires `kernel size = 1x1` or `3x3`.
-    - Requires `Input/output channel size = multiple of 32`, otherwise zero padding is used.
     - **Do not** support transpose.
+    - Requires `kernel size = 1x1` or `3x3` or `5x5`.
+    - Requires `Input channel size = multiple of 32`, otherwise zero padding is used.
+    - If output is quantized by later operations, `Output channel size = multiple of 32`, otherwise output channel size is free from limitation (but performance will be worse).
 - **[tf.nn.depth_to_space](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/depth_to_space)**
     - Requires `depth of input = multiple of kernel_size^2 * 32`.
 - **[tf.nn.fused_batch_norm](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/fused_batch_norm)**
-    - Batch normalization just before quantization is folded with quantization.
     - Currently this function is only used by threshold skipping optimization pass for recursively calculating thresholds of the skipping patterns.
 - **[tf.linalg.matmul](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/linalg/matmul)**
     - **Do not** support `scalar`.
@@ -39,33 +40,39 @@
 
 ###  Tensorflow Supported without Limitations
 - **[tf.math.add](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/math/add)**
-- **[tf.cast](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/cast)**
-- **[tf.gather](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/gather)**
 - **[tf.identity](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/identity)**
 - **[tf.nn.leaky_relu](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/leaky_relu)**
 - **[tf.math.maximum](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/math/maximum)**
 - **[tf.math.minimum](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/math/minimum)**
 - **[tf.math.multiply](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/math/multiply)**
-- **[tf.keras.backend.prod](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/keras/backend/prod)**
 - **[tf.nn.relu](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/relu)**
 - **[tf.reshape](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/reshape)**
-- **[tf.shape](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/shape)**
 - **[tf.nn.softmax](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/softmax)**
-- **[tf.strided_slice](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/strided_slice)**
 - **[tf.transpose](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/transpose)**
-- **[tf.unique](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/unique)**
 
  ### Unsupported operators 
- TensorFlow importer cannot convert these operator node.
+TensorFlow importer cannot convert these operator node.
  - **[tf.layers.batch_normalization](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/batch_normalization)**
  - **[tf.layers.conv2d_transpose](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/conv2d_transpose)**
  - **[tf.layers.Dropout](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Dropout)**
  - **[tf.layers.Flatten](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Flatten)**
+ 
+These operators are not supported by runtime.
+-  **[tf.cast](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/cast)**
+- **[tf.gather](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/gather)**
+- **[tf.keras.backend.prod](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/keras/backend/prod)**
+- **[tf.shape](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/shape)**
+- **[tf.strided_slice](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/strided_slice)**
+- **[tf.unique](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/unique)**
 
 ## Converter Data Types
 ### Supported Data Types
 - **Floating point**
     - [tf.float32](https://www.tensorflow.org/api_docs/python/tf#float32): 32-bit single-precision floating-point.
+
+### Unsupported Data Types
+- **Floating point**
+    - [tf.float16](https://www.tensorflow.org/api_docs/python/tf#float16): 16-bit half-precision floating-point.
     - [tf.float64](https://www.tensorflow.org/api_docs/python/tf#float64): 64-bit double-precision floating-point.
 - **Integer**
     - [tf.int8](https://www.tensorflow.org/api_docs/python/tf#int8): 8-bit signed integer.
@@ -81,10 +88,6 @@
     - [tf.string](https://www.tensorflow.org/api_docs/python/tf#string): String.
 - **Boolean**
     - [tf.bool](https://www.tensorflow.org/api_docs/python/tf#bool): Boolean.
-
-### Unsupported Data Types
-- **Floating point**
-    - [tf.float16](https://www.tensorflow.org/api_docs/python/tf#float16): 16-bit half-precision floating-point.
 - **Complex Numbers**
     - [tf.complex64](https://www.tensorflow.org/api_docs/python/tf#complex64): 64-bit single-precision complex.
     - [tf.complex128](https://www.tensorflow.org/api_docs/python/tf#complex128): 128-bit single-precision complex.
