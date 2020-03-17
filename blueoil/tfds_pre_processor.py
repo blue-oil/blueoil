@@ -35,7 +35,7 @@ def tf_resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
         return image, None
 
     scale = [height / orig_height, width / orig_width]
-    if len(gt_boxes) > 0:
+    if gt_boxes.get_sshape().as_list()[0] > 0:
         gt_boxes = tf.stack([
             gt_boxes[:, 0] * scale[1],
             gt_boxes[:, 1] * scale[0],
