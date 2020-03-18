@@ -1,5 +1,5 @@
 # Supported Ops
-## Converter Ops with Limitations
+## Ops with Limitations
 ### Base Limitations
 - **Output**
     - Requires each output channel size <= `1024`.
@@ -9,36 +9,38 @@
 - **QTZ_binary_mean_scaling**
 - **QTZ_linear_mid_tread_half**
 
-### Tensorflow Supported with Limitations
+### Tensorflow Ops with Limitations
 - **[tf.layers.AveragePooling2D](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/AveragePooling2D)**
     - Currently, support only `2D`.
-    - **Do not** support `kernel depth = 1`.
+    - Do ***not*** support `kernel depth = 1`.
 - **[tf.concat](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/concat)**
-    - **Do not** support concat of mixed data types (e.g., quantized values and float values).
+    - Do ***not*** support concat of mixed data types (e.g., quantized values and float values).
+    - All tensor channels must be equal. 
     - If inputs are quantized, requires `Each input channel size = multiple of 32`.
 - **[tf.layers.Conv2D](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Conv2D)**
     - Support only convolution `2D`.
-    - **Do not** support transpose.
+    - Do ***not*** support transpose.
     - Requires `kernel size = 1x1` or `3x3` or `5x5`.
+        - Accelerator is not supported `kernel size = 5x5` (CPU supported only).
     - Requires `Input channel size = multiple of 32`, otherwise zero padding is used.
     - If output is quantized by later operations, `Output channel size = multiple of 32`, otherwise output channel size is free from limitation (but performance will be worse).
 - **[tf.nn.depth_to_space](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/depth_to_space)**
-    - Requires `depth of input = multiple of kernel_size^2 * 32`.
+    - Requires `depth of input = multiple of block_size^2 * 32`.
 - **[tf.nn.fused_batch_norm](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/fused_batch_norm)**
     - `scale`, `offset`, `mean`, `variance`, and `epsilon` must be constants or computable from constants.
 - **[tf.linalg.matmul](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/linalg/matmul)**
-    - **Do not** support `scalar`.
+    - Do ***not*** support `scalar`.
 - **[tf.layers.max_pooling2d](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/max_pooling2d)**
      - Currently, support only `2D`.
 - **[tf.pad](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/pad)**
     - Supports only `channel-wise paddings`.
 - **[tf.nn.space_to_depth](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/space_to_depth)**
-    - Requires `output depth = (multiple of kernel_size^2 * 32)` or `(kernel_size^2 * {8, 16})`.
+    - Requires `output depth = (multiple of block_size^2 * 32)` or `(block_size^2 * {8, 16})`.
 - **[tf.split](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/split)**
     - Currently, all of output tensors must have `same` shape.
     - For quantized tensor, requires `number of channel of each output tensor = multiple of 32`.
 
-###  Tensorflow Supported without Limitations
+###  Tensorflow Ops without Limitations
 - **[tf.math.add](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/math/add)**
 - **[tf.identity](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/identity)**
 - **[tf.nn.leaky_relu](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/leaky_relu)**
@@ -50,44 +52,7 @@
 - **[tf.nn.softmax](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/softmax)**
 - **[tf.transpose](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/transpose)**
 
-### Unsupported operators 
-TensorFlow importer cannot convert these operator node.
- - **[tf.layers.batch_normalization](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/batch_normalization)**
- - **[tf.layers.conv2d_transpose](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/conv2d_transpose)**
- - **[tf.layers.Dropout](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Dropout)**
- - **[tf.layers.Flatten](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Flatten)**
 
-These operators are not supported by runtime.
--  **[tf.cast](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/cast)**
-- **[tf.gather](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/gather)**
-- **[tf.keras.backend.prod](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/keras/backend/prod)**
-- **[tf.shape](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/shape)**
-- **[tf.strided_slice](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/strided_slice)**
-- **[tf.unique](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/unique)**
-
-## Converter Data Types
-### Supported Data Types
+## Data Types
 - **Floating point**
     - [tf.float32](https://www.tensorflow.org/api_docs/python/tf#float32): 32-bit single-precision floating-point.
-
-### Unsupported Data Types
-- **Floating point**
-    - [tf.float16](https://www.tensorflow.org/api_docs/python/tf#float16): 16-bit half-precision floating-point.
-    - [tf.float64](https://www.tensorflow.org/api_docs/python/tf#float64): 64-bit double-precision floating-point.
-- **Integer**
-    - [tf.int8](https://www.tensorflow.org/api_docs/python/tf#int8): 8-bit signed integer.
-    - [tf.int16](https://www.tensorflow.org/api_docs/python/tf#int16): 16-bit signed integer.
-    - [tf.int32](https://www.tensorflow.org/api_docs/python/tf#int32): 32-bit signed integer.
-    - [tf.int64](https://www.tensorflow.org/api_docs/python/tf#int64): 64-bit signed integer.
-- **Unsigned integers**
-    - [tf.uint8](https://www.tensorflow.org/api_docs/python/tf#uint8): 8-bit unsigned integer.
-    - [tf.uint16](https://www.tensorflow.org/api_docs/python/tf#uint16): 16-bit unsigned integer.
-    - [tf.uint32](https://www.tensorflow.org/api_docs/python/tf#uint32): 32-bit unsigned integer.
-    - [tf.uint64](https://www.tensorflow.org/api_docs/python/tf#uint64): 64-bit unsigned integer.
-- **String**
-    - [tf.string](https://www.tensorflow.org/api_docs/python/tf#string): String.
-- **Boolean**
-    - [tf.bool](https://www.tensorflow.org/api_docs/python/tf#bool): Boolean.
-- **Complex Numbers**
-    - [tf.complex64](https://www.tensorflow.org/api_docs/python/tf#complex64): 64-bit single-precision complex.
-    - [tf.complex128](https://www.tensorflow.org/api_docs/python/tf#complex128): 128-bit single-precision complex.
