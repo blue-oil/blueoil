@@ -16,7 +16,7 @@ limitations under the License.
 #ifndef DLK_FUNC_AVERAGE_POOL_H_INCLUDED
 #define DLK_FUNC_AVERAGE_POOL_H_INCLUDED
 
-#include "global.h"
+#include "types.h"
 #include "tensor_view.h"
 
 struct avg_pooling_parameters {

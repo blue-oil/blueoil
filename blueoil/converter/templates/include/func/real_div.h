@@ -16,7 +16,6 @@ limitations under the License.
 #ifndef DLK_FUNC_REAL_DIV_H
 #define DLK_FUNC_REAL_DIV_H
 
-#include "global.h"
 #include "tensor_view.h"
 #include "func/impl/binary_op.h"
 #include "time_measurement.h"

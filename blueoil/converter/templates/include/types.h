@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <climits>
 #include <type_traits>
 #include "func/impl/pop_count.h"
 

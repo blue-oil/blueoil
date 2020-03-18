@@ -16,7 +16,7 @@ limitations under the License.
 #ifndef DLK_FUNC_BATCH_NORMALIZATION_H_INCLUDED
 #define DLK_FUNC_BATCH_NORMALIZATION_H_INCLUDED
 
-#include "global.h"
+#include "types.h"
 #include "tensor_view.h"
 
 void func_BatchNormalizationOptimized(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
