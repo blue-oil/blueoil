@@ -116,19 +116,19 @@ clean:
 	-$(RM) $(OBJ)
 
 lm_x86:           CXX = g++
-lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -DUSE_PNG -pthread -g
+lm_x86:           FLAGS += $(INCLUDES) -O3 -std=c++14 -DUSE_PNG -pthread -g -DFUNC_TIME_MEASUREMENT
 lm_x86:           CXXFLAGS +=
 
 lm_x86_avx:       CXX = g++
-lm_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -mavx2 -mfma -DUSE_AVX -DUSE_PNG -pthread -g -fopenmp
+lm_x86_avx:       FLAGS += $(INCLUDES) -O3 -std=c++14 -mavx2 -mfma -DUSE_AVX -DUSE_PNG -pthread -g -fopenmp -DFUNC_TIME_MEASUREMENT
 lm_x86_avx:       CXXFLAGS +=
 
 lm_aarch64:       CXX = aarch64-linux-gnu-g++
-lm_aarch64:       FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -pthread -g -fopenmp
+lm_aarch64:       FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -pthread -g -fopenmp -DFUNC_TIME_MEASUREMENT
 lm_aarch64:       CXXFLAGS +=
 
 lm_arm:           CXX = arm-linux-gnueabihf-g++
-lm_arm:           FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp
+lm_arm:           FLAGS += $(INCLUDES) -std=c++14 -O3 -DUSE_NEON -DUSE_PNG -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -s -pthread -g -fopenmp -DFUNC_TIME_MEASUREMENT
 lm_arm:           CXXFLAGS +=
 
 lm_fpga:          CXX = arm-linux-gnueabihf-g++
