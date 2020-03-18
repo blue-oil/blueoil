@@ -276,15 +276,9 @@ def start_training(config):
                     print("train_validation_saving_step", train_validation_saving_step)
 
                     samples_dict = train_validation_saving_dataset.feed()
+                    # TODO: temporary solution, update when supporting network_multi
                     images = samples_dict["image"]
-                    if config.TASK == Tasks.OBJECT_DETECTION:
-                        labels = samples_dict["gt_boxes"]
-                    elif config.TASK == Tasks.SEMANTIC_SEGMENTATION:
-                        labels = samples_dict["mask"]
-                    elif config.TASK == Tasks.KEYPOINT_DETECTION:
-                        labels = samples_dict["heatmap"]
-                    else:
-                        labels = samples_dict["label"]
+                    labels = samples_dict[labels_name]
                     feed_dict = {
                         is_training_placeholder: False,
                         images_placeholder: images,
