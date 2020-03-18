@@ -55,7 +55,7 @@ def _process_one_data(i):
 
 def _concat_data(sample_list):
     samples_dict = {}
-    for key in sample_list[0].keys():
+    for key in sample_list[0]:
         samples_dict[key] = np.stack([sample[key] for sample in sample_list], axis=0)
     return samples_dict
 
@@ -183,9 +183,7 @@ class _TFDSReader:
 
         iterator = tf.compat.v1.data.make_initializable_iterator(tf_dataset)
         self.dataset = dataset
-        self.session = tf.Session()
         if local_rank != -1:
-            self.session = tf.Session()
             # For distributed training
             session_config = tf.compat.v1.ConfigProto(
                 gpu_options=tf.compat.v1.GPUOptions(
@@ -204,7 +202,7 @@ class _TFDSReader:
         batch = self.session.run(self.next_batch)
         result = []
         for i in range(batch["image"].shape[0]):
-            sample = {key: batch[key][i] for key in batch.keys()}
+            sample = {key: batch[key][i] for key in batch}
             sample = _apply_augmentations(self.dataset, sample)
             result.append(sample)
         return _concat_data(result)

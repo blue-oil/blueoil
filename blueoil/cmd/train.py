@@ -90,6 +90,13 @@ def start_training(config):
     validation_dataset = setup_dataset(config, "validation", rank, local_rank)
     print("validation dataset num:", validation_dataset.num_per_epoch)
 
+    # TODO: temporary solution, update when supporting network_multi
+    labels_names = {Tasks.OBJECT_DETECTION: "gt_boxes",
+                    Tasks.SEMANTIC_SEGMENTATION: "mask",
+                    Tasks.KEYPOINT_DETECTION: "heatmap",
+                    Tasks.CLASSIFICATION: "label"}
+    labels_name = labels_names[config.TASK]
+
     graph = tf.Graph()
     with graph.as_default():
         if config.TASK == Tasks.OBJECT_DETECTION:
@@ -218,17 +225,9 @@ def start_training(config):
     for step in range(last_step, max_steps):
 
         samples_dict = train_dataset.feed()
-
         # TODO: temporary solution, update when supporting network_multi
         images = samples_dict["image"]
-        if config.TASK == Tasks.OBJECT_DETECTION:
-            labels = samples_dict["gt_boxes"]
-        elif config.TASK == Tasks.SEMANTIC_SEGMENTATION:
-            labels = samples_dict["mask"]
-        elif config.TASK == Tasks.KEYPOINT_DETECTION:
-            labels = samples_dict["heatmap"]
-        else:
-            labels = samples_dict["label"]
+        labels = samples_dict[labels_name]
 
         feed_dict = {
             is_training_placeholder: True,
@@ -340,15 +339,9 @@ def start_training(config):
             for test_step in range(test_step_size):
 
                 samples_dict = validation_dataset.feed()
+                # TODO: temporary solution, update when supporting network_multi
                 images = samples_dict["image"]
-                if config.TASK == Tasks.OBJECT_DETECTION:
-                    labels = samples_dict["gt_boxes"]
-                elif config.TASK == Tasks.SEMANTIC_SEGMENTATION:
-                    labels = samples_dict["mask"]
-                elif config.TASK == Tasks.KEYPOINT_DETECTION:
-                    labels = samples_dict["heatmap"]
-                else:
-                    labels = samples_dict["label"]
+                labels = samples_dict[labels_name]
 
                 feed_dict = {
                     is_training_placeholder: False,
