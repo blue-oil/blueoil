@@ -123,6 +123,7 @@ openimagesv4_object_detection_has_validation = {
     }
 }
 
+
 @pytest.mark.parametrize(
     "config", [
         openimagesv4_object_detection,
