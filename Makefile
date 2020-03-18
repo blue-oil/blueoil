@@ -10,6 +10,20 @@ deps:
 	# Update dependencies
 	git submodule update --init --recursive
 
+.PHONY: install
+install: deps
+	pip install -e .[cpu,tests,docs]
+	pip install pycocotools==2.0.0
+
+.PHONY: install-gpu
+install-gpu: install
+	pip install -e .[gpu]
+	pip install -e .[dist]
+
+.PHONY: lint
+lint:
+	flake8 ./blueoil ./tests --exclude=templates,converter
+
 .PHONY: build
 build: deps
 	# Build docker image
@@ -46,7 +60,7 @@ test-lmnet: test-blueoil-pep8 test-unit-main
 test-blueoil-pep8: build
 	# Check blueoil pep8
 	# FIXME: blueoil/templates and blueoil/converter have a lot of errors with flake8
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil --exclude=templates,converter"
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil ./tests --exclude=templates,converter"
 
 .PHONY: test-unit-main
 test-unit-main: build

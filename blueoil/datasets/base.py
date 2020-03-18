@@ -259,8 +259,8 @@ class StoragePathCustomizable():
 
     @property
     def data_dir(self):
-        if self.subset is "train":
+        if self.subset == "train":
             return self._train_data_dir
 
-        if self.subset is "validation":
+        if self.subset == "validation":
             return self._validation_data_dir

@@ -24,7 +24,7 @@ from blueoil.networks.classification.lm_resnet import LmResnetQuantize
 from blueoil.datasets.image_folder import ImageFolderBase
 from blueoil.pre_processor import Resize
 from blueoil.quantizations import (
-    binary_mean_scaling_quantizer, 
+    binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
     )
 from blueoil.utils.executor import prepare_dirs
