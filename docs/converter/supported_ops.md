@@ -50,6 +50,7 @@
 - **[tf.math.multiply](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/math/multiply)**
 - **[tf.nn.relu](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/relu)**
 - **[tf.reshape](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/reshape)**
+- **[tf.image.resize_nearest_neighbor](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/image/resize_nearest_neighbor)**
 - **[tf.nn.softmax](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/softmax)**
 - **[tf.transpose](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/transpose)**
 
