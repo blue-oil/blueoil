@@ -157,9 +157,9 @@ def _blueoil_to_lmnet(blueoil_config):
         keep_checkpoint_max = default_keep_checkpoint_max
 
     if optimizer == 'Adam':
-        optimizer_class = "tf.train.AdamOptimizer"
+        optimizer_class = "tf.compat.v1.train.AdamOptimizer"
     elif optimizer == 'Momentum':
-        optimizer_class = "tf.train.MomentumOptimizer"
+        optimizer_class = "tf.compat.v1.train.MomentumOptimizer"
     else:
         raise ValueError("not supported optimizer.")
 
@@ -173,9 +173,9 @@ def _blueoil_to_lmnet(blueoil_config):
     if learning_rate_schedule == "constant":
         learning_rate_func = None
     elif learning_rate_schedule == "cosine":
-        learning_rate_func = "tf.train.cosine_decay"
+        learning_rate_func = "tf.compat.v1.train.cosine_decay"
     else:
-        learning_rate_func = "tf.train.piecewise_constant"
+        learning_rate_func = "tf.compat.v1.train.piecewise_constant"
 
     if learning_rate_schedule == "constant":
         if optimizer == 'Momentum':
