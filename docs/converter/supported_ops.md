@@ -5,9 +5,10 @@
     - Requires each output channel size <= `1024`.
 
 ### Blueoil Customized Ops
-- **QTZ_binary_channel_wise_mean_scaling**
-- **QTZ_binary_mean_scaling**
-- **QTZ_linear_mid_tread_half**
+- **[QTZ_binary_channel_wise_mean_scaling](https://github.com/blue-oil/blueoil/blob/620ba3b404dea142ff53461206c31e987b26cb6e/blueoil/converter/core/operators.py#L2352)**: Quantization operator using binary channel wise scaling.
+- **[QTZ_binary_mean_scaling](https://github.com/blue-oil/blueoil/blob/620ba3b404dea142ff53461206c31e987b26cb6e/blueoil/converter/core/operators.py#L709)**: Quantization operator using binary scaling.
+    - Input tensor must have float values.
+- **[QTZ_linear_mid_tread_half](https://github.com/blue-oil/blueoil/blob/620ba3b404dea142ff53461206c31e987b26cb6e/blueoil/converter/core/operators.py#L1373)**: Quantization operator with 'linear mid tread half'.
 
 ### Tensorflow Ops with Limitations
 - **[tf.layers.AveragePooling2D](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/AveragePooling2D)**
