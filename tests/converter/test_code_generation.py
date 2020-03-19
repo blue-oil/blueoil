@@ -336,18 +336,15 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                cache_dma=cache_dma,
                )
 
-        lib_base_name = None
-        if cpu_name == 'aarch64':
-            lib_base_name = 'aarch64' 
-        elif cpu_name == 'arm':
-            lib_base_name = 'arm'
-        elif cpu_name == 'arm_fpga':
-            lib_base_name = 'fpga' 
-        elif cpu_name == 'x86_64':
-            if use_avx:
-                lib_base_name = 'x86_avx'
-            else:
-                lib_base_name = 'x86'
+        cpu_to_lib = {
+            'aarch64_False':'aarch64', 
+            'arm_False':'arm',
+            'arm_fpga_False':'fpga', 
+            'x86_64_False':'x86_avx',
+            'x86_64_True':'x86'
+        }
+
+        lib_base_name = cpu_to_lib[cpu_name + '_' + str(use_avx)]
 
         project_dir = os.path.join(output_path, project_name + '.prj')
         generated_lib = os.path.join(project_dir, 'libdlk_' + lib_base_name + '.so')
