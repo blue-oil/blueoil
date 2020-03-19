@@ -59,7 +59,7 @@ def test_tf_resize_with_gt_boxes():
 
     assert isinstance(resized_gt_boxes, np.ndarray)
     assert resized_gt_boxes.shape == (num_gt_boxes, 5)
-    assert np.isclose(resized_gt_boxes[:3], orig_gt_boxes[:3] / image_ratio)
+    assert np.isclose(resized_gt_boxes[:3], orig_gt_boxes[:3] / image_ratio).all()
 
 
 if __name__ == '__main__':
