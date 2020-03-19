@@ -54,7 +54,7 @@ def test_tf_resize_with_gt_boxes():
         resized_image, resized_gt_boxes = sess.run([resized["image"], resized["gt_boxes"]])
 
     assert isinstance(resized_image, np.ndarray)
-    assert resized_image.shape[:2] == (32, 32)
+    assert resized_image.shape[:2] == (64, 128)
     assert resized_image.shape[2] == 3
 
     assert isinstance(resized_gt_boxes, np.ndarray)
