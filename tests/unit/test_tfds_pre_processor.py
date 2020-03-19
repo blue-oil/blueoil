@@ -24,6 +24,7 @@ from blueoil.tfds_pre_processor import (
 
 pytestmark = pytest.mark.usefixtures("reset_default_graph")
 
+
 def test_tf_resize():
     image_size = [32, 32]
     orig_image = tf.zeros((1024, 512, 3), dtype=tf.dtypes.uint8)
@@ -37,6 +38,7 @@ def test_tf_resize():
     assert isinstance(resized_image, np.ndarray)
     assert resized_image.shape[:2] == (32, 32)
     assert resized_image.shape[2] == 3
+
 
 def test_tf_resize_with_gt_boxes():
     image_size = [64, 128]
@@ -58,6 +60,7 @@ def test_tf_resize_with_gt_boxes():
     assert isinstance(resized_gt_boxes, np.ndarray)
     assert resized_gt_boxes.shape == (num_gt_boxes, 5)
     assert np.isclose(resized_gt_boxes[:3], orig_gt_boxes[:3] / image_ratio)
+
 
 if __name__ == '__main__':
     tf.reset_default_graph()

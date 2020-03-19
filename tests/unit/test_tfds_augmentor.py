@@ -24,6 +24,7 @@ from blueoil.tfds_augmentor import (
 
 pytestmark = pytest.mark.usefixtures("reset_default_graph")
 
+
 def test_tf_pad():
     orig_image_size = 512
     padding = 16
@@ -38,6 +39,7 @@ def test_tf_pad():
     assert padded_image.shape[:2] == (orig_image_size + 2 * padding, orig_image_size + 2 * padding)
     assert padded_image.shape[2] == 3
 
+
 def test_tf_crop():
     IMAGE_SIZE = [32, 32]
     orig_image = tf.zeros((1024, 512, 3), dtype=tf.dtypes.uint8)
@@ -51,6 +53,7 @@ def test_tf_crop():
     assert isinstance(cropped_image, np.ndarray)
     assert cropped_image.shape[:2] == (32, 32)
     assert cropped_image.shape[2] == 3
+
 
 if __name__ == '__main__':
     tf.reset_default_graph()
