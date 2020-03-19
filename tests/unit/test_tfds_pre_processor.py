@@ -25,10 +25,10 @@ from blueoil.tfds_pre_processor import (
 pytestmark = pytest.mark.usefixtures("reset_default_graph")
 
 def test_tf_resize():
-    IMAGE_SIZE = [32, 32]
+    image_size = [32, 32]
     orig_image = tf.zeros((1024, 512, 3), dtype=tf.dtypes.uint8)
 
-    pre_processor = TFResize(IMAGE_SIZE)
+    pre_processor = TFResize(image_size)
     resized = pre_processor(image=orig_image)
     resized_image = resized["image"]
     with tf.Session() as sess:
@@ -39,12 +39,12 @@ def test_tf_resize():
     assert resized_image.shape[2] == 3
 
 def test_tf_resize_with_gt_boxes():
-    IMAGE_SIZE = [32, 32]
-    NUM_GT_BOXES = 10
+    image_size = [32, 32]
+    num_gt_boxes = 10
     orig_image = tf.zeros((1024, 1024, 3), dtype=tf.dtypes.uint8)
-    gt_boxes = tf.zeros((NUM_GT_BOXES, 5))
+    gt_boxes = tf.zeros((num_gt_boxes, 5))
 
-    pre_processor = TFResizeWithGtBoxes(IMAGE_SIZE)
+    pre_processor = TFResizeWithGtBoxes(image_size)
     resized = pre_processor(image=orig_image, gt_boxes=gt_boxes)
     with tf.Session() as sess:
         resized_image, resized_gt_boxes = sess.run([resized["image"], resized["gt_boxes"]])
@@ -54,7 +54,7 @@ def test_tf_resize_with_gt_boxes():
     assert resized_image.shape[2] == 3
 
     assert isinstance(resized_gt_boxes, np.ndarray)
-    assert resized_gt_boxes.shape == (NUM_GT_BOXES, 5)
+    assert resized_gt_boxes.shape == (num_gt_boxes, 5)
 
 if __name__ == '__main__':
     tf.reset_default_graph()
