@@ -25,18 +25,18 @@ from blueoil.tfds_augmentor import (
 pytestmark = pytest.mark.usefixtures("reset_default_graph")
 
 def test_tf_pad():
-    ORIG_IMAGE_SIZE = 512
-    PADDING = 16
-    orig_image = tf.zeros((ORIG_IMAGE_SIZE, ORIG_IMAGE_SIZE, 3), dtype=tf.dtypes.uint8)
+    orig_image_size = 512
+    padding = 16
+    orig_image = tf.zeros((orig_image_size, orig_image_size, 3), dtype=tf.dtypes.uint8)
 
-    augmentor = TFPad(PADDING)
+    augmentor = TFPad(padding)
     result = augmentor(image=orig_image)
     padded_image = result["image"]
     with tf.Session() as sess:
         padded_image = sess.run(padded_image)
 
     assert isinstance(padded_image, np.ndarray)
-    assert padded_image.shape[:2] == (ORIG_IMAGE_SIZE + 2 * PADDING, ORIG_IMAGE_SIZE + 2 * PADDING)
+    assert padded_image.shape[:2] == (orig_image_size + 2 * padding, orig_image_size + 2 * padding)
     assert padded_image.shape[2] == 3
 
 def test_tf_crop():
