@@ -46,10 +46,8 @@ def test_tf_resize_with_gt_boxes():
 
     pre_processor = TFResizeWithGtBoxes(IMAGE_SIZE)
     resized = pre_processor(image=orig_image, gt_boxes=gt_boxes)
-    resized_image = resized["image"]
-    resized_gt_boxes = resized["gt_boxes"]
     with tf.Session() as sess:
-        resized_image, resized_gt_boxes = sess.run([resized_image, resized_gt_boxes])
+        resized_image, resized_gt_boxes = sess.run([resized["image"], resized["gt_boxes"]])
 
     assert isinstance(resized_image, np.ndarray)
     assert resized_image.shape[:2] == (32, 32)

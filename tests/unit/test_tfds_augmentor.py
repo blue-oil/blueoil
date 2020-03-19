@@ -31,9 +31,8 @@ def test_tf_pad():
 
     augmentor = TFPad(padding)
     result = augmentor(image=orig_image)
-    padded_image = result["image"]
     with tf.Session() as sess:
-        padded_image = sess.run(padded_image)
+        padded_image = sess.run(result["image"])
 
     assert isinstance(padded_image, np.ndarray)
     assert padded_image.shape[:2] == (orig_image_size + 2 * padding, orig_image_size + 2 * padding)
