@@ -19,6 +19,7 @@ from easydict import EasyDict
 from blueoil.common import Tasks
 from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from blueoil.datasets.delta_mark import ObjectDetectionBase
+from blueoil.data_processor import Sequence
 from blueoil.tfds_data_processor import TFSequence
 from blueoil.tfds_pre_processor import (
     TFResizeWithGtBoxes,
