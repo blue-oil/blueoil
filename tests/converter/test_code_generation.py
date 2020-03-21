@@ -340,8 +340,8 @@ class TestCodeGenerationBase(TestCaseDLKBase):
             'aarch64_False':'aarch64', 
             'arm_False':'arm',
             'arm_fpga_False':'fpga', 
-            'x86_64_False':'x86_avx',
-            'x86_64_True':'x86'
+            'x86_64_False':'x86'
+            'x86_64_True':'x86_avx',
         }
 
         lib_base_name = cpu_to_lib[cpu_name + '_' + str(use_avx)]
