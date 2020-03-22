@@ -163,20 +163,20 @@ class BaseNetwork(object):
            loss: loss function of this network.
 
         """
-        # TODO(wenhao): revert when support `tf.layers.batch_normalization`
-        # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        # with tf.control_dependencies(update_ops):
-        with tf.name_scope("train"):
-            if var_list == []:
-                var_list = tf.compat.v1.trainable_variables()
 
-            gradients = optimizer.compute_gradients(loss, var_list=var_list)
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(update_ops):
+            with tf.name_scope("train"):
+                if var_list == []:
+                    var_list = tf.compat.v1.trainable_variables()
 
-            train_op = optimizer.apply_gradients(gradients, global_step=self.global_step)
+                gradients = optimizer.compute_gradients(loss, var_list=var_list)
 
-        # Add histograms for all gradients for every layer.
-        for grad, var in gradients:
-            if grad is not None:
-                tf.compat.v1.summary.histogram(var.op.name + "/gradients", grad)
+                train_op = optimizer.apply_gradients(gradients, global_step=self.global_step)
+
+                # Add histograms for all gradients for every layer.
+                for grad, var in gradients:
+                    if grad is not None:
+                        tf.compat.v1.summary.histogram(var.op.name + "/gradients", grad)
 
         return train_op
