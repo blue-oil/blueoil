@@ -338,7 +338,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
 
         if cpu_name == 'arm_fpga':
             lib_base_name = 'fpga'
-        if cpu_name == 'x86_64':
+        elif cpu_name == 'x86_64':
             if use_avx == False:
                 lib_base_name = 'x86'
             else:
