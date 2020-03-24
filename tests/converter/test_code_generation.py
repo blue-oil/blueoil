@@ -343,7 +343,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                 lib_base_name = 'x86'
             else:
                 lib_base_name = 'x86_avx'
-        else: # 'aarch64' and 'arm' passes here
+        else: # 'aarch64' and 'arm' pass here
             lib_base_name = cpu_name
 
         project_dir = os.path.join(output_path, project_name + '.prj')
@@ -378,7 +378,6 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                       self,
                       check_stderr_block=['error: ']
                       )
-
         self.assertTrue(os.path.exists(generated_lib))
 
         if not use_run_test_script:
