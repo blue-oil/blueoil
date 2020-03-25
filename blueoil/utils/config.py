@@ -67,6 +67,11 @@ def _saved_config_file_path():
         if os.path.isfile(filepath):
             return filepath
 
+    raise FileNotFoundError("Config file not found: '{}' nor '{}'".format(
+        os.path.join(environment.EXPERIMENT_DIR, 'config.py'),
+        os.path.join(environment.EXPERIMENT_DIR, 'config.yaml'),
+    ))
+
 
 def _config_file_path_to_copy(config_file):
     _, file_extension = os.path.splitext(config_file)
