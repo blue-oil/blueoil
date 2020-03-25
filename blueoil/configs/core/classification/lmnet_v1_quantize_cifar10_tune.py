@@ -131,4 +131,3 @@ DATASET.AUGMENTOR = Sequence([
     Crop(size=IMAGE_SIZE),
     FlipLeftRight(),
 ])
-DATASET.TRAIN_VALIDATION_SAVING_SIZE = 5000
