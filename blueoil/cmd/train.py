@@ -172,6 +172,7 @@ def start_training(config):
 
     sess = tf.compat.v1.Session(graph=graph, config=session_config)
     sess.run([init_op, reset_metrics_op])
+    executor.save_pb_file(sess, environment.CHECKPOINTS_DIR)
 
     if rank == 0:
         train_writer = tf.compat.v1.summary.FileWriter(environment.TENSORBOARD_DIR + "/train", sess.graph)
@@ -299,18 +300,6 @@ def start_training(config):
 
             else:
                 _save_checkpoint(saver, sess, global_step, step)
-
-            if step == 0:
-                # check create pb on only first step.
-                minimal_graph = tf.compat.v1.graph_util.convert_variables_to_constants(
-                    sess,
-                    sess.graph.as_graph_def(add_shapes=True),
-                    ["output"],
-                )
-                pb_name = "minimal_graph_with_shape_{}.pb".format(step + 1)
-                pbtxt_name = "minimal_graph_with_shape_{}.pbtxt".format(step + 1)
-                tf.io.write_graph(minimal_graph, environment.CHECKPOINTS_DIR, pb_name, as_text=False)
-                tf.io.write_graph(minimal_graph, environment.CHECKPOINTS_DIR, pbtxt_name, as_text=True)
 
         if step == 0 or (step + 1) % config.TEST_STEPS == 0:
             # init metrics values
