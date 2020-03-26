@@ -93,14 +93,14 @@ DLK_OPERATOR_MAP: Dict[str, str] = {
     'QTZ_linear_mid_tread_half': 'LinearMidTreadHalfQuantizer',
 }
 
-FLOAT32_TENSOR_TYPES = [
+FLOAT32_TENSOR_TYPES = {
     'BinaryMeanScalingQuantizer',
     'LinearMidTreadHalfQuantizer',
     'BinaryChannelWiseMeanScalingQuantizer',
     'QTZ_binary_channel_wise_mean_scaling',
     'QTZ_binary_mean_scaling',
     'QTZ_linear_mid_tread_half',
-]
+}
 
 
 class Node(object):
