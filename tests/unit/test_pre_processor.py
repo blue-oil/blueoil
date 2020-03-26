@@ -47,7 +47,7 @@ def test_resize():
 
 
 def test_divide_255():
-    orig_image = np.full((1, 1, 3), 1)
+    orig_image = np.ones((1, 1, 3))
     expect = np.array([[[0.00392157, 0.00392157, 0.00392157]]])
 
     pre_processor = DivideBy255()
