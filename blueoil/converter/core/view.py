@@ -71,13 +71,13 @@ class View(object):
                 """
             )
 
-        elif self.op.op_type == 'QTZ_linear_mid_tread_half':
+        elif self.op.op_type == 'LinearMidTreadHalfQuantizer':
             if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             return self.format_string(
                 f"""
-                func_QTZ_linear_mid_tread_half({inputs_string}, {outputs_string}, quantize_tmp_buffer.get());
+                func_LinearMidTreadHalfQuantizer({inputs_string}, {outputs_string}, quantize_tmp_buffer.get());
                 """
             )
 
