@@ -23,7 +23,6 @@ steps:
     - "tmp/*/export/*/*/output/**/*.py"
     - "tmp/*/export/*/*/output/**/*.yaml"
     - "tmp/*/export/*/*/output/**/*.so"
-    - "tmp/*/export/*/*/output/**/*.txt"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-object-detection"
     label: "object-detection"
@@ -38,7 +37,6 @@ steps:
     - "tmp/*/export/*/*/output/**/*.py"
     - "tmp/*/export/*/*/output/**/*.yaml"
     - "tmp/*/export/*/*/output/**/*.so"
-    - "tmp/*/export/*/*/output/**/*.txt"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-semantic-segmentation"
     label: "semantic-segmentation"
@@ -53,7 +51,6 @@ steps:
     - "tmp/*/export/*/*/output/**/*.py"
     - "tmp/*/export/*/*/output/**/*.yaml"
     - "tmp/*/export/*/*/output/**/*.so"
-    - "tmp/*/export/*/*/output/**/*.txt"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-keypoint-detection"
     label: "keypoint-detection"
@@ -68,20 +65,19 @@ steps:
     - "tmp/*/export/*/*/output/**/*.py"
     - "tmp/*/export/*/*/output/**/*.yaml"
     - "tmp/*/export/*/*/output/**/*.so"
-    - "tmp/*/export/*/*/output/**/*.txt"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      pip3 install -r output_template/python/requirements.txt
       export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
         echo \${TEST_CASE}
         cd tmp/\${TEST_CASE}/export/*/*/output/python
-        pip3 install -r requirements.txt
         python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_aarch64.so
         cd \${CWD}
       done
-    label: "inference on raspberry-pi"
+    label: "inference on raspberry-pi(aarch64)"
     depends_on:
     - "classification"
     - "object-detection"
@@ -95,17 +91,16 @@ steps:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      pip install -r output_template/python/requirements.txt --no-cache-dir
       export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
         echo \${TEST_CASE}
         cd tmp/\${TEST_CASE}/export/*/*/output/python
-        sudo pip install -r requirements.txt --no-cache-dir
-        sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so
-        sudo chown -R buildkite-agent:buildkite-agent output
+        python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so
         cd \${CWD}
       done
-    label: "inference on de10nano"
+    label: "inference on de10nano(arm)"
     depends_on:
     - "classification"
     - "object-detection"
