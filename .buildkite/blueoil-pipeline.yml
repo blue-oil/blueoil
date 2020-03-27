@@ -12,7 +12,7 @@ steps:
   - wait
   - command: "make test-classification"
     label: "classification"
-    key: "classification"
+    key: "build-library"
     agents:
     - "agent-type=gpu"
     - "env=production"
@@ -26,7 +26,7 @@ steps:
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-object-detection"
     label: "object-detection"
-    key: "object-detection"
+    key: "build-library"
     agents:
     - "agent-type=gpu"
     - "env=production"
@@ -40,7 +40,7 @@ steps:
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-semantic-segmentation"
     label: "semantic-segmentation"
-    key: "semantic-segmentation"
+    key: "build-library"
     agents:
     - "agent-type=gpu"
     - "env=production"
@@ -54,7 +54,7 @@ steps:
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-keypoint-detection"
     label: "keypoint-detection"
-    key: "keypoint-detection"
+    key: "build-library"
     agents:
     - "agent-type=gpu"
     - "env=production"
@@ -84,10 +84,7 @@ steps:
       done
     label: "inference on ubuntu(x86)"
     depends_on:
-    - "classification"
-    - "object-detection"
-    - "semantic-segmentation"
-    - "keypoint-detection"
+    - "build-library"
     agents:
     - "agent-type=normal"
     - "env=production"
@@ -109,10 +106,7 @@ steps:
       done
     label: "inference on raspberry-pi(aarch64)"
     depends_on:
-    - "classification"
-    - "object-detection"
-    - "semantic-segmentation"
-    - "keypoint-detection"
+    - "build-library"
     agents:
     - "agent-type=raspberry-pi"
     - "env=benchmark"
@@ -134,10 +128,7 @@ steps:
       done
     label: "inference on de10nano(arm)"
     depends_on:
-    - "classification"
-    - "object-detection"
-    - "semantic-segmentation"
-    - "keypoint-detection"
+    - "build-library"
     agents:
     - "agent-type=de10nano"
     - "env=benchmark"
