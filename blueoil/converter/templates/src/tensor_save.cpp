@@ -40,6 +40,10 @@ void save_tensor(TensorView<T_FLOAT, MemoryLayout::NHWC>& tensor, const std::str
   save_float32_data(name, tensor.size(), suffix, tensor.data(), 1.0f);
 }
 
+void save_tensor(TensorView<T_FLOAT, MemoryLayout::NC>& tensor, const std::string& name, int32_t suffix) {
+  save_float32_data(name, tensor.size(), suffix, tensor.data(), 1.0f);
+}
+
 void save_tensor(TensorView<T_FLOAT, MemoryLayout::C>& tensor, const std::string& name, int32_t suffix) {
   save_float32_data(name, tensor.size(), suffix, tensor.data(), 1.0f);
 }

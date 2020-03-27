@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensor_view.h"
 
 void save_tensor(TensorView<T_FLOAT, MemoryLayout::NHWC>&, const std::string& name, int32_t suffix);
+void save_tensor(TensorView<T_FLOAT, MemoryLayout::NC>&, const std::string& name, int32_t suffix);
 void save_tensor(TensorView<T_FLOAT, MemoryLayout::C>&, const std::string& name, int32_t suffix);
 void save_tensor(TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>&, const std::string& name, int32_t suffix);
 void save_tensor(TensorView<QUANTIZED_PACKED, MemoryLayout::HWChBCl>&, const std::string& name, int32_t suffix);
