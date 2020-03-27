@@ -69,7 +69,7 @@ steps:
       source blueoil_inference/bin/activate
       pip3 install -U pip
       pip3 install -r output_template/python/requirements.txt
-      python3 tests/device_tests/test_device_e2e.py
+      cd tests/device_tests && python3 test_device_e2e.py
     label: "inference on ubuntu(x86)"
     agents:
     - "agent-type=normal"
@@ -77,7 +77,7 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-      DEVICE_TEST_INPUT_PATH: './tmp'
+      DEVICE_TEST_INPUT_PATH: '../../tmp'
       DEVICE_TEST_LIB_NAME: 'libdlk_x86.so'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
@@ -85,7 +85,7 @@ steps:
       source blueoil_inference/bin/activate
       pip3 install -U pip
       pip3 install -r output_template/python/requirements.txt
-      python3 tests/device_tests/test_device_e2e.py
+      cd tests/device_tests && python3 test_device_e2e.py
     label: "inference on ubuntu(x86_avx)"
     agents:
     - "agent-type=normal"
@@ -93,12 +93,12 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-      DEVICE_TEST_INPUT_PATH: './tmp'
+      DEVICE_TEST_INPUT_PATH: '../../tmp'
       DEVICE_TEST_LIB_NAME: 'libdlk_x86_avx.so'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
       pip3 install -r output_template/python/requirements.txt
-      python3 tests/device_tests/test_device_e2e.py
+      cd tests/device_tests && python3 test_device_e2e.py
     label: "inference on raspberry-pi(aarch64)"
     agents:
     - "agent-type=raspberry-pi"
@@ -106,12 +106,12 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-      DEVICE_TEST_INPUT_PATH: './tmp'
+      DEVICE_TEST_INPUT_PATH: '../../tmp'
       DEVICE_TEST_LIB_NAME: 'libdlk_aarch64.so'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
       sudo pip install -r output_template/python/requirements.txt --no-cache-dir
-      python tests/device_tests/test_device_e2e.py
+      cd tests/device_tests && python test_device_e2e.py
     label: "inference on de10nano(arm)"
     agents:
     - "agent-type=de10nano"
@@ -119,5 +119,5 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-      DEVICE_TEST_INPUT_PATH: './tmp'
+      DEVICE_TEST_INPUT_PATH: '../../tmp'
       DEVICE_TEST_LIB_NAME: 'libdlk_arm.so'
