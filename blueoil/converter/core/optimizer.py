@@ -174,7 +174,7 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
     exec_list = sort_graph(graph)
     qtypes = [
         'BinaryMeanScalingQuantizer',
-        'QTZ_linear_mid_tread_half',
+        'LinearMidTreadHalfQuantizer',
         'BinaryChannelWiseMeanScalingQuantizer',
         'Lookup'
     ]
@@ -231,7 +231,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
         graph (Graph): The input graph. It will be modified in-place.
 
     """
-    exec_list = [n for n in sort_graph(graph) if n.op_type == 'QTZ_linear_mid_tread_half']
+    exec_list = [n for n in sort_graph(graph) if n.op_type == 'LinearMidTreadHalfQuantizer']
     to_be_removed = []
     for m in exec_list:
         # find a a backward path between the quantizer and the convolution ie. a path represented by a list [Q, ..., C]
@@ -354,7 +354,7 @@ def pass_pack_weights(graph: Graph) -> None:
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
     quantization_types = [
         'BinaryMeanScalingQuantizer',
-        'QTZ_linear_mid_tread_half',
+        'LinearMidTreadHalfQuantizer',
         'BinaryChannelWiseMeanScalingQuantizer'
     ]
 
@@ -575,7 +575,7 @@ def pass_lookup(graph: Graph) -> None:
     """
     quantization_types = [
         'BinaryMeanScalingQuantizer',
-        'QTZ_linear_mid_tread_half',
+        'LinearMidTreadHalfQuantizer',
         'BinaryChannelWiseMeanScalingQuantizer'
     ]
 
