@@ -64,7 +64,7 @@ steps:
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - wait
   - command: |
-      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID} > /dev/null
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
       python3 -m venv blueoil_inference
       source blueoil_inference/bin/activate
       pip3 install -U pip
@@ -80,7 +80,7 @@ steps:
       DEVICE_TEST_INPUT_PATH: './tmp'
       DEVICE_TEST_LIB_NAME: 'libdlk_x86.so'
   - command: |
-      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID} > /dev/null
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
       pip3 install -r output_template/python/requirements.txt
       python3 tests/device_tests/test_device_e2e.py
     label: "inference on raspberry-pi(aarch64)"
@@ -93,7 +93,7 @@ steps:
       DEVICE_TEST_INPUT_PATH: './tmp'
       DEVICE_TEST_LIB_NAME: 'libdlk_aarch64.so'
   - command: |
-      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID} > /dev/null
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
       sudo pip install -r output_template/python/requirements.txt --no-cache-dir
       python tests/device_tests/test_device_e2e.py
     label: "inference on de10nano(arm)"
