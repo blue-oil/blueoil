@@ -70,6 +70,7 @@ steps:
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
       python3 -m venv blueoil_inference
       source blueoil_inference/bin/activate
+      pip3 install -U pip
       pip3 install -r output_template/python/requirements.txt
       export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
