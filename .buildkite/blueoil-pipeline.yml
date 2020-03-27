@@ -68,6 +68,9 @@ steps:
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      python3 -m venv blueoil_inference
+      source blueoil_inference/bin/activate
+      pip3 install -r output_template/python/requirements.txt
       export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
@@ -90,6 +93,7 @@ steps:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      pip3 install -r output_template/python/requirements.txt
       export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
@@ -112,12 +116,13 @@ steps:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      sudo pip install -r output_template/python/requirements.txt --no-cache-dir
       export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
         echo \${TEST_CASE}
         cd tmp/\${TEST_CASE}/export/*/*/output/python
-        sudo python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so
+        python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so	
         cd \${CWD}
       done
     label: "inference on de10nano(arm)"
