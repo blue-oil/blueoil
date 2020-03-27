@@ -23,9 +23,9 @@ import unittest
 class DeviceE2eTest(unittest.TestCase):
     """Base class for Device Test."""
 
-    def _get_param(self, test_case):
-        lib_name = os.environ['DEVICE_TEST_LIB_NAME']
-        output_dir = glob.glob(os.path.join(test_case, "export/*/*/output"))
+    def _get_param(self, test_case, input_path, lib_name):
+        test_case_dir = os.path.join(input_path, test_case)
+        output_dir = glob.glob(os.path.join(test_case_dir, "export/*/*/output"))
         if output_dir:
             output_dir = output_dir[0]
         else:
@@ -40,9 +40,8 @@ class DeviceE2eTest(unittest.TestCase):
             'config': os.path.join(model_dir, "meta.yaml"),
             }
 
-    def _get_test_cases(self):
-        input_path = os.environ['DEVICE_TEST_INPUT_PATH']
-        return [[case, self._get_param(os.path.join(input_path, case))] for case in os.listdir(input_path)]
+    def _get_test_cases(self, input_path, lib_name):
+        return [[case, self._get_param(case, input_path, lib_name)] for case in os.listdir(input_path)]
 
     def _run(self, python_path, image, model, config):
         sys.path.append(python_path)
@@ -51,7 +50,9 @@ class DeviceE2eTest(unittest.TestCase):
         assert os.path.exists(os.path.join(os.path.join(python_path, 'output'), "output.json"))
 
     def test_run(self):
-        test_cases = self._get_test_cases()
+        input_path = os.environ['DEVICE_TEST_INPUT_PATH']
+        lib_name = os.environ['DEVICE_TEST_LIB_NAME']
+        test_cases = self._get_test_cases(input_path, lib_name)
         for test_case_name, params in test_cases:
             print("Testing case: {}".format(test_case_name))
             if sys.version_info.major == 2:
