@@ -21,7 +21,7 @@ import unittest
 
 
 class DeviceE2eTest(unittest.TestCase):
-    """Base class for Device Test."""
+    """Test Case of Device E2E Test."""
 
     def _get_param(self, test_case, input_path, lib_name):
         test_case_dir = os.path.join(input_path, test_case)
