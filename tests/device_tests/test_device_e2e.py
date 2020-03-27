@@ -34,7 +34,7 @@ class DeviceE2eTest(unittest.TestCase):
         model_dir = os.path.join(output_dir, "models")
         lib_dir = os.path.join(model_dir, "lib")
         return {
-            "python_path": os.path.join(os.path.join(output_dir, "python"), "run,py"),
+            "python_path": os.path.join(output_dir, "python"),
             'image': os.path.join(test_data_dir, "raw_image.png"),
             'model': os.path.join(lib_dir, lib_name),
             'config': os.path.join(model_dir, "meta.yaml"),
