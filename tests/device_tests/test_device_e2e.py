@@ -23,9 +23,9 @@ import unittest
 class DeviceE2eTest(unittest.TestCase):
     """Base class for Device Test."""
 
-    def _get_param(self, test_case_path):
+    def _get_param(self, test_case):
         lib_name = os.environ['DEVICE_TEST_LIB_NAME']
-        output_dir = glob.glob(os.path.join(test_case_path, "export/*/*/output"))
+        output_dir = glob.glob(os.path.join(test_case, "export/*/*/output"))
         if output_dir:
             output_dir = output_dir[0]
         else:
@@ -42,8 +42,7 @@ class DeviceE2eTest(unittest.TestCase):
 
     def _get_test_cases(self):
         input_path = os.environ['DEVICE_TEST_INPUT_PATH']
-        test_case_paths = os.listdir(input_path)
-        return [[path, self._get_param(os.path.join(input_path, path))] for path in test_case_paths]
+        return [[case, self._get_param(os.path.join(input_path, case))] for case in os.listdir(input_path)]
 
     def _run(self, python_path, image, model, config):
         sys.path.append(python_path)
