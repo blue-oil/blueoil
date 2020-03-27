@@ -67,7 +67,7 @@ steps:
     - "tmp/*/export/*/*/output/**/*.so"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: |
-      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID} > /dev/null
       python3 -m venv blueoil_inference
       source blueoil_inference/bin/activate
       pip3 install -U pip
@@ -75,7 +75,9 @@ steps:
       export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
-        echo \${TEST_CASE}
+        echo ####
+        echo #### \${TEST_CASE}
+        echo ####
         cd tmp/\${TEST_CASE}/export/*/*/output/python
         python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_x86.so
         cd \${CWD}
@@ -93,12 +95,14 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: |
-      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID} > /dev/null
       pip3 install -r output_template/python/requirements.txt
       export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
-        echo \${TEST_CASE}
+        echo ####
+        echo #### \${TEST_CASE}
+        echo ####
         cd tmp/\${TEST_CASE}/export/*/*/output/python
         python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_aarch64.so
         cd \${CWD}
@@ -116,12 +120,14 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: |
-      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID} > /dev/null
       sudo pip install -r output_template/python/requirements.txt --no-cache-dir
       export CWD=\$(pwd)
       for TEST_CASE in \$(ls tmp/)
       do
-        echo \${TEST_CASE}
+        echo ####
+        echo #### \${TEST_CASE}
+        echo ####
         cd tmp/\${TEST_CASE}/export/*/*/output/python
         python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so	
         cd \${CWD}
