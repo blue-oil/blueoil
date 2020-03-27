@@ -12,7 +12,6 @@ steps:
   - wait
   - command: "make test-classification"
     label: "classification"
-    key: "build-library"
     agents:
     - "agent-type=gpu"
     - "env=production"
@@ -26,7 +25,6 @@ steps:
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-object-detection"
     label: "object-detection"
-    key: "build-library"
     agents:
     - "agent-type=gpu"
     - "env=production"
@@ -40,7 +38,6 @@ steps:
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-semantic-segmentation"
     label: "semantic-segmentation"
-    key: "build-library"
     agents:
     - "agent-type=gpu"
     - "env=production"
@@ -54,7 +51,6 @@ steps:
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-keypoint-detection"
     label: "keypoint-detection"
-    key: "build-library"
     agents:
     - "agent-type=gpu"
     - "env=production"
@@ -66,72 +62,46 @@ steps:
     - "tmp/*/export/*/*/output/**/*.yaml"
     - "tmp/*/export/*/*/output/**/*.so"
     - "tmp/*/export/*/*/inference_test_data/raw_image.png"
+  - wait
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID} > /dev/null
       python3 -m venv blueoil_inference
       source blueoil_inference/bin/activate
       pip3 install -U pip
       pip3 install -r output_template/python/requirements.txt
-      export CWD=\$(pwd)
-      for TEST_CASE in \$(ls tmp/)
-      do
-        echo ####
-        echo #### \${TEST_CASE}
-        echo ####
-        cd tmp/\${TEST_CASE}/export/*/*/output/python
-        python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_x86.so
-        cd \${CWD}
-      done
+      python3 tests/device_tests/test_device_e2e.py
     label: "inference on ubuntu(x86)"
-    depends_on:
-    - "build-library"
     agents:
     - "agent-type=normal"
     - "env=production"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+      DEVICE_TEST_INPUT_PATH: './tmp'
+      DEVICE_TEST_LIB_NAME: 'libdlk_x86.so'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID} > /dev/null
       pip3 install -r output_template/python/requirements.txt
-      export CWD=\$(pwd)
-      for TEST_CASE in \$(ls tmp/)
-      do
-        echo ####
-        echo #### \${TEST_CASE}
-        echo ####
-        cd tmp/\${TEST_CASE}/export/*/*/output/python
-        python3 run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_aarch64.so
-        cd \${CWD}
-      done
+      python3 tests/device_tests/test_device_e2e.py
     label: "inference on raspberry-pi(aarch64)"
-    depends_on:
-    - "build-library"
     agents:
     - "agent-type=raspberry-pi"
     - "env=benchmark"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+      DEVICE_TEST_INPUT_PATH: './tmp'
+      DEVICE_TEST_LIB_NAME: 'libdlk_aarch64.so'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID} > /dev/null
       sudo pip install -r output_template/python/requirements.txt --no-cache-dir
-      export CWD=\$(pwd)
-      for TEST_CASE in \$(ls tmp/)
-      do
-        echo ####
-        echo #### \${TEST_CASE}
-        echo ####
-        cd tmp/\${TEST_CASE}/export/*/*/output/python
-        python run.py -i ../../inference_test_data/raw_image.png -c ../models/meta.yaml -m ../models/lib/libdlk_arm.so	
-        cd \${CWD}
-      done
+      python tests/device_tests/test_device_e2e.py
     label: "inference on de10nano(arm)"
-    depends_on:
-    - "build-library"
     agents:
     - "agent-type=de10nano"
     - "env=benchmark"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+      DEVICE_TEST_INPUT_PATH: './tmp'
+      DEVICE_TEST_LIB_NAME: 'libdlk_arm.so'
