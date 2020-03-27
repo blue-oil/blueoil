@@ -16,6 +16,8 @@ limitations under the License.
 #ifndef DLK_FUNC_CONCAT_ON_DEPTH_H_INCLUDED
 #define DLK_FUNC_CONCAT_ON_DEPTH_H_INCLUDED
 
+#include <cstdlib>
+#include <iostream>
 #include <tuple>
 #include <type_traits>
 
@@ -95,10 +97,15 @@ struct ConcatOnDepthImpl<QuantizedPacked<TQOut>, MemoryLayout::ChHWBCl, I, typen
     const auto shape = output.get_shape();
     const auto out_height = shape[1];
     const auto out_width = shape[2];
+    const auto out_depth = shape[0];
     const auto bits = shape[3];
     const auto input = std::get<I>(inputs);
     const auto index_ic = index_channels_high(decltype(input)::layout);
     const auto depth = input.get_shape()[index_ic];
+    if (offset_depth + depth > out_depth) {
+      std::cerr << "Unmatch channel size for ConcatOnDepth" << std::endl;
+      std::abort();
+    }
     if (decltype(input)::layout == MemoryLayout::ChHWBCl) {
       const auto bytes = input.size() * sizeof(typename decltype(input)::base_t);
       const auto offset_words = offset_depth * out_height * out_width * bits;
@@ -133,10 +140,15 @@ struct ConcatOnDepthImpl<QuantizedPacked<TQOut>, output_layout, I, typename std:
     const auto shape = output.get_shape();
     const auto out_height = shape[index_height(output_layout)];
     const auto out_width = shape[index_width(output_layout)];
+    const auto out_depth = shape[index_channels_high(output_layout)];
     const auto bits = shape[3];
     const auto input = std::get<I>(inputs);
     const auto index_ic = index_channels_high(decltype(input)::layout);
     const auto depth = input.get_shape()[index_ic];
+    if (offset_depth + depth > out_depth) {
+      std::cerr << "Unmatch channel size for ConcatOnDepth" << std::endl;
+      std::abort();
+    }
     for (std::size_t d = 0; d < depth; ++d) {
       for (std::size_t h = 0; h < out_height; ++h) {
         for (std::size_t w = 0; w < out_width; ++w) {
@@ -161,9 +173,14 @@ struct ConcatOnDepthImpl<float, output_layout, I, typename std::enable_if<(I < s
     const auto shape = output.get_shape();
     const auto out_height = shape[index_height(output_layout)];
     const auto out_width = shape[index_width(output_layout)];
+    const auto out_depth = shape[index_channels_high(output_layout)];
     const auto input = std::get<I>(inputs);
     const auto index = index_channels_high(decltype(input)::layout);
     const auto depth = input.get_shape()[index];
+    if (offset_depth + depth > out_depth) {
+      std::cerr << "Unmatch channel size for ConcatOnDepth" << std::endl;
+      std::abort();
+    }
     for (std::size_t h = 0; h < out_height; ++h) {
       for (std::size_t w = 0; w < out_width; ++w) {
         for (std::size_t d = 0; d < depth; ++d) {

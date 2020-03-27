@@ -32,7 +32,7 @@ limitations under the License.
   #include <x86intrin.h>
 #endif
 
-void func_QTZ_linear_mid_tread_half_body(
+void func_LinearMidTreadHalfBodyQuantizer(
   T_FLOAT input[],
   T_INT nbit,
   T_FLOAT max_value,
@@ -116,13 +116,13 @@ void func_QTZ_linear_mid_tread_half_body(
   }
 }
 
-void func_QTZ_linear_mid_tread_half(
+void func_LinearMidTreadHalfQuantizer(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_INT, MemoryLayout::Atom>& nbit,
     const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
     const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
     BYTE *temporary_buf) {
-  Measurement::Start("QTZ_linear_mid_tread_half");
+  Measurement::Start("LinearMidTreadHalfQuantizer");
 
   unsigned num_elems = input.size();
 
@@ -137,7 +137,7 @@ void func_QTZ_linear_mid_tread_half(
 
 #pragma omp parallel for
   for (unsigned int i = 0; i < num_elems; i += chunk_size) {
-    func_QTZ_linear_mid_tread_half_body(input.data(), nbit(), max_value(), buf, i,
+    func_LinearMidTreadHalfBodyQuantizer(input.data(), nbit(), max_value(), buf, i,
                                               std::min(i + chunk_size, static_cast<unsigned int>(num_elems)));
   }
 
@@ -150,13 +150,13 @@ void func_QTZ_linear_mid_tread_half(
   Measurement::Stop();
 }
 
-void func_QTZ_linear_mid_tread_half(
+void func_LinearMidTreadHalfQuantizer(
   const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
   const TensorView<T_INT, MemoryLayout::Atom>& nbit,
   const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
   const TensorView<T_FLOAT, MemoryLayout::NHWC>& output,
   BYTE *temporary_buf) {
-  Measurement::Start("func_QTZ_linear_mid_tread_half");
+  Measurement::Start("func_LinearMidTreadHalfQuantizer");
 
   T_FLOAT min_value = 0.f;
   T_FLOAT n = (1 << nbit()) - 1.f;

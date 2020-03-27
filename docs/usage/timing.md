@@ -44,7 +44,7 @@ TotalRunTime 504207,  sum:504.207ms
 ....kn2row-1x1 78824,  sum:78.824ms
 ......matrix_multiplication 78803,  sum:78.803ms
 ..BatchNorm 5667,  sum:5.667ms
-..QTZ_linear_mid_tread_half 36668,  sum:36.668ms
+..LinearMidTreadHalfQuantizer 36668,  sum:36.668ms
 ....pack_input 26204,  sum:26.204ms
 ..QuantizedConv2D 8048,5308,17001,17071,17069,17052,9487,19927,25026,24564,  sum:160.553ms
 ....Tensor convert 2995,319,290,380,373,367,307,862,4145,3727,  sum:13.765ms

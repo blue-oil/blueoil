@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include <cmath>
+#include <limits>
 
 #include "types.h"
 #include "func/softmax.h"
@@ -25,12 +26,16 @@ void func_Softmax(const TensorView<T_FLOAT, MemoryLayout::NC>& input,
 
   T_UINT out_width = output.size();
 
+  T_FLOAT max_val = std::numeric_limits<float>::lowest();
+  for(T_UINT d = 0; d < out_width; d++)
+    max_val = std::max(max_val, input(0, d));
+
   T_FLOAT sum = 0.f;
   for(T_UINT d = 0; d < out_width; d++)
-    sum += std::exp(input(0, d));
+    sum += std::exp(input(0, d) - max_val);
 
   for(T_UINT d = 0; d < out_width; d++)
-    output(0, d) = std::exp(input(0, d)) / sum;
+    output(0, d) = std::exp(input(0, d) - max_val) / sum;
 
   Measurement::Stop();
 }
