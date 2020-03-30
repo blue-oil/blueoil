@@ -321,7 +321,7 @@ def train(config_file, experiment_id=None, recreate=False):
         raise Exception('Checkpoints are not created in {}'.format(experiment_dir))
 
     with tf.io.gfile.GFile(checkpoint) as stream:
-        data = yaml.load(stream)
+        data = yaml.load(stream, Loader=yaml.Loader)
     checkpoint_name = os.path.basename(data['model_checkpoint_path'])
 
     return experiment_id, checkpoint_name
