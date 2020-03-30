@@ -78,7 +78,7 @@ class Base(metaclass=ABCMeta):
     @abstractmethod
     def available_subsets():
         """Returns the list of available subsets."""
-        return ['train', 'train_validation_saving', 'validation']
+        return ['train', 'validation']
 
     @property
     @abstractmethod
