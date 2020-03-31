@@ -38,7 +38,7 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
             description="Custom TFDS dataset for object detection",
             features=tfds.features.FeaturesDict({
                 "image": tfds.features.Image(),
-                "objects": tfds.features.SequenceDict({
+                "objects": tfds.features.Sequence({
                     "label": tfds.features.ClassLabel(),
                     "bbox": tfds.features.BBoxFeature(),
                 }),
@@ -68,7 +68,7 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
         return splits
 
     def _generate_examples(self, dataset):
-        for image, annotations in dataset:
+        for i, (image, annotations) in enumerate(dataset):
             height, width, _ = image.shape
 
             objects = [
@@ -85,7 +85,7 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
                 if label != -1
             ]
 
-            yield {
+            yield i, {
                 "image": image,
                 "objects": objects
             }
