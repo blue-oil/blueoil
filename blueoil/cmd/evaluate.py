@@ -103,8 +103,7 @@ def evaluate(config, restore_path, output_dir):
         model.summary(output, labels_placeholder)
 
         summary_op = tf.compat.v1.summary.merge_all()
-
-        metrics_summary_op, metrics_placeholders = executor.prepare_metrics(metrics_ops_dict)
+        metrics_summary_op = executor.metrics_summary_op(metrics_ops_dict)
 
         init_op = tf.compat.v1.global_variables_initializer()
         reset_metrics_op = tf.compat.v1.local_variables_initializer()
@@ -140,14 +139,7 @@ def evaluate(config, restore_path, output_dir):
         else:
             sess.run([metrics_update_op], feed_dict=feed_dict)
 
-    metrics_values = sess.run(list(metrics_ops_dict.values()))
-    metrics_feed_dict = {
-        # TODO: Fix to avoid the implementation depended on the order of dict implicitly
-        placeholder: value for placeholder, value in zip(metrics_placeholders, metrics_values)
-    }
-    metrics_summary, = sess.run(
-        [metrics_summary_op], feed_dict=metrics_feed_dict,
-    )
+    metrics_summary, = sess.run([metrics_summary_op])
     validation_writer.add_summary(metrics_summary, last_step)
 
     is_tfds = "TFDS_KWARGS" in config.DATASET
