@@ -64,7 +64,9 @@ def test_save_json():
         node_flops_dict=test_dict["flops"]
     )
     output_file = os.path.join(environment.EXPERIMENT_DIR, "{}_profile.json".format(test_dict["model_name"]))
-    file_data = json.loads(open(output_file, 'r').read())
+    with open(output_file, 'r') as fp:
+        file_data = json.load(fp)
+
     assert os.path.isfile(output_file)
     assert test_dict == file_data
 
