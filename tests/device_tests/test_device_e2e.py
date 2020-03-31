@@ -48,7 +48,7 @@ class DeviceE2eTest(unittest.TestCase):
         sys.path.append(python_path)
         from run import run_prediction
         run_prediction(image, model, config)
-        assert os.path.exists(os.path.join('output', "output.json"))
+        self.assertTrue(os.path.exists(os.path.join('output', "output.json")))
 
     def test_run(self):
         input_path = os.environ['DEVICE_TEST_INPUT_PATH']
