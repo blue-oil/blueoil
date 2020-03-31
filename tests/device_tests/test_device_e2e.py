@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 """Test file for binary running on devices"""
+import copy
 import glob
 import os
 import sys
@@ -22,6 +23,7 @@ import unittest
 
 class DeviceE2eTest(unittest.TestCase):
     """Test Case of Device E2E Test."""
+    sys_path_default = copy.deepcopy(sys.path)
 
     def _get_param(self, test_case, input_path, lib_name):
         test_case_dir = os.path.join(input_path, test_case)
@@ -45,7 +47,7 @@ class DeviceE2eTest(unittest.TestCase):
         return [[case, self._get_param(case, input_path, lib_name)] for case in os.listdir(input_path)]
 
     def _run(self, python_path, image, model, config):
-        sys.path.append(python_path)
+        sys.path = copy.deepcopy(self.sys_path_default) + [python_path]
         from run import run_prediction
         run_prediction(image, model, config)
         self.assertTrue(os.path.exists(os.path.join('output', "output.json")))
