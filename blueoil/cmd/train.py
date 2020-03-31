@@ -222,7 +222,7 @@ def start_training(config):
             # train_writer.add_run_metadata(run_metadata, "step: {}".format(step + 1))
             train_writer.add_summary(summary, step + 1)
 
-            metrics_summary, = sess.run([metrics_summary_op])
+            metrics_summary = sess.run(metrics_summary_op)
             train_writer.add_summary(metrics_summary, step + 1)
             train_writer.flush()
         else:
@@ -255,7 +255,7 @@ def start_training(config):
                 else:
                     sess.run([metrics_update_op], feed_dict=feed_dict)
 
-            metrics_summary, = sess.run([metrics_summary_op])
+            metrics_summary = sess.run(metrics_summary_op)
             if rank == 0:
                 val_writer.add_summary(metrics_summary, step + 1)
                 val_writer.flush()

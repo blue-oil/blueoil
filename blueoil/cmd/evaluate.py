@@ -139,7 +139,7 @@ def evaluate(config, restore_path, output_dir):
         else:
             sess.run([metrics_update_op], feed_dict=feed_dict)
 
-    metrics_summary, = sess.run([metrics_summary_op])
+    metrics_summary = sess.run(metrics_summary_op)
     validation_writer.add_summary(metrics_summary, last_step)
 
     is_tfds = "TFDS_KWARGS" in config.DATASET
