@@ -115,8 +115,7 @@ def start_training(config):
         model.summary(output, labels_placeholder)
 
         summary_op = tf.compat.v1.summary.merge_all()
-
-        metrics_summary_op, metrics_placeholders = executor.prepare_metrics(metrics_ops_dict)
+        metrics_summary_op = executor.metrics_summary_op(metrics_ops_dict)
 
         init_op = tf.compat.v1.global_variables_initializer()
         reset_metrics_op = tf.compat.v1.local_variables_initializer()
@@ -223,12 +222,7 @@ def start_training(config):
             # train_writer.add_run_metadata(run_metadata, "step: {}".format(step + 1))
             train_writer.add_summary(summary, step + 1)
 
-            metrics_values = sess.run(list(metrics_ops_dict.values()))
-            metrics_feed_dict = {placeholder: value for placeholder, value in zip(metrics_placeholders, metrics_values)}
-
-            metrics_summary, = sess.run(
-                [metrics_summary_op], feed_dict=metrics_feed_dict,
-            )
+            metrics_summary = sess.run(metrics_summary_op)
             train_writer.add_summary(metrics_summary, step + 1)
             train_writer.flush()
         else:
@@ -261,13 +255,7 @@ def start_training(config):
                 else:
                     sess.run([metrics_update_op], feed_dict=feed_dict)
 
-            metrics_values = sess.run(list(metrics_ops_dict.values()))
-            metrics_feed_dict = {
-                placeholder: value for placeholder, value in zip(metrics_placeholders, metrics_values)
-            }
-            metrics_summary, = sess.run(
-                [metrics_summary_op], feed_dict=metrics_feed_dict,
-            )
+            metrics_summary = sess.run(metrics_summary_op)
             if rank == 0:
                 val_writer.add_summary(metrics_summary, step + 1)
                 val_writer.flush()
