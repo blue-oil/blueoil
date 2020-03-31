@@ -336,9 +336,18 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                cache_dma=cache_dma,
                )
 
-        lib_name = 'libdlk_' + cpu_name
+        if cpu_name == 'arm_fpga':
+            lib_base_name = 'fpga'
+        elif cpu_name == 'x86_64':
+            if use_avx:
+                lib_base_name = 'x86_avx'
+            else:
+                lib_base_name = 'x86'
+        else: # 'aarch64' and 'arm' pass here
+            lib_base_name = cpu_name
+
         project_dir = os.path.join(output_path, project_name + '.prj')
-        generated_lib = os.path.join(project_dir, lib_name + '.so')
+        generated_lib = os.path.join(project_dir, 'libdlk_' + lib_base_name + '.so')
         npy_targz = os.path.join(input_dir_path, expected_output_set_name + '.tar.gz')
 
         run_and_check(['tar', 'xvzf', str(npy_targz), '-C', str(output_path)],
@@ -355,38 +364,18 @@ class TestCodeGenerationBase(TestCaseDLKBase):
 
         self.assertTrue(os.path.exists(project_dir))
 
-        cmake_use_aarch64 = '-DTOOLCHAIN_NAME=linux_aarch64'
-        cmake_use_arm = '-DTOOLCHAIN_NAME=linux_arm'
-        cmake_use_neon = '-DUSE_NEON=1'
-        cmake_use_fpga = '-DRUN_ON_FPGA=1'
-        cmake_use_avx = '-DUSE_AVX=1'
-
-        cmake_defs = []
-        if cpu_name == 'aarch64':
-            cmake_defs += [cmake_use_aarch64, cmake_use_neon]
-        elif cpu_name == 'arm':
-            cmake_defs += [cmake_use_arm, cmake_use_neon]
-        elif cpu_name == 'arm_fpga':
-            cmake_defs += [cmake_use_arm, cmake_use_neon, cmake_use_fpga]
-        elif cpu_name == 'x86_64':
-            if use_avx:
-                cmake_defs += [cmake_use_avx]
-
-        run_and_check(['cmake'] + cmake_defs + ['.'],
+        run_and_check(['make', 'clean'],
                       project_dir,
-                      join(output_path, "cmake.out"),
-                      join(output_path, "cmake.err"),
-                      self,
-                      check_stdout_include=['Generating done'],
-                      check_stdout_block=['CMake Error']
+                      join(output_path, "make_clean.out"),
+                      join(output_path, "make_clean.err"),
+                      self
                       )
 
-        run_and_check(['make', 'VERBOSE=1', 'lib', '-j8'],
+        run_and_check(['make', 'lib_' + lib_base_name, '-j8'],
                       project_dir,
                       join(output_path, "make.out"),
                       join(output_path, "make.err"),
                       self,
-                      check_stdout_include=['Building'],
                       check_stderr_block=['error: ']
                       )
         self.assertTrue(os.path.exists(generated_lib))
