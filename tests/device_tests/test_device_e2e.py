@@ -29,7 +29,8 @@ class DeviceE2eTest(unittest.TestCase):
         if output_dir:
             output_dir = output_dir[0]
         else:
-            raise Exception("No such directory")
+            message = "No such directory: '{}'".format(os.path.join(test_case_dir, "export/*/*/output"))
+            raise FileNotFoundError(message) if sys.version_info.major == 3 else IOError(message)
         test_data_dir = os.path.join(os.path.dirname(output_dir), "inference_test_data")
         model_dir = os.path.join(output_dir, "models")
         lib_dir = os.path.join(model_dir, "lib")
