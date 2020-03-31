@@ -123,8 +123,6 @@ public:
       return false;
     }
 
-    memset((void *) mm_buffer, 0, mapped_size_in_bytes);
-
     return true;
   }
 
