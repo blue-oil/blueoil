@@ -29,29 +29,33 @@ build: deps
 	# Build docker image
 	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
 
+.PHONY: setup-test
+setup-test:
+	mkdir -p $(CWD)/tmp
+
 .PHONY: test
 test: build
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/
 
 .PHONY: test-classification
-test-classification: build
+test-classification: build setup-test
 	# Run Blueoil test of classification
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_classification.py
+	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_classification.py
 
 .PHONY: test-object-detection
-test-object-detection: build
+test-object-detection: build setup-test
 	# Run Blueoil test of object-detection
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_object_detection.py
+	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_object_detection.py
 
 .PHONY: test-semantic-segmentation
-test-semantic-segmentation: build
+test-semantic-segmentation: build setup-test
 	# Run Blueoil test of semantic-segmentation
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_semantic_segmentation.py
+	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_semantic_segmentation.py
 
 .PHONY: test-keypoint-detection
-test-keypoint-detection: build
+test-keypoint-detection: build setup-test
 	# Run Blueoil test of keypoint-detection
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_keypoint_detection.py
+	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_keypoint_detection.py
 
 .PHONY: test-lmnet
 test-lmnet: test-blueoil-pep8 test-unit-main

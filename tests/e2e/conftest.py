@@ -17,7 +17,7 @@ def init_env():
     blueoil_dir = str(Path('{}/../../../'.format(__file__)).resolve())
     config_dir = os.path.join(blueoil_dir, 'tests/fixtures/configs')
 
-    train_output_dir = tempfile.TemporaryDirectory()
+    train_output_dir = os.path.join(blueoil_dir, 'tmp')
     predict_output_dir = tempfile.TemporaryDirectory()
 
     environment_originals = {}
@@ -26,10 +26,10 @@ def init_env():
     # TODO: Remove this setting after blueoil.environment has been refactored.
     envs = {
         "DATA_DIR": os.path.join(blueoil_dir, "tests", "unit", "fixtures", "datasets"),
-        "OUTPUT_DIR": train_output_dir.name,
-        "_EXPERIMENT_DIR": os.path.join(train_output_dir.name, "{experiment_id}"),
-        "_TENSORBOARD_DIR": os.path.join(train_output_dir.name, "{experiment_id}", "tensorboard"),
-        "_CHECKPOINTS_DIR": os.path.join(train_output_dir.name, "{experiment_id}", "checkpoints"),
+        "OUTPUT_DIR": train_output_dir,
+        "_EXPERIMENT_DIR": os.path.join(train_output_dir, "{experiment_id}"),
+        "_TENSORBOARD_DIR": os.path.join(train_output_dir, "{experiment_id}", "tensorboard"),
+        "_CHECKPOINTS_DIR": os.path.join(train_output_dir, "{experiment_id}", "checkpoints"),
     }
 
     for k, v in envs.items():
@@ -39,7 +39,7 @@ def init_env():
         os.environ[k] = v
 
     yield {
-        "train_output_dir": train_output_dir.name,
+        "train_output_dir": train_output_dir,
         "predict_output_dir": predict_output_dir.name,
         "blueoil_dir": blueoil_dir,
         "config_dir": config_dir,
@@ -53,7 +53,6 @@ def init_env():
         else:
             del os.environ[k]
 
-    train_output_dir.cleanup()
     predict_output_dir.cleanup()
 
 
