@@ -127,7 +127,7 @@ class LMFYolo(YoloV2):
         output_filters = (self.num_classes + 5) * self.boxes_per_cell
         self.block_last = conv2d("block_last", x, filters=output_filters, kernel_size=1,
                                  activation=None, use_bias=True, is_debug=self.is_debug,
-                                 data_format=channel_data_format)
+                                 data_format=self.data_format)
 
         if self.change_base_output:
 

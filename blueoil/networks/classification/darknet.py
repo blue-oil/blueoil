@@ -243,7 +243,7 @@ class Darknet(Base):
         self.conv_19 = conv2d(
             "conv_19", self.block_18, filters=self.num_classes, kernel_size=1,
             activation=None, use_bias=True, is_debug=self.is_debug,
-            kernel_initializer=kernel_initializer, data_format=channel_data_format,
+            kernel_initializer=kernel_initializer, data_format=self.data_format,
         )
 
         if self.is_debug:

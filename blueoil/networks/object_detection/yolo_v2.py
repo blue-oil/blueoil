@@ -979,7 +979,7 @@ class YoloV2(BaseNetwork):
         self.conv_23 = conv2d(
             "conv_23", self.block_22, filters=output_filters, kernel_size=1,
             activation=None, use_bias=True, is_debug=self.is_debug,
-            data_format=channel_data_format,
+            data_format=self.data_format,
         )
 
         # assert_num_cell_y = tf.assert_equal(self.num_cell[0], tf.shape(self.conv_23)[1])
