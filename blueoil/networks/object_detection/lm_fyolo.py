@@ -23,7 +23,7 @@ from blueoil.layers import conv2d
 
 
 class LMFYolo(YoloV2):
-    """LM original objecte detection network based on Yolov2 and F-Yolo.
+    """LM original object detection network based on Yolov2 and F-Yolo.
 
     Ref:
         F-Yolo https://arxiv.org/abs/1805.06361
