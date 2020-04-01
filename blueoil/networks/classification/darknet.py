@@ -44,7 +44,7 @@ class Darknet(Base):
         elif self.data_format == "NHWC":
             channel_data_format = "channels_last"
         else:
-            raise RuntimeError("data format {} shodul be in ['NCHW', 'NHWC]'.".format(self.data_format))
+            raise RuntimeError("data format {} should be in ['NCHW', 'NHWC]'.".format(self.data_format))
 
         self.inputs = self.images = images
 
