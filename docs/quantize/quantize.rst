@@ -121,7 +121,7 @@ Quantized network class template
             elif self.data_format == "NHWC":
                 channel_data_format = "channels_last"
             else:
-                raise RuntimeError("data format {} shodul be in ['NCHW', 'NHWC]'.".format(self.data_format))
+                raise RuntimeError("data format {} should be in ['NCHW', 'NHWC]'.".format(self.data_format))
 
             self.inputs = self.images = images
 
@@ -135,7 +135,7 @@ Quantized network class template
             output_filters = (self.num_classes + 5) * self.boxes_per_cell
             self.block_last = conv2d("block_last", x, filters=output_filters, kernel_size=1,
                                      activation=None, use_bias=True, is_debug=self.is_debug,
-                                     data_format=channel_data_format)
+                                     data_format=self.data_format)
 
             return self.base_output
 
