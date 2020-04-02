@@ -42,14 +42,14 @@ void func_QTZ_binary_mean_scaling(
   }
 }
 
-void func_QTZ_linear_mid_tread_half(
+void func_LinearMidTreadHalfQuantizer(
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     const TensorView<T_INT, MemoryLayout::Atom>& nbit,
     const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
     const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
     BYTE *temporary_buf);
 
-void func_QTZ_linear_mid_tread_half(
+void func_LinearMidTreadHalfQuantizer(
   const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
   const TensorView<T_INT, MemoryLayout::Atom>& nbit,
   const TensorView<T_FLOAT, MemoryLayout::Atom>& max_value,
