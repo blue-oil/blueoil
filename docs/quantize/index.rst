@@ -7,9 +7,11 @@ Quantize Documentation
 ======================
 
 Welcome to Blueoil Quantize documentation.
-Quantize is a quantize part in Blueoil for edge devices.
+Quantize is a quantization part of Blueoil for edge devices.
 
 .. toctree::
    :maxdepth: 1
 
-   quantize
+   weight_quantization
+   activation_quantization
+   quantization_template
