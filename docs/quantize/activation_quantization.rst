@@ -1,7 +1,7 @@
 Activation quantization
 =======================
 
-Blueoil quantize an activation function when the last convolution layer is quantized. (``quantize_last_conv`` =True), otherwise ``Leaky ReLU`` is used as an activation function.
+Blueoil quantize an activation function when the last convolution layer is quantized. (``quantize_last_convolution`` =True), otherwise ``Leaky ReLU`` is used as an activation function.
 
 .. literalinclude:: quantize_example.py
    :language: python

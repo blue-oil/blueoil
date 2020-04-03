@@ -2,8 +2,49 @@ from functools import partial
 
 import tensorflow as tf
 
-from blueoil.networks.<TASK_NAME>.<NETWORK_NAME> import FooNetwork
+from blueoil.blocks import darknet
+from blueoil.networks.classification.base import Base
+from blueoil.layers import conv2d
 
+class FooNetwork(Base):
+    """Example model with simple layer"""
+
+    def __init__(
+            self,
+            *args,
+            **kwargs
+    ):
+        super().__init__(
+            *args,
+            **kwargs,
+        )
+
+        self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
+        self.before_last_activation = self.activation
+
+    def base(self, images, is_training):
+        if self.data_format == "NCHW":
+            channel_data_format = "channels_first"
+        elif self.data_format == "NHWC":
+            channel_data_format = "channels_last"
+        else:
+            raise RuntimeError("data format {} should be in ['NCHW', 'NHWC]'.".format(self.data_format))
+
+        self.inputs = self.images = images
+
+        darknet_block = partial(darknet, is_training=is_training,
+                                activation=self.activation, data_format=self.data_format)
+
+        x = darknet_block("block_1", self.inputs, filters=32, kernel_size=1)
+        x = darknet_block("block_2", x, filters=8, kernel_size=3)
+        x = self._reorg("pool_1", x, stride=2, data_format=self.data_format)
+
+        output_filters = (self.num_classes + 5) * self.boxes_per_cell
+        self.block_last = conv2d("block_last", x, filters=output_filters, kernel_size=1,
+                                 activation=None, use_bias=True, is_debug=self.is_debug,
+                                 data_format=self.data_format)
+
+        return self.base_output
 
 class FooNetworkQuantize(FooNetwork):
     """Quantize Foo Network."""
