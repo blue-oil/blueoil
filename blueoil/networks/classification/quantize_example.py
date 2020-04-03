@@ -46,6 +46,7 @@ class FooNetwork(Base):
 
         return self.base_output
 
+
 class FooNetworkQuantize(FooNetwork):
     """Quantize Foo Network."""
 
