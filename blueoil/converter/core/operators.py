@@ -1370,7 +1370,7 @@ class BatchNormalization(Operator):
         return False
 
 
-class QTZ_linear_mid_tread_half(Quantizer):
+class LinearMidTreadHalfQuantizer(Quantizer):
     """Quantization operator with 'linear mid tread half'.
 
     Input
@@ -1400,7 +1400,7 @@ class QTZ_linear_mid_tread_half(Quantizer):
     def _check_consistency(self) -> None:
         super()._check_consistency()
         x_shape = self._input_ops['X'].shape
-        message = 'QTZ_linear_mid_tread_half operator has inconsistency in shapes: '
+        message = 'LinearMidTreadHalfQuantizer operator has inconsistency in shapes: '
         message += f'input "X" has {x_shape}, while it has {self.shape}'
         self._assert(x_shape == self.shape, message)
 
@@ -2562,10 +2562,10 @@ class DepthToSpace(Operator):
     def _check_consistency(self) -> None:
         """
         This check the following constraints:
-            1. qunatized-packed data requires depth of input must be multiple of kernel_size^2 * 32
+            1. quantized-packed data requires depth of input must be multiple of kernel_size^2 * 32
         """
         super()._check_consistency()
-        if self.input_ops['input'].op_type == 'QTZ_linear_mid_tread_half' and \
+        if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and \
                 self.input_ops['input'].channel % 128 != 0:
             warnings.warn(warning_sign +
                           f" Input channels need to be multiple of kernel_size^2 * 32 for "

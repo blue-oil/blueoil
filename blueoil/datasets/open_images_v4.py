@@ -56,7 +56,7 @@ class OpenImagesV4(Base):
         with open(self.class_descriptions_csv, 'r') as f:
             reader = csv.reader(f)
             for row in reader:
-                class_name = re.sub('\W', '', row[1])
+                class_name = re.sub(r'\W', '', row[1])
                 classes_meta[row[0]] = class_name
         return classes_meta
 

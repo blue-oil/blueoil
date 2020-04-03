@@ -177,8 +177,7 @@ def run_prediction(input_image, model, config_file, trial=1):
     filename_images = image_from_json(json_obj, raw_images, image_files)
     _save_images(output_dir, filename_images)
     logger.info("Benchmark avg result(sec) for {} trials: pre_process: {}  inference: {} post_process: {}  Total: {}"
-                .format(trial, bench_pre / trial, bench_inference / trial, bench_post / trial,
-                        (bench_pre + bench_post + bench_inference) / trial,))
+                .format(trial, bench_pre, bench_inference, bench_post, bench_pre + bench_post + bench_inference,))
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

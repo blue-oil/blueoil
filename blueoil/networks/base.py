@@ -75,7 +75,7 @@ class BaseNetwork(object):
             tf.Tensor: Inference result.
 
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def placeholders(self):
         """Placeholders.
@@ -86,7 +86,7 @@ class BaseNetwork(object):
             tf.compat.v1.placeholder: Placeholders.
 
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def metrics(self, output, labels):
         """Metrics.
@@ -96,7 +96,7 @@ class BaseNetwork(object):
             labels: labels tensor.
 
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     # TODO(wakisaka): Deal with many networks.
     def summary(self, output, labels=None):
@@ -119,7 +119,7 @@ class BaseNetwork(object):
             images: images tensor. shape is (batch_num, height, width, channel)
 
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def loss(self, output, labels):
         """Loss.
@@ -129,7 +129,7 @@ class BaseNetwork(object):
             labels: labels tensor.
 
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def optimizer(self, global_step):
         assert ("learning_rate" in self.optimizer_kwargs.keys()) or \

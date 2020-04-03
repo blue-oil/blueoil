@@ -88,7 +88,7 @@ def search_restore_filename(checkpoints_dir):
 
 
 def convert_variables_to_constants(sess, output_node_names=["output"]):
-    minimal_graph_def = tf.graph_util.convert_variables_to_constants(
+    minimal_graph_def = tf.compat.v1.graph_util.convert_variables_to_constants(
         sess,
         sess.graph.as_graph_def(add_shapes=True),
         output_node_names,
@@ -103,28 +103,20 @@ def save_pb_file(sess, output_dir, output_node_names=["output"], pb_name="minima
     return pb_name
 
 
-def prepare_metrics(metrics_ops_dict):
-    """Create summary_op and placeholders for training metrics.
+def metrics_summary_op(metrics_ops_dict):
+    """Create summary_op for training metrics.
 
     Args:
         metrics_ops_dict (dict): dict of name and metrics_op.
 
     Returns:
         metrics_summary_op: summary op of metrics.
-        metrics_placeholders: list of metrics placeholder.
 
     """
-    with tf.name_scope("metrics"):
-        metrics_placeholders = []
-        metrics_summaries = []
-        for (metrics_key, metrics_op) in metrics_ops_dict.items():
-            metrics_placeholder = tf.compat.v1.placeholder(
-                tf.float32, name="{}_placeholder".format(metrics_key)
-            )
-            summary = tf.compat.v1.summary.scalar(metrics_key, metrics_placeholder)
-            metrics_placeholders.append(metrics_placeholder)
-            metrics_summaries.append(summary)
+    with tf.compat.v1.name_scope("metrics"):
+        metrics_summaries = [
+            tf.compat.v1.summary.scalar(metrics_key, metrics_op)
+            for (metrics_key, metrics_op) in metrics_ops_dict.items()
+        ]
 
-        metrics_summary_op = tf.summary.merge(metrics_summaries)
-
-    return metrics_summary_op, metrics_placeholders
+    return tf.compat.v1.summary.merge(metrics_summaries)

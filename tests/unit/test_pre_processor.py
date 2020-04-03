@@ -18,6 +18,7 @@ import pytest
 
 from blueoil.pre_processor import (
     Resize,
+    DivideBy255,
     ResizeWithJoints,
     JointsToGaussianHeatmap
 )
@@ -43,6 +44,19 @@ def test_resize():
 
     assert resized_mask.shape[:2] == (32, 32)
     assert resized_mask.shape[2] == 3
+
+
+def test_divide_255():
+    orig_image = np.ones((1, 1, 3))
+    expect = np.array([[[0.00392157, 0.00392157, 0.00392157]]])
+
+    pre_processor = DivideBy255()
+    processed = pre_processor(image=orig_image)
+    processed_imaged = processed["image"]
+
+    assert isinstance(processed_imaged, np.ndarray)
+    assert processed_imaged.shape[:2] == orig_image.shape[:2]
+    assert np.allclose(expect, processed_imaged)
 
 
 def test_resize_with_joints():

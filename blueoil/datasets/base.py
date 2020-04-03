@@ -78,7 +78,7 @@ class Base(metaclass=ABCMeta):
     @abstractmethod
     def available_subsets():
         """Returns the list of available subsets."""
-        return ['train', 'train_validation_saving', 'validation']
+        return ['train', 'validation']
 
     @property
     @abstractmethod
@@ -259,8 +259,8 @@ class StoragePathCustomizable():
 
     @property
     def data_dir(self):
-        if self.subset is "train":
+        if self.subset == "train":
             return self._train_data_dir
 
-        if self.subset is "validation":
+        if self.subset == "validation":
             return self._validation_data_dir

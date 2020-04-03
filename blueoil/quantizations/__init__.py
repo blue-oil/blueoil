@@ -20,7 +20,7 @@ How to use:
 .. code-block:: python
 
     quantizer = binary_mean_scaling_quantizer() # initialize quantizer
-    weights = tf.get_variable("kernel", shape=[1, 2, 3, 4]) # prepare variavle.
+    weights = tf.get_variable("kernel", shape=[1, 2, 3, 4]) # prepare variable.
     quantized_weights = quantizer(weights) # use quantizer to quantize variable
     tf.nn.conv2d(inputs, quantized_weights)
 

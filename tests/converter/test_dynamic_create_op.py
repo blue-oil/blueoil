@@ -33,7 +33,7 @@ class TestDynamicCreateOp(unittest.TestCase):
             'Identity',
             'BinaryMeanScalingQuantizer',
             'Transpose',
-            'QTZ_linear_mid_tread_half',
+            'LinearMidTreadHalfQuantizer',
             'MaxPool',
             'AveragePool',
             'Reshape',

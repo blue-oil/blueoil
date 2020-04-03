@@ -10,34 +10,52 @@ deps:
 	# Update dependencies
 	git submodule update --init --recursive
 
+.PHONY: install
+install: deps
+	pip install -e .[cpu,tests,docs]
+	pip install pycocotools==2.0.0
+
+.PHONY: install-gpu
+install-gpu: install
+	pip install -e .[gpu]
+	pip install -e .[dist]
+
+.PHONY: lint
+lint:
+	flake8 ./blueoil ./tests --exclude=templates,converter
+
 .PHONY: build
 build: deps
 	# Build docker image
 	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
+
+.PHONY: setup-test
+setup-test:
+	mkdir -p $(CWD)/tmp
 
 .PHONY: test
 test: build
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/
 
 .PHONY: test-classification
-test-classification: build
+test-classification: build setup-test
 	# Run Blueoil test of classification
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_classification.py
+	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_classification.py
 
 .PHONY: test-object-detection
-test-object-detection: build
+test-object-detection: build setup-test
 	# Run Blueoil test of object-detection
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_object_detection.py
+	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_object_detection.py
 
 .PHONY: test-semantic-segmentation
-test-semantic-segmentation: build
+test-semantic-segmentation: build setup-test
 	# Run Blueoil test of semantic-segmentation
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_semantic_segmentation.py
+	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_semantic_segmentation.py
 
 .PHONY: test-keypoint-detection
-test-keypoint-detection: build
+test-keypoint-detection: build setup-test
 	# Run Blueoil test of keypoint-detection
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_keypoint_detection.py
+	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_keypoint_detection.py
 
 .PHONY: test-lmnet
 test-lmnet: test-blueoil-pep8 test-unit-main
@@ -46,7 +64,7 @@ test-lmnet: test-blueoil-pep8 test-unit-main
 test-blueoil-pep8: build
 	# Check blueoil pep8
 	# FIXME: blueoil/templates and blueoil/converter have a lot of errors with flake8
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil --exclude=templates,converter"
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil ./tests --exclude=templates,converter"
 
 .PHONY: test-unit-main
 test-unit-main: build
