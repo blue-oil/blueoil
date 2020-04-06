@@ -2,13 +2,12 @@ from functools import partial
 
 import tensorflow as tf
 
-from blueoil.blocks import darknet
 from blueoil.networks.classification.base import Base
-from blueoil.layers import conv2d
+from blueoil.layers import batch_norm, conv2d
 
 
-class FooNetwork(Base):
-    """Example model with simple layer"""
+class SampleNetwork(Base):
+    """Sample network with simple layer."""
 
     def __init__(
             self,
@@ -24,32 +23,32 @@ class FooNetwork(Base):
         self.before_last_activation = self.activation
 
     def base(self, images, is_training):
-        if self.data_format == "NCHW":
-            channel_data_format = "channels_first"
-        elif self.data_format == "NHWC":
-            channel_data_format = "channels_last"
-        else:
-            raise RuntimeError("data format {} should be in ['NCHW', 'NHWC]'.".format(self.data_format))
+        assert self.data_format == "NHWC"
+        channel_data_format = "channels_last"
 
         self.inputs = self.images = images
 
-        darknet_block = partial(darknet, is_training=is_training,
-                                activation=self.activation, data_format=self.data_format)
+        with tf.compat.v1.variable_scope("block_1"):
+            conv = conv2d("conv", self.inputs, filters=32, kernel_size=3,
+                          activation=self.activation, use_bias=False, data_format=channel_data_format,
+                          kernel_initializer=tf.contrib.layers.variance_scaling_initializer())
+            batch_normed = batch_norm("bn", conv, is_training=is_training, decay=0.99, scale=True, center=True,
+                                      data_format=self.data_format)
+            tf.compat.v1.summary.histogram("batch_normed", batch_normed)
 
-        x = darknet_block("block_1", self.inputs, filters=32, kernel_size=1)
-        x = darknet_block("block_2", x, filters=8, kernel_size=3)
-        x = self._reorg("pool_1", x, stride=2, data_format=self.data_format)
+            output = self.activation(batch_normed)
+            tf.compat.v1.summary.histogram("output", output)
 
         output_filters = (self.num_classes + 5) * self.boxes_per_cell
-        self.block_last = conv2d("block_last", x, filters=output_filters, kernel_size=1,
+        self.block_last = conv2d("block_last", output, filters=output_filters, kernel_size=1,
                                  activation=None, use_bias=True, is_debug=self.is_debug,
                                  data_format=channel_data_format)
 
-        return self.base_output
+        return self.block_last
 
 
-class FooNetworkQuantize(FooNetwork):
-    """Quantize Foo Network."""
+class SampleNetworkQuantize(SampleNetwork):
+    """Quantize Sample Network."""
 
     def __init__(
             self,
