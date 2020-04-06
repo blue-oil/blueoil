@@ -39,12 +39,17 @@ class SampleNetwork(Base):
             output = self.activation(batch_normed)
             tf.compat.v1.summary.histogram("output", output)
 
-        output_filters = (self.num_classes + 5) * self.boxes_per_cell
-        self.block_last = conv2d("block_last", output, filters=output_filters, kernel_size=1,
+        self.block_last = conv2d("block_last", output, filters=self.num_classes, kernel_size=1,
                                  activation=None, use_bias=True, is_debug=self.is_debug,
+                                 kernel_initializer=tf.random_normal_initializer(mean=0.0, stddev=0.01),
                                  data_format=channel_data_format)
 
-        return self.block_last
+        axis = [1, 2]
+
+        self.pool = tf.reduce_mean(self.block_last, axis=axis, name="global_average_pool")
+        self.base_output = tf.reshape(self.pool, [-1, self.num_classes], name="pool_reshape")
+
+        return self.base_output
 
 
 class SampleNetworkQuantize(SampleNetwork):
