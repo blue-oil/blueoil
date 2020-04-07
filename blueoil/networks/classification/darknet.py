@@ -281,9 +281,9 @@ class DarknetQuantize(Darknet):
             quantize_first_convolution(bool): use quantization in first conv.
             quantize_last_convolution(bool): use quantization in last conv.
             weight_quantizer (callable): weight quantizer.
-            weight_quantize_kwargs(dict): Initialize kwargs for weight quantizer.
+            weight_quantizer_kwargs(dict): Initialize kwargs for weight quantizer.
             activation_quantizer (callable): activation quantizer
-            activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
+            activation_quantizer_kwargs(dict): Initialize kwargs for activation quantizer.
         """
 
         super().__init__(
