@@ -30,23 +30,30 @@ class SampleNetwork(Base):
 
         with tf.compat.v1.variable_scope("block_1"):
             conv = conv2d("conv", self.inputs, filters=32, kernel_size=3,
-                          activation=self.activation, use_bias=False, data_format=channel_data_format,
+                          activation=None, use_bias=False, data_format=channel_data_format,
                           kernel_initializer=tf.contrib.layers.variance_scaling_initializer())
             batch_normed = batch_norm("bn", conv, is_training=is_training, decay=0.99, scale=True, center=True,
                                       data_format=self.data_format)
-            tf.compat.v1.summary.histogram("batch_normed", batch_normed)
+            self.block_1 = self.activation(batch_normed)
 
-            output = self.activation(batch_normed)
-            tf.compat.v1.summary.histogram("output", output)
+        with tf.compat.v1.variable_scope("block_2"):
+            conv = conv2d("conv", self.block_1, filters=64, kernel_size=3,
+                          activation=None, use_bias=False, data_format=channel_data_format,
+                          kernel_initializer=tf.contrib.layers.variance_scaling_initializer())
+            batch_normed = batch_norm("bn", conv, is_training=is_training, decay=0.99, scale=True, center=True,
+                                      data_format=self.data_format)
+            self.block_2 = self.before_last_activation(batch_normed)
 
-        self.block_last = conv2d("block_last", output, filters=self.num_classes, kernel_size=1,
+        self.block_last = conv2d("block_last", self.block_2, filters=self.num_classes, kernel_size=1,
                                  activation=None, use_bias=True, is_debug=self.is_debug,
                                  kernel_initializer=tf.random_normal_initializer(mean=0.0, stddev=0.01),
                                  data_format=channel_data_format)
 
-        axis = [1, 2]
-
-        self.pool = tf.reduce_mean(self.block_last, axis=axis, name="global_average_pool")
+        h = self.block_last.get_shape()[1].value
+        w = self.block_last.get_shape()[2].value
+        self.pool = tf.layers.average_pooling2d(name='global_average_pool', inputs=self.block_last,
+                                                pool_size=[h, w], padding='VALID', strides=1,
+                                                data_format=channel_data_format)
         self.base_output = tf.reshape(self.pool, [-1, self.num_classes], name="pool_reshape")
 
         return self.base_output
