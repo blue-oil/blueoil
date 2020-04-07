@@ -62,10 +62,16 @@ REQUIEMNT_PARAMS_FOR_TRAINING = REQUIEMNT_PARAMS_FOR_INFERENCE + [
 
 
 def _saved_config_file_path():
-    for filename in ('config.py', 'config.yaml'):
-        filepath = os.path.join(environment.EXPERIMENT_DIR, filename)
+    filepaths = [
+        os.path.join(environment.EXPERIMENT_DIR, filename)
+        for filename in ('config.py', 'config.yaml')
+    ]
+
+    for filepath in filepaths:
         if os.path.isfile(filepath):
             return filepath
+
+    raise FileNotFoundError("Config file not found: '{}'".format("' nor '".join(filepaths)))
 
 
 def _config_file_path_to_copy(config_file):

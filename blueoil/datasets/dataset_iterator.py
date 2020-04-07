@@ -286,7 +286,7 @@ class _TFDSReader:
 
 class DatasetIterator:
 
-    available_subsets = ["train", "train_validation_saving", "validation"]
+    available_subsets = ["train", "validation"]
 
     """docstring for DatasetIterator."""
 

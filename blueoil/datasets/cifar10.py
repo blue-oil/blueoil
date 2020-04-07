@@ -40,13 +40,12 @@ class Cifar10(Base):
 
     num_classes = len(classes)
     extend_dir = "CIFAR_10/cifar-10-batches-py"
-    available_subsets = ["train", "train_validation_saving", "validation"]
+    available_subsets = ["train", "validation"]
 
     def __init__(
             self,
             subset="train",
             batch_size=100,
-            train_validation_saving_size=0,
             *args,
             **kwargs
     ):
@@ -56,7 +55,6 @@ class Cifar10(Base):
             *args,
             **kwargs,
         )
-        self.train_validation_saving_size = train_validation_saving_size
         self._init_images_and_labels()
 
     @property
@@ -80,7 +78,7 @@ class Cifar10(Base):
 
     @functools.lru_cache(maxsize=None)
     def _images_and_labels(self):
-        if self.subset == "train" or self.subset == "train_validation_saving":
+        if self.subset == "train":
             files = ["data_batch_1", "data_batch_2", "data_batch_3", "data_batch_4", "data_batch_5"]
 
         else:
@@ -93,15 +91,6 @@ class Cifar10(Base):
 
         labels = [labels for images, labels in data]
         labels = np.concatenate(labels, axis=0)
-
-        if self.train_validation_saving_size > 0:
-            # split the train set into train and train_validation_saving
-            if self.subset == "train":
-                images, _ = np.split(images, [-self.train_validation_saving_size], axis=0)
-                labels, _ = np.split(labels, [-self.train_validation_saving_size], axis=0)
-            elif self.subset == "train_validation_saving":
-                _, images = np.split(images, [-self.train_validation_saving_size], axis=0)
-                _, labels = np.split(labels, [-self.train_validation_saving_size], axis=0)
 
         # randomaize
         if self.subset == "train":
