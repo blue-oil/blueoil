@@ -18,16 +18,16 @@ import pprint
 import tensorflow as tf
 
 
-class TFSequence:
+class TFDSProcessorSequence:
     """Sequence several processor together.
 
     Args:
         processors (List[Processor]): list of processor.
 
     Examples:
-        | *TFSequence([*
-        |     *TFFlipLeftRight(0.5),*
-        |     *TFHue((-10, 10)),*
+        | *TFDSProcessorSequence([*
+        |     *TFDSFlipLeftRight(0.5),*
+        |     *TFDSHue((-10, 10)),*
         | *])*
     """
 
