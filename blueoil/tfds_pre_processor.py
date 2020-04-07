@@ -18,7 +18,7 @@ import tensorflow as tf
 from blueoil.data_processor import Processor
 
 
-def tf_resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
+def tfds_resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
     """Resize an image and gt_boxes.
 
     Args:
@@ -51,7 +51,7 @@ def tf_resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
     return image, gt_boxes
 
 
-class TFResize(Processor):
+class TFDSResize(Processor):
     """Resize an image"""
 
     def __init__(self, size=(256, 256)):
@@ -69,14 +69,14 @@ class TFResize(Processor):
         return dict({'image': tf.image.resize(image, self.size)}, **kwargs)
 
 
-class TFPerImageStandardization(Processor):
+class TFDSPerImageStandardization(Processor):
     """Standardization per image."""
 
     def __call__(self, image, **kwargs):
         return dict({'image': tf.image.per_image_standardization(image)}, **kwargs)
 
 
-class TFResizeWithGtBoxes(Processor):
+class TFDSResizeWithGtBoxes(Processor):
     """Resize image with gt boxes.
 
     Args:
@@ -87,11 +87,11 @@ class TFResizeWithGtBoxes(Processor):
         self.size = size
 
     def __call__(self, image, gt_boxes=None, **kwargs):
-        image, gt_boxes = tf_resize_with_gt_boxes(image, gt_boxes, self.size)
+        image, gt_boxes = tfds_resize_with_gt_boxes(image, gt_boxes, self.size)
         return dict({'image': image, 'gt_boxes': gt_boxes}, **kwargs)
 
 
-class TFDivideBy255(Processor):
+class TFDSDivideBy255(Processor):
     """Divide image by 255"""
 
     def __call__(self, image, **kwargs):

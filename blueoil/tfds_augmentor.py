@@ -18,7 +18,7 @@ import tensorflow as tf
 from blueoil.data_processor import Processor
 
 
-class TFPad(Processor):
+class TFDSPad(Processor):
     """Add padding to images.
 
     Args:
@@ -50,7 +50,7 @@ class TFPad(Processor):
         return dict({'image': image}, **kwargs)
 
 
-class TFCrop(Processor):
+class TFDSCrop(Processor):
     """Randomly crop an image.
 
     Args:
@@ -93,7 +93,7 @@ def _random_flip_left_right_bounding_box(image, gt_boxes, seed):
     return image, gt_boxes
 
 
-class TFFlipLeftRight(Processor):
+class TFDSFlipLeftRight(Processor):
     """Flip left right with a probability 0.5.
 
     Args:
@@ -111,7 +111,7 @@ class TFFlipLeftRight(Processor):
         return dict({'image': image, 'gt_boxes': gt_boxes}, **kwargs)
 
 
-class TFBrightness(Processor):
+class TFDSBrightness(Processor):
     """Adjust the brightness of images by a random factor.
        (picked from uniform distribution [-delta, delta) )
 
@@ -129,7 +129,7 @@ class TFBrightness(Processor):
         return dict({'image': image}, **kwargs)
 
 
-class TFHue(Processor):
+class TFDSHue(Processor):
     """Randomly change image hue.
 
     Args:
@@ -146,7 +146,7 @@ class TFHue(Processor):
         return dict({'image': image}, **kwargs)
 
 
-class TFSaturation(Processor):
+class TFDSSaturation(Processor):
     """Randomly adjust the saturation of a RGB image.
        Random factor is picked from [lower, upper]
        0 <= lower < upper must be satisfied.
@@ -173,7 +173,7 @@ class TFSaturation(Processor):
         return dict({'image': image}, **kwargs)
 
 
-class TFContrast(Processor):
+class TFDSContrast(Processor):
     """Randomly adjust the contrast of an image.
        Random factor is picked from [lower, upper]
        0 <= lower < upper must be satisfied.

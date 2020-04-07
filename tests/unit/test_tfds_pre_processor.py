@@ -18,18 +18,18 @@ import tensorflow as tf
 import pytest
 
 from blueoil.tfds_pre_processor import (
-    TFResize,
-    TFResizeWithGtBoxes
+    TFDSResize,
+    TFDSResizeWithGtBoxes
 )
 
 pytestmark = pytest.mark.usefixtures("reset_default_graph")
 
 
-def test_tf_resize():
+def test_tfds_resize():
     image_size = [32, 32]
     orig_image = tf.zeros((1024, 512, 3), dtype=tf.dtypes.uint8)
 
-    pre_processor = TFResize(image_size)
+    pre_processor = TFDSResize(image_size)
     resized = pre_processor(image=orig_image)
     resized_image = resized["image"]
     with tf.Session() as sess:
@@ -40,7 +40,7 @@ def test_tf_resize():
     assert resized_image.shape[2] == 3
 
 
-def test_tf_resize_with_gt_boxes():
+def test_tfds_resize_with_gt_boxes():
     image_size = [64, 128]
     image_ratio = 8
     num_gt_boxes = 10
@@ -48,7 +48,7 @@ def test_tf_resize_with_gt_boxes():
     orig_gt_boxes = np.array([[16, 16, 32, 32, 0] for _ in range(num_gt_boxes)], dtype=np.float32)
     gt_boxes = tf.constant(orig_gt_boxes)
 
-    pre_processor = TFResizeWithGtBoxes(image_size)
+    pre_processor = TFDSResizeWithGtBoxes(image_size)
     resized = pre_processor(image=orig_image, gt_boxes=gt_boxes)
     with tf.Session() as sess:
         resized_image, resized_gt_boxes = sess.run([resized["image"], resized["gt_boxes"]])
@@ -64,5 +64,5 @@ def test_tf_resize_with_gt_boxes():
 
 if __name__ == '__main__':
     tf.reset_default_graph()
-    test_tf_resize()
-    test_tf_resize_with_gt_boxes()
+    test_tfds_resize()
+    test_tfds_resize_with_gt_boxes()
