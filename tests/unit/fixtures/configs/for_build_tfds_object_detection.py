@@ -20,10 +20,10 @@ from blueoil.common import Tasks
 from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from blueoil.datasets.delta_mark import ObjectDetectionBase
 from blueoil.data_processor import Sequence
-from blueoil.tfds_data_processor import TFSequence
+from blueoil.tfds_data_processor import TFDSProcessorSequence
 from blueoil.tfds_pre_processor import (
-    TFResizeWithGtBoxes,
-    TFPerImageStandardization,
+    TFDSResizeWithGtBoxes,
+    TFDSPerImageStandardization,
 )
 from blueoil.post_processor import (
     FormatYoloV2,
@@ -31,7 +31,7 @@ from blueoil.post_processor import (
     NMS,
 )
 from blueoil.tfds_augmentor import (
-    TFFlipLeftRight,
+    TFDSFlipLeftRight,
 )
 from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
@@ -71,9 +71,9 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-TFDS_PRE_PROCESSOR = TFSequence([
-    TFResizeWithGtBoxes(IMAGE_SIZE),
-    TFPerImageStandardization()
+TFDS_PRE_PROCESSOR = TFDSProcessorSequence([
+    TFDSResizeWithGtBoxes(IMAGE_SIZE),
+    TFDSPerImageStandardization()
 ])
 
 anchors = [
@@ -112,8 +112,8 @@ DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = None
 DATASET.TFDS_PRE_PROCESSOR = TFDS_PRE_PROCESSOR
-DATASET.TFDS_AUGMENTOR = TFSequence([
-    TFFlipLeftRight()
+DATASET.TFDS_AUGMENTOR = TFDSProcessorSequence([
+    TFDSFlipLeftRight()
 ])
 DATASET.TFDS_KWARGS = {
     "name": "tfds_object_detection",
