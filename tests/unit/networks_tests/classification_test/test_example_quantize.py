@@ -69,11 +69,13 @@ def test_training():
     }
     config.NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
     config.NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
+    config.NETWORK.DATA_FORMAT = "NHWC"
 
     # dataset config
     config.DATASET = EasyDict()
     config.DATASET.PRE_PROCESSOR = Resize(config.IMAGE_SIZE)
     config.DATASET.BATCH_SIZE = config.BATCH_SIZE
+    config.DATASET.DATA_FORMAT = "NHWC"
 
     environment.init("test_example_quantize")
     prepare_dirs(recreate=True)
