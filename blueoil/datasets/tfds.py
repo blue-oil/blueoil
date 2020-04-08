@@ -79,6 +79,8 @@ class TFDSMixin:
             image_size,
             download=False,
             num_max_boxes=None,
+            tfds_pre_processor=None,
+            tfds_augmentor=None,
             *args,
             **kwargs
     ):
@@ -104,6 +106,8 @@ class TFDSMixin:
         self._validate_feature_structure()
 
         self.tf_dataset = self._builder.as_dataset(split=self.available_splits[self.subset])
+        self.tfds_pre_processor = tfds_pre_processor
+        self.tfds_augmentor = tfds_augmentor
         self._image_size = image_size
         self._num_max_boxes = num_max_boxes
         self._format_dataset()

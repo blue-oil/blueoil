@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Copyright 2018 The Blueoil Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+import tensorflow as tf
+from blueoil.data_processor import Processor
+
+
+class TFDSPad(Processor):
+    """Add padding to images.
+
+    Args:
+        value (int or tuple): Padding on each border. If a single int is provided this
+            is used to pad all borders. If tuple of length 2 is provided this is the padding
+            on left/right and top/bottom respectively. If a tuple of length 4 is provided
+            this is the padding for the left, top, right and bottom borders
+            respectively.
+        fill (int): Pixel fill value. Default is 0.
+    """
+
+    def __init__(self, value, fill=0):
+        if type(value) is int:
+            left = top = right = bottom = value
+
+        elif hasattr(value, "__len__") and len(value) in [2, 4]:
+            if len(value) == 2:
+                left, top = right, bottom = value
+
+            if len(value) == 4:
+                left, top, right, bottom = value
+        else:
+            raise ValueError("Expected int, tuple/list with 2 or 4 entries. Got {}.".format(type(value)))
+        self.paddings = [[top, bottom], [left, right], [0, 0]]
+        self.fill = fill
+
+    def __call__(self, image, **kwargs):
+        image = tf.pad(image, tf.constant(self.paddings), constant_values=self.fill)
+        return dict({'image': image}, **kwargs)
+
+
+class TFDSCrop(Processor):
+    """Randomly crop an image.
+
+    Args:
+        size (tuple | list): the size to crop. i.e. [crop_height, crop_width]
+        seed  (int)        : seed of a random factor
+
+    """
+
+    def __init__(self, size, seed=0):
+        height, width = size
+        # channel size is 3
+        self.size = [height, width, 3]
+        self.seed = seed
+
+    def __call__(self, image, **kwargs):
+        image = tf.image.random_crop(image, self.size, seed=self.seed)
+        return dict({'image': image}, **kwargs)
+
+
+def _random_flip_left_right_bounding_box(image, gt_boxes, seed):
+    """Flip left right only bounding box.
+
+    Args:
+        image    (tf.Tensor): image
+        gt_boxes (tf.Tensor): bounding boxes. shape is [num_boxes, 5(x, y, w, h, class_id)]
+        seed     (int)   : seed of a random factor
+    """
+    width = image.get_shape().as_list()[1]
+    rand = tf.random.uniform([], minval=0, maxval=1, seed=seed)
+    cond = tf.less(rand, .5)
+    image = tf.cond(
+        cond,
+        lambda: tf.image.flip_left_right(image),
+        lambda: image
+    )
+    gt_boxes = tf.cond(
+        cond,
+        lambda: tf.concat([tf.expand_dims(width - gt_boxes[:, 0] - gt_boxes[:, 2], 1), gt_boxes[:, 1:]], 1),
+        lambda: gt_boxes)
+    return image, gt_boxes
+
+
+class TFDSFlipLeftRight(Processor):
+    """Flip left right with a probability 0.5.
+
+    Args:
+        seed (int): seed of a random factor
+    """
+
+    def __init__(self, seed=0):
+        self.seed = 0
+
+    def __call__(self, image, gt_boxes=None, **kwargs):
+        if gt_boxes is None:
+            image = tf.image.random_flip_left_right(image, seed=self.seed)
+        else:
+            image, gt_boxes = _random_flip_left_right_bounding_box(image, gt_boxes, seed=self.seed)
+        return dict({'image': image, 'gt_boxes': gt_boxes}, **kwargs)
+
+
+class TFDSBrightness(Processor):
+    """Adjust the brightness of images by a random factor.
+       (picked from uniform distribution [-delta, delta) )
+
+    Args:
+        delta (float): max delta for distribution. must be positive
+        seed  (int)  : seed of a random factor
+    """
+
+    def __init__(self, delta=0.25, seed=0):
+        self.delta = delta
+        self.seed = seed
+
+    def __call__(self, image, **kwargs):
+        image = tf.image.random_brightness(image, self.delta, seed=self.seed)
+        return dict({'image': image}, **kwargs)
+
+
+class TFDSHue(Processor):
+    """Randomly change image hue.
+
+    Args:
+       delta (float): max delta for distribution. must be in [0, 0.5]
+       seed  (int)  : seed of a random factor
+    """
+
+    def __init__(self, delta=10.0/255, seed=0):
+        self.delta = delta
+        self.seed = seed
+
+    def __call__(self, image, **kwargs):
+        image = tf.image.random_hue(image, self.delta, seed=self.seed)
+        return dict({'image': image}, **kwargs)
+
+
+class TFDSSaturation(Processor):
+    """Randomly adjust the saturation of a RGB image.
+       Random factor is picked from [lower, upper]
+       0 <= lower < upper must be satisfied.
+
+    Args:
+       value (float|tuple|list):
+          Range for random factor is taken as [1 - value, 1 + value] if value is float value
+          and [1 - value[0], 1 + value[1]] if tuple or list with 2 elements
+       seed  (int)  : seed of a random factor
+    """
+
+    def __init__(self, value=(0.75, 1.25), seed=0):
+        if type(value) is float:
+            self.lower = 1 - value
+            self.upper = 1 + value
+        elif hasattr(value, "__len__") and len(value) == 2:
+            self.lower, self.upper = value
+        else:
+            raise ValueError("Expected float, tuple/list with 2 entries. Got {}.".format(type(value)))
+        self.seed = seed
+
+    def __call__(self, image, **kwargs):
+        image = tf.image.random_saturation(image, self.lower, self.upper, seed=self.seed)
+        return dict({'image': image}, **kwargs)
+
+
+class TFDSContrast(Processor):
+    """Randomly adjust the contrast of an image.
+       Random factor is picked from [lower, upper]
+       0 <= lower < upper must be satisfied.
+
+    Args:
+       value (float|tuple|list):
+          Range for random factor is taken as [1 - value, 1 + value] if value is float value
+          and [1 - value[0], 1 + value[1]] if tuple or list with 2 elements
+       seed  (int)  : seed of a random factor
+    """
+
+    def __init__(self, value=(0.75, 1.25), seed=0):
+        if type(value) is float:
+            self.lower = 1 - value
+            self.upper = 1 + value
+        elif hasattr(value, "__len__") and len(value) == 2:
+            self.lower, self.upper = value
+        else:
+            raise ValueError("Expected float, tuple/list with 2 entries. Got {}.".format(type(value)))
+        self.seed = seed
+
+    def __call__(self, image, **kwargs):
+        image = tf.image.random_contrast(image, self.lower, self.upper, seed=self.seed)
+        return dict({'image': image}, **kwargs)
