@@ -20,7 +20,6 @@ class SampleNetwork(Base):
         )
 
         self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
-        self.before_last_activation = self.activation
 
     def base(self, images, is_training):
         assert self.data_format == "NHWC"
@@ -36,15 +35,7 @@ class SampleNetwork(Base):
                                       data_format=self.data_format)
             self.block_1 = self.activation(batch_normed)
 
-        with tf.compat.v1.variable_scope("block_2"):
-            conv = conv2d("conv", self.block_1, filters=64, kernel_size=3,
-                          activation=None, use_bias=False, data_format=channel_data_format,
-                          kernel_initializer=tf.contrib.layers.variance_scaling_initializer())
-            batch_normed = batch_norm("bn", conv, is_training=is_training, decay=0.99, scale=True, center=True,
-                                      data_format=self.data_format)
-            self.block_2 = self.before_last_activation(batch_normed)
-
-        self.block_last = conv2d("block_last", self.block_2, filters=self.num_classes, kernel_size=1,
+        self.block_last = conv2d("block_last", self.block_1, filters=self.num_classes, kernel_size=1,
                                  activation=None, use_bias=True, is_debug=self.is_debug,
                                  kernel_initializer=tf.random_normal_initializer(mean=0.0, stddev=0.01),
                                  data_format=channel_data_format)
@@ -99,11 +90,6 @@ class SampleNetworkQuantize(SampleNetwork):
 
         self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
         self.activation = activation_quantizer(**activation_quantizer_kwargs)
-
-        if self.quantize_last_convolution:
-            self.before_last_activation = self.activation
-        else:
-            self.before_last_activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
 
     @staticmethod
     def _quantized_variable_getter(
