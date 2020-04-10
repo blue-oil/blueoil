@@ -88,7 +88,7 @@ class Base(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         """Returns the i-th item of the dataset."""
         raise NotImplementedError()
 
