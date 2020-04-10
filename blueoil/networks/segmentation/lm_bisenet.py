@@ -374,9 +374,9 @@ class LMBiSeNetQuantize(LMBiSeNet):
     def __init__(
             self,
             activation_quantizer=None,
-            activation_quantizer_kwargs=None,
+            activation_quantizer_kwargs={},
             weight_quantizer=None,
-            weight_quantizer_kwargs=None,
+            weight_quantizer_kwargs={},
             *args,
             **kwargs
     ):
@@ -387,9 +387,6 @@ class LMBiSeNetQuantize(LMBiSeNet):
 
         assert weight_quantizer
         assert activation_quantizer
-
-        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
 
         self.activation = activation_quantizer(**activation_quantizer_kwargs)
         weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
