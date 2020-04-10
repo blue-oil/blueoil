@@ -176,8 +176,8 @@ class LMFYoloQuantize(LMFYolo):
         self.quantize_first_convolution = quantize_first_convolution
         self.quantize_last_convolution = quantize_last_convolution
 
-        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
+        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
+        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)
