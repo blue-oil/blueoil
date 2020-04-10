@@ -44,7 +44,7 @@ class Darknet(Base):
         elif self.data_format == "NHWC":
             channel_data_format = "channels_last"
         else:
-            raise RuntimeError("data format {} shodul be in ['NCHW', 'NHWC]'.".format(self.data_format))
+            raise RuntimeError("data format {} should be in ['NCHW', 'NHWC]'.".format(self.data_format))
 
         self.inputs = self.images = images
 
@@ -281,9 +281,9 @@ class DarknetQuantize(Darknet):
             quantize_first_convolution(bool): use quantization in first conv.
             quantize_last_convolution(bool): use quantization in last conv.
             weight_quantizer (callable): weight quantizer.
-            weight_quantize_kwargs(dict): Initialize kwargs for weight quantizer.
+            weight_quantizer_kwargs(dict): Initialize kwargs for weight quantizer.
             activation_quantizer (callable): activation quantizer
-            activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
+            activation_quantizer_kwargs(dict): Initialize kwargs for activation quantizer.
         """
 
         super().__init__(

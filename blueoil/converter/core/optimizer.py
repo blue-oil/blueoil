@@ -174,7 +174,7 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
     exec_list = sort_graph(graph)
     qtypes = [
         'BinaryMeanScalingQuantizer',
-        'QTZ_linear_mid_tread_half',
+        'LinearMidTreadHalfQuantizer',
         'BinaryChannelWiseMeanScalingQuantizer',
         'Lookup'
     ]
@@ -231,20 +231,25 @@ def pass_compute_thresholds(graph: Graph) -> None:
         graph (Graph): The input graph. It will be modified in-place.
 
     """
-    exec_list = [n for n in sort_graph(graph) if n.op_type == 'QTZ_linear_mid_tread_half']
+    exec_list = [n for n in sort_graph(graph) if n.op_type == 'LinearMidTreadHalfQuantizer']
     to_be_removed = []
     for m in exec_list:
         # find a a backward path between the quantizer and the convolution ie. a path represented by a list [Q, ..., C]
         p = [m]
+        ok = True
         while p[-1].op_type != 'Conv':
             non_variable_input = [inode for inode in p[-1].input_nodes
-                                  if (not cast(Operator, inode).is_variable and inode.is_monotonic)
+                                  if (inode.op_type != 'Constant' and inode.is_monotonic)
                                   or inode.op_type == 'Conv']
             if len(non_variable_input) != 1:
+                ok = False
                 break
             p.append(non_variable_input[-1])
+            if len(p[-1].output_op_list) != 1:
+                ok = False
+                break
 
-        if p[-1].op_type != 'Conv':
+        if not ok:
             continue
         activation_quantizer_node = p[0]
         conv_node = p[-1]
@@ -277,19 +282,35 @@ def pass_compute_thresholds(graph: Graph) -> None:
         # The threshold_table is numpy array that holds the threshold values for all channels
         threshold_table = np.empty([ch, n + 1], dtype=np.int32)
 
+        # Compute increasing order or decreasing order
+        is_inc_order = [True for i in range(ch)]
+        if quantizer_conv_weights.op_type == 'BinaryChannelWiseMeanScalingQuantizer':
+            for c in range(ch):
+                is_inc_order[c] = scaling_factor[c] > 0
+        else:
+            for c in range(ch):
+                is_inc_order[c] = scaling_factor > 0
+
+        for op in p[:-1]:
+            if op.op_type == 'BatchNormalization':
+                bn_scale = op.input_ops['scale'].data
+                for c in range(ch):
+                    if bn_scale[c] < 0:
+                        is_inc_order[c] = not is_inc_order[c]
+
+        for c in range(ch):
+            threshold_table[c, -1] = 1 \
+                if is_inc_order[c] else -1
+
         # Compute threshold (t0, t1, t2)
         th_val = [0.5 + i for i in range(n)]
         for th_id, th_v in enumerate(th_val):
             init_threshold = np.full(ch, th_v, dtype=np.float64)
 
             # run calculation in reverse order, for example, q -> bn -> scaling
-            bn_nega_idx = []
             trans_th = {'data': init_threshold}
             for op in p[:-1]:
                 trans_th = op.de_run(**trans_th)
-                if op.op_type == 'BatchNormalization':
-                    bn_scale = op.input_ops['scale'].data
-                    bn_nega_idx = [v for v in range(len(bn_scale)) if bn_scale[v] < 0]
             threshold = (trans_th['data'] * np.float64(n)) / (np.float64(max_v) * scaling_factor)
 
             # take care of threshold values that are larger than 13-bit signed integer
@@ -297,21 +318,8 @@ def pass_compute_thresholds(graph: Graph) -> None:
             threshold[threshold < -max_th_value] = -max_th_value
 
             for ch_id, th_per_ch in enumerate(threshold):
-                if quantizer_conv_weights.op_type == 'BinaryChannelWiseMeanScalingQuantizer':
-                    threshold_table[ch_id, th_id] = int(math.floor(th_per_ch)) \
-                        if (scaling_factor[ch_id] < 0) ^ (ch_id in bn_nega_idx) \
-                        else int(math.ceil(th_per_ch))
-                else:
-                    threshold_table[ch_id, th_id] = int(math.floor(th_per_ch)) \
-                        if (scaling_factor < 0) ^ (ch_id in bn_nega_idx) \
-                        else int(math.ceil(th_per_ch))
-
-        for c in range(ch):
-            threshold_table[c, -1] = 1 \
-                if np.all(threshold_table[c, 1:-1] > threshold_table[c, :-2], axis=0) else -1
-            if np.all(threshold_table[c, 1:-1] == threshold_table[c, :-2], axis=0):
-                threshold_table[c, -1] = 1
-                threshold_table[c, 0:-1] = max_th_value
+                threshold_table[ch_id, th_id] = int(math.ceil(th_per_ch)) \
+                    if is_inc_order[ch_id] else int(math.floor(th_per_ch))
 
         bits_per_word = 32
         rem = (bits_per_word - ch % bits_per_word) % bits_per_word
@@ -351,7 +359,7 @@ def pass_pack_weights(graph: Graph) -> None:
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
     quantization_types = [
         'BinaryMeanScalingQuantizer',
-        'QTZ_linear_mid_tread_half',
+        'LinearMidTreadHalfQuantizer',
         'BinaryChannelWiseMeanScalingQuantizer'
     ]
 
@@ -572,7 +580,7 @@ def pass_lookup(graph: Graph) -> None:
     """
     quantization_types = [
         'BinaryMeanScalingQuantizer',
-        'QTZ_linear_mid_tread_half',
+        'LinearMidTreadHalfQuantizer',
         'BinaryChannelWiseMeanScalingQuantizer'
     ]
 

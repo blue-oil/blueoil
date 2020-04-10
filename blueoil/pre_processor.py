@@ -101,7 +101,7 @@ def resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
 
     Args:
         image (np.ndarray): An image numpy array.
-        gt_boxes (np.ndarray): Ground truth boxes in the image. shape is [num_boxes, 5(x, y, width, height)].
+        gt_boxes (np.ndarray): Ground truth boxes in the image. shape is [num_boxes, 5(x, y, width, height, class_id)].
         size: [height, width]
 
     """

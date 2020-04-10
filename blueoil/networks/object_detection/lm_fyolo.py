@@ -23,7 +23,7 @@ from blueoil.layers import conv2d
 
 
 class LMFYolo(YoloV2):
-    """LM original objecte detection network based on Yolov2 and F-Yolo.
+    """LM original object detection network based on Yolov2 and F-Yolo.
 
     Ref:
         F-Yolo https://arxiv.org/abs/1805.06361
@@ -163,9 +163,9 @@ class LMFYoloQuantize(LMFYolo):
             quantize_first_convolution(bool): use quantization in first conv.
             quantize_last_convolution(bool): use quantization in last conv.
             weight_quantizer (callable): weight quantizer.
-            weight_quantize_kwargs(dict): Initialize kwargs for weight quantizer.
+            weight_quantizer_kwargs(dict): Initialize kwargs for weight quantizer.
             activation_quantizer (callable): activation quantizer
-            activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
+            activation_quantizer_kwargs(dict): Initialize kwargs for activation quantizer.
         """
 
         super().__init__(
