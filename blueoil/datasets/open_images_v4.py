@@ -192,7 +192,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
     def num_max_boxes(self):
         return self.count_max_boxes()
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         files, gt_boxes_list = self.files_and_annotations
         target_file = files[i]
         gt_boxes = gt_boxes_list[i]
@@ -260,7 +260,7 @@ class OpenImagesV4Classification(OpenImagesV4):
 
         return files, annotations
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         files, labels = self.files_and_annotations
 
         filename = files[i]

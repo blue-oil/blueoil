@@ -116,7 +116,7 @@ class Pascalvoc20072012(ObjectDetectionBase):
     def num_per_epoch(self):
         return len(self.files)
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         target_file = self.files[i]
         image = load_image(target_file)
 

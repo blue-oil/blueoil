@@ -100,7 +100,7 @@ class CamvidBase(SegmentationBase):
 
         return image_files, label_files
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         image_files, label_files = self.files_and_annotations
 
         image = get_image(image_files[i])
