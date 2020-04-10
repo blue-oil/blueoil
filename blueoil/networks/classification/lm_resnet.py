@@ -143,10 +143,7 @@ class LmResnetQuantize(LmResnet):
             *args,
             **kwargs
     ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        super().__init__(*args, **kwargs)
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)

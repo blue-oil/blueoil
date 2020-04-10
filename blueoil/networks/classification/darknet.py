@@ -286,10 +286,7 @@ class DarknetQuantize(Darknet):
             activation_quantizer_kwargs(dict): Initialize kwargs for activation quantizer.
         """
 
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+        super().__init__(*args, **kwargs)
 
         self.quantize_first_convolution = quantize_first_convolution
         self.quantize_last_convolution = quantize_last_convolution
