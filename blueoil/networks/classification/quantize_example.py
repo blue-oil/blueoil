@@ -9,15 +9,8 @@ from blueoil.layers import batch_norm, conv2d
 class SampleNetwork(Base):
     """Sample network with simple layer."""
 
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
 
@@ -74,16 +67,13 @@ class SampleNetworkQuantize(SampleNetwork):
             activation_quantizer_kwargs(dict): Initialize kwargs for activation quantizer.
         """
 
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+        super().__init__(*args, **kwargs)
 
         self.quantize_first_convolution = quantize_first_convolution
         self.quantize_last_convolution = quantize_last_convolution
 
-        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
+        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
+        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)
