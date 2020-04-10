@@ -56,10 +56,7 @@ class LMBiSeNet(Base):
             use_attention_refinement (bool): Flag of using attention refinement module.
             use_tail_gap (bool): Flag of using GAP (global average pooling) followed by context path.
         """
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        super().__init__(*args, **kwargs)
 
         assert self.data_format == 'NHWC'
 

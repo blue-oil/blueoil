@@ -25,15 +25,8 @@ from blueoil.layers import conv2d, max_pooling2d
 class Darknet(Base):
     """Darknet 19 layer"""
 
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
         self.before_last_activation = self.activation

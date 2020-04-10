@@ -26,15 +26,8 @@ class LmSegnetV1(SegnetBase):
        This network is composed of 11 convolution layers with space_to_depth and depth_to_space.
     """
 
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.activation = tf.nn.relu
         self.custom_getter = None

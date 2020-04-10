@@ -26,15 +26,8 @@ from blueoil.layers.experiment import max_unpool_with_argmax
 class LmSegnetV0(SegnetBase):
     """LM customized SegNet Network."""
 
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.activation = tf.nn.relu
         self.custom_getter = None

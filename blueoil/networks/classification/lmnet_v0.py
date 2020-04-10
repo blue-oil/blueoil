@@ -26,15 +26,8 @@ class LmnetV0(Base):
     """
     version = 0.01
 
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.activation = tf.nn.relu
         self.custom_getter = None
