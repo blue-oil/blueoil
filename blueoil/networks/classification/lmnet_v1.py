@@ -139,8 +139,8 @@ class LmnetV1Quantize(LmnetV1):
             **kwargs
         )
 
-        assert weight_quantizer
-        assert activation_quantizer
+        assert callable(weight_quantizer)
+        assert callable(activation_quantizer)
 
         self.activation = activation_quantizer(**activation_quantizer_kwargs)
         weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
