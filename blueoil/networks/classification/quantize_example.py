@@ -51,9 +51,9 @@ class SampleNetworkQuantize(SampleNetwork):
             quantize_first_convolution=True,
             quantize_last_convolution=True,
             activation_quantizer=None,
-            activation_quantizer_kwargs=None,
+            activation_quantizer_kwargs={},
             weight_quantizer=None,
-            weight_quantizer_kwargs=None,
+            weight_quantizer_kwargs={},
             *args,
             **kwargs
     ):
@@ -71,9 +71,6 @@ class SampleNetworkQuantize(SampleNetwork):
 
         self.quantize_first_convolution = quantize_first_convolution
         self.quantize_last_convolution = quantize_last_convolution
-
-        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)
