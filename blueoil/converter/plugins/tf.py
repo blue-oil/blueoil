@@ -470,7 +470,6 @@ class Importer(object):
         - 'Transpose': depending on the permutation attribute
         """
 
-        _default_format = 'NHWC'
         _default_w_format = 'HWIO'
 
         rank_to_format = {0: 'Atom', 1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC', 5: 'NHWCT'}
