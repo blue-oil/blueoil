@@ -35,10 +35,7 @@ class MobileNetV2(Base):
             *args,
             **kwargs
     ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        super().__init__(*args, **kwargs)
 
         self.activation = tf.nn.relu6
         self.custom_getter = None

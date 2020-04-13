@@ -42,10 +42,7 @@ class YoloV1(BaseNetwork):
             **kwargs
     ):
 
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        super().__init__(*args, **kwargs)
 
         self.cell_size = cell_size
         self.boxes_per_cell = boxes_per_cell

@@ -27,16 +27,8 @@ class Base(BaseNetwork):
 
     """
 
-    def __init__(
-            self,
-            weight_decay_rate=None,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+    def __init__(self, weight_decay_rate=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.weight_decay_rate = weight_decay_rate
 
