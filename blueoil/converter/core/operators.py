@@ -20,12 +20,14 @@ import warnings
 from termcolor import colored
 from abc import abstractmethod
 from itertools import dropwhile
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 from blueoil.converter.core.view import View
 from blueoil.converter.util import classproperty
 
-from .data_types import *
+from .data_types import DataType
 
 Ops = Dict[str, 'Operator']
 OutOps = Dict[str, List['Operator']]
