@@ -1,13 +1,22 @@
 Weight quantization
 ===================
-The main idea of selecting variable to do weight quantize in Blueoil is from the ``custom_getter`` in ``variable_scope`` namely ``_quantized_variable_getter``.
+
+Blueoil can quantize weight in the network by passing the callable ``weight quantizer`` and keyword arguments ``weight_quantizer_kwargs`` to the network class.
+
+.. literalinclude:: ../../blueoil/networks/classification/quantize_example.py
+   :language: python
+   :lines: 46-59, 70-79
+   :emphasize-lines: 10-11, 20,23
 
 Tensorflow custom getter
 ------------------------
-.. literalinclude:: quantize_example.py
+
+The main idea of selecting variable to do weight quantize in Blueoil is from the ``custom_getter`` in ``variable_scope`` namely ``_quantized_variable_getter``.
+
+.. literalinclude:: ../../blueoil/networks/classification/quantize_example.py
    :language: python
-   :lines: 55-
-   :emphasize-lines: 79-87,103
+   :lines: 82-89, 103-
+   :emphasize-lines: 1, 11-25, 30-36
 
 The selection criteria is based on these three variables.
 
@@ -19,10 +28,12 @@ The variable which variable scope name ending with ``kernel`` will be weight qua
 
 Weight quantizer
 ----------------
+
 Selection of weight quantizer are ``Binary channel wise mean scaling quantizer`` and ``Binary mean scaling quantizer``:
 
 Binary channel wise mean scaling quantizer (``BinaryChannelWiseMeanScalingQuantizer``)
 ______________________________________________________________________________________
+
 This quantization creates a binary channel wise mean scaling quantizer.
 If ``backward`` is provided, this ``backward`` will be used in backpropagation.
 
@@ -45,6 +56,7 @@ Default backward is:
 
 Binary mean scaling quantizer (``BinaryMeanScalingQuantizer``)
 ______________________________________________________________
+
 This quantization creates a binary mean scaling quantizer.
 If ``backward`` is provided, this ``backward`` will be used in backpropagation.
 

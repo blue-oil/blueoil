@@ -1,12 +1,12 @@
 Activation quantization
 =======================
 
-Blueoil quantize an activation function when the last convolution layer is quantized. (``quantize_last_convolution`` =True), otherwise ``Leaky ReLU`` is used as an activation function.
+Blueoil can quantize an activation function by passing the callable ``activation quantizer`` and keyword arguments ``activation_quantizer_kwargs`` to the network class.
 
-.. literalinclude:: quantize_example.py
+.. literalinclude:: ../../blueoil/networks/classification/quantize_example.py
    :language: python
-   :lines: 11-52
-   :emphasize-lines: 49-
+   :lines: 46-59, 70-79
+   :emphasize-lines: 8-9, 21,24
 
 Activation quantizer
 --------------------
@@ -15,6 +15,7 @@ Currenly, Blueoil has only one activation function quantizer.
 
 Linear mid tread half quantizer (``LinearMidTreadHalfQuantizer``)
 _________________________________________________________________
+
 This quantization creates a linear mid tread half quantizer.
 If ``backward`` is provided, this ``backward`` will be used in backpropagation.
 
