@@ -27,7 +27,7 @@ from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.graph_pattern_matching import get_nodes_in_branch, sort_graph
 from blueoil.converter.core.operators import Constant, Conv, Lookup, \
     Operator, BatchNormalizationOptimized
-from  blueoil.converter.modules.packer import Packer
+from blueoil.converter.modules.packer import Packer
 
 
 def pass_remove_identities(graph: Graph) -> None:
