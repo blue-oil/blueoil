@@ -14,9 +14,8 @@
 # limitations under the License.
 # =============================================================================
 """Test file for consistency checking in core.operators"""
-import importlib
 import unittest
-from typing import List, cast
+from typing import cast
 
 import numpy as np
 

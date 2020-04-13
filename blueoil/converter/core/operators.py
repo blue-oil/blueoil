@@ -20,15 +20,12 @@ import warnings
 from termcolor import colored
 from abc import abstractmethod
 from itertools import dropwhile
-from typing import TYPE_CHECKING, Any, Dict, Optional, cast
+from typing import Any, Dict, Optional
 
 from blueoil.converter.core.view import View
 from blueoil.converter.util import classproperty
 
 from .data_types import *
-
-if TYPE_CHECKING:
-    import blueoil.converter.core.operators as ops
 
 Ops = Dict[str, 'Operator']
 OutOps = Dict[str, List['Operator']]
