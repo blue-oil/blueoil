@@ -138,7 +138,7 @@ class WiderFace(ObjectDetectionBase):
         # Keep labels here in case of future use
         self.labels = labels
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         target_file = os.path.join(self.img_dir, self.paths[i])
 
         image = load_image(target_file)

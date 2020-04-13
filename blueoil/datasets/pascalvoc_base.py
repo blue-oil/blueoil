@@ -211,7 +211,7 @@ class PascalvocBase(ObjectDetectionBase):
             self.files, self.annotations = self._files_and_annotations()
             cls._cache[cache_key] = self
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         target_file = self.files[i]
         image = load_image(target_file)
 
