@@ -286,7 +286,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         pf = 100.0
         try:
             pf = float(remote_output)
-        except:
+        except TypeError, ValueError:
             pf = 100.0
 
         return pf

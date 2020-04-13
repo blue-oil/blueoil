@@ -190,7 +190,7 @@ def setup_de10nano(hw_path: str, output_path: str, testcase=None):
             testcase,
             ignore_returncode=True
         )
-    except:
+    except Exception:
         return False
 
     available = wait_for_device(host, 15, 10, output_path, testcase)
