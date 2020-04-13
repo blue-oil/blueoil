@@ -107,7 +107,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
         return label
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         target_file = self.files[i]
 
         image = load_image(target_file)

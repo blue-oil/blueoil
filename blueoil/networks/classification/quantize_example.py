@@ -1,31 +1,50 @@
-# -*- coding: utf-8 -*-
-# Copyright 2018 The Blueoil Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
 from functools import partial
 
 import tensorflow as tf
 
-from blueoil.networks.object_detection.yolo_v2 import YoloV2
+from blueoil.networks.classification.base import Base
+from blueoil.layers import batch_norm, conv2d
 
 
-class YoloV2Quantize(YoloV2):
+class SampleNetwork(Base):
+    """Sample network with simple layer."""
 
-    """Quantize YOLOv2 Network.
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    It is based on original YOLO v2.
-    """
+        self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
+
+    def base(self, images, is_training):
+        assert self.data_format == "NHWC"
+        channel_data_format = "channels_last"
+
+        self.inputs = self.images = images
+
+        with tf.compat.v1.variable_scope("block_1"):
+            conv = conv2d("conv", self.inputs, filters=32, kernel_size=3,
+                          activation=None, use_bias=False, data_format=channel_data_format,
+                          kernel_initializer=tf.contrib.layers.variance_scaling_initializer())
+            batch_normed = batch_norm("bn", conv, is_training=is_training, decay=0.99, scale=True, center=True,
+                                      data_format=self.data_format)
+            self.block_1 = self.activation(batch_normed)
+
+        self.block_last = conv2d("block_last", self.block_1, filters=self.num_classes, kernel_size=1,
+                                 activation=None, use_bias=True, is_debug=self.is_debug,
+                                 kernel_initializer=tf.random_normal_initializer(mean=0.0, stddev=0.01),
+                                 data_format=channel_data_format)
+
+        h = self.block_last.get_shape()[1].value
+        w = self.block_last.get_shape()[2].value
+        self.pool = tf.layers.average_pooling2d(name='global_average_pool', inputs=self.block_last,
+                                                pool_size=[h, w], padding='VALID', strides=1,
+                                                data_format=channel_data_format)
+        self.base_output = tf.reshape(self.pool, [-1, self.num_classes], name="pool_reshape")
+
+        return self.base_output
+
+
+class SampleNetworkQuantize(SampleNetwork):
+    """Quantize Sample Network."""
 
     def __init__(
             self,
@@ -59,11 +78,6 @@ class YoloV2Quantize(YoloV2):
         self.weight_quantization = weight_quantizer(**weight_quantizer_kwargs)
         self.activation = activation_quantizer(**activation_quantizer_kwargs)
 
-        if self.quantize_last_convolution:
-            self.before_last_activation = self.activation
-        else:
-            self.before_last_activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
-
     @staticmethod
     def _quantized_variable_getter(
             weight_quantization,
@@ -78,9 +92,11 @@ class YoloV2Quantize(YoloV2):
         Use if to choose or skip the target should be quantized.
 
         Args:
+            weight_quantization: Callable object which quantize variable.
+            quantize_first_convolution(bool): Use quantization in first conv.
+            quantize_last_convolution(bool): Use quantization in last conv.
             getter: Default from tensorflow.
             name: Default from tensorflow.
-            weight_quantization: Callable object which quantize variable.
             args: Args.
             kwargs: Kwargs.
         """
@@ -94,7 +110,7 @@ class YoloV2Quantize(YoloV2):
                         return var
 
                 if not quantize_last_convolution:
-                    if var.op.name.startswith("conv_23/"):
+                    if var.op.name.startswith("block_last/"):
                         return var
 
                 # Apply weight quantize to variable whose last word of name is "kernel".

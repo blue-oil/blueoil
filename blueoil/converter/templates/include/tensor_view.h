@@ -66,6 +66,9 @@ constexpr std::size_t get_dim(const MemoryLayout& layout) {
   }
 }
 
+template <MemoryLayout layout>
+constexpr std::size_t dim = get_dim(layout);
+
 constexpr bool is_lower_dim(const MemoryLayout& lhs, const MemoryLayout& rhs) {
   return get_dim(lhs) < get_dim(rhs);
 }
@@ -89,9 +92,8 @@ class TensorView {
  public:
   using base_t = T;
   static constexpr auto layout = memory_layout;
-  static constexpr auto dim = get_dim(layout);
   template <typename U>
-  using tensor_info_t = std::array<U, dim>;
+  using tensor_info_t = std::array<U, dim<layout>>;
   TensorView(base_t* const ptr,
     const tensor_info_t<std::size_t>& shape)
     : ptr(ptr), shape(shape) {}
@@ -101,7 +103,7 @@ class TensorView {
   }
   template <typename... Ts>
   base_t* data(Ts&&... args) const {
-    static_assert(sizeof...(Ts) == dim, "Unmatched dimension");
+    static_assert(sizeof...(Ts) == dim<layout>, "Unmatched dimension");
     return ptr + get_offset(args...);
   }
   base_t* data() const {
@@ -110,12 +112,12 @@ class TensorView {
   template <typename... Ts>
   std::size_t get_offset(Ts&&... args) const {
     tensor_info_t<std::size_t> offsets = {static_cast<std::size_t>(args)...};
-    for (std::size_t i = sizeof...(Ts); i < dim; ++i) {
+    for (std::size_t i = sizeof...(Ts); i < dim<layout>; ++i) {
       offsets[i] = 0;
     }
     std::size_t offset = 0;
     std::size_t stride = 1;
-    for (std::ptrdiff_t i = dim - 1; i >= 0; --i) {
+    for (std::ptrdiff_t i = dim<layout> - 1; i >= 0; --i) {
       assert(offsets[i] < shape[i]);
       offset += offsets[i] * stride;
       stride *= shape[i];
@@ -125,15 +127,15 @@ class TensorView {
   template <std::size_t N>
   std::size_t get_offset_ary(const std::array<std::size_t, N>& arg) const {
     tensor_info_t<std::size_t> offsets;
-    for (std::size_t i = 0; i < std::min(dim, N); ++i) {
+    for (std::size_t i = 0; i < std::min(dim<layout>, N); ++i) {
       offsets[i] = arg[i];
     }
-    for (std::size_t i = N; i < dim; ++i) {
+    for (std::size_t i = N; i < dim<layout>; ++i) {
       offsets[i] = 0;
     }
     std::size_t offset = 0;
     std::size_t stride = 1;
-    for (std::ptrdiff_t i = dim - 1; i >= 0; --i) {
+    for (std::ptrdiff_t i = dim<layout> - 1; i >= 0; --i) {
       assert(offsets[i] < shape[i]);
       offset += offsets[i] * stride;
       stride *= shape[i];
@@ -145,7 +147,7 @@ class TensorView {
   }
   std::size_t size() const {
     std::size_t prod = 1;
-    for (std::size_t i = 0; i < dim; ++i) {
+    for (std::size_t i = 0; i < dim<layout>; ++i) {
       prod *= shape[i];
     }
     return prod;
@@ -160,9 +162,8 @@ class TensorView<QuantizedPacked<T>, memory_layout> {
  public:
   using base_t = QuantizedPacked<T>;
   static constexpr auto layout = memory_layout;
-  static constexpr auto dim = get_dim(layout);
   template <typename U>
-  using tensor_info_t = std::array<U, dim>;
+  using tensor_info_t = std::array<U, dim<layout>>;
   TensorView(base_t* const ptr,
     const tensor_info_t<std::size_t>& shape)
     : ptr(ptr), shape(shape) {}
@@ -172,7 +173,7 @@ class TensorView<QuantizedPacked<T>, memory_layout> {
   }
   template <typename... Ts>
   base_t* data(Ts&&... args) const {
-    static_assert(sizeof...(Ts) == dim, "Unmatched dimension");
+    static_assert(sizeof...(Ts) == dim<layout>, "Unmatched dimension");
     return ptr + get_offset(args...);
   }
   base_t* data() const {
@@ -181,13 +182,13 @@ class TensorView<QuantizedPacked<T>, memory_layout> {
   template <typename... Ts>
   std::size_t get_offset(Ts&&... args) const {
     tensor_info_t<std::size_t> offsets = {static_cast<std::size_t>(args)...};
-    for (std::size_t i = sizeof...(Ts); i < dim; ++i) {
+    for (std::size_t i = sizeof...(Ts); i < dim<layout>; ++i) {
       offsets[i] = 0;
     }
     std::size_t offset = 0;
     std::size_t stride = 1;
-    for (std::ptrdiff_t i = dim - 1; i >= 0; --i) {
-      if (i == dim - 1) {
+    for (std::ptrdiff_t i = dim<layout> - 1; i >= 0; --i) {
+      if (i == dim<layout> - 1) {
         const std::size_t real_shape = (shape[i] + base_t::BitCount - 1) / base_t::BitCount;
         assert(offsets[i] < real_shape);
         offset += offsets[i];
@@ -203,16 +204,16 @@ class TensorView<QuantizedPacked<T>, memory_layout> {
   template <std::size_t N>
   std::size_t get_offset_ary(const std::array<std::size_t, N>& arg) const {
     tensor_info_t<std::size_t> offsets;
-    for (std::size_t i = 0; i < std::min(dim, N); ++i) {
+    for (std::size_t i = 0; i < std::min(dim<layout>, N); ++i) {
       offsets[i] = arg[i];
     }
-    for (std::size_t i = N; i < dim; ++i) {
+    for (std::size_t i = N; i < dim<layout>; ++i) {
       offsets[i] = 0;
     }
     std::size_t offset = 0;
     std::size_t stride = 1;
-    for (std::ptrdiff_t i = dim - 1; i >= 0; --i) {
-      if (i == dim - 1) {
+    for (std::ptrdiff_t i = dim<layout> - 1; i >= 0; --i) {
+      if (i == dim<layout> - 1) {
         const std::size_t real_shape = (shape[i] + base_t::BitCount - 1) / base_t::BitCount;
         assert(offsets[i] < real_shape);
         offset += offsets[i];
@@ -230,8 +231,8 @@ class TensorView<QuantizedPacked<T>, memory_layout> {
   }
   std::size_t size() const {
     std::size_t prod = 1;
-    for (std::size_t i = 0; i < dim; ++i) {
-      if (i == dim - 1) {
+    for (std::size_t i = 0; i < dim<layout>; ++i) {
+      if (i == dim<layout> - 1) {
         prod *= (shape[i] + base_t::BitCount - 1) / base_t::BitCount;
       } else {
         prod *= shape[i];

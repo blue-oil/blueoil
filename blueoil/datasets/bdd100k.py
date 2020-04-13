@@ -139,7 +139,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
                 self.paths.append(img_paths[img_name])
                 self.bboxs.append(bbox)
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         image_file_path = self.paths[i]
 
         image = load_image(image_file_path)

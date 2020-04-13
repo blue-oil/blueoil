@@ -75,10 +75,7 @@ class YoloV2(BaseNetwork):
             use_cross_entropy_loss(bool): Use cross entropy loss instead of mean square error of class loss.
             change_base_output(bool): If it is true, the output of network be activated with softmax and sigmoid.
         """
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        super().__init__(*args, **kwargs)
 
         self.anchors = anchors
         self.boxes_per_cell = len(anchors)

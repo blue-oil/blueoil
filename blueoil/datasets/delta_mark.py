@@ -198,7 +198,7 @@ class ClassificationBase(DeltaMarkMixin, StoragePathCustomizable, Base):
 
         return [self.classes.index(category) for category in category_names]
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         files, labels = self.files_and_annotations
 
         image = load_image(files[i])
@@ -293,7 +293,7 @@ class ObjectDetectionBase(DeltaMarkMixin, StoragePathCustomizable, ObjectDetecti
 
         return gt_boxes
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         files, annotations = self.files_and_annotations
 
         target_file = files[i]

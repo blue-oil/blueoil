@@ -25,15 +25,8 @@ from blueoil.layers import conv2d, max_pooling2d
 class Darknet(Base):
     """Darknet 19 layer"""
 
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.activation = lambda x: tf.nn.leaky_relu(x, alpha=0.1, name="leaky_relu")
         self.before_last_activation = self.activation
@@ -270,9 +263,9 @@ class DarknetQuantize(Darknet):
             quantize_first_convolution=True,
             quantize_last_convolution=True,
             activation_quantizer=None,
-            activation_quantizer_kwargs=None,
+            activation_quantizer_kwargs={},
             weight_quantizer=None,
-            weight_quantizer_kwargs=None,
+            weight_quantizer_kwargs={},
             *args,
             **kwargs
     ):
@@ -281,21 +274,15 @@ class DarknetQuantize(Darknet):
             quantize_first_convolution(bool): use quantization in first conv.
             quantize_last_convolution(bool): use quantization in last conv.
             weight_quantizer (callable): weight quantizer.
-            weight_quantize_kwargs(dict): Initialize kwargs for weight quantizer.
+            weight_quantizer_kwargs(dict): Initialize kwargs for weight quantizer.
             activation_quantizer (callable): activation quantizer
-            activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
+            activation_quantizer_kwargs(dict): Initialize kwargs for activation quantizer.
         """
 
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+        super().__init__(*args, **kwargs)
 
         self.quantize_first_convolution = quantize_first_convolution
         self.quantize_last_convolution = quantize_last_convolution
-
-        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)
