@@ -35,8 +35,9 @@ setup-test:
 
 .PHONY: test_fixtures
 test_fixtures:
-	wget --quiet https://storage.googleapis.com/blueoil-asia-northeast1/fixtures.tar.gz
+	wget -O fixtures.tar.gz --quiet https://storage.googleapis.com/blueoil-asia-northeast1/fixtures.tar.gz
 	tar xzf fixtures.tar.gz --directory tests/
+	rm fixtures.tar.gz
 
 .PHONY: test
 test: build
@@ -117,8 +118,19 @@ rootfs-armhf: rootfs-docker
 rootfs-arm64: rootfs-docker
 	docker run -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh arm64
 
+# ADMIN ONLY
+# Upload new fixtuers for test
+.PHONY: upload-test_fixtures
+upload-test_fixtures:
+	NEWFIXTURES:=fixtures_$${date +%Y-%m-%d}.tar.gz
+	tar czf ${NEWFIXTURES} tests/fixtures
+	gsutil cp ${FIXTURES} gs://blueoil-asia-northeast1/${NEWFIXTURES}
+	## gsutil cp gs://blueoil-asia-northeast1/${NEWFIXTURES} gs://blueoil-asia-northeast1/fixtures.tar.gz
+	rm ${NEWFIXTURES}
+
 .PHONY: clean
 clean:
 	# Clean created files
 	docker rmi  $(IMAGE_NAME):$(BUILD_VERSION)
+	rm -rf tests/fixtures
 	rm -rf tmp/*
