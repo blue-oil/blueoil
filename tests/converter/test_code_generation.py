@@ -19,7 +19,6 @@ import os
 import inspect
 from os.path import join, basename
 import shutil
-import sys
 import unittest
 
 from parameterized import parameterized
