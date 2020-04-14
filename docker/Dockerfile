@@ -94,15 +94,15 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
     echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf && \
     echo "btl_tcp_if_exclude = lo,docker0" >> /usr/local/etc/openmpi-mca-params.conf
 
-WORKDIR /home/blueoil
+WORKDIR /usr/local/blueoil
 RUN pip install -U pip setuptools
 
 FROM base AS blueoil-base
 
 # COPY resources required for blueoil installation
-COPY setup.* /home/blueoil/
-COPY blueoil /home/blueoil/blueoil
-COPY output_template /home/blueoil/output_template
+COPY setup.* /usr/local/blueoil/
+COPY blueoil /usr/local/blueoil/builtin_blueoil/blueoil
+COPY output_template /usr/local/blueoil/builtin_blueoil/output_template
 
 # Set env to install horovod with nccl and tensorflow option
 ENV HOROVOD_GPU_ALLREDUCE=NCCL \
@@ -118,15 +118,20 @@ RUN pip install pycocotools==2.0.0
 # we cannot customize the path of this temporal directory...
 RUN mkdir /.horovod && chmod 777 /.horovod
 
+RUN rm /usr/local/blueoil/setup.*
+
+RUN ln -s builtin_blueoil/blueoil blueoil && \
+    ln -s builtin_blueoil/output_template output_template && \
+    ln -s builtin_blueoil/tests tests
 
 FROM blueoil-base AS blueoil-dev
 
 # Copy blueoil test code to docker image
-COPY tests /home/blueoil/tests
+COPY tests /usr/local/blueoil/builtin_blueoil/tests
 
 # Add permission for all users
-RUN chmod 777 /home/blueoil
-RUN chmod 777 /home/blueoil/tests
+RUN chmod 777 /usr/local/blueoil/builtin_blueoil/blueoil
+RUN chmod 777 /usr/local/blueoil/builtin_blueoil/tests
 
 # enable blueoil command
 RUN pyenv rehash
