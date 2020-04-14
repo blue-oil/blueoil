@@ -120,6 +120,20 @@ RUN mkdir /.horovod && chmod 777 /.horovod
 
 RUN rm /usr/local/blueoil/setup.*
 
+RUN mkdir /usr/local/blueoil/bin
+RUN /bin/echo -e '#!/bin/bash\n'\
+'\n'\
+'cd /usr/local/blueoil && '\
+'unlink blueoil && '\
+'unlink output_template && '\
+'unlink tests && '\
+'ln -s /home/blueoil/blueoil . && '\
+'ln -s /home/blueoil/output_template . && '\
+'ln -s /home/blueoil/tests . '\
+> /usr/local/blueoil/bin/use_home_blueoil
+RUN chmod a+x /usr/local/blueoil/bin/use_home_blueoil
+ENV PATH /usr/local/blueoil/bin:$PATH
+
 RUN ln -s builtin_blueoil/blueoil blueoil && \
     ln -s builtin_blueoil/output_template output_template && \
     ln -s builtin_blueoil/tests tests
