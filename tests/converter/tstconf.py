@@ -17,5 +17,5 @@ PROJECT_TAG = 'converter'
 DO_CLEANUP = True
 DO_CLEANUP_OLDBUILD = False
 HOURS_ELAPSED_TO_ERASE = 24
-CURRENT_TEST_LEVEL=1
-FPGA_FILES='output_template/fpga'
+CURRENT_TEST_LEVEL = 1
+FPGA_FILES = 'output_template/fpga'
