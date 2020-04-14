@@ -24,7 +24,7 @@ from blueoil.converter.core.data_types import QUANTIZED_PACKED, QUANTIZED_PACKED
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.graph_pattern_matching import get_nodes_in_branch, sort_graph
 from blueoil.converter.core.operators import Constant, Lookup, BatchNormalizationOptimized
-from  blueoil.converter.modules.packer import Packer
+from blueoil.converter.modules.packer import Packer
 
 
 def pass_remove_identities(graph: Graph) -> None:

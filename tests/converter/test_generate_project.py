@@ -27,6 +27,7 @@ def params_generate():
     flags_hq_thskip = [(False, False), (True, True), (False, True)]
     return [(i, flag_hq, flag_thskip) for i, (flag_hq, flag_thskip) in enumerate(flags_hq_thskip)]
 
+
 class TestGenerateProject(TestCaseDLKBase):
     """Test class for 'generate_project.py' script."""
 

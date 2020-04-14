@@ -55,7 +55,7 @@ class Packer:
 
         Returns:
             np.ndarray: Quantized tensor.
-        
+
         """
 
         wordsize = self.wordsize
