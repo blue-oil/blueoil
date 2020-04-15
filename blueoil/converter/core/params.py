@@ -50,7 +50,7 @@ class Params(object):
         if self.default_qword_dtype == Uint32:
             return 32
         else:
-            raise NotImplemented
+            raise NotImplementedError
 
     @property
     def nbit_qinput(self):

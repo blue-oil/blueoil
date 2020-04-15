@@ -16,15 +16,16 @@
 """Test file for Optimizer."""
 import unittest
 from blueoil.converter.core.data_types import Float32, PackedUint32, Int32, QUANTIZED_PACKED
-from blueoil.converter.core.optimizer import pass_remove_identities, \
-    pass_transpose, pass_constant_folding, \
-    pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
+from blueoil.converter.core.optimizer import (
+    pass_remove_identities, pass_transpose, pass_constant_folding,
+    pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights,
     pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
+)
 from blueoil.converter.core.graph import Graph
-from blueoil.converter.core.operators import Add, AveragePool, \
-    BatchNormalization, Constant, Conv, Identity, Input, \
-    MaxPool, Operator, Output, Transpose, BinaryMeanScalingQuantizer, \
-    LinearMidTreadHalfQuantizer, Reshape, Softmax, SpaceToDepth
+from blueoil.converter.core.operators import (
+    Add, BatchNormalization, Constant, Conv, Identity, Input, Output,
+    BinaryMeanScalingQuantizer, LinearMidTreadHalfQuantizer, Reshape, SpaceToDepth
+)
 
 import numpy as np
 

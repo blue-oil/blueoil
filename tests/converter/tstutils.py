@@ -21,7 +21,7 @@ from os.path import join
 
 from tstconf import DO_CLEANUP
 
-TEST_LEVEL_FUTURE_TARGET=512
+TEST_LEVEL_FUTURE_TARGET = 512
 FPGA_HOST = os.getenv('FPGA_HOST')
 
 
@@ -114,12 +114,7 @@ def wait_for_device(host: str, tries: int, seconds: int, log_path: str, testcase
                 board_found = True
             else:
                 run_and_check(
-                    [ "ssh",
-                     "-o",
-                     "StrictHostKeyChecking no",
-                     f"root@{host}",
-                     f"uname -a"
-                     ],
+                    ["ssh", "-o", "StrictHostKeyChecking no", f"root@{host}", f"uname -a"],
                     log_path,
                     join(log_path, "ssh_uname-a.out"),
                     join(log_path, "ssh_uname-a.err"),
@@ -135,6 +130,7 @@ def wait_for_device(host: str, tries: int, seconds: int, log_path: str, testcase
 
     return board_ssh_enabled
 
+
 def setup_de10nano(hw_path: str, output_path: str, testcase=None):
 
     host = FPGA_HOST
@@ -147,11 +143,12 @@ def setup_de10nano(hw_path: str, output_path: str, testcase=None):
 
     try:
         run_and_check(
-            [ "ssh",
-             f"root@{host}",
-             f"mkdir -p ~/automated_testing; mkdir -p ~/boot; if grep -qs '/root/boot' /proc/mounts ;" \
-             + "then echo 0 ; else mount /dev/mmcblk0p1 /root/boot ; fi"
-             ],
+            [
+                "ssh",
+                f"root@{host}",
+                f"mkdir -p ~/automated_testing; mkdir -p ~/boot; if grep -qs '/root/boot' /proc/mounts ;"
+                "then echo 0 ; else mount /dev/mmcblk0p1 /root/boot ; fi"
+            ],
             output_path,
             join(output_path, "mount.out"),
             join(output_path, "mount.err"),
@@ -159,11 +156,12 @@ def setup_de10nano(hw_path: str, output_path: str, testcase=None):
         )
 
         run_and_check(
-            [ "scp",
-              join(hw_path, 'soc_system.rbf'),
-              join(hw_path, 'soc_system.dtb'),
-              join(hw_path, 'preloader-mkpimage.bin'),
-             f"root@{host}:~/boot/"
+            [
+                "scp",
+                join(hw_path, 'soc_system.rbf'),
+                join(hw_path, 'soc_system.dtb'),
+                join(hw_path, 'preloader-mkpimage.bin'),
+                f"root@{host}:~/boot/"
             ],
             output_path,
             join(output_path, "scp_hw.out"),
@@ -172,9 +170,10 @@ def setup_de10nano(hw_path: str, output_path: str, testcase=None):
         )
 
         run_and_check(
-            [ "ssh",
-              f"root@{host}",
-              f"cd ~/boot && dd if=./preloader-mkpimage.bin of=/dev/mmcblk0p3 && sync && cd ~ && umount boot"
+            [
+                "ssh",
+                f"root@{host}",
+                f"cd ~/boot && dd if=./preloader-mkpimage.bin of=/dev/mmcblk0p3 && sync && cd ~ && umount boot"
             ],
             output_path,
             join(output_path, "update_hw.out"),
@@ -183,14 +182,14 @@ def setup_de10nano(hw_path: str, output_path: str, testcase=None):
         )
 
         run_and_check(
-            [ "ssh", f"root@{host}", "reboot"],
+            ["ssh", f"root@{host}", "reboot"],
             output_path,
             join(output_path, "reboot.out"),
             join(output_path, "reboot.err"),
             testcase,
             ignore_returncode=True
         )
-    except:
+    except Exception:
         return False
 
     available = wait_for_device(host, 15, 10, output_path, testcase)
