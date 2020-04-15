@@ -294,7 +294,7 @@ class Input(object):
 
     def set_shape(self, val: List[str]) -> None:
         """Set shape info."""
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class Output(object):
@@ -349,7 +349,7 @@ class Output(object):
 
     def set_shape(self, val: List[str]) -> None:
         """Set shape info."""
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class Importer(object):
