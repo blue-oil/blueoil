@@ -123,13 +123,13 @@ RUN rm /usr/local/blueoil/setup.*
 RUN mkdir /usr/local/blueoil/bin
 RUN /bin/echo -e '#!/bin/bash\n'\
 '\n'\
-'cd /usr/local/blueoil && '\
-'unlink blueoil && '\
-'unlink output_template && '\
-'unlink tests && '\
-'ln -s /home/blueoil/blueoil . && '\
-'ln -s /home/blueoil/output_template . && '\
-'ln -s /home/blueoil/tests . '\
+'cd /usr/local/blueoil\n'\
+'unlink blueoil\n'\
+'unlink output_template\n'\
+'unlink tests\n'\
+'ln -s /home/blueoil/blueoil .\n'\
+'ln -s /home/blueoil/output_template .\n'\
+'ln -s /home/blueoil/tests .'\
 > /usr/local/blueoil/bin/use_home_blueoil
 RUN chmod a+x /usr/local/blueoil/bin/use_home_blueoil
 ENV PATH /usr/local/blueoil/bin:$PATH
