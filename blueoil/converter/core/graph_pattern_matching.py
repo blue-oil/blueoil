@@ -25,7 +25,7 @@ def sort_graph(graph):
     Returns:
         list(Operator): A list of Operator. Each element of the list is a reference to
             a Operator object.
-    
+
     """
     exec_list = list()
     input_nodes = list()
@@ -55,7 +55,7 @@ def top_order(output_node, exec_list, visited):
         exec_list (list[operator]): The ordered list. Note that this is an output
             parameter.
         visited: (list[str]): List of already visited nodes.
-    
+
     """
     if visited[output_node.name]:
         return
@@ -69,7 +69,7 @@ def top_order(output_node, exec_list, visited):
 def get_nodes_in_branch(starting_node, stop_node, node_list):
     """Helper function that gives us all nodes in a branch defined by a given node.
        The starting node will be the output node of the branch.
-    
+
        Note that there is an optional stop node. stop_node is allowed to be None.
 
     Args:
