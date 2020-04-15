@@ -66,6 +66,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
+    'autoapi.extension',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -194,6 +195,10 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+
+# -- Options for AutoAPI output ----------------------------------------------
+autoapi_dirs = ['../blueoil/']
+autoapi_ignore = ['*/configs/*', '*/templates/*']
 
 # -- Extension configuration -------------------------------------------------
 def setup(app):
