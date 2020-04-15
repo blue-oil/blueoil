@@ -19,7 +19,6 @@ import os
 import inspect
 from os.path import join, basename
 import shutil
-import sys
 import unittest
 
 from parameterized import parameterized
@@ -94,8 +93,7 @@ def dict_codegen_segmentation(cpu_name) -> dict:
 
 
 def get_configurations_by_test_cases(test_cases, configuration):
-
-    return [updated_dict(configuration,test_case) for test_case in test_cases]
+    return [updated_dict(configuration, test_case) for test_case in test_cases]
 
 
 def get_configurations_by_architecture(test_cases, cpu_name):
@@ -228,10 +226,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                               input_npy: str, expected_output_npy: str) -> float:
 
         run_and_check(
-            [ "ssh",
-             f"root@{host}",
-             f"rm -rf ~/automated_testing/*"
-            ],
+            ["ssh", f"root@{host}", f"rm -rf ~/automated_testing/*"],
             output_path,
             join(output_path, "clean.err"),
             join(output_path, "clean.err"),
@@ -241,12 +236,12 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         input_name = os.path.basename(input_npy)
         output_name = os.path.basename(expected_output_npy)
 
-        run_library_code  =  "import numpy as np\n"
-        run_library_code +=  "from nnlib import NNLib as NNLib\n"
-        run_library_code +=  "class testing:\n"
-        run_library_code +=  inspect.getsource(self.run_library)
-        run_library_code +=  "if __name__ == '__main__':\n"
-        run_library_code +=  "  t = testing()\n"
+        run_library_code = "import numpy as np\n"
+        run_library_code += "from nnlib import NNLib as NNLib\n"
+        run_library_code += "class testing:\n"
+        run_library_code += inspect.getsource(self.run_library)
+        run_library_code += "if __name__ == '__main__':\n"
+        run_library_code += "  t = testing()\n"
         run_library_code += f"  print(t.run_library('./{lib_name}', './{input_name}', './{output_name}'))\n"
 
         testing_code_name = "testing_code.py"
@@ -255,13 +250,14 @@ class TestCodeGenerationBase(TestCaseDLKBase):
             code_file.write(run_library_code)
 
         run_and_check(
-            [ "scp",
-              library,
-              input_npy,
-              expected_output_npy,
-              inspect.getfile(NNLib),
-              testing_code_path,
-             f"root@{host}:~/automated_testing/"
+            [
+                "scp",
+                library,
+                input_npy,
+                expected_output_npy,
+                inspect.getfile(NNLib),
+                testing_code_path,
+                f"root@{host}:~/automated_testing/"
             ],
             output_path,
             join(output_path, "scp.out"),
@@ -270,10 +266,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
 
         remote_output_file = join(output_path, "remote.out")
         run_and_check(
-            [ "ssh",
-             f"root@{host}",
-             f"cd ~/automated_testing/; python {testing_code_name}"
-            ],
+            ["ssh", f"root@{host}", f"cd ~/automated_testing/; python {testing_code_name}"],
             output_path,
             remote_output_file,
             join(output_path, "remote.err"),
@@ -286,7 +279,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         pf = 100.0
         try:
             pf = float(remote_output)
-        except:
+        except (TypeError, ValueError):
             pf = 100.0
 
         return pf
@@ -343,7 +336,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                 lib_base_name = 'x86_avx'
             else:
                 lib_base_name = 'x86'
-        else: # 'aarch64' and 'arm' pass here
+        else:  # 'aarch64' and 'arm' pass here
             lib_base_name = cpu_name
 
         project_dir = os.path.join(output_path, project_name + '.prj')

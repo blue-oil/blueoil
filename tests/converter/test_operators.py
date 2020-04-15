@@ -39,7 +39,7 @@ class TestOperators(unittest.TestCase):
             np.zeros([1, 3, 3, 3])
         )
         inputs: Dict[str, Operator] = {i_names[0]: x}
-        m = MaxPool(
+        MaxPool(
             "MaxPool",
             [1, 2, 2, 3],
             Float32(),

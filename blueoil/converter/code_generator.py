@@ -17,12 +17,10 @@ import shutil
 from collections import defaultdict
 from os import path
 from pathlib import Path
-from typing import cast
 
 from blueoil.converter import util
 from blueoil.converter.core.config import Config
 from blueoil.converter.core.graph import Graph
-from blueoil.converter.core.operators import Conv
 from blueoil.converter.template import Template
 
 

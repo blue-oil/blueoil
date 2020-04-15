@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from .env import *
+from .env import MAX_CPU_COUNT
 
 __all__ = ['MAX_CPU_COUNT']
