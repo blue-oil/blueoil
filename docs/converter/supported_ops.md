@@ -36,7 +36,7 @@
 - **[tf.pad](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/pad)**
     - Supports only `channel-wise paddings`.
 - **[tf.nn.space_to_depth](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/space_to_depth)**
-    - Requires `output depth = (multiple of block_size^2 * 32)` or `(block_size^2 * {8, 16})`.
+    - For quantized tensor, requires `output depth = (multiple of block_size^2 * 32)` or `(block_size^2 * {8, 16})`.
 - **[tf.split](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/split)**
     - Currently, all of output tensors must have `same` shape.
     - For quantized tensor, requires `number of channel of each output tensor = multiple of 32`.
