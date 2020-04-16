@@ -33,7 +33,7 @@ from blueoil.utils import horovod as horovod_util
 from blueoil.utils import module_loader
 
 
-def _save_checkpoint(saver, sess, global_step, step):
+def _save_checkpoint(saver, sess, global_step):
     checkpoint_file = "save.ckpt"
     saver.save(
         sess,
@@ -95,21 +95,17 @@ def start_training(config):
                 **network_kwargs,
             )
 
-        global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training_placeholder = tf.compat.v1.placeholder(tf.bool, name="is_training_placeholder")
 
         images_placeholder, labels_placeholder = model.placeholders()
 
         output = model.inference(images_placeholder, is_training_placeholder)
-        if config.TASK == Tasks.OBJECT_DETECTION:
-            loss = model.loss(output, labels_placeholder, global_step)
-        else:
-            loss = model.loss(output, labels_placeholder)
-        opt = model.optimizer(global_step)
+        loss = model.loss(output, labels_placeholder)
+        opt = model.optimizer()
         if use_horovod:
             # add Horovod Distributed Optimizer
             opt = hvd.DistributedOptimizer(opt)
-        train_op = model.train(loss, opt, global_step)
+        train_op = model.train(loss, opt)
         metrics_ops_dict, metrics_update_op = model.metrics(output, labels_placeholder)
         # TODO(wakisaka): Deal with many networks.
         model.summary(output, labels_placeholder)
@@ -166,9 +162,6 @@ def start_training(config):
         if config.IS_PRETRAIN:
             print("------- Load pretrain data ----------")
             pretrain_saver.restore(sess, os.path.join(config.PRETRAIN_DIR, config.PRETRAIN_FILE))
-            sess.run(tf.compat.v1.assign(global_step, 0))
-
-        last_step = 0
 
         # for recovery
         ckpt = tf.train.get_checkpoint_state(environment.CHECKPOINTS_DIR)
@@ -176,7 +169,7 @@ def start_training(config):
             print("--------- Restore last checkpoint -------------")
             saver.restore(sess, ckpt.model_checkpoint_path)
             # saver.recover_last_checkpoints(ckpt.model_checkpoint_path)
-            last_step = sess.run(global_step)
+            last_step = sess.run(model.global_step)
             # TODO(wakisaka): tensorflow v1.3 remain previous event log in tensorboard.
             # https://github.com/tensorflow/tensorflow/blob/r1.3/tensorflow/python/training/supervisor.py#L1072
             train_writer.add_session_log(SessionLog(status=SessionLog.START), global_step=last_step + 1)
@@ -187,7 +180,7 @@ def start_training(config):
         # broadcast variables from rank 0 to all other processes
         sess.run(bcast_global_variables_op)
 
-    last_step = sess.run(global_step)
+    last_step = sess.run(model.global_step)
 
     # Calculate max steps. The priority of config.MAX_EPOCHS is higher than config.MAX_STEPS.
     if "MAX_EPOCHS" in config:
@@ -231,7 +224,7 @@ def start_training(config):
         to_be_saved = step == 0 or (step + 1) == max_steps or (step + 1) % config.SAVE_CHECKPOINT_STEPS == 0
 
         if to_be_saved and rank == 0:
-            _save_checkpoint(saver, sess, global_step, step)
+            _save_checkpoint(saver, sess, model.global_step)
 
         if step == 0 or (step + 1) % config.TEST_STEPS == 0:
             # init metrics values
