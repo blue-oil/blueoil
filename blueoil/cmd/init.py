@@ -297,7 +297,7 @@ def ask_questions():
     if enable_test_dataset_path == 'yes':
         test_path = prompt(test_dataset_path_question)
     else:
-        test_path = ''
+        test_path = None
 
     batch_size_question = [
         inquirer.Text(name='value',

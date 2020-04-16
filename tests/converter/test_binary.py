@@ -52,8 +52,8 @@ class TestBinary(TestCaseDLKBase):
                activate_hard_quantization=False,
                threshold_skipping=False,
                debug=False,
-               cache_dma=False,
-        )
+               cache_dma=False)
+
         self.assertTrue(os.path.exists(project_dir))
 
         run_and_check(['make', 'clean'],
@@ -75,8 +75,7 @@ class TestBinary(TestCaseDLKBase):
                       join(output_path, "tar_xvzf.out"),
                       join(output_path, "tar_xvzf.err"),
                       self,
-                      check_stdout_include=[debug_data_filename + '/raw_image.npy']
-        )
+                      check_stdout_include=[debug_data_filename + '/raw_image.npy'])
 
         self.assertTrue(os.path.exists(debug_data_input))
         self.assertTrue(os.path.exists(debug_data_output))
@@ -86,8 +85,7 @@ class TestBinary(TestCaseDLKBase):
                       join(project_dir, "elf.out"),
                       join(project_dir, "elf.err"),
                       self,
-                      check_stdout_include=['TotalRunTime ']
-        )
+                      check_stdout_include=['TotalRunTime '])
 
         print(f"Binary time-measurement test : passed!")
 

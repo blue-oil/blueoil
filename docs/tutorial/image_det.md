@@ -47,8 +47,7 @@ choose task type:  object_detection
 choose network:  LMFYoloQuantize
 choose dataset format:  OpenImagesV4
 training dataset path:  /home/blueoil/openimages_face/
-set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.):  yes
-validation dataset path:  /home/blueoil/openimages_face/
+set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.):  no
 batch size (integer):  16
 image size (integer x integer):  224x224
 how many epochs do you run training (integer):  1000

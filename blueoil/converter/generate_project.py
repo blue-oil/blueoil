@@ -72,6 +72,7 @@ def optimize_graph_step(graph: Graph, config: Config) -> None:
     pass_constant_folding(graph)
     pass_simplify_batchnorm(graph)
 
+
 def generate_code_step(graph: Graph, config: Config) -> None:
     """Generate code for the model.
 
@@ -116,8 +117,7 @@ def run(input_path: str,
                     optimized_pb_path=optimized_pb_path,
                     output_pj_path=output_project_path,
                     debug=debug,
-                    cache_dma=cache_dma
-    )
+                    cache_dma=cache_dma)
 
     dest_dir_path = path.abspath(dest_dir_path)
     util.make_dirs(dest_dir_path)

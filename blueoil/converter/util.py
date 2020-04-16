@@ -63,7 +63,7 @@ def dynamic_class_load(path: str) -> Any:
 
     Returns:
         Any: The class to be loaded.
-    
+
     """
     pathes = path.split('.')
     class_name = pathes.pop()

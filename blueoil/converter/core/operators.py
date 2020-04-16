@@ -20,15 +20,14 @@ import warnings
 from termcolor import colored
 from abc import abstractmethod
 from itertools import dropwhile
-from typing import TYPE_CHECKING, Any, Dict, Optional, cast
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 from blueoil.converter.core.view import View
 from blueoil.converter.util import classproperty
 
-from .data_types import *
-
-if TYPE_CHECKING:
-    import blueoil.converter.core.operators as ops
+from .data_types import DataType
 
 Ops = Dict[str, 'Operator']
 OutOps = Dict[str, List['Operator']]
@@ -814,7 +813,7 @@ class SpaceToDepth(Operator):
             2. (kernel_size^2 * {8, 16}).
         """
         super()._check_consistency()
-        if self.channel % 32 != 0:
+        if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and self.channel % 32 != 0:
             warnings.warn(warning_sign +
                           f" Output channels need to be multiple of 32 for {self.name} of {self.op_type}, "
                           f"but got output channel size of {self.channel}",
