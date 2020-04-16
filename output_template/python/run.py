@@ -34,16 +34,14 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def _pre_process(raw_image, pre_processor, data_format):
-    pre_process = build_pre_process(pre_processor)
+def _pre_process(raw_image, pre_process, data_format):
     image = pre_process(image=raw_image)['image']
     if data_format == 'NCHW':
         image = np.transpose(image, [2, 0, 1])
     return image
 
 
-def _post_process(output, post_processor):
-    post_process = build_post_process(post_processor)
+def _post_process(output, post_process):
     output = post_process(outputs=output)['outputs']
     return output
 
@@ -132,8 +130,11 @@ def run_prediction(input_image, model, config_file, trial=1):
     # initialize Network
     nn = _init(model, config)
 
+    pre_process = build_pre_process(config.PRE_PROCESSOR)
+    post_process = build_post_process(config.POST_PROCESSOR)
+
     # pre process for image
-    image_data, bench_pre = _timerfunc(_pre_process, (image_data, config.PRE_PROCESSOR, config.DATA_FORMAT), trial)
+    image_data, bench_pre = _timerfunc(_pre_process, (image_data, pre_process, config.DATA_FORMAT), trial)
 
     # add the batch dimension
     image_data = np.expand_dims(image_data, axis=0)
@@ -144,7 +145,7 @@ def run_prediction(input_image, model, config_file, trial=1):
     logger.info('Output: (before post process)\n{}'.format(output))
 
     # pre process for output
-    output, bench_post = _timerfunc(_post_process, (output, config.POST_PROCESSOR), trial)
+    output, bench_post = _timerfunc(_post_process, (output, post_process), trial)
 
     logger.info('Output: (after post process)\n{}'.format(output))
 
