@@ -196,9 +196,15 @@ texinfo_documents = [
 ]
 
 
-# -- Options for AutoAPI output ----------------------------------------------
+# -- Options for Sphinx AutoAPI output ----------------------------------------------
+
+# Paths (relative or absolute) to the source code that you wish
+# to generate your API documentation from.
 autoapi_dirs = ['../blueoil/']
-autoapi_ignore = ['*/configs/*', '*/templates/*']
+
+# A list of patterns to ignore when finding files. The defaults by language are:
+autoapi_ignore = ['*migrations*', '*/configs/*', '*/templates/*']
+
 
 # -- Extension configuration -------------------------------------------------
 def setup(app):
