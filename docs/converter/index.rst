@@ -14,7 +14,6 @@ Converter is a converter part in Blueoil for edge devices.
 
    overview
    supported_ops
-   modules
    auto_script
    shared_library
    archive_file
