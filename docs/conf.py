@@ -202,7 +202,7 @@ texinfo_documents = [
 # to generate your API documentation from.
 autoapi_dirs = ['../blueoil/']
 
-# A list of patterns to ignore when finding files. The defaults by language are:
+# A list of patterns to ignore when finding files.
 autoapi_ignore = ['*migrations*', '*/configs/*', '*/templates/*']
 
 
