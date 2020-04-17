@@ -52,6 +52,7 @@ ex. LMNetHeavy, LMNetWelter.
 THe result of inference test on Terasic DE10-nano using `lm_fpga.elf` and `lm_arm.elf`.
 
 ### LmnetV1Quantize
+- Network profile [here](network_profile/LmnetV1Quantize_profile.md)
 - Inference Speed (FPGA) **6.769** ms
     ```
     -------------------------------------------------------------
@@ -114,6 +115,7 @@ THe result of inference test on Terasic DE10-nano using `lm_fpga.elf` and `lm_ar
     ```
 
 ### LMFYoloQuantize
+- Network profile [here](network_profile/LMFYoloQuantize_profile.md)
 - Inference Speed (FPGA) **59.011** ms
     ```
     -------------------------------------------------------------
@@ -166,6 +168,7 @@ THe result of inference test on Terasic DE10-nano using `lm_fpga.elf` and `lm_ar
     ```
 
 ### LmSegnetV1Quantize
+- Network profile [here](network_profile/LmSegnetV1Quantize_profile.md)
 - Inference Speed (FPGA) **400.509** ms
     ```
     -------------------------------------------------------------
