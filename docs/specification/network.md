@@ -190,7 +190,7 @@ THe result of inference test on Terasic DE10-nano using `lm_fpga.elf` and `lm_ar
     ..DepthToSpace 3188,7023,28765,  sum:38.976ms
     ..linear_to_float 129916,  sum:129.916ms
     ```
-    - Inference Speed (Arm) **1437.04** ms
+ - Inference Speed (Arm) **1437.04** ms
     ```
     -------------------------------------------------------------
     Comparison: Default network test  succeeded!!!
