@@ -157,11 +157,11 @@ def run_prediction(input_image, model, config_file, trial=1):
         results_run.append(bench_run)
         results_post.append(bench_post)
 
-    time_stat={
-        "total": { "mean" : np.mean(results_total), "std": np.std(results_total), },
-        "pre": { "mean" : np.mean(results_pre), "std": np.std(results_pre), },
-        "post": { "mean" : np.mean(results_post), "std": np.std(results_post), },
-        "run": { "mean" :  np.mean(results_run), "std": np.std(results_run), },
+    time_stat = {
+        "total": {"mean": np.mean(results_total), "std": np.std(results_total), },
+        "pre": {"mean": np.mean(results_pre), "std": np.std(results_pre), },
+        "post": {"mean": np.mean(results_post), "std": np.std(results_post), },
+        "run": {"mean":  np.mean(results_run), "std": np.std(results_run), },
     },
 
     # json output
@@ -169,7 +169,7 @@ def run_prediction(input_image, model, config_file, trial=1):
         task=Tasks(config.TASK),
         classes=config.CLASSES,
         image_size=config.IMAGE_SIZE,
-        data_format=config.DATA_FORMAT,    
+        data_format=config.DATA_FORMAT,
         bench=time_stat,
     )
 
