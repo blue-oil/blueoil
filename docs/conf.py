@@ -203,7 +203,7 @@ texinfo_documents = [
 autoapi_dirs = ['../blueoil/']
 
 # A list of patterns to ignore when finding files.
-autoapi_ignore = ['*migrations*', '*/configs/*', '*/templates/*']
+autoapi_ignore = ['*migrations*', '*/blueoil/configs/*', '*/blueoil/templates/*']
 
 
 # -- Extension configuration -------------------------------------------------
