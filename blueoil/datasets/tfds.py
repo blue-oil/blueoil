@@ -19,9 +19,10 @@ import os
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from blueoil.datasets.base import Base, ObjectDetectionBase
+from blueoil.datasets.base import Base, ObjectDetectionBase, SegmentationBase
 from blueoil.utils.tfds_builders.classification import ClassificationBuilder
 from blueoil.utils.tfds_builders.object_detection import ObjectDetectionBuilder
+from blueoil.utils.tfds_builders.segmentation import SegmentationBuilder
 
 
 def _grayscale_to_rgb(record):
@@ -65,6 +66,13 @@ def _format_object_detection_record(record, image_size, num_max_boxes):
     gt_boxes = tf.slice(gt_boxes, [0, 0], [num_max_boxes, 5])
 
     return {"image": image, "label": gt_boxes}
+
+
+def _format_segmentation_record(record, image_size):
+    image = tf.image.resize(record["image"], image_size)
+    segmentation_mask = tf.squeeze(tf.image.resize(record["segmentation_mask"], image_size), axis=2)
+
+    return {"image": image, "label": segmentation_mask}
 
 
 class TFDSMixin:
@@ -271,5 +279,44 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
 
         self.tf_dataset = self.tf_dataset.map(
             lambda record: _format_object_detection_record(record, self._image_size, num_max_boxes),
+            num_parallel_calls=tf.data.experimental.AUTOTUNE
+        )
+
+
+class TFDSSegmentation(TFDSMixin, SegmentationBase):
+    """A dataset class for loading TensorFlow Datasets for segmentation.
+       TensorFlow Datasets which have "label" and "image" features can be loaded by this class.
+    """
+    builder_class = SegmentationBuilder
+
+    @property
+    def classes(self):
+        return self.info.features["label"].names
+
+    @property
+    def num_classes(self):
+        return self.info.features["label"].num_classes
+
+    def _validate_feature_structure(self):
+        is_valid = \
+            "label" in self.info.features and \
+            "image" in self.info.features and \
+            "segmentation_mask" in self.info.features and \
+            isinstance(self.info.features["label"], tfds.features.ClassLabel) and \
+            isinstance(self.info.features["image"], tfds.features.Image) and \
+            isinstance(self.info.features["segmentation_mask"], tfds.features.Image)
+
+        if not is_valid:
+            raise ValueError("Datasets should have \"label\", \"image\" and \"segmentation_mask\" features.")
+
+    def _format_dataset(self):
+        if self.info.features['image'].shape[2] == 1:
+            self.tf_dataset = self.tf_dataset.map(
+                _grayscale_to_rgb,
+                num_parallel_calls=tf.data.experimental.AUTOTUNE
+            )
+
+        self.tf_dataset = self.tf_dataset.map(
+            lambda record: _format_segmentation_record(record, self._image_size),
             num_parallel_calls=tf.data.experimental.AUTOTUNE
         )
