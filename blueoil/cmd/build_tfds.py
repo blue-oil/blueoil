@@ -24,6 +24,7 @@ from blueoil.datasets.tfds import TFDSMixin
 from blueoil.utils import config as config_util
 from blueoil.utils.tfds_builders.classification import ClassificationBuilder
 from blueoil.utils.tfds_builders.object_detection import ObjectDetectionBuilder
+from blueoil.utils.tfds_builders.segmentation import SegmentationBuilder
 
 
 def _get_tfds_settings(config_file):
@@ -47,7 +48,7 @@ def _get_tfds_builder_class(dataset_class):
         raise ValueError("You cannot use dataset classes which is already a TFDS format.")
 
     if issubclass(dataset_class, SegmentationBase):
-        raise NotImplementedError("A dataset builder for segmentation dataset is not implemented yet.")
+        return SegmentationBuilder
 
     if issubclass(dataset_class, ObjectDetectionBase):
         return ObjectDetectionBuilder

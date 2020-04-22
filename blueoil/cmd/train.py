@@ -24,9 +24,9 @@ import yaml
 
 from blueoil import environment
 from blueoil.common import Tasks
-from blueoil.datasets.base import ObjectDetectionBase
+from blueoil.datasets.base import ObjectDetectionBase, SegmentationBase
 from blueoil.datasets.dataset_iterator import DatasetIterator
-from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection, TFDSSegmentation
 from blueoil.utils import config as config_util
 from blueoil.utils import executor
 from blueoil.utils import horovod as horovod_util
@@ -51,6 +51,8 @@ def setup_dataset(config, subset, rank, local_rank):
     if tfds_kwargs:
         if issubclass(DatasetClass, ObjectDetectionBase):
             DatasetClass = TFDSObjectDetection
+        elif issubclass(DatasetClass, SegmentationBase):
+            DatasetClass = TFDSSegmentation
         else:
             DatasetClass = TFDSClassification
 
