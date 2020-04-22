@@ -639,7 +639,7 @@ class YoloV2(BaseNetwork):
 
         return results
 
-    def loss(self, output, gt_boxes, global_step):
+    def loss(self, output, gt_boxes):
         """Loss.
 
         Args:
@@ -654,7 +654,7 @@ class YoloV2(BaseNetwork):
             predict_boxes = self.convert_boxes_space_from_yolo_to_real(predict_boxes)
 
         gt_boxes = self.convert_gt_boxes_xywh_to_cxcywh(gt_boxes)
-        return self.loss_function(predict_classes, predict_confidence, predict_boxes, gt_boxes, global_step)
+        return self.loss_function(predict_classes, predict_confidence, predict_boxes, gt_boxes, self.global_step)
 
     def inference(self, images, is_training):
         tf.compat.v1.summary.histogram("images", images)

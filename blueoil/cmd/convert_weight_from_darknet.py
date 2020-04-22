@@ -45,8 +45,6 @@ def convert(config, weight_file):
             is_debug=True,
             **network_kwargs,
         )
-        global_step = tf.Variable(0, name="global_step", trainable=False) # NOQA
-
         is_training = tf.constant(False, name="is_training")
 
         images_placeholder, labels_placeholder = model.placeholders()
