@@ -578,7 +578,7 @@ class View(object):
         return ', '.join(map(lambda x: str(x), shape_copied))
 
     def params_to_string(self, params):
-        raise NotImplemented
+        raise NotImplementedError
 
     def raise_invalid_args_exception(self, op, input_ops, output_ops):
         error_message = self.format_string(
