@@ -30,7 +30,7 @@ class LMFYolo(YoloV2):
         YoloV2 https://arxiv.org/abs/1612.08242
     """
 
-    def train(self, loss, optimizer, global_step=tf.Variable(0, trainable=False), var_list=[]):
+    def train(self, loss, optimizer, var_list=[]):
         with tf.name_scope("train"):
             if var_list == []:
                 var_list = tf.compat.v1.trainable_variables()
@@ -42,7 +42,7 @@ class LMFYolo(YoloV2):
                 (tf.clip_by_value(gradient, -10.0, 10.0), var)
                 for gradient, var in gradients
             ]
-            train_op = optimizer.apply_gradients(gradients, global_step=global_step)
+            train_op = optimizer.apply_gradients(gradients, global_step=self.global_step)
 
         for grad, var in gradients:
             if grad is not None:

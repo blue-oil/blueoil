@@ -92,7 +92,6 @@ def evaluate(config, restore_path, output_dir):
                 **network_kwargs,
             )
 
-        global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training = tf.constant(False, name="is_training")
 
         images_placeholder, labels_placeholder = model.placeholders()
@@ -117,7 +116,7 @@ def evaluate(config, restore_path, output_dir):
 
     saver.restore(sess, restore_path)
 
-    last_step = sess.run(global_step)
+    last_step = sess.run(model.global_step)
 
     # init metrics values
     test_step_size = int(math.ceil(validation_dataset.num_per_epoch / config.BATCH_SIZE))
