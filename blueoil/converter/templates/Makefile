@@ -27,8 +27,8 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/quantizer.cpp \
     $(SRC_DIR)/tensor_save.cpp
 
-SRC := $(LIB_SRC) $(wildcard $(DLK_TEST_SRC_DIR)/*.cpp) mains/main.cpp
-SRC := $(filter-out ./src/network_c_interface.cpp, $(SRC))
+MAIN_SRC := $(LIB_SRC) mains/main.cpp
+MAIN_SRC := $(filter-out ./src/network_c_interface.cpp, $(MAIN_SRC))
 
 LIB_ARM_SRC := $(wildcard $(SRC_DIR)/*.S) \
     $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
@@ -67,12 +67,12 @@ LIB_X86_AVX_SRC := \
 LIB_X86_AVX_OBJ := $(patsubst %.cpp, %.o, $(LIB_X86_AVX_SRC))
 
 LIB_OBJ := $(patsubst %.cpp, %.o, $(LIB_SRC))
-OBJ := $(patsubst %.cpp, %.o, $(SRC))
+MAIN_OBJ := $(patsubst %.cpp, %.o, $(MAIN_SRC))
 
 INCLUDES := -I./include
 
 ALL_OBJ := \
-    $(OBJ) $(LIB_OBJ) \
+    $(MAIN_OBJ) $(LIB_OBJ) \
     $(LIB_X86_OBJ) $(LIB_X86_AVX_OBJ) \
     $(LIB_AARCH64_OBJ) \
     $(LIB_ARM_OBJ) $(LIB_FPGA_OBJ)
@@ -90,61 +90,62 @@ clean:
 	-$(RM) $(ALL_OBJ)
 	-$(RM) $(ALL_DEP)
 
-################################
-# Set variables by ARCH
-################################
 
 # Base Settings
 FLAGS := -I./include -O3 -std=c++14 -g -MMD -MP
 ARFLAGS := -rcs
 LDFLAGS += -pthread -ldl
 
+################################
+# Set variables by ARCH
+################################
+
 ifeq ($(ARCH), x86)
 CPU := cpu_x86
 FLAGS +=
-SRC := $(SRC) $(LIB_X86_SRC)
+OBJ := $(LIB_X86_OBJ)
 endif
 
 ifeq ($(ARCH), x86_avx)
 CPU := cpu_x86
 FLAGS += -mavx2 -mfma -DUSE_AVX -fopenmp
-SRC := $(SRC) $(LIB_X86_AVX_SRC)
+OBJ := $(LIB_X86_AVX_OBJ)
 endif
 
 ifeq ($(ARCH), aarch64)
 CPU := cpu_aarch64
 FLAGS +=
-SRC := $(SRC) $(LIB_AARCH64_SRC)
+OBJ := $(LIB_AARCH64_OBJ)
 endif
 
 ifeq ($(ARCH), arm)
 CPU := cpu_arm
 FLAGS +=
-SRC := $(SRC) $(LIB_ARM_SRC)
+OBJ := $(LIB_ARM_OBJ)
 endif
 
 ifeq ($(ARCH), fpga)
 CPU := cpu_arm
 FLAGS += -DRUN_ON_FPGA
-SRC := $(SRC) $(LIB_FPGA_SRC)
+OBJ := $(LIB_FPGA_OBJ)
 endif
 
 ################################
 # Set variables by CPU
 ################################
-ifeq($(CPU), cpu_x86)
+ifeq ($(CPU), cpu_x86)
 CXX := g++
 FLAGS +=
 AR = ar
 endif
 
-ifeq($(CPU), cpu_aarch64)
+ifeq ($(CPU), cpu_aarch64)
 CXX := aarch64-linux-gnu-g++
 FLAGS += -DUSE_NEON -fopenmp
 AR = aarch64-linux-gnu-ar
 endif
 
-ifeq($(CPU), cpu_arm)
+ifeq ($(CPU), cpu_arm)
 CXX := arm-linux-gnueabihf-g++
 FLAGS += -DUSE_NEON -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fopenmp
 AR = arm-linux-gnueabihf-ar
@@ -154,19 +155,25 @@ endif
 # Set variables by TYPE
 ################################
 ifeq ($(TYPE), executable)
+OBJ += $(MAIN_OBJ)
 FLAGS += -DUSE_PNG -DFUNC_TIME_MEASUREMENT
+LDFLAGS +=
 NAME := lm_$(ARCH).elf
 LINK := $(CXX) $(FLAGS) $(OBJ) -o $(NAME) $(CXXFLAGS) $(LDFLAGS)
 endif
 
 ifeq ($(TYPE), dynamic)
+OBJ += $(LIB_OBJ)
 FLAGS += -fPIC -fvisibility=hidden
+LDFLAGS += -shared
 NAME := libdlk_$(ARCH).so
 LINK := $(CXX) $(FLAGS) $(OBJ) -o $(NAME) $(CXXFLAGS) $(LDFLAGS)
 endif
 
 ifeq ($(TYPE), static)
+OBJ += $(LIB_OBJ)
 FLAGS += -fPIC -fvisibility=hidden
+LDFLAGS +=
 NAME := libdlk_$(ARCH).a
 LINK := $(AR) $(ARFLAGS) $(NAME) $(OBJ)
 endif
