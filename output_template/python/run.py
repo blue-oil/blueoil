@@ -96,7 +96,7 @@ def _init(model, config):
     return nn
 
 
-def _run(image_data, nn):
+def _run(nn, image_data):
     # run the graph
     return nn.run(image_data)
 
@@ -147,7 +147,7 @@ def run_prediction(input_image, model, config_file, trial=1):
         output, bench_pre = _timerfunc(_pre_process, (image_data, pre_process, config.DATA_FORMAT))
 
         # run the model to inference
-        output, bench_run = _timerfunc(_run, (output, nn))
+        output, bench_run = _timerfunc(_run, (nn, output))
 
         # pre process for output
         output, bench_post = _timerfunc(_post_process, (output, post_process))
