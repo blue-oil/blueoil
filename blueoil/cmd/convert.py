@@ -100,21 +100,21 @@ def make_all(project_dir, output_dir):
     """
 
     make_list = [
-        ["lm_x86", "lm_x86.elf"],
-        ["lm_x86_avx", "lm_x86_avx.elf"],
-        ["lm_arm", "lm_arm.elf"],
-        ["lm_fpga", "lm_fpga.elf"],
-        ["lm_aarch64", "lm_aarch64.elf"],
-        ["lib_x86", "libdlk_x86.so"],
-        ["lib_x86_avx", "libdlk_x86_avx.so"],
-        ["lib_arm", "libdlk_arm.so"],
-        ["lib_fpga", "libdlk_fpga.so"],
-        ["lib_aarch64", "libdlk_aarch64.so"],
-        ["ar_x86", "libdlk_x86.a"],
-        ["ar_x86_avx", "libdlk_x86_avx.a"],
-        ["ar_arm", "libdlk_arm.a"],
-        ["ar_fpga", "libdlk_fpga.a"],
-        ["ar_aarch64", "libdlk_aarch64.a"],
+        ["ARCH=x86 TYPE=executable", "lm_x86.elf"],
+        ["ARCH=x86_avx TYPE=executable", "lm_x86_avx.elf"],
+        ["ARCH=arm TYPE=executable", "lm_arm.elf"],
+        ["ARCH=fpga TYPE=executable", "lm_fpga.elf"],
+        ["ARCH=aarch64 TYPE=executable", "lm_aarch64.elf"],
+        ["ARCH=x86 TYPE=dynamic", "libdlk_x86.so"],
+        ["ARCH=x86_avx TYPE=dynamic", "libdlk_x86_avx.so"],
+        ["ARCH=arm TYPE=dynamic", "libdlk_arm.so"],
+        ["ARCH=fpga TYPE=dynamic", "libdlk_fpga.so"],
+        ["ARCH=aarch64 TYPE=dynamic", "libdlk_aarch64.so"],
+        ["ARCH=x86 TYPE=static", "libdlk_x86.a"],
+        ["ARCH=x86_avx TYPE=static", "libdlk_x86_avx.a"],
+        ["ARCH=arm TYPE=static", "libdlk_arm.a"],
+        ["ARCH=fpga TYPE=static", "libdlk_fpga.a"],
+        ["ARCH=aarch64 TYPE=static", "libdlk_aarch64.a"],
     ]
     output_dir = os.path.abspath(output_dir)
     running_dir = os.getcwd()
@@ -124,7 +124,7 @@ def make_all(project_dir, output_dir):
     # Make each target and move output files
     for target, output in make_list:
         subprocess.run(("make", "clean", "--quiet"))
-        subprocess.run(("make", target, "-j4", "--quiet"))
+        subprocess.run(("make", "build", target, "-j4", "--quiet"))
         strip_binary(output)
         output_file_path = os.path.join(output_dir, output)
         os.rename(output, output_file_path)
