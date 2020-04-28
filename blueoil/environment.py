@@ -13,13 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os.path
-
-TMP_DIR = "tmp"
-LOG_DIR = os.path.join(TMP_DIR, "log")
+import os
 
 default_data_dir = "dataset"
-# DATA_DIR = os.getenv("DATA_DIR", default_data_dir)
 DATA_DIR = os.getenv("DATA_DIR", os.path.join(os.getcwd(), default_data_dir))
 
 default_output_dir = "saved"
