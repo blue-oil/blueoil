@@ -68,16 +68,12 @@ def run_all_steps(dirs, config_file):
     config = load(config_path)
 
     # Train
-    # TODO: Remove this setting after blueoil.environment has been refactored.
-    environment._init_flag = False
     experiment_id, checkpoint_name = train(config_path)
 
     train_output_dir = os.path.join(dirs["train_output_dir"], experiment_id)
     assert os.path.exists(os.path.join(train_output_dir, 'checkpoints'))
 
     # Convert
-    # TODO: Remove this setting after blueoil.environment has been refactored.
-    environment._init_flag = False
     convert(experiment_id)
 
     convert_output_dir = os.path.join(train_output_dir, 'export', checkpoint_name)
@@ -100,9 +96,6 @@ def run_all_steps(dirs, config_file):
     # Predict
     predict_input_dir = os.path.join(dirs["blueoil_dir"], "tests/unit/fixtures/sample_images")
     predict_output_dir = dirs["predict_output_dir"]
-
-    # TODO: Remove this setting after blueoil.environment has been refactored.
-    environment._init_flag = False
     predict(predict_input_dir, predict_output_dir, experiment_id, checkpoint=checkpoint_name)
 
     assert os.path.exists(os.path.join(predict_output_dir, 'images'))
