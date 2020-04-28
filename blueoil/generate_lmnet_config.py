@@ -304,12 +304,7 @@ def _save(lmnet_config):
 def _load_class(module, class_name):
     # this converts the string from snake format into class capital format
     # e.g. example_class_name -> ExampleClassName
+    if class_name[0].islower() or "_" in class_name:
+        class_name = "".join([s.capitalize() for s in class_name.split("_")])
 
-    # if class capital format.
-    if class_name[0].isupper() and "_" not in class_name:
-        class_name = class_name
-    else:
-        class_name = "".join([str.capitalize() for str in class_name.split("_")])
-    cls = module.__dict__[class_name]
-
-    return cls
+    return module.__dict__[class_name]
