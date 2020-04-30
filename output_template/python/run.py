@@ -152,7 +152,7 @@ def run_prediction(input_image, model, config_file, trial=1):
         # pre process for output
         output, bench_post = _timerfunc(_post_process, (output, post_process))
 
-        results_total.append(bench_pre+bench_run+bench_post)
+        results_total.append(bench_pre + bench_run + bench_post)
         results_pre.append(bench_pre)
         results_run.append(bench_run)
         results_post.append(bench_post)
