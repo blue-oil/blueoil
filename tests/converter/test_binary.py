@@ -35,7 +35,8 @@ class TestBinary(TestCaseDLKBase):
             'lmnet_quantize_cifar10')
         output_path = self.build_dir
         project_name = 'test_binary'
-        bin_name = 'lm_x86'
+        arch_name = 'x86'
+        bin_name = 'lm_' + arch_name
         project_dir = os.path.join(output_path, project_name + '.prj')
         generated_bin = os.path.join(project_dir, bin_name + '.elf')
         input_dir_path = os.path.abspath(os.path.join(os.getcwd(), model_path))
@@ -62,7 +63,7 @@ class TestBinary(TestCaseDLKBase):
                       join(project_dir, "make_clean.err"),
                       self)
 
-        run_and_check(['make', bin_name, '-j8'],
+        run_and_check(['make', 'build', 'ARCH=' + arch_name, 'TYPE=executable', '-j8'],
                       project_dir,
                       join(project_dir, "make.out"),
                       join(project_dir, "make.err"),

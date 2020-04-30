@@ -24,6 +24,8 @@ from blueoil import environment
 class Base(metaclass=ABCMeta):
     """Dataset base class"""
 
+    available_subsets = ['train', 'validation']
+
     def __init__(
             self,
             subset="train",
@@ -72,13 +74,6 @@ class Base(metaclass=ABCMeta):
     def extend_dir():
         """Return the extend dir path of the data set."""
         pass
-
-    @property
-    @staticmethod
-    @abstractmethod
-    def available_subsets():
-        """Returns the list of available subsets."""
-        return ['train', 'validation']
 
     @property
     @abstractmethod

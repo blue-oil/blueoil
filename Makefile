@@ -22,7 +22,7 @@ install-gpu: install
 
 .PHONY: lint
 lint:
-	flake8 ./blueoil ./tests --exclude=templates,converter
+	flake8 ./blueoil ./tests --exclude=templates
 
 .PHONY: build
 build: deps
@@ -63,8 +63,8 @@ test-lmnet: test-blueoil-pep8 test-unit-main
 .PHONY: test-blueoil-pep8
 test-blueoil-pep8: build
 	# Check blueoil pep8
-	# FIXME: blueoil/templates and blueoil/converter have a lot of errors with flake8
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil ./tests --exclude=templates,converter"
+	# FIXME: blueoil/templates have a lot of errors with flake8
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil ./tests --exclude=templates"
 
 .PHONY: test-unit-main
 test-unit-main: build
