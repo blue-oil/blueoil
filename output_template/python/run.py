@@ -188,7 +188,7 @@ def run_prediction(input_image, model, config_file, trial=1):
     filename_images = image_from_json(json_obj, raw_images, image_files)
     _save_images(output_dir, filename_images)
     logger.info("Benchmark avg result(sec) for {} trials".format(trial))
-    logger.info("{}".format(time_stat))
+    logger.info(time_stat)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
