@@ -92,7 +92,7 @@ clean:
 
 
 # Base Settings
-FLAGS := -I./include -O3 -std=c++14 -g -MMD -MP
+CXXFLAGS := -I./include -O3 -std=c++14 -g -MMD -MP
 ARFLAGS := -rcs
 LDFLAGS += -pthread -ldl
 
@@ -102,31 +102,31 @@ LDFLAGS += -pthread -ldl
 
 ifeq ($(ARCH), x86)
 CPU := cpu_x86
-FLAGS +=
+CXXFLAGS +=
 OBJ := $(LIB_X86_OBJ)
 endif
 
 ifeq ($(ARCH), x86_avx)
 CPU := cpu_x86
-FLAGS += -mavx2 -mfma -DUSE_AVX -fopenmp
+CXXFLAGS += -mavx2 -mfma -DUSE_AVX -fopenmp
 OBJ := $(LIB_X86_AVX_OBJ)
 endif
 
 ifeq ($(ARCH), aarch64)
 CPU := cpu_aarch64
-FLAGS +=
+CXXFLAGS +=
 OBJ := $(LIB_AARCH64_OBJ)
 endif
 
 ifeq ($(ARCH), arm)
 CPU := cpu_arm
-FLAGS +=
+CXXFLAGS +=
 OBJ := $(LIB_ARM_OBJ)
 endif
 
 ifeq ($(ARCH), fpga)
 CPU := cpu_arm
-FLAGS += -DRUN_ON_FPGA
+CXXFLAGS += -DRUN_ON_FPGA
 OBJ := $(LIB_FPGA_OBJ)
 endif
 
@@ -135,19 +135,19 @@ endif
 ################################
 ifeq ($(CPU), cpu_x86)
 CXX := g++
-FLAGS +=
+CXXFLAGS +=
 AR = ar
 endif
 
 ifeq ($(CPU), cpu_aarch64)
 CXX := aarch64-linux-gnu-g++
-FLAGS += -DUSE_NEON -fopenmp
+CXXFLAGS += -DUSE_NEON -fopenmp
 AR = aarch64-linux-gnu-ar
 endif
 
 ifeq ($(CPU), cpu_arm)
 CXX := arm-linux-gnueabihf-g++
-FLAGS += -DUSE_NEON -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fopenmp
+CXXFLAGS += -DUSE_NEON -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fopenmp
 AR = arm-linux-gnueabihf-ar
 endif
 
@@ -156,23 +156,23 @@ endif
 ################################
 ifeq ($(TYPE), executable)
 OBJ += $(MAIN_OBJ)
-FLAGS += -DUSE_PNG -DFUNC_TIME_MEASUREMENT
+CXXFLAGS += -DUSE_PNG -DFUNC_TIME_MEASUREMENT
 LDFLAGS +=
 NAME := lm_$(ARCH).elf
-LINK := $(CXX) $(FLAGS) $(OBJ) -o $(NAME) $(CXXFLAGS) $(LDFLAGS)
+LINK := $(CXX) $(OBJ) -o $(NAME) $(CXXFLAGS) $(LDFLAGS)
 endif
 
 ifeq ($(TYPE), dynamic)
 OBJ += $(LIB_OBJ)
-FLAGS += -fPIC -fvisibility=hidden
+CXXFLAGS += -fPIC -fvisibility=hidden
 LDFLAGS += -shared
 NAME := libdlk_$(ARCH).so
-LINK := $(CXX) $(FLAGS) $(OBJ) -o $(NAME) $(CXXFLAGS) $(LDFLAGS)
+LINK := $(CXX) $(OBJ) -o $(NAME) $(CXXFLAGS) $(LDFLAGS)
 endif
 
 ifeq ($(TYPE), static)
 OBJ += $(LIB_OBJ)
-FLAGS += -fPIC -fvisibility=hidden
+CXXFLAGS += -fPIC -fvisibility=hidden
 LDFLAGS +=
 NAME := libdlk_$(ARCH).a
 LINK := $(AR) $(ARFLAGS) $(NAME) $(OBJ)
@@ -187,8 +187,8 @@ $(NAME): $(OBJ)
 	$(LINK)
 
 %.o: %.S
-	$(CXX) $(FLAGS) -c $< -o $@ $(CXXFLAGS)
+	$(CXX) -c $< -o $@ $(CXXFLAGS)
 
 %.o: %.cpp
-	$(CXX) $(FLAGS) -c $< -o $@ $(CXXFLAGS)
+	$(CXX) -c $< -o $@ $(CXXFLAGS)
 
