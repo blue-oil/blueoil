@@ -158,10 +158,10 @@ def run_prediction(input_image, model, config_file, trial=1):
         results_post.append(bench_post)
 
     time_stat = {
-        "total": {"mean": np.mean(results_total), "std": np.std(results_total) },
-        "pre": {"mean": np.mean(results_pre), "std": np.std(results_pre) },
-        "post": {"mean": np.mean(results_post), "std": np.std(results_post) },
-        "run": {"mean":  np.mean(results_run), "std": np.std(results_run) },
+        "total": {"mean": np.mean(results_total), "std": np.std(results_total)},
+        "pre": {"mean": np.mean(results_pre), "std": np.std(results_pre)},
+        "post": {"mean": np.mean(results_post), "std": np.std(results_post)},
+        "run": {"mean":  np.mean(results_run), "std": np.std(results_run)},
     }
 
     # json output
