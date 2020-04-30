@@ -142,7 +142,7 @@ def run_prediction(input_image, model, config_file, trial=1):
 
     funcs = [(_pre_process, image_data), _run, _post_process]
 
-    for i in range(trial):
+    for _ in range(trial):
         # pre process for image
         output, bench_pre = _timerfunc(_pre_process, (image_data, pre_process, config.DATA_FORMAT))
 
