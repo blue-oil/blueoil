@@ -13,7 +13,7 @@ Converter is a converter part in Blueoil for edge devices.
    :maxdepth: 1
 
    overview
-   supported_ops
    auto_script
    shared_library
    archive_file
+   supported_ops
