@@ -5,14 +5,24 @@ After you generate your project from your protocol buffer, you can build librari
 The compile command would be like below.
 
 ```
-make lib_x86
-make lib_arm
-make lib_fpga
+make clean
+make build ARCH={ARCH_YOU_WANT_TO_USE} TYPE=dynamic lib_x86
+
+ARCH:
+    x86, x86_avx, aarch64, arm, fpga
+```
+
+Example:
+```
+make clean
+make build ARCH=x86 TYPE=dynamic
 ```
 
 These commands will generate the following files:
 ```
 libdlk_x86.so
+libdlk_x86_avx.so
+libdlk_aarch64.so
 libdlk_arm.so
 libdlk_fpga.so
 ```
