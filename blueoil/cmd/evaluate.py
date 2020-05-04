@@ -26,7 +26,7 @@ from blueoil.datasets.base import ObjectDetectionBase
 from blueoil.datasets.dataset_iterator import DatasetIterator
 from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
 from blueoil.utils import config as config_util
-from blueoil.utils import executor, module_loader
+from blueoil.utils import executor
 from blueoil.utils.predict_output.writer import save_json
 
 logging.basicConfig(level=logging.INFO)
@@ -169,16 +169,6 @@ def evaluate(config, restore_path, output_dir):
     help="restore ckpt file base path. e.g. saved/experiment/checkpoints/save.ckpt-10001",
 )
 @click.option(
-    "-n",
-    "--network",
-    help="network name. override config.NETWORK_CLASS",
-)
-@click.option(
-    "-d",
-    "--dataset",
-    help="dataset name. override config.DATASET_CLASS",
-)
-@click.option(
     "-c",
     "--config_file",
     help="config file path. override(merge) saved experiment config. if it is not provided, it restore from saved experiment config.", # NOQA
@@ -188,20 +178,13 @@ def evaluate(config, restore_path, output_dir):
     "--output_dir",
     help="Output directory to save a evaluated result",
 )
-def main(network, dataset, config_file, experiment_id, restore_path, output_dir):
+def main(config_file, experiment_id, restore_path, output_dir):
     environment.init(experiment_id)
 
     config = config_util.load_from_experiment()
 
     if config_file:
         config = config_util.merge(config, config_util.load(config_file))
-
-    if network:
-        network_class = module_loader.load_network_class(network)
-        config.NETWORK_CLASS = network_class
-    if dataset:
-        dataset_class = module_loader.load_dataset_class(dataset)
-        config.DATASET_CLASS = dataset_class
 
     executor.init_logging(config)
     config_util.display(config)

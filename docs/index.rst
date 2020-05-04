@@ -16,4 +16,5 @@ Blueoil -- An efficient neural network generator
    faq/index
    converter/index
    quantize/index
+   specification/index
    autoapi/index

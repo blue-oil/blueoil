@@ -28,7 +28,7 @@ def test_export():
 
     config_file = "unit/fixtures/configs/for_export.py"
     expriment_id = "test_export"
-    train_run(None, None, config_file, expriment_id, recreate=True)
+    train_run(config_file, expriment_id, recreate=True)
 
     setup_test_environment()
 

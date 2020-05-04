@@ -364,7 +364,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                       self
                       )
 
-        run_and_check(['make', 'lib_' + lib_base_name, '-j8'],
+        run_and_check(['make', 'build', 'ARCH=' + lib_base_name, 'TYPE=dynamic', '-j8'],
                       project_dir,
                       join(output_path, "make.out"),
                       join(output_path, "make.err"),
