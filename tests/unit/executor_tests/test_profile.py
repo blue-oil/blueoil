@@ -34,7 +34,7 @@ def test_profile():
 
     config_file = "unit/fixtures/configs/for_profile.py"
     expriment_id = "test_profile"
-    train_run(None, None, config_file, expriment_id, recreate=True)
+    train_run(config_file, expriment_id, recreate=True)
 
     setup_test_environment()
 

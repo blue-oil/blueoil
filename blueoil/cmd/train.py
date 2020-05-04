@@ -30,7 +30,6 @@ from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection, TFDSS
 from blueoil.utils import config as config_util
 from blueoil.utils import executor
 from blueoil.utils import horovod as horovod_util
-from blueoil.utils import module_loader
 
 
 def _save_checkpoint(saver, sess, global_step):
@@ -263,16 +262,9 @@ def start_training(config):
     print("Done")
 
 
-def run(network, dataset, config_file, experiment_id, recreate):
+def run(config_file, experiment_id, recreate):
     environment.init(experiment_id)
     config = config_util.load(config_file)
-
-    if network:
-        network_class = module_loader.load_network_class(network)
-        config.NETWORK_CLASS = network_class
-    if dataset:
-        dataset_class = module_loader.load_dataset_class(dataset)
-        config.DATASET_CLASS = dataset_class
 
     if horovod_util.is_enabled():
         horovod_util.setup()
@@ -294,7 +286,7 @@ def train(config_file, experiment_id=None, recreate=False):
         model_name = os.path.splitext(os.path.basename(config_file))[0]
         experiment_id = '{}_{:%Y%m%d%H%M%S}'.format(model_name, datetime.now())
 
-    run(None, None, config_file, experiment_id, recreate)
+    run(config_file, experiment_id, recreate)
 
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
     experiment_dir = os.path.join(output_dir, experiment_id)
