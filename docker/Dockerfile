@@ -6,7 +6,7 @@ LABEL maintainer="admin@blueoil.org"
 EXPOSE 6006
 
 # Python version settings
-ARG python_version="3.6.3"
+ARG python_version="3.6.10"
 
 ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
     CUDA_HOME=/usr/local/cuda-10.0 \
