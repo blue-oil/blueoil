@@ -38,6 +38,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     libncurses5-dev \
     libncursesw5-dev \
+    liblzma-dev \
     xz-utils \
     tk-dev \
     g++-9 \
