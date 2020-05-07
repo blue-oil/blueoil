@@ -53,19 +53,11 @@ class WiderFace(ObjectDetectionBase):
 
     def __init__(self,
                  subset="train",
-                 enable_prefetch=False,
                  max_boxes=3,
-                 num_workers=8,
                  *args,
                  **kwargs):
 
-        if enable_prefetch:
-            self.use_prefetch = True
-        else:
-            self.use_prefetch = False
-
         self.max_boxes = max_boxes
-        self.num_workers = num_workers
 
         super().__init__(subset=subset,
                          *args,

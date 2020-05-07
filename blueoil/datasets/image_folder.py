@@ -45,13 +45,10 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
     def __init__(
             self,
-            is_shuffle=True,
             *args,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
-
-        self.is_shuffle = is_shuffle
 
     @property
     @functools.lru_cache(maxsize=None)
