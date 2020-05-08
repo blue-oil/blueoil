@@ -1443,11 +1443,11 @@ class LinearMidTreadHalfQuantizer(Quantizer):
 
     @property
     def nbit(self) -> int:
-        return np.asscalar(self._input_ops['Y'].data)
+        return self._input_ops['Y'].data.item()
 
     @property
     def max_v(self) -> float:
-        return np.asscalar(self._input_ops['Z'].data)
+        return self._input_ops['Z'].data.item()
 
     @property
     def is_monotonic(self) -> bool:
@@ -2682,7 +2682,7 @@ class Split(Operator):
                  num_split: int = 1) -> None:
         """Init the split operator."""
         self._split = num_split
-        self._axis = np.asscalar(input_ops['A'].data)
+        self._axis = input_ops['A'].data.item()
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
