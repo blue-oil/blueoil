@@ -57,7 +57,7 @@ class Pascalvoc20072012(ObjectDetectionBase):
         num_max_boxes = 0
 
         for subset in cls.available_subsets:
-            obj = cls(subset=subset, is_shuffle=False, skip_difficult=skip_difficult)
+            obj = cls(subset=subset, skip_difficult=skip_difficult)
             gt_boxes_list = obj.annotations
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])
@@ -70,7 +70,6 @@ class Pascalvoc20072012(ObjectDetectionBase):
             self,
             subset="train",
             is_standardize=True,
-            is_shuffle=True,
             skip_difficult=True,
             *args,
             **kwargs
@@ -82,7 +81,6 @@ class Pascalvoc20072012(ObjectDetectionBase):
         )
 
         self.is_standardize = is_standardize
-        self.is_shuffle = is_shuffle
         self.skip_difficult = skip_difficult
 
         self._init_files_and_annotations(*args, **kwargs)

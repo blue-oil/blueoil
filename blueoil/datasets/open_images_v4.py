@@ -37,13 +37,10 @@ class OpenImagesV4(Base):
 
     def __init__(
             self,
-            is_shuffle=True,
             *args,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
-
-        self.is_shuffle = is_shuffle
 
     @property
     def class_descriptions_csv(self):
@@ -179,7 +176,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
         num_max_boxes = 0
 
         for subset in cls.available_subsets:
-            obj = cls(subset=subset, is_shuffle=False)
+            obj = cls(subset=subset)
             _, gt_boxes_list = obj.files_and_annotations
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])

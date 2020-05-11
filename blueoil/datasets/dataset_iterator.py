@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
 import queue
 import threading
 import time
@@ -28,13 +27,9 @@ from blueoil.datasets.tfds import TFDSMixin
 _dataset = None
 
 
-def _prefetch_setup(dataset, seed, do_shuffle):
+def _prefetch_setup(dataset):
     global _dataset
     _dataset = dataset
-    if do_shuffle:
-        np.random.seed(os.getpid()+seed)
-        _dataset.seed = os.getpid() + seed
-        _dataset._shuffle()
 
 
 def _apply_augmentations(dataset, image, label):
@@ -102,7 +97,7 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
         self.seed = seed + 1  # seed must not be 0 because using xorshift32.
         self.support_getitem = hasattr(dataset, "__getitem__")
         self.pool = Pool(processes=8, initializer=_prefetch_setup,
-                         initargs=(dataset, self.seed, not self.support_getitem))
+                         initargs=(dataset, ))
         self.result_queue = result_queue
         self.batch_size = dataset.batch_size
         self.dataset = dataset
@@ -138,7 +133,7 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
         self.pool.close()
         self.seed += 1
         self.pool = Pool(processes=8, initializer=_prefetch_setup,
-                         initargs=(self.dataset, self.seed, not self.support_getitem))
+                         initargs=(self.dataset, ))
 
     def loop_body(self):
         task_list = self.gen_task(self.dataset.batch_size * 8)

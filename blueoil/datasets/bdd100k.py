@@ -53,7 +53,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         num_max_boxes = 0
 
         for subset in cls.available_subsets:
-            obj = cls(subset=subset, base_path=base_path, is_shuffle=False)
+            obj = cls(subset=subset, base_path=base_path)
             gt_boxes_list = obj.bboxs
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])
@@ -74,23 +74,13 @@ class BDD100KObjectDetection(ObjectDetectionBase):
 
     def __init__(self,
                  subset="train",
-                 is_shuffle=True,
-                 enable_prefetch=False,
                  max_boxes=100,
-                 num_workers=None,
                  *args,
                  **kwargs):
 
         super().__init__(subset=subset, *args, **kwargs)
 
-        if enable_prefetch:
-            self.use_prefetch = True
-        else:
-            self.use_prefetch = False
-
-        self.is_shuffle = is_shuffle
         self.max_boxes = max_boxes
-        self.num_workers = num_workers
 
         subset_dir = "train" if subset == "train" else "val"
         self.img_dir = os.path.join(self.data_dir, "images", "100k", subset_dir)
