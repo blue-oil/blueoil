@@ -122,7 +122,12 @@ struct binary_op<T, layout, layout, F> {
     constexpr MemoryLayout in_layout = inner_layout(layout);
     using inner_t = TensorView<T, in_layout>;
     const binary_op<T, in_layout, in_layout, F> inner_op;
-    if (shape_l[0] == 1) {
+    if (shape_l == shape_r) {
+      const auto elements_count = lhs.size();
+      for (std::size_t i = 0; i < elements_count; ++i) {
+        output.data()[i] = f(lhs.data()[i], rhs.data()[i]);
+      }
+    } else if (shape_l[0] == 1) {
       for (std::size_t i = 0; i < shape_r[0]; ++i) {
         inner_t inner_l(lhs.data(), inner_info(shape_l));
         const auto offset_r = rhs.get_offset(i);
