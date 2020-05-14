@@ -51,7 +51,7 @@ initial learning rate:  0.001
 choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'
 enable data augmentation? (Y/n):  Yes
 Please choose augmentors:  done (6 selections)
--> select Blue, Brightness, Color, Contrast, FlipLeftRight, Hue
+-> select Blur, Brightness, Color, Contrast, FlipLeftRight, Hue
 apply quantization at the first layer? (Y/n):  no
 ```
 
