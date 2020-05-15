@@ -24,7 +24,6 @@ from multiprocessing import Pool
 import os
 import signal
 import sys
-from SocketServer import ThreadingMixIn
 
 import click
 
@@ -114,10 +113,6 @@ class MotionJpegHandler(BaseHTTPRequestHandler):
         return
 
 
-class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
-    daemon_threads = True
-
-
 def _run_inference(inputs):
     global nn, pre_process, post_process
     res, fps, fps_only_network = run_inference(inputs, nn, pre_process, post_process)
@@ -168,7 +163,7 @@ def run(model, config_file, port=80):
     pool = Pool(processes=1, initializer=_init_worker)
 
     try:
-        server = ThreadedHTTPServer(('', port), MotionJpegHandler)
+        server = HTTPServer(('', port), MotionJpegHandler)
         print("server starting")
         server.serve_forever()
     except KeyboardInterrupt as e:
