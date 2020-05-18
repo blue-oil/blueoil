@@ -1,15 +1,15 @@
-# Import model with dlk library
+# Import model with blueoil converter
 
-- Choose a model to try from blueoil/dlk/examples/
-   - for example: classification/lmnet_quantize_cifar10
-- make libdlk_x86.a with reference blueoil/dlk/README.md
-- put libdlk_x86.a & meta.yaml to blueoil/runtime/examples/
+- Choose a model to try from configs/examples/
+   - for example: classification or object_detection
+- make `libdlk_x86.a` with reference docs/converter/overview.md
+- put `libdlk_x86.a` & `meta.yaml` to blueoil/runtime/examples/
 
-# Build blueoil static lib
+# Build blueoil static library
 ```
 $ mkdir build
 $ cd build
-# You can set `DLK_LIB_DIR` environment.
+# Set `DLK_LIB_DIR` to specify the directory of libdlk_x86.a` & `meta.yaml`. 
 $ DLK_LIB_DIR=`pwd`/../examples/ cmake ../
 $ make
 $ make install
@@ -22,11 +22,11 @@ output/
 ```
 
 
-# Build blueoil shared lib
+# Build blueoil shared library
 ```
 $ mkdir build
 $ cd build
-# -DBUILD_SHARED_LIBS=ON
+# Add `-DBUILD_SHARED_LIBS=ON` flag to set a shared library 
 $ DLK_LIB_DIR=`pwd`/../examples/ cmake -DBUILD_SHARED_LIBS=ON ../
 $ make
 $ make install
@@ -75,6 +75,7 @@ shape:1 10
 # Unit tests
 
 ```
+$ mkdir build
 $ cd build
 $ DLK_LIB_DIR=`pwd`/../examples/ cmake -DBUILD_SHARED_LIBS=ON ../
 $ make
@@ -94,5 +95,5 @@ Test project <repos_dir>/blueoil/runtime/build
 
 100% tests passed, 0 tests failed out of 5
 
-Total Test time (real) =   0.08 sec
+Total Test time (real) =   0.01 sec
 ```
