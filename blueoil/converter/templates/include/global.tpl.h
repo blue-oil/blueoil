@@ -32,11 +32,8 @@ limitations under the License.
 using QUANTIZED_PACKED_KERNEL = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
 
 #define IP_CSR_ADDR 0xFF200000
-#define TH_IP_CSR_ADDR 0xFF200100
 #define INPUT_ADDR 0x20000000
-#define OUTPUT0_ADDR 0x28000000
-#define OUTPUT1_ADDR 0x30000000
-#define OUTPUT_ADDR OUTPUT0_ADDR
+#define OUTPUT_ADDR 0x28000000
 #define KERNEL_ADDR 0x38000000
 #define THRESHOLD_ADDR 0x3F000000
 
@@ -77,14 +74,6 @@ void write_to_file(const char *filename, int id, volatile int32_t* data, int siz
 void write_to_file(const char *filename, int id, BIN_CONV_OUTPUT* data, int size);
 void write_to_file(const char *filename, int id, QUANTIZED_NOT_PACKED* data, int size);
 void write_to_file(const char *filename, int id, float* data, int size);
-
-// TCA
-
-// HPS-TO-FPGA Lightweight bridge address
-constexpr size_t HPS_TO_FPGA_LW_BASE = 0xFF200000;
-
-// Half part of phys memory
-constexpr size_t HW_BUFFERS_PHYS_ADDR_BASE = 0x20000000;
 
 #endif
 
