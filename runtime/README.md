@@ -9,7 +9,7 @@
 ```
 $ mkdir build
 $ cd build
-# Set `DLK_LIB_DIR` to specify the directory of libdlk_x86.a` & `meta.yaml`. 
+# Set `DLK_LIB_DIR` to specify the directory of libdlk_x86.a` & `meta.yaml`
 $ DLK_LIB_DIR=`pwd`/../examples/ cmake ../
 $ make
 $ make install
@@ -26,7 +26,7 @@ output/
 ```
 $ mkdir build
 $ cd build
-# Add `-DBUILD_SHARED_LIBS=ON` flag to set a shared library 
+# Add `-DBUILD_SHARED_LIBS=ON` flag to set a shared library
 $ DLK_LIB_DIR=`pwd`/../examples/ cmake -DBUILD_SHARED_LIBS=ON ../
 $ make
 $ make install
@@ -40,8 +40,27 @@ output/
 ```
 
 
-# How to run example.
+# Build blueoil shared library for image input
+```
+$ mkdir build
+$ cd build
+# Add `-DUSE_LIBPNG=ON` flag to link lib_png
+# $ DLK_LIB_DIR=`pwd`/../examples/ cmake -DBUILD_SHARED_LIBS=ON ../ -DUSE_LIBPNG=ON
+# Add `-DUSE_OPENCV=ON` flag to link opencv
+# $ DLK_LIB_DIR=`pwd`/../examples/ cmake -DBUILD_SHARED_LIBS=ON ../ -DUSE_OPENCV=ON
+$ make
+$ make install
+$ tree output/
+output/
+├── include
+│   └── blueoil.hpp
+└── lib
+    ├── libblueoil.so -> libblueoil.so.0.1.0
+    └── libblueoil.so.0.1.0
+```
 
+
+# How to run example (npy).
 ```
 $ cd examples
 # copy builded static lib and header.
@@ -72,8 +91,41 @@ shape:1 10
 0.000105945 6.23502e-05 0.0323531 0.00360625 0.0124029 0.000231775 0.951004 8.7062e-05 9.84179e-05 4.80589e-05
 ```
 
-# Unit tests
 
+# How to run example (png).
+```
+$ cd examples
+# copy builded static lib and header.
+$ cp -R ../build/output/* ./
+# specify same flag as in Build library
+$ cmake . {-DUSE_LIBPNG=ON | -DUSE_OPENCV=ON}
+$ make
+$ ./run -i cat.png -c meta.yaml
+classes:
+airplane
+automobile
+bird
+cat
+deer
+dog
+frog
+horse
+ship
+truck
+task: IMAGE.CLASSIFICATION
+expected input shape:
+1
+32
+32
+3
+Run
+Results !
+shape:1 10
+0.000105945 6.23502e-05 0.0323531 0.00360625 0.0124029 0.000231775 0.951004 8.7062e-05 9.84179e-05 4.80589e-05
+```
+
+
+# Unit tests
 ```
 $ mkdir build
 $ cd build

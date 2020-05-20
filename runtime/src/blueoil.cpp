@@ -266,7 +266,11 @@ void MappingProcess(const YAML::Node processors_node, std::vector<Processor>* fu
             Processor tmp = std::move(data_processor::DivideBy255);
             functions->push_back(std::move(tmp));
 
-          } else if (method_name == "Resize" || method_name == "ResizeWithGtBoxes") {
+          } else if (method_name == "PerImageStandardization") {
+            Processor tmp = std::move(data_processor::PerImageStandardization);
+            functions->push_back(std::move(tmp));
+
+          }else if (method_name == "Resize" || method_name == "ResizeWithGtBoxes") {
             std::pair<int, int> size = method_params["size"].as<std::pair<int, int>>();
             Processor tmp = std::bind(data_processor::Resize, std::placeholders::_1, size);
             functions->push_back(std::move(tmp));
