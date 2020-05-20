@@ -78,6 +78,13 @@ float test_expect[3][4][4] =
      {  0, 255,   0,   0}
     } };
 
+// from test_preprocessor.py
+float data_processor_input[1][1][3] = {1, 1, 1};
+
+float divideby255_expect[1][1][3] = {0.00392157, 0.00392157, 0.00392157};
+
+float perimagestandardization_expect[1][1][3] = {0.0000, 0.0000, 0.0000};
+
 // python lmnet post processor output array
 // rounded to 4-digit after the decimal point
 float yolov2test_expect[1][16][6]=
@@ -161,6 +168,42 @@ int test_data_processor_resize() {
   return EXIT_SUCCESS;
 }
 
+int test_data_processor_divideby255() {
+  blueoil::Tensor input({1, 1, 3}, reinterpret_cast<float *>(data_processor_input));
+  blueoil::Tensor expect({1, 1, 3}, reinterpret_cast<float *>(divideby255_expect));
+  input = blueoil::util::Tensor_CHW_to_HWC(input);
+  expect = blueoil::util::Tensor_CHW_to_HWC(expect);
+
+  blueoil::Tensor output = blueoil::data_processor::DivideBy255(input);
+  if (!output.allclose(expect, 0, 0.0001)) {
+    std::cerr << "test_data_processor_divideby255: output != expect" << std::endl;
+    output = blueoil::util::Tensor_HWC_to_CHW(output);
+    expect = blueoil::util::Tensor_HWC_to_CHW(expect);
+    output.dump();
+    expect.dump();
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
+
+int test_data_processor_perimagestandardization() {
+  blueoil::Tensor input({1, 1, 3}, reinterpret_cast<float *>(data_processor_input));
+  blueoil::Tensor expect({1, 1, 3}, reinterpret_cast<float *>(perimagestandardization_expect));
+  input = blueoil::util::Tensor_CHW_to_HWC(input);
+  expect = blueoil::util::Tensor_CHW_to_HWC(expect);
+
+  blueoil::Tensor output = blueoil::data_processor::PerImageStandardization(input);
+  if (!output.allclose(expect, 0, 0.0001)) {
+    std::cerr << "test_data_processor_perimagestandardization: output != expect" << std::endl;
+    output = blueoil::util::Tensor_HWC_to_CHW(output);
+    expect = blueoil::util::Tensor_HWC_to_CHW(expect);
+    output.dump();
+    expect.dump();
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
+
 int test_data_processor_formatyolov2() {
   int width = 64, height = 64;
   int batch_size = 1;  // support 1 only
@@ -230,6 +273,16 @@ int main(void) {
   int status_code = 0;
   std::cerr << "test_data_processor_resize" << std::endl;
   status_code = test_data_processor_resize();
+  if (status_code != EXIT_SUCCESS) {
+    std::exit(status_code);
+  }
+  std::cerr << "test_data_processor_divideby255" << std::endl;
+  status_code = test_data_processor_divideby255();
+  if (status_code != EXIT_SUCCESS) {
+    std::exit(status_code);
+  }
+  std::cerr << "test_data_processor_perimagestandardization" << std::endl;
+  status_code = test_data_processor_perimagestandardization();
   if (status_code != EXIT_SUCCESS) {
     std::exit(status_code);
   }
