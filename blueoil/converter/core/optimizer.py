@@ -635,17 +635,12 @@ def pass_lookup(graph: Graph) -> None:
 
         get_nodes_in_branch(quantizer, placeholder[0], to_be_removed)
 
-        # Reserve ops other than the lookup head
         reserved_placeholder_ops = []
         for out_op in placeholder[0].output_op_list:
-            if out_op.op_type != 'Mul':
+            if out_op not in to_be_removed:
                 reserved_placeholder_ops.append(out_op)
-        # Exclude reserved ops from removable list
         placeholder[0].remove_output('output')
         for add_to_placeholder in reserved_placeholder_ops:
-            for idx, removable_op in enumerate(to_be_removed):
-                if add_to_placeholder == removable_op:
-                    to_be_removed.pop(idx)
             placeholder[0].add_output('output', add_to_placeholder)
         pe.add_outputs(quantizer.output_ops)
 
