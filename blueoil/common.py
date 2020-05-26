@@ -16,6 +16,7 @@
 from __future__ import division
 
 import math
+import numpy as np
 from enum import Enum
 
 
@@ -26,34 +27,35 @@ class Tasks(Enum):
     KEYPOINT_DETECTION = "IMAGE.KEYPOINT_DETECTION"
 
 
-# Color Palette for General Purpose
-# Sample image is here
-# https://github.com/blue-oil/blueoil/tree/master/docs/_static/color_map.png
-COLOR_MAP = [
-    (192, 0,   128),  # COLOR00
-    (0,   128, 192),  # COLOR01
-    (0,   128, 64),   # COLOR02
-    (128, 0,   0),    # COLOR03
-    (64,  0,   128),  # COLOR04
-    (64,  0,   192),  # COLOR05
-    (192, 128, 64),   # COLOR06
-    (192, 192, 128),  # COLOR07
-    (64,  64,  128),  # COLOR08
-    (128, 0,   192),  # COLOR09
-    (192, 0,   64),   # COLOR10
-    (128, 128, 64),   # COLOR11
-    (192, 0,   192),  # COLOR12
-    (128, 64,  64),   # COLOR13
-    (64,  192, 128),  # COLOR14
-    (64,  64,  0),    # COLOR15
-    (128, 64,  128),  # COLOR16
-    (128, 128, 192),  # COLOR17
-    (0,   0,   192),  # COLOR18
-    (192, 128, 128)   # COLOR19
-]
+# Color Palette for all tasks: Turbo color map:
+# https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html
+# The colormap allows for a large number of quantization levels:
+# https://github.com/blue-oil/blueoil/tree/master/docs/_static/turbo_cmap.png
+# Implementation inspired from the following gist:
+# https://gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
+TURBO_CMAP_DATA = np.load('turbo_cmap_data.npy')
 
+def interpolate(colormap, x):
+    x = max(0.0, min(1.0, x))
+    a = int(x*255.0)
+    b = min(255, a + 1)
+    f = x*255.0 - a
+    return [colormap[a][0] + (colormap[b][0] - colormap[a][0]) * f,
+            colormap[a][1] + (colormap[b][1] - colormap[a][1]) * f,
+            colormap[a][2] + (colormap[b][2] - colormap[a][2]) * f]
+
+def interpolate_or_clip(colormap, x):
+    if   x < 0.0: return [0.0, 0.0, 0.0]
+    elif x > 1.0: return [1.0, 1.0, 1.0]
+    else: return interpolate(colormap, x)
 
 def get_color_map(length):
     # This function generate arbitrary length color map.
-    color_map = COLOR_MAP * int(math.ceil(length / len(COLOR_MAP)))
-    return color_map[:length]
+    # First of all, generate `length` uniformly spaced floats in [0, 1]
+    x = np.linspace(0.0, 1.0, num=length, endpoint=True)
+    color_map = []
+    for x_i in x:
+        color = interpolate_or_clip(TURBO_CMAP_DATA, x_i)
+        color = [int(c * 255) for c in color]
+        color_map.append(color)
+    return color_map
