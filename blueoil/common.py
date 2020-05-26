@@ -61,6 +61,7 @@ def get_color_map(length):
     color_map = COLOR_MAP * int(math.ceil(length / len(COLOR_MAP)))
     return color_map[:length]
 
+
 # For replacing the Matplotlib Jet colormap, we use the Turbo color map
 # https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html
 # The colormap allows for a large number of quantization levels:
@@ -78,13 +79,16 @@ def interpolate(colormap, x):
 
 
 def interpolate_or_clip(colormap, x):
-    if   x < 0.0: return [0.0, 0.0, 0.0]
-    elif x > 1.0: return [1.0, 1.0, 1.0]
-    else: return interpolate(colormap, x)
+    if x < 0.0:
+        return [0.0, 0.0, 0.0]
+    elif x > 1.0:
+        return [1.0, 1.0, 1.0]
+    else:
+        return interpolate(colormap, x)
 
 
 def color_map_apply(image):
-    TURBO_CMAP_DATA = np.asarray(TURBO_CMAP_DATA)
+    turbo_cmap_data = np.asarray(TURBO_CMAP_DATA)
     image = np.asarray(image)
     # If image range is [0, 1], continue ahead. Else convert to that range.
     if image.max() > 1.0:
@@ -95,10 +99,9 @@ def color_map_apply(image):
     b = (a + 1).clip(max=255)
     f = x * 255.0 - a
     image_colored = (
-        TURBO_CMAP_DATA[a]
-        + (TURBO_CMAP_DATA[b] - TURBO_CMAP_DATA[a]) * f[..., None]
+        turbo_cmap_data[a]
+        + (turbo_cmap_data[b] - turbo_cmap_data[a]) * f[..., None]
     )
     image_colored[image < 0.0] = 0.0
     image_colored[image > 1.0] = 1.0
     return image_colored
-
