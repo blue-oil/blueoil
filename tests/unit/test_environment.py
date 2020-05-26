@@ -15,8 +15,6 @@
 # =============================================================================
 import os
 
-import pytest
-
 from blueoil import environment
 
 
