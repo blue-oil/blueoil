@@ -2,7 +2,7 @@
 
 You can generate your configuration file interactively by running `python blueoil/cmd/main.py init`.
 
-    $ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py init
+    $ PYTHONPATH=.:blueoil:blueoil/cmd python blueoil/cmd/main.py init
 
 `python blueoil/cmd/main.py init` generates a configuration file used to train your new model.
 

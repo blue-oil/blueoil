@@ -2,7 +2,7 @@
 
 
 ```
-$ PYTHONPATH=.:lmnet:dlk/python/dlk python blueoil/cmd/main.py train -c config/test.yml
+$ PYTHONPATH=.:blueoil:blueoil/cmd python blueoil/cmd/main.py train -c config/test.py
 
 Usage:
   main.py train [OPTIONS]
