@@ -30,7 +30,7 @@ from blueoil.converter.core.exceptions import UnsupportedNode, UnsupportedDataTy
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.operators import Operator, Conv, \
     Identity, BinaryMeanScalingQuantizer, \
-    BatchNormalization, LinearMidTreadHalfQuantizer, Add, Sub \
+    BatchNormalization, LinearMidTreadHalfQuantizer, Add, Sub, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
     Mul, BinaryChannelWiseMeanScalingQuantizer, ConcatOnDepth, Maximum, \
     DepthToSpace, ResizeNearestNeighbor, \
