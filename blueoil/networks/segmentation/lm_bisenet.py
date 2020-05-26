@@ -56,10 +56,7 @@ class LMBiSeNet(Base):
             use_attention_refinement (bool): Flag of using attention refinement module.
             use_tail_gap (bool): Flag of using GAP (global average pooling) followed by context path.
         """
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        super().__init__(*args, **kwargs)
 
         assert self.data_format == 'NHWC'
 
@@ -374,22 +371,16 @@ class LMBiSeNetQuantize(LMBiSeNet):
     def __init__(
             self,
             activation_quantizer=None,
-            activation_quantizer_kwargs=None,
+            activation_quantizer_kwargs={},
             weight_quantizer=None,
-            weight_quantizer_kwargs=None,
+            weight_quantizer_kwargs={},
             *args,
             **kwargs
     ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        super().__init__(*args, **kwargs)
 
-        assert weight_quantizer
-        assert activation_quantizer
-
-        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
+        assert callable(weight_quantizer)
+        assert callable(activation_quantizer)
 
         self.activation = activation_quantizer(**activation_quantizer_kwargs)
         weight_quantization = weight_quantizer(**weight_quantizer_kwargs)

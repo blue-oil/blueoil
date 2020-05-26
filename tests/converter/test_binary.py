@@ -35,8 +35,10 @@ class TestBinary(TestCaseDLKBase):
             'lmnet_quantize_cifar10')
         output_path = self.build_dir
         project_name = 'test_binary'
+        arch_name = 'x86'
+        bin_name = 'lm_' + arch_name
         project_dir = os.path.join(output_path, project_name + '.prj')
-        generated_bin = os.path.join(project_dir, 'lm_x86_64')
+        generated_bin = os.path.join(project_dir, bin_name + '.elf')
         input_dir_path = os.path.abspath(os.path.join(os.getcwd(), model_path))
         input_path = os.path.join(input_dir_path, 'minimal_graph_with_shape.pb')
         debug_data_filename = 'cat.jpg'
@@ -51,20 +53,20 @@ class TestBinary(TestCaseDLKBase):
                activate_hard_quantization=False,
                threshold_skipping=False,
                debug=False,
-               cache_dma=False,
-        )
+               cache_dma=False)
+
         self.assertTrue(os.path.exists(project_dir))
 
-        run_and_check(['cmake', '.'],
+        run_and_check(['make', 'clean'],
+                      project_dir,
+                      join(project_dir, "make_clean.out"),
+                      join(project_dir, "make_clean.err"),
+                      self)
+
+        run_and_check(['make', 'build', 'ARCH=' + arch_name, 'TYPE=executable', '-j8'],
                       project_dir,
                       join(project_dir, "make.out"),
                       join(project_dir, "make.err"),
-                      self)
-
-        run_and_check(['make', 'lm', '-j8'],
-                      project_dir,
-                      join(project_dir, "cmake.out"),
-                      join(project_dir, "cmake.err"),
                       self)
 
         self.assertTrue(os.path.exists(generated_bin))
@@ -74,8 +76,7 @@ class TestBinary(TestCaseDLKBase):
                       join(output_path, "tar_xvzf.out"),
                       join(output_path, "tar_xvzf.err"),
                       self,
-                      check_stdout_include=[debug_data_filename + '/raw_image.npy']
-        )
+                      check_stdout_include=[debug_data_filename + '/raw_image.npy'])
 
         self.assertTrue(os.path.exists(debug_data_input))
         self.assertTrue(os.path.exists(debug_data_output))
@@ -85,8 +86,7 @@ class TestBinary(TestCaseDLKBase):
                       join(project_dir, "elf.out"),
                       join(project_dir, "elf.err"),
                       self,
-                      check_stdout_include=['TotalRunTime ']
-        )
+                      check_stdout_include=['TotalRunTime '])
 
         print(f"Binary time-measurement test : passed!")
 

@@ -116,7 +116,7 @@ class MscocoSegmentation(SegmentationBase):
         image = self.coco.loadImgs(image_id)
         return os.path.join(self.image_dir, image[0]["file_name"])
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         image_id = self._image_ids[i]
         image_file = self._image_file_from_image_id(image_id)
         image = load_image(image_file)
@@ -253,7 +253,7 @@ class MscocoObjectDetection(ObjectDetectionBase):
     def _init_files_and_annotations(self):
         self.files, self.annotations = self._files_and_annotations()
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         target_file = self.files[i]
         image = load_image(target_file)
 

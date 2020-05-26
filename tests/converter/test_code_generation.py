@@ -19,7 +19,6 @@ import os
 import inspect
 from os.path import join, basename
 import shutil
-import sys
 import unittest
 
 from parameterized import parameterized
@@ -94,8 +93,7 @@ def dict_codegen_segmentation(cpu_name) -> dict:
 
 
 def get_configurations_by_test_cases(test_cases, configuration):
-
-    return [updated_dict(configuration,test_case) for test_case in test_cases]
+    return [updated_dict(configuration, test_case) for test_case in test_cases]
 
 
 def get_configurations_by_architecture(test_cases, cpu_name):
@@ -228,10 +226,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                               input_npy: str, expected_output_npy: str) -> float:
 
         run_and_check(
-            [ "ssh",
-             f"root@{host}",
-             f"rm -rf ~/automated_testing/*"
-            ],
+            ["ssh", f"root@{host}", f"rm -rf ~/automated_testing/*"],
             output_path,
             join(output_path, "clean.err"),
             join(output_path, "clean.err"),
@@ -241,12 +236,12 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         input_name = os.path.basename(input_npy)
         output_name = os.path.basename(expected_output_npy)
 
-        run_library_code  =  "import numpy as np\n"
-        run_library_code +=  "from nnlib import NNLib as NNLib\n"
-        run_library_code +=  "class testing:\n"
-        run_library_code +=  inspect.getsource(self.run_library)
-        run_library_code +=  "if __name__ == '__main__':\n"
-        run_library_code +=  "  t = testing()\n"
+        run_library_code = "import numpy as np\n"
+        run_library_code += "from nnlib import NNLib as NNLib\n"
+        run_library_code += "class testing:\n"
+        run_library_code += inspect.getsource(self.run_library)
+        run_library_code += "if __name__ == '__main__':\n"
+        run_library_code += "  t = testing()\n"
         run_library_code += f"  print(t.run_library('./{lib_name}', './{input_name}', './{output_name}'))\n"
 
         testing_code_name = "testing_code.py"
@@ -255,13 +250,14 @@ class TestCodeGenerationBase(TestCaseDLKBase):
             code_file.write(run_library_code)
 
         run_and_check(
-            [ "scp",
-              library,
-              input_npy,
-              expected_output_npy,
-              inspect.getfile(NNLib),
-              testing_code_path,
-             f"root@{host}:~/automated_testing/"
+            [
+                "scp",
+                library,
+                input_npy,
+                expected_output_npy,
+                inspect.getfile(NNLib),
+                testing_code_path,
+                f"root@{host}:~/automated_testing/"
             ],
             output_path,
             join(output_path, "scp.out"),
@@ -270,10 +266,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
 
         remote_output_file = join(output_path, "remote.out")
         run_and_check(
-            [ "ssh",
-             f"root@{host}",
-             f"cd ~/automated_testing/; python {testing_code_name}"
-            ],
+            ["ssh", f"root@{host}", f"cd ~/automated_testing/; python {testing_code_name}"],
             output_path,
             remote_output_file,
             join(output_path, "remote.err"),
@@ -286,7 +279,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         pf = 100.0
         try:
             pf = float(remote_output)
-        except:
+        except (TypeError, ValueError):
             pf = 100.0
 
         return pf
@@ -336,9 +329,18 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                cache_dma=cache_dma,
                )
 
-        lib_name = 'libdlk_' + cpu_name
+        if cpu_name == 'arm_fpga':
+            lib_base_name = 'fpga'
+        elif cpu_name == 'x86_64':
+            if use_avx:
+                lib_base_name = 'x86_avx'
+            else:
+                lib_base_name = 'x86'
+        else:  # 'aarch64' and 'arm' pass here
+            lib_base_name = cpu_name
+
         project_dir = os.path.join(output_path, project_name + '.prj')
-        generated_lib = os.path.join(project_dir, lib_name + '.so')
+        generated_lib = os.path.join(project_dir, 'libdlk_' + lib_base_name + '.so')
         npy_targz = os.path.join(input_dir_path, expected_output_set_name + '.tar.gz')
 
         run_and_check(['tar', 'xvzf', str(npy_targz), '-C', str(output_path)],
@@ -355,38 +357,18 @@ class TestCodeGenerationBase(TestCaseDLKBase):
 
         self.assertTrue(os.path.exists(project_dir))
 
-        cmake_use_aarch64 = '-DTOOLCHAIN_NAME=linux_aarch64'
-        cmake_use_arm = '-DTOOLCHAIN_NAME=linux_arm'
-        cmake_use_neon = '-DUSE_NEON=1'
-        cmake_use_fpga = '-DRUN_ON_FPGA=1'
-        cmake_use_avx = '-DUSE_AVX=1'
-
-        cmake_defs = []
-        if cpu_name == 'aarch64':
-            cmake_defs += [cmake_use_aarch64, cmake_use_neon]
-        elif cpu_name == 'arm':
-            cmake_defs += [cmake_use_arm, cmake_use_neon]
-        elif cpu_name == 'arm_fpga':
-            cmake_defs += [cmake_use_arm, cmake_use_neon, cmake_use_fpga]
-        elif cpu_name == 'x86_64':
-            if use_avx:
-                cmake_defs += [cmake_use_avx]
-
-        run_and_check(['cmake'] + cmake_defs + ['.'],
+        run_and_check(['make', 'clean'],
                       project_dir,
-                      join(output_path, "cmake.out"),
-                      join(output_path, "cmake.err"),
-                      self,
-                      check_stdout_include=['Generating done'],
-                      check_stdout_block=['CMake Error']
+                      join(output_path, "make_clean.out"),
+                      join(output_path, "make_clean.err"),
+                      self
                       )
 
-        run_and_check(['make', 'VERBOSE=1', 'lib', '-j8'],
+        run_and_check(['make', 'build', 'ARCH=' + lib_base_name, 'TYPE=dynamic', '-j8'],
                       project_dir,
                       join(output_path, "make.out"),
                       join(output_path, "make.err"),
                       self,
-                      check_stdout_include=['Building'],
                       check_stderr_block=['error: ']
                       )
         self.assertTrue(os.path.exists(generated_lib))

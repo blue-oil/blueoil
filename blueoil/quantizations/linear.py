@@ -30,7 +30,7 @@ def linear_mid_tread_half_quantizer(
 
         This quantization method is DoReFa-Net [1]_ activation quantization variant, the differencce from DoReFa-Net [1]_ is to be able to change `max_value`.
 
-        `op_type` is ``QTZ_linear_mid_tread_half``.
+        `op_type` is ``LinearMidTreadHalfQuantizer``.
 
         Forward is:
 
@@ -84,7 +84,7 @@ def linear_mid_tread_half_quantizer(
         x = op.inputs[0]
         true = tf.ones(tf.shape(x))
         false = tf.zeros(tf.shape(x))
-        dx = tf.where((x < max_value) & (x > min_value), true, false)
+        dx = tf.compat.v1.where((x < max_value) & (x > min_value), true, false)
         return grad_quantized * dx, None, None
 
     def _forward(x):
@@ -100,7 +100,7 @@ def linear_mid_tread_half_quantizer(
 
         @Defun(dtype, tf.int32, tf.float32, python_grad_func=_backward,
                shape_func=lambda op: [op.inputs[0].get_shape()],
-               func_name='QTZ_linear_mid_tread_half')
+               func_name='LinearMidTreadHalfQuantizer')
         def _func(x, bit, max_value):
             n = tf.pow(2., tf.cast(bit, dtype=tf.float32)) - 1
             value_range = max_value - min_value

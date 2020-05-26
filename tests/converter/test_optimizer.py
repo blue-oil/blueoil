@@ -16,15 +16,16 @@
 """Test file for Optimizer."""
 import unittest
 from blueoil.converter.core.data_types import Float32, PackedUint32, Int32, QUANTIZED_PACKED
-from blueoil.converter.core.optimizer import pass_remove_identities, \
-    pass_transpose, pass_constant_folding, \
-    pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
+from blueoil.converter.core.optimizer import (
+    pass_remove_identities, pass_transpose, pass_constant_folding,
+    pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights,
     pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
+)
 from blueoil.converter.core.graph import Graph
-from blueoil.converter.core.operators import Add, AveragePool, \
-    BatchNormalization, Constant, Conv, Identity, Input, \
-    MaxPool, Operator, Output, Transpose, BinaryMeanScalingQuantizer, \
-    QTZ_linear_mid_tread_half, Reshape, Softmax, SpaceToDepth
+from blueoil.converter.core.operators import (
+    Add, BatchNormalization, Constant, Conv, Identity, Input, Output,
+    BinaryMeanScalingQuantizer, LinearMidTreadHalfQuantizer, Reshape, SpaceToDepth
+)
 
 import numpy as np
 
@@ -195,7 +196,7 @@ class TestPassPropagateQuantizationDetailsIntoConv(unittest.TestCase):
         # activation quantizer
         s1 = Constant('aq_const1', Float32(), np.array(1))
         s2 = Constant('aq_const2', Float32(), np.array(2))
-        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+        aq = LinearMidTreadHalfQuantizer('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
@@ -224,7 +225,7 @@ class TestPassPropagateQuantizationDetailsIntoConv(unittest.TestCase):
         # activation quantizer
         s1 = Constant('aq_const1', Float32(), np.array(1))
         s2 = Constant('aq_const2', Float32(), np.array(2))
-        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+        aq = LinearMidTreadHalfQuantizer('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
@@ -276,7 +277,7 @@ class TestPassPackWeights(unittest.TestCase):
         # activation quantizer
         s1 = Constant('aq_const1', Float32(), np.array(1))
         s2 = Constant('aq_const2', Float32(), np.array(2))
-        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+        aq = LinearMidTreadHalfQuantizer('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
@@ -348,7 +349,7 @@ class TestPassQuantizeConvolutions(unittest.TestCase):
         # activation quantizer
         s1 = Constant('aq_const1', Float32(), np.array(1))
         s2 = Constant('aq_const2', Float32(), np.array(2))
-        aq = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+        aq = LinearMidTreadHalfQuantizer('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
@@ -482,7 +483,7 @@ class TestPassComputeThresholds(unittest.TestCase):
         # activation quantizer
         s1 = Constant('aq_const1', Int32(), np.array([2], dtype=np.int32))
         s2 = Constant('aq_const2', Float32(), np.array([2.0], dtype=np.float32))
-        aq1 = QTZ_linear_mid_tread_half('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
+        aq1 = LinearMidTreadHalfQuantizer('aqtz1', [1, 4, 4, 3], Float32(), {'X': conv1, 'Y': s1, 'Z': s2})
 
         # Conv2
         w2 = Constant('weight2', Float32(), data2)
@@ -505,7 +506,7 @@ class TestPassComputeThresholds(unittest.TestCase):
         # activation quantizer
         s3 = Constant('aq_const3', Int32(), np.array([2], dtype=np.int32))
         s4 = Constant('aq_const4', Float32(), np.array([2.0], dtype=np.float32))
-        aq2 = QTZ_linear_mid_tread_half('aqtz2', [1, 3, 3, 3], Float32(), {'X': bn, 'Y': s3, 'Z': s4})
+        aq2 = LinearMidTreadHalfQuantizer('aqtz2', [1, 3, 3, 3], Float32(), {'X': bn, 'Y': s3, 'Z': s4})
 
         # One output
         y = Output('output', [1, 3, 3, 3], Float32(), {'input': aq2})

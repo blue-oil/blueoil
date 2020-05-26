@@ -24,16 +24,15 @@ import yaml
 
 from blueoil import environment
 from blueoil.common import Tasks
-from blueoil.datasets.base import ObjectDetectionBase
+from blueoil.datasets.base import ObjectDetectionBase, SegmentationBase
 from blueoil.datasets.dataset_iterator import DatasetIterator
-from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection, TFDSSegmentation
 from blueoil.utils import config as config_util
 from blueoil.utils import executor
 from blueoil.utils import horovod as horovod_util
-from blueoil.utils import module_loader
 
 
-def _save_checkpoint(saver, sess, global_step, step):
+def _save_checkpoint(saver, sess, global_step):
     checkpoint_file = "save.ckpt"
     saver.save(
         sess,
@@ -51,6 +50,8 @@ def setup_dataset(config, subset, rank, local_rank):
     if tfds_kwargs:
         if issubclass(DatasetClass, ObjectDetectionBase):
             DatasetClass = TFDSObjectDetection
+        elif issubclass(DatasetClass, SegmentationBase):
+            DatasetClass = TFDSSegmentation
         else:
             DatasetClass = TFDSClassification
 
@@ -72,20 +73,9 @@ def start_training(config):
 
     ModelClass = config.NETWORK_CLASS
     network_kwargs = {key.lower(): val for key, val in config.NETWORK.items()}
-    if "train_validation_saving_size".upper() in config.DATASET.keys():
-        use_train_validation_saving = config.DATASET.TRAIN_VALIDATION_SAVING_SIZE > 0
-    else:
-        use_train_validation_saving = False
-
-    if use_train_validation_saving:
-        top_train_validation_saving_set_accuracy = 0
 
     train_dataset = setup_dataset(config, "train", rank, local_rank)
     print("train dataset num:", train_dataset.num_per_epoch)
-
-    if use_train_validation_saving:
-        train_validation_saving_dataset = setup_dataset(config, "train_validation_saving", rank, local_rank)
-        print("train_validation_saving dataset num:", train_validation_saving_dataset.num_per_epoch)
 
     validation_dataset = setup_dataset(config, "validation", rank, local_rank)
     print("validation dataset num:", validation_dataset.num_per_epoch)
@@ -106,28 +96,23 @@ def start_training(config):
                 **network_kwargs,
             )
 
-        global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training_placeholder = tf.compat.v1.placeholder(tf.bool, name="is_training_placeholder")
 
         images_placeholder, labels_placeholder = model.placeholders()
 
         output = model.inference(images_placeholder, is_training_placeholder)
-        if config.TASK == Tasks.OBJECT_DETECTION:
-            loss = model.loss(output, labels_placeholder, global_step)
-        else:
-            loss = model.loss(output, labels_placeholder)
-        opt = model.optimizer(global_step)
+        loss = model.loss(output, labels_placeholder)
+        opt = model.optimizer()
         if use_horovod:
             # add Horovod Distributed Optimizer
             opt = hvd.DistributedOptimizer(opt)
-        train_op = model.train(loss, opt, global_step)
+        train_op = model.train(loss, opt)
         metrics_ops_dict, metrics_update_op = model.metrics(output, labels_placeholder)
         # TODO(wakisaka): Deal with many networks.
         model.summary(output, labels_placeholder)
 
         summary_op = tf.compat.v1.summary.merge_all()
-
-        metrics_summary_op, metrics_placeholders = executor.prepare_metrics(metrics_ops_dict)
+        metrics_summary_op = executor.metrics_summary_op(metrics_ops_dict)
 
         init_op = tf.compat.v1.global_variables_initializer()
         reset_metrics_op = tf.compat.v1.local_variables_initializer()
@@ -135,10 +120,7 @@ def start_training(config):
             # add Horovod broadcasting variables from rank 0 to all
             bcast_global_variables_op = hvd.broadcast_global_variables(0)
 
-        if use_train_validation_saving:
-            saver = tf.compat.v1.train.Saver(max_to_keep=1)
-        else:
-            saver = tf.compat.v1.train.Saver(max_to_keep=config.KEEP_CHECKPOINT_MAX)
+        saver = tf.compat.v1.train.Saver(max_to_keep=config.KEEP_CHECKPOINT_MAX)
 
         if config.IS_PRETRAIN:
             all_vars = tf.compat.v1.global_variables()
@@ -172,20 +154,15 @@ def start_training(config):
 
     sess = tf.compat.v1.Session(graph=graph, config=session_config)
     sess.run([init_op, reset_metrics_op])
+    executor.save_pb_file(sess, environment.CHECKPOINTS_DIR)
 
     if rank == 0:
         train_writer = tf.compat.v1.summary.FileWriter(environment.TENSORBOARD_DIR + "/train", sess.graph)
-        if use_train_validation_saving:
-            train_val_saving_writer = tf.compat.v1.summary.FileWriter(
-                environment.TENSORBOARD_DIR + "/train_validation_saving")
         val_writer = tf.compat.v1.summary.FileWriter(environment.TENSORBOARD_DIR + "/validation")
 
         if config.IS_PRETRAIN:
             print("------- Load pretrain data ----------")
             pretrain_saver.restore(sess, os.path.join(config.PRETRAIN_DIR, config.PRETRAIN_FILE))
-            sess.run(tf.compat.v1.assign(global_step, 0))
-
-        last_step = 0
 
         # for recovery
         ckpt = tf.train.get_checkpoint_state(environment.CHECKPOINTS_DIR)
@@ -193,7 +170,7 @@ def start_training(config):
             print("--------- Restore last checkpoint -------------")
             saver.restore(sess, ckpt.model_checkpoint_path)
             # saver.recover_last_checkpoints(ckpt.model_checkpoint_path)
-            last_step = sess.run(global_step)
+            last_step = sess.run(model.global_step)
             # TODO(wakisaka): tensorflow v1.3 remain previous event log in tensorboard.
             # https://github.com/tensorflow/tensorflow/blob/r1.3/tensorflow/python/training/supervisor.py#L1072
             train_writer.add_session_log(SessionLog(status=SessionLog.START), global_step=last_step + 1)
@@ -204,7 +181,7 @@ def start_training(config):
         # broadcast variables from rank 0 to all other processes
         sess.run(bcast_global_variables_op)
 
-    last_step = sess.run(global_step)
+    last_step = sess.run(model.global_step)
 
     # Calculate max steps. The priority of config.MAX_EPOCHS is higher than config.MAX_STEPS.
     if "MAX_EPOCHS" in config:
@@ -239,12 +216,7 @@ def start_training(config):
             # train_writer.add_run_metadata(run_metadata, "step: {}".format(step + 1))
             train_writer.add_summary(summary, step + 1)
 
-            metrics_values = sess.run(list(metrics_ops_dict.values()))
-            metrics_feed_dict = {placeholder: value for placeholder, value in zip(metrics_placeholders, metrics_values)}
-
-            metrics_summary, = sess.run(
-                [metrics_summary_op], feed_dict=metrics_feed_dict,
-            )
+            metrics_summary = sess.run(metrics_summary_op)
             train_writer.add_summary(metrics_summary, step + 1)
             train_writer.flush()
         else:
@@ -253,64 +225,7 @@ def start_training(config):
         to_be_saved = step == 0 or (step + 1) == max_steps or (step + 1) % config.SAVE_CHECKPOINT_STEPS == 0
 
         if to_be_saved and rank == 0:
-            if use_train_validation_saving:
-
-                sess.run(reset_metrics_op)
-                train_validation_saving_step_size = int(math.ceil(train_validation_saving_dataset.num_per_epoch
-                                                                  / config.BATCH_SIZE))
-                print("train_validation_saving_step_size", train_validation_saving_step_size)
-
-                current_train_validation_saving_set_accuracy = 0
-
-                for train_validation_saving_step in range(train_validation_saving_step_size):
-                    print("train_validation_saving_step", train_validation_saving_step)
-
-                    images, labels = train_validation_saving_dataset.feed()
-                    feed_dict = {
-                        is_training_placeholder: False,
-                        images_placeholder: images,
-                        labels_placeholder: labels,
-                    }
-
-                    if train_validation_saving_step % config.SUMMARISE_STEPS == 0:
-                        summary, _ = sess.run([summary_op, metrics_update_op], feed_dict=feed_dict)
-                        train_val_saving_writer.add_summary(summary, step + 1)
-                        train_val_saving_writer.flush()
-                    else:
-                        sess.run([metrics_update_op], feed_dict=feed_dict)
-
-                metrics_values = sess.run(list(metrics_ops_dict.values()))
-                metrics_feed_dict = {
-                    placeholder: value for placeholder, value in zip(metrics_placeholders, metrics_values)
-                }
-                metrics_summary, = sess.run(
-                    [metrics_summary_op], feed_dict=metrics_feed_dict,
-                )
-                train_val_saving_writer.add_summary(metrics_summary, step + 1)
-                train_val_saving_writer.flush()
-
-                current_train_validation_saving_set_accuracy = sess.run(metrics_ops_dict["accuracy"])
-
-                if current_train_validation_saving_set_accuracy > top_train_validation_saving_set_accuracy:
-                    top_train_validation_saving_set_accuracy = current_train_validation_saving_set_accuracy
-                    print("New top train_validation_saving accuracy is: ", top_train_validation_saving_set_accuracy)
-
-                    _save_checkpoint(saver, sess, global_step, step)
-
-            else:
-                _save_checkpoint(saver, sess, global_step, step)
-
-            if step == 0:
-                # check create pb on only first step.
-                minimal_graph = tf.compat.v1.graph_util.convert_variables_to_constants(
-                    sess,
-                    sess.graph.as_graph_def(add_shapes=True),
-                    ["output"],
-                )
-                pb_name = "minimal_graph_with_shape_{}.pb".format(step + 1)
-                pbtxt_name = "minimal_graph_with_shape_{}.pbtxt".format(step + 1)
-                tf.io.write_graph(minimal_graph, environment.CHECKPOINTS_DIR, pb_name, as_text=False)
-                tf.io.write_graph(minimal_graph, environment.CHECKPOINTS_DIR, pbtxt_name, as_text=True)
+            _save_checkpoint(saver, sess, model.global_step)
 
         if step == 0 or (step + 1) % config.TEST_STEPS == 0:
             # init metrics values
@@ -334,13 +249,7 @@ def start_training(config):
                 else:
                     sess.run([metrics_update_op], feed_dict=feed_dict)
 
-            metrics_values = sess.run(list(metrics_ops_dict.values()))
-            metrics_feed_dict = {
-                placeholder: value for placeholder, value in zip(metrics_placeholders, metrics_values)
-            }
-            metrics_summary, = sess.run(
-                [metrics_summary_op], feed_dict=metrics_feed_dict,
-            )
+            metrics_summary = sess.run(metrics_summary_op)
             if rank == 0:
                 val_writer.add_summary(metrics_summary, step + 1)
                 val_writer.flush()
@@ -350,21 +259,12 @@ def start_training(config):
     # training loop end.
     train_dataset.close()
     validation_dataset.close()
-    if use_train_validation_saving:
-        train_validation_saving_dataset.close()
     print("Done")
 
 
-def run(network, dataset, config_file, experiment_id, recreate):
+def run(config_file, experiment_id, recreate):
     environment.init(experiment_id)
     config = config_util.load(config_file)
-
-    if network:
-        network_class = module_loader.load_network_class(network)
-        config.NETWORK_CLASS = network_class
-    if dataset:
-        dataset_class = module_loader.load_dataset_class(dataset)
-        config.DATASET_CLASS = dataset_class
 
     if horovod_util.is_enabled():
         horovod_util.setup()
@@ -386,7 +286,7 @@ def train(config_file, experiment_id=None, recreate=False):
         model_name = os.path.splitext(os.path.basename(config_file))[0]
         experiment_id = '{}_{:%Y%m%d%H%M%S}'.format(model_name, datetime.now())
 
-    run(None, None, config_file, experiment_id, recreate)
+    run(config_file, experiment_id, recreate)
 
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
     experiment_dir = os.path.join(output_dir, experiment_id)
@@ -396,7 +296,7 @@ def train(config_file, experiment_id=None, recreate=False):
         raise Exception('Checkpoints are not created in {}'.format(experiment_dir))
 
     with tf.io.gfile.GFile(checkpoint) as stream:
-        data = yaml.load(stream)
+        data = yaml.load(stream, Loader=yaml.Loader)
     checkpoint_name = os.path.basename(data['model_checkpoint_path'])
 
     return experiment_id, checkpoint_name

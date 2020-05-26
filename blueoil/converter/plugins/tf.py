@@ -30,7 +30,7 @@ from blueoil.converter.core.exceptions import UnsupportedNode, UnsupportedDataTy
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.operators import Operator, Conv, \
     Identity, BinaryMeanScalingQuantizer, \
-    BatchNormalization, QTZ_linear_mid_tread_half, Add, Sub, \
+    BatchNormalization, LinearMidTreadHalfQuantizer, Add, Sub \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
     Mul, BinaryChannelWiseMeanScalingQuantizer, ConcatOnDepth, Maximum, \
     DepthToSpace, ResizeNearestNeighbor, \
@@ -38,7 +38,7 @@ from blueoil.converter.core.operators import Operator, Conv, \
 
 DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
     # any
-    'DT_INVALID': Float32,
+    'DT_INVALID': Float32(),
     # primitives
     'DT_FLOAT': Float32(),
     'DT_INT32': Int32(),
@@ -90,6 +90,16 @@ DLK_OPERATOR_MAP: Dict[str, str] = {
     'GatherV2': 'Gather',
     'QTZ_binary_channel_wise_mean_scaling': 'BinaryChannelWiseMeanScalingQuantizer',
     'QTZ_binary_mean_scaling': 'BinaryMeanScalingQuantizer',
+    'QTZ_linear_mid_tread_half': 'LinearMidTreadHalfQuantizer',
+}
+
+FLOAT32_TENSOR_TYPES = {
+    'BinaryMeanScalingQuantizer',
+    'LinearMidTreadHalfQuantizer',
+    'BinaryChannelWiseMeanScalingQuantizer',
+    'QTZ_binary_channel_wise_mean_scaling',
+    'QTZ_binary_mean_scaling',
+    'QTZ_linear_mid_tread_half',
 }
 
 
@@ -123,9 +133,7 @@ class Node(object):
     @property
     def tensor_type(self):
         """Get tensor type info."""
-        if self.nd_.op == 'BinaryMeanScalingQuantizer' or \
-           self.nd_.op == 'QTZ_linear_mid_tread_half' or \
-           self.nd_.op == 'BinaryChannelWiseMeanScalingQuantizer':
+        if self.nd_.op in FLOAT32_TENSOR_TYPES:
             typep = 1
         else:
             typep = self.nd_.attr["T"].type
@@ -286,7 +294,7 @@ class Input(object):
 
     def set_shape(self, val: List[str]) -> None:
         """Set shape info."""
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class Output(object):
@@ -316,9 +324,7 @@ class Output(object):
     @property
     def tensor_type(self):
         """Get shape info."""
-        if self.out_.op == 'BinaryMeanScalingQuantizer' or \
-                self.out_.op == 'QTZ_linear_mid_tread_half' or \
-                self.out_.op == 'BinaryChannelWiseMeanScalingQuantizer':
+        if self.out_.op in FLOAT32_TENSOR_TYPES:
             typep = 1
         else:
             typep = self.out_.attr["T"].type
@@ -343,7 +349,7 @@ class Output(object):
 
     def set_shape(self, val: List[str]) -> None:
         """Set shape info."""
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class Importer(object):
@@ -464,7 +470,6 @@ class Importer(object):
         - 'Transpose': depending on the permutation attribute
         """
 
-        _default_format = 'NHWC'
         _default_w_format = 'HWIO'
 
         rank_to_format = {0: 'Atom', 1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC', 5: 'NHWCT'}
@@ -491,7 +496,7 @@ class Importer(object):
                 return out_format, [out_format, _default_w_format, 'C']
             elif op_type in ['BinaryMeanScalingQuantizer', 'BinaryChannelWiseMeanScalingQuantizer']:
                 return _default_w_format, [_default_w_format]
-            elif op_type in {'QTZ_linear_mid_tread_half'}:
+            elif op_type in {'LinearMidTreadHalfQuantizer'}:
                 return out_format, [out_format, 'Atom', 'Atom']
             elif op_type == 'Pad':
                 return out_format, [out_format, 'Padding']
@@ -719,12 +724,12 @@ class Importer(object):
                 input_ops,
                 dimension_format=current_format,
             )
-        elif op_type == 'QTZ_linear_mid_tread_half':
+        elif op_type == 'LinearMidTreadHalfQuantizer':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = QTZ_linear_mid_tread_half(
+            new_op = LinearMidTreadHalfQuantizer(
                 node.name,
                 shape,
                 dtype,

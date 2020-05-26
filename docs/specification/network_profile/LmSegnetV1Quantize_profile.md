@@ -1,0 +1,81 @@
+# LmSegnetV1Quantize
+
+* Image size: {height: 360, width: 480}
+* Number of class: 11
+
+| Name | Param | Size (MB) | 1 bits Quant Size (MB) | FLOPs (m) |
+| :-- | --: | --: | --: | --: |
+| **total** | **2559486** | **9.76366** | **0.31602** | **23442.7392** |
+| **conv_pre** | **40** | **0.00015** | **6e-05** | **8.2944** |
+| &nbsp;&nbsp;conv_pre/BatchNorm | 16 | 6e-05 | 6e-05 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv_pre/BatchNorm/beta | 8 | 3e-05 | 3e-05 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv_pre/BatchNorm/gamma | 8 | 3e-05 | 3e-05 | - |
+| &nbsp;&nbsp;conv_pre/conv2d | 24 | 9e-05 | 0.0 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv_pre/conv2d/kernel | 24 | 9e-05 | 0.0 | - |
+| **conv1** | **544** | **0.00208** | **0.00018** | **44.2368** |
+| &nbsp;&nbsp;conv1/BatchNorm | 32 | 0.00012 | 0.00012 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv1/BatchNorm/beta | 16 | 6e-05 | 6e-05 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv1/BatchNorm/gamma | 16 | 6e-05 | 6e-05 | - |
+| &nbsp;&nbsp;conv1/conv2d | 512 | 0.00195 | 6e-05 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv1/conv2d/kernel | 512 | 0.00195 | 6e-05 | - |
+| **conv2** | **36992** | **0.14111** | **0.00488** | **796.2624** |
+| &nbsp;&nbsp;conv2/BatchNorm | 128 | 0.00049 | 0.00049 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv2/BatchNorm/beta | 64 | 0.00024 | 0.00024 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv2/BatchNorm/gamma | 64 | 0.00024 | 0.00024 | - |
+| &nbsp;&nbsp;conv2/conv2d | 36864 | 0.14062 | 0.00439 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv2/conv2d/kernel | 36864 | 0.14062 | 0.00439 | - |
+| **conv3** | **36992** | **0.14111** | **0.00488** | **796.2624** |
+| &nbsp;&nbsp;conv3/BatchNorm | 128 | 0.00049 | 0.00049 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv3/BatchNorm/beta | 64 | 0.00024 | 0.00024 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv3/BatchNorm/gamma | 64 | 0.00024 | 0.00024 | - |
+| &nbsp;&nbsp;conv3/conv2d | 36864 | 0.14062 | 0.00439 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv3/conv2d/kernel | 36864 | 0.14062 | 0.00439 | - |
+| **conv4** | **590336** | **2.25195** | **0.07227** | **3185.0496** |
+| &nbsp;&nbsp;conv4/BatchNorm | 512 | 0.00195 | 0.00195 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv4/BatchNorm/beta | 256 | 0.00098 | 0.00098 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv4/BatchNorm/gamma | 256 | 0.00098 | 0.00098 | - |
+| &nbsp;&nbsp;conv4/conv2d | 589824 | 2.25 | 0.07031 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv4/conv2d/kernel | 589824 | 2.25 | 0.07031 | - |
+| **conv5** | **590336** | **2.25195** | **0.07227** | **3185.0496** |
+| &nbsp;&nbsp;conv5/BatchNorm | 512 | 0.00195 | 0.00195 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv5/BatchNorm/beta | 256 | 0.00098 | 0.00098 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv5/BatchNorm/gamma | 256 | 0.00098 | 0.00098 | - |
+| &nbsp;&nbsp;conv5/conv2d | 589824 | 2.25 | 0.07031 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv5/conv2d/kernel | 589824 | 2.25 | 0.07031 | - |
+| **conv6** | **590336** | **2.25195** | **0.07227** | **3185.0496** |
+| &nbsp;&nbsp;conv6/BatchNorm | 512 | 0.00195 | 0.00195 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv6/BatchNorm/beta | 256 | 0.00098 | 0.00098 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv6/BatchNorm/gamma | 256 | 0.00098 | 0.00098 | - |
+| &nbsp;&nbsp;conv6/conv2d | 589824 | 2.25 | 0.07031 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv6/conv2d/kernel | 589824 | 2.25 | 0.07031 | - |
+| **conv7** | **590336** | **2.25195** | **0.07227** | **3185.0496** |
+| &nbsp;&nbsp;conv7/BatchNorm | 512 | 0.00195 | 0.00195 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv7/BatchNorm/beta | 256 | 0.00098 | 0.00098 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv7/BatchNorm/gamma | 256 | 0.00098 | 0.00098 | - |
+| &nbsp;&nbsp;conv7/conv2d | 589824 | 2.25 | 0.07031 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv7/conv2d/kernel | 589824 | 2.25 | 0.07031 | - |
+| **conv8** | **73984** | **0.28223** | **0.00977** | **1592.5248** |
+| &nbsp;&nbsp;conv8/BatchNorm | 256 | 0.00098 | 0.00098 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv8/BatchNorm/beta | 128 | 0.00049 | 0.00049 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv8/BatchNorm/gamma | 128 | 0.00049 | 0.00049 | - |
+| &nbsp;&nbsp;conv8/conv2d | 73728 | 0.28125 | 0.00879 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv8/conv2d/kernel | 73728 | 0.28125 | 0.00879 | - |
+| **conv9** | **37120** | **0.1416** | **0.00537** | **3185.0496** |
+| &nbsp;&nbsp;conv9/BatchNorm | 256 | 0.00098 | 0.00098 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv9/BatchNorm/beta | 128 | 0.00049 | 0.00049 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv9/BatchNorm/gamma | 128 | 0.00049 | 0.00049 | - |
+| &nbsp;&nbsp;conv9/conv2d | 36864 | 0.14062 | 0.00439 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv9/conv2d/kernel | 36864 | 0.14062 | 0.00439 | - |
+| **conv10** | **9280** | **0.0354** | **0.00134** | **3185.0496** |
+| &nbsp;&nbsp;conv10/BatchNorm | 64 | 0.00024 | 0.00024 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv10/BatchNorm/beta | 32 | 0.00012 | 0.00012 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv10/BatchNorm/gamma | 32 | 0.00012 | 0.00012 | - |
+| &nbsp;&nbsp;conv10/conv2d | 9216 | 0.03516 | 0.0011 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv10/conv2d/kernel | 9216 | 0.03516 | 0.0011 | - |
+| **conv11** | **3190** | **0.01217** | **0.00046** | **1094.8608** |
+| &nbsp;&nbsp;conv11/BatchNorm | 22 | 8e-05 | 8e-05 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv11/BatchNorm/beta | 11 | 4e-05 | 4e-05 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv11/BatchNorm/gamma | 11 | 4e-05 | 4e-05 | - |
+| &nbsp;&nbsp;conv11/conv2d | 3168 | 0.01208 | 0.00038 | - |
+| &nbsp;&nbsp;&nbsp;&nbsp;conv11/conv2d/kernel | 3168 | 0.01208 | 0.00038 | - |
+

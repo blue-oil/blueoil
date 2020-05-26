@@ -34,6 +34,8 @@ Tensor Resize(const Tensor& image, const std::pair<int, int>& size);
 
 Tensor DivideBy255(const Tensor& image);
 
+Tensor PerImageStandardization(const Tensor& image);
+
 // post process.
 
 Tensor FormatYoloV2(const Tensor& input,

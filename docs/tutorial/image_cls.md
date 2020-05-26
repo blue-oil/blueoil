@@ -77,8 +77,8 @@ Below is an example configuration.
   initial learning rate:  0.001
   choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
   enable data augmentation?  (Y/n):  Yes
-  Please choose augmentors:  done (5 selections)
--> select Brightness, Color, FlipLeftRight, Hue, SSDRandomCrop
+  Please choose augmentors:  done (4 selections)
+-> select Brightness, Color, FlipLeftRight, Hue
   apply quantization at the first layer? (Y/n):  no 
 ```
 

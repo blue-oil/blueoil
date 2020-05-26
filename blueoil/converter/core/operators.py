@@ -20,15 +20,14 @@ import warnings
 from termcolor import colored
 from abc import abstractmethod
 from itertools import dropwhile
-from typing import TYPE_CHECKING, Any, Dict, Optional, cast
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 from blueoil.converter.core.view import View
 from blueoil.converter.util import classproperty
 
-from .data_types import *
-
-if TYPE_CHECKING:
-    import blueoil.converter.core.operators as ops
+from .data_types import DataType
 
 Ops = Dict[str, 'Operator']
 OutOps = Dict[str, List['Operator']]
@@ -814,7 +813,7 @@ class SpaceToDepth(Operator):
             2. (kernel_size^2 * {8, 16}).
         """
         super()._check_consistency()
-        if self.channel % 32 != 0:
+        if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and self.channel % 32 != 0:
             warnings.warn(warning_sign +
                           f" Output channels need to be multiple of 32 for {self.name} of {self.op_type}, "
                           f"but got output channel size of {self.channel}",
@@ -1370,7 +1369,7 @@ class BatchNormalization(Operator):
         return False
 
 
-class QTZ_linear_mid_tread_half(Quantizer):
+class LinearMidTreadHalfQuantizer(Quantizer):
     """Quantization operator with 'linear mid tread half'.
 
     Input
@@ -1400,7 +1399,7 @@ class QTZ_linear_mid_tread_half(Quantizer):
     def _check_consistency(self) -> None:
         super()._check_consistency()
         x_shape = self._input_ops['X'].shape
-        message = 'QTZ_linear_mid_tread_half operator has inconsistency in shapes: '
+        message = 'LinearMidTreadHalfQuantizer operator has inconsistency in shapes: '
         message += f'input "X" has {x_shape}, while it has {self.shape}'
         self._assert(x_shape == self.shape, message)
 
@@ -1444,11 +1443,11 @@ class QTZ_linear_mid_tread_half(Quantizer):
 
     @property
     def nbit(self) -> int:
-        return np.asscalar(self._input_ops['Y'].data)
+        return self._input_ops['Y'].data.item()
 
     @property
     def max_v(self) -> float:
-        return np.asscalar(self._input_ops['Z'].data)
+        return self._input_ops['Z'].data.item()
 
     @property
     def is_monotonic(self) -> bool:
@@ -2620,7 +2619,7 @@ class DepthToSpace(Operator):
             1. quantized-packed data requires depth of input must be multiple of kernel_size^2 * 32
         """
         super()._check_consistency()
-        if self.input_ops['input'].op_type == 'QTZ_linear_mid_tread_half' and \
+        if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and \
                 self.input_ops['input'].channel % 128 != 0:
             warnings.warn(warning_sign +
                           f" Input channels need to be multiple of kernel_size^2 * 32 for "
@@ -2738,7 +2737,7 @@ class Split(Operator):
                  num_split: int = 1) -> None:
         """Init the split operator."""
         self._split = num_split
-        self._axis = np.asscalar(input_ops['A'].data)
+        self._axis = input_ops['A'].data.item()
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:

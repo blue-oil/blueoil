@@ -17,17 +17,14 @@
 import math
 import warnings
 from collections import defaultdict
-from typing import Any, List, cast
 
 import numpy as np
 
-from blueoil.converter.core.data_types import QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, \
-    QUANTIZED_PACKED_KERNEL, Int32, PackedUint32, Uint32
+from blueoil.converter.core.data_types import QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, PackedUint32
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from blueoil.converter.core.operators import Constant, Conv, Lookup, \
-    Operator, BatchNormalizationOptimized
-from  blueoil.converter.modules.packer import Packer
+from blueoil.converter.core.operators import Constant, Lookup, BatchNormalizationOptimized
+from blueoil.converter.modules.packer import Packer
 
 
 def pass_remove_identities(graph: Graph) -> None:
@@ -174,7 +171,7 @@ def pass_propagate_quantization_details_into_conv(graph: Graph) -> None:
     exec_list = sort_graph(graph)
     qtypes = [
         'BinaryMeanScalingQuantizer',
-        'QTZ_linear_mid_tread_half',
+        'LinearMidTreadHalfQuantizer',
         'BinaryChannelWiseMeanScalingQuantizer',
         'Lookup'
     ]
@@ -231,20 +228,25 @@ def pass_compute_thresholds(graph: Graph) -> None:
         graph (Graph): The input graph. It will be modified in-place.
 
     """
-    exec_list = [n for n in sort_graph(graph) if n.op_type == 'QTZ_linear_mid_tread_half']
+    exec_list = [n for n in sort_graph(graph) if n.op_type == 'LinearMidTreadHalfQuantizer']
     to_be_removed = []
     for m in exec_list:
         # find a a backward path between the quantizer and the convolution ie. a path represented by a list [Q, ..., C]
         p = [m]
+        ok = True
         while p[-1].op_type != 'Conv':
             non_variable_input = [inode for inode in p[-1].input_nodes
-                                  if (not cast(Operator, inode).is_variable and inode.is_monotonic)
+                                  if (inode.op_type != 'Constant' and inode.is_monotonic)
                                   or inode.op_type == 'Conv']
             if len(non_variable_input) != 1:
+                ok = False
                 break
             p.append(non_variable_input[-1])
+            if len(p[-1].output_op_list) != 1:
+                ok = False
+                break
 
-        if p[-1].op_type != 'Conv':
+        if not ok:
             continue
         activation_quantizer_node = p[0]
         conv_node = p[-1]
@@ -354,7 +356,7 @@ def pass_pack_weights(graph: Graph) -> None:
     exec_list = [n for n in sort_graph(graph) if n.op_type == 'Conv']
     quantization_types = [
         'BinaryMeanScalingQuantizer',
-        'QTZ_linear_mid_tread_half',
+        'LinearMidTreadHalfQuantizer',
         'BinaryChannelWiseMeanScalingQuantizer'
     ]
 
@@ -575,7 +577,7 @@ def pass_lookup(graph: Graph) -> None:
     """
     quantization_types = [
         'BinaryMeanScalingQuantizer',
-        'QTZ_linear_mid_tread_half',
+        'LinearMidTreadHalfQuantizer',
         'BinaryChannelWiseMeanScalingQuantizer'
     ]
 
