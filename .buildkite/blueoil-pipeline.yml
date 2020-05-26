@@ -1,4 +1,15 @@
 steps:
+  - command: "make build"
+    label: "docker build in GPU agent"
+    agents:
+    - "agent-type=gpu"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+    concurrency: 1
+    concurrency_group: "docker/gpu/${BUILDKITE_COMMIT}"
+  - wait
   - command: "make test-classification"
     label: "classification"
     agents:
@@ -7,6 +18,11 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+    artifact_paths:
+    - "tmp/*/export/*/*/output/**/*.py"
+    - "tmp/*/export/*/*/output/**/*.yaml"
+    - "tmp/*/export/*/*/output/**/*.so"
+    - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-object-detection"
     label: "object-detection"
     agents:
@@ -15,6 +31,11 @@ steps:
     timeout_in_minutes: "40"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+    artifact_paths:
+    - "tmp/*/export/*/*/output/**/*.py"
+    - "tmp/*/export/*/*/output/**/*.yaml"
+    - "tmp/*/export/*/*/output/**/*.so"
+    - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-semantic-segmentation"
     label: "semantic-segmentation"
     agents:
@@ -23,11 +44,80 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+    artifact_paths:
+    - "tmp/*/export/*/*/output/**/*.py"
+    - "tmp/*/export/*/*/output/**/*.yaml"
+    - "tmp/*/export/*/*/output/**/*.so"
+    - "tmp/*/export/*/*/inference_test_data/raw_image.png"
   - command: "make test-keypoint-detection"
-    label: "keypoint_detection"
+    label: "keypoint-detection"
     agents:
     - "agent-type=gpu"
     - "env=production"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+    artifact_paths:
+    - "tmp/*/export/*/*/output/**/*.py"
+    - "tmp/*/export/*/*/output/**/*.yaml"
+    - "tmp/*/export/*/*/output/**/*.so"
+    - "tmp/*/export/*/*/inference_test_data/raw_image.png"
+  - wait
+  - command: |
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      python3 -m venv blueoil_inference
+      source blueoil_inference/bin/activate
+      pip3 install -U pip
+      pip3 install -r output_template/python/requirements.txt
+      cd tests/device_tests && python3 test_device_e2e.py
+    label: "inference on ubuntu(x86)"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+      DEVICE_TEST_INPUT_PATH: '../../tmp'
+      DEVICE_TEST_LIB_NAME: 'libdlk_x86.so'
+  - command: |
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      python3 -m venv blueoil_inference
+      source blueoil_inference/bin/activate
+      pip3 install -U pip
+      pip3 install -r output_template/python/requirements.txt
+      cd tests/device_tests && python3 test_device_e2e.py
+    label: "inference on ubuntu(x86_avx)"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+      DEVICE_TEST_INPUT_PATH: '../../tmp'
+      DEVICE_TEST_LIB_NAME: 'libdlk_x86_avx.so'
+  - command: |
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      pip3 install -r output_template/python/requirements.txt
+      cd tests/device_tests && python3 test_device_e2e.py
+    label: "inference on raspberry-pi(aarch64)"
+    agents:
+    - "agent-type=raspberry-pi"
+    - "env=benchmark"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+      DEVICE_TEST_INPUT_PATH: '../../tmp'
+      DEVICE_TEST_LIB_NAME: 'libdlk_aarch64.so'
+  - command: |
+      buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      sudo pip install -r output_template/python/requirements.txt --no-cache-dir
+      cd tests/device_tests && python test_device_e2e.py
+    label: "inference on de10nano(arm)"
+    agents:
+    - "agent-type=de10nano"
+    - "env=benchmark"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+      DEVICE_TEST_INPUT_PATH: '../../tmp'
+      DEVICE_TEST_LIB_NAME: 'libdlk_arm.so'

@@ -16,15 +16,17 @@
 import tensorflow as tf
 from easydict import EasyDict
 
-from lmnet.common import Tasks
-from lmnet.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
-                                  Hue)
-from lmnet.data_processor import Sequence
+from blueoil.common import Tasks
+from blueoil.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
+                                    Hue)
+from blueoil.data_processor import Sequence
 from blueoil.networks.segmentation.lm_segnet_quantize import LmSegnetQuantize
 from blueoil.datasets.bdd100k import BDD100KSegmentation
-from lmnet.pre_processor import DivideBy255, Resize
-from blueoil.nn.quantizations import (binary_mean_scaling_quantizer,
-                                      linear_mid_tread_half_quantizer)
+from blueoil.pre_processor import DivideBy255, Resize
+from blueoil.quantizations import (
+    binary_mean_scaling_quantizer,
+    linear_mid_tread_half_quantizer,
+    )
 
 IS_DEBUG = False
 
@@ -64,7 +66,7 @@ PRE_PROCESSOR = Sequence([
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
+NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.AdamOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE

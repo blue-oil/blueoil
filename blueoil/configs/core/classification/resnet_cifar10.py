@@ -16,15 +16,15 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.classification.resnet import Resnet
 from blueoil.datasets.cifar10 import Cifar10
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
     Resize,
     PerImageStandardization,
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Crop,
     FlipLeftRight,
     Pad,
@@ -70,9 +70,9 @@ PRE_PROCESSOR = Sequence([
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
+NETWORK.LEARNING_RATE_FUNC = tf.compat.v1.train.piecewise_constant
 NETWORK.LEARNING_RATE_KWARGS = {
     "values": [0.1, 0.01, 0.001, 0.0001],
     "boundaries": [40000, 60000, 80000],

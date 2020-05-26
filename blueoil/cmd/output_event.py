@@ -22,7 +22,7 @@ import pytablewriter
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 from tensorboard.backend.event_processing.io_wrapper import GetLogdirSubdirectories
 
-from lmnet import environment
+from blueoil import environment
 
 
 def _get_metrics_keys(event_accumulator):
@@ -34,7 +34,7 @@ def _value_step_list(event_accumulator, metrics_key):
         events = event_accumulator.Scalars(metrics_key)
         return [(event.value, event.step) for event in events]
     except KeyError as e:
-        print("Key {} was not found in {}".format(metrics_key, event_accumulator.path))
+        print("Key {} was not found in {}\n{}".format(metrics_key, event_accumulator.path, e))
         return []
 
 
@@ -55,14 +55,16 @@ def output(tensorboard_dir, output_dir, metrics_keys, steps, output_file_base="m
         event_accumulators.append(event_accumulator)
 
     if not metrics_keys:
-        metrics_keys = {metrics_key
-                        for event_accumulator in event_accumulators
-                        for metrics_key in _get_metrics_keys(event_accumulator)}
+        metrics_keys = {
+            metrics_key
+            for event_accumulator in event_accumulators
+            for metrics_key in _get_metrics_keys(event_accumulator)
+        }
 
     columns = [_column_name(event_accumulator, metrics_key)
                for event_accumulator, metrics_key in itertools.product(event_accumulators, metrics_keys)]
     columns.sort()
-    df = pd.DataFrame([],  columns=columns)
+    df = pd.DataFrame([], columns=columns)
 
     for event_accumulator in event_accumulators:
         for metrics_key in metrics_keys:
@@ -102,13 +104,8 @@ output md: {}
     print(message)
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option(
-    "-i",
-    "--experiment_id",
-    help="id of target experiment",
-    required=True,
-)
+@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
+@click.option("-i", "--experiment_id", help="id of target experiment", required=True)
 @click.option(
     "-k",
     "--metrics_keys",
@@ -135,8 +132,14 @@ output md: {}
 def main(output_file_base, metrics_keys, steps, experiment_id):
     environment.init(experiment_id)
 
-    output(environment.TENSORBOARD_DIR, environment.EXPERIMENT_DIR, metrics_keys, steps, output_file_base="metrics",)
+    output(
+        environment.TENSORBOARD_DIR,
+        environment.EXPERIMENT_DIR,
+        metrics_keys,
+        steps,
+        output_file_base="metrics",
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

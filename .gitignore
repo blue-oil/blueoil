@@ -99,6 +99,9 @@ ENV/
 # mypy
 .mypy_cache/
 
+# pyre
+.pyre/
+
 # project
 /saved/
 /dataset/

@@ -1,0 +1,72 @@
+BATCH_SIZE: 1
+DATASET:
+  AUGMENTOR: 
+    blueoil.data_processor.Sequence:
+      processors:
+      - 
+        blueoil.data_augmentor.Pad:
+          bottom: 2
+          fill: 0
+          left: 2
+          right: 2
+          top: 2
+      - 
+        blueoil.data_augmentor.Crop:
+          height: 32
+          is_resize: false
+          width: 32
+      - 
+        blueoil.data_augmentor.FlipLeftRight:
+          probability: 0.5
+  BATCH_SIZE: 200
+  PRE_PROCESSOR: 
+    blueoil.data_processor.Sequence:
+      processors:
+      - 
+        blueoil.pre_processor.Resize:
+          size:
+          - 32
+          - 32
+      - 
+        blueoil.pre_processor.DivideBy255: {}
+DATASET_CLASS: blueoil.datasets.cifar10.Cifar10
+IMAGE_SIZE:
+- 32
+- 32
+IS_DEBUG: false
+IS_PRETRAIN: false
+KEEP_CHECKPOINT_MAX: 5
+MAX_STEPS: 100000
+NETWORK:
+  ACTIVATION_QUANTIZER: lmnet.quantizations.linear.linear_mid_tread_half_quantizer
+  ACTIVATION_QUANTIZER_KWARGS:
+    bit: 2
+    max_value: 2
+  BATCH_SIZE: 200
+  IMAGE_SIZE:
+  - 32
+  - 32
+  LEARNING_RATE_FUNC: tensorflow.python.training.learning_rate_decay.piecewise_constant
+  LEARNING_RATE_KWARGS:
+    boundaries:
+    - 50000
+    - 75000
+    - 87500
+    values:
+    - 0.01
+    - 0.001
+    - 0.0001
+    - 1.0e-05
+  OPTIMIZER_CLASS: tensorflow.python.training.momentum.MomentumOptimizer
+  OPTIMIZER_KWARGS:
+    momentum: 0.9
+  WEIGHT_DECAY_RATE: 0.0005
+  WEIGHT_QUANTIZER: lmnet.quantizations.binary.binary_mean_scaling_quantizer
+  WEIGHT_QUANTIZER_KWARGS: {}
+NETWORK_CLASS: blueoil.networks.classification.lmnet_v1.LmnetV1Quantize
+PRETRAIN_DIR: ''
+PRETRAIN_FILE: ''
+PRETRAIN_VARS: []
+SAVE_CHECKPOINT_STEPS: 100000
+SUMMARISE_STEPS: 100
+TEST_STEPS: 1000

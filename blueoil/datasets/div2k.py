@@ -18,7 +18,7 @@ import os
 from glob import glob
 
 from blueoil.datasets.base import Base
-from lmnet.utils.image import load_image
+from blueoil.utils.image import load_image
 
 
 class Div2k(Base):
@@ -41,7 +41,7 @@ class Div2k(Base):
     def num_per_epoch(self):
         return len(self.files)
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         target_file = self.files[i]
         image = load_image(target_file)
 

@@ -16,10 +16,10 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.datasets.ilsvrc_2012 import Ilsvrc2012
-from lmnet.data_processor import Sequence
-from lmnet.data_augmentor import (
+from blueoil.data_processor import Sequence
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast,
@@ -28,11 +28,11 @@ from lmnet.data_augmentor import (
     Hue,
 )
 from blueoil.networks.classification.darknet import DarknetQuantize
-from lmnet.pre_processor import (
+from blueoil.pre_processor import (
     Resize,
     DivideBy255,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
@@ -76,9 +76,9 @@ PRE_PROCESSOR = Sequence([
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.polynomial_decay
+NETWORK.LEARNING_RATE_FUNC = tf.compat.v1.train.polynomial_decay
 # TODO(wakiska): It is same as original yolov2 paper (batch size = 128).
 NETWORK.LEARNING_RATE_KWARGS = {"learning_rate": 1e-1, "decay_steps": 1600000, "power": 4.0, "end_learning_rate": 0.0}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE

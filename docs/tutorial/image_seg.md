@@ -57,20 +57,26 @@ CamVid dataset consists of 360x480 color images in 12 classes. There are 367 tr
 Generate your model configuration file interactively by running the `blueoil init` command.
 
     $ docker run --rm -it \
+        -v $(pwd)/CamVid:/home/blueoil/CamVid \
 	    -v $(pwd)/config:/home/blueoil/config \
 	    blueoil_$(id -un):{TAG} \
-	    blueoil init -o config/my_config.yml
+	    blueoil init -o config/camvid.py
 
-This is an example of the initialization procedure.
+
+The `{TAG}` value must be set to a value like `v0.20.0-11-gf1e07c8` that can be obtained with the `docker images` command.
+This value depends on your environment.
+
+Below is an example of initialization.
+
 
 ```
 #### Generate config ####
 your model name ():  camvid
-choose task type  semantic_segmentation
-choose network  LmSegnetV1Quantize
-choose dataset format  CamvidCustom
+choose task type:  semantic_segmentation
+choose network:  LmSegnetV1Quantize
+choose dataset format:  CamvidCustom
 training dataset path:  /home/blueoil/CamVid/
-set validataion dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.)  yes
+set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.):  yes
 test dataset path:  /home/blueoil/CamVid/
 batch size (integer):  8
 image size (integer x integer):  360x480
@@ -78,13 +84,13 @@ how many epochs do you run training (integer):  1000
 choose optimizer: Adam
 initial learning rate:  0.001
 choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
-enable data augmentation?  Yes
+enable data augmentation?  (Y/n):  Yes
 Please choose augmentors:  done (5 selections)
 -> select Brightness, Color, Contrast, FlipLeftRight, Hue
-apply quantization at the first layer?  no
+apply quantization at the first layer? (Y/n):  no
 ```
 
-If configuration finishes, the configuration file is generated in the `my_config.yml` under config directory.
+If configuration finishes, the configuration file is generated in the `camvid.py` under config directory.
 
 ## Train a network model
 
@@ -96,15 +102,15 @@ Train your model by running `blueoil train` command with model configuration.
 	    -v $(pwd)/config:/home/blueoil/config \
 	    -v $(pwd)/saved:/home/blueoil/saved \
 	    blueoil_$(id -un):{TAG} \
-	    blueoil train -c config/my_config.yml
+	    blueoil train -c config/camvid.py
 
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
 Change the value of `CUDA_VISIBLE_DEVICES` according to your environment.
 
 When training has started, the training log and checkpoints are generated under `./saved/{MODEL_NAME}`.
-The value of `{MODEL_NAME}` will be `train_{TIMESTAMP}`.
+The value of `{MODEL_NAME}` will be `{Configuration file}_{TIMESTAMP}`.
 
-Training is running on the TensorFlow backend. So you can use TensorBoard to visualize your training progress.
+Training runs on the TensorFlow backend. So you can use TensorBoard to visualize your training progress.
 
     $ docker run --rm \
 	    -p 6006:6006 \
@@ -139,7 +145,7 @@ Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 - Generate source code for executable binary
 - Compile for x86, ARM and FPGA
 
-If conversion is successful, output files are generated under `./saved/train_{TIMESTAMP}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
+If conversion is successful, output files are generated under `./saved/{MODEL_NAME}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
 
 ```
 output
@@ -149,9 +155,9 @@ output
  │   └── soc_system.dtb
  ├── models
  │   ├── lib (include trained model library)
- │   │   ├── lib_arm.so
- │   │   ├── lib_fpga.so
- │   │   └── lib_x86.so
+ │   │   ├── libdlk_arm.so
+ │   │   ├── libdlk_fpga.so
+ │   │   └── libdlk_x86.so
  │   └── meta.yaml (model configuration)
  ├── python
  │   ├── lmnet (include pre-process/post-process)
@@ -182,7 +188,7 @@ output
 	$ sudo pip install -r requirements.txt  # for the first time only
 	$ python run.py \
 	      -i {inference image path} \
-	      -m ../models/lib/lib_x86.so \
+	      -m ../models/lib/libdlk_x86.so \
 	      -c ../models/meta.yaml
 	```
 

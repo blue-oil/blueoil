@@ -16,14 +16,14 @@
 import tensorflow as tf
 from easydict import EasyDict
 
-from lmnet.common import Tasks
-from lmnet.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
-                                  Hue, SSDRandomCrop)
-from lmnet.data_processor import Sequence
+from blueoil.common import Tasks
+from blueoil.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
+                                    Hue, SSDRandomCrop)
+from blueoil.data_processor import Sequence
 from blueoil.networks.object_detection.lm_fyolo import LMFYolo
 from blueoil.datasets.bdd100k import BDD100KObjectDetection
-from lmnet.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
-from lmnet.pre_processor import DivideBy255, ResizeWithGtBoxes
+from blueoil.pre_processor import DivideBy255, ResizeWithGtBoxes
+from blueoil.post_processor import NMS, ExcludeLowScoreBox, FormatYoloV2
 
 IS_DEBUG = False
 
@@ -80,12 +80,13 @@ POST_PROCESSOR = Sequence([
 ])
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
+NETWORK.LEARNING_RATE_FUNC = tf.compat.v1.train.piecewise_constant
 # In the origianl yolov2 Paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
 # Train data num per epoch is 69863
-step_per_epoch = int(69863 / BATCH_SIZE)
+step_per_epoch = 69863 // BATCH_SIZE
+
 NETWORK.LEARNING_RATE_KWARGS = {
     "values": [1e-4, 2e-3, 5e-4, 5e-5, 5e-6],
     "boundaries": [

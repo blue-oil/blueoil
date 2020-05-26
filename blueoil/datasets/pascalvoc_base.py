@@ -21,7 +21,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
 
-from lmnet.utils.image import load_image
+from blueoil.utils.image import load_image
 from blueoil.datasets.base import ObjectDetectionBase
 
 
@@ -171,7 +171,7 @@ class PascalvocBase(ObjectDetectionBase):
             return all_image_ids
 
         image_ids = [
-            image_id for image_id, gt_boxes in zip(all_image_ids, all_gt_boxes_list) if len(gt_boxes) is not 0
+            image_id for image_id, gt_boxes in zip(all_image_ids, all_gt_boxes_list) if len(gt_boxes) != 0
         ]
 
         return image_ids
@@ -196,7 +196,7 @@ class PascalvocBase(ObjectDetectionBase):
         return df.image_id.tolist()
 
     def _files_and_annotations(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def _init_files_and_annotations(self):
         """Init files and gt_boxes list, Cache these."""
@@ -211,7 +211,7 @@ class PascalvocBase(ObjectDetectionBase):
             self.files, self.annotations = self._files_and_annotations()
             cls._cache[cache_key] = self
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         target_file = self.files[i]
         image = load_image(target_file)
 

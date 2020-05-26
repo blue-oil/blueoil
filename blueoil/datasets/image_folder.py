@@ -21,10 +21,10 @@ from glob import glob
 
 import numpy as np
 
-from lmnet import data_processor
-from lmnet.utils.image import load_image
+from blueoil import data_processor
+from blueoil.utils.image import load_image
 from blueoil.datasets.base import Base, StoragePathCustomizable
-from lmnet.utils.random import train_test_split
+from blueoil.utils.random import train_test_split
 
 
 class ImageFolderBase(StoragePathCustomizable, Base):
@@ -45,13 +45,10 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
     def __init__(
             self,
-            is_shuffle=True,
             *args,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
-
-        self.is_shuffle = is_shuffle
 
     @property
     @functools.lru_cache(maxsize=None)
@@ -107,7 +104,7 @@ class ImageFolderBase(StoragePathCustomizable, Base):
 
         return label
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         target_file = self.files[i]
 
         image = load_image(target_file)

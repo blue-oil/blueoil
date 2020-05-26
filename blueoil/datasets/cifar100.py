@@ -19,9 +19,9 @@ import pickle
 
 import numpy as np
 
-from lmnet import data_processor
+from blueoil import data_processor
 from blueoil.datasets.base import Base
-from lmnet.utils.random import shuffle
+from blueoil.utils.random import shuffle
 
 
 class Cifar100(Base):
@@ -29,13 +29,12 @@ class Cifar100(Base):
 
     num_classes = len(classes)
     extend_dir = "CIFAR_100/cifar-100-python"
-    available_subsets = ["train", "train_validation_saving", "validation"]
+    available_subsets = ["train", "validation"]
 
     def __init__(
             self,
             subset="train",
             batch_size=100,
-            train_validation_saving_size=0,
             *args,
             **kwargs
     ):
@@ -45,8 +44,6 @@ class Cifar100(Base):
             *args,
             **kwargs,
         )
-        self.train_validation_saving_size = train_validation_saving_size
-
         self._init_images_and_labels()
 
     @property
@@ -70,7 +67,7 @@ class Cifar100(Base):
 
     @functools.lru_cache(maxsize=None)
     def _images_and_labels(self):
-        if self.subset == "train" or self.subset == "train_validation_saving":
+        if self.subset == "train":
             files = ["train"]
 
         else:
@@ -83,15 +80,6 @@ class Cifar100(Base):
 
         labels = [labels for images, labels in data]
         labels = np.concatenate(labels, axis=0)
-
-        if self.train_validation_saving_size > 0:
-            # split the train set into train and train_validation_saving
-            if self.subset == "train":
-                images, _ = np.split(images, [-self.train_validation_saving_size], axis=0)
-                labels, _ = np.split(labels, [-self.train_validation_saving_size], axis=0)
-            elif self.subset == "train_validation_saving":
-                _, images = np.split(images, [-self.train_validation_saving_size], axis=0)
-                _, labels = np.split(labels, [-self.train_validation_saving_size], axis=0)
 
         # randomaize
         if self.subset == "train":
@@ -117,7 +105,7 @@ class Cifar100(Base):
 
         return images, labels
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         image = self._get_image(i)
         label = data_processor.binarize(self.labels[i], self.num_classes)
         label = np.reshape(label, (self.num_classes))

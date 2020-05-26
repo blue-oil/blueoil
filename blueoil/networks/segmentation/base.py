@@ -15,7 +15,7 @@
 # =============================================================================
 import tensorflow as tf
 
-from lmnet.common import get_color_map
+from blueoil.common import get_color_map
 from blueoil.networks.base import BaseNetwork
 
 
@@ -27,16 +27,8 @@ class Base(BaseNetwork):
 
     """
 
-    def __init__(
-            self,
-            *args,
-            label_colors=None,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+    def __init__(self, *args, label_colors=None, **kwargs):
+        super().__init__(*args, **kwargs)
         if label_colors is None:
             self.label_colors = get_color_map(self.num_classes)
         else:
@@ -145,16 +137,8 @@ class SegnetBase(Base):
     The ratio is difference from `median  frequency  balancing` described in [SegNet](https://arxiv.org/pdf/1511.00561.pdf).
     """ # NOQA
 
-    def __init__(
-            self,
-            weight_decay_rate=None,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+    def __init__(self, weight_decay_rate=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.weight_decay_rate = weight_decay_rate
 

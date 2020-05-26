@@ -6,7 +6,7 @@ LABEL maintainer="admin@blueoil.org"
 EXPOSE 6006
 
 # Python version settings
-ARG python_version="3.6.3"
+ARG python_version="3.6.10"
 
 ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
     CUDA_HOME=/usr/local/cuda-10.0 \
@@ -38,6 +38,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     libncurses5-dev \
     libncursesw5-dev \
+    liblzma-dev \
     xz-utils \
     tk-dev \
     g++-9 \
@@ -94,13 +95,15 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
     echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf && \
     echo "btl_tcp_if_exclude = lo,docker0" >> /usr/local/etc/openmpi-mca-params.conf
 
+WORKDIR /home/blueoil
 RUN pip install -U pip setuptools
 
 FROM base AS blueoil-base
-# Install requirements
-COPY ./*requirements.txt /home/blueoil/
-RUN pip install -r /home/blueoil/gpu.requirements.txt
-RUN pip install pycocotools==2.0.0
+
+# COPY resources required for blueoil installation
+COPY setup.* /home/blueoil/
+COPY blueoil /home/blueoil/blueoil
+COPY output_template /home/blueoil/output_template
 
 # Set env to install horovod with nccl and tensorflow option
 ENV HOROVOD_GPU_ALLREDUCE=NCCL \
@@ -108,39 +111,23 @@ ENV HOROVOD_GPU_ALLREDUCE=NCCL \
 
 # Install requirements for distributed training temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs && \
-    pip install -r /home/blueoil/dist.requirements.txt && \
+    pip install -e .[gpu,test,docs] && \
+    pip install -e .[dist] && \
     ldconfig
+RUN pip install pycocotools==2.0.0
 
 # we cannot customize the path of this temporal directory...
 RUN mkdir /.horovod && chmod 777 /.horovod
 
-WORKDIR /home/blueoil
 
 FROM blueoil-base AS blueoil-dev
-
-# Copy blueoil sources to docker image
-COPY blueoil /home/blueoil/blueoil
-COPY setup.* /home/blueoil/
-COPY output_template /home/blueoil/output_template
-# Install blueoil
-
-RUN python setup.py install
-RUN chmod 777 /home/blueoil
-
-# Copy dlk sources to docker image
-COPY dlk /home/blueoil/dlk
-# Install dlk
-WORKDIR /home/blueoil/dlk
-RUN PYTHONPATH=python/dlk python setup.py install
-RUN chmod 777 /home/blueoil/dlk
-
-# Copy lmnet sources to docker image
-COPY lmnet /home/blueoil/lmnet
 
 # Copy blueoil test code to docker image
 COPY tests /home/blueoil/tests
 
-ENV PYTHONPATH $PYTHONPATH:/home/blueoil:/home/blueoil/lmnet:/home/blueoil/dlk/python/dlk
+# Add permission for all users
+RUN chmod 777 /home/blueoil
+RUN chmod 777 /home/blueoil/tests
 
 # enable blueoil command
 RUN pyenv rehash

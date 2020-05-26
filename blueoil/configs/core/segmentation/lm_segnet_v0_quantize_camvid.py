@@ -16,18 +16,18 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.segmentation.lm_segnet_v0 import LmSegnetV0Quantize
 from blueoil.datasets.camvid import Camvid
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
     Resize,
     DivideBy255,
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     FlipLeftRight,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
@@ -68,7 +68,7 @@ PRE_PROCESSOR = Sequence([
 POST_PROCESSOR = None
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
+NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.AdamOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE

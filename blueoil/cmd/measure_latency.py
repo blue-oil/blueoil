@@ -22,10 +22,10 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 
-from lmnet import environment
-from lmnet.utils.image import load_image
-from lmnet.utils import config as config_util
-from lmnet.utils import executor
+from blueoil import environment
+from blueoil.utils.image import load_image
+from blueoil.utils import config as config_util
+from blueoil.utils import executor
 
 
 # TODO(wakisaka): duplicated function with blueoil/cmd/export.py
@@ -55,13 +55,13 @@ def _measure_time(config, restore_path, step_size):
         images_placeholder, labels_placeholder = model.placeholders()
         output = model.inference(images_placeholder, is_training)
 
-        init_op = tf.global_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
 
         saver = tf.compat.v1.train.Saver()
 
     session_config = None  # tf.ConfigProto(log_device_placement=True)
     # session_config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions.ON_1
-    sess = tf.Session(graph=graph, config=session_config)
+    sess = tf.compat.v1.Session(graph=graph, config=session_config)
     sess.run(init_op)
 
     if restore_path:

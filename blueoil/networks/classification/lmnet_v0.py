@@ -26,15 +26,8 @@ class LmnetV0(Base):
     """
     version = 0.01
 
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.activation = tf.nn.relu
         self.custom_getter = None
@@ -112,9 +105,9 @@ class LmnetV0Quantize(LmnetV0):
     ``weight_quantizer``, ``weight_quantizer_kwargs``.
 
     Args:
-        activation_quantizer (callable): Weight quantizater. See more at `blueoil.nn.quantizations`.
+        activation_quantizer (callable): Weight quantizater. See more at `blueoil.quantizations`.
         activation_quantizer_kwargs (dict): Kwargs for `activation_quantizer`.
-        weight_quantizer (callable): Activation quantizater. See more at `blueoil.nn.quantizations`.
+        weight_quantizer (callable): Activation quantizater. See more at `blueoil.quantizations`.
         weight_quantizer_kwargs (dict): Kwargs for `weight_quantizer`.
     """
     version = 1.0
@@ -122,22 +115,16 @@ class LmnetV0Quantize(LmnetV0):
     def __init__(
             self,
             activation_quantizer=None,
-            activation_quantizer_kwargs=None,
+            activation_quantizer_kwargs={},
             weight_quantizer=None,
-            weight_quantizer_kwargs=None,
+            weight_quantizer_kwargs={},
             *args,
             **kwargs
     ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        super().__init__(*args, **kwargs)
 
-        assert weight_quantizer
-        assert activation_quantizer
-
-        activation_quantizer_kwargs = activation_quantizer_kwargs if activation_quantizer_kwargs is not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if weight_quantizer_kwargs is not None else {}
+        assert callable(weight_quantizer)
+        assert callable(activation_quantizer)
 
         self.activation = activation_quantizer(**activation_quantizer_kwargs)
         weight_quantization = weight_quantizer(**weight_quantizer_kwargs)

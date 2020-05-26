@@ -26,8 +26,8 @@ import ray
 from blueoil.datasets.base import ObjectDetectionBase
 from blueoil.datasets.dataset_iterator import DatasetIterator
 from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
-from lmnet.utils import config as config_util
-from lmnet.utils import executor
+from blueoil.utils import config as config_util
+from blueoil.utils import executor
 from ray.tune import Trainable, register_trainable, run_experiments
 from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.suggest import HyperOptSearch
@@ -116,14 +116,14 @@ def update_parameters_for_each_trial(network_kwargs, chosen_kwargs):
             network_kwargs['optimizer_kwargs'][key] = chosen_kwargs['optimizer_class'][key]
     network_kwargs['learning_rate_func'] = chosen_kwargs['learning_rate_func']['scheduler']
     base_lr = chosen_kwargs['learning_rate']
-    if network_kwargs['learning_rate_func'] is tf.train.piecewise_constant:
+    if network_kwargs['learning_rate_func'] is tf.compat.v1.train.piecewise_constant:
         lr_factor = chosen_kwargs['learning_rate_func']['scheduler_factor']
         network_kwargs['learning_rate_kwargs']['values'] = [base_lr,
                                                             base_lr * lr_factor,
                                                             base_lr * lr_factor * lr_factor,
                                                             base_lr * lr_factor * lr_factor * lr_factor]
         network_kwargs['learning_rate_kwargs']['boundaries'] = chosen_kwargs['learning_rate_func']['scheduler_steps']
-    elif network_kwargs['learning_rate_func'] is tf.train.polynomial_decay:
+    elif network_kwargs['learning_rate_func'] is tf.compat.v1.train.polynomial_decay:
         network_kwargs['learning_rate_kwargs']['learning_rate'] = base_lr
         network_kwargs['learning_rate_kwargs']['power'] = chosen_kwargs['learning_rate_func']['scheduler_power']
         network_kwargs['learning_rate_kwargs']['decay_steps'] = chosen_kwargs['learning_rate_func']['scheduler_decay']
@@ -192,7 +192,6 @@ class TrainTunable(Trainable):
                 **network_kwargs,
             )
 
-        self.global_step = tf.Variable(0, name="global_step", trainable=False)
         self.is_training_placeholder = tf.compat.v1.placeholder(tf.bool, name="is_training_placeholder")
         self.images_placeholder, self.labels_placeholder = model.placeholders()
 
@@ -201,21 +200,21 @@ class TrainTunable(Trainable):
             loss = model.loss(output, self.labels_placeholder, self.is_training_placeholder)
         else:
             loss = model.loss(output, self.labels_placeholder)
-        opt = model.optimizer(self.global_step)
+        opt = model.optimizer()
 
-        train_op = model.train(loss, opt, self.global_step)
+        train_op = model.train(loss, opt)
         metrics_ops_dict, metrics_update_op = model.metrics(output, self.labels_placeholder)
 
         self.train_op = train_op
         self.metrics_ops_dict = metrics_ops_dict
         self.metrics_update_op = metrics_update_op
 
-        init_op = tf.global_variables_initializer()
-        self.reset_metrics_op = tf.local_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
+        self.reset_metrics_op = tf.compat.v1.local_variables_initializer()
 
-        session_config = tf.ConfigProto(
-            gpu_options=tf.GPUOptions(allow_growth=True))
-        self.sess = tf.Session(config=session_config)
+        session_config = tf.compat.v1.ConfigProto(
+            gpu_options=tf.compat.v1.GPUOptions(allow_growth=True))
+        self.sess = tf.compat.v1.Session(config=session_config)
         self.sess.run([init_op, self.reset_metrics_op])
         self.iterations = 0
         self.saver = tf.compat.v1.train.Saver()

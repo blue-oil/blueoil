@@ -23,10 +23,10 @@ from collections import OrderedDict
 
 import numpy as np
 
-from lmnet import data_processor
+from blueoil import data_processor
 from blueoil.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
-from lmnet.utils.image import load_image
-from lmnet.utils.random import train_test_split
+from blueoil.utils.image import load_image
+from blueoil.utils.random import train_test_split
 
 
 class OpenImagesV4(Base):
@@ -37,13 +37,10 @@ class OpenImagesV4(Base):
 
     def __init__(
             self,
-            is_shuffle=True,
             *args,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
-
-        self.is_shuffle = is_shuffle
 
     @property
     def class_descriptions_csv(self):
@@ -56,7 +53,7 @@ class OpenImagesV4(Base):
         with open(self.class_descriptions_csv, 'r') as f:
             reader = csv.reader(f)
             for row in reader:
-                class_name = re.sub('\W', '', row[1])
+                class_name = re.sub(r'\W', '', row[1])
                 classes_meta[row[0]] = class_name
         return classes_meta
 
@@ -179,7 +176,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
         num_max_boxes = 0
 
         for subset in cls.available_subsets:
-            obj = cls(subset=subset, is_shuffle=False)
+            obj = cls(subset=subset)
             _, gt_boxes_list = obj.files_and_annotations
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])
@@ -192,7 +189,7 @@ class OpenImagesV4BoundingBox(OpenImagesV4, ObjectDetectionBase):
     def num_max_boxes(self):
         return self.count_max_boxes()
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         files, gt_boxes_list = self.files_and_annotations
         target_file = files[i]
         gt_boxes = gt_boxes_list[i]
@@ -260,7 +257,7 @@ class OpenImagesV4Classification(OpenImagesV4):
 
         return files, annotations
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         files, labels = self.files_and_annotations
 
         filename = files[i]

@@ -20,10 +20,10 @@ import os.path
 import numpy as np
 import pandas as pd
 
-from lmnet import data_processor
+from blueoil import data_processor
 from blueoil.datasets.base import Base, ObjectDetectionBase, StoragePathCustomizable
-from lmnet.utils.image import load_image
-from lmnet.utils.random import shuffle, train_test_split
+from blueoil.utils.image import load_image
+from blueoil.utils.random import train_test_split
 
 
 @functools.lru_cache(maxsize=None)
@@ -70,7 +70,6 @@ class DeltaMarkMixin():
 
     def __init__(
             self,
-            is_shuffle=True,
             json_file="json/annotation.json",
             image_dir="images",
             *args,
@@ -82,31 +81,10 @@ class DeltaMarkMixin():
             **kwargs,
         )
 
-        self.is_shuffle = is_shuffle
-
         self.path = {
             "json": os.path.join(self.data_dir, json_file),
             "dir": os.path.join(self.data_dir, image_dir)
         }
-
-    @property
-    def indices(self):
-        if not hasattr(self, "_indices"):
-            if self.subset == "train" and self.is_shuffle:
-                self._indices = shuffle(range(self.num_per_epoch), seed=self.seed)
-            else:
-                self._indices = list(range(self.num_per_epoch))
-
-        return self._indices
-
-    def _get_index(self, counter):
-        return self.indices[counter]
-
-    def _shuffle(self):
-        if self.subset == "train" and self.is_shuffle:
-            self._indices = shuffle(range(self.num_per_epoch), seed=self.seed)
-            print("Shuffle {} train dataset with random seed {}.".format(self.__class__.__name__, self.seed))
-            self.seed = self.seed + 1
 
     @property
     def classes(self):
@@ -198,7 +176,7 @@ class ClassificationBase(DeltaMarkMixin, StoragePathCustomizable, Base):
 
         return [self.classes.index(category) for category in category_names]
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         files, labels = self.files_and_annotations
 
         image = load_image(files[i])
@@ -238,7 +216,7 @@ class ObjectDetectionBase(DeltaMarkMixin, StoragePathCustomizable, ObjectDetecti
         num_max_boxes = 0
 
         for subset in cls.available_subsets:
-            obj = cls(subset=subset, is_shuffle=False)
+            obj = cls(subset=subset)
             _, gt_boxes_list = obj.files_and_annotations
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])
@@ -293,7 +271,7 @@ class ObjectDetectionBase(DeltaMarkMixin, StoragePathCustomizable, ObjectDetecti
 
         return gt_boxes
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         files, annotations = self.files_and_annotations
 
         target_file = files[i]

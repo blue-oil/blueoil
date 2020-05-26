@@ -18,11 +18,13 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from lmnet import environment
+from blueoil import environment
 
 
 class Base(metaclass=ABCMeta):
     """Dataset base class"""
+
+    available_subsets = ['train', 'validation']
 
     def __init__(
             self,
@@ -74,13 +76,6 @@ class Base(metaclass=ABCMeta):
         pass
 
     @property
-    @staticmethod
-    @abstractmethod
-    def available_subsets():
-        """Returns the list of available subsets."""
-        return ['train', 'train_validation_saving', 'validation']
-
-    @property
     @abstractmethod
     def num_per_epoch(self):
         """Returns the number of datas in the data subset."""
@@ -88,7 +83,7 @@ class Base(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         """Returns the i-th item of the dataset."""
         raise NotImplementedError()
 
@@ -259,8 +254,8 @@ class StoragePathCustomizable():
 
     @property
     def data_dir(self):
-        if self.subset is "train":
+        if self.subset == "train":
             return self._train_data_dir
 
-        if self.subset is "validation":
+        if self.subset == "validation":
             return self._validation_data_dir

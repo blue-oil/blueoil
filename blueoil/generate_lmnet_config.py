@@ -13,17 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import argparse
 import importlib
 import os
-import re
 from tempfile import NamedTemporaryFile
 
-import yaml
 from jinja2 import Environment, FileSystemLoader
-from tensorflow.io import gfile
-
-from lmnet.utils.module_loader import load_class
 
 
 _TASK_TYPE_TEMPLATE_FILE = {
@@ -92,46 +86,19 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
 }
 
 
-def generate(blueoil_config_filename):
-
-    blueoil_config = _load_yaml(blueoil_config_filename)
+def generate(blueoil_config):
     lmnet_config = _blueoil_to_lmnet(blueoil_config)
-    config_file = _save(lmnet_config)
-
-    return config_file
-
-
-def _load_yaml(blueoil_config_filename):
-    """load blueoil config yaml
-
-    Args:
-        blueoil_config_filename (str): File path of blueoil config yaml file.
-
-    Returns:
-        dict: blueoil config.
-
-    """
-    if not gfile.exists(blueoil_config_filename):
-        FileNotFoundError("File not found: {}".format(blueoil_config_filename))
-
-    with gfile.GFile(blueoil_config_filename, "r") as f:
-        blueoil_config = yaml.load(f, Loader=yaml.SafeLoader)
-
-    model_name, _ = os.path.splitext(os.path.basename(blueoil_config_filename))
-
-    blueoil_config["model_name"] = model_name
-
-    return blueoil_config
+    return _save(lmnet_config)
 
 
 def _blueoil_to_lmnet(blueoil_config):
     """
 
     Args:
-        blueoil_config(dict): 
+        blueoil_config(dict):
 
     Returns:
-        dict: 
+        dict:
 
     """
 
@@ -141,7 +108,6 @@ def _blueoil_to_lmnet(blueoil_config):
         "summarise_steps": 100,
     }
     dataset = {}
-
 
     model_name = blueoil_config["model_name"]
 
@@ -166,7 +132,7 @@ def _blueoil_to_lmnet(blueoil_config):
     # load dataset python module from string.
     _loaded_dataset_module = importlib.import_module("blueoil.datasets.{}".format(dataset_module))
     # load dataset python module from string.
-    _loaded_dataset_class = load_class(_loaded_dataset_module, dataset_class)
+    _loaded_dataset_class = _load_class(_loaded_dataset_module, dataset_class)
     _dataset_class = type('DATASET_CLASS', (_loaded_dataset_class,), dataset_class_property)
     _dataset_obj = _dataset_class(subset="train", batch_size=1)
     classes = _dataset_obj.classes
@@ -189,9 +155,9 @@ def _blueoil_to_lmnet(blueoil_config):
         keep_checkpoint_max = default_keep_checkpoint_max
 
     if optimizer == 'Adam':
-        optimizer_class = "tf.train.AdamOptimizer"
+        optimizer_class = "tf.compat.v1.train.AdamOptimizer"
     elif optimizer == 'Momentum':
-        optimizer_class = "tf.train.MomentumOptimizer"
+        optimizer_class = "tf.compat.v1.train.MomentumOptimizer"
     else:
         raise ValueError("not supported optimizer.")
 
@@ -205,9 +171,9 @@ def _blueoil_to_lmnet(blueoil_config):
     if learning_rate_schedule == "constant":
         learning_rate_func = None
     elif learning_rate_schedule == "cosine":
-        learning_rate_func = "tf.train.cosine_decay"
+        learning_rate_func = "tf.compat.v1.train.cosine_decay"
     else:
-        learning_rate_func = "tf.train.piecewise_constant"
+        learning_rate_func = "tf.compat.v1.train.piecewise_constant"
 
     if learning_rate_schedule == "constant":
         if optimizer == 'Momentum':
@@ -275,17 +241,7 @@ def _blueoil_to_lmnet(blueoil_config):
     # common
     image_size = blueoil_config["common"]["image_size"]
     dataset_prefetch = blueoil_config["common"]["dataset_prefetch"]
-
-    data_augmentation = []
-    for augmentor in blueoil_config["common"].get("data_augmentation", []):
-        key = list(augmentor.keys())[0]
-        values = []
-        for v in list(list(augmentor.values())[0]):
-            v_key, v_value = list(v.keys())[0], list(v.values())[0]
-            only_str = isinstance(v_value, str) and re.match('^[\w-]+$', v_value) is not None
-            value = (v_key, "'{}'".format(v_value) if only_str else v_value)
-            values.append(value)
-        data_augmentation.append((key, values))
+    data_augmentation = blueoil_config["common"]["data_augmentation"]
 
     # quantize first layer
     quantize_first_convolution = blueoil_config["network"]["quantize_first_convolution"]
@@ -345,20 +301,10 @@ def _save(lmnet_config):
         return fp.name
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("blueoil_config_filename",
-                        help="File path of blueoil config yaml.")
+def _load_class(module, class_name):
+    # this converts the string from snake format into class capital format
+    # e.g. example_class_name -> ExampleClassName
+    if class_name[0].islower() or "_" in class_name:
+        class_name = "".join([s.capitalize() for s in class_name.split("_")])
 
-    args = parser.parse_args()
-
-    blueoil_config_filename = args.blueoil_config_filename
-
-    lmnet_config_filename = generate(blueoil_config_filename)
-
-    print('Convert configuration file from {} to: {}'.format(
-        blueoil_config_filename, lmnet_config_filename))
-
-
-if __name__ == '__main__':
-    main()
+    return module.__dict__[class_name]

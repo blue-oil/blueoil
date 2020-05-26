@@ -16,20 +16,20 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.classification.lmnet_v1 import LmnetV1Quantize
 from blueoil.datasets.cifar10 import Cifar10
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
     Resize,
     DivideBy255,
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Crop,
     FlipLeftRight,
     Pad,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
@@ -66,7 +66,7 @@ PRE_PROCESSOR = Sequence([
 ])
 POST_PROCESSOR = None
 
-STEP_PER_EPOCH = int(50000 / BATCH_SIZE)
+STEP_PER_EPOCH = 50000 // BATCH_SIZE
 
 TUNE_SPEC = {
         'run': 'tunable',
@@ -86,7 +86,7 @@ TUNE_SPACE = {
     'optimizer_class': hp.choice(
         'optimizer_class', [
             {
-                'optimizer': tf.train.MomentumOptimizer,
+                'optimizer': tf.compat.v1.train.MomentumOptimizer,
                 'momentum': 0.9,
             },
         ]
@@ -95,7 +95,7 @@ TUNE_SPACE = {
     'learning_rate_func': hp.choice(
         'learning_rate_func', [
             {
-                'scheduler': tf.train.piecewise_constant,
+                'scheduler': tf.compat.v1.train.piecewise_constant,
                 'scheduler_factor': hp.uniform('scheduler_factor', 0.05, 0.5),
                 'scheduler_steps': [25000, 50000, 75000],
             },
@@ -131,4 +131,3 @@ DATASET.AUGMENTOR = Sequence([
     Crop(size=IMAGE_SIZE),
     FlipLeftRight(),
 ])
-DATASET.TRAIN_VALIDATION_SAVING_SIZE = 5000

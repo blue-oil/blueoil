@@ -18,8 +18,8 @@ import numpy as np
 
 from blueoil.metrics.object_keypoint_similarity import compute_object_keypoint_similarity
 from blueoil.networks.base import BaseNetwork
-from lmnet.post_processor import gaussian_heatmap_to_joints
-from lmnet.visualize import visualize_keypoint_detection
+from blueoil.post_processor import gaussian_heatmap_to_joints
+from blueoil.visualize import visualize_keypoint_detection
 
 
 class Base(BaseNetwork):

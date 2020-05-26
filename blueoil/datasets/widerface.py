@@ -18,7 +18,7 @@ import os
 
 import numpy as np
 
-from lmnet.utils.image import load_image
+from blueoil.utils.image import load_image
 from blueoil.datasets.base import ObjectDetectionBase
 
 
@@ -53,19 +53,11 @@ class WiderFace(ObjectDetectionBase):
 
     def __init__(self,
                  subset="train",
-                 enable_prefetch=False,
                  max_boxes=3,
-                 num_workers=8,
                  *args,
                  **kwargs):
 
-        if enable_prefetch:
-            self.use_prefetch = True
-        else:
-            self.use_prefetch = False
-
         self.max_boxes = max_boxes
-        self.num_workers = num_workers
 
         super().__init__(subset=subset,
                          *args,
@@ -138,7 +130,7 @@ class WiderFace(ObjectDetectionBase):
         # Keep labels here in case of future use
         self.labels = labels
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         target_file = os.path.join(self.img_dir, self.paths[i])
 
         image = load_image(target_file)

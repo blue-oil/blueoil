@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import os
 import queue
 import threading
 import time
@@ -28,13 +27,9 @@ from blueoil.datasets.tfds import TFDSMixin
 _dataset = None
 
 
-def _prefetch_setup(dataset, seed, do_shuffle):
+def _prefetch_setup(dataset):
     global _dataset
     _dataset = dataset
-    if do_shuffle:
-        np.random.seed(os.getpid()+seed)
-        _dataset.seed = os.getpid() + seed
-        _dataset._shuffle()
 
 
 def _apply_augmentations(dataset, image, label):
@@ -102,7 +97,7 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
         self.seed = seed + 1  # seed must not be 0 because using xorshift32.
         self.support_getitem = hasattr(dataset, "__getitem__")
         self.pool = Pool(processes=8, initializer=_prefetch_setup,
-                         initargs=(dataset, self.seed, not self.support_getitem))
+                         initargs=(dataset, ))
         self.result_queue = result_queue
         self.batch_size = dataset.batch_size
         self.dataset = dataset
@@ -138,7 +133,7 @@ class _MultiProcessDatasetPrefetchThread(threading.Thread):
         self.pool.close()
         self.seed += 1
         self.pool = Pool(processes=8, initializer=_prefetch_setup,
-                         initargs=(self.dataset, self.seed, not self.support_getitem))
+                         initargs=(self.dataset, ))
 
     def loop_body(self):
         task_list = self.gen_task(self.dataset.batch_size * 8)
@@ -204,44 +199,100 @@ class _SimpleDatasetReader:
         return _concat_data(result)
 
 
+def _generate_tfds_map_func(dataset):
+    """
+    Return callable object
+    """
+    pre_processor = dataset.tfds_pre_processor
+    augmentor = dataset.tfds_augmentor
+
+    @tf.function
+    def _tfds_map_func(arg):
+        """
+        Arg:
+            arg(dict): with 'image' and 'label' keys
+        """
+        image, label = arg['image'], arg['label']
+        sample = {'image': image}
+
+        if issubclass(dataset.__class__, ObjectDetectionBase):
+            sample['gt_boxes'] = tf.cast(label, tf.float32)
+        else:
+            sample['label'] = label
+
+        if callable(augmentor) and dataset.subset == 'train':
+            sample = augmentor(**sample)
+
+        if callable(pre_processor):
+            sample = pre_processor(**sample)
+
+        image = sample['image']
+
+        if issubclass(dataset.__class__, ObjectDetectionBase):
+            label = sample['gt_boxes']
+        else:
+            label = sample['label']
+
+        return (image, label)
+
+    return _tfds_map_func
+
+
 class _TFDSReader:
 
-    def __init__(self, dataset):
-        tf_dataset = dataset.tf_dataset.shuffle(1024) \
-                                       .repeat() \
-                                       .batch(dataset.batch_size) \
-                                       .prefetch(tf.data.experimental.AUTOTUNE)
+    def __init__(self, dataset, local_rank):
+        tf_dataset = dataset.tf_dataset.shuffle(1024).repeat()
+        if hasattr(dataset, 'tfds_pre_processor') or hasattr(dataset, 'tfds_augmentor'):
+            tf_dataset = tf_dataset.map(map_func=_generate_tfds_map_func(dataset),
+                                        num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-        iterator = tf.data.make_initializable_iterator(tf_dataset)
+        tf_dataset = tf_dataset.batch(dataset.batch_size) \
+                               .prefetch(tf.data.experimental.AUTOTUNE)
+        iterator = tf.compat.v1.data.make_initializable_iterator(tf_dataset)
 
         self.dataset = dataset
-        self.session = tf.Session()
+        if local_rank != -1:
+            # For distributed training
+            session_config = tf.compat.v1.ConfigProto(
+                gpu_options=tf.compat.v1.GPUOptions(
+                    allow_growth=True,
+                    visible_device_list=str(local_rank)
+                )
+            )
+        else:
+            session_config = tf.compat.v1.ConfigProto()
+        self.session = tf.compat.v1.Session(config=session_config)
         self.session.run(iterator.initializer)
         self.next_batch = iterator.get_next()
 
     def read(self):
         """Return batch size data."""
-        result = []
+        if hasattr(self.dataset, 'tfds_pre_processor') or hasattr(self.dataset, 'tfds_augmentor'):
+            return self.session.run(self.next_batch)
+
+        # if normal pre_processor is defined, use this
         batch = self.session.run(self.next_batch)
-        for image, label in zip(batch['image'], batch['label']):
-            image, label = _apply_augmentations(self.dataset, image, label)
-            result.append((image, label))
+        result = [
+            _apply_augmentations(self.dataset, image, label)
+            for image, label in zip(batch['image'], batch['label'])
+        ]
         return _concat_data(result)
 
 
 class DatasetIterator:
 
-    available_subsets = ["train", "train_validation_saving", "validation"]
+    available_subsets = ["train", "validation"]
 
     """docstring for DatasetIterator."""
-    def __init__(self, dataset, enable_prefetch=False, seed=0):
+
+    def __init__(self, dataset, enable_prefetch=False, seed=0, local_rank=-1):
         self.dataset = dataset
         self.enable_prefetch = enable_prefetch
         self.seed = seed
 
         if issubclass(dataset.__class__, TFDSMixin):
             self.enable_prefetch = False
-            self.reader = _TFDSReader(self.dataset)
+            self.reader = _TFDSReader(self.dataset, local_rank)
         else:
             if self.enable_prefetch:
                 self.prefetch_result_queue = queue.Queue(maxsize=200)
@@ -316,8 +367,8 @@ class DatasetIterator:
 if __name__ == '__main__':
 
     from blueoil.datasets.cifar10 import Cifar10
-    from lmnet.data_processor import Sequence
-    from lmnet.data_augmentor import FlipLeftRight, Hue, Blur
+    from blueoil.data_processor import Sequence
+    from blueoil.data_augmentor import FlipLeftRight, Hue, Blur
 
     cifar10 = Cifar10()
 

@@ -21,10 +21,10 @@ import PIL
 import numpy as np
 import tensorflow as tf
 
-from lmnet import environment
-from lmnet.utils.image import load_image
-from lmnet.utils import config as config_util
-from lmnet.utils import executor
+from blueoil import environment
+from blueoil.utils.image import load_image
+from blueoil.utils import config as config_util
+from blueoil.utils import executor
 
 DEFAULT_INFERENCE_TEST_DATA_IMAGE = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -95,12 +95,12 @@ def _export(config, restore_path, image_path):
 
         images_placeholder, _ = model.placeholders()
         model.inference(images_placeholder, is_training)
-        init_op = tf.global_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
 
         saver = tf.compat.v1.train.Saver(max_to_keep=50)
 
-    session_config = tf.ConfigProto()
-    sess = tf.Session(graph=graph, config=session_config)
+    session_config = tf.compat.v1.ConfigProto()
+    sess = tf.compat.v1.Session(graph=graph, config=session_config)
     sess.run(init_op)
 
     saver.restore(sess, restore_path)

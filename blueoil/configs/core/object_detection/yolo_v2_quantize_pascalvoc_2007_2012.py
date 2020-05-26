@@ -16,20 +16,20 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.object_detection.yolo_v2_quantize import YoloV2Quantize
 from blueoil.datasets.pascalvoc_2007_2012 import Pascalvoc20072012
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
     ResizeWithGtBoxes,
     DivideBy255,
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast,
@@ -37,7 +37,7 @@ from lmnet.data_augmentor import (
     Hue,
     SSDRandomCrop,
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
@@ -187,13 +187,13 @@ POST_PROCESSOR = Sequence([
 ])
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.MomentumOptimizer
+NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
+NETWORK.LEARNING_RATE_FUNC = tf.compat.v1.train.piecewise_constant
 # In the yolov2 paper, with a starting learning rate of 10−3, dividing it by 10 at 60 and 90 epochs.
 # Train data num per epoch is 16551
 # In first 5000 steps, use small learning rate for warmup.
-_epoch_steps = int(16551 / BATCH_SIZE)
+_epoch_steps = 16551 // BATCH_SIZE
 NETWORK.LEARNING_RATE_KWARGS = {
     "values": [1e-6, 1e-4, 1e-5, 1e-6, 1e-7],
     "boundaries": [5000, _epoch_steps * 10, _epoch_steps * 60, _epoch_steps * 90],

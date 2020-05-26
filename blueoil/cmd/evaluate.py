@@ -21,13 +21,13 @@ import os
 import click
 import tensorflow as tf
 
-from lmnet import environment
+from blueoil import environment
 from blueoil.datasets.base import ObjectDetectionBase
 from blueoil.datasets.dataset_iterator import DatasetIterator
 from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
-from lmnet.utils import config as config_util
-from lmnet.utils import executor, module_loader
-from lmnet.utils.predict_output.writer import save_json
+from blueoil.utils import config as config_util
+from blueoil.utils import executor
+from blueoil.utils.predict_output.writer import save_json
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -92,7 +92,6 @@ def evaluate(config, restore_path, output_dir):
                 **network_kwargs,
             )
 
-        global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training = tf.constant(False, name="is_training")
 
         images_placeholder, labels_placeholder = model.placeholders()
@@ -103,22 +102,21 @@ def evaluate(config, restore_path, output_dir):
         model.summary(output, labels_placeholder)
 
         summary_op = tf.compat.v1.summary.merge_all()
+        metrics_summary_op = executor.metrics_summary_op(metrics_ops_dict)
 
-        metrics_summary_op, metrics_placeholders = executor.prepare_metrics(metrics_ops_dict)
-
-        init_op = tf.global_variables_initializer()
-        reset_metrics_op = tf.local_variables_initializer()
+        init_op = tf.compat.v1.global_variables_initializer()
+        reset_metrics_op = tf.compat.v1.local_variables_initializer()
         saver = tf.compat.v1.train.Saver(max_to_keep=None)
 
     session_config = None  # tf.ConfigProto(log_device_placement=True)
-    sess = tf.Session(graph=graph, config=session_config)
+    sess = tf.compat.v1.Session(graph=graph, config=session_config)
     sess.run([init_op, reset_metrics_op])
 
-    validation_writer = tf.summary.FileWriter(environment.TENSORBOARD_DIR + "/evaluate")
+    validation_writer = tf.compat.v1.summary.FileWriter(environment.TENSORBOARD_DIR + "/evaluate")
 
     saver.restore(sess, restore_path)
 
-    last_step = sess.run(global_step)
+    last_step = sess.run(model.global_step)
 
     # init metrics values
     test_step_size = int(math.ceil(validation_dataset.num_per_epoch / config.BATCH_SIZE))
@@ -140,14 +138,7 @@ def evaluate(config, restore_path, output_dir):
         else:
             sess.run([metrics_update_op], feed_dict=feed_dict)
 
-    metrics_values = sess.run(list(metrics_ops_dict.values()))
-    metrics_feed_dict = {
-        # TODO: Fix to avoid the implementation depended on the order of dict implicitly
-        placeholder: value for placeholder, value in zip(metrics_placeholders, metrics_values)
-    }
-    metrics_summary, = sess.run(
-        [metrics_summary_op], feed_dict=metrics_feed_dict,
-    )
+    metrics_summary = sess.run(metrics_summary_op)
     validation_writer.add_summary(metrics_summary, last_step)
 
     is_tfds = "TFDS_KWARGS" in config.DATASET
@@ -160,8 +151,7 @@ def evaluate(config, restore_path, output_dir):
         'dataset_name': dataset_name,
         'dataset_path': dataset_path,
         'last_step': int(last_step),
-        # TODO: Fix to avoid the implementation depended on the order of dict implicitly
-        'metrics': {k: float(v) for k, v in zip(list(metrics_ops_dict.keys()), metrics_values)},
+        'metrics': {k: float(sess.run(op)) for k, op in metrics_ops_dict.items()},
     }
     save_json(output_dir, json.dumps(metrics_dict, indent=4,), metrics_dict["last_step"])
     validation_dataset.close()
@@ -179,16 +169,6 @@ def evaluate(config, restore_path, output_dir):
     help="restore ckpt file base path. e.g. saved/experiment/checkpoints/save.ckpt-10001",
 )
 @click.option(
-    "-n",
-    "--network",
-    help="network name. override config.NETWORK_CLASS",
-)
-@click.option(
-    "-d",
-    "--dataset",
-    help="dataset name. override config.DATASET_CLASS",
-)
-@click.option(
     "-c",
     "--config_file",
     help="config file path. override(merge) saved experiment config. if it is not provided, it restore from saved experiment config.", # NOQA
@@ -198,20 +178,13 @@ def evaluate(config, restore_path, output_dir):
     "--output_dir",
     help="Output directory to save a evaluated result",
 )
-def main(network, dataset, config_file, experiment_id, restore_path, output_dir):
+def main(config_file, experiment_id, restore_path, output_dir):
     environment.init(experiment_id)
 
     config = config_util.load_from_experiment()
 
     if config_file:
         config = config_util.merge(config, config_util.load(config_file))
-
-    if network:
-        network_class = module_loader.load_network_class(network)
-        config.NETWORK_CLASS = network_class
-    if dataset:
-        dataset_class = module_loader.load_dataset_class(dataset)
-        config.DATASET_CLASS = dataset_class
 
     executor.init_logging(config)
     config_util.display(config)

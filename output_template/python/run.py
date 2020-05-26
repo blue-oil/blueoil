@@ -20,12 +20,12 @@ import os
 import sys
 import time
 
-from lmnet.nnlib import NNLib as NNLib
+from lmnet.nnlib import NNLib
 
-from lmnet.utils.image import load_image
-from lmnet.common import Tasks
-from lmnet.utils.output import JsonOutput, ImageFromJson
-from lmnet.utils.config import (
+from blueoil.utils.image import load_image
+from blueoil.common import Tasks
+from blueoil.utils.predict_output.output import JsonOutput, ImageFromJson
+from config import (
     load_yaml,
     build_pre_process,
     build_post_process,
@@ -34,16 +34,17 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def _pre_process(raw_image, pre_processor, data_format):
-    pre_process = build_pre_process(pre_processor)
+def _pre_process(raw_image, pre_process, data_format):
     image = pre_process(image=raw_image)['image']
     if data_format == 'NCHW':
         image = np.transpose(image, [2, 0, 1])
+
+    # add the batch dimension
+    image = np.expand_dims(image, axis=0)
     return image
 
 
-def _post_process(output, post_processor):
-    post_process = build_post_process(post_processor)
+def _post_process(output, post_process):
     output = post_process(outputs=output)['outputs']
     return output
 
@@ -69,7 +70,7 @@ def _save_images(output_dir, filename_images):
         logger.info("save image: {}".format(output_file_name))
 
 
-def _run(model, image_data, config):
+def _init(model, config):
     filename, file_extension = os.path.splitext(model)
     supported_files = ['.so', '.pb']
 
@@ -92,17 +93,19 @@ def _run(model, image_data, config):
         nn = TensorflowGraphRunner(model)
         nn.init()
 
+    return nn
+
+
+def _run(nn, image_data):
     # run the graph
-    output = nn.run(image_data)
-
-    return output
+    return nn.run(image_data)
 
 
-def _timerfunc(func, extraArgs, trial):
+def _timerfunc(func, extraArgs, trial=1):
     if sys.version_info.major == 2:
-        get_time = time.clock
+        get_time = time.time
     else:
-        get_time = time.process_time
+        get_time = time.perf_counter
 
     runtime = 0.
     for i in range(trial):
@@ -112,11 +115,10 @@ def _timerfunc(func, extraArgs, trial):
         runtime += end - start
         msg = "Function {func} took {time} seconds to complete"
         logger.info(msg.format(func=func.__name__, time=end - start))
-    logger.info("Avg(func {}): {} sec.".format(func.__name__, runtime / trial))
     return value, runtime / trial
 
 
-def run_prediction(input_image, model, config_file, max_percent_incorrect_values=0.1, trial=1):
+def run_prediction(input_image, model, config_file, trial=1):
     if not input_image or not model or not config_file:
         logger.error('Please check usage with --help option')
         exit(1)
@@ -127,21 +129,43 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
     image_data = load_image(input_image)
     raw_image = image_data
 
-    # pre process for image
-    image_data, bench_pre = _timerfunc(_pre_process, (image_data, config.PRE_PROCESSOR, config.DATA_FORMAT), trial)
+    # initialize Network
+    nn = _init(model, config)
 
-    # add the batch dimension
-    image_data = np.expand_dims(image_data, axis=0)
+    pre_process = build_pre_process(config.PRE_PROCESSOR)
+    post_process = build_post_process(config.POST_PROCESSOR)
 
-    # run the model to inference
-    output, bench_inference = _timerfunc(_run, (model, image_data, config), trial)
+    # call functions once to exclude the first result which include some initializations 
+    init_output = _pre_process(image_data, pre_process, config.DATA_FORMAT)
+    init_output = _run(nn, init_output)
+    init_output = _post_process(init_output, post_process)
 
-    logger.info('Output: (before post process)\n{}'.format(output))
+    results_total = []
+    results_pre = []
+    results_run = []
+    results_post = []
 
-    # pre process for output
-    output, bench_post = _timerfunc(_post_process, (output, config.POST_PROCESSOR), trial)
+    for _ in range(trial):
+        # pre process for image
+        output, bench_pre = _timerfunc(_pre_process, (image_data, pre_process, config.DATA_FORMAT))
 
-    logger.info('Output: (after post process)\n{}'.format(output))
+        # run the model to inference
+        output, bench_run = _timerfunc(_run, (nn, output))
+
+        # pre process for output
+        output, bench_post = _timerfunc(_post_process, (output, post_process))
+
+        results_total.append(bench_pre + bench_run + bench_post)
+        results_pre.append(bench_pre)
+        results_run.append(bench_run)
+        results_post.append(bench_post)
+
+    time_stat = {
+        "total": {"mean": np.mean(results_total), "std": np.std(results_total)},
+        "pre": {"mean": np.mean(results_pre), "std": np.std(results_pre)},
+        "post": {"mean": np.mean(results_post), "std": np.std(results_post)},
+        "run": {"mean":  np.mean(results_run), "std": np.std(results_run)},
+    }
 
     # json output
     json_output = JsonOutput(
@@ -149,12 +173,7 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
         classes=config.CLASSES,
         image_size=config.IMAGE_SIZE,
         data_format=config.DATA_FORMAT,
-        bench={
-            "total": (bench_pre + bench_post + bench_inference) / trial,
-            "pre": bench_pre / trial,
-            "post": bench_post / trial,
-            "inference": bench_inference / trial,
-        },
+        bench=time_stat,
     )
 
     image_from_json = ImageFromJson(
@@ -171,9 +190,8 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
     _save_json(output_dir, json_obj)
     filename_images = image_from_json(json_obj, raw_images, image_files)
     _save_images(output_dir, filename_images)
-    logger.info("Benchmark avg result(sec) for {} trials: pre_process: {}  inference: {} post_process: {}  Total: {}"
-                .format(trial, bench_pre / trial, bench_inference / trial, bench_post / trial,
-                        (bench_pre + bench_post + bench_inference) / trial,))
+    logger.info("Benchmark avg result(sec) for {} trials".format(trial))
+    logger.info(time_stat)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
@@ -192,7 +210,7 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
-    default="../models/lib/lib_fpga.so",
+    default="../models/lib/libdlk_fpga.so",
 )
 @click.option(
     "-c",
@@ -208,7 +226,7 @@ def run_prediction(input_image, model, config_file, max_percent_incorrect_values
 )
 def main(input_image, model, config_file, trial):
     _check_deprecated_arguments()
-    run_prediction(input_image, model, config_file, trial)
+    run_prediction(input_image, model, config_file, trial=trial)
 
 
 def _check_deprecated_arguments():

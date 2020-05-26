@@ -21,23 +21,23 @@ CLASSES:
 - train
 - tvmonitor
 DATASET:
-  AUGMENTOR: !!python/object:lmnet.data_processor.Sequence
+  AUGMENTOR: !!python/object:blueoil.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.data_augmentor.FlipLeftRight
+    - !!python/object:blueoil.data_augmentor.FlipLeftRight
       probability: 0.5
-    - !!python/object:lmnet.data_augmentor.Brightness
+    - !!python/object:blueoil.data_augmentor.Brightness
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Color
+    - !!python/object:blueoil.data_augmentor.Color
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Contrast
+    - !!python/object:blueoil.data_augmentor.Contrast
       max_value: 1.25
       min_value: 0.75
-    - !!python/object:lmnet.data_augmentor.Hue
+    - !!python/object:blueoil.data_augmentor.Hue
       max_value: 10
       min_value: -10
-    - !!python/object:lmnet.data_augmentor.SSDRandomCrop
+    - !!python/object:blueoil.data_augmentor.SSDRandomCrop
       aspect_ratio_max: 2
       aspect_ratio_min: 0.5
       min_crop_ratio: 0.7
@@ -60,13 +60,13 @@ DATASET:
         - null
   BATCH_SIZE: 16
   DATA_FORMAT: NCHW
-  PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+  PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     processors:
-    - !!python/object:lmnet.pre_processor.ResizeWithGtBoxes
+    - !!python/object:blueoil.pre_processor.ResizeWithGtBoxes
       size:
       - 320
       - 320
-    - !!python/object:lmnet.pre_processor.DivideBy255 {}
+    - !!python/object:blueoil.pre_processor.DivideBy255 {}
 DATASET_CLASS: !!python/name:blueoil.datasets.pascalvoc_2007_2012.Pascalvoc20072012 ''
 DATA_FORMAT: NCHW
 IMAGE_SIZE:
@@ -77,7 +77,7 @@ IS_PRETRAIN: false
 KEEP_CHECKPOINT_MAX: 5
 MAX_EPOCHS: 100
 NETWORK:
-  ACTIVATION_QUANTIZER: !!python/name:blueoil.nn.quantizations.linear.linear_mid_tread_half_quantizer ''
+  ACTIVATION_QUANTIZER: !!python/name:blueoil.quantizations.linear.linear_mid_tread_half_quantizer ''
   ACTIVATION_QUANTIZER_KWARGS:
     bit: 2
     max_value: 2.0
@@ -130,13 +130,13 @@ NETWORK:
   QUANTIZE_LAST_CONVOLUTION: false
   SCORE_THRESHOLD: 0.05
   WEIGHT_DECAY_RATE: 0.0005
-  WEIGHT_QUANTIZER: !!python/name:blueoil.nn.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
+  WEIGHT_QUANTIZER: !!python/name:blueoil.quantizations.binary.binary_channel_wise_mean_scaling_quantizer ''
   WEIGHT_QUANTIZER_KWARGS: {}
 NETWORK_CLASS: !!python/name:blueoil.networks.object_detection.yolo_v2_quantize.YoloV2Quantize ''
-NMS: !!python/name:lmnet.post_processor.NMS ''
-POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+NMS: !!python/name:blueoil.post_processor.NMS ''
+POST_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.post_processor.FormatYoloV2
+  - !!python/object:blueoil.post_processor.FormatYoloV2
     anchors:
     - !!python/tuple
       - 1.3221
@@ -159,9 +159,9 @@ POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
     - 320
     - 320
     num_classes: 20
-  - !!python/object:lmnet.post_processor.ExcludeLowScoreBox
+  - !!python/object:blueoil.post_processor.ExcludeLowScoreBox
     threshold: 0.05
-  - !!python/object:lmnet.post_processor.NMS
+  - !!python/object:blueoil.post_processor.NMS
     classes:
     - aeroplane
     - bicycle
@@ -189,15 +189,15 @@ POST_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
 PRETRAIN_DIR: ''
 PRETRAIN_FILE: ''
 PRETRAIN_VARS: []
-PRE_PROCESSOR: !!python/object:lmnet.data_processor.Sequence
+PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
-  - !!python/object:lmnet.pre_processor.ResizeWithGtBoxes
+  - !!python/object:blueoil.pre_processor.ResizeWithGtBoxes
     size:
     - 320
     - 320
-  - !!python/object:lmnet.pre_processor.DivideBy255 {}
+  - !!python/object:blueoil.pre_processor.DivideBy255 {}
 SAVE_CHECKPOINT_STEPS: 100
 SUMMARISE_STEPS: 10
-TASK: !!python/object/apply:lmnet.common.Tasks
+TASK: !!python/object/apply:blueoil.common.Tasks
 - IMAGE.OBJECT_DETECTION
 TEST_STEPS: 100

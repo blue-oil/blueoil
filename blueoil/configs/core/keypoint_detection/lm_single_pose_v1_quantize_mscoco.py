@@ -16,24 +16,24 @@
 from easydict import EasyDict
 import tensorflow as tf
 
-from lmnet.common import Tasks
+from blueoil.common import Tasks
 from blueoil.networks.keypoint_detection.lm_single_pose_v1 import LmSinglePoseV1Quantize
 from blueoil.datasets.mscoco_2017 import MscocoSinglePersonKeypoints
-from lmnet.data_processor import Sequence
-from lmnet.pre_processor import (
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
     DivideBy255,
     ResizeWithJoints,
     JointsToGaussianHeatmap
 )
-from lmnet.post_processor import (
+from blueoil.post_processor import (
     GaussianHeatmapToJoints
 )
-from lmnet.data_augmentor import (
+from blueoil.data_augmentor import (
     Brightness,
     Color,
     Contrast
 )
-from blueoil.nn.quantizations import (
+from blueoil.quantizations import (
     binary_channel_wise_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
@@ -85,9 +85,9 @@ POST_PROCESSOR = Sequence([
 step_per_epoch = 149813 // BATCH_SIZE
 
 NETWORK = EasyDict()
-NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
+NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.AdamOptimizer
 NETWORK.OPTIMIZER_KWARGS = {}
-NETWORK.LEARNING_RATE_FUNC = tf.train.piecewise_constant
+NETWORK.LEARNING_RATE_FUNC = tf.compat.v1.train.piecewise_constant
 NETWORK.LEARNING_RATE_KWARGS = {
         "values": [1e-4, 1e-3, 1e-4, 1e-5],
         "boundaries": [5000, step_per_epoch * 5, step_per_epoch * 10],

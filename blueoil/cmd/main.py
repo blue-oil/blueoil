@@ -68,14 +68,20 @@ def init(output):
     '--experiment_id',
     help='ID of this training.',
     default=None,
-    required=False,
 )
-def train(config, experiment_id=None):
-    experiment_id, checkpoint_name = run_train(config, experiment_id)
+@click.option(
+    '--recreate',
+    is_flag=True,
+    help='Delete and recreate experiment id dir',
+    default=False,
+)
+def train(config, experiment_id, recreate):
+    experiment_id, checkpoint_name = run_train(config, experiment_id, recreate)
     click.echo('Next step: blueoil convert -e {} -p {}'.format(
         experiment_id,
         checkpoint_name
     ))
+
 
 @main.command(help='Convert trained model to binary files.')
 @click.option(
@@ -137,6 +143,12 @@ def convert(experiment_id, checkpoint, template, image_size, project_name):
     required=True,
 )
 @click.option(
+    '-c',
+    '--config',
+    help='Path of config file.',
+    default=None,
+)
+@click.option(
     '-p',
     '--checkpoint',
     help='Checkpoint name. e.g. save.ckpt-10001',
@@ -147,8 +159,8 @@ def convert(experiment_id, checkpoint, template, image_size, project_name):
     help="Flag of saving images. Default is True.",
     default=True,
 )
-def predict(input, output, experiment_id, checkpoint, save_images):
-    run_predict(input, output, experiment_id, checkpoint, save_images)
+def predict(input, output, experiment_id, config, checkpoint, save_images):
+    run_predict(input, output, experiment_id, config, checkpoint, save_images)
 
     click.echo('Result files are created: {}'.format(output))
 
