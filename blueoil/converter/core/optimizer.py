@@ -635,10 +635,10 @@ def pass_lookup(graph: Graph) -> None:
 
         get_nodes_in_branch(quantizer, placeholder[0], to_be_removed)
 
-        reserved_placeholder_ops = []
-        for out_op in placeholder[0].output_op_list:
-            if out_op not in to_be_removed:
-                reserved_placeholder_ops.append(out_op)
+        reserved_placeholder_ops = [
+            out_op for out_op in placeholder[0].output_op_list
+            if out_op not in to_be_removed
+        ]
         placeholder[0].remove_output('output')
         for add_to_placeholder in reserved_placeholder_ops:
             placeholder[0].add_output('output', add_to_placeholder)
