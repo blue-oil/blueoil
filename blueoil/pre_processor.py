@@ -19,7 +19,24 @@ import PIL.Image
 from blueoil.data_processor import Processor
 
 
-def resize(image, size=[256, 256]):
+NEAREST = "NEAREST"
+BOX = "BOX"
+BILINEAR = "BILINEAR"
+HAMMING = "HAMMING"
+BICUBIC = "BICUBIC"
+LANCZOS = "LANCZOS"
+
+RESAMPLE_METHODS = {
+    NEAREST: PIL.Image.NEAREST,
+    BOX: PIL.Image.BOX,
+    BILINEAR: PIL.Image.BILINEAR,
+    HAMMING: PIL.Image.HAMMING,
+    BICUBIC: PIL.Image.BICUBIC,
+    LANCZOS: PIL.Image.LANCZOS,
+}
+
+
+def resize(image, size=[256, 256], resample=NEAREST):
     """Resize an image.
 
     Args:
@@ -35,7 +52,7 @@ def resize(image, size=[256, 256]):
 
     image = PIL.Image.fromarray(np.uint8(image))
 
-    image = image.resize([width, height])
+    image = image.resize([width, height], RESAMPLE_METHODS[resample])
 
     image = np.array(image)
     assert image.shape[0] == height
@@ -96,7 +113,7 @@ def square(image, gt_boxes, fill=127.5):
     return result, gt_boxes
 
 
-def resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
+def resize_with_gt_boxes(image, gt_boxes, size=(256, 256), resample=NEAREST):
     """Resize an image and gt_boxes.
 
     Args:
@@ -112,7 +129,7 @@ def resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
     width = size[1]
     height = size[0]
 
-    resized_image = resize(image, (height, width))
+    resized_image = resize(image, (height, width), resample=resample)
 
     if gt_boxes is None:
         return resized_image, None
@@ -136,7 +153,7 @@ def resize_with_gt_boxes(image, gt_boxes, size=(256, 256)):
     return resized_image, resized_gt_boxes
 
 
-def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256)):
+def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256), resample=NEAREST):
     """Resize keeping ratio an image and gt_boxes.
 
     Args:
@@ -157,7 +174,7 @@ def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256)):
         width = size[1]
         height = origin_height * width // origin_width
 
-    resized_image = resize(image, (height, width))
+    resized_image = resize(image, (height, width), resample=resample)
 
     scale = [height / origin_height, width / origin_width]
 
@@ -170,7 +187,7 @@ def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256)):
     return resized_image, gt_boxes
 
 
-def resize_with_joints(image, joints, image_size):
+def resize_with_joints(image, joints, image_size, resample=NEAREST):
     """Resize image with joints to target image_size.
 
     Args:
@@ -189,7 +206,7 @@ def resize_with_joints(image, joints, image_size):
     scale_height = image_size[0] / original_height
     scale_width = image_size[1] / original_width
 
-    resized_image = resize(image, image_size)
+    resized_image = resize(image, image_size, resample=resample)
 
     new_joints = joints.copy()
     new_joints[:, 0] *= scale_width
@@ -358,13 +375,14 @@ class Resize(Processor):
 
     """
 
-    def __init__(self, size):
+    def __init__(self, size, resample=NEAREST):
         self.size = size
+        self.resample = resample
 
     def __call__(self, image, mask=None, **kwargs):
-        image = resize(image, size=self.size)
+        image = resize(image, size=self.size, resample=self.resample)
         if mask is not None:
-            mask = resize(mask, size=self.size)
+            mask = resize(mask, size=self.size, resample=self.resample)
         return dict({'image': image, 'mask': mask}, **kwargs)
 
 
@@ -378,11 +396,12 @@ class ResizeWithGtBoxes(Processor):
 
     """
 
-    def __init__(self, size):
+    def __init__(self, size, resample=NEAREST):
         self.size = size
+        self.resample = resample
 
     def __call__(self, image, gt_boxes=None, **kwargs):
-        image, gt_boxes = resize_with_gt_boxes(image, gt_boxes, self.size)
+        image, gt_boxes = resize_with_gt_boxes(image, gt_boxes, self.size, resample=self.resample)
         return dict({'image': image, 'gt_boxes': gt_boxes}, **kwargs)
 
 
@@ -396,28 +415,31 @@ class ResizeWithMask(Processor):
 
     """
 
-    def __init__(self, size):
+    def __init__(self, size, resample=NEAREST):
         self.size = size
+        self.resample = resample
 
     def __call__(self, image, mask=None, **kwargs):
-        image = resize(image, size=self.size)
+        image = resize(image, size=self.size, resample=self.resample)
         if mask is not None:
-            mask = resize(mask, size=self.size)
+            mask = resize(mask, size=self.size, resaple=self.resample)
         return dict({'image': image, 'mask': mask}, **kwargs)
 
 
 class ResizeWithJoints(Processor):
 
-    def __init__(self, image_size):
+    def __init__(self, image_size, resample=NEAREST):
         self.image_size = image_size
+        self.resample = resample
 
     def __call__(self, image, joints=None, **kwargs):
         if joints is None:
-            resized_image = resize(image, size=self.image_size)
+            resized_image = resize(image, size=self.image_size, resample=self.resample)
             return dict({'image': resized_image}, **kwargs)
 
         resized_image, new_joints = resize_with_joints(image=image, joints=joints,
-                                                       image_size=self.image_size)
+                                                       image_size=self.image_size,
+                                                       resample=self.resample)
         return dict({'image': resized_image, 'joints': new_joints}, **kwargs)
 
 
@@ -434,11 +456,12 @@ class DivideBy255(Processor):
 class LetterBoxes(Processor):
     """Darknet's letter boxes"""
 
-    def __init__(self, size):
+    def __init__(self, size, resample=NEAREST):
         self.size = size
+        self.resample = resample
 
     def __call__(self, image, gt_boxes=None, **kwargs):
-        image, gt_boxes = resize_keep_ratio_with_gt_boxes(image, gt_boxes, self.size)
+        image, gt_boxes = resize_keep_ratio_with_gt_boxes(image, gt_boxes, self.size, resample=self.resample)
         image = image / 255.0
         image, gt_boxes = square(image, gt_boxes, fill=0.5)
         return dict({'image': image, 'gt_boxes': gt_boxes}, **kwargs)
