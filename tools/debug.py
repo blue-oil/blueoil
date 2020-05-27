@@ -134,7 +134,9 @@ class QuantizedMatrix(object):
         raise NotImplemented
 
     def make_packed_matrix(self, qmat):
-        if self.arrangement in {'Sequential', 'BitInterleaving'}:
+        if self.arrangement == 'Sequential':
+            raise NotImplemented
+        if self.arrangement == 'BitInterleaving':
             raise NotImplemented
         if self.arrangement != 'WordInterleaving':
             raise NotImplemented
