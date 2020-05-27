@@ -485,40 +485,39 @@ class Importer(object):
             node_rank = len(input_node.get_shape())
             return out_format if node_rank == len(out_format) else rank_to_format[node_rank]
 
-        if isinstance(node, Node):
-            if node.get_format() is None:
-                out_format = output_format or guess_node_format(node)
-            else:
-                out_format = node.get_format()
-
-            op_type = self.convert_operator(node.op_type)
-            if op_type == 'Conv':
-                return out_format, [out_format, _default_w_format, 'C']
-            elif op_type in ['BinaryMeanScalingQuantizer', 'BinaryChannelWiseMeanScalingQuantizer']:
-                return _default_w_format, [_default_w_format]
-            elif op_type in {'LinearMidTreadHalfQuantizer'}:
-                return out_format, [out_format, 'Atom', 'Atom']
-            elif op_type == 'Pad':
-                return out_format, [out_format, 'Padding']
-            elif op_type == 'Transpose':
-                perm = list(node.attribute("perm"))
-                inv_perm = [perm.index(i) for i in range(len(perm))]  # inverse permutation
-                input_format = functools.reduce(
-                    lambda x, y: x + y, [output_format[i] for i in inv_perm])
-                return output_format, [input_format]
-            else:
-                input_format_list = []
-                for node_name in node.inputs:
-                    node_object = self.node_dic[node_name]
-                    if not isinstance(node_object, Input):
-                        node_object_format = node_object.get_format() if node_object.get_format() is not None else \
-                            guess_node_format(node_object)
-                    else:
-                        node_object_format = guess_node_format(node_object)
-                    input_format_list.append(node_object_format)
-                return out_format, input_format_list
-        else:
+        if not isinstance(node, Node):
             return output_format, [output_format]
+
+        if node.get_format() is None:
+            out_format = output_format or guess_node_format(node)
+        else:
+            out_format = node.get_format()
+
+        op_type = self.convert_operator(node.op_type)
+        if op_type == 'Conv':
+            return out_format, [out_format, _default_w_format, 'C']
+        if op_type in ['BinaryMeanScalingQuantizer', 'BinaryChannelWiseMeanScalingQuantizer']:
+            return _default_w_format, [_default_w_format]
+        if op_type in {'LinearMidTreadHalfQuantizer'}:
+            return out_format, [out_format, 'Atom', 'Atom']
+        if op_type == 'Pad':
+            return out_format, [out_format, 'Padding']
+        if op_type == 'Transpose':
+            perm = list(node.attribute("perm"))
+            inv_perm = [perm.index(i) for i in range(len(perm))]  # inverse permutation
+            input_format = functools.reduce(
+                lambda x, y: x + y, [output_format[i] for i in inv_perm])
+            return output_format, [input_format]
+        input_format_list = []
+        for node_name in node.inputs:
+            node_object = self.node_dic[node_name]
+            if not isinstance(node_object, Input):
+                node_object_format = node_object.get_format() if node_object.get_format() is not None else \
+                    guess_node_format(node_object)
+            else:
+                node_object_format = guess_node_format(node_object)
+            input_format_list.append(node_object_format)
+        return out_format, input_format_list
 
     def add_node_to_graph_recursive(self, current: Any,
                                     graph: Graph, visited: Set[Any],

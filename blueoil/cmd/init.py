@@ -139,22 +139,22 @@ learning_rate_schedule_map = OrderedDict([
 def network_name_choices(task_type):
     if task_type == 'classification':
         return [definition['name'] for definition in classification_network_definitions]
-    elif task_type == 'object_detection':
+    if task_type == 'object_detection':
         return [definition['name'] for definition in object_detection_network_definitions]
-    elif task_type == 'semantic_segmentation':
+    if task_type == 'semantic_segmentation':
         return [definition['name'] for definition in semantic_segmentation_network_definitions]
-    elif task_type == 'keypoint_detection':
+    if task_type == 'keypoint_detection':
         return [definition['name'] for definition in keypoint_detection_network_definitions]
 
 
 def dataset_format_choices(task_type):
     if task_type == 'classification':
         return [definition['name'] for definition in classification_dataset_formats]
-    elif task_type == 'object_detection':
+    if task_type == 'object_detection':
         return [definition['name'] for definition in object_detection_dataset_formats]
-    elif task_type == 'semantic_segmentation':
+    if task_type == 'semantic_segmentation':
         return [definition['name'] for definition in semantic_segmentation_dataset_formats]
-    elif task_type == 'keypoint_detection':
+    if task_type == 'keypoint_detection':
         return [definition['name'] for definition in keypoint_detection_dataset_formats]
 
 
