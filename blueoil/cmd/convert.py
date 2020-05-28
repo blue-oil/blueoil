@@ -144,9 +144,10 @@ def run(experiment_id,
     Args:
         experiment_id:
         restore_path:
-        output_template_dir:  (Default value = None)
-        image_size: (Default value = (None)
+        output_template_dir: (Default value = None)
+        image_size: (Default value = None)
         project_name: (Default value = None)
+        test_image: (Default value = DEFAULT_INFERENCE_TEST_DATA_IMAGE)
 
     Returns:
         str: Path of exported dir.
