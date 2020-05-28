@@ -2,7 +2,7 @@
 
 
 ```
-$ PYTHONPATH=.:blueoil:blueoil/cmd python blueoil/cmd/main.py train -c config/test.py
+$ python blueoil/cmd/main.py train -c config/test.py
 
 Usage:
   main.py train [OPTIONS]

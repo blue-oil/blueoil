@@ -1,7 +1,7 @@
 # Convert your training result to FPGA ready format
 
 ```
-$ PYTHONPATH=.:blueoil:blueoil/cmd python blueoil/cmd/main.py convert -e test_20180101000000
+$ python blueoil/cmd/main.py convert -e test_20180101000000
 
 Usage:
   main.py convert [OPTIONS]
