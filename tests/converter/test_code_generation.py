@@ -98,9 +98,12 @@ def get_configurations_by_test_cases(test_cases, configuration):
 
 def get_configurations_by_architecture(test_cases, cpu_name, use_fpga):
     configurations = []
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_classification(cpu_name, use_fpga)))
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_classification_resnet(cpu_name, use_fpga)))
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_object_detection(cpu_name, use_fpga)))
+    configurations.extend(get_configurations_by_test_cases(test_cases,
+                                                           dict_codegen_classification(cpu_name, use_fpga)))
+    configurations.extend(get_configurations_by_test_cases(test_cases,
+                                                           dict_codegen_classification_resnet(cpu_name, use_fpga)))
+    configurations.extend(get_configurations_by_test_cases(test_cases,
+                                                           dict_codegen_object_detection(cpu_name, use_fpga)))
     configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_segmentation(cpu_name, use_fpga)))
 
     return configurations
@@ -405,7 +408,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         if not use_run_test_script:
             if cpu_name == 'x86' or cpu_name == 'x86_avx':
                 percent_failed = self.run_library(generated_lib, input_path, expected_output_path)
-            elif cpu_name == 'arm': # FPGA is also tested here
+            elif cpu_name == 'arm':  # FPGA is also tested here
                 percent_failed = \
                     self.run_library_on_remote(FPGA_HOST, output_path, generated_lib, input_path, expected_output_path)
             elif cpu_name == 'aarch64':
