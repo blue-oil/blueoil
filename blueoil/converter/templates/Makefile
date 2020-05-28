@@ -2,10 +2,17 @@ SRC_DIR := ./src
 MAINS_DIR := ./mains
 INPUTS_SRC_DIR := ./src/inputs
 
+TYPE_ARGUMENT := {executable, dynamic, static}
+
 .PHONY: help
 help:
 	@echo make clean
-	@echo make build ARCH={x86, x86_avx, aarch64, arm, fpga, fpga_aarch64} TYPE={executable, dynamic, static}
+	@echo make build ARCH=x86 TYPE=$(TYPE_ARGUMENT) 
+	@echo make build ARCH=x86_avx TYPE=$(TYPE_ARGUMENT) 
+	@echo make build ARCH=aarch64 TYPE=$(TYPE_ARGUMENT) 
+	@echo make build ARCH=aarch64 USE_FPGA TYPE=$(TYPE_ARGUMENT) 
+	@echo make build ARCH=arm TYPE=$(TYPE_ARGUMENT) 
+	@echo make build ARCH=arm USE_FPGA TYPE=$(TYPE_ARGUMENT) 
 
 LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(wildcard $(SRC_DIR)/scaling_factors.cpp) \
@@ -51,12 +58,12 @@ LIB_AARCH64_SRC := \
 LIB_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_SRC))
 LIB_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_OBJ))
 
-LIB_FPGA_AARCH64_SRC := \
+LIB_AARCH64_FPGA_SRC := \
     $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/fpga/quantized_conv2d_accelerator.cpp \
     $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp
-LIB_FPGA_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_FPGA_AARCH64_SRC))
-LIB_FPGA_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_FPGA_AARCH64_OBJ))
+LIB_AARCH64_FPGA_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_FPGA_SRC))
+LIB_AARCH64_FPGA_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_FPGA_OBJ))
 
 LIB_X86_SRC := \
     $(SRC_DIR)/func/generic/batch_normalization.cpp \
@@ -81,7 +88,7 @@ INCLUDES := -I./include
 ALL_OBJ := \
     $(MAIN_OBJ) $(LIB_OBJ) \
     $(LIB_X86_OBJ) $(LIB_X86_AVX_OBJ) \
-    $(LIB_AARCH64_OBJ) $(LIB_FPGA_AARCH64_OBJ) \
+    $(LIB_AARCH64_OBJ) $(LIB_AARCH64_FPGA_OBJ) \
     $(LIB_ARM_OBJ) $(LIB_FPGA_OBJ)
 
 ALL_DEP := $(ALL_OBJ:.o=.d)
@@ -102,66 +109,53 @@ clean:
 CXXFLAGS := -I./include -O3 -std=c++14 -g -MMD -MP
 ARFLAGS := -rcs
 LDFLAGS += -pthread -ldl
+BASE_NAME = $(ARCH)
 
 ################################
 # Set variables by ARCH
 ################################
-
 ifeq ($(ARCH), x86)
-CPU := cpu_x86
-CXXFLAGS +=
-OBJ := $(LIB_X86_OBJ)
-endif
-
-ifeq ($(ARCH), x86_avx)
-CPU := cpu_x86
-CXXFLAGS += -mavx2 -mfma -DUSE_AVX -fopenmp
-OBJ := $(LIB_X86_AVX_OBJ)
-endif
-
-ifeq ($(ARCH), aarch64)
-CPU := cpu_aarch64
-CXXFLAGS +=
-OBJ := $(LIB_AARCH64_OBJ)
-endif
-
-ifeq ($(ARCH), fpga_aarch64)
-CPU := cpu_aarch64
-CXXFLAGS += -DRUN_ON_FPGA
-OBJ := $(LIB_FPGA_AARCH64_OBJ)
-endif
-
-ifeq ($(ARCH), arm)
-CPU := cpu_arm
-CXXFLAGS +=
-OBJ := $(LIB_ARM_OBJ)
-endif
-
-ifeq ($(ARCH), fpga)
-CPU := cpu_arm
-CXXFLAGS += -DRUN_ON_FPGA
-OBJ := $(LIB_FPGA_OBJ)
-endif
-
-################################
-# Set variables by CPU
-################################
-ifeq ($(CPU), cpu_x86)
 CXX := g++
 CXXFLAGS +=
+OBJ := $(LIB_X86_OBJ)
 AR = ar
 endif
 
-ifeq ($(CPU), cpu_aarch64)
+ifeq ($(ARCH), x86_avx)
+CXX := g++
+CXXFLAGS += -mavx2 -mfma -DUSE_AVX -fopenmp
+OBJ := $(LIB_X86_AVX_OBJ)
+AR = ar
+endif
+
+ifeq ($(ARCH), aarch64)
 CXX := aarch64-linux-gnu-g++
 CXXFLAGS += -DUSE_NEON -fopenmp
 AR = aarch64-linux-gnu-ar
+
+ifndef USE_FPGA
+OBJ := $(LIB_AARCH64_OBJ)
+else
+OBJ := $(LIB_AARCH64_FPGA_OBJ)
+CXXFLAGS += -DRUN_ON_FPGA
+BASE_NAME += _fpga
 endif
 
-ifeq ($(CPU), cpu_arm)
+endif
+
+ifeq ($(ARCH), arm)
 CXX := arm-linux-gnueabihf-g++
 CXXFLAGS += -DUSE_NEON -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fopenmp
 AR = arm-linux-gnueabihf-ar
+
+ifndef USE_FPGA
+OBJ := $(LIB_ARM_OBJ)
+else
+OBJ := $(LIB_FPGA_OBJ)
+CXXFLAGS += -DRUN_ON_FPGA
+BASE_NAME += _fpga
+endif
+
 endif
 
 ################################
@@ -171,7 +165,7 @@ ifeq ($(TYPE), executable)
 OBJ += $(MAIN_OBJ)
 CXXFLAGS += -DUSE_PNG -DFUNC_TIME_MEASUREMENT
 LDFLAGS +=
-NAME := lm_$(ARCH).elf
+NAME := lm_$(BASE_NAME).elf
 LINK := $(CXX) $(OBJ) -o $(NAME) $(CXXFLAGS) $(LDFLAGS)
 endif
 
@@ -179,7 +173,7 @@ ifeq ($(TYPE), dynamic)
 OBJ += $(LIB_OBJ)
 CXXFLAGS += -fPIC -fvisibility=hidden
 LDFLAGS += -shared
-NAME := libdlk_$(ARCH).so
+NAME := libdlk_$(BASE_NAME).so
 LINK := $(CXX) $(OBJ) -o $(NAME) $(CXXFLAGS) $(LDFLAGS)
 endif
 
@@ -187,7 +181,7 @@ ifeq ($(TYPE), static)
 OBJ += $(LIB_OBJ)
 CXXFLAGS += -fPIC -fvisibility=hidden
 LDFLAGS +=
-NAME := libdlk_$(ARCH).a
+NAME := libdlk_$(BASE_NAME).a
 LINK := $(AR) $(ARFLAGS) $(NAME) $(OBJ)
 endif
 
