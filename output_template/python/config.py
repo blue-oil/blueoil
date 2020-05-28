@@ -25,6 +25,17 @@ from blueoil import post_processor, pre_processor
 
 
 def load_yaml(config_file):
+    """Load meta.yaml that is output when the model is converted.
+
+    Args:
+        config_file (str): Path of the configuration file.
+
+    Returns:
+        EasyDict: Dictionary object of loaded configuration file.
+
+    Examples:
+        >>> config = load_yaml("/path/of/meta.yaml")
+    """
     with open(config_file) as config_file_stream:
         config = yaml.load(config_file_stream, Loader=yaml.Loader)
     # use only upper key.
@@ -32,10 +43,60 @@ def load_yaml(config_file):
 
 
 def build_pre_process(pre_processor_config):
+    """The pre processor is loaded based on the information passed,
+    It is append to a Sequence object and returned in.
+
+    Args:
+        pre_processor_config (List[Dict[str, Optional[Dict[str, Any]]]]): List of processors to load.
+
+    Returns:
+        Sequence: A Sequence object with a list of processors inside.
+
+    Examples:
+        >>> config = [
+                {"Resize": {"size": [128, 128], "resample": "NEAREST"}},
+                {"PerImageStandardization": None},
+            ]
+        >>> pre_processors = build_pre_process(config)
+    """
     return _build_process(pre_processor, pre_processor_config)
 
 
 def build_post_process(post_processor_config):
+    """The post processor is loaded based on the information passed,
+    It is append to a Sequence object and returned in.
+
+    Args:
+        post_processor_config (List[Dict[str, Optional[Dict[str, Any]]]]): List of processors to load.
+
+    Returns:
+        Sequence: A Sequence object with a list of processors inside.
+
+    Examples:
+        >>> config = [
+                {"FormatYoloV2": {
+                    "anchors": [
+                        [1.3221, 1.73145],
+                        [3.19275, 4.00944],
+                        [5.05587, 8.09892],
+                        [9.47112, 4.84053],
+                        [11.2364, 10.0071],
+                    ],
+                    "boxes_per_cell": 5,
+                    "data_format": "NHWC",
+                    "image_size": [128, 128],
+                    "num_classes": 1,
+                }},
+                {"ExcludeLowScoreBox": {"threshold": 0.3}},
+                {"NMS": {
+                    "classes": ["person"],
+                    "iou_threshold": 0.5,
+                    "max_output_size": 100,
+                    "per_class": True,
+                }},
+            ]
+        >>> post_processors = build_post_process(config)
+    """
     return _build_process(post_processor, post_processor_config)
 
 
