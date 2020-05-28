@@ -19,29 +19,28 @@ import PIL.Image
 from blueoil.data_processor import Processor
 
 
-NEAREST = "NEAREST"
-BOX = "BOX"
-BILINEAR = "BILINEAR"
-HAMMING = "HAMMING"
-BICUBIC = "BICUBIC"
-LANCZOS = "LANCZOS"
-
+"""
+A list of resampling filters for image resizing.
+See the Pillow documentation below for details.
+https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-filters
+"""
 RESAMPLE_METHODS = {
-    NEAREST: PIL.Image.NEAREST,
-    BOX: PIL.Image.BOX,
-    BILINEAR: PIL.Image.BILINEAR,
-    HAMMING: PIL.Image.HAMMING,
-    BICUBIC: PIL.Image.BICUBIC,
-    LANCZOS: PIL.Image.LANCZOS,
+    "NEAREST": PIL.Image.NEAREST,
+    "BOX": PIL.Image.BOX,
+    "BILINEAR": PIL.Image.BILINEAR,
+    "HAMMING": PIL.Image.HAMMING,
+    "BICUBIC": PIL.Image.BICUBIC,
+    "LANCZOS": PIL.Image.LANCZOS,
 }
 
 
-def resize(image, size=[256, 256], resample=NEAREST):
+def resize(image, size=[256, 256], resample="NEAREST"):
     """Resize an image.
 
     Args:
         image (np.ndarray): an image numpy array.
         size: [height, width]
+        resample (str): A name of resampling filter
 
     """
     width = size[1]
@@ -113,13 +112,14 @@ def square(image, gt_boxes, fill=127.5):
     return result, gt_boxes
 
 
-def resize_with_gt_boxes(image, gt_boxes, size=(256, 256), resample=NEAREST):
+def resize_with_gt_boxes(image, gt_boxes, size=(256, 256), resample="NEAREST"):
     """Resize an image and gt_boxes.
 
     Args:
         image (np.ndarray): An image numpy array.
         gt_boxes (np.ndarray): Ground truth boxes in the image. shape is [num_boxes, 5(x, y, width, height, class_id)].
         size: [height, width]
+        resample (str): A name of resampling filter
 
     """
 
@@ -153,7 +153,7 @@ def resize_with_gt_boxes(image, gt_boxes, size=(256, 256), resample=NEAREST):
     return resized_image, resized_gt_boxes
 
 
-def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256), resample=NEAREST):
+def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256), resample="NEAREST"):
     """Resize keeping ratio an image and gt_boxes.
 
     Args:
@@ -161,6 +161,7 @@ def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256), resample=N
         gt_boxes (list): Python list ground truth boxes in the image. shape is
             [num_boxes, 5(x, y, width, height)].
         size: [height, width]
+        resample (str): A name of resampling filter
 
     """
     origin_width = image.shape[1]
@@ -187,13 +188,14 @@ def resize_keep_ratio_with_gt_boxes(image, gt_boxes, size=(256, 256), resample=N
     return resized_image, gt_boxes
 
 
-def resize_with_joints(image, joints, image_size, resample=NEAREST):
+def resize_with_joints(image, joints, image_size, resample="NEAREST"):
     """Resize image with joints to target image_size.
 
     Args:
         image: a numpy array of shape (height, width, 3).
         joints: a numpy array of shape (num_joints, 3).
         image_size: a tuple, (new_height, new_width).
+        resample (str): A name of resampling filter
 
     Returns:
         resized_image: a numpy array of shape (new_height, new_width, 3).
@@ -372,10 +374,11 @@ class Resize(Processor):
 
     Args:
         size: Target size.
+        resample (str): A name of resampling filter
 
     """
 
-    def __init__(self, size, resample=NEAREST):
+    def __init__(self, size, resample="NEAREST"):
         self.size = size
         self.resample = resample
 
@@ -393,10 +396,11 @@ class ResizeWithGtBoxes(Processor):
 
     Args:
         size: Target size.
+        resample (str): A name of resampling filter
 
     """
 
-    def __init__(self, size, resample=NEAREST):
+    def __init__(self, size, resample="NEAREST"):
         self.size = size
         self.resample = resample
 
@@ -412,10 +416,11 @@ class ResizeWithMask(Processor):
 
     Args:
         size: Target size.
+        resample (str): A name of resampling filter
 
     """
 
-    def __init__(self, size, resample=NEAREST):
+    def __init__(self, size, resample="NEAREST"):
         self.size = size
         self.resample = resample
 
@@ -427,8 +432,17 @@ class ResizeWithMask(Processor):
 
 
 class ResizeWithJoints(Processor):
+    """Resize image and joints.
 
-    def __init__(self, image_size, resample=NEAREST):
+    Use :func:`~resize_with_joints` inside.
+
+    Args:
+        image_size: Target size.
+        resample (str): A name of resampling filter
+
+    """
+
+    def __init__(self, image_size, resample="NEAREST"):
         self.image_size = image_size
         self.resample = resample
 
@@ -454,9 +468,17 @@ class DivideBy255(Processor):
 
 # TODO(wakisaka): test.
 class LetterBoxes(Processor):
-    """Darknet's letter boxes"""
+    """Darknet's letter boxes
 
-    def __init__(self, size, resample=NEAREST):
+    Use :func:`~resize_keep_ratio_with_gt_boxes` inside.
+
+    Args:
+        size: Target size.
+        resample (str): A name of resampling filter
+
+    """
+
+    def __init__(self, size, resample="NEAREST"):
         self.size = size
         self.resample = resample
 
