@@ -36,7 +36,7 @@ using QUANTIZED_PACKED_KERNEL = QuantizedPacked<{{ params.default_qword_dtype.cp
 #define HW_BASE_ADDR 0x20000000
 #else
 #define IP_CSR_ADDR 0xB0000000
-#define HW_BASE_ADDR 0x20000000
+#define HW_BASE_ADDR 0x1F000000
 #endif
 
 #define INPUT_OFFSET 0x00000000
