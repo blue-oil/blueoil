@@ -30,7 +30,7 @@ from blueoil.converter.core.exceptions import UnsupportedNode, UnsupportedDataTy
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.operators import Operator, Conv, \
     Identity, BinaryMeanScalingQuantizer, \
-    BatchNormalization, LinearMidTreadHalfQuantizer, Add, \
+    BatchNormalization, LinearMidTreadHalfQuantizer, Add, Sub, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
     Mul, BinaryChannelWiseMeanScalingQuantizer, ConcatOnDepth, Maximum, \
     DepthToSpace, ResizeNearestNeighbor, \
@@ -694,6 +694,18 @@ class Importer(object):
                 shape = infer_shape(attributes)
 
             new_op = Add(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format
+            )
+        elif op_type == 'Sub':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = Sub(
                 node.name,
                 shape,
                 dtype,
