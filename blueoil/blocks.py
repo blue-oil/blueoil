@@ -40,7 +40,7 @@ def darknet(name, inputs, filters, kernel_size, is_training=tf.constant(False), 
 
         conv = conv2d("conv", inputs, filters=filters, kernel_size=kernel_size,
                       activation=None, use_bias=False, data_format=channel_data_format,
-                      kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),)  # he initializer
+                      kernel_initializer=tf.variance_scaling_initializer,)  # he initializer
 
         # TODO(wakisaka): Should be the same as darknet batch norm.
         # https://github.com/tensorflow/tensorflow/blob/r1.1/tensorflow/contrib/layers/python/layers/layers.py
