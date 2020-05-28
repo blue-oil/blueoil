@@ -5,7 +5,7 @@ INPUTS_SRC_DIR := ./src/inputs
 .PHONY: help
 help:
 	@echo make clean
-	@echo make build ARCH={x86, x86_avx, aarch64, arm, fpga} TYPE={executable, dynamic, static}
+	@echo make build ARCH={x86, x86_avx, aarch64, arm, fpga, fpga_aarch64} TYPE={executable, dynamic, static}
 
 LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(wildcard $(SRC_DIR)/scaling_factors.cpp) \
@@ -51,6 +51,13 @@ LIB_AARCH64_SRC := \
 LIB_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_SRC))
 LIB_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_OBJ))
 
+LIB_FPGA_AARCH64_SRC := \
+    $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
+    $(SRC_DIR)/func/impl/fpga/quantized_conv2d_accelerator.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp
+LIB_FPGA_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_FPGA_AARCH64_SRC))
+LIB_FPGA_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_FPGA_AARCH64_OBJ))
+
 LIB_X86_SRC := \
     $(SRC_DIR)/func/generic/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
@@ -74,7 +81,7 @@ INCLUDES := -I./include
 ALL_OBJ := \
     $(MAIN_OBJ) $(LIB_OBJ) \
     $(LIB_X86_OBJ) $(LIB_X86_AVX_OBJ) \
-    $(LIB_AARCH64_OBJ) \
+    $(LIB_AARCH64_OBJ) $(LIB_FPGA_AARCH64_OBJ) \
     $(LIB_ARM_OBJ) $(LIB_FPGA_OBJ)
 
 ALL_DEP := $(ALL_OBJ:.o=.d)
@@ -116,6 +123,12 @@ ifeq ($(ARCH), aarch64)
 CPU := cpu_aarch64
 CXXFLAGS +=
 OBJ := $(LIB_AARCH64_OBJ)
+endif
+
+ifeq ($(ARCH), fpga_aarch64)
+CPU := cpu_aarch64
+CXXFLAGS += -DRUN_ON_FPGA
+OBJ := $(LIB_FPGA_AARCH64_OBJ)
 endif
 
 ifeq ($(ARCH), arm)
