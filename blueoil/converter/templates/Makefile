@@ -2,17 +2,11 @@ SRC_DIR := ./src
 MAINS_DIR := ./mains
 INPUTS_SRC_DIR := ./src/inputs
 
-TYPE_ARGUMENT := {executable, dynamic, static}
-
 .PHONY: help
 help:
 	@echo make clean
-	@echo make build ARCH=x86 TYPE=$(TYPE_ARGUMENT) 
-	@echo make build ARCH=x86_avx TYPE=$(TYPE_ARGUMENT) 
-	@echo make build ARCH=aarch64 TYPE=$(TYPE_ARGUMENT) 
-	@echo make build ARCH=aarch64 USE_FPGA TYPE=$(TYPE_ARGUMENT) 
-	@echo make build ARCH=arm TYPE=$(TYPE_ARGUMENT) 
-	@echo make build ARCH=arm USE_FPGA TYPE=$(TYPE_ARGUMENT) 
+	@echo make build ARCH={x86, x86_avx, aarch64, arm} USE_FPGA={enable, disable} TYPE={executable, dynamic, static}
+	@echo USE_FPGA can be enabled only about aarch64 and arm
 
 LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(wildcard $(SRC_DIR)/scaling_factors.cpp) \
@@ -133,12 +127,12 @@ CXX := aarch64-linux-gnu-g++
 CXXFLAGS += -DUSE_NEON -fopenmp
 AR = aarch64-linux-gnu-ar
 
-ifndef USE_FPGA
-OBJ := $(LIB_AARCH64_OBJ)
-else
+ifeq ($(USE_FPGA), enable)
 OBJ := $(LIB_AARCH64_FPGA_OBJ)
 CXXFLAGS += -DRUN_ON_FPGA
-BASE_NAME += _fpga
+BASE_NAME := $(ARCH)_fpga
+else
+OBJ := $(LIB_AARCH64_OBJ)
 endif
 
 endif
@@ -148,12 +142,12 @@ CXX := arm-linux-gnueabihf-g++
 CXXFLAGS += -DUSE_NEON -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fopenmp
 AR = arm-linux-gnueabihf-ar
 
-ifndef USE_FPGA
-OBJ := $(LIB_ARM_OBJ)
-else
+ifeq ($(USE_FPGA), enable)
 OBJ := $(LIB_FPGA_OBJ)
 CXXFLAGS += -DRUN_ON_FPGA
-BASE_NAME += _fpga
+BASE_NAME := $(ARCH)_fpga
+else
+OBJ := $(LIB_ARM_OBJ)
 endif
 
 endif
