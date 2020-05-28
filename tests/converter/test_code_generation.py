@@ -166,7 +166,7 @@ def get_configurations_arm():
 
 
 def get_configurations_arm_fpga():
-    cpu_name = "arm_fpga"
+    cpu_name = "arm"
     use_fpga = "enable"
     test_cases = [
         {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': True},
@@ -437,6 +437,14 @@ class TestCodeGenerationX8664(TestCodeGenerationBase):
         self.run_test_all_configuration(i, configuration)
 
 
+class TestCodeGenerationX8664Avx(TestCodeGenerationBase):
+    """Test class for code generation testing."""
+
+    @parameterized.expand(get_configurations_x86_64_avx())
+    def test_code_generation(self, i, configuration) -> None:
+        self.run_test_all_configuration(i, configuration)
+
+
 class TestCodeGenerationArm(TestCodeGenerationBase):
     """Test class for code generation testing."""
 
@@ -461,6 +469,14 @@ class TestCodeGenerationAarch64(TestCodeGenerationBase):
     """Test class for code generation testing for aarch64."""
 
     @parameterized.expand(get_configurations_aarch64())
+    def test_code_generation(self, i, configuration) -> None:
+        self.run_test_all_configuration(i, configuration)
+
+
+class TestCodeGenerationAarch64Fpga(TestCodeGenerationBase):
+    """Test class for code generation testing for aarch64."""
+
+    @parameterized.expand(get_configurations_aarch64_fpga())
     def test_code_generation(self, i, configuration) -> None:
         self.run_test_all_configuration(i, configuration)
 
