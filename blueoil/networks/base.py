@@ -140,7 +140,7 @@ class BaseNetwork(object):
             learning_rate = self.optimizer_kwargs["learning_rate"]
 
         else:
-            if self.learning_rate_func is tf.train.piecewise_constant:
+            if self.learning_rate_func is tf.compat.v1.train.piecewise_constant:
                 learning_rate = self.learning_rate_func(
                     x=self.global_step,
                     **self.learning_rate_kwargs
@@ -166,7 +166,7 @@ class BaseNetwork(object):
         # TODO(wenhao): revert when support `tf.layers.batch_normalization`
         # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         # with tf.control_dependencies(update_ops):
-        with tf.name_scope("train"):
+        with tf.compat.v1.name_scope("train"):
             if var_list == []:
                 var_list = tf.compat.v1.trainable_variables()
 
