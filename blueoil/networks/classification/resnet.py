@@ -89,15 +89,15 @@ class Resnet(Base):
 
         with tf.compat.v1.variable_scope('sub_add'):
             if in_filters != out_filters:
-                inputs = tf.nn.avg_pool(
-                    inputs,
+                inputs = tf.nn.avg_pool2d(
+                    input=inputs,
                     ksize=[1, strides, strides, 1],
                     strides=[1, strides, strides, 1],
                     padding='VALID'
                 )
                 inputs = tf.pad(
-                    inputs,
-                    [[0, 0], [0, 0], [0, 0], [(out_filters - in_filters)//2, (out_filters - in_filters)//2]]
+                    tensor=inputs,
+                    paddings=[[0, 0], [0, 0], [0, 0], [(out_filters - in_filters)//2, (out_filters - in_filters)//2]]
                 )
 
         output = conv2 + inputs
@@ -170,15 +170,15 @@ class Resnet(Base):
         labels = tf.cast(labels, tf.float32)
 
         if self.is_debug:
-            labels = tf.Print(labels, [tf.shape(labels), tf.argmax(labels, 1)], message="labels:", summarize=200)
-            softmax = tf.Print(softmax, [tf.shape(softmax), tf.argmax(softmax, 1)], message="softmax:", summarize=200)
+            labels = tf.compat.v1.Print(labels, [tf.shape(input=labels), tf.argmax(input=labels, axis=1)], message="labels:", summarize=200)
+            softmax = tf.compat.v1.Print(softmax, [tf.shape(input=softmax), tf.argmax(input=softmax, axis=1)], message="softmax:", summarize=200)
 
         cross_entropy = -tf.reduce_sum(
-            labels * tf.math.log(tf.clip_by_value(softmax, 1e-10, 1.0)),
+            input_tensor=labels * tf.math.log(tf.clip_by_value(softmax, 1e-10, 1.0)),
             axis=[1]
         )
 
-        cross_entropy_mean = tf.reduce_mean(cross_entropy, name="cross_entropy_mean")
+        cross_entropy_mean = tf.reduce_mean(input_tensor=cross_entropy, name="cross_entropy_mean")
 
         loss = cross_entropy_mean + self._decay()
         tf.compat.v1.summary.scalar("loss", loss)
