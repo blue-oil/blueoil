@@ -105,9 +105,9 @@ def _build_process(module, processor_config=None):
     processor_config = processor_config or []
     for p in processor_config:
         for class_name, kwargs in p.items():
-            try:
+            if hasattr(module, class_name):
                 cls = getattr(module, class_name)
-            except AttributeError:
+            else:
                 cls = import_from_string(class_name)
 
             processor = cls.__new__(cls)
@@ -137,15 +137,15 @@ def import_from_string(import_string):
     except ImportError:
         pass
 
-    try:
+    if "." in import_string:
         module_name, attr_name = import_string.rsplit(".", 1)
-    except ValueError:
+    else:
         raise ImportError("Invalid import string '{}'".format(import_string))
 
     module = import_module(module_name)
-    try:
+    if hasattr(module, attr_name):
         return getattr(module, attr_name)
-    except AttributeError:
-        raise ImportError("There is no attribute name '{}' in module '{}'".format(
-            module_name, attr_name,
-        ))
+
+    raise ImportError("There is no attribute name '{}' in module '{}'".format(
+        module_name, attr_name,
+    ))
