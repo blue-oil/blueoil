@@ -74,24 +74,24 @@ class LmnetV0(Base):
 
         kernel_initializer = tf.compat.v1.random_normal_initializer(mean=0.0, stddev=0.01)
         x = tf.compat.v1.layers.conv2d(name='conv7',
-                             inputs=x,
-                             filters=self.num_classes,
-                             kernel_size=1,
-                             kernel_initializer=kernel_initializer,
-                             activation=None,
-                             use_bias=True,
-                             data_format=channels_data_format)
+                                       inputs=x,
+                                       filters=self.num_classes,
+                                       kernel_size=1,
+                                       kernel_initializer=kernel_initializer,
+                                       activation=None,
+                                       use_bias=True,
+                                       data_format=channels_data_format)
 
         self._heatmap_layer = x
 
         h = x.get_shape()[1].value if self.data_format == 'NHWC' else x.get_shape()[2].value
         w = x.get_shape()[2].value if self.data_format == 'NHWC' else x.get_shape()[3].value
         x = tf.compat.v1.layers.average_pooling2d(name='pool7',
-                                        inputs=x,
-                                        pool_size=[h, w],
-                                        padding='VALID',
-                                        strides=1,
-                                        data_format=channels_data_format)
+                                                  inputs=x,
+                                                  pool_size=[h, w],
+                                                  padding='VALID',
+                                                  strides=1,
+                                                  data_format=channels_data_format)
 
         self.base_output = tf.reshape(x, [-1, self.num_classes], name='pool7_reshape')
 
