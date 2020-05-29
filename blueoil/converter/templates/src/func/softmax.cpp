@@ -32,10 +32,12 @@ void func_Softmax(const TensorView<T_FLOAT, MemoryLayout::NC>& input,
 
   T_FLOAT sum = 0.f;
   for(T_UINT d = 0; d < out_width; d++)
-    sum += std::exp(input(0, d) - max_val);
+    T_FLOAT temp = std::exp(input(0, d) - max_val);
+    output(0, d) = temp;
+    sum += temp;
 
   for(T_UINT d = 0; d < out_width; d++)
-    output(0, d) = std::exp(input(0, d) - max_val) / sum;
+    output(0, d) /= sum;
 
   Measurement::Stop();
 }
