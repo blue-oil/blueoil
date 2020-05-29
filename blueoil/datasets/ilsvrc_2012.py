@@ -18,7 +18,6 @@ import os
 import os.path
 
 import numpy as np
-import pandas as pd
 
 from blueoil import data_processor
 from blueoil.utils.image import load_image
@@ -57,9 +56,9 @@ class Ilsvrc2012(Base):
     @functools.lru_cache(maxsize=None)
     def classes(self):
         # wget https://raw.githubusercontent.com/Lasagne/Recipes/master/examples/resnet50/imagenet_classes.txt
-        df = pd.read_csv(os.path.join(self.data_dir, 'imagenet_classes.txt'), sep="\n", header=None)
-        return df[0].tolist()
-
+        linelist = [line.rstrip('\n') for line in open(os.path.join(self.data_dir, 'imagenet_classes.txt'))]
+        return linelist
+    
     @property
     def num_per_epoch(self):
         files, _ = self._files_and_annotations()
@@ -72,17 +71,14 @@ class Ilsvrc2012(Base):
     def _files_and_annotations(self):
         txt_file = self.texts[self.subset]
 
-        df = pd.read_csv(
-            txt_file,
-            delim_whitespace=True,
-            header=None,
-            names=['filename', 'class_id'])
+        files, labels = list(), list()
+        with open(txt_file) as f:
+            for line in f:
+                items = line.split()
+                files.append(items[0])
+                labels.append(int(items[1]))
 
-        files = df.filename.tolist()
         files = [os.path.join(self.dirs[self.subset], filename) for filename in files]
-
-        labels = df.class_id.tolist()
-
         return files, labels
 
     def __getitem__(self, i):
@@ -96,3 +92,4 @@ class Ilsvrc2012(Base):
 
     def __len__(self):
         return self.num_per_epoch
+
