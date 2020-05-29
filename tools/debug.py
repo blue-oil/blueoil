@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import numpy as np
+import ipdb
 
 
 def derive_total_pads(i, o, k, s):
@@ -167,7 +168,6 @@ class QuantizedMatrix(object):
                 for x in range(self.nbits):
                     print(f"{c*self.nbits+x}: {format(out[x], '032b')}")
 
-                import ipdb
                 ipdb.set_trace()
 
                 qmat[hi, out_col_offset:out_col_offset + self.nbits] = out
@@ -228,7 +228,6 @@ def sample_kernel():
     x = test_mat.astype(np.uint32)
     qm = QuantizedMatrix(x, 2)
 
-    import ipdb
     ipdb.set_trace()
 
     return out
