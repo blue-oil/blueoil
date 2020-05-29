@@ -231,7 +231,7 @@ class Darknet(Base):
             data_format=self.data_format,
         )
 
-        kernel_initializer = tf.random_normal_initializer(mean=0.0, stddev=0.01)
+        kernel_initializer = tf.compat.v1.random_normal_initializer(mean=0.0, stddev=0.01)
 
         self.conv_19 = conv2d(
             "conv_19", self.block_18, filters=self.num_classes, kernel_size=1,
@@ -248,7 +248,7 @@ class Darknet(Base):
             axis = [1, 2]
         # TODO(wakisaka): global average pooling should use tf.reduce_mean()
 
-        self.pool_6 = tf.reduce_mean(self.conv_19, axis=axis, name="global_average_pool_6")
+        self.pool_6 = tf.reduce_mean(input_tensor=self.conv_19, axis=axis, name="global_average_pool_6")
         self.base_output = tf.reshape(self.pool_6, [-1, self.num_classes], name="pool6_reshape")
 
         return self.base_output
