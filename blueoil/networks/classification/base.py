@@ -194,9 +194,14 @@ class Base(BaseNetwork):
             labels = tf.cast(labels, tf.float32)
 
             if self.is_debug:
-                labels = tf.compat.v1.Print(labels, [tf.shape(labels), tf.argmax(labels, axis=1)], message="labels:", summarize=200)
+                labels = tf.compat.v1.Print(labels,
+                                            [tf.shape(labels), tf.argmax(labels, axis=1)],
+                                            message="labels:",
+                                            summarize=200)
                 softmax = tf.compat.v1.Print(softmax,
-                                   [tf.shape(softmax), tf.argmax(softmax, axis=1)], message="softmax:", summarize=200)
+                                             [tf.shape(softmax), tf.argmax(softmax, axis=1)],
+                                             message="softmax:",
+                                             summarize=200)
 
             accuracy, accuracy_update = self._calc_top_k(softmax, labels, k=1)
 
