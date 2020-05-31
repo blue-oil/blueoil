@@ -82,8 +82,8 @@ class CamvidBase(SegmentationBase):
 
         image_files, label_files = list(), list()
         with open(filename) as f:
-            for line in f:                
-                items  = line.split()
+            for line in f:
+                items = line.split()
                 image_files.append(items[0])
                 label_files.append(items[1])
 
@@ -179,7 +179,6 @@ class Camvid(CamvidBase):
             text = "val.txt"
 
         filename = os.path.join(self.data_dir, text)
-
 
         image_files, label_files = list(), list()
         with open(filename) as f:
@@ -280,4 +279,3 @@ class CamvidCustom(StoragePathCustomizable, CamvidBase):
         print("files and annotations are ready")
 
         return image_files, label_files
-

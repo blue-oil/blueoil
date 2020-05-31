@@ -58,7 +58,7 @@ class Ilsvrc2012(Base):
         # wget https://raw.githubusercontent.com/Lasagne/Recipes/master/examples/resnet50/imagenet_classes.txt
         linelist = [line.rstrip('\n') for line in open(os.path.join(self.data_dir, 'imagenet_classes.txt'))]
         return linelist
-    
+
     @property
     def num_per_epoch(self):
         files, _ = self._files_and_annotations()
@@ -92,4 +92,3 @@ class Ilsvrc2012(Base):
 
     def __len__(self):
         return self.num_per_epoch
-

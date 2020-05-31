@@ -1,4 +1,5 @@
-opyright 2018 The Blueoil Authors. All Rights Reserved.
+# -*- coding: utf-8 -*-
+# Copyright 2018 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@ opyright 2018 The Blueoil Authors. All Rights Reserved.
 import itertools
 import os
 
-import csv 
+import csv
 from collections import OrderedDict
 
 import click
@@ -38,13 +39,15 @@ def _value_step_list(event_accumulator, metrics_key):
         print("Key {} was not found in {}\n{}".format(metrics_key, event_accumulator.path, e))
         return []
 
+
 def _step_list(event_accumulator, metrics_key):
     try:
-        events = event_accumulator.Scalars(metrics_key)     
+        events = event_accumulator.Scalars(metrics_key)
         return [event.step for event in events]
     except KeyError as e:
         print("Key {} was not found in {}\n{}".format(metrics_key, event_accumulator.path, e))
         return []
+
 
 def _column_name(event_accumulator, metrics_key):
     return "{}:{}".format(os.path.basename(event_accumulator.path), metrics_key)
@@ -74,14 +77,14 @@ def output(tensorboard_dir, output_dir, metrics_keys, steps, output_file_base="m
 
     values_step_dict = {}
     value_matrix = []
-    
+
     for metrics_key in metrics_keys:
         if not value_matrix:
             step_list = sorted(_step_list(event_accumulator, metrics_key), reverse=True)
             value_matrix.append(step_list)
 
     for event_accumulator in event_accumulators:
-        for metrics_key in metrics_keys:                  
+        for metrics_key in metrics_keys:
             value_step_list = _value_step_list(event_accumulator, metrics_key)
             values_step_dict = dict(value_step_list)
 
@@ -89,9 +92,9 @@ def output(tensorboard_dir, output_dir, metrics_keys, steps, output_file_base="m
                 if step not in values_step_dict:
                     values_step_dict[step] = ''
             sorted_value_step = OrderedDict(sorted(values_step_dict.items(), key=lambda x: x[0], reverse=True))
-            sorted_list = list(sorted_value_step.values())   
+            sorted_list = list(sorted_value_step.values())
             value_matrix.append(sorted_list)
-    data_by_row = list(map(list, zip(*value_matrix))) 
+    data_by_row = list(map(list, zip(*value_matrix)))
     columns.insert(0, "step")
 
     output_csv = os.path.join(output_dir, "{}.csv".format(output_file_base))
@@ -161,4 +164,3 @@ def main(output_file_base, metrics_keys, steps, experiment_id):
 
 if __name__ == "__main__":
     main()
-
