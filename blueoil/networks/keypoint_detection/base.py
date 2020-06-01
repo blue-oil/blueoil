@@ -97,8 +97,8 @@ class Base(BaseNetwork):
 
         """
         return tf.compat.v1.py_func(self.py_post_process,
-                          [output, 2, self.stride],
-                          tf.float32)
+                                    [output, 2, self.stride],
+                                    tf.float32)
 
     @staticmethod
     def py_visualize_output(images, heatmaps, stride=2):
@@ -130,8 +130,8 @@ class Base(BaseNetwork):
 
         """
         drawed_images = tf.compat.v1.py_func(self.py_visualize_output,
-                                   [images, output, self.stride],
-                                   tf.uint8)
+                                             [images, output, self.stride],
+                                             tf.uint8)
         tf.compat.v1.summary.image(name, drawed_images)
 
     def _compute_oks(self, output, labels):
@@ -148,8 +148,8 @@ class Base(BaseNetwork):
         joints_pred = self.post_process(output)
 
         return tf.compat.v1.py_func(compute_object_keypoint_similarity,
-                          [joints_gt, joints_pred, self.image_size],
-                          tf.float32)
+                                    [joints_gt, joints_pred, self.image_size],
+                                    tf.float32)
 
     def summary(self, output, labels=None):
         """Summary for tensorboard.
