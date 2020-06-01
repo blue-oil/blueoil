@@ -63,7 +63,7 @@ class Base(BaseNetwork):
         """
         heatmaps_colored = tf.expand_dims(heatmaps, axis=-1)
         heatmaps_colored *= color
-        heatmaps_colored = tf.reduce_sum(input_tensor=heatmaps_colored, axis=3)
+        heatmaps_colored = tf.reduce_sum(heatmaps_colored, axis=3)
 
         tf.compat.v1.summary.image(name, heatmaps_colored)
 
@@ -159,7 +159,7 @@ class Base(BaseNetwork):
             labels: a Tensor of shape (batch_size, height, width, num_joints).
 
         """
-        images = self.images if self.data_format == 'NHWC' else tf.transpose(a=self.images, perm=[0, 2, 3, 1])
+        images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
         tf.compat.v1.summary.image("input", images)
 
         color = np.random.randn(1, 1, 1, self.num_joints, 3)
@@ -182,7 +182,7 @@ class Base(BaseNetwork):
             updates_op: an operation that increments the total and count variables appropriately.
 
         """
-        output = output if self.data_format == 'NHWC' else tf.transpose(a=output, perm=[0, 2, 3, 1])
+        output = output if self.data_format == 'NHWC' else tf.transpose(output, perm=[0, 2, 3, 1])
         oks = self._compute_oks(output, labels)
 
         results = {}

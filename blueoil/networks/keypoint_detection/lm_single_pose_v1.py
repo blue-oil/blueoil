@@ -45,14 +45,14 @@ class LmSinglePoseV1(Base):
 
         """
         if self.data_format == 'NCHW':
-            output = tf.transpose(a=output, perm=[0, 2, 3, 1])
+            output = tf.transpose(output, perm=[0, 2, 3, 1])
         with tf.compat.v1.name_scope("loss"):
-            global_loss = tf.reduce_mean(input_tensor=(output - labels)**2)
+            global_loss = tf.reduce_mean((output - labels)**2)
 
-            refine_loss = tf.reduce_mean(input_tensor=(output - labels)**2, axis=(1, 2))
+            refine_loss = tf.reduce_mean((output - labels)**2, axis=(1, 2))
             top_k = 8
             top_k_values, top_k_idx = tf.nn.top_k(refine_loss, k=top_k, sorted=False)
-            refine_loss = tf.reduce_sum(input_tensor=top_k_values) / top_k
+            refine_loss = tf.reduce_sum(top_k_values) / top_k
 
             loss = refine_loss + global_loss
 
@@ -72,10 +72,10 @@ class LmSinglePoseV1(Base):
 
     def _space_to_depth(self, inputs=None, block_size=2, name=''):
         if self.data_format != 'NHWC':
-            inputs = tf.transpose(a=inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
-        output = tf.compat.v1.space_to_depth(input=inputs, block_size=block_size, name=name)
+            inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
+        output = tf.compat.v1.space_to_depth(inputs, block_size=block_size, name=name)
         if self.data_format != 'NHWC':
-            output = tf.transpose(a=output, perm=['NHWC'.find(d) for d in self.data_format])
+            output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
     def base(self, images, is_training, *args, **kwargs):
