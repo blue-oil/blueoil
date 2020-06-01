@@ -137,15 +137,14 @@ def import_from_string(import_string):
     except ImportError:
         pass
 
-    if "." in import_string:
-        module_name, attr_name = import_string.rsplit(".", 1)
-    else:
+    if "." not in import_string:
         raise ImportError("Invalid import string '{}'".format(import_string))
 
+    module_name, attr_name = import_string.rsplit(".", 1)
     module = import_module(module_name)
-    if hasattr(module, attr_name):
-        return getattr(module, attr_name)
+    if not hasattr(module, attr_name):
+        raise ImportError("There is no attribute name '{}' in module '{}'".format(
+            module_name, attr_name,
+        ))
 
-    raise ImportError("There is no attribute name '{}' in module '{}'".format(
-        module_name, attr_name,
-    ))
+    return getattr(module, attr_name)
