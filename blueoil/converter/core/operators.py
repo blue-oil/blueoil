@@ -1570,6 +1570,61 @@ class Add(Operator):
         return False
 
 
+class Sub(Operator):
+    """Subtract operator.
+
+    Performs element-wise subtraction (with Numpy-style broadcasting support).
+    This operator supports multidirectional (i.e., Numpy-style) broadcasting.
+
+    Inputs
+    ------
+    A
+        First operand.
+
+    B
+        Second operand.
+
+    Outputs
+    -------
+    C
+        Result, has same element type as two inputs
+
+    """
+
+    _input_names = ['A', 'B']
+    _output_names = ['C']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    def run_forward(self) -> np.ndarray:
+        a = self._input_ops['A'].data
+        b = self._input_ops['B'].data
+        self._data = a - b
+        return self._data
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        return lists['X']
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
 class Pool(Operator):
     """Pooling operator.
 
