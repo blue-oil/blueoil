@@ -27,7 +27,7 @@ class Vgg16Network(BaseNetwork):
         super().__init__(optimizer_class=optimizer_class, optimizer_args=optimizer_args, is_debug=is_debug)
 
     def build(self, images, is_training):
-        keep_prob = tf.cond(is_training, lambda: tf.constant(0.5), lambda: tf.constant(1.0))
+        keep_prob = tf.cond(pred=is_training, true_fn=lambda: tf.constant(0.5), false_fn=lambda: tf.constant(1.0))
 
         self.input = self.convert_rbg_to_bgr(images)
 
@@ -60,10 +60,10 @@ class Vgg16Network(BaseNetwork):
         self.pool5 = self.max_pool("pool5", self.conv13, kernel_size=2, strides=2)
 
         fc14 = self.fc_layer("fc14", self.pool5, filters=4096, activation=tf.nn.relu)
-        self.fc14 = tf.nn.dropout(fc14, keep_prob)
+        self.fc14 = tf.nn.dropout(fc14, 1 - (keep_prob))
 
         fc15 = self.fc_layer("fc15", self.fc15, filters=4096, activation=tf.nn.relu)
-        self.fc15 = tf.nn.dropout(fc15, keep_prob)
+        self.fc15 = tf.nn.dropout(fc15, 1 - (keep_prob))
 
         self.fc16 = self.fc_layer("fc16", self.fc15, filters=self.num_classes, activation=None)
 
@@ -81,8 +81,8 @@ class Vgg16Network(BaseNetwork):
         *args,
         **kwargs
     ):
-        kernel_initializer = tf.contrib.layers.xavier_initializer()
-        biases_initializer = tf.zeros_initializer()
+        kernel_initializer = tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform")
+        biases_initializer = tf.compat.v1.zeros_initializer()
 
         output = super(Vgg16Network, self).conv_layer(
             name=name,
@@ -107,8 +107,8 @@ class Vgg16Network(BaseNetwork):
             *args,
             **kwargs
     ):
-        kernel_initializer = tf.contrib.layers.xavier_initializer()
-        biases_initializer = tf.zeros_initializer()
+        kernel_initializer = tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform")
+        biases_initializer = tf.compat.v1.zeros_initializer()
 
         output = super(Vgg16Network, self).fc_layer(
             name=name,
