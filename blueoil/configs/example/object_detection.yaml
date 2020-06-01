@@ -63,6 +63,7 @@ DATASET:
   PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     processors:
     - !!python/object:blueoil.pre_processor.ResizeWithGtBoxes
+      resample: NEAREST
       size:
       - 320
       - 320
@@ -192,6 +193,7 @@ PRETRAIN_VARS: []
 PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
   - !!python/object:blueoil.pre_processor.ResizeWithGtBoxes
+    resample: NEAREST
     size:
     - 320
     - 320
