@@ -39,8 +39,8 @@ class Base(BaseNetwork):
         else:
             shape = (self.batch_size, 3, self.image_size[0], self.image_size[1])
 
-        images_placeholder = tf.placeholder(tf.float32, shape=shape, name="images_placeholder")
-        labels_placeholder = tf.placeholder(
+        images_placeholder = tf.compat.v1.placeholder(tf.float32, shape=shape, name="images_placeholder")
+        labels_placeholder = tf.compat.v1.placeholder(
             tf.float32,
             shape=(self.batch_size,
                    self.image_size[0] // self.stride, self.image_size[1] // self.stride,
@@ -63,9 +63,9 @@ class Base(BaseNetwork):
         """
         heatmaps_colored = tf.expand_dims(heatmaps, axis=-1)
         heatmaps_colored *= color
-        heatmaps_colored = tf.reduce_sum(heatmaps_colored, axis=3)
+        heatmaps_colored = tf.reduce_sum(input_tensor=heatmaps_colored, axis=3)
 
-        tf.summary.image(name, heatmaps_colored)
+        tf.compat.v1.summary.image(name, heatmaps_colored)
 
     @staticmethod
     def py_post_process(heatmaps, num_dimensions=2, stride=2):
@@ -96,7 +96,7 @@ class Base(BaseNetwork):
             joints: a Tensor of shape (batch_size, num_joints, 3).
 
         """
-        return tf.py_func(self.py_post_process,
+        return tf.compat.v1.py_func(self.py_post_process,
                           [output, 2, self.stride],
                           tf.float32)
 
@@ -129,10 +129,10 @@ class Base(BaseNetwork):
             name: str, name to display on tensorboard.
 
         """
-        drawed_images = tf.py_func(self.py_visualize_output,
+        drawed_images = tf.compat.v1.py_func(self.py_visualize_output,
                                    [images, output, self.stride],
                                    tf.uint8)
-        tf.summary.image(name, drawed_images)
+        tf.compat.v1.summary.image(name, drawed_images)
 
     def _compute_oks(self, output, labels):
         """Compute object keypoint similarity between output and labels.
@@ -147,7 +147,7 @@ class Base(BaseNetwork):
         joints_gt = self.post_process(labels)
         joints_pred = self.post_process(output)
 
-        return tf.py_func(compute_object_keypoint_similarity,
+        return tf.compat.v1.py_func(compute_object_keypoint_similarity,
                           [joints_gt, joints_pred, self.image_size],
                           tf.float32)
 
@@ -159,8 +159,8 @@ class Base(BaseNetwork):
             labels: a Tensor of shape (batch_size, height, width, num_joints).
 
         """
-        images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
-        tf.summary.image("input", images)
+        images = self.images if self.data_format == 'NHWC' else tf.transpose(a=self.images, perm=[0, 2, 3, 1])
+        tf.compat.v1.summary.image("input", images)
 
         color = np.random.randn(1, 1, 1, self.num_joints, 3)
 
@@ -182,11 +182,11 @@ class Base(BaseNetwork):
             updates_op: an operation that increments the total and count variables appropriately.
 
         """
-        output = output if self.data_format == 'NHWC' else tf.transpose(output, perm=[0, 2, 3, 1])
+        output = output if self.data_format == 'NHWC' else tf.transpose(a=output, perm=[0, 2, 3, 1])
         oks = self._compute_oks(output, labels)
 
         results = {}
-        mean_oks, update_oks = tf.metrics.mean(oks)
+        mean_oks, update_oks = tf.compat.v1.metrics.mean(oks)
         updates = [update_oks]
         updates_op = tf.group(*updates)
         results["mean_object_keypoint_similarity"] = mean_oks

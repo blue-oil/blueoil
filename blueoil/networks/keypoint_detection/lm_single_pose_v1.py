@@ -45,20 +45,20 @@ class LmSinglePoseV1(Base):
 
         """
         if self.data_format == 'NCHW':
-            output = tf.transpose(output, perm=[0, 2, 3, 1])
-        with tf.name_scope("loss"):
-            global_loss = tf.reduce_mean((output - labels)**2)
+            output = tf.transpose(a=output, perm=[0, 2, 3, 1])
+        with tf.compat.v1.name_scope("loss"):
+            global_loss = tf.reduce_mean(input_tensor=(output - labels)**2)
 
-            refine_loss = tf.reduce_mean((output - labels)**2, axis=(1, 2))
+            refine_loss = tf.reduce_mean(input_tensor=(output - labels)**2, axis=(1, 2))
             top_k = 8
             top_k_values, top_k_idx = tf.nn.top_k(refine_loss, k=top_k, sorted=False)
-            refine_loss = tf.reduce_sum(top_k_values) / top_k
+            refine_loss = tf.reduce_sum(input_tensor=top_k_values) / top_k
 
             loss = refine_loss + global_loss
 
-            tf.summary.scalar("global_loss", global_loss)
-            tf.summary.scalar("refine_loss", refine_loss)
-            tf.summary.scalar("loss", loss)
+            tf.compat.v1.summary.scalar("global_loss", global_loss)
+            tf.compat.v1.summary.scalar("refine_loss", refine_loss)
+            tf.compat.v1.summary.scalar("loss", loss)
             return loss
 
     def _get_lmnet_block(self, is_training, channels_data_format):
@@ -72,10 +72,10 @@ class LmSinglePoseV1(Base):
 
     def _space_to_depth(self, inputs=None, block_size=2, name=''):
         if self.data_format != 'NHWC':
-            inputs = tf.transpose(inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
-        output = tf.space_to_depth(inputs, block_size=block_size, name=name)
+            inputs = tf.transpose(a=inputs, perm=[self.data_format.find(d) for d in 'NHWC'])
+        output = tf.compat.v1.space_to_depth(input=inputs, block_size=block_size, name=name)
         if self.data_format != 'NHWC':
-            output = tf.transpose(output, perm=['NHWC'.find(d) for d in self.data_format])
+            output = tf.transpose(a=output, perm=['NHWC'.find(d) for d in self.data_format])
         return output
 
     def base(self, images, is_training, *args, **kwargs):
@@ -83,9 +83,9 @@ class LmSinglePoseV1(Base):
         _lmnet_block = self._get_lmnet_block(is_training, channels_data_format)
 
         def connect_block(lateral, up, name="connect_block"):
-            with tf.variable_scope(name_or_scope=name):
+            with tf.compat.v1.variable_scope(name_or_scope=name):
                 shape = lateral.get_shape().as_list()
-                up = tf.image.resize_nearest_neighbor(up, size=shape[1:3])
+                up = tf.image.resize(up, size=shape[1:3], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
                 out = tf.concat([up, lateral], axis=-1)
                 out = _lmnet_block("block", out, filters=32, kernel_size=3)
             return out
@@ -186,7 +186,7 @@ class LmSinglePoseV1Quantize(LmSinglePoseV1):
         """
         assert callable(weight_quantization)
         var = getter(name, *args, **kwargs)
-        with tf.variable_scope(name):
+        with tf.compat.v1.variable_scope(name):
             # Apply weight quantize to variable whose last word of name is "kernel".
             if "kernel" == var.op.name.split("/")[-1]:
                 if var.op.name.startswith("conv1/"):
