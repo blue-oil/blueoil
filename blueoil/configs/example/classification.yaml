@@ -32,6 +32,7 @@ DATASET:
   PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
     processors:
     - !!python/object:blueoil.pre_processor.Resize
+      resample: NEAREST
       size:
       - 28
       - 28
@@ -81,6 +82,7 @@ PRETRAIN_VARS:
 PRE_PROCESSOR: !!python/object:blueoil.data_processor.Sequence
   processors:
   - !!python/object:blueoil.pre_processor.Resize
+    resample: NEAREST
     size:
     - 28
     - 28
