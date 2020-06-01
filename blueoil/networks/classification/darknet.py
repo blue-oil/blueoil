@@ -231,7 +231,7 @@ class Darknet(Base):
             data_format=self.data_format,
         )
 
-        kernel_initializer = tf.random_normal_initializer(mean=0.0, stddev=0.01)
+        kernel_initializer = tf.compat.v1.random_normal_initializer(mean=0.0, stddev=0.01)
 
         self.conv_19 = conv2d(
             "conv_19", self.block_18, filters=self.num_classes, kernel_size=1,

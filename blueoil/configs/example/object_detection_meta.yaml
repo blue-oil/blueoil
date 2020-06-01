@@ -71,6 +71,7 @@ POST_PROCESSOR:
     per_class: true
 PRE_PROCESSOR:
 - ResizeWithGtBoxes:
+    resample: NEAREST
     size:
     - 320
     - 320
