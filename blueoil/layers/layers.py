@@ -50,7 +50,6 @@ def conv2d(
     strides=1,
     padding="SAME",
     activation=tf.nn.relu,
-    kernel_initializer=tf.contrib.layers.xavier_initializer(),
     is_debug=False,
     *args,
     **kwargs

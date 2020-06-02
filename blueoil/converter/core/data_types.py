@@ -59,7 +59,7 @@ class Special(DataType):
         False
 
 
-class Int(Special, int):
+class Int(Special):
     @classmethod
     def pytype(cls):
         return int
@@ -69,13 +69,13 @@ class Int(Special, int):
         return 'int'
 
 
-class UInt(Special, int):
+class UInt(Special):
     @classmethod
     def cpptype(cls):
         return 'unsigned'
 
 
-class Int8(Primitive, int):
+class Int8(Primitive):
     @classmethod
     def cpptype(cls):
         return 'int8_t'
@@ -85,7 +85,7 @@ class Int8(Primitive, int):
         return np.int8
 
 
-class Uint8(Primitive, int):
+class Uint8(Primitive):
     @classmethod
     def cpptype(cls):
         return 'uint8_t'
@@ -95,7 +95,7 @@ class Uint8(Primitive, int):
         return np.uint8
 
 
-class Int16(Primitive, int):
+class Int16(Primitive):
     @classmethod
     def cpptype(cls):
         return 'int16_t'
@@ -105,7 +105,7 @@ class Int16(Primitive, int):
         return np.int16
 
 
-class Uint16(Primitive, int):
+class Uint16(Primitive):
     @classmethod
     def cpptype(cls):
         return 'uint16_t'
@@ -115,7 +115,7 @@ class Uint16(Primitive, int):
         return np.uint16
 
 
-class Int32(Primitive, int):
+class Int32(Primitive):
     @classmethod
     def cpptype(cls):
         return 'int32_t'
@@ -125,7 +125,7 @@ class Int32(Primitive, int):
         return np.int32
 
 
-class Uint32(Primitive, int):
+class Uint32(Primitive):
     @classmethod
     def cpptype(cls):
         return 'uint32_t'
@@ -135,7 +135,7 @@ class Uint32(Primitive, int):
         return np.uint32
 
 
-class PackedUint32(Primitive, int):
+class PackedUint32(Primitive):
     @classmethod
     def cpptype(cls):
         return 'QuantizedPacked<uint32_t>'
@@ -145,7 +145,7 @@ class PackedUint32(Primitive, int):
         return np.uint32
 
 
-class Int64(Primitive, int):
+class Int64(Primitive):
     @classmethod
     def cpptype(cls):
         return 'int64_t'
@@ -155,7 +155,7 @@ class Int64(Primitive, int):
         return np.int64
 
 
-class Uint64(Primitive, int):
+class Uint64(Primitive):
     @classmethod
     def cpptype(cls):
         return 'uint64_t'
@@ -165,7 +165,7 @@ class Uint64(Primitive, int):
         return np.uint64
 
 
-class PackedUint64(Primitive, int):
+class PackedUint64(Primitive):
     @classmethod
     def cpptype(cls):
         return 'QuantizedPacked<uint64_t>'
@@ -237,7 +237,7 @@ class Bool(DataType):
         return np.bool_
 
 
-class Size(DataType, int):
+class Size(DataType):
     @classmethod
     def cpptype(cls):
         return 'size_t'
@@ -255,7 +255,7 @@ class Vec(DataType, List[Primitive]):
         return 'vec_t'
 
 
-class QUANTIZED_NOT_PACKED(Primitive, int):
+class QUANTIZED_NOT_PACKED(Primitive):
     @classmethod
     def cpptype(cls):
         return 'QUANTIZED_NOT_PACKED'
@@ -265,7 +265,7 @@ class QUANTIZED_NOT_PACKED(Primitive, int):
         return np.int8
 
 
-class QUANTIZED_PACKED(Primitive, int):
+class QUANTIZED_PACKED(Primitive):
     @classmethod
     def cpptype(cls):
         return 'QUANTIZED_PACKED'
@@ -275,7 +275,7 @@ class QUANTIZED_PACKED(Primitive, int):
         return np.uint32
 
 
-class QUANTIZED_PACKED_KERNEL(Primitive, int):
+class QUANTIZED_PACKED_KERNEL(Primitive):
     @classmethod
     def cpptype(cls):
         return 'QUANTIZED_PACKED_KERNEL'
