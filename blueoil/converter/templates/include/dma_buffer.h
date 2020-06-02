@@ -99,7 +99,16 @@ public:
     // open device and map the memory
 
     int dev_fd;
-    dev_fd = open(device_file.c_str(), O_RDWR);
+
+    if(using_dma_cache)
+    {
+        dev_fd = open(device_file.c_str(), O_RDWR);
+    }
+    else
+    {
+        dev_fd = open(device_file.c_str(), O_RDWR | O_SYNC);
+    }
+
     if(dev_fd < 0)
     {
       std::cout << strerror(errno) << std::endl;

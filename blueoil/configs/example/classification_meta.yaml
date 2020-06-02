@@ -16,6 +16,7 @@ IMAGE_SIZE:
 POST_PROCESSOR: null
 PRE_PROCESSOR:
 - Resize:
+    resample: NEAREST
     size:
     - 28
     - 28
