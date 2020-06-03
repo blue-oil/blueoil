@@ -92,7 +92,7 @@ class Base(BaseNetwork):
 
         """
 
-        with tf.name_scope("loss"):
+        with tf.compat.v1.name_scope("loss"):
             labels = tf.cast(labels, tf.float32)
             cross_entropy = -tf.reduce_sum(
                 labels * tf.math.log(tf.clip_by_value(softmax, 1e-10, 1.0)),
@@ -150,7 +150,7 @@ class Base(BaseNetwork):
 
         images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
 
-        tf.summary.image("input_images", images)
+        tf.compat.v1.summary.image("input_images", images)
 
         if hasattr(self, "_heatmap_layer") and isinstance(self._heatmap_layer, tf.Tensor):
             heatmap_layer = self._heatmap_layer if self.data_format == 'NHWC' else tf.transpose(self._heatmap_layer,
@@ -160,7 +160,7 @@ class Base(BaseNetwork):
                 for class_name, colored_class_heatmap in zip(self.classes, colored_class_heatmaps):
                     alpha = 0.1
                     overlap = alpha * images + colored_class_heatmap
-                    tf.summary.image(class_name, overlap, max_outputs=1)
+                    tf.compat.v1.summary.image(class_name, overlap, max_outputs=1)
 
     def _calc_top_k(self, softmax, labels, k):
         """Calculate the mean top k accuracy.
@@ -174,7 +174,7 @@ class Base(BaseNetwork):
 
         """
 
-        argmax_labels = tf.cast(tf.argmax(labels, 1), tf.int32)
+        argmax_labels = tf.cast(tf.argmax(labels, axis=1), tf.int32)
         argmax_labels = tf.expand_dims(argmax_labels, 1)
         _, top_predicted_indices = tf.nn.top_k(softmax, k)
         accuracy_topk, accuracy_topk_update = tf.compat.v1.metrics.mean(
@@ -190,13 +190,18 @@ class Base(BaseNetwork):
             labels: onehot labels tensor. shape is (batch_num, num_classes)
 
         """
-        with tf.name_scope("metrics_calc"):
+        with tf.compat.v1.name_scope("metrics_calc"):
             labels = tf.cast(labels, tf.float32)
 
             if self.is_debug:
-                labels = tf.Print(labels, [tf.shape(labels), tf.argmax(labels, 1)], message="labels:", summarize=200)
-                softmax = tf.Print(softmax,
-                                   [tf.shape(softmax), tf.argmax(softmax, 1)], message="softmax:", summarize=200)
+                labels = tf.compat.v1.Print(labels,
+                                            [tf.shape(labels), tf.argmax(labels, axis=1)],
+                                            message="labels:",
+                                            summarize=200)
+                softmax = tf.compat.v1.Print(softmax,
+                                             [tf.shape(softmax), tf.argmax(softmax, axis=1)],
+                                             message="softmax:",
+                                             summarize=200)
 
             accuracy, accuracy_update = self._calc_top_k(softmax, labels, k=1)
 
