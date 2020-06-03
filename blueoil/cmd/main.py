@@ -19,6 +19,7 @@ import os
 import click
 
 from blueoil.cmd.convert import convert as run_convert
+from blueoil.cmd.export import DEFAULT_INFERENCE_TEST_DATA_IMAGE
 from blueoil.cmd.init import ask_questions, save_config
 from blueoil.cmd.predict import predict as run_predict
 from blueoil.cmd.train import train as run_train
@@ -140,14 +141,17 @@ def train(config, experiment_id, recreate, data_dir, output_dir):
     type=click.Path(),
     envvar='OUTPUT_DIR',
 )
-def convert(experiment_id, checkpoint, template, image_size, project_name, output_dir):
+@click.option(
+    "--test_image",
+    help="Path of test image",
+    default=DEFAULT_INFERENCE_TEST_DATA_IMAGE,
+    type=click.Path(),
+)
+def convert(experiment_id, checkpoint, template, image_size, project_name, output_dir, test_image):
     environment.set_output_dir(output_dir)
     export_output_root_dir = run_convert(
-        experiment_id,
-        checkpoint,
-        template,
-        image_size,
-        project_name)
+        experiment_id, checkpoint, template, image_size, project_name, test_image,
+    )
 
     click.echo('Output files are generated in {}'.format(export_output_root_dir))
     click.echo('Please see {}/README.md to run prediction'.format(export_output_root_dir))

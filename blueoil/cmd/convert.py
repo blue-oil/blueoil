@@ -17,7 +17,7 @@ import os
 import shutil
 import subprocess
 
-from blueoil.cmd.export import run as run_export
+from blueoil.cmd.export import DEFAULT_INFERENCE_TEST_DATA_IMAGE, run as run_export
 from blueoil.converter.generate_project import run as run_generate_project
 
 
@@ -137,15 +137,17 @@ def run(experiment_id,
         output_template_dir=None,
         image_size=(None, None),
         project_name=None,
+        test_image=DEFAULT_INFERENCE_TEST_DATA_IMAGE,
         save_npy_for_debug=True):
     """Convert from trained model.
 
     Args:
         experiment_id:
         restore_path:
-        output_template_dir:  (Default value = None)
-        image_size: (Default value = (None)
+        output_template_dir: (Default value = None)
+        image_size: (Default value = None)
         project_name: (Default value = None)
+        test_image: (Default value = DEFAULT_INFERENCE_TEST_DATA_IMAGE)
 
     Returns:
         str: Path of exported dir.
@@ -155,7 +157,7 @@ def run(experiment_id,
 
     # Export model
     if save_npy_for_debug:
-        export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size)
+        export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=test_image)
     else:
         export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=None)
 
@@ -201,6 +203,7 @@ def convert(
     template=None,
     image_size=(None, None),
     project_name=None,
+    test_image=DEFAULT_INFERENCE_TEST_DATA_IMAGE,
     save_npy_for_debug=True
 ):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
@@ -210,4 +213,4 @@ def convert(
     else:
         restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
 
-    return run(experiment_id, restore_path, template, image_size, project_name, save_npy_for_debug)
+    return run(experiment_id, restore_path, template, image_size, project_name, test_image, save_npy_for_debug)
