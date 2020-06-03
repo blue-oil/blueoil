@@ -640,8 +640,7 @@ def pass_lookup(graph: Graph) -> None:
             if out_op not in to_be_removed
         ]
         placeholder[0].remove_output('output')
-        for add_to_placeholder in reserved_placeholder_ops:
-            placeholder[0].add_output('output', add_to_placeholder)
+        placeholder[0].add_outputs({'output': reserved_placeholder_ops})
         pe.add_outputs(quantizer.output_ops)
 
         output_op = quantizer.output_op_list[0]
