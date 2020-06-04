@@ -20,7 +20,7 @@ limitations under the License.
 {% if node.transposed_data %}
 
 #ifdef RUN_ON_FPGA
-alignas(4) static unsigned char {{ node.name }}_raw[] = {
+alignas(16) static unsigned char {{ node.name }}_raw[] = {
   {% for d in node.transposed_data -%}
   {{- pack_to_bytes(d) -}},
   {%- endfor %}
@@ -35,7 +35,7 @@ const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_di
     {{ node.name }}_shape);
 
 #elif defined USE_NEON || defined USE_AVX
-alignas(4) static unsigned char {{ node.name }}_raw[] = {
+alignas(16) static unsigned char {{ node.name }}_raw[] = {
   {% for d in node.data.flatten() -%}
   {{- pack_to_bytes(d) -}},
   {%- endfor %}
