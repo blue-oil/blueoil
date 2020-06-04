@@ -81,7 +81,11 @@ class Vgg16Network(BaseNetwork):
         *args,
         **kwargs
     ):
-        kernel_initializer = tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform")
+        kernel_initializer = tf.compat.v1.keras.initializers.VarianceScaling(
+            scale=1.0,
+            mode="fan_avg",
+            distribution="uniform"
+        )
         biases_initializer = tf.compat.v1.zeros_initializer()
 
         output = super(Vgg16Network, self).conv_layer(
@@ -107,7 +111,11 @@ class Vgg16Network(BaseNetwork):
             *args,
             **kwargs
     ):
-        kernel_initializer = tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform")
+        kernel_initializer = tf.compat.v1.keras.initializers.VarianceScaling(
+            scale=1.0,
+            mode="fan_avg",
+            distribution="uniform"
+        )
         biases_initializer = tf.compat.v1.zeros_initializer()
 
         output = super(Vgg16Network, self).fc_layer(
