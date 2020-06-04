@@ -20,9 +20,9 @@ limitations under the License.
 {% if node.transposed_data %}
 
 #ifdef RUN_ON_FPGA
-static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
+alignas(4) static unsigned char {{ node.name }}_raw[] = {
   {% for d in node.transposed_data -%}
-  {{- d -}},
+  {{- pack_to_bytes(d) -}},
   {%- endfor %}
 };
 static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape = {
@@ -33,10 +33,11 @@ static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{
 const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.transposed_dimension_format }}> {{ node.name }}_output(
     reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
     {{ node.name }}_shape);
+
 #elif defined USE_NEON || defined USE_AVX
-static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
+alignas(4) static unsigned char {{ node.name }}_raw[] = {
   {% for d in node.data.flatten() -%}
-  {{- d -}},
+  {{- pack_to_bytes(d) -}},
   {%- endfor %}
 };
 static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape = {
@@ -47,10 +48,11 @@ static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{
 const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}> {{ node.name }}_output(
     reinterpret_cast<{{ node.dtype.cpptype() }}*>({{ node.name }}_raw),
     {{ node.name }}_shape);
+
 #else
-static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
+static unsigned char {{ node.name }}_raw[] = {
   {% for d in node.kn2row_data -%}
-  {{- d -}},
+  {{- pack_to_bytes(d) -}},
   {%- endfor %}
 };
 static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape = {
@@ -65,9 +67,9 @@ const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.kn2row_dimens
 
 {% else -%}
 
-static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
+static unsigned char {{ node.name }}_raw[] = {
   {% for d in node.data.flatten() -%}
-  {{- d -}},
+  {{- pack_to_bytes(d) -}},
   {%- endfor %}
 };
 static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape = {
