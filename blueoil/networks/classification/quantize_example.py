@@ -36,8 +36,8 @@ class SampleNetwork(Base):
         h = self.block_last.get_shape()[1].value
         w = self.block_last.get_shape()[2].value
         self.pool = tf.compat.v1.layers.average_pooling2d(name='global_average_pool', inputs=self.block_last,
-                                                pool_size=[h, w], padding='VALID', strides=1,
-                                                data_format=channel_data_format)
+                                                          pool_size=[h, w], padding='VALID', strides=1,
+                                                          data_format=channel_data_format)
         self.base_output = tf.reshape(self.pool, [-1, self.num_classes], name="pool_reshape")
 
         return self.base_output
