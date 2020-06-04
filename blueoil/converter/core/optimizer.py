@@ -437,7 +437,7 @@ def pass_pack_weights(graph: Graph) -> None:
         quantized_constant = Constant(
             weight_quantizer.name + '_new',
             PackedUint32(),
-            data=np.vectorize(lambda k: (~k) & ((0x1 << 32) - 1))(data),
+            data=np.vectorize(lambda k: (~k) & ((0x1 << 32) - 1))(data).astype(np.uint32),
             dimension_format="OHWI",
             transposed_dimension_format="OhIhHWOlIl",
             packed=True,
