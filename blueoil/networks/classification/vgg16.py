@@ -60,10 +60,10 @@ class Vgg16Network(BaseNetwork):
         self.pool5 = self.max_pool("pool5", self.conv13, kernel_size=2, strides=2)
 
         fc14 = self.fc_layer("fc14", self.pool5, filters=4096, activation=tf.nn.relu)
-        self.fc14 = tf.nn.dropout(fc14, 1 - keep_prob)
+        self.fc14 = tf.nn.dropout(fc14, rate=1-keep_prob)
 
         fc15 = self.fc_layer("fc15", self.fc15, filters=4096, activation=tf.nn.relu)
-        self.fc15 = tf.nn.dropout(fc15, 1 - keep_prob)
+        self.fc15 = tf.nn.dropout(fc15, rate=1-keep_prob)
 
         self.fc16 = self.fc_layer("fc16", self.fc15, filters=self.num_classes, activation=None)
 
