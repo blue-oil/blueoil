@@ -19,6 +19,7 @@ limitations under the License.
 
 {% if node.transposed_data %}
 
+/* TODO(tokunaga): stop using floating point literal, use opaque unsigned char representation instead. */
 #ifdef RUN_ON_FPGA
 static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {% for d in node.transposed_data -%}
