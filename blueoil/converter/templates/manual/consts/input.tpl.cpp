@@ -20,9 +20,9 @@ limitations under the License.
 {% if node.transposed_data %}
 
 #ifdef RUN_ON_FPGA
-alignas(16) static unsigned char {{ node.name }}_raw[] = {
+static Base<{{ node.dtype.cpptype() }}>::type {{ node.name }}_raw[] = {
   {% for d in node.transposed_data -%}
-  {{- pack_to_bytes(d) -}},
+  {{- d -}},
   {%- endfor %}
 };
 static constexpr decltype({{ node.name }}_output)::tensor_info_t<std::size_t> {{ node.name }}_shape = {
