@@ -50,7 +50,7 @@ const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.dimension }}>
     {{ node.name }}_shape);
 
 #else
-static unsigned char {{ node.name }}_raw[] = {
+alignas(16) static unsigned char {{ node.name }}_raw[] = {
   {% for d in node.kn2row_data -%}
   {{- pack_to_bytes(d) -}},
   {%- endfor %}
@@ -67,7 +67,7 @@ const TensorView<{{ node.dtype.cpptype() }}, MemoryLayout::{{ node.kn2row_dimens
 
 {% else -%}
 
-static unsigned char {{ node.name }}_raw[] = {
+alignas(16) static unsigned char {{ node.name }}_raw[] = {
   {% for d in node.data.flatten() -%}
   {{- pack_to_bytes(d) -}},
   {%- endfor %}
