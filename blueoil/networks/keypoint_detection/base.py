@@ -39,8 +39,8 @@ class Base(BaseNetwork):
         else:
             shape = (self.batch_size, 3, self.image_size[0], self.image_size[1])
 
-        images_placeholder = tf.placeholder(tf.float32, shape=shape, name="images_placeholder")
-        labels_placeholder = tf.placeholder(
+        images_placeholder = tf.compat.v1.placeholder(tf.float32, shape=shape, name="images_placeholder")
+        labels_placeholder = tf.compat.v1.placeholder(
             tf.float32,
             shape=(self.batch_size,
                    self.image_size[0] // self.stride, self.image_size[1] // self.stride,
@@ -65,7 +65,7 @@ class Base(BaseNetwork):
         heatmaps_colored *= color
         heatmaps_colored = tf.reduce_sum(heatmaps_colored, axis=3)
 
-        tf.summary.image(name, heatmaps_colored)
+        tf.compat.v1.summary.image(name, heatmaps_colored)
 
     @staticmethod
     def py_post_process(heatmaps, num_dimensions=2, stride=2):
@@ -96,9 +96,9 @@ class Base(BaseNetwork):
             joints: a Tensor of shape (batch_size, num_joints, 3).
 
         """
-        return tf.py_func(self.py_post_process,
-                          [output, 2, self.stride],
-                          tf.float32)
+        return tf.compat.v1.py_func(self.py_post_process,
+                                    [output, 2, self.stride],
+                                    tf.float32)
 
     @staticmethod
     def py_visualize_output(images, heatmaps, stride=2):
@@ -129,10 +129,10 @@ class Base(BaseNetwork):
             name: str, name to display on tensorboard.
 
         """
-        drawed_images = tf.py_func(self.py_visualize_output,
-                                   [images, output, self.stride],
-                                   tf.uint8)
-        tf.summary.image(name, drawed_images)
+        drawed_images = tf.compat.v1.py_func(self.py_visualize_output,
+                                             [images, output, self.stride],
+                                             tf.uint8)
+        tf.compat.v1.summary.image(name, drawed_images)
 
     def _compute_oks(self, output, labels):
         """Compute object keypoint similarity between output and labels.
@@ -147,9 +147,9 @@ class Base(BaseNetwork):
         joints_gt = self.post_process(labels)
         joints_pred = self.post_process(output)
 
-        return tf.py_func(compute_object_keypoint_similarity,
-                          [joints_gt, joints_pred, self.image_size],
-                          tf.float32)
+        return tf.compat.v1.py_func(compute_object_keypoint_similarity,
+                                    [joints_gt, joints_pred, self.image_size],
+                                    tf.float32)
 
     def summary(self, output, labels=None):
         """Summary for tensorboard.
@@ -160,7 +160,7 @@ class Base(BaseNetwork):
 
         """
         images = self.images if self.data_format == 'NHWC' else tf.transpose(self.images, perm=[0, 2, 3, 1])
-        tf.summary.image("input", images)
+        tf.compat.v1.summary.image("input", images)
 
         color = np.random.randn(1, 1, 1, self.num_joints, 3)
 
@@ -186,7 +186,7 @@ class Base(BaseNetwork):
         oks = self._compute_oks(output, labels)
 
         results = {}
-        mean_oks, update_oks = tf.metrics.mean(oks)
+        mean_oks, update_oks = tf.compat.v1.metrics.mean(oks)
         updates = [update_oks]
         updates_op = tf.group(*updates)
         results["mean_object_keypoint_similarity"] = mean_oks
