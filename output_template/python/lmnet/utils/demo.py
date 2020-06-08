@@ -15,6 +15,7 @@
 # =============================================================================
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import sys
 import time
 from itertools import product as itr_prod
 from threading import Thread
@@ -27,7 +28,6 @@ try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
-
 
 
 COLORS = [tuple(p) for p in itr_prod([0, 180, 255], repeat=3)]
@@ -147,16 +147,21 @@ class VideoStream:
 
 
 def run_inference(image, nn, pre_process, post_process):
-    start = time.clock()
+    if sys.version_info.major == 2:
+        get_time = time.time
+    else:
+        get_time = time.perf_counter
+
+    start = get_time()
 
     data = pre_process(image=image)["image"]
     data = np.expand_dims(data, axis=0)
 
-    network_only_start = time.clock()
+    network_only_start = get_time()
     result = nn.run(data)
-    fps_only_network = 1.0/(time.clock() - network_only_start)
+    fps_only_network = 1.0/(get_time() - network_only_start)
 
     output = post_process(outputs=result)['outputs']
 
-    fps = 1.0/(time.clock() - start)
+    fps = 1.0/(get_time() - start)
     return output, fps, fps_only_network
