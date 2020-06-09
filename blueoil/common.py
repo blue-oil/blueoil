@@ -68,33 +68,11 @@ def get_color_map(length):
 # https://github.com/blue-oil/blueoil/tree/master/docs/_static/turbo_cmap.png
 # Implementation inspired from the following gist:
 # https://gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
-def interpolate(colormap, x):
-    x = max(0.0, min(1.0, x))
-    a = int(x*255.0)
-    b = min(255, a + 1)
-    f = x*255.0 - a
-    return [colormap[a][0] + (colormap[b][0] - colormap[a][0]) * f,
-            colormap[a][1] + (colormap[b][1] - colormap[a][1]) * f,
-            colormap[a][2] + (colormap[b][2] - colormap[a][2]) * f]
-
-
-def interpolate_or_clip(colormap, x):
-    if x < 0.0:
-        return [0.0, 0.0, 0.0]
-    elif x > 1.0:
-        return [1.0, 1.0, 1.0]
-    else:
-        return interpolate(colormap, x)
-
-
-def color_map_apply(image):
+def apply_color_map(image):
     turbo_cmap_data = np.asarray(TURBO_CMAP_DATA)
-    image = np.asarray(image)
-    # If image range is [0, 1], continue ahead. Else convert to that range.
-    if image.max() > 1.0:
-        image = (image - image.min()) / image.max()
+    x = np.asarray(image)
+    x = x.clip(0., 1.)
 
-    x = image.clip(0.0, 1.0)
     a = (x * 255).astype(int)
     b = (a + 1).clip(max=255)
     f = x * 255.0 - a
@@ -102,6 +80,4 @@ def color_map_apply(image):
         turbo_cmap_data[a]
         + (turbo_cmap_data[b] - turbo_cmap_data[a]) * f[..., None]
     )
-    image_colored[image < 0.0] = 0.0
-    image_colored[image > 1.0] = 1.0
     return image_colored
