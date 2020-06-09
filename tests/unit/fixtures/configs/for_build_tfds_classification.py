@@ -18,7 +18,7 @@ from easydict import EasyDict
 
 from blueoil.common import Tasks
 from blueoil.networks.classification.lmnet_v0 import LmnetV0Quantize
-from blueoil.datasets.delta_mark import ClassificationBase
+from blueoil.datasets.open_images_v4 import OpenImagesV4Classification
 from blueoil.tfds_data_processor import TFDSProcessorSequence
 from blueoil.tfds_pre_processor import (
     TFDSResize,
@@ -26,16 +26,15 @@ from blueoil.tfds_pre_processor import (
 )
 from blueoil.tfds_augmentor import (
     TFDSFlipLeftRight,
-)
+)OB
 from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
 )
 
 
-class ClassificationDataset(ClassificationBase):
-    extend_dir = "custom_delta_mark_classification/for_train"
-    validation_extend_dir = "custom_delta_mark_classification/for_validation"
+class ClassificationDataset(OpenImagesV4Classification):
+    extend_dir = "open_images_v4"
 
 
 IS_DEBUG = False
@@ -43,7 +42,7 @@ IS_DEBUG = False
 NETWORK_CLASS = LmnetV0Quantize
 DATASET_CLASS = ClassificationDataset
 
-IMAGE_SIZE = [128, 128]
+IMAGE_SIZE = [256, 256]
 BATCH_SIZE = 1
 DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
