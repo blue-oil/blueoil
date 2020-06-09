@@ -17,7 +17,7 @@ limitations under the License.
 
 #include "time_measurement.h"
 
-std::map<std::string, std::vector<Measurement::measure> > Measurement::times;
+std::map<std::string, std::vector<Measurement::measure>> Measurement::times;
 std::vector<std::string> Measurement::current_context;
 std::vector<Measurement::Node*> Measurement::stack;
 std::vector<std::unique_ptr<Measurement::Node>> Measurement::roots;
@@ -60,7 +60,7 @@ void Measurement::Start(const std::string &measure_name)
 
 void Measurement::Stop()
 {
-  if(current_context.size() == 0 || times[current_context.back()].size() == 0) {
+  if(current_context.empty() || times[current_context.back()].empty()) {
     std::cout << "ERROR: wrong Start/Stop pairs" << std::endl;
     return;
   }
