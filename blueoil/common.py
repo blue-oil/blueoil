@@ -30,7 +30,7 @@ def get_color_map(length):
     # Color Palette for General Purpose
     # Sample image is here
     # https://github.com/blue-oil/blueoil/tree/master/docs/_static/color_map.png
-    COLOR_MAP = [
+    color_map_base = [
         (192, 0, 128),  # COLOR00
         (0, 128, 192),  # COLOR01
         (0, 128, 64),  # COLOR02
@@ -54,5 +54,5 @@ def get_color_map(length):
     ]
 
     # This function generate arbitrary length color map.
-    color_map = COLOR_MAP * int(math.ceil(length / len(COLOR_MAP)))
+    color_map = color_map_base * int(math.ceil(length / len(color_map_base)))
     return color_map[:length]
