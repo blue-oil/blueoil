@@ -634,8 +634,13 @@ def pass_lookup(graph: Graph) -> None:
                     {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb}, dimension_format='ChHWBCl')
 
         get_nodes_in_branch(quantizer, placeholder[0], to_be_removed)
+
+        reserved_placeholder_ops = [
+            out_op for out_op in placeholder[0].output_op_list
+            if out_op not in to_be_removed
+        ]
         placeholder[0].remove_output('output')
-        placeholder[0].add_output('output', pe)
+        placeholder[0].add_outputs({'output': reserved_placeholder_ops})
         pe.add_outputs(quantizer.output_ops)
 
         output_op = quantizer.output_op_list[0]
