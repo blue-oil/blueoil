@@ -26,34 +26,33 @@ class Tasks(Enum):
     KEYPOINT_DETECTION = "IMAGE.KEYPOINT_DETECTION"
 
 
-# Color Palette for General Purpose
-# Sample image is here
-# https://github.com/blue-oil/blueoil/tree/master/docs/_static/color_map.png
-COLOR_MAP = [
-    (192, 0,   128),  # COLOR00
-    (0,   128, 192),  # COLOR01
-    (0,   128, 64),   # COLOR02
-    (128, 0,   0),    # COLOR03
-    (64,  0,   128),  # COLOR04
-    (64,  0,   192),  # COLOR05
-    (192, 128, 64),   # COLOR06
-    (192, 192, 128),  # COLOR07
-    (64,  64,  128),  # COLOR08
-    (128, 0,   192),  # COLOR09
-    (192, 0,   64),   # COLOR10
-    (128, 128, 64),   # COLOR11
-    (192, 0,   192),  # COLOR12
-    (128, 64,  64),   # COLOR13
-    (64,  192, 128),  # COLOR14
-    (64,  64,  0),    # COLOR15
-    (128, 64,  128),  # COLOR16
-    (128, 128, 192),  # COLOR17
-    (0,   0,   192),  # COLOR18
-    (192, 128, 128)   # COLOR19
-]
-
-
 def get_color_map(length):
+    # Color Palette for General Purpose
+    # Sample image is here
+    # https://github.com/blue-oil/blueoil/tree/master/docs/_static/color_map.png
+    color_map_base = [
+        (192, 0, 128),  # COLOR00
+        (0, 128, 192),  # COLOR01
+        (0, 128, 64),  # COLOR02
+        (128, 0, 0),  # COLOR03
+        (64, 0, 128),  # COLOR04
+        (64, 0, 192),  # COLOR05
+        (192, 128, 64),  # COLOR06
+        (192, 192, 128),  # COLOR07
+        (64, 64, 128),  # COLOR08
+        (128, 0, 192),  # COLOR09
+        (192, 0, 64),  # COLOR10
+        (128, 128, 64),  # COLOR11
+        (192, 0, 192),  # COLOR12
+        (128, 64, 64),  # COLOR13
+        (64, 192, 128),  # COLOR14
+        (64, 64, 0),  # COLOR15
+        (128, 64, 128),  # COLOR16
+        (128, 128, 192),  # COLOR17
+        (0, 0, 192),  # COLOR18
+        (192, 128, 128),  # COLOR19
+    ]
+
     # This function generate arbitrary length color map.
-    color_map = COLOR_MAP * int(math.ceil(length / len(COLOR_MAP)))
+    color_map = color_map_base * int(math.ceil(length / len(color_map_base)))
     return color_map[:length]
