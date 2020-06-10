@@ -73,9 +73,21 @@ def apply_color_map(image):
     x = np.asarray(image)
     x = x.clip(0., 1.)
 
-    a = (x * 255).astype(int)
+    # Use numpy.modf to get the integer and decimal parts of feature values
+    # in the input feature map (or heatmap) that has to be colored.
+    # Example:
+    #   >>> import numpy as np
+    #   >>> x = np.array([1.2, 2.3, 4.5, 20.45, 6.75, 8.88])
+    #   >>> f, i = np.modf(x)       # returns a tuple of length 2
+    #   >>> print(i.shape, f.shape)
+    #   >>> (6,) (6,)
+    #   >>> print(i)
+    #   >>> [ 1.  2.  4. 20.  6.  8.]
+    #   >>> print(f)
+    #   >>> [0.2  0.3  0.5  0.45 0.75 0.88]
+    f, a = np.modf(x * 255.0)
+    a = a.astype(int)
     b = (a + 1).clip(max=255)
-    f = x * 255.0 - a
     image_colored = (
         turbo_cmap_data[a]
         + (turbo_cmap_data[b] - turbo_cmap_data[a]) * f[..., None]
