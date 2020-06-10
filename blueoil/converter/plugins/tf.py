@@ -30,7 +30,7 @@ from blueoil.converter.core.exceptions import UnsupportedNode, UnsupportedDataTy
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.operators import Operator, Conv, \
     Identity, BinaryMeanScalingQuantizer, \
-    BatchNormalization, LinearMidTreadHalfQuantizer, Add, \
+    BatchNormalization, LinearMidTreadHalfQuantizer, Add, Sub, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
     Mul, BinaryChannelWiseMeanScalingQuantizer, ConcatOnDepth, Maximum, \
     DepthToSpace, ResizeNearestNeighbor, \
@@ -294,7 +294,7 @@ class Input(object):
 
     def set_shape(self, val: List[str]) -> None:
         """Set shape info."""
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class Output(object):
@@ -349,7 +349,7 @@ class Output(object):
 
     def set_shape(self, val: List[str]) -> None:
         """Set shape info."""
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class Importer(object):
@@ -470,7 +470,6 @@ class Importer(object):
         - 'Transpose': depending on the permutation attribute
         """
 
-        _default_format = 'NHWC'
         _default_w_format = 'HWIO'
 
         rank_to_format = {0: 'Atom', 1: 'C', 2: 'HW', 3: 'HWC', 4: 'NHWC', 5: 'NHWCT'}
@@ -695,6 +694,18 @@ class Importer(object):
                 shape = infer_shape(attributes)
 
             new_op = Add(
+                node.name,
+                shape,
+                dtype,
+                input_ops,
+                dimension_format=current_format
+            )
+        elif op_type == 'Sub':
+            if not shape:
+                attributes = {}
+                shape = infer_shape(attributes)
+
+            new_op = Sub(
                 node.name,
                 shape,
                 dtype,

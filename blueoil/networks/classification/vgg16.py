@@ -21,20 +21,10 @@ VGG_MEAN = [103.939, 116.779, 123.68]
 
 
 class Vgg16Network(BaseNetwork):
-    def __init__(
-            self,
-            num_classes,
-            optimizer_class,
-            optimizer_args,
-            is_debug=False
-    ):
+    def __init__(self, num_classes, optimizer_class, optimizer_args, is_debug=False):
 
         self.num_classes = num_classes
-        super().__init__(
-            optimizer_class=optimizer_class,
-            optimizer_args=optimizer_args,
-            is_debug=is_debug
-        )
+        super().__init__(optimizer_class=optimizer_class, optimizer_args=optimizer_args, is_debug=is_debug)
 
     def build(self, images, is_training):
         keep_prob = tf.cond(is_training, lambda: tf.constant(0.5), lambda: tf.constant(1.0))

@@ -16,7 +16,7 @@
 import copy
 from textwrap import dedent, indent
 
-from blueoil.converter.core.data_types import *
+from blueoil.converter.core.data_types import QUANTIZED_PACKED
 
 
 class View(object):
@@ -458,7 +458,6 @@ class View(object):
             inputs_string = self.inputs_to_string(op, input_ops)
             shape_string = self.shape_to_string(op.shape)
 
-            number_of_inputs = len(input_ops)
             concat_input = {}
             for k, v in input_ops.items():
                 if not v.is_variable:
@@ -495,9 +494,6 @@ class View(object):
                 """
             )
         elif self.op.op_type == 'ResizeNearestNeighbor':
-
-            args1 = f"{inputs_string}, {op.name}"
-
             return self.format_string(
                 f"""
                 func_ResizeNearestNeighbor({inputs_string}, {outputs_string});
@@ -582,7 +578,7 @@ class View(object):
         return ', '.join(map(lambda x: str(x), shape_copied))
 
     def params_to_string(self, params):
-        raise NotImplemented
+        raise NotImplementedError
 
     def raise_invalid_args_exception(self, op, input_ops, output_ops):
         error_message = self.format_string(

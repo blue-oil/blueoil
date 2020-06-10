@@ -6,7 +6,7 @@ LABEL maintainer="admin@blueoil.org"
 EXPOSE 6006
 
 # Python version settings
-ARG python_version="3.6.3"
+ARG python_version="3.6.10"
 
 ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
     CUDA_HOME=/usr/local/cuda-10.0 \
@@ -38,6 +38,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     libncurses5-dev \
     libncursesw5-dev \
+    liblzma-dev \
     xz-utils \
     tk-dev \
     g++-9 \

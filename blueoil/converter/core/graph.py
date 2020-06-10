@@ -15,7 +15,7 @@
 # =============================================================================
 """Graph module."""
 from collections import OrderedDict, defaultdict
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, cast
+from typing import Dict, List, Optional, cast
 
 from blueoil.converter.core.graph_pattern_matching import sort_graph
 from blueoil.converter.core.operators import Conv, Operator

@@ -19,8 +19,6 @@ from tempfile import NamedTemporaryFile
 
 from jinja2 import Environment, FileSystemLoader
 
-from blueoil.utils.module_loader import load_class
-
 
 _TASK_TYPE_TEMPLATE_FILE = {
     "classification": "classification.tpl.py",
@@ -134,7 +132,7 @@ def _blueoil_to_lmnet(blueoil_config):
     # load dataset python module from string.
     _loaded_dataset_module = importlib.import_module("blueoil.datasets.{}".format(dataset_module))
     # load dataset python module from string.
-    _loaded_dataset_class = load_class(_loaded_dataset_module, dataset_class)
+    _loaded_dataset_class = _load_class(_loaded_dataset_module, dataset_class)
     _dataset_class = type('DATASET_CLASS', (_loaded_dataset_class,), dataset_class_property)
     _dataset_obj = _dataset_class(subset="train", batch_size=1)
     classes = _dataset_obj.classes
@@ -301,3 +299,12 @@ def _save(lmnet_config):
             suffix=".py", delete=False, mode="w") as fp:
         fp.write(applied)
         return fp.name
+
+
+def _load_class(module, class_name):
+    # this converts the string from snake format into class capital format
+    # e.g. example_class_name -> ExampleClassName
+    if class_name[0].islower() or "_" in class_name:
+        class_name = "".join([s.capitalize() for s in class_name.split("_")])
+
+    return module.__dict__[class_name]

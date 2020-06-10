@@ -192,7 +192,6 @@ class TrainTunable(Trainable):
                 **network_kwargs,
             )
 
-        self.global_step = tf.Variable(0, name="global_step", trainable=False)
         self.is_training_placeholder = tf.compat.v1.placeholder(tf.bool, name="is_training_placeholder")
         self.images_placeholder, self.labels_placeholder = model.placeholders()
 
@@ -201,9 +200,9 @@ class TrainTunable(Trainable):
             loss = model.loss(output, self.labels_placeholder, self.is_training_placeholder)
         else:
             loss = model.loss(output, self.labels_placeholder)
-        opt = model.optimizer(self.global_step)
+        opt = model.optimizer()
 
-        train_op = model.train(loss, opt, self.global_step)
+        train_op = model.train(loss, opt)
         metrics_ops_dict, metrics_update_op = model.metrics(output, self.labels_placeholder)
 
         self.train_op = train_op

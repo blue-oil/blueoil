@@ -42,10 +42,7 @@ class YoloV1(BaseNetwork):
             **kwargs
     ):
 
-        super().__init__(
-            *args,
-            **kwargs
-        )
+        super().__init__(*args, **kwargs)
 
         self.cell_size = cell_size
         self.boxes_per_cell = boxes_per_cell
@@ -430,7 +427,7 @@ class YoloV1(BaseNetwork):
                     self.image_size,
                 )
 
-    def loss(self, output, gt_boxes, *args):
+    def loss(self, output, gt_boxes):
         """Loss.
 
         Args:

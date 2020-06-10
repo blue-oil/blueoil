@@ -20,15 +20,14 @@ import warnings
 from termcolor import colored
 from abc import abstractmethod
 from itertools import dropwhile
-from typing import TYPE_CHECKING, Any, Dict, Optional, cast
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 from blueoil.converter.core.view import View
 from blueoil.converter.util import classproperty
 
-from .data_types import *
-
-if TYPE_CHECKING:
-    import blueoil.converter.core.operators as ops
+from .data_types import DataType
 
 Ops = Dict[str, 'Operator']
 OutOps = Dict[str, List['Operator']]
@@ -814,7 +813,7 @@ class SpaceToDepth(Operator):
             2. (kernel_size^2 * {8, 16}).
         """
         super()._check_consistency()
-        if self.channel % 32 != 0:
+        if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and self.channel % 32 != 0:
             warnings.warn(warning_sign +
                           f" Output channels need to be multiple of 32 for {self.name} of {self.op_type}, "
                           f"but got output channel size of {self.channel}",
@@ -1444,11 +1443,11 @@ class LinearMidTreadHalfQuantizer(Quantizer):
 
     @property
     def nbit(self) -> int:
-        return np.asscalar(self._input_ops['Y'].data)
+        return self._input_ops['Y'].data.item()
 
     @property
     def max_v(self) -> float:
-        return np.asscalar(self._input_ops['Z'].data)
+        return self._input_ops['Z'].data.item()
 
     @property
     def is_monotonic(self) -> bool:
@@ -1565,6 +1564,61 @@ class Add(Operator):
         output_shape = [max(a, b) for a, b in zip(a_shape, b_shape)]
 
         return output_shape
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
+class Sub(Operator):
+    """Subtract operator.
+
+    Performs element-wise subtraction (with Numpy-style broadcasting support).
+    This operator supports multidirectional (i.e., Numpy-style) broadcasting.
+
+    Inputs
+    ------
+    A
+        First operand.
+
+    B
+        Second operand.
+
+    Outputs
+    -------
+    C
+        Result, has same element type as two inputs
+
+    """
+
+    _input_names = ['A', 'B']
+    _output_names = ['C']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    def run_forward(self) -> np.ndarray:
+        a = self._input_ops['A'].data
+        b = self._input_ops['B'].data
+        self._data = a - b
+        return self._data
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        return lists['X']
 
     @property
     def preserve_quantization(self) -> bool:
@@ -2683,7 +2737,7 @@ class Split(Operator):
                  num_split: int = 1) -> None:
         """Init the split operator."""
         self._split = num_split
-        self._axis = np.asscalar(input_ops['A'].data)
+        self._axis = input_ops['A'].data.item()
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:

@@ -17,17 +17,14 @@
 import math
 import warnings
 from collections import defaultdict
-from typing import Any, List, cast
 
 import numpy as np
 
-from blueoil.converter.core.data_types import QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, \
-    QUANTIZED_PACKED_KERNEL, Int32, PackedUint32, Uint32
+from blueoil.converter.core.data_types import QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, PackedUint32
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from blueoil.converter.core.operators import Constant, Conv, Lookup, \
-    Operator, BatchNormalizationOptimized
-from  blueoil.converter.modules.packer import Packer
+from blueoil.converter.core.operators import Constant, Lookup, BatchNormalizationOptimized
+from blueoil.converter.modules.packer import Packer
 
 
 def pass_remove_identities(graph: Graph) -> None:
@@ -637,8 +634,13 @@ def pass_lookup(graph: Graph) -> None:
                     {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb}, dimension_format='ChHWBCl')
 
         get_nodes_in_branch(quantizer, placeholder[0], to_be_removed)
+
+        reserved_placeholder_ops = [
+            out_op for out_op in placeholder[0].output_op_list
+            if out_op not in to_be_removed
+        ]
         placeholder[0].remove_output('output')
-        placeholder[0].add_output('output', pe)
+        placeholder[0].add_outputs({'output': reserved_placeholder_ops})
         pe.add_outputs(quantizer.output_ops)
 
         output_op = quantizer.output_op_list[0]

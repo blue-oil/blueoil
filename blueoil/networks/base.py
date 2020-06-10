@@ -63,6 +63,7 @@ class BaseNetwork(object):
         self.image_size = image_size
         self.batch_size = batch_size
         self.data_format = data_format
+        self.global_step = tf.Variable(0, name="global_step", trainable=False)
 
     def base(self, images, is_training, *args, **kwargs):
         """Base function contains inference.
@@ -131,7 +132,7 @@ class BaseNetwork(object):
         """
         raise NotImplementedError()
 
-    def optimizer(self, global_step):
+    def optimizer(self):
         assert ("learning_rate" in self.optimizer_kwargs.keys()) or \
                (self.learning_rate_func is not None)
 
@@ -139,14 +140,14 @@ class BaseNetwork(object):
             learning_rate = self.optimizer_kwargs["learning_rate"]
 
         else:
-            if self.learning_rate_func is tf.train.piecewise_constant:
+            if self.learning_rate_func is tf.compat.v1.train.piecewise_constant:
                 learning_rate = self.learning_rate_func(
-                    x=global_step,
+                    x=self.global_step,
                     **self.learning_rate_kwargs
                 )
             else:
                 learning_rate = self.learning_rate_func(
-                    global_step=global_step,
+                    global_step=self.global_step,
                     **self.learning_rate_kwargs
                 )
 
@@ -155,24 +156,23 @@ class BaseNetwork(object):
 
         return self.optimizer_class(**self.optimizer_kwargs)
 
-    def train(self, loss, optimizer, global_step=tf.Variable(0, trainable=False), var_list=[]):
+    def train(self, loss, optimizer, var_list=[]):
         """Train.
 
         Args:
            loss: loss function of this network.
-           global_step: tensorflow's global_step
 
         """
         # TODO(wenhao): revert when support `tf.layers.batch_normalization`
         # update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         # with tf.control_dependencies(update_ops):
-        with tf.name_scope("train"):
+        with tf.compat.v1.name_scope("train"):
             if var_list == []:
                 var_list = tf.compat.v1.trainable_variables()
 
             gradients = optimizer.compute_gradients(loss, var_list=var_list)
 
-            train_op = optimizer.apply_gradients(gradients, global_step=global_step)
+            train_op = optimizer.apply_gradients(gradients, global_step=self.global_step)
 
         # Add histograms for all gradients for every layer.
         for grad, var in gradients:

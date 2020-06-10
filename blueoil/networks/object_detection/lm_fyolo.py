@@ -30,7 +30,7 @@ class LMFYolo(YoloV2):
         YoloV2 https://arxiv.org/abs/1612.08242
     """
 
-    def train(self, loss, optimizer, global_step=tf.Variable(0, trainable=False), var_list=[]):
+    def train(self, loss, optimizer, var_list=[]):
         with tf.name_scope("train"):
             if var_list == []:
                 var_list = tf.compat.v1.trainable_variables()
@@ -42,7 +42,7 @@ class LMFYolo(YoloV2):
                 (tf.clip_by_value(gradient, -10.0, 10.0), var)
                 for gradient, var in gradients
             ]
-            train_op = optimizer.apply_gradients(gradients, global_step=global_step)
+            train_op = optimizer.apply_gradients(gradients, global_step=self.global_step)
 
         for grad, var in gradients:
             if grad is not None:
@@ -152,9 +152,9 @@ class LMFYoloQuantize(LMFYolo):
             quantize_first_convolution=True,
             quantize_last_convolution=True,
             activation_quantizer=None,
-            activation_quantizer_kwargs=None,
+            activation_quantizer_kwargs={},
             weight_quantizer=None,
-            weight_quantizer_kwargs=None,
+            weight_quantizer_kwargs={},
             *args,
             **kwargs
     ):
@@ -163,21 +163,15 @@ class LMFYoloQuantize(LMFYolo):
             quantize_first_convolution(bool): use quantization in first conv.
             quantize_last_convolution(bool): use quantization in last conv.
             weight_quantizer (callable): weight quantizer.
-            weight_quantize_kwargs(dict): Initialize kwargs for weight quantizer.
+            weight_quantizer_kwargs(dict): Initialize kwargs for weight quantizer.
             activation_quantizer (callable): activation quantizer
-            activation_quantize_kwargs(dict): Initialize kwargs for activation quantizer.
+            activation_quantizer_kwargs(dict): Initialize kwargs for activation quantizer.
         """
 
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+        super().__init__(*args, **kwargs)
 
         self.quantize_first_convolution = quantize_first_convolution
         self.quantize_last_convolution = quantize_last_convolution
-
-        activation_quantizer_kwargs = activation_quantizer_kwargs if not None else {}
-        weight_quantizer_kwargs = weight_quantizer_kwargs if not None else {}
 
         assert callable(weight_quantizer)
         assert callable(activation_quantizer)

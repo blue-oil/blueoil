@@ -116,7 +116,7 @@ class Cifar10(Base):
 
         return images, labels
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         image = self._get_image(i)
         label = data_processor.binarize(self.labels[i], self.num_classes)
         label = np.reshape(label, (self.num_classes))

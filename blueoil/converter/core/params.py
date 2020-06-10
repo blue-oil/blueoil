@@ -17,7 +17,7 @@
 from typing import List
 
 from blueoil.converter.core.config import Config
-from blueoil.converter.core.data_types import *
+from blueoil.converter.core.data_types import Uint32
 from blueoil.converter.core.operators import Conv
 
 
@@ -50,7 +50,7 @@ class Params(object):
         if self.default_qword_dtype == Uint32:
             return 32
         else:
-            raise NotImplemented
+            raise NotImplementedError
 
     @property
     def nbit_qinput(self):

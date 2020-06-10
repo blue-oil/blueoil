@@ -11,9 +11,8 @@ The COCO dataset is available from the official website.
 Although COCO dataset is for multi-person pose estimation challenge track.
 We customize this dataset to train a single-person pose estimation task.
 
-Blueoil supports 2 formats for keypoint detection.
+Blueoil supports only 1 format for keypoint detection.
 - MSCOCO format
-- YouTube Faces format
 
 For details, please refer to **MSCOCO_2017 keypoint detection** section in <a href="../usage/dataset.html">Prepare training dataset</a>
 
@@ -51,7 +50,7 @@ initial learning rate:  0.001
 choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay-with-warmup' -> warmup learning rate 1/1000 in first epoch, then train the same way as '3-step-decay'
 enable data augmentation? (Y/n):  Yes
 Please choose augmentors:  done (6 selections)
--> select Blue, Brightness, Color, Contrast, FlipLeftRight, Hue
+-> select Blur, Brightness, Color, Contrast, FlipLeftRight, Hue
 apply quantization at the first layer? (Y/n):  no
 ```
 
