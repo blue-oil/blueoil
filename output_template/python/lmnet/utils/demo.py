@@ -163,5 +163,5 @@ def run_inference(image, nn, pre_process, post_process):
 
     output = post_process(outputs=result)['outputs']
 
-    fps = 1.0/(get_time() - start)
+    fps = 1.0 / (get_time() - start)
     return output, fps, fps_only_network
