@@ -26,7 +26,7 @@ from blueoil.tfds_pre_processor import (
 )
 from blueoil.tfds_augmentor import (
     TFDSFlipLeftRight,
-)OB
+)
 from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
     linear_mid_tread_half_quantizer,
@@ -34,7 +34,7 @@ from blueoil.quantizations import (
 
 
 class ClassificationDataset(OpenImagesV4Classification):
-    extend_dir = "open_images_v4"
+    extend_dir = "open_images_v4/classification"
 
 
 IS_DEBUG = False
