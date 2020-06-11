@@ -40,7 +40,8 @@ from blueoil.quantizations import (
 
 
 class ObjectDetectionDataset(OpenImagesV4BoundingBoxBase):
-    extend_dir = "open_images_v4/bounding_boxes"
+    extend_dir = "custom_open_images_v4_bounding_boxes/for_train"
+    validation_extend_dir = "custom_open_images_v4_bounding_boxes/for_validation"
 
 
 IS_DEBUG = False
