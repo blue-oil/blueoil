@@ -20,18 +20,19 @@ from blueoil.common import Tasks
 from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
 from blueoil.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
 from blueoil.data_processor import Sequence
-from blueoil.tfds_data_processor import TFDSProcessorSequence
-from blueoil.tfds_pre_processor import (
-    TFDSResizeWithGtBoxes,
-    TFDSPerImageStandardization,
+from blueoil.data_processor import Sequence
+from blueoil.pre_processor import (
+    Resize,
+    PerImageStandardization,
+)
+from blueoil.data_augmentor import (
+    Crop,
+    FlipLeftRight,
 )
 from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,
-)
-from blueoil.tfds_augmentor import (
-    TFDSFlipLeftRight,
 )
 from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
@@ -50,14 +51,14 @@ NETWORK_CLASS = LMFYoloQuantize
 DATASET_CLASS = ObjectDetectionDataset
 
 
-IMAGE_SIZE = [256, 256]
+IMAGE_SIZE = [128, 128]
 BATCH_SIZE = 1
 DATA_FORMAT = "NHWC"
 TASK = Tasks.OBJECT_DETECTION
 CLASSES = DATASET_CLASS(subset="train", batch_size=1).classes
 
 MAX_STEPS = 2
-SAVE_CHECKPOINT_STEPS = 1
+SAVE_CHECKPOINT_STEPS = 1000
 KEEP_CHECKPOINT_MAX = 5
 TEST_STEPS = 100
 SUMMARISE_STEPS = 100
@@ -71,9 +72,9 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-TFDS_PRE_PROCESSOR = TFDSProcessorSequence([
-    TFDSResizeWithGtBoxes(IMAGE_SIZE),
-    TFDSPerImageStandardization()
+PRE_PROCESSOR = Sequence([
+    Resize(size=IMAGE_SIZE),
+    PerImageStandardization()
 ])
 
 anchors = [
@@ -111,9 +112,11 @@ DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = None
-DATASET.TFDS_PRE_PROCESSOR = TFDS_PRE_PROCESSOR
-DATASET.TFDS_AUGMENTOR = TFDSProcessorSequence([
-    TFDSFlipLeftRight()
+DATASET.PRE_PROCESSOR = PRE_PROCESSOR
+DATASET.AUGMENTOR = Sequence([
+    # Pad(2),
+    Crop(size=IMAGE_SIZE),
+    FlipLeftRight(),
 ])
 DATASET.TFDS_KWARGS = {
     "name": "tfds_object_detection",
