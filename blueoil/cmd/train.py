@@ -202,6 +202,29 @@ def start_training(config):
             labels_placeholder: labels,
         }
 
+        if step == 11:
+            profiler = tf.compat.v1.profiler.Profiler(sess.graph)
+            run_meta = tf.compat.v1.RunMetadata()
+            sess.run(
+                [train_op], feed_dict=feed_dict,
+                options=tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE),
+                run_metadata=run_meta
+            )
+            profiler.add_step(step, run_meta)
+            opts = (tf.compat.v1.profiler.ProfileOptionBuilder(
+                    tf.compat.v1.profiler.ProfileOptionBuilder.time_and_memory())
+                    .with_step(step)
+                    .select(["bytes",])
+                    .order_by("bytes")
+                    .build())
+            opts["output"] = "file:outfile=" + os.path.join(environment.EXPERIMENT_DIR,
+                                                            "training_profile_memory")
+            profiler.profile_name_scope(options=opts)
+            opts["output"] = "timeline:outfile=" + os.path.join(environment.EXPERIMENT_DIR,
+                                                                "training_profile_timeline_step")
+            profiler.profile_name_scope(options=opts)
+
+
         if step * ((step + 1) % config.SUMMARISE_STEPS) == 0 and rank == 0:
             # Runtime statistics for develop.
             # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
