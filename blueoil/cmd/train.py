@@ -60,7 +60,7 @@ def setup_dataset(config, subset, rank, local_rank):
     return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch, local_rank=local_rank)
 
 
-def start_training(config):
+def start_training(config, profile_step):
     use_horovod = horovod_util.is_enabled()
     print("use_horovod:", use_horovod)
     if use_horovod:
@@ -203,7 +203,7 @@ def start_training(config):
         }
 
         # Runtime statistics for develop.
-        if step == 11:
+        if step == profile_step:
             options = tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE)
             run_meta = tf.compat.v1.RunMetadata()
         else:
@@ -226,7 +226,7 @@ def start_training(config):
         else:
             sess.run([train_op], feed_dict=feed_dict, options=options, run_metadata=run_meta)
 
-        if step == 11:
+        if step == profile_step:
             executor.profile_train_step(step, sess, run_meta)
 
         to_be_saved = step == 0 or (step + 1) == max_steps or (step + 1) % config.SAVE_CHECKPOINT_STEPS == 0
@@ -269,7 +269,7 @@ def start_training(config):
     print("Done")
 
 
-def run(config_file, experiment_id, recreate):
+def run(config_file, experiment_id, recreate, profile_step):
     environment.init(experiment_id)
     config = config_util.load(config_file)
 
@@ -284,16 +284,16 @@ def run(config_file, experiment_id, recreate):
         config_util.copy_to_experiment_dir(config_file)
         config_util.save_yaml(environment.EXPERIMENT_DIR, config)
 
-    start_training(config)
+    start_training(config, profile_step)
 
 
-def train(config_file, experiment_id=None, recreate=False):
+def train(config_file, experiment_id=None, recreate=False, profile_step=-1):
     if not experiment_id:
         # Default model_name will be taken from config file: {model_name}.yml.
         model_name = os.path.splitext(os.path.basename(config_file))[0]
         experiment_id = '{}_{:%Y%m%d%H%M%S}'.format(model_name, datetime.now())
 
-    run(config_file, experiment_id, recreate)
+    run(config_file, experiment_id, recreate, profile_step)
 
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
     experiment_dir = os.path.join(output_dir, experiment_id)
