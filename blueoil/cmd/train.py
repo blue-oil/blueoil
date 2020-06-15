@@ -202,19 +202,20 @@ def start_training(config):
             labels_placeholder: labels,
         }
 
+        # Runtime statistics for develop.
         if step == 11:
-            executor.profile_train_step(sess, train_op, feed_dict, step)
+            options = tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE)
+            run_meta = tf.compat.v1.RunMetadata()
+        else:
+            options = None
+            run_meta = None
 
         if step * ((step + 1) % config.SUMMARISE_STEPS) == 0 and rank == 0:
-            # Runtime statistics for develop.
-            # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-            # run_metadata = tf.RunMetadata()
-
             sess.run(reset_metrics_op)
             _, summary, _ = sess.run(
                 [train_op, summary_op, metrics_update_op], feed_dict=feed_dict,
-                # options=run_options,
-                # run_metadata=run_metadata,
+                options=options,
+                run_metadata=run_meta,
             )
             # train_writer.add_run_metadata(run_metadata, "step: {}".format(step + 1))
             train_writer.add_summary(summary, step + 1)
@@ -223,7 +224,10 @@ def start_training(config):
             train_writer.add_summary(metrics_summary, step + 1)
             train_writer.flush()
         else:
-            sess.run([train_op], feed_dict=feed_dict)
+            sess.run([train_op], feed_dict=feed_dict, options=options, run_metadata=run_meta)
+
+        if step == 11:
+            executor.profile_train_step(step, sess, run_meta)
 
         to_be_saved = step == 0 or (step + 1) == max_steps or (step + 1) % config.SAVE_CHECKPOINT_STEPS == 0
 
