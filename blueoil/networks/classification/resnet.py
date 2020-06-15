@@ -89,7 +89,7 @@ class Resnet(Base):
 
         with tf.compat.v1.variable_scope('sub_add'):
             if in_filters != out_filters:
-                inputs = tf.nn.avg_pool(
+                inputs = tf.nn.avg_pool2d(
                     inputs,
                     ksize=[1, strides, strides, 1],
                     strides=[1, strides, strides, 1],
@@ -170,8 +170,16 @@ class Resnet(Base):
         labels = tf.cast(labels, tf.float32)
 
         if self.is_debug:
-            labels = tf.Print(labels, [tf.shape(labels), tf.argmax(labels, 1)], message="labels:", summarize=200)
-            softmax = tf.Print(softmax, [tf.shape(softmax), tf.argmax(softmax, 1)], message="softmax:", summarize=200)
+            labels = tf.compat.v1.Print(
+                labels,
+                [tf.shape(labels), tf.argmax(labels, axis=1)],
+                message="labels:",
+                summarize=200)
+            softmax = tf.compat.v1.Print(
+                softmax,
+                [tf.shape(softmax), tf.argmax(softmax, axis=1)],
+                message="softmax:",
+                summarize=200)
 
         cross_entropy = -tf.reduce_sum(
             labels * tf.math.log(tf.clip_by_value(softmax, 1e-10, 1.0)),
