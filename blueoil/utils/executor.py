@@ -128,7 +128,7 @@ def profile_train_step(step, sess, run_meta):
     opts = (tf.compat.v1.profiler.ProfileOptionBuilder(
             tf.compat.v1.profiler.ProfileOptionBuilder.time_and_memory())
             .with_step(step)
-            .select(["bytes",])
+            .select(["bytes"])
             .order_by("bytes")
             .build())
     opts["output"] = "file:outfile=" + os.path.join(environment.EXPERIMENT_DIR,
