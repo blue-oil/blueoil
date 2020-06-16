@@ -108,12 +108,12 @@ def strip_binary(arch, use_fpga, target):
 
     output = _output_binary_name(arch, use_fpga, target)
 
-    if arch in {"x86", "x86_avx"}
+    if arch in {"x86", "x86_avx"}:
         if target == "executable":
             subprocess.run(("strip", output))
         elif target == "dynamic":
             subprocess.run(("strip", "-x", "--strip-unneeded", output))
-    elif arch == "arm"
+    elif arch == "arm":
         if target == "executable":
             subprocess.run(("arm-linux-gnueabihf-strip", output))
         elif target == "dynamic":
