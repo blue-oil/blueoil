@@ -151,7 +151,8 @@ def make_all(project_dir, output_dir):
             subprocess.run(("make", "clean", "--quiet"))
             subprocess.run(("make", "build", "-j4", "--quiet") + _build_options(**arch, target=target))
             strip_binary(**arch, target=target)
-            output_file_path = os.path.join(output_dir, _output_binary_name(**arch, target=target))
+            output = _output_binary_name(**arch, target=target)
+            output_file_path = os.path.join(output_dir, output)
             os.rename(output, output_file_path)
     # Return running directory
     os.chdir(running_dir)
