@@ -202,7 +202,7 @@ def get_configurations_aarch64_fpga():
     ]
     configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
 
-    enumerate(configurations)
+    return enumerate(configurations)
 
 
 class TestCodeGenerationBase(TestCaseDLKBase):
