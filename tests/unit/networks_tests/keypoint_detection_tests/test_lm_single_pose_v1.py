@@ -84,7 +84,8 @@ def test_training():
 
     environment.init("test_lm_single_pose_v1")
     prepare_dirs(recreate=True)
-    start_training(config)
+    profile_step = 1
+    start_training(config, profile_step)
 
 
 if __name__ == '__main__':

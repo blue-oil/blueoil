@@ -294,7 +294,8 @@ def test_training():
 
     environment.init("test_yolov_1")
     prepare_dirs(recreate=True)
-    start_training(config)
+    profile_step = 1
+    start_training(config, profile_step)
 
 
 if __name__ == '__main__':
