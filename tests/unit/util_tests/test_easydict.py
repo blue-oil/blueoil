@@ -15,7 +15,7 @@ def test_init():
 
 
 def test_init_with_dict():
-    d = EasyDict({"a":10, "b":20, "c":30})
+    d = EasyDict({"a": 10, "b": 20, "c": 30})
     assert isinstance(d, EasyDict)
     assert d.a == 10
     assert d.b == 20
@@ -29,7 +29,7 @@ def test_setitem():
     d = EasyDict()
     d["a"] = [
         100,
-        {"a":10, "b":20, "c":30},
+        {"a": 10, "b": 20, "c": 30},
     ]
     assert d.a[0] == 100
     assert isinstance(d.a[1], EasyDict)
@@ -37,7 +37,7 @@ def test_setitem():
     assert d.a[1].b == 20
     assert d.a[1].c == 30
 
-    d["b"] = {"a":10, "b":20, "c":30}
+    d["b"] = {"a": 10, "b": 20, "c": 30}
     assert isinstance(d.b, EasyDict)
     assert d.b.a == 10
     assert d.b.b == 20
