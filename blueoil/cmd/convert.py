@@ -73,7 +73,7 @@ def get_output_directories(output_root_dir):
 
 
 def _build_options(arch, use_fpga, target):
-    return "ARCH=" + arch + " USE_FPGA=" + use_fpga + " TYPE=" + target
+    return ("ARCH=" + arch, "USE_FPGA=" + use_fpga, "TYPE=" + target)
 
 
 def _output_binary_name(arch, use_fpga, target):
@@ -149,7 +149,7 @@ def make_all(project_dir, output_dir):
     for arch in architectures:
         for target in targets:
             subprocess.run(("make", "clean", "--quiet"))
-            subprocess.run(("make", "build", target_arch, target_use_fpga, target_type, "-j4", "--quiet"))
+            subprocess.run(("make", "build", "-j4", "--quiet") + _build_options(**arch, target=target))
             strip_binary(**arch, target=target)
             output_file_path = os.path.join(output_dir, _output_binary_name)
             os.rename(output, output_file_path)
