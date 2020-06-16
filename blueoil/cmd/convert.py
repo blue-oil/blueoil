@@ -77,9 +77,9 @@ def _build_options(arch, use_fpga, target):
 
 
 def _output_binary_name(arch, use_fpga, target):
-    if target == "executable"
+    if target == "executable":
         output = "lm_"
-    elif target in {"dynamic", "static"}
+    elif target in {"dynamic", "static"}:
         output = "libdlk_"
 
     output += arch
@@ -87,11 +87,11 @@ def _output_binary_name(arch, use_fpga, target):
     if use_fpga == "enable":
         output += "_fpga"
 
-    if target == "executable"
+    if target == "executable":
         output += ".elf"
-    elif target == "dynamic"
+    elif target == "dynamic":
         output += ".so"
-    elif target == "static"
+    elif target == "static":
         output += ".a"
 
     return output
