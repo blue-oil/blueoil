@@ -98,15 +98,13 @@ def get_configurations_by_test_cases(test_cases, configuration):
 
 def get_configurations_by_architecture(test_cases, cpu_name, use_fpga):
     configurations = []
-    configurations.extend(get_configurations_by_test_cases(test_cases,
-                                                           dict_codegen_classification(cpu_name, use_fpga)))
-    configurations.extend(get_configurations_by_test_cases(test_cases,
-                                                           dict_codegen_classification_resnet(cpu_name, use_fpga)))
-    configurations.extend(get_configurations_by_test_cases(test_cases,
-                                                           dict_codegen_object_detection(cpu_name, use_fpga)))
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_segmentation(cpu_name, use_fpga)))
 
-    return configurations
+    return ( 
+        get_configurations_by_test_cases(test_cases, dict_codegen_classification(cpu_name, use_fpga)) +
+        get_configurations_by_test_cases(test_cases, dict_codegen_classification_resnet(cpu_name, use_fpga)) +
+        get_configurations_by_test_cases(test_cases, dict_codegen_object_detection(cpu_name, use_fpga)) +
+        get_configurations_by_test_cases(test_cases, dict_codegen_segmentation(cpu_name, use_fpga))
+    )
 
 
 def get_configurations_x86_64():
@@ -127,7 +125,7 @@ def get_configurations_x86_64():
     ]
     configurations.extend(get_configurations_by_test_cases(additional_test_cases, additional_test_configuration))
 
-    return [(i, configuration) for i, configuration in enumerate(configurations)]
+    return enumerate(configurations)
 
 
 def get_configurations_x86_64_avx():
@@ -148,7 +146,7 @@ def get_configurations_x86_64_avx():
     ]
     configurations.extend(get_configurations_by_test_cases(additional_test_cases, additional_test_configuration))
 
-    return [(i, configuration) for i, configuration in enumerate(configurations)]
+    return enumerate(configurations)
 
 
 def get_configurations_arm():
@@ -162,7 +160,7 @@ def get_configurations_arm():
     ]
     configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
 
-    return [(i, configuration) for i, configuration in enumerate(configurations)]
+    return enumerate(configurations)
 
 
 def get_configurations_arm_fpga():
@@ -176,7 +174,7 @@ def get_configurations_arm_fpga():
     ]
     configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
 
-    return [(i, configuration) for i, configuration in enumerate(configurations)]
+    return enumerate(configurations)
 
 
 def get_configurations_aarch64():
@@ -190,7 +188,7 @@ def get_configurations_aarch64():
     ]
     configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
 
-    return [(i, configuration) for i, configuration in enumerate(configurations)]
+    return enumerate(configurations)
 
 
 def get_configurations_aarch64_fpga():
@@ -204,7 +202,7 @@ def get_configurations_aarch64_fpga():
     ]
     configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
 
-    return [(i, configuration) for i, configuration in enumerate(configurations)]
+    enumerate(configurations)
 
 
 class TestCodeGenerationBase(TestCaseDLKBase):
@@ -335,7 +333,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                     from_npy=False,
                     need_arm_compiler=False,
                     cache_dma=False,
-                    use_fpga=False,
+                    use_fpga='disable',
                     test_id=0
                     ) -> None:
 
@@ -406,7 +404,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         self.assertTrue(os.path.exists(generated_lib))
 
         if not use_run_test_script:
-            if cpu_name == 'x86' or cpu_name == 'x86_avx':
+            if cpu_name in {'x86', 'x86_avx'}:
                 percent_failed = self.run_library(generated_lib, input_path, expected_output_path)
             elif cpu_name == 'arm':  # FPGA is also tested here
                 percent_failed = \
