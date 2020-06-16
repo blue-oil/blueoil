@@ -146,7 +146,7 @@ def make_all(project_dir, output_dir):
     os.chdir(project_dir)
 
     # Make each target and move output files
-    for arch in archtectures:
+    for arch in architectures:
         for target in targets:
             subprocess.run(("make", "clean", "--quiet"))
             subprocess.run(("make", "build", target_arch, target_use_fpga, target_type, "-j4", "--quiet"))
