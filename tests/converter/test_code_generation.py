@@ -97,9 +97,7 @@ def get_configurations_by_test_cases(test_cases, configuration):
 
 
 def get_configurations_by_architecture(test_cases, cpu_name, use_fpga):
-    configurations = []
-
-    return ( 
+    return (
         get_configurations_by_test_cases(test_cases, dict_codegen_classification(cpu_name, use_fpga)) +
         get_configurations_by_test_cases(test_cases, dict_codegen_classification_resnet(cpu_name, use_fpga)) +
         get_configurations_by_test_cases(test_cases, dict_codegen_object_detection(cpu_name, use_fpga)) +
