@@ -1,11 +1,11 @@
 import pytest
 
-from blueoil.utils.easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 
 
 def test_init():
-    d = EasyDict(a=10, b=20, c=30)
-    assert isinstance(d, EasyDict)
+    d = SmartDict(a=10, b=20, c=30)
+    assert isinstance(d, SmartDict)
     assert d.a == 10
     assert d.b == 20
     assert d.c == 30
@@ -15,8 +15,8 @@ def test_init():
 
 
 def test_init_with_dict():
-    d = EasyDict({"a": 10, "b": 20, "c": 30})
-    assert isinstance(d, EasyDict)
+    d = SmartDict({"a": 10, "b": 20, "c": 30})
+    assert isinstance(d, SmartDict)
     assert d.a == 10
     assert d.b == 20
     assert d.c == 30
@@ -26,26 +26,26 @@ def test_init_with_dict():
 
 
 def test_setitem():
-    d = EasyDict()
+    d = SmartDict()
     d["a"] = [
         100,
         {"a": 10, "b": 20, "c": 30},
     ]
     assert d.a[0] == 100
-    assert isinstance(d.a[1], EasyDict)
+    assert isinstance(d.a[1], SmartDict)
     assert d.a[1].a == 10
     assert d.a[1].b == 20
     assert d.a[1].c == 30
 
     d["b"] = {"a": 10, "b": 20, "c": 30}
-    assert isinstance(d.b, EasyDict)
+    assert isinstance(d.b, SmartDict)
     assert d.b.a == 10
     assert d.b.b == 20
     assert d.b.c == 30
 
 
 def test_getattr():
-    d = EasyDict(a=10, b=20, c=30)
+    d = SmartDict(a=10, b=20, c=30)
     assert d.a == 10
     assert d.b == 20
     assert d.c == 30
@@ -54,7 +54,7 @@ def test_getattr():
 
 
 def test_setattr():
-    d = EasyDict()
+    d = SmartDict()
     d.a = 10
     d.b = 20
     d.c = 30

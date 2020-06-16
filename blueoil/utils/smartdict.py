@@ -1,6 +1,6 @@
-class EasyDict(dict):
+class SmartDict(dict):
     def __init__(self, d=None, **kwargs):
-        super(EasyDict, self).__init__()
+        super(SmartDict, self).__init__()
         self.update(d or {}, **kwargs)
 
     def update(self, d=None, **kwargs):
@@ -17,14 +17,14 @@ class EasyDict(dict):
             ]
         elif isinstance(value, dict) and not isinstance(value, self.__class__):
             value = self.__class__(value)
-        super(EasyDict, self).__setitem__(name, value)
+        super(SmartDict, self).__setitem__(name, value)
 
     def __getattr__(self, name):
         if name in self:
             return self[name]
-        return super(EasyDict, self).__getattr__(name)
+        return super(SmartDict, self).__getattr__(name)
 
     def __setattr__(self, name, value):
         if hasattr(self, name):
-            return super(EasyDict, self).__setattr__(name, value)
+            return super(SmartDict, self).__setattr__(name, value)
         self[name] = value
