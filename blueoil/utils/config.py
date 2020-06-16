@@ -64,7 +64,7 @@ REQUIEMNT_PARAMS_FOR_TRAINING = REQUIEMNT_PARAMS_FOR_INFERENCE + [
 def _saved_config_file_path():
     filepaths = [
         os.path.join(environment.EXPERIMENT_DIR, filename)
-        for filename in ('config.yaml', 'config.py')
+        for filename in ('config.py', 'config.yaml')
     ]
 
     for filepath in filepaths:
