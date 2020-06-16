@@ -77,21 +77,21 @@ def _build_options(arch, use_fpga, target):
 
 
 def _output_binary_name(arch, use_fpga, target):
-    if target is "executable"
+    if target == "executable"
         output = "lm_"
     elif target in {"dynamic", "static"}
         output = "libdlk_"
 
     output += arch
 
-    if use_fpga is "enable":
+    if use_fpga == "enable":
         output += "_fpga"
 
-    if target is "executable"
+    if target == "executable"
         output += ".elf"
-    elif target is "dynamic"
+    elif target == "dynamic"
         output += ".so"
-    elif target is "static"
+    elif target == "static"
         output += ".a"
 
     return output
@@ -109,14 +109,14 @@ def strip_binary(arch, use_fpga, target):
     output = _output_binary_name(arch, use_fpga, target)
 
     if arch in {"x86", "x86_avx"}
-        if target is "executable":
+        if target == "executable":
             subprocess.run(("strip", output))
-        elif target is "dynamic":
+        elif target == "dynamic":
             subprocess.run(("strip", "-x", "--strip-unneeded", output))
-    elif arch is "arm"
-        if target is "executable":
+    elif arch == "arm"
+        if target == "executable":
             subprocess.run(("arm-linux-gnueabihf-strip", output))
-        elif target is "dynamic":
+        elif target == "dynamic":
             subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
 
 
