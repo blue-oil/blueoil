@@ -72,22 +72,52 @@ def get_output_directories(output_root_dir):
     return output_directories
 
 
-def strip_binary(output):
+def _build_options(arch, use_fpga, target):
+    return "ARCH=" + arch + " USE_FPGA=" + use_fpga + " TYPE=" + target
+
+
+def _output_binary_name(arch, use_fpga, target):
+    if target is "executable"
+        output = "lm_"
+    elif target in {"dynamic", "static"}
+        output = "libdlk_"
+
+    output += arch
+
+    if use_fpga is "enable":
+        output += "_fpga"
+
+    if target is "executable"
+        output += ".elf"
+    elif target is "dynamic"
+        output += ".so"
+    elif target is "static"
+        output += ".a"
+
+    return output
+
+
+def strip_binary(arch, use_fpga, target):
     """Strip binary file.
 
     Args:
         output:
 
     """
+    # TODO: These operations should be performed in Makefile instead of here
 
-    if output in {"lm_x86.elf", "lm_x86_avx.elf"}:
-        subprocess.run(("strip", output))
-    elif output in {"libdlk_x86.so", "libdlk_x86_avx.so"}:
-        subprocess.run(("strip", "-x", "--strip-unneeded", output))
-    elif output in {"lm_arm.elf", "lm_fpga.elf"}:
-        subprocess.run(("arm-linux-gnueabihf-strip", output))
-    elif output in {"libdlk_arm.so", "libdlk_fpga.so"}:
-        subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
+    output = _output_binary_name(arch, use_fpga, target)
+
+    if arch in {"x86", "x86_avx"}
+        if target is "executable":
+            subprocess.run(("strip", output))
+        elif target is "dynamic":
+            subprocess.run(("strip", "-x", "--strip-unneeded", output))
+    elif arch is "arm"
+        if target is "executable":
+            subprocess.run(("arm-linux-gnueabihf-strip", output))
+        elif target is "dynamic":
+            subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
 
 
 def make_all(project_dir, output_dir):
@@ -99,38 +129,30 @@ def make_all(project_dir, output_dir):
 
     """
 
-    make_list = [
-        ["ARCH=x86", "USE_FPGA=disable", "TYPE=executable", "lm_x86.elf"],
-        ["ARCH=x86_avx", "USE_FPGA=disable", "TYPE=executable", "lm_x86_avx.elf"],
-        ["ARCH=arm", "USE_FPGA=disable", "TYPE=executable", "lm_arm.elf"],
-        ["ARCH=arm", "USE_FPGA=enable", "TYPE=executable", "lm_arm_fpga.elf"],
-        ["ARCH=aarch64", "USE_FPGA=disable", "TYPE=executable", "lm_aarch64.elf"],
-        ["ARCH=aarch64", "USE_FPGA=enable", "TYPE=executable", "lm_aarch64_fpga.elf"],
-        ["ARCH=x86", "USE_FPGA=disable", "TYPE=dynamic", "libdlk_x86.so"],
-        ["ARCH=x86_avx", "USE_FPGA=disable", "TYPE=dynamic", "libdlk_x86_avx.so"],
-        ["ARCH=arm", "USE_FPGA=disable", "TYPE=dynamic", "libdlk_arm.so"],
-        ["ARCH=arm", "USE_FPGA=enable", "TYPE=dynamic", "libdlk_arm_fpga.so"],
-        ["ARCH=aarch64", "USE_FPGA=disable", "TYPE=dynamic", "libdlk_aarch64.so"],
-        ["ARCH=aarch64", "USE_FPGA=enable", "TYPE=dynamic", "libdlk_aarch64_fpga.so"],
-        ["ARCH=x86", "USE_FPGA=disable", "TYPE=static", "libdlk_x86.a"],
-        ["ARCH=x86_avx", "USE_FPGA=disable", "TYPE=static", "libdlk_x86_avx.a"],
-        ["ARCH=arm", "USE_FPGA=disable", "TYPE=static", "libdlk_arm.a"],
-        ["ARCH=arm", "USE_FPGA=enable", "TYPE=static", "libdlk_arm_fpga.a"],
-        ["ARCH=aarch64", "USE_FPGA=disable", "TYPE=static", "libdlk_aarch64.a"],
-        ["ARCH=aarch64", "USE_FPGA=enable", "TYPE=static", "libdlk_aarch64_fpga.a"],
-    ]
+    architectures = (
+        {"arch": "x86", "use_fpga": "disable"},
+        {"arch": "x86_avx", "use_fpga": "disable"},
+        {"arch": "arm", "use_fpga": "disable"},
+        {"arch": "arm", "use_fpga": "enable"},
+        {"arch": "aarch64", "use_fpga": "disable"},
+        {"arch": "aarch64", "use_fpga": "enable"},
+    )
+
+    targets = ("executable", "dynamic", "static")
+
     output_dir = os.path.abspath(output_dir)
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)
 
     # Make each target and move output files
-    for target_arch, target_use_fpga, target_type, output in make_list:
-        subprocess.run(("make", "clean", "--quiet"))
-        subprocess.run(("make", "build", target_arch, target_use_fpga, target_type, "-j4", "--quiet"))
-        strip_binary(output)
-        output_file_path = os.path.join(output_dir, output)
-        os.rename(output, output_file_path)
+    for arch in archtectures:
+        for target in targets:
+            subprocess.run(("make", "clean", "--quiet"))
+            subprocess.run(("make", "build", target_arch, target_use_fpga, target_type, "-j4", "--quiet"))
+            strip_binary(**arch, target=target)
+            output_file_path = os.path.join(output_dir, _output_binary_name)
+            os.rename(output, output_file_path)
     # Return running directory
     os.chdir(running_dir)
 
