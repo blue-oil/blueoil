@@ -140,7 +140,7 @@ Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
     $ docker run --rm \
-        -e CUDA_VISIBLE_DEVICES=-1\
+        -e CUDA_VISIBLE_DEVICES=-1 \
         -e OUTPUT_DIR=/home/blueoil/saved \
         -v $(pwd)/saved:/home/blueoil/saved \
         blueoil_$(id -un):{TAG} \
