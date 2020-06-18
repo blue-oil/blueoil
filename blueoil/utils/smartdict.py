@@ -18,7 +18,7 @@
 class SmartDict(dict):
     def __init__(self, d=None, **kwargs):
         super(SmartDict, self).__init__()
-        self.update(d or {}, **kwargs)
+        self.update(d, **kwargs)
 
     def update(self, d=None, **kwargs):
         d = d or {}
