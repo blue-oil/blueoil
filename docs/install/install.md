@@ -213,12 +213,15 @@ Third, update kernel modules with:
 
 ---
 
-## Install required packages
+## Install required packages and dependencies
 
-Login to the FPGA board and update required packages.
+Login to the FPGA board and update required packages and dependencies.
 
     $ apt-get update
     $ apt-get install python-dev python-setuptools python-pip unzip
+    $ export LC_ALL=en_US.UTF-8
+    $ pip install --upgrade pip
+    $ pip install -U Pillow --no-cache-dir
 
 ---
 
