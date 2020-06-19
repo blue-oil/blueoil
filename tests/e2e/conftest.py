@@ -84,14 +84,26 @@ def run_all_steps(dirs, config_file):
         'models',
         'lib',
     )
-    assert os.path.exists(os.path.join(lib_dir, 'libdlk_aarch64.so'))
-    assert os.path.exists(os.path.join(lib_dir, 'libdlk_arm.so'))
-    assert os.path.exists(os.path.join(lib_dir, 'libdlk_fpga.so'))
-    assert os.path.exists(os.path.join(lib_dir, 'libdlk_x86.so'))
     assert os.path.exists(os.path.join(lib_dir, 'lm_aarch64.elf'))
+    assert os.path.exists(os.path.join(lib_dir, 'lm_aarch64_fpga.elf'))
     assert os.path.exists(os.path.join(lib_dir, 'lm_arm.elf'))
-    assert os.path.exists(os.path.join(lib_dir, 'lm_fpga.elf'))
+    assert os.path.exists(os.path.join(lib_dir, 'lm_arm_fpga.elf'))
     assert os.path.exists(os.path.join(lib_dir, 'lm_x86.elf'))
+    assert os.path.exists(os.path.join(lib_dir, 'lm_x86_avx.elf'))
+
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_aarch64.so'))
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_aarch64_fpga.so'))
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_arm.so'))
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_arm_fpga.so'))
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_x86.so'))
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_x86_avx.so'))
+
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_aarch64.a'))
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_aarch64_fpga.a'))
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_arm.a'))
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_arm_fpga.a'))
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_x86.a'))
+    assert os.path.exists(os.path.join(lib_dir, 'libdlk_x86_avx.a'))
 
     # Predict
     predict_input_dir = os.path.join(dirs["blueoil_dir"], "tests/unit/fixtures/sample_images")
