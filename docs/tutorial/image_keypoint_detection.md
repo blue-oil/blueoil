@@ -11,9 +11,8 @@ The COCO dataset is available from the official website.
 Although COCO dataset is for multi-person pose estimation challenge track.
 We customize this dataset to train a single-person pose estimation task.
 
-Blueoil supports 2 formats for keypoint detection.
+Blueoil supports only 1 format for keypoint detection.
 - MSCOCO format
-- YouTube Faces format
 
 For details, please refer to **MSCOCO_2017 keypoint detection** section in <a href="../usage/dataset.html">Prepare training dataset</a>
 
