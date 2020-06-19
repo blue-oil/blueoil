@@ -40,6 +40,16 @@ def test_init_with_dict():
     assert d["c"] == 30
 
 
+def test_update():
+    d = SmartDict({"a": 10, "b": 20, "c": 30})
+    d.update({"a": 40, "b": 50})
+    assert d.a == 40
+    assert d.b == 50
+    assert d.c == 30
+    d.update(c=60)
+    assert d.c == 60
+
+
 def test_setitem():
     d = SmartDict()
     d["a"] = [
