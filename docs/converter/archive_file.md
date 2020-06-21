@@ -13,6 +13,7 @@ If there's no USE_FPGA option, it's equal to USE_FPGA=disable option.
 
 Example:
 ```
+make clean
 make build ARCH=x86 TYPE=static
 ```
 
