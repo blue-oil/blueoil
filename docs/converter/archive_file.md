@@ -5,8 +5,11 @@ After you generate your project from your protocol buffer, you can pack binaries
 The compile command would be like below.
 
 ```
-make build ARCH={x86, x86_avx, aarch64, arm, fpga} TYPE=static
+make build ARCH={x86, x86_avx, aarch64, arm} USE_FPGA={enable, disable} TYPE=static
 ```
+
+USE_FPGA is valid only for ARCH={aarch64, arm}.
+If there's no USE_FPGA option, it's equal to USE_FPGA=disable option.
 
 Example:
 ```
@@ -18,8 +21,9 @@ These commands will generate the following files:
 * libdlk_x86.a
 * libdlk_x86_avx.a
 * libdlk_aarch64.a
+* libdlk_aarch64_fpga.a
 * libdlk_arm.a
-* libdlk_fpga.a
+* libdlk_arm_fpga.a
 
 After you generate one of above arhive files, you can compile it with your own source codes.
 The defined functions are same than those of the shared libraries (.so).
@@ -55,6 +59,13 @@ make build ARCH=aarch64 TYPE=static -j8
 aarch64-linux-gnu-g++ -std=c++14 mains/main.cpp libdlk_aarch64.a -I./include -o lm_aarch64.elf -fopenmp
 ```
 
+#### Compile for aarch64_fpga
+```
+make clean
+make build ARCH=aarch64 USE_FPGA=enable TYPE=static -j8
+aarch64-linux-gnu-g++ -std=c++14 mains/main.cpp libdlk_aarch64_fpga.a -I./include -o lm_aarch64_fpga.elf -fopenmp
+```
+
 #### Compile for arm
 ```
 make clean
@@ -62,9 +73,9 @@ make build ARCH=arm TYPE=static -j8
 arm-linux-gnueabihf-g++ -std=c++14 mains/main.cpp libdlk_arm.a -I./include -o lm_arm.elf -fopenmp
 ```
 
-#### Compile for fpga
+#### Compile for arm_fpga
 ```
 make clean
-make build ARCH=fpga TYPE=static -j8
-arm-linux-gnueabihf-g++ -std=c++14 mains/main.cpp libdlk_fpga.a -I./include -o lm_fpga.elf -fopenmp
+make build ARCH=arm USE_FPGA=enable TYPE=static -j8
+arm-linux-gnueabihf-g++ -std=c++14 mains/main.cpp libdlk_arm_fpga.a -I./include -o lm_arm_fpga.elf -fopenmp
 ```
