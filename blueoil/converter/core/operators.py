@@ -1044,7 +1044,9 @@ class Conv(Operator):
             pad_H = self.pads[self.kernel_index_H * 2] + \
                 self.pads[self.kernel_index_H * 2 + 1]
             stride_H = self.strides[self.kernel_index_H]
+            self._assert(stride_H > 0, 'stride height must be greater than 0')
             dilation_H = self.dilations[self.kernel_index_H]
+            self._assert(dilation_H > 0, 'dilation height must be greater than 0')
             # print(self.name, ' input dimension: ', self.input_ops['X'].dimension)
             # print(self.name, ' input shape: ', self.input_ops['X'].shape)
             # print(self.name, ' input height: ', self.input_ops['X'].height)
@@ -1071,7 +1073,9 @@ class Conv(Operator):
             pad_W = self.pads[self.kernel_index_W * 2] + \
                 self.pads[self.kernel_index_W * 2 + 1]
             stride_W = self.strides[self.kernel_index_W]
+            self._assert(stride_W > 0, 'stride width must be greater than 0')
             dilation_W = self.dilations[self.kernel_index_W]
+            self._assert(dilation_W > 0, 'dilation width must be greater than 0')
             # print(self.name, ' input shape: ', self.input_ops['X'].shape)
             # print(self.name, ' input width: ', self.input_ops['X'].width)
             # print(self.name, ' weight shape: ', self.input_ops['W'].shape)
