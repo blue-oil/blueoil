@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #ifndef GLOBAL_H
 #define GLOBAL_H
@@ -31,12 +31,23 @@ limitations under the License.
 #endif
 using QUANTIZED_PACKED_KERNEL = QuantizedPacked<{{ params.default_qword_dtype.cpptype() }}>;
 
+#ifdef AARCH32
 #define IP_CSR_ADDR 0xFF200000
-#define INPUT_ADDR 0x20000000
-#define OUTPUT_ADDR 0x28000000
-#define KERNEL_ADDR 0x38000000
-#define THRESHOLD_ADDR 0x3F000000
+#define HW_BASE_ADDR 0x20000000
+#else
+#define IP_CSR_ADDR 0xB0000000
+#define HW_BASE_ADDR 0x1F000000
+#endif
 
+#define INPUT_OFFSET 0x00000000
+#define OUTPUT_OFFSET 0x08000000
+#define KERNEL_OFFSET 0x18000000
+#define THRESHOLD_OFFSET 0x1F000000
+
+#define INPUT_ADDR (HW_BASE_ADDR+INPUT_OFFSET)
+#define OUTPUT_ADDR (HW_BASE_ADDR+OUTPUT_OFFSET)
+#define KERNEL_ADDR (HW_BASE_ADDR+KERNEL_OFFSET)
+#define THRESHOLD_ADDR (HW_BASE_ADDR+THRESHOLD_OFFSET)
 
 {%- if config.activate_hard_quantization %}
 #define HARD_QUANTIZATION_ACTIVE
