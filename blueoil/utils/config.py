@@ -216,6 +216,9 @@ def _save_config_yaml(output_dir, config):
     config_dict = _easy_dict_to_dict(config)
     file_path = os.path.join(output_dir, file_name)
 
+    if str(config_dict['DATASET_CLASS']) == "<class 'abc.DATASET_CLASS'>":
+        config_dict['DATASET_CLASS'] = config_dict['DATASET_CLASS'].__bases__[0]
+
     class Dumper(yaml.Dumper):
         def ignore_aliases(self, data):
             return True
