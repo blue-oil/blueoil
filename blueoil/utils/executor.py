@@ -131,9 +131,9 @@ def profile_train_step(step, sess, run_meta):
             .select(["bytes"])
             .order_by("bytes")
             .build())
-    opts["output"] = "file:outfile=" + os.path.join(environment.EXPERIMENT_DIR,
-                                                    "training_profile_memory")
+    file_path = os.path.join(environment.EXPERIMENT_DIR, "training_profile_memory")
+    opts["output"] = "file:outfile={}".format(file_path)
     profiler.profile_name_scope(options=opts)
-    opts["output"] = "timeline:outfile=" + os.path.join(environment.EXPERIMENT_DIR,
-                                                        "training_profile_timeline_step")
+    timeline_path = os.path.join(environment.EXPERIMENT_DIR, "training_profile_timeline_step")
+    opts["output"] = "timeline:outfile={}".format(timeline_path)
     profiler.profile_name_scope(options=opts)
