@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #ifndef dlk_test_nodeS_H_INCLUDED
 #define dlk_test_nodeS_H_INCLUDED
@@ -99,6 +99,7 @@ namespace dlk_test
     int failed_index = -1;
 
     std::vector<Diff<T_SIZE,T_IN> > diff_array;
+    T_IN max_diff = 0;
 
     for (T_SIZE i = 0; i < num_elems; i++)
     {
@@ -106,6 +107,7 @@ namespace dlk_test
       if (!same(input[i], result_array[i], diff)) {
         if (failed_index == -1) { failed_index = i; }
         ++failed_count;
+        max_diff = std::max(max_diff, diff);
         Diff<T_SIZE, T_IN> d(i, input[i], T_IN(result_array[i]), diff);
         diff_array.push_back(d);
       }
@@ -119,6 +121,7 @@ namespace dlk_test
 
       std::cout << "Comparison: " << result_name << " failed..." << "\n"
                 << "Failed count: " << failed_count << "\n"
+                << "Maximum diff: " << max_diff << "\n"
                 << "First failed report" << "\n"
                 << "index: " << failed_index << " / " << num_elems << "\n"
                 << "input: " << s_index.str() << ", "
