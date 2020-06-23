@@ -728,8 +728,7 @@ def test_training():
 
     environment.init("test_yolo_v2")
     prepare_dirs(recreate=True)
-    profile_step = 1
-    start_training(config, profile_step)
+    start_training(config, profile_step=1)
 
 
 def test_yolov2_post_process():
