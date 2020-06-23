@@ -79,7 +79,7 @@ def init(output):
 )
 @click.option(
     '--profile_step',
-    help='Profile memory and time used in one train step',
+    help='Train step for memory and time profile.',
     default=-1,
 )
 @click.option(
