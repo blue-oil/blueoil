@@ -86,3 +86,13 @@ def test_setattr():
     assert d["a"] == 10
     assert d["b"] == 20
     assert d["c"] == 30
+
+
+def test_dir():
+    d = SmartDict(a=10, b=20, c=30)
+    expects = sorted(
+        dir(dict())
+        + ["a", "b", "c"]
+        + ["__dict__", "__getattr__", "__module__", "__weakref__"]
+    )
+    assert dir(d) == expects

@@ -39,9 +39,14 @@ class SmartDict(dict):
     def __getattr__(self, name):
         if name in self:
             return self[name]
-        return super(SmartDict, self).__getattr__(name)
+        raise AttributeError("'{}' object has no attribute '{}'".format(
+            self.__class__.__name__, name,
+        ))
 
     def __setattr__(self, name, value):
-        if hasattr(self, name):
-            return super(SmartDict, self).__setattr__(name, value)
         self[name] = value
+
+    def __dir__(self):
+        parent = super(SmartDict, self).__dir__()
+        attrs = parent + list(self.keys())
+        return sorted(attrs)
