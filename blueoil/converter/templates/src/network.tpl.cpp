@@ -11,13 +11,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #include <iostream>
 #include <climits>
 #include <cstring>
 #include <cstdio>
 #include <ctime>
+{% if config.debug %}
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+{% endif %}
 #include "global.h"
 #include "func/add.h"
 #include "func/average_pool.h"
@@ -226,6 +232,21 @@ bool Network::init()
 // Initialize OpenMP Thread-pool
 #pragma omp parallel
   std::cout << std::flush;
+
+  {% if config.debug -%}
+  const auto debug_path = "debug";
+  struct stat debug_dir_stat;
+  auto ret = stat(debug_path, &debug_dir_stat);
+  if (ret == -1 && errno == ENOENT) {
+    mkdir(debug_path, 0755);
+    std::cerr << "Info: debug directory is created" << std::endl;
+  } else if (S_ISDIR(debug_dir_stat.st_mode)) {
+    std::cerr << "Warning: debug directory will be overwritten" << std::endl;
+  } else {
+    std::cerr << "Error: '" << debug_path << "' is not a directory" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  {% endif -%}
 
   return true;
 }
