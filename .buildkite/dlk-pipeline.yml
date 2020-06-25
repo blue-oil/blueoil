@@ -26,6 +26,14 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-dlk-x86_64_avx"
+    label: "dlk: code_generation for x86_64_avx"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: "make test-dlk-arm"
     label: "dlk: code_generation for arm"
     agents:
@@ -53,6 +61,14 @@ steps:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
     artifact_paths:
     - "output/TestCodeGenerationAarch64/**/*"
+  - command: "make test-dlk-aarch64_fpga"
+    label: "dlk: code_generation for aarch64_fpga"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: |
       buildkite-agent artifact download "output/TestCodeGenerationAarch64/*" ./ --build ${BUILDKITE_BUILD_ID}
       python3 tests/device_tests/test_device.py

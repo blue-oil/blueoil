@@ -6,8 +6,11 @@ The compile command would be like below.
 
 ```
 make clean
-make build ARCH={x86, x86_avx, aarch64, arm, fpga} TYPE=dynamic
+make build ARCH={x86, x86_avx, aarch64, arm, fpga} USE_FPGA={enable, disable} TYPE=dynamic
 ```
+
+USE_FPGA is valid only for ARCH={aarch64, arm}.
+If there's no USE_FPGA option, it's equal to USE_FPGA=disable option.
 
 Example:
 ```
@@ -19,8 +22,9 @@ These commands will generate the following files:
 * libdlk_x86.so
 * libdlk_x86_avx.so
 * libdlk_aarch64.so
+* libdlk_aarch64_fpga.so
 * libdlk_arm.so
-* libdlk_fpga.so
+* libdlk_arm_fpga.so
 
 After generating the shared libraries, you can use them from, for example, Python and C++.
 

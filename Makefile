@@ -72,7 +72,7 @@ test-unit-main: build
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; pytest -n auto unit/"
 
 .PHONY: test-dlk
-test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64
+test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-x86_64_avx test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64 test-dlk-aarch64_fpga
 
 .PHONY: test-dlk-main
 test-dlk-main: build
@@ -83,6 +83,11 @@ test-dlk-main: build
 test-dlk-x86_64: build
 	# Run dlk test of code_generation for x86_64
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationX8664"
+
+.PHONY: test-dlk-x86_64_avx
+test-dlk-x86_64_avx: build
+	# Run dlk test of code_generation for x86_64_avx
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationX8664Avx"
 
 .PHONY: test-dlk-arm
 test-dlk-arm: build
@@ -99,6 +104,11 @@ test-dlk-aarch64: build
 	# Run dlk test of code_generation for aarch64
 	mkdir -p $(CWD)/output
 	docker run ${DOCKER_OPT} -v $(CWD)/output:/home/blueoil/output $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationAarch64"
+
+.PHONY: test-dlk-aarch64_fpga
+test-dlk-aarch64_fpga: build
+	# Run dlk test of code_generation for aarch64_fpga
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationAarch64Fpga"
 
 .PHONY: rootfs-docker
 rootfs-docker:
