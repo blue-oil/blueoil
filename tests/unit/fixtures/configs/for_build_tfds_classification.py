@@ -18,7 +18,7 @@ from easydict import EasyDict
 
 from blueoil.common import Tasks
 from blueoil.networks.classification.lmnet_v0 import LmnetV0Quantize
-from blueoil.datasets.open_images_v4 import OpenImagesV4Classification
+from blueoil.datasets.image_folder import ImageFolderBase
 from blueoil.tfds_data_processor import TFDSProcessorSequence
 from blueoil.tfds_pre_processor import (
     TFDSResize,
@@ -33,8 +33,8 @@ from blueoil.quantizations import (
 )
 
 
-class ClassificationDataset(OpenImagesV4Classification):
-    extend_dir = "open_images_v4"
+class ClassificationDataset(ImageFolderBase):
+    extend_dir = "dummy_classification"
 
 
 IS_DEBUG = False
@@ -42,7 +42,7 @@ IS_DEBUG = False
 NETWORK_CLASS = LmnetV0Quantize
 DATASET_CLASS = ClassificationDataset
 
-IMAGE_SIZE = [128, 128]
+IMAGE_SIZE = [28, 28]
 BATCH_SIZE = 1
 DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
