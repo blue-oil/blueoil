@@ -16,6 +16,7 @@
 import pytest
 import os
 import json
+import textwrap
 import tensorflow as tf
 from blueoil import environment
 from blueoil.utils.executor import prepare_dirs, profile_train_step
@@ -45,8 +46,89 @@ def test_profile_train_step():
         sess.run(z, options=options, run_metadata=run_meta)
         profile_train_step(step, sess, run_meta)
 
-    expected_memory = "\nDoc:\nscope: The nodes in the model graph are organized by their names, which is hierarchical like filesystem.\nrequested bytes: The memory requested by the operation, accumulatively.\n\nProfile:\nnode name | requested bytes\n_TFProfRoot (--/768B)\n  MatMul (256B/256B)\n  Variable (256B/256B)\n  Variable_1 (256B/256B)\n"
-    expected_timeline = [{'args': {'name': 'Scope:0'}, 'name': 'process_name', 'ph': 'M', 'pid': 0}, {'args': {'name': '_TFProfRoot', 'op': '_TFProfRoot'}, 'cat': 'Op', 'dur': 291, 'name': '_TFProfRoot', 'ph': 'X', 'pid': 0, 'tid': 0, 'ts': 0}, {'args': {'name': 'Scope:1'}, 'name': 'process_name', 'ph': 'M', 'pid': 1}, {'args': {'name': 'MatMul', 'op': 'MatMul'}, 'cat': 'Op', 'dur': 267, 'name': 'MatMul', 'ph': 'X', 'pid': 1, 'tid': 0, 'ts': 0}, {'args': {'name': 'Variable', 'op': 'Variable'}, 'cat': 'Op', 'dur': 4, 'name': 'Variable', 'ph': 'X', 'pid': 1, 'tid': 0, 'ts': 267}, {'args': {'name': 'Variable_1', 'op': 'Variable_1'}, 'cat': 'Op', 'dur': 20, 'name': 'Variable_1', 'ph': 'X', 'pid': 1, 'tid': 0, 'ts': 271}]
+    expected_memory = textwrap.dedent("""\
+
+        Doc:
+        scope: The nodes in the model graph are organized by their names, which is hierarchical like filesystem.
+        requested bytes: The memory requested by the operation, accumulatively.
+
+        Profile:
+        node name | requested bytes
+        _TFProfRoot (--/768B)
+          MatMul (256B/256B)
+          Variable (256B/256B)
+          Variable_1 (256B/256B)
+        """)
+    expected_timeline = [
+        {
+            "args": {
+                "name": "Scope:0"
+            },
+            "name": "process_name",
+            "ph": "M",
+            "pid": 0
+        },
+        {
+            "args": {
+                "name": "_TFProfRoot",
+                "op": "_TFProfRoot"
+            },
+            "cat": "Op",
+            "dur": 291,
+            "name": "_TFProfRoot",
+            "ph": "X",
+            "pid": 0,
+            "tid": 0,
+            "ts": 0
+        },
+        {
+            "args": {
+                "name": "Scope:1"
+            },
+            "name": "process_name",
+            "ph": "M",
+            "pid": 1
+        },
+        {
+            "args": {
+                "name": "MatMul",
+                "op": "MatMul"
+            },
+            "cat": "Op",
+            "dur": 267,
+            "name": "MatMul",
+            "ph": "X",
+            "pid": 1,
+            "tid": 0,
+            "ts": 0
+        },
+        {
+            "args": {
+                "name": "Variable",
+                "op": "Variable"
+            },
+            "cat": "Op",
+            "dur": 4,
+            "name": "Variable",
+            "ph": "X",
+            "pid": 1,
+            "tid": 0,
+            "ts": 267
+        },
+        {
+            "args": {
+                "name": "Variable_1",
+                "op": "Variable_1"
+            },
+            "cat": "Op",
+            "dur": 20,
+            "name": "Variable_1",
+            "ph": "X",
+            "pid": 1,
+            "tid": 0,
+            "ts": 271
+        }
+    ]
 
     train_memory_path = os.path.join(environment.EXPERIMENT_DIR, "training_profile_memory")
     with open(train_memory_path) as train_memory_file:
