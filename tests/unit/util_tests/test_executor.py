@@ -59,36 +59,8 @@ def test_profile_train_step():
           Variable
           Variable_1
         """).splitlines()
+    expected_memory.sort()
     expected_timeline = [
-        {
-            "args": {
-                "name": "Scope:0"
-            },
-            "name": "process_name",
-            "ph": "M",
-            "pid": 0
-        },
-        {
-            "args": {
-                "name": "_TFProfRoot",
-                "op": "_TFProfRoot"
-            },
-            "cat": "Op",
-            "dur": 291,
-            "name": "_TFProfRoot",
-            "ph": "X",
-            "pid": 0,
-            "tid": 0,
-            "ts": 0
-        },
-        {
-            "args": {
-                "name": "Scope:1"
-            },
-            "name": "process_name",
-            "ph": "M",
-            "pid": 1
-        },
         {
             "args": {
                 "name": "MatMul",
@@ -127,18 +99,49 @@ def test_profile_train_step():
             "pid": 1,
             "tid": 0,
             "ts": 271
+        },
+        {
+            "args": {
+                "name": "_TFProfRoot",
+                "op": "_TFProfRoot"
+            },
+            "cat": "Op",
+            "dur": 291,
+            "name": "_TFProfRoot",
+            "ph": "X",
+            "pid": 0,
+            "tid": 0,
+            "ts": 0
+        },
+        {
+            "args": {
+                "name": "Scope:0"
+            },
+            "name": "process_name",
+            "ph": "M",
+            "pid": 0
+        },
+        {
+            "args": {
+                "name": "Scope:1"
+            },
+            "name": "process_name",
+            "ph": "M",
+            "pid": 1
         }
     ]
 
     train_memory_path = os.path.join(environment.EXPERIMENT_DIR, "training_profile_memory")
     with open(train_memory_path) as train_memory_file:
         saved_data = train_memory_file.read().splitlines()
+        saved_data.sort()
         for idx, line in enumerate(saved_data):
             assert line.startswith(expected_memory[idx])
     train_timeline_path = os.path.join(environment.EXPERIMENT_DIR,
                                        "training_profile_timeline_step")
     with open("{}_{}".format(train_timeline_path, step)) as train_timeline_file:
         saved_data = json.load(train_timeline_file)["traceEvents"]
+        saved_data.sort(key=lambda op: op["name"])
         for op1, op2 in zip(expected_timeline, saved_data):
             assert op1["args"] == op2["args"]
             # Generally, timeline values are different each run, so just check the keys match.
