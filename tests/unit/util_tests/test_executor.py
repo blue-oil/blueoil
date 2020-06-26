@@ -54,11 +54,11 @@ def test_profile_train_step():
 
         Profile:
         node name | requested bytes
-        _TFProfRoot (--/768B)
-          MatMul (256B/256B)
-          Variable (256B/256B)
-          Variable_1 (256B/256B)
-        """)
+        _TFProfRoot
+          MatMul
+          Variable
+          Variable_1
+        """).splitlines()
     expected_timeline = [
         {
             "args": {
@@ -132,8 +132,9 @@ def test_profile_train_step():
 
     train_memory_path = os.path.join(environment.EXPERIMENT_DIR, "training_profile_memory")
     with open(train_memory_path) as train_memory_file:
-        saved_data = train_memory_file.read()
-        assert saved_data == expected_memory
+        saved_data = train_memory_file.read().splitlines()
+        for idx, line in enumerate(saved_data):
+            assert line.startswith(expected_memory[idx])
     train_timeline_path = os.path.join(environment.EXPERIMENT_DIR,
                                        "training_profile_timeline_step")
     with open("{}_{}".format(train_timeline_path, step)) as train_timeline_file:
