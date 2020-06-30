@@ -18,7 +18,7 @@ from easydict import EasyDict
 
 from blueoil.common import Tasks
 from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
-from blueoil.datasets.delta_mark import ObjectDetectionBase
+from blueoil.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
 from blueoil.data_processor import Sequence
 from blueoil.tfds_data_processor import TFDSProcessorSequence
 from blueoil.tfds_pre_processor import (
@@ -39,9 +39,9 @@ from blueoil.quantizations import (
 )
 
 
-class ObjectDetectionDataset(ObjectDetectionBase):
-    extend_dir = "custom_delta_mark_object_detection/for_train"
-    validation_extend_dir = "custom_delta_mark_object_detection/for_validation"
+class ObjectDetectionDataset(OpenImagesV4BoundingBoxBase):
+    extend_dir = "custom_open_images_v4_bounding_boxes/for_train"
+    validation_extend_dir = "custom_open_images_v4_bounding_boxes/for_validation"
 
 
 IS_DEBUG = False

@@ -59,17 +59,9 @@ _DATASET_FORMAT_DATASET_MODULE_CLASS = {
         "dataset_module": "image_folder",
         "dataset_class": "ImageFolderBase",
     },
-    "DeLTA-Mark for Classification": {
-        "dataset_module": "delta_mark",
-        "dataset_class": "ClassificationBase",
-    },
     "OpenImagesV4": {
         "dataset_module": "open_images_v4",
         "dataset_class": "OpenImagesV4BoundingBoxBase",
-    },
-    "DeLTA-Mark for Object Detection": {
-        "dataset_module": "delta_mark",
-        "dataset_class": "ObjectDetectionBase",
     },
     "CamvidCustom": {
         "dataset_module": "camvid",

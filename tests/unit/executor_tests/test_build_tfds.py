@@ -48,8 +48,8 @@ def test_build_tfds_classification():
     train_run(config_file, expriment_id, recreate=True, profile_step=7)
 
     # Check if the dataset was build correctly
-    train_data_num = 3
-    validation_data_num = 2
+    train_data_num = 27
+    validation_data_num = 3
     config = config_util.load(config_file)
 
     train_dataset = setup_dataset(TFDSClassification,
@@ -104,8 +104,8 @@ def test_build_tfds_object_detection():
     train_run(config_file, expriment_id, recreate=True, profile_step=7)
 
     # Check if the dataset was build correctly
-    train_data_num = 3
-    validation_data_num = 2
+    train_data_num = 10
+    validation_data_num = 16
     config = config_util.load(config_file)
 
     train_dataset = setup_dataset(TFDSObjectDetection,
