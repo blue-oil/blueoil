@@ -78,6 +78,11 @@ def init(output):
     default=False,
 )
 @click.option(
+    '--profile_step',
+    help='Train step for memory and time profile.',
+    default=-1,
+)
+@click.option(
     '--data_dir',
     help='Path of dataset dir.',
     default="./dataset",
@@ -91,10 +96,10 @@ def init(output):
     type=click.Path(),
     envvar='OUTPUT_DIR',
 )
-def train(config, experiment_id, recreate, data_dir, output_dir):
+def train(config, experiment_id, recreate, profile_step, data_dir, output_dir):
     environment.set_data_dir(data_dir)
     environment.set_output_dir(output_dir)
-    experiment_id, checkpoint_name = run_train(config, experiment_id, recreate)
+    experiment_id, checkpoint_name = run_train(config, experiment_id, recreate, profile_step)
     click.echo('Next step: blueoil convert -e {} -p {}'.format(
         experiment_id,
         checkpoint_name
