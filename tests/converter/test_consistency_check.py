@@ -114,7 +114,7 @@ class TestConsistencyCheck(unittest.TestCase):
             [1, 3, 3, 3],
             Float32(),
             input_ops,
-            pads=[1, 1, 2, 2],
+            pads=[1, 2, 1, 2],
             strides=[2, 2]
         )
 

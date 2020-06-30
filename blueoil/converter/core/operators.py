@@ -1041,10 +1041,12 @@ class Conv(Operator):
             mW += f'\nThe weight format is {self._input_ops["W"].dimension}.'
             self._assert(in_W == self.kernel_width, mW)
         if self.kernel_index_H is not None and self.index_H is not None:
-            pad_H = self.pads[self.kernel_index_H] + \
-                self.pads[self.kernel_index_H + self._num_dimensions]
+            pad_H = self.pads[self.kernel_index_H * 2] + \
+                self.pads[self.kernel_index_H * 2 + 1]
             stride_H = self.strides[self.kernel_index_H]
+            self._assert(stride_H > 0, 'stride height must be greater than 0')
             dilation_H = self.dilations[self.kernel_index_H]
+            self._assert(dilation_H > 0, 'dilation height must be greater than 0')
             # print(self.name, ' input dimension: ', self.input_ops['X'].dimension)
             # print(self.name, ' input shape: ', self.input_ops['X'].shape)
             # print(self.name, ' input height: ', self.input_ops['X'].height)
@@ -1068,10 +1070,12 @@ class Conv(Operator):
                 print(f'mispadding height at {self.name}: {output_H_rest}')
 
         if self.kernel_index_W is not None and self.index_W is not None:
-            pad_W = self.pads[self.kernel_index_W] + \
-                self.pads[self.kernel_index_W + self._num_dimensions]
+            pad_W = self.pads[self.kernel_index_W * 2] + \
+                self.pads[self.kernel_index_W * 2 + 1]
             stride_W = self.strides[self.kernel_index_W]
+            self._assert(stride_W > 0, 'stride width must be greater than 0')
             dilation_W = self.dilations[self.kernel_index_W]
+            self._assert(dilation_W > 0, 'dilation width must be greater than 0')
             # print(self.name, ' input shape: ', self.input_ops['X'].shape)
             # print(self.name, ' input width: ', self.input_ops['X'].width)
             # print(self.name, ' weight shape: ', self.input_ops['W'].shape)
@@ -1564,6 +1568,61 @@ class Add(Operator):
         output_shape = [max(a, b) for a, b in zip(a_shape, b_shape)]
 
         return output_shape
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
+
+
+class Sub(Operator):
+    """Subtract operator.
+
+    Performs element-wise subtraction (with Numpy-style broadcasting support).
+    This operator supports multidirectional (i.e., Numpy-style) broadcasting.
+
+    Inputs
+    ------
+    A
+        First operand.
+
+    B
+        Second operand.
+
+    Outputs
+    -------
+    C
+        Result, has same element type as two inputs
+
+    """
+
+    _input_names = ['A', 'B']
+    _output_names = ['C']
+
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC') -> None:
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    def run_forward(self) -> np.ndarray:
+        a = self._input_ops['A'].data
+        b = self._input_ops['B'].data
+        self._data = a - b
+        return self._data
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @classmethod
+    def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
+                    attrs: Dict[str, Any]) -> List[int]:
+        return lists['X']
 
     @property
     def preserve_quantization(self) -> bool:

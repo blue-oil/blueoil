@@ -32,7 +32,7 @@ from tstconf import CURRENT_TEST_LEVEL
 from tstutils import updated_dict, run_and_check, TEST_LEVEL_FUTURE_TARGET, FPGA_HOST
 
 
-def dict_codegen_classification(cpu_name) -> dict:
+def dict_codegen_classification(cpu_name, use_fpga) -> dict:
     """Test parameters for testing code generation for classification on CPU """
     return {'model_path': os.path.join('tests', 'fixtures',
                                        'classification', 'lmnet_quantize_cifar10_space_to_depth'),
@@ -41,13 +41,13 @@ def dict_codegen_classification(cpu_name) -> dict:
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '133_output:0.npy',
             'cpu_name': cpu_name,
+            'use_fpga': use_fpga,
             'hard_quantize': True,
             'threshold_skipping': False,
-            'use_avx': False
             }
 
 
-def dict_codegen_classification_resnet(cpu_name) -> dict:
+def dict_codegen_classification_resnet(cpu_name, use_fpga) -> dict:
     """Test parameters for testing code generation for classification on CPU (float only)"""
     return {'model_path': os.path.join('tests', 'fixtures',
                                        'classification', 'resnet_quantize_cifar10'),
@@ -56,13 +56,13 @@ def dict_codegen_classification_resnet(cpu_name) -> dict:
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '368_output:0.npy',
             'cpu_name': cpu_name,
+            'use_fpga': use_fpga,
             'hard_quantize': True,
             'threshold_skipping': False,
-            'use_avx': False
             }
 
 
-def dict_codegen_object_detection(cpu_name) -> dict:
+def dict_codegen_object_detection(cpu_name, use_fpga) -> dict:
     """Test parameters for testing code generation for object detection on CPU"""
     return {'model_path': os.path.join('tests', 'fixtures',
                                        'object_detection', 'fyolo_quantize_4_v4'),
@@ -71,13 +71,13 @@ def dict_codegen_object_detection(cpu_name) -> dict:
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '317_output:0.npy',
             'cpu_name': cpu_name,
+            'use_fpga': use_fpga,
             'hard_quantize': True,
             'threshold_skipping': False,
-            'use_avx': False
             }
 
 
-def dict_codegen_segmentation(cpu_name) -> dict:
+def dict_codegen_segmentation(cpu_name, use_fpga) -> dict:
     """Test parameters for testing code generation for segmentation on CPU"""
     return {'model_path': os.path.join('tests', 'fixtures', 'segmentation',
                                        'lm_segnet_v1_quantize_camvid'),
@@ -86,9 +86,9 @@ def dict_codegen_segmentation(cpu_name) -> dict:
             'input_name': '000_images_placeholder:0.npy',
             'output_npy_name': '227_output:0.npy',
             'cpu_name': cpu_name,
+            'use_fpga': use_fpga,
             'hard_quantize': True,
             'threshold_skipping': False,
-            'use_avx': False
             }
 
 
@@ -96,78 +96,111 @@ def get_configurations_by_test_cases(test_cases, configuration):
     return [updated_dict(configuration, test_case) for test_case in test_cases]
 
 
-def get_configurations_by_architecture(test_cases, cpu_name):
-    configurations = []
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_classification(cpu_name)))
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_classification_resnet(cpu_name)))
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_object_detection(cpu_name)))
-    configurations.extend(get_configurations_by_test_cases(test_cases, dict_codegen_segmentation(cpu_name)))
-
-    return configurations
+def get_configurations_by_architecture(test_cases, cpu_name, use_fpga):
+    return (
+        get_configurations_by_test_cases(test_cases, dict_codegen_classification(cpu_name, use_fpga)) +
+        get_configurations_by_test_cases(test_cases, dict_codegen_classification_resnet(cpu_name, use_fpga)) +
+        get_configurations_by_test_cases(test_cases, dict_codegen_object_detection(cpu_name, use_fpga)) +
+        get_configurations_by_test_cases(test_cases, dict_codegen_segmentation(cpu_name, use_fpga))
+    )
 
 
 def get_configurations_x86_64():
-    cpu_name = "x86_64"
+    cpu_name = "x86"
+    use_fpga = "disable"
     test_cases = [
-        {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': True},
-        {'use_avx': True, 'hard_quantize': True, 'threshold_skipping': False},
-        {'use_avx': True, 'hard_quantize': False, 'threshold_skipping': False},
-        {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': True},
-        {'use_avx': False, 'hard_quantize': True, 'threshold_skipping': False},
-        {'use_avx': False, 'hard_quantize': False, 'threshold_skipping': False},
+        {'hard_quantize': True, 'threshold_skipping': True},
+        {'hard_quantize': True, 'threshold_skipping': False},
+        {'hard_quantize': False, 'threshold_skipping': False},
     ]
-    configurations = get_configurations_by_architecture(test_cases, cpu_name)
+    configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
 
-    additional_test_configuration = updated_dict(dict_codegen_classification(cpu_name),
+    additional_test_configuration = updated_dict(dict_codegen_classification(cpu_name, use_fpga),
                                                  {'use_run_test_script': True})
     additional_test_cases = [
-        {'use_avx': True, 'input_name': 'raw_image.png', 'test_level': TEST_LEVEL_FUTURE_TARGET},
-        {'use_avx': True, 'input_name': 'preprocessed_image.npy', 'from_npy': True},
-        {'use_avx': False, 'input_name': 'raw_image.png', 'test_level': TEST_LEVEL_FUTURE_TARGET},
-        {'use_avx': False, 'input_name': 'preprocessed_image.npy', 'from_npy': True},
+        {'input_name': 'raw_image.png', 'test_level': TEST_LEVEL_FUTURE_TARGET},
+        {'input_name': 'preprocessed_image.npy', 'from_npy': True},
     ]
     configurations.extend(get_configurations_by_test_cases(additional_test_cases, additional_test_configuration))
 
-    return [(i, configuration) for i, configuration in enumerate(configurations)]
+    return enumerate(configurations)
+
+
+def get_configurations_x86_64_avx():
+    cpu_name = "x86_avx"
+    use_fpga = "disable"
+    test_cases = [
+        {'hard_quantize': True, 'threshold_skipping': True},
+        {'hard_quantize': True, 'threshold_skipping': False},
+        {'hard_quantize': False, 'threshold_skipping': False},
+    ]
+    configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
+
+    additional_test_configuration = updated_dict(dict_codegen_classification(cpu_name, use_fpga),
+                                                 {'use_run_test_script': True})
+    additional_test_cases = [
+        {'input_name': 'raw_image.png', 'test_level': TEST_LEVEL_FUTURE_TARGET},
+        {'input_name': 'preprocessed_image.npy', 'from_npy': True},
+    ]
+    configurations.extend(get_configurations_by_test_cases(additional_test_cases, additional_test_configuration))
+
+    return enumerate(configurations)
 
 
 def get_configurations_arm():
     cpu_name = "arm"
+    use_fpga = "disable"
     test_cases = [
         {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': True},
         {'need_arm_compiler': True, 'hard_quantize': True, 'threshold_skipping': False},
         {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': True},
         {'need_arm_compiler': True, 'hard_quantize': False, 'threshold_skipping': False},
     ]
-    configurations = get_configurations_by_architecture(test_cases, cpu_name)
+    configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
 
-    return [(i, configuration) for i, configuration in enumerate(configurations)]
+    return enumerate(configurations)
 
 
 def get_configurations_arm_fpga():
-    cpu_name = "arm_fpga"
+    cpu_name = "arm"
+    use_fpga = "enable"
     test_cases = [
         {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': True},
         {'need_arm_compiler': True, 'cache_dma': True, 'threshold_skipping': False},
         {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': True},
         {'need_arm_compiler': True, 'cache_dma': False, 'threshold_skipping': False},
     ]
-    configurations = get_configurations_by_architecture(test_cases, cpu_name)
+    configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
 
-    return [(i, configuration) for i, configuration in enumerate(configurations)]
+    return enumerate(configurations)
 
 
 def get_configurations_aarch64():
     cpu_name = "aarch64"
+    use_fpga = "disable"
     test_cases = [
         {'hard_quantize': True, 'threshold_skipping': True},
         {'hard_quantize': True, 'threshold_skipping': False},
         {'hard_quantize': False, 'threshold_skipping': True},
         {'hard_quantize': False, 'threshold_skipping': False},
     ]
-    configurations = get_configurations_by_architecture(test_cases, cpu_name)
+    configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
 
-    return [(i, configuration) for i, configuration in enumerate(configurations)]
+    return enumerate(configurations)
+
+
+def get_configurations_aarch64_fpga():
+    cpu_name = "aarch64"
+    use_fpga = "enable"
+    test_cases = [
+        {'hard_quantize': True, 'threshold_skipping': True},
+        {'hard_quantize': True, 'threshold_skipping': False},
+        {'hard_quantize': False, 'threshold_skipping': True},
+        {'hard_quantize': False, 'threshold_skipping': False},
+    ]
+    configurations = get_configurations_by_architecture(test_cases, cpu_name, use_fpga)
+
+    return enumerate(configurations)
 
 
 class TestCodeGenerationBase(TestCaseDLKBase):
@@ -298,7 +331,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                     from_npy=False,
                     need_arm_compiler=False,
                     cache_dma=False,
-                    use_avx=False,
+                    use_fpga='disable',
                     test_id=0
                     ) -> None:
 
@@ -329,14 +362,9 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                cache_dma=cache_dma,
                )
 
-        if cpu_name == 'arm_fpga':
-            lib_base_name = 'fpga'
-        elif cpu_name == 'x86_64':
-            if use_avx:
-                lib_base_name = 'x86_avx'
-            else:
-                lib_base_name = 'x86'
-        else:  # 'aarch64' and 'arm' pass here
+        if use_fpga == 'enable':
+            lib_base_name = cpu_name + '_fpga'
+        else:  # 'x86', 'x86_avx', 'aarch64' and 'arm' pass here
             lib_base_name = cpu_name
 
         project_dir = os.path.join(output_path, project_name + '.prj')
@@ -364,7 +392,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
                       self
                       )
 
-        run_and_check(['make', 'build', 'ARCH=' + lib_base_name, 'TYPE=dynamic', '-j8'],
+        run_and_check(['make', 'build', 'ARCH=' + cpu_name, 'USE_FPGA=' + use_fpga, 'TYPE=dynamic', '-j8'],
                       project_dir,
                       join(output_path, "make.out"),
                       join(output_path, "make.err"),
@@ -374,9 +402,9 @@ class TestCodeGenerationBase(TestCaseDLKBase):
         self.assertTrue(os.path.exists(generated_lib))
 
         if not use_run_test_script:
-            if cpu_name == 'x86_64':
+            if cpu_name in {'x86', 'x86_avx'}:
                 percent_failed = self.run_library(generated_lib, input_path, expected_output_path)
-            elif cpu_name == 'arm' or cpu_name == 'arm_fpga':
+            elif cpu_name == 'arm':  # FPGA is also tested here
                 percent_failed = \
                     self.run_library_on_remote(FPGA_HOST, output_path, generated_lib, input_path, expected_output_path)
             elif cpu_name == 'aarch64':
@@ -405,6 +433,14 @@ class TestCodeGenerationX8664(TestCodeGenerationBase):
         self.run_test_all_configuration(i, configuration)
 
 
+class TestCodeGenerationX8664Avx(TestCodeGenerationBase):
+    """Test class for code generation testing."""
+
+    @parameterized.expand(get_configurations_x86_64_avx())
+    def test_code_generation(self, i, configuration) -> None:
+        self.run_test_all_configuration(i, configuration)
+
+
 class TestCodeGenerationArm(TestCodeGenerationBase):
     """Test class for code generation testing."""
 
@@ -429,6 +465,14 @@ class TestCodeGenerationAarch64(TestCodeGenerationBase):
     """Test class for code generation testing for aarch64."""
 
     @parameterized.expand(get_configurations_aarch64())
+    def test_code_generation(self, i, configuration) -> None:
+        self.run_test_all_configuration(i, configuration)
+
+
+class TestCodeGenerationAarch64Fpga(TestCodeGenerationBase):
+    """Test class for code generation testing for aarch64."""
+
+    @parameterized.expand(get_configurations_aarch64_fpga())
     def test_code_generation(self, i, configuration) -> None:
         self.run_test_all_configuration(i, configuration)
 

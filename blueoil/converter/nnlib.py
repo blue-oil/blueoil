@@ -96,12 +96,10 @@ class NNLib(object):
         return tuple(s)
 
     def run(self, tensor):
-        input = tensor.flatten().astype(np.float32)
+        input = tensor.ravel()
+        if input.dtype != np.float32:
+            input = input.astype(np.float32)
+
         output = np.zeros((self.get_output_shape()), np.float32)
-
-        self.lib.network_run(
-            self.nnlib,
-            input,
-            output)
-
+        self.lib.network_run(self.nnlib, input, output)
         return output
