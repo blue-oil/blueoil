@@ -137,25 +137,27 @@ learning_rate_schedule_map = OrderedDict([
 
 
 def network_name_choices(task_type):
-    if task_type == 'classification':
-        return [definition['name'] for definition in classification_network_definitions]
-    elif task_type == 'object_detection':
-        return [definition['name'] for definition in object_detection_network_definitions]
-    elif task_type == 'semantic_segmentation':
-        return [definition['name'] for definition in semantic_segmentation_network_definitions]
-    elif task_type == 'keypoint_detection':
-        return [definition['name'] for definition in keypoint_detection_network_definitions]
+    defs = {
+        'classification': classification_network_definitions,
+        'object_detection': object_detection_network_definitions,
+        'semantic_segmentation': semantic_segmentation_network_definitions,
+        'keypoint_detection': keypoint_detection_network_definitions,
+    }
+    if task_type not in defs:
+        raise ValueError
+    return [definition['name'] for definition in defs[task_type]]
 
 
 def dataset_format_choices(task_type):
-    if task_type == 'classification':
-        return [definition['name'] for definition in classification_dataset_formats]
-    elif task_type == 'object_detection':
-        return [definition['name'] for definition in object_detection_dataset_formats]
-    elif task_type == 'semantic_segmentation':
-        return [definition['name'] for definition in semantic_segmentation_dataset_formats]
-    elif task_type == 'keypoint_detection':
-        return [definition['name'] for definition in keypoint_detection_dataset_formats]
+    defs = {
+        'classification': classification_dataset_formats,
+        'object_detection': object_detection_dataset_formats,
+        'semantic_segmentation': semantic_segmentation_dataset_formats,
+        'keypoint_detection': keypoint_detection_dataset_formats,
+    }
+    if task_type not in defs:
+        raise ValueError
+    return [definition['name'] for definition in defs[task_type]]
 
 
 def default_batch_size(task_type):

@@ -14,6 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import numpy as np
+import ipdb
 
 
 def derive_total_pads(i, o, k, s):
@@ -128,56 +129,54 @@ class QuantizedMatrix(object):
         if self.arrangement == 'BitInterleaving':
             # called "sequential" in the wiki
             return ((n * self.nbits) + (self.nbits_per_word - 1)) // self.nbits_per_word
-        elif self.arrangement == 'WordInterleaving':
+        if self.arrangement == 'WordInterleaving':
             # called "alternating channels" in the wiki
             return ((n + (self.nbits_per_word - 1)) // self.nbits_per_word) * self.nbits
-        else:
-            raise NotImplemented
+        raise NotImplemented
 
     def make_packed_matrix(self, qmat):
         if self.arrangement == 'Sequential':
             raise NotImplemented
         if self.arrangement == 'BitInterleaving':
             raise NotImplemented
-        elif self.arrangement == 'WordInterleaving':
-            qmat = np.zeros([self.row, self.col], dtype=np.uint32)
-
-            orig_col = self.orig.shape[1]
-            full_bit_col = orig_col // self.nbits_per_word
-            residual_bit_col = orig_col % self.nbits_per_word
-
-            def pack_bits(x, num_data, row, col_offset):
-                out = np.zeros([self.nbits], dtype=np.uint32)
-
-                for bi in reversed(range(0, num_data)):
-                    data = x[row, col_offset + bi]
-                    for bc in range(0, self.nbits):
-                        bit = data & 0x1
-                        out[bc] |= (bit << bi)
-                        data = data >> 1
-                return out
-
-            for hi in range(0, self.row):
-                in_col_offset = 0
-                out_col_offset = 0
-
-                for c in range(0, full_bit_col):
-                    out = pack_bits(self.orig, self.nbits_per_word, hi, in_col_offset)
-                    for x in range(self.nbits):
-                        print(f"{c*self.nbits+x}: {format(out[x], '032b')}")
-
-                    import ipdb
-                    ipdb.set_trace()
-
-                    qmat[hi, out_col_offset:out_col_offset + self.nbits] = out
-                    in_col_offset += self.nbits_per_word
-                    out_col_offset += self.nbits
-
-                if residual_bit_col != 0:
-                    out = pack_bits(self.orig, residual_bit_col, hi, in_col_offset)
-                    qmat[hi, out_col_offset:out_col_offset + self.nbits] = out
-        else:
+        if self.arrangement != 'WordInterleaving':
             raise NotImplemented
+
+        qmat = np.zeros([self.row, self.col], dtype=np.uint32)
+
+        orig_col = self.orig.shape[1]
+        full_bit_col = orig_col // self.nbits_per_word
+        residual_bit_col = orig_col % self.nbits_per_word
+
+        def pack_bits(x, num_data, row, col_offset):
+            out = np.zeros([self.nbits], dtype=np.uint32)
+
+            for bi in reversed(range(0, num_data)):
+                data = x[row, col_offset + bi]
+                for bc in range(0, self.nbits):
+                    bit = data & 0x1
+                    out[bc] |= (bit << bi)
+                    data = data >> 1
+            return out
+
+        for hi in range(0, self.row):
+            in_col_offset = 0
+            out_col_offset = 0
+
+            for c in range(0, full_bit_col):
+                out = pack_bits(self.orig, self.nbits_per_word, hi, in_col_offset)
+                for x in range(self.nbits):
+                    print(f"{c*self.nbits+x}: {format(out[x], '032b')}")
+
+                ipdb.set_trace()
+
+                qmat[hi, out_col_offset:out_col_offset + self.nbits] = out
+                in_col_offset += self.nbits_per_word
+                out_col_offset += self.nbits
+
+            if residual_bit_col != 0:
+                out = pack_bits(self.orig, residual_bit_col, hi, in_col_offset)
+                qmat[hi, out_col_offset:out_col_offset + self.nbits] = out
 
     @property
     def data(self):
@@ -229,7 +228,6 @@ def sample_kernel():
     x = test_mat.astype(np.uint32)
     qm = QuantizedMatrix(x, 2)
 
-    import ipdb
     ipdb.set_trace()
 
     return out
