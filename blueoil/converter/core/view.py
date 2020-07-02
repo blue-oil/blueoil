@@ -499,20 +499,16 @@ class View(object):
                 func_ResizeNearestNeighbor({inputs_string}, {outputs_string});
                 """
             )
-        elif self.op.op_type == 'Split':
+        elif self.op.op_type == 'Slice':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            ns = op.num_splits
-
-            depth_list_name = op.name + '_outputs_depth'
-            depth_list = ', '.join(map(str, [op.channel for _ in range(ns)]))
+            begin = op.begin
+            size = op.slice_size
 
             return self.format_string(
                 f"""
-                TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}_ary[] = {{ {outputs_string} }};
-                T_UINT {depth_list_name}[] = {{ {depth_list} }};
-                func_Split({inputs_string}, {op.name}_ary, {depth_list_name}, {ns});
+                func_Slice({inputs_string}, {outputs_string}, {begin}, {size});
                 """
             )
         elif self.op.op_type == 'Pad':
