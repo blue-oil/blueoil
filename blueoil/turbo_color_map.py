@@ -14,6 +14,11 @@
 # limitations under the License.
 # =============================================================================
 
+# Colormap table taken from the following gist:
+# https://gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
+# Copyright 2019 Google LLC.
+# SPDX-License-Identifier: Apache-2.0
+
 TURBO_CMAP_DATA = [
     [0.18995, 0.07176, 0.23217],
     [0.19483, 0.08339, 0.26149],
