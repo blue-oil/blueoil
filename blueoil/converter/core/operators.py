@@ -2742,7 +2742,7 @@ class Slice(Operator):
                  begin: int,
                  size: int,
                  dimension_format: str = 'NHWC') -> None:
-        """Init the split operator."""
+        """Init the slice operator."""
         self._begin = begin
         self._size = size
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
