@@ -27,7 +27,7 @@ void max_pooling(
     struct max_pooling_parameters p)
 {
 
-  assert (p.kernel_depth == 1 && "kernel depth 1 is not supported.");
+  assert (p.kernel_depth == 1 && "kernel depth != 1 is not supported.");
   assert (p.input_depth == p.kernel_depth * p.output_channels && \
           "input_depth must equal kernel_depth * output_channels.");
 
