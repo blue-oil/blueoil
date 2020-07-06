@@ -25,7 +25,7 @@ void func_AveragePool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     struct avg_pooling_parameters app) {
   Measurement::Start("AveragePool");
 
-  assert (app.kernel_depth == 1 && "kernel depth 1 is not supported.");
+  assert (app.kernel_depth == 1 && "kernel depth != 1 is not supported.");
   assert (app.input_depth == app.kernel_depth * app.output_channels && \
           "input_depth must equal kernel_depth * output_channels.");
 
