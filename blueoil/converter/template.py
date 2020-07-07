@@ -14,9 +14,28 @@
 # limitations under the License.
 # =============================================================================
 from os import path
+import struct
 
 from jinja2 import Environment as JinjaEnv
 from jinja2 import FileSystemLoader
+import numpy as np
+
+
+def pack_to_bytes(a):
+    t = type(a)
+    if t == float or t == np.float32:
+        packed_binary = struct.pack("<f", a)
+    elif t == int or t == np.int32:
+        packed_binary = struct.pack("<i", a)
+    elif t == np.int64:
+        packed_binary = struct.pack("<q", a)
+    elif t == np.uint32:
+        packed_binary = struct.pack("<I", a)
+
+    if t == np.int64:
+        return ",".join(map(str, list(struct.unpack("BBBBBBBB", packed_binary))))
+    else:
+        return ",".join(map(str, list(struct.unpack("BBBB", packed_binary))))
 
 
 class Template(object):
@@ -59,5 +78,6 @@ class Template(object):
     def _create_jinja(self):
         loader = FileSystemLoader(self.root_dir, encoding='utf8')
         jinja = JinjaEnv(loader=loader)
+        jinja.globals['pack_to_bytes'] = pack_to_bytes
 
         return jinja

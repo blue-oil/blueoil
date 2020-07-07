@@ -22,15 +22,19 @@ namespace scaling_factors {
 
 {% if conv.quantizer.op_type == 'BinaryMeanScalingQuantizer' -%}
 
-T_FLOAT {{ conv.name }} = {{ conv.quantizer.scaling_factor }};
+alignas(16) unsigned char {{ conv.name }}_raw[] = { {{ pack_to_bytes(conv.quantizer.scaling_factor) }} };
+
+T_FLOAT {{ conv.name }} = *(reinterpret_cast<float*>({{ conv.name }}_raw));
 
 {% elif conv.quantizer.op_type == 'BinaryChannelWiseMeanScalingQuantizer' -%}
 
-T_FLOAT {{ conv.name }}[{{ conv.depth }}] = {
+alignas(16) unsigned char {{ conv.name }}_raw[] = {
   {% for f in conv.quantizer.scaling_factor -%}
-  {{- f -}},
+  {{- pack_to_bytes(f) -}},
   {%- endfor %}
 };
+
+T_FLOAT* {{ conv.name }} = reinterpret_cast<float*>({{ conv.name }}_raw);
 
 {% else -%}
 
