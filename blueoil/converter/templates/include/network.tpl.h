@@ -18,6 +18,7 @@ limitations under the License.
 
 #include <memory>
 #include "global.h"
+#include "parameters.h"
 #include "dma_buffer.h"
 
 #define SYM_PUBLIC __attribute__ ((visibility ("default")))
