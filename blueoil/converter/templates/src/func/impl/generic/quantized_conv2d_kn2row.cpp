@@ -19,6 +19,7 @@ limitations under the License.
 #include <limits>
 
 #include "global.h"
+#include "parameters.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
 #include "func/impl/apply_thresholds.h"
 #include "matrix_view.h"
