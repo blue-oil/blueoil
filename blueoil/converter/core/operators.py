@@ -359,7 +359,7 @@ class Operator(object):
             raise ValueError(f'Operator {self.name} does not have the width property.')
 
     @property
-    def channel(self) -> int:
+    def channels(self) -> int:
         """Get the number of channels in the shape."""
         if self.index_C is not None:
             if self.index_C_low is not None:
@@ -777,7 +777,7 @@ class SpaceToDepth(Operator):
     Output
     ------
     output
-        A tensor with reduced height and width and increased depth
+        A tensor with reduced height and width and increased channels
 
     Attributes (optional constructor parameters)
     ----------
@@ -802,7 +802,7 @@ class SpaceToDepth(Operator):
     def _check_consistency(self) -> None:
         """
         This check the following constraints:
-            Output depth must be
+            Output channels must be
             1. (multiple of kernel_size^2 * 32) OR
             2. (kernel_size^2 * {8, 16}).
         """
@@ -810,7 +810,7 @@ class SpaceToDepth(Operator):
         if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and self.channel % 32 != 0:
             warnings.warn(warning_sign +
                           f" Output channels need to be multiple of 32 for {self.name} of {self.op_type}, "
-                          f"but got output channel size of {self.channel}",
+                          f"but got output channel size of {self.channels}",
                           stacklevel=2)
 
     @property
@@ -1522,11 +1522,11 @@ class Add(Operator):
         message = f'output shape {self.shape} does not match with two operands {ash} {bsh}'
         self._assert(output_shape == self.shape, message)
 
-        # we only implement depth-wise broadcast on C
+        # we only implement channel-wise broadcast on C
         ash_reduced = [x for x in dropwhile(lambda x: x == 1, ash)]
         bsh_reduced = [x for x in dropwhile(lambda x: x == 1, bsh)]
-        self.is_depthwise = ((len(ash_reduced) == 1) or (len(bsh_reduced) == 1)) and\
-                            (ash_reduced[-1] == bsh_reduced[-1])
+        self.is_channelwise = ((len(ash_reduced) == 1) or (len(bsh_reduced) == 1)) and\
+                              (ash_reduced[-1] == bsh_reduced[-1])
 
     def run_forward(self) -> np.ndarray:
         a = self._input_ops['A'].data
@@ -2355,11 +2355,11 @@ class Mul(Operator):
         message = f'output shape {self.shape} does not match with two operands {ash} {bsh}'
         self._assert(output_shape == self.shape, message)
 
-        # we only implement depth-wise broadcast on C
+        # we only implement channel-wise broadcast on C
         ash_reduced = [x for x in dropwhile(lambda x: x == 1, ash)]
         bsh_reduced = [x for x in dropwhile(lambda x: x == 1, bsh)]
-        self.is_depthwise = ((len(ash_reduced) == 1) or (len(bsh_reduced) == 1)) and \
-                            (ash_reduced[-1] == bsh_reduced[-1])
+        self.is_channelwise = ((len(ash_reduced) == 1) or (len(bsh_reduced) == 1)) and \
+                              (ash_reduced[-1] == bsh_reduced[-1])
 
     def run_forward(self) -> np.ndarray:
         a = self._input_ops['A'].data
@@ -2494,7 +2494,7 @@ class ConcatOnDepth(Operator):
     Output
     ------
     output
-        A tensor which is the concatenation of the inputs in the depth axis
+        A tensor which is the concatenation of the inputs in the channel axis
 
     Attributes (optional constructor parameters)
     ----------
@@ -2589,7 +2589,7 @@ class DepthToSpace(Operator):
     Output
     ------
     output
-        A tensor with increased height and width and decreased depth
+        A tensor with increased height and width and decreased channels
 
     Attributes (optional constructor parameters)
     ----------
@@ -2614,14 +2614,14 @@ class DepthToSpace(Operator):
     def _check_consistency(self) -> None:
         """
         This check the following constraints:
-            1. quantized-packed data requires depth of input must be multiple of kernel_size^2 * 32
+            1. quantized-packed data requires channels of input must be multiple of kernel_size^2 * 32
         """
         super()._check_consistency()
         if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and \
-                self.input_ops['input'].channel % 128 != 0:
+                self.input_ops['input'].channels % 128 != 0:
             warnings.warn(warning_sign +
                           f" Input channels need to be multiple of kernel_size^2 * 32 for "
-                          f"{self.name} of {self.op_type}, but got {self.input_ops['input'].channel}",
+                          f"{self.name} of {self.op_type}, but got {self.input_ops['input'].channels}",
                           stacklevel=2)
 
     @property
@@ -2657,7 +2657,7 @@ class ResizeNearestNeighbor(Operator):
     Output
     ------
     output
-        A tensor with resized height and width and same depth
+        A tensor with resized height and width and same channels
 
     Attributes (optional constructor parameters)
     ----------
