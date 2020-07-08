@@ -807,7 +807,7 @@ class SpaceToDepth(Operator):
             2. (kernel_size^2 * {8, 16}).
         """
         super()._check_consistency()
-        if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and self.channel % 32 != 0:
+        if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and self.channels % 32 != 0:
             warnings.warn(warning_sign +
                           f" Output channels need to be multiple of 32 for {self.name} of {self.op_type}, "
                           f"but got output channel size of {self.channels}",
