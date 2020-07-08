@@ -18,6 +18,15 @@ limitations under the License.
 
 #include <cstddef>
 
+
+{%- if config.activate_hard_quantization %}
+#define HARD_QUANTIZATION_ACTIVE
+{% endif %}
+
+{%- if config.threshold_skipping %}
+#define THRESHOLD_SKIPPING_ACTIVE
+{% endif %}
+
 constexpr std::size_t MAX_SIZE_INPUTS_PER_LAYER = {{ params.max_size_inputs_per_layer }};
 constexpr std::size_t MAX_SIZE_QINPUTS_PER_LAYER = {{ params.max_size_qinputs_per_layer }};
 constexpr std::size_t MAX_SIZE_KN2ROW_BUFFER_PER_LAYER = {{ params.max_size_kn2row_buffer_per_layer }};
