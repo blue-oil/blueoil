@@ -81,10 +81,5 @@ using QUANTIZED_PACKED_KERNEL = QuantizedPacked<{{ params.default_qword_dtype.cp
 #define MAX_IN_C 1024
 /********************************************************/
 
-void write_to_file(const char *filename, int id, volatile int32_t* data, int size);
-void write_to_file(const char *filename, int id, BIN_CONV_OUTPUT* data, int size);
-void write_to_file(const char *filename, int id, QUANTIZED_NOT_PACKED* data, int size);
-void write_to_file(const char *filename, int id, float* data, int size);
-
 #endif
 
