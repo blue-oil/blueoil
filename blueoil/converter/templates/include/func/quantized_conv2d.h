@@ -46,7 +46,7 @@ void QuantizedConv2D(
   T_UINT padding = p.normal_conv_params.padding;
   T_UINT ih = p.normal_conv_params.input_height;
   T_UINT iw = p.normal_conv_params.input_width;
-  T_UINT ic = p.normal_conv_params.kernel_depth;
+  T_UINT ic = p.normal_conv_params.input_channels;
   T_UINT oc = p.normal_conv_params.output_channels;
   T_UINT maxa = (1 << p.n_bit) - 1;
   auto size = oc * ih * iw;

@@ -33,7 +33,7 @@ inline void func_ResizeNearestNeighbor(const TensorView<float, MemoryLayout::NHW
   const auto out_shape = output.get_shape();
   const auto out_height = out_shape[1];
   const auto out_width = out_shape[2];
-  const auto out_depth = out_shape[3];
+  const auto out_channels = out_shape[3];
 
   const auto height_scale = (in_height << 16) / out_height + 1;
   const auto width_scale = (in_width << 16) / out_width + 1;
@@ -42,7 +42,7 @@ inline void func_ResizeNearestNeighbor(const TensorView<float, MemoryLayout::NHW
     T_INT in_y = std::min((out_y * height_scale) >> 16, in_height - 1);
     for(T_UINT out_x = 0; out_x < out_width; out_x++) {
       T_INT in_x = std::min((out_x * width_scale) >> 16, in_width - 1);
-      for(T_UINT out_z = 0; out_z < out_depth; out_z++) {
+      for(T_UINT out_z = 0; out_z < out_channels; out_z++) {
         output(0, out_y, out_x, out_z) = input(0, in_y, in_x, out_z);
       }
     }
@@ -64,7 +64,7 @@ void func_ResizeNearestNeighbor(const TensorView<QuantizedPacked<T>, MemoryLayou
   const auto out_height = out_shape[0];
   const auto out_width = out_shape[1];
   const auto bits = out_shape[3];
-  const auto out_depth = out_shape[2];
+  const auto out_channels = out_shape[2];
 
   const auto height_scale = (in_height << 16) / out_height + 1;
   const auto width_scale = (in_width << 16) / out_width + 1;
@@ -73,7 +73,7 @@ void func_ResizeNearestNeighbor(const TensorView<QuantizedPacked<T>, MemoryLayou
     T_INT in_y = std::min((out_y * height_scale) >> 16, in_height - 1);
     for(T_UINT out_x = 0; out_x < out_width; out_x++) {
       T_INT in_x = std::min((out_x * width_scale) >> 16, in_width - 1);
-      for(T_UINT out_z = 0; out_z < out_depth; out_z++) {
+      for(T_UINT out_z = 0; out_z < out_channels; out_z++) {
         for (T_INT digit = 0; digit < bits; ++digit) {
           output(out_y, out_x, out_z, digit, 0) = input(in_y, in_x, out_z, digit, 0);
         }
@@ -97,7 +97,7 @@ void func_ResizeNearestNeighbor(const TensorView<QuantizedPacked<T>, MemoryLayou
   const auto out_height = out_shape[1];
   const auto out_width = out_shape[2];
   const auto bits = out_shape[3];
-  const auto out_depth = out_shape[0];
+  const auto out_channels = out_shape[0];
 
   const auto height_scale = (in_height << 16) / out_height + 1;
   const auto width_scale = (in_width << 16) / out_width + 1;
@@ -106,7 +106,7 @@ void func_ResizeNearestNeighbor(const TensorView<QuantizedPacked<T>, MemoryLayou
     T_INT in_y = std::min((out_y * height_scale) >> 16, in_height - 1);
     for(T_UINT out_x = 0; out_x < out_width; out_x++) {
       T_INT in_x = std::min((out_x * width_scale) >> 16, in_width - 1);
-      for(T_UINT out_z = 0; out_z < out_depth; out_z++) {
+      for(T_UINT out_z = 0; out_z < out_channels; out_z++) {
         for (T_INT digit = 0; digit < bits; ++digit) {
           output(out_z, out_y, out_x, digit, 0) = input(out_z, in_y, in_x, digit, 0);
         }
