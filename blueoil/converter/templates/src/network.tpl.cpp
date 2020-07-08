@@ -223,7 +223,7 @@ bool Network::init()
 #else
   {% for qconv in graph.convs(quantized_only=True) -%}
   {% if qconv.has_thresholds -%}
-  dlk::impl::convert_thresholds({{ qconv.name }}_thresholds, {{ qconv.name }}_thresholds_converted.get(), {{ qconv.channel }});
+  dlk::impl::convert_thresholds({{ qconv.name }}_thresholds, {{ qconv.name }}_thresholds_converted.get(), {{ qconv.channels }});
   {% else -%}
   {% endif -%}
   {% endfor -%}
