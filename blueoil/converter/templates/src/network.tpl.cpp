@@ -25,6 +25,7 @@ limitations under the License.
 #include <errno.h>
 {% endif %}
 #include "global.h"
+#include "parameters.h"
 #include "func/add.h"
 #include "func/average_pool.h"
 #include "func/batch_normalization.h"

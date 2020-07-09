@@ -19,6 +19,7 @@ limitations under the License.
 #include <memory>
 
 #include "global.h"
+#include "parameters.h"
 #include "func/conv2d.h"
 #include "matrix_view.h"
 #include "matrix/shift_add.h"
