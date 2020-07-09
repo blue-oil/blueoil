@@ -32,7 +32,6 @@ from blueoil.converter.core.optimizer import pass_remove_identities, \
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
     pass_quantize_convolutions, pass_propagate_datatypes, \
     pass_propagate_format, pass_insert_cast, \
-    pass_propagate_output_type_backward, \
     pass_lookup, pass_simplify_batchnorm
 from blueoil.converter import util
 
