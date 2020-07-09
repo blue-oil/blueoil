@@ -20,7 +20,7 @@ limitations under the License.
 
 {% for conv in quantized_convs %}
 
-extern BIN_CONV_OUTPUT {{ conv.name }}_thresholds[{{ conv.channel }} * NUM_OF_A2W1_THRESHOLD];
+extern BIN_CONV_OUTPUT {{ conv.name }}_thresholds[{{ conv.channels }} * NUM_OF_A2W1_THRESHOLD];
 
 {%- endfor %}
 

@@ -30,7 +30,7 @@ void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
   const auto c = in_shape[3];
 
   int b = 32;
-  int packed_depth = 2;
+  int packed_channels = 2;
   Measurement::Start("Lookup");
 
   const float * in_ptr = input.data();

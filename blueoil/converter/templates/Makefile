@@ -25,7 +25,6 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/network.cpp \
     $(SRC_DIR)/pack_input_to_qwords.cpp \
     $(SRC_DIR)/time_measurement.cpp \
-    $(SRC_DIR)/write_to_file.cpp \
     $(SRC_DIR)/quantizer.cpp \
     $(SRC_DIR)/tensor_save.cpp
 
