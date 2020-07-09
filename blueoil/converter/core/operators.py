@@ -588,7 +588,7 @@ class Output(Variable):
                  shape: List[int],
                  dtype: DataType,
                  input_ops: Ops,
-                 dimension_format: str = ''
+                 dimension_format: str = 'NHWC'
                  ) -> None:
         """Init the output variable."""
         data = np.zeros(shape, dtype=dtype.nptype())
