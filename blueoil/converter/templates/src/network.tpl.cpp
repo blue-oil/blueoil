@@ -28,6 +28,7 @@ limitations under the License.
 #include "func/add.h"
 #include "func/average_pool.h"
 #include "func/batch_normalization.h"
+#include "func/cast.h"
 #include "func/concat_on_depth.h"
 #include "func/conv2d.h"
 #include "func/depth_to_space.h"

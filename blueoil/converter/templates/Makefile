@@ -12,6 +12,7 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(wildcard $(SRC_DIR)/scaling_factors.cpp) \
     $(wildcard $(SRC_DIR)/thresholds.cpp) \
     $(SRC_DIR)/func/average_pool.cpp \
+    $(SRC_DIR)/func/cast.cpp \
     $(SRC_DIR)/func/conv2d.cpp \
     $(SRC_DIR)/func/max_pool.cpp \
     $(SRC_DIR)/func/pad.cpp \

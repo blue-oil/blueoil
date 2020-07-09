@@ -534,6 +534,15 @@ class View(object):
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
             return self.format_string(f"""func_Lookup({inputs_string}, {outputs_string});""")
+        elif self.op.op_type == 'Cast':
+            if len(input_ops) != 1:
+                self.raise_invalid_args_exception(op, input_ops, output_ops)
+
+            return self.format_string(
+                f"""
+                func_Cast({inputs_string}, {outputs_string});
+                """
+            )
 
         raise TypeError(f"{self.op.op_type} is not supported in View.run().")
 
