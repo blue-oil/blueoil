@@ -65,7 +65,7 @@ def get_color_map(length):
 # For replacing the Matplotlib Jet colormap, we use the Turbo color map
 # https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html
 # The colormap allows for a large number of quantization levels:
-# https://github.com/blue-oil/blueoil/tree/master/docs/_static/turbo_cmap.png
+# https://tinyurl.com/ybm3kpql
 
 # Referred from the following gist:
 # https://gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
