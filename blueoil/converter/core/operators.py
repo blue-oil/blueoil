@@ -1005,7 +1005,6 @@ class Conv(Operator):
         self._a_quantizer: List['Quantizer'] = []
         self._quantizer: Optional['Quantizer'] = None
         self._thresholds = thresholds
-        self._original_shape = shape
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
         # if kernel shape is not assigned, estimate kernel shape from input W's shape
 
@@ -1234,13 +1233,6 @@ class Conv(Operator):
     @property
     def preserve_quantization(self) -> bool:
         return True
-
-    def restore_shape(self):
-        if self.a_quantizer:
-            real_ch = self._original_shape[3]
-            data_per_ch = 2 ** self.a_quantizer[0].nbit
-            del self._thresholds[real_ch * data_per_ch:]
-        self.update_shape(self._original_shape, 'NHWC')
 
 
 class BatchNormalization(Operator):
