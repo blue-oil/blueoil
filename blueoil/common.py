@@ -66,6 +66,17 @@ def get_color_map(length):
 # https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html
 # The colormap allows for a large number of quantization levels:
 # https://github.com/blue-oil/blueoil/tree/master/docs/_static/turbo_cmap.png
+
+# Referred from the following gist:
+# https://gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
+# Copyright 2019 Google LLC.
+# SPDX-License-Identifier: Apache-2.0
+
+# Changes:
+# 1. Vectorized the implementation using numpy
+# 2. Use numpy.modf to get integer and float parts
+# 3. Provided an example in comments
+
 def apply_color_map(image):
     turbo_cmap_data = np.asarray(TURBO_CMAP_DATA)
     x = np.asarray(image)
