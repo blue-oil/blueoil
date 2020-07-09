@@ -18,6 +18,7 @@ limitations under the License.
 #include <limits>
 
 #include "global.h"
+#include "parameters.h"
 #include "func/impl/quantized_conv2d_tiling.h"
 #include "time_measurement.h"
 
