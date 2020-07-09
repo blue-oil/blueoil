@@ -19,7 +19,7 @@ from blueoil.converter.core.data_types import Float32, PackedUint32, Int32, QUAN
 from blueoil.converter.core.optimizer import (
     pass_remove_identities, pass_transpose, pass_constant_folding,
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights,
-    pass_quantize_convolutions, pass_propagate_datatypes, pass_propagate_output_type_backward
+    pass_quantize_convolutions, pass_propagate_datatypes
 )
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.operators import (
@@ -392,43 +392,6 @@ class TestPassPropagateDatatypes(unittest.TestCase):
         # Conv1
         w1 = Constant('weight1', Float32(), data1)
         conv1 = Conv('conv1', [1, 4, 4, 3], QUANTIZED_PACKED(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
-
-        pool1 = SpaceToDepth('s2d', [1, 2, 2, 12], Float32(), {'input': conv1})
-
-        # One output
-        y = Output('output', [1, 2, 2, 12], Float32(), {'input': pool1})
-
-        # add ops to the graph
-        graph.add_op_and_inputs(y)
-
-        return graph
-
-
-class TestPassPropagateOutputTypeBackward(unittest.TestCase):
-    """Test class for packing weight."""
-    def test_pass_propagate_output_type_backward(self) -> None:
-        """Test pass."""
-        data1 = np.float32(np.random.rand(1, 2, 2, 3))
-        graph1 = self.create_sample_graph(data1)
-
-        pass_propagate_output_type_backward(graph1)
-
-        self.assertEqual(graph1.get_op('conv1').dtype, Float32(),
-                         '[Failed] Found dtype of SpaceToDepth not propagate correctly')
-
-        print("Test pass #7 propagate output type backward passed!")
-
-    @staticmethod
-    def create_sample_graph(data1: np.ndarray) -> Graph:
-        graph = Graph()
-
-        # input
-        x = Input('placeholder', [1, 5, 5, 3], Float32())
-
-        # Conv1
-        w1 = Constant('weight1', Float32(), data1)
-        conv1 = Conv('conv1', [1, 4, 4, 3], QUANTIZED_PACKED(), {'X': x, 'W': w1}, kernel_shape=[2, 2])
-        conv1.is_quantized = True
 
         pool1 = SpaceToDepth('s2d', [1, 2, 2, 12], Float32(), {'input': conv1})
 
