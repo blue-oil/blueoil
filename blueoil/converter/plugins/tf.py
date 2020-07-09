@@ -984,7 +984,7 @@ class Importer(object):
         elif op_type == 'ConcatOnDepth':
             axis = input_ops[input_ops_order[-1]]
             if current_format.index('C') != axis:
-                ValueError('f{op_type} {node.name} concatenation is only supported on the depth axis')
+                ValueError('f{op_type} {node.name} concatenation is only supported on the channel axis')
 
             if not shape:
                 attributes = {}

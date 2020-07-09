@@ -78,7 +78,7 @@ class TestOperators(unittest.TestCase):
         self.assertEqual(c.batchsize, 1)
         self.assertEqual(c.height, 2)
         self.assertEqual(c.width, 2)
-        self.assertEqual(c.channel, 3)
+        self.assertEqual(c.channels, 3)
         self.assertEqual(c.kernel_height, 2)
         self.assertEqual(c.kernel_width, 2)
 
