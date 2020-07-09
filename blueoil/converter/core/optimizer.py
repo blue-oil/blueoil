@@ -594,35 +594,6 @@ def pass_insert_cast(graph: Graph) -> None:
         m.add_outputs(to_be_updated)
 
 
-def pass_propagate_output_type_backward(graph: Graph) -> None:
-    """It is assumed that the output data type of a Graph is float.
-       We should propagate this assumption backwards from the output node of the graph to the
-       latest quantized convolution available.
-
-       There could be cases where the latest convolution node Q is a quantized convolution and we also apply
-       thresholds to its outputs. In this cases, the quantized convolution output data type should be float
-       even if thresholds are applied.
-
-    Args:
-        graph (Graph): The input graph. It will be modified in-place.
-
-    """
-    exec_list = sort_graph(graph)
-
-    def output_dtype_changer(node, otype):
-        for n in node.input_nodes:
-            if n.op_type == 'Conv' and n.is_quantized:
-                n.restore_shape()
-                n.dtype = otype
-                return
-            output_dtype_changer(n, otype)
-
-    # propagate output data type to the last quantized convolution
-    output_node = exec_list[-1]
-    output_type = output_node.dtype
-    output_dtype_changer(output_node, output_type)
-
-
 def pass_lookup(graph: Graph) -> None:
     """Lookup.
 
