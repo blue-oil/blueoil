@@ -89,11 +89,11 @@ def apply_color_map(image):
     #   >>> x = np.array([1.2, 2.3, 4.5, 20.45, 6.75, 8.88])
     #   >>> f, i = np.modf(x)       # returns a tuple of length 2
     #   >>> print(i.shape, f.shape)
-    #   >>> (6,) (6,)
+    #   (6,) (6,)
     #   >>> print(i)
-    #   >>> [ 1.  2.  4. 20.  6.  8.]
+    #   array([ 1.  2.  4. 20.  6.  8.])
     #   >>> print(f)
-    #   >>> [0.2  0.3  0.5  0.45 0.75 0.88]
+    #   array([0.2  0.3  0.5  0.45 0.75 0.88])
     f, a = np.modf(x * 255.0)
     a = a.astype(int)
     b = (a + 1).clip(max=255)
