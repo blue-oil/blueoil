@@ -25,9 +25,9 @@ void func_AveragePool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     struct avg_pooling_parameters app) {
   Measurement::Start("AveragePool");
 
-  assert (app.kernel_depth == 1 && "kernel depth 1 is not supported.");
-  assert (app.input_depth == app.kernel_depth * app.output_channels && \
-          "input_depth must equal kernel_depth * output_channels.");
+  assert (app.kernel_depth == 1 && "kernel depth != 1 is not supported.");
+  assert (app.input_channels == app.kernel_depth * app.output_channels && \
+          "input_channels must equal kernel_depth * output_channels.");
 
   const T_FLOAT num_k_elems_inv = 1.f / (app.kernel_height * app.kernel_width * app.kernel_depth);
 
@@ -37,7 +37,7 @@ void func_AveragePool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
     size_t wi = wij / app.output_width;
     size_t wj = wij % app.output_width;
     float tmp[MAX_IN_C];
-    for(size_t ic = 0; ic < app.input_depth; ic++) {
+    for(size_t ic = 0; ic < app.input_channels; ic++) {
       tmp[ic] = 0.f;
     }
     for(size_t ki = 0; ki < app.kernel_height; ki++) {
@@ -45,9 +45,9 @@ void func_AveragePool(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
         T_INT row = (wi * app.stride) - app.padding + ki;
         T_INT col = (wj * app.stride) - app.padding + kj;
         if (row < 0 || col < 0 || row >= (T_INT) app.input_height || col >= (T_INT)app.input_width) continue;
-        for(size_t ic = 0; ic < app.input_depth; ic++) {
-          size_t idx_in = + row * (app.input_width * app.input_depth)
-            + col * (app.input_depth)
+        for(size_t ic = 0; ic < app.input_channels; ic++) {
+          size_t idx_in = + row * (app.input_width * app.input_channels)
+            + col * (app.input_channels)
             + ic;
           tmp[ic] += input.data()[idx_in];
         }

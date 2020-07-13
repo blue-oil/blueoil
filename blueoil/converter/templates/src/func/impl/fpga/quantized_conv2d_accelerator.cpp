@@ -47,7 +47,7 @@ void TCAConv2d(const tca_input_t& input,
 
   const T_UINT k_h = cp.kernel_height;
   const T_UINT k_w = cp.kernel_width;
-  const T_UINT k_c = cp.kernel_depth;
+  const T_UINT k_c = cp.input_channels;
 
   const T_UINT in_h = cp.input_height;
   const T_UINT in_w = cp.input_width;
@@ -55,10 +55,10 @@ void TCAConv2d(const tca_input_t& input,
   const T_UINT out_h = cp.output_height;
   const T_UINT out_w = cp.output_width;
 
-  const auto effective_kernel_depth = ((cp.kernel_depth + b - 1) / b) * b;
+  const auto effective_input_channels = ((cp.input_channels + b - 1) / b) * b;
 
     T_UINT input_byte_size =
-        (cp.input_height * cp.input_width * effective_kernel_depth * in_nbits) /
+        (cp.input_height * cp.input_width * effective_input_channels * in_nbits) /
         byte_nbits;
 
     T_UINT output_byte_size = out_h * out_w * out_c * sizeof(BIN_CONV_OUTPUT);

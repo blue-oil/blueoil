@@ -84,14 +84,8 @@ class Operator(object):
     def __connect_to_outputs(self) -> None:
         """Connect input operators' outputs to this object."""
         for ip in self._input_ops.values():
-            if ip.op_type == 'Split':
-                for x in ip.output_names:
-                    if x not in ip._output_ops.keys():
-                        ip.add_output(x, self)
-                        break
-            else:
-                key = ip.output_names[0]
-                ip.add_output(key, self)
+            key = ip.output_names[0]
+            ip.add_output(key, self)
 
     def _assert(self, predicate: bool, message: str = '') -> None:
         """Assert a predicate. When it fails, raise an error.
@@ -365,7 +359,7 @@ class Operator(object):
             raise ValueError(f'Operator {self.name} does not have the width property.')
 
     @property
-    def channel(self) -> int:
+    def channels(self) -> int:
         """Get the number of channels in the shape."""
         if self.index_C is not None:
             if self.index_C_low is not None:
@@ -783,7 +777,7 @@ class SpaceToDepth(Operator):
     Output
     ------
     output
-        A tensor with reduced height and width and increased depth
+        A tensor with reduced height and width and increased channels
 
     Attributes (optional constructor parameters)
     ----------
@@ -808,15 +802,15 @@ class SpaceToDepth(Operator):
     def _check_consistency(self) -> None:
         """
         This check the following constraints:
-            Output depth must be
+            Output channels must be
             1. (multiple of kernel_size^2 * 32) OR
             2. (kernel_size^2 * {8, 16}).
         """
         super()._check_consistency()
-        if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and self.channel % 32 != 0:
+        if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and self.channels % 32 != 0:
             warnings.warn(warning_sign +
                           f" Output channels need to be multiple of 32 for {self.name} of {self.op_type}, "
-                          f"but got output channel size of {self.channel}",
+                          f"but got output channel size of {self.channels}",
                           stacklevel=2)
 
     @property
@@ -1528,11 +1522,11 @@ class Add(Operator):
         message = f'output shape {self.shape} does not match with two operands {ash} {bsh}'
         self._assert(output_shape == self.shape, message)
 
-        # we only implement depth-wise broadcast on C
+        # we only implement channel-wise broadcast on C
         ash_reduced = [x for x in dropwhile(lambda x: x == 1, ash)]
         bsh_reduced = [x for x in dropwhile(lambda x: x == 1, bsh)]
-        self.is_depthwise = ((len(ash_reduced) == 1) or (len(bsh_reduced) == 1)) and\
-                            (ash_reduced[-1] == bsh_reduced[-1])
+        self.is_channelwise = ((len(ash_reduced) == 1) or (len(bsh_reduced) == 1)) and\
+                              (ash_reduced[-1] == bsh_reduced[-1])
 
     def run_forward(self) -> np.ndarray:
         a = self._input_ops['A'].data
@@ -2361,11 +2355,11 @@ class Mul(Operator):
         message = f'output shape {self.shape} does not match with two operands {ash} {bsh}'
         self._assert(output_shape == self.shape, message)
 
-        # we only implement depth-wise broadcast on C
+        # we only implement channel-wise broadcast on C
         ash_reduced = [x for x in dropwhile(lambda x: x == 1, ash)]
         bsh_reduced = [x for x in dropwhile(lambda x: x == 1, bsh)]
-        self.is_depthwise = ((len(ash_reduced) == 1) or (len(bsh_reduced) == 1)) and \
-                            (ash_reduced[-1] == bsh_reduced[-1])
+        self.is_channelwise = ((len(ash_reduced) == 1) or (len(bsh_reduced) == 1)) and \
+                              (ash_reduced[-1] == bsh_reduced[-1])
 
     def run_forward(self) -> np.ndarray:
         a = self._input_ops['A'].data
@@ -2500,7 +2494,7 @@ class ConcatOnDepth(Operator):
     Output
     ------
     output
-        A tensor which is the concatenation of the inputs in the depth axis
+        A tensor which is the concatenation of the inputs in the channel axis
 
     Attributes (optional constructor parameters)
     ----------
@@ -2595,7 +2589,7 @@ class DepthToSpace(Operator):
     Output
     ------
     output
-        A tensor with increased height and width and decreased depth
+        A tensor with increased height and width and decreased channels
 
     Attributes (optional constructor parameters)
     ----------
@@ -2620,14 +2614,14 @@ class DepthToSpace(Operator):
     def _check_consistency(self) -> None:
         """
         This check the following constraints:
-            1. quantized-packed data requires depth of input must be multiple of kernel_size^2 * 32
+            1. quantized-packed data requires channels of input must be multiple of kernel_size^2 * 32
         """
         super()._check_consistency()
         if self.input_ops['input'].op_type == 'LinearMidTreadHalfQuantizer' and \
-                self.input_ops['input'].channel % 128 != 0:
+                self.input_ops['input'].channels % 128 != 0:
             warnings.warn(warning_sign +
                           f" Input channels need to be multiple of kernel_size^2 * 32 for "
-                          f"{self.name} of {self.op_type}, but got {self.input_ops['input'].channel}",
+                          f"{self.name} of {self.op_type}, but got {self.input_ops['input'].channels}",
                           stacklevel=2)
 
     @property
@@ -2663,7 +2657,7 @@ class ResizeNearestNeighbor(Operator):
     Output
     ------
     output
-        A tensor with resized height and width and same depth
+        A tensor with resized height and width and same channels
 
     Attributes (optional constructor parameters)
     ----------
@@ -2705,51 +2699,60 @@ class ResizeNearestNeighbor(Operator):
 
 
 class Split(Operator):
-    """Split operator.
+    """ Split operator (dummy).
+    Split operator is converted to Slice operators by Importer.
+    """
 
-    Split a tensor into a list of tensors, along the specified 'axis'.
+    _input_names = ['A', 'B']
+
+
+class Slice(Operator):
+    """Slice operator.
+
+    Slice a tensor, along channels.
 
     Input
     -----
     input
-        The tensor to split
+        The tensor to slice
 
     Output
     ------
     output
-        Output forming list of tensors after split
+        Output tensor after slice
 
     Attributes (optional constructor parameters)
     ----------
-    axis : integer
-        Axis to split on
+    begin : integer
+        slice starts from
 
-    split : list of integer
-        Length of each output
+    size : integer
+        Length of output channels
 
     """
 
     _input_names = ['A', 'B']
-    _output_names = ['output1', 'output2', 'output3', 'output4', 'output5']
+    _output_names = ['output']
 
     def __init__(self,
                  name: str,
                  shape: List[int],
                  dtype: DataType,
                  input_ops: Ops,
-                 dimension_format: str = 'NHWC',
-                 num_split: int = 1) -> None:
-        """Init the split operator."""
-        self._split = num_split
-        self._axis = input_ops['A'].data.item()
+                 begin: int,
+                 size: int,
+                 dimension_format: str = 'NHWC') -> None:
+        """Init the slice operator."""
+        self._begin = begin
+        self._size = size
         super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
 
     def _check_consistency(self) -> None:
         super()._check_consistency()
-        self._assert(isinstance(self._split, int),
+        self._assert(isinstance(self._begin, int),
                      f'Attribute value incorrect at {self.op_type}" {self.name}"')
-        self._assert(self._input_ops['B'].shape[self._axis] % self._split == 0,
-                     f'Shape not divisible by {self._axis} at {self.op_type}" {self.name}"')
+        self._assert(isinstance(self._size, int),
+                     f'Attribute value incorrect at {self.op_type}" {self.name}"')
 
     @property
     def _dispatch_name(self) -> str:
@@ -2760,8 +2763,12 @@ class Split(Operator):
         return False
 
     @property
-    def num_splits(self) -> int:
-        return self._split
+    def begin(self) -> int:
+        return self._begin
+
+    @property
+    def slice_size(self) -> int:
+        return self._size
 
     @classmethod
     def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
@@ -2769,11 +2776,10 @@ class Split(Operator):
         in_shape = lists['B']
         out_shape = in_shape
 
-        split = attrs['split'] if attrs.get('split') else 1
+        size = attrs['size']
         ch_idx = format.index('C')
 
-        if in_shape[ch_idx] % split == 0:
-            out_shape[ch_idx] = int(in_shape[ch_idx] / split)
+        out_shape[ch_idx] = size
 
         return out_shape
 
@@ -2944,7 +2950,15 @@ class Gather(Operator):
 
 
 class Unique(Operator):
-    r"""Unique operator.
+    r"""Unique operator (dummy).
+    Unique operetor is converted to UniqueValue and UniqueIndex operators by Importer.
+    """
+
+    _input_names = ['x']
+
+
+class UniqueValue(Operator):
+    r"""Unique operator (value version).
 
     Inputs
     ------
@@ -2953,13 +2967,43 @@ class Unique(Operator):
 
     Outputs
     -------
-    output
+    y
         The output.
 
     """
 
     _input_names = ['x']
-    _output_names = ['y', 'idx']
+    _output_names = ['y']
+
+    def _check_consistency(self) -> None:
+        super()._check_consistency()
+
+    @property
+    def is_monotonic(self) -> bool:
+        return False
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return True
+
+
+class UniqueIndex(Operator):
+    r"""Unique operator (index version).
+
+    Inputs
+    ------
+    input
+        The input tensor.
+
+    Outputs
+    -------
+    idx
+        The index of each value of input in the uniquified output.
+
+    """
+
+    _input_names = ['x']
+    _output_names = ['idx']
 
     def _check_consistency(self) -> None:
         super()._check_consistency()

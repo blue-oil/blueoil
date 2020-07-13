@@ -25,6 +25,7 @@ limitations under the License.
 #include <errno.h>
 {% endif %}
 #include "global.h"
+#include "parameters.h"
 #include "func/add.h"
 #include "func/average_pool.h"
 #include "func/batch_normalization.h"
@@ -44,8 +45,8 @@ limitations under the License.
 #include "func/relu.h"
 #include "func/leaky_relu.h"
 #include "func/round.h"
+#include "func/slice.h"
 #include "func/softmax.h"
-#include "func/split.h"
 #include "func/sqrt.h"
 #include "func/sub.h"
 #include "func/lookup.h"
@@ -223,7 +224,7 @@ bool Network::init()
 #else
   {% for qconv in graph.convs(quantized_only=True) -%}
   {% if qconv.has_thresholds -%}
-  dlk::impl::convert_thresholds({{ qconv.name }}_thresholds, {{ qconv.name }}_thresholds_converted.get(), {{ qconv.channel }});
+  dlk::impl::convert_thresholds({{ qconv.name }}_thresholds, {{ qconv.name }}_thresholds_converted.get(), {{ qconv.channels }});
   {% else -%}
   {% endif -%}
   {% endfor -%}

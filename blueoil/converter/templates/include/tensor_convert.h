@@ -34,14 +34,14 @@ inline void convert_tensor(const TensorView<BIN_CONV_OUTPUT, MemoryLayout::HWC>&
   const auto in_height = in_shape[0];
   const auto in_width = in_shape[1];
   const auto out_shape = after.get_shape();
-  const auto channel_high = out_shape[0];
-  const auto channel_low = out_shape[3];
+  const auto channels_high = out_shape[0];
+  const auto channels_low = out_shape[3];
   Measurement::Start("Convert Tensor");
-  for (std::size_t dh = 0; dh < channel_high; ++dh)
+  for (std::size_t dh = 0; dh < channels_high; ++dh)
     for (std::size_t r = 0; r < in_height; ++r)
       for (std::size_t c = 0; c < in_width; ++c)
-        for (std::size_t dl = 0; dl < channel_low; ++dl)
-          after(dh, r, c, dl) = before(r, c, dh * channel_low + dl);
+        for (std::size_t dl = 0; dl < channels_low; ++dl)
+          after(dh, r, c, dl) = before(r, c, dh * channels_low + dl);
   Measurement::Stop();
 }
 
@@ -50,15 +50,15 @@ inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::HWCh
   const auto in_shape = before.get_shape();
   const auto height = in_shape[0];
   const auto width = in_shape[1];
-  const auto channel = in_shape[2];
+  const auto channels = in_shape[2];
   const auto bits = in_shape[3];
   Measurement::Start("Convert Tensor");
 #pragma omp parallel for
   for (std::size_t i = 0; i < height; ++i)
     for (std::size_t j = 0; j < width; ++j)
-      for (std::size_t k = 0; k < channel; ++k) {
-        const auto idx_before = i * width * channel * bits
-            + j * channel * bits
+      for (std::size_t k = 0; k < channels; ++k) {
+        const auto idx_before = i * width * channels * bits
+            + j * channels * bits
             + k * bits;
         const auto idx_after = k * height * width * bits
             + i * width * bits
@@ -79,18 +79,18 @@ inline void convert_tensor(const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHW
   const auto in_shape = before.get_shape();
   const auto height = in_shape[1];
   const auto width = in_shape[2];
-  const auto channel = in_shape[0];
+  const auto channels = in_shape[0];
   const auto bits = in_shape[3];
   Measurement::Start("Convert Tensor");
 #pragma omp parallel for
   for (std::size_t i = 0; i < height; ++i)
     for (std::size_t j = 0; j < width; ++j)
-      for (std::size_t k = 0; k < channel; ++k) {
+      for (std::size_t k = 0; k < channels; ++k) {
         const auto idx_before = k * height * width * bits
             + i * width * bits
             + j * bits;
-        const auto idx_after = i * width * channel * bits
-            + j * channel * bits
+        const auto idx_after = i * width * channels * bits
+            + j * channels * bits
             + k * bits;
 #ifdef AARCH32
         const auto tmp = vld1_u32(reinterpret_cast<uint32_t*>(before.data() + idx_before));

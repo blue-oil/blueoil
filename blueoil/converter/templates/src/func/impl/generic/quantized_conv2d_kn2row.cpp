@@ -19,6 +19,7 @@ limitations under the License.
 #include <limits>
 
 #include "global.h"
+#include "parameters.h"
 #include "func/impl/quantized_conv2d_kn2row.h"
 #include "func/impl/apply_thresholds.h"
 #include "matrix_view.h"
@@ -41,7 +42,7 @@ void QuantizedConv2DKn2Row(const kn2row_input_t& input,
     const binary_convolution_parameters &p) {
   using namespace dlk;
 
-  T_UINT ic = p.normal_conv_params.kernel_depth;
+  T_UINT ic = p.normal_conv_params.input_channels;
   T_UINT ih = p.normal_conv_params.input_height;
   T_UINT iw = p.normal_conv_params.input_width;
   T_UINT oc = p.normal_conv_params.output_channels;

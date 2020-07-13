@@ -30,14 +30,14 @@ void func_BatchNormalizationOptimized(const TensorView<T_FLOAT, MemoryLayout::NH
 
   const unsigned out_height = output.get_shape()[1];
   const unsigned out_width = output.get_shape()[2];
-  const unsigned out_depth = output.get_shape()[3];
+  const unsigned out_channels = output.get_shape()[3];
 
   std::size_t size = out_height * out_width;
 #pragma omp parallel for
   for (std::size_t f = 0; f < size; ++f) {
     std::size_t d;
-    for (d = 0; d + 7 < out_depth; d += 8) {
-      const auto index = f * out_depth + d;
+    for (d = 0; d + 7 < out_channels; d += 8) {
+      const auto index = f * out_channels + d;
       const auto vscale = _mm256_loadu_ps(scale.data() + d);
       const auto vshift = _mm256_loadu_ps(bias.data() + d);
       const auto vinput = _mm256_loadu_ps(input.data() + index);
@@ -45,8 +45,8 @@ void func_BatchNormalizationOptimized(const TensorView<T_FLOAT, MemoryLayout::NH
       _mm256_storeu_ps(output.data() + index, res);
     }
     
-    for (; d < out_depth; ++d) {
-      const auto index = f * out_depth + d;
+    for (; d < out_channels; ++d) {
+      const auto index = f * out_channels + d;
       output.data()[index] = input.data()[index] * scale(d) + bias(d);
     }
   }

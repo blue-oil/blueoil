@@ -18,6 +18,7 @@ limitations under the License.
 #include <limits>
 
 #include "global.h"
+#include "parameters.h"
 #include "func/impl/quantized_conv2d_tiling.h"
 #include "time_measurement.h"
 
@@ -136,7 +137,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   const std::size_t kh = cp.kernel_height;
   const std::size_t kw = cp.kernel_width;
   const std::size_t in_bitwidth = 2;
-  const std::size_t in_channels = cp.kernel_depth;
+  const std::size_t in_channels = cp.input_channels;
   const std::size_t in_height = cp.input_height;
   const std::size_t in_width = cp.input_width;
   const std::size_t in_stride = (in_channels + InTypeBitWidth - 1) / InTypeBitWidth;
