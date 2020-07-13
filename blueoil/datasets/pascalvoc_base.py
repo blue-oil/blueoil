@@ -182,16 +182,14 @@ class PascalvocBase(ObjectDetectionBase):
             raise ValueError("Must provide data_type = train or val or trainval or test")
 
         filename = os.path.join(self.imagesets_dir, data_type + ".txt")
-        image_id = list()
 
         with open(filename) as f:
-            for line in f:
-                image_id.append(line.rstrip('\n'))
+            image_ids = f.read().splitlines()
 
         if is_debug:
-            image_id = image_id[:50]
+            image_ids = image_ids[:50]
 
-        return image_id
+        return image_ids
 
     def _files_and_annotations(self):
         raise NotImplementedError()

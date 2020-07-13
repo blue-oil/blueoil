@@ -34,7 +34,7 @@ def _get_metrics_keys(event_accumulator):
 def _value_step_list(event_accumulator, metrics_key):
     try:
         events = event_accumulator.Scalars(metrics_key)
-        return [(event.value, event.step) for event in events]
+        return [(event.step, event.value) for event in events]
     except KeyError as e:
         print("Key {} was not found in {}\n{}".format(metrics_key, event_accumulator.path, e))
         return []
@@ -75,7 +75,6 @@ def output(tensorboard_dir, output_dir, metrics_keys, steps, output_file_base="m
     columns = [_column_name(event_accumulator, metrics_key)
                for event_accumulator, metrics_key in itertools.product(event_accumulators, metrics_keys)]
 
-    values_step_dict = {}
     value_matrix = []
 
     for metrics_key in metrics_keys:
@@ -102,8 +101,7 @@ def output(tensorboard_dir, output_dir, metrics_keys, steps, output_file_base="m
     with open(output_csv, "w") as fp:
         wr = csv.writer(fp)
         wr.writerow(columns)
-        for row in data_by_row:
-            wr.writerow(row)
+        wr.writerows(data_by_row)
 
     output_md = os.path.join(output_dir, "{}.md".format(output_file_base))
     writer = pytablewriter.MarkdownTableWriter()
