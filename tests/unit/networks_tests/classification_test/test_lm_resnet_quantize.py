@@ -77,7 +77,7 @@ def test_training():
 
     environment.init("test_lm_resnet_quantize")
     prepare_dirs(recreate=True)
-    start_training(config)
+    start_training(config, profile_step=1)
 
 
 if __name__ == '__main__':

@@ -5,7 +5,8 @@ INPUTS_SRC_DIR := ./src/inputs
 .PHONY: help
 help:
 	@echo make clean
-	@echo make build ARCH={x86, x86_avx, aarch64, arm, fpga} TYPE={executable, dynamic, static}
+	@echo make build ARCH={x86, x86_avx, aarch64, arm} USE_FPGA={enable, disable} TYPE={executable, dynamic, static}
+	@echo USE_FPGA can be enabled only about aarch64 and arm
 
 LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(wildcard $(SRC_DIR)/scaling_factors.cpp) \
@@ -23,7 +24,6 @@ LIB_SRC := $(wildcard $(INPUTS_SRC_DIR)/*.cpp) \
     $(SRC_DIR)/network.cpp \
     $(SRC_DIR)/pack_input_to_qwords.cpp \
     $(SRC_DIR)/time_measurement.cpp \
-    $(SRC_DIR)/write_to_file.cpp \
     $(SRC_DIR)/quantizer.cpp \
     $(SRC_DIR)/tensor_save.cpp
 
@@ -51,6 +51,13 @@ LIB_AARCH64_SRC := \
 LIB_AARCH64_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_SRC))
 LIB_AARCH64_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_OBJ))
 
+LIB_AARCH64_FPGA_SRC := \
+    $(SRC_DIR)/func/arm_neon/batch_normalization.cpp \
+    $(SRC_DIR)/func/impl/fpga/quantized_conv2d_accelerator.cpp \
+    $(SRC_DIR)/func/impl/arm_neon/pop_count.cpp
+LIB_AARCH64_FPGA_OBJ := $(patsubst %.S, %.o, $(LIB_AARCH64_FPGA_SRC))
+LIB_AARCH64_FPGA_OBJ := $(patsubst %.cpp, %.o, $(LIB_AARCH64_FPGA_OBJ))
+
 LIB_X86_SRC := \
     $(SRC_DIR)/func/generic/batch_normalization.cpp \
     $(SRC_DIR)/func/impl/generic/quantized_conv2d_kn2row.cpp \
@@ -74,7 +81,7 @@ INCLUDES := -I./include
 ALL_OBJ := \
     $(MAIN_OBJ) $(LIB_OBJ) \
     $(LIB_X86_OBJ) $(LIB_X86_AVX_OBJ) \
-    $(LIB_AARCH64_OBJ) \
+    $(LIB_AARCH64_OBJ) $(LIB_AARCH64_FPGA_OBJ) \
     $(LIB_ARM_OBJ) $(LIB_FPGA_OBJ)
 
 ALL_DEP := $(ALL_OBJ:.o=.d)
@@ -95,60 +102,53 @@ clean:
 CXXFLAGS := -I./include -O3 -std=c++14 -g -MMD -MP
 ARFLAGS := -rcs
 LDFLAGS += -pthread -ldl
+BASE_NAME = $(ARCH)
 
 ################################
 # Set variables by ARCH
 ################################
-
 ifeq ($(ARCH), x86)
-CPU := cpu_x86
-CXXFLAGS +=
-OBJ := $(LIB_X86_OBJ)
-endif
-
-ifeq ($(ARCH), x86_avx)
-CPU := cpu_x86
-CXXFLAGS += -mavx2 -mfma -DUSE_AVX -fopenmp
-OBJ := $(LIB_X86_AVX_OBJ)
-endif
-
-ifeq ($(ARCH), aarch64)
-CPU := cpu_aarch64
-CXXFLAGS +=
-OBJ := $(LIB_AARCH64_OBJ)
-endif
-
-ifeq ($(ARCH), arm)
-CPU := cpu_arm
-CXXFLAGS +=
-OBJ := $(LIB_ARM_OBJ)
-endif
-
-ifeq ($(ARCH), fpga)
-CPU := cpu_arm
-CXXFLAGS += -DRUN_ON_FPGA
-OBJ := $(LIB_FPGA_OBJ)
-endif
-
-################################
-# Set variables by CPU
-################################
-ifeq ($(CPU), cpu_x86)
 CXX := g++
 CXXFLAGS +=
+OBJ := $(LIB_X86_OBJ)
 AR = ar
 endif
 
-ifeq ($(CPU), cpu_aarch64)
+ifeq ($(ARCH), x86_avx)
+CXX := g++
+CXXFLAGS += -mavx2 -mfma -DUSE_AVX -fopenmp
+OBJ := $(LIB_X86_AVX_OBJ)
+AR = ar
+endif
+
+ifeq ($(ARCH), aarch64)
 CXX := aarch64-linux-gnu-g++
 CXXFLAGS += -DUSE_NEON -fopenmp
 AR = aarch64-linux-gnu-ar
+
+ifeq ($(USE_FPGA), enable)
+OBJ := $(LIB_AARCH64_FPGA_OBJ)
+CXXFLAGS += -DRUN_ON_FPGA
+BASE_NAME := $(ARCH)_fpga
+else
+OBJ := $(LIB_AARCH64_OBJ)
 endif
 
-ifeq ($(CPU), cpu_arm)
+endif
+
+ifeq ($(ARCH), arm)
 CXX := arm-linux-gnueabihf-g++
 CXXFLAGS += -DUSE_NEON -DAARCH32 -mcpu=cortex-a9 -mfpu=neon -mthumb -fopenmp
 AR = arm-linux-gnueabihf-ar
+
+ifeq ($(USE_FPGA), enable)
+OBJ := $(LIB_FPGA_OBJ)
+CXXFLAGS += -DRUN_ON_FPGA
+BASE_NAME := $(ARCH)_fpga
+else
+OBJ := $(LIB_ARM_OBJ)
+endif
+
 endif
 
 ################################
@@ -158,7 +158,7 @@ ifeq ($(TYPE), executable)
 OBJ += $(MAIN_OBJ)
 CXXFLAGS += -DUSE_PNG -DFUNC_TIME_MEASUREMENT
 LDFLAGS +=
-NAME := lm_$(ARCH).elf
+NAME := lm_$(BASE_NAME).elf
 LINK := $(CXX) $(OBJ) -o $(NAME) $(CXXFLAGS) $(LDFLAGS)
 endif
 
@@ -166,7 +166,7 @@ ifeq ($(TYPE), dynamic)
 OBJ += $(LIB_OBJ)
 CXXFLAGS += -fPIC -fvisibility=hidden
 LDFLAGS += -shared
-NAME := libdlk_$(ARCH).so
+NAME := libdlk_$(BASE_NAME).so
 LINK := $(CXX) $(OBJ) -o $(NAME) $(CXXFLAGS) $(LDFLAGS)
 endif
 
@@ -174,7 +174,7 @@ ifeq ($(TYPE), static)
 OBJ += $(LIB_OBJ)
 CXXFLAGS += -fPIC -fvisibility=hidden
 LDFLAGS +=
-NAME := libdlk_$(ARCH).a
+NAME := libdlk_$(BASE_NAME).a
 LINK := $(AR) $(ARFLAGS) $(NAME) $(OBJ)
 endif
 

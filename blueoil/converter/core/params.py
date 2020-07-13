@@ -96,7 +96,7 @@ class Params(object):
                 x.kernel_height *
                 x.kernel_width *
                 min(self.max_size_kn2row_col_block, x.height * x.width) *
-                x.channel
+                x.channels
             ) for x in convs]
 
         return max(kn2row_buffer_sizes) if kn2row_buffer_sizes else 0
@@ -114,7 +114,7 @@ class Params(object):
 
     @property
     def max_elems_kernel(self) -> int:
-        kernel_elems = [x.height * x.width * x.channel for x in self.graph.consts if x.rank == 4]
+        kernel_elems = [x.height * x.width * x.channels for x in self.graph.consts if x.rank == 4]
         assert kernel_elems, "No kernels found."
         return int(max(kernel_elems))
 

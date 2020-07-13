@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #include <cassert>
 #include <cstring>
@@ -19,6 +19,7 @@ limitations under the License.
 #include <memory>
 
 #include "global.h"
+#include "parameters.h"
 #include "func/conv2d.h"
 #include "matrix_view.h"
 #include "matrix/shift_add.h"
@@ -33,7 +34,7 @@ void conv_nxn_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
     const TensorView<T, MemoryLayout::HWOI>& kernels,
     const TensorView<U, MemoryLayout::NHWC>& output,
     struct convolution_parameters& p) {
-  const int ic = p.kernel_depth;
+  const int ic = p.input_channels;
   const int oc = p.output_channels;
   const int kh = p.kernel_height;
   const int kw = p.kernel_width;
@@ -81,7 +82,7 @@ template<typename T>
 void ohwi_to_hwoi(const TensorView<T, MemoryLayout::OHWI>& ohwi,
     const TensorView<T, MemoryLayout::HWOI>& hwoi,
     const struct convolution_parameters& p) {
-  int ic = p.kernel_depth;
+  int ic = p.input_channels;
   int oc = p.output_channels;
   int kh = p.kernel_height;
   int kw = p.kernel_width;
@@ -102,7 +103,7 @@ void conv1x1_kn2row(const TensorView<T, MemoryLayout::NHWC>& input,
                     const TensorView<T, MemoryLayout::OHWI>& kernels,
                     const TensorView<U, MemoryLayout::NHWC>& output,
                     struct convolution_parameters& p) {
-  int ic = p.kernel_depth;
+  int ic = p.input_channels;
   int oc = p.output_channels;
   int kh = p.kernel_height;
   int kw = p.kernel_width;
@@ -153,7 +154,7 @@ void conv_general(
           T_INT col = (wj * p.stride_along_width)  - p.padding + kj;
           inside_col = (col >= 0 && col < (T_INT) p.input_width);
 
-          for(T_UINT kz = 0; kz < p.kernel_depth; kz++)
+          for(T_UINT kz = 0; kz < p.input_channels; kz++)
           {
             if (inside_row && inside_col) {
               unsigned k_idx = current_kernel_index + kernel_offset;
@@ -182,18 +183,18 @@ void convolution(
 {
   // use special implementation for 1x1 conv
   if (p.kernel_height == 1 && p.kernel_width == 1 && p.padding == 0) {
-    int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
+    int kernels_size = p.kernel_height * p.kernel_width * p.input_channels * p.output_channels;
     conv1x1_kn2row(input, kernels, output, p);
     return;
   } else if (p.kernel_height == p.kernel_width && 3 <= p.kernel_height && p.kernel_height <= 5 && p.padding == p.kernel_height / 2) {
-    int kernels_size = p.kernel_height * p.kernel_width * p.kernel_depth * p.output_channels;
+    int kernels_size = p.kernel_height * p.kernel_width * p.input_channels * p.output_channels;
     T* buf = reinterpret_cast<T*>(p.temporary_buf);
     using hwoi_t = TensorView<T, MemoryLayout::HWOI>;
     typename hwoi_t::template tensor_info_t<std::size_t> hwoi_shape = {
       p.kernel_height,
       p.kernel_width,
       p.output_channels,
-      p.kernel_depth
+      p.input_channels
     };
     hwoi_t kernels_hwoi(buf, hwoi_shape);
     ohwi_to_hwoi(kernels, kernels_hwoi, p);
@@ -215,8 +216,8 @@ void func_Conv2D(const TensorView<T_FLOAT, MemoryLayout::NHWC>& input,
 
   unsigned out_height = output.get_shape()[1];
   unsigned out_width = output.get_shape()[2];
-  unsigned out_depth = output.get_shape()[3];
-  unsigned k_elems = p.kernel_height * p.kernel_width * p.kernel_depth;
+  unsigned out_channels = output.get_shape()[3];
+  unsigned k_elems = p.kernel_height * p.kernel_width * p.input_channels;
   unsigned in_elems = out_height * out_width * k_elems;
 
   convolution(input, weights, output, p);

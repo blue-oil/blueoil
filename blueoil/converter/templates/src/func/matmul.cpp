@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #include "types.h"
 #include "func/matmul.h"
@@ -24,11 +24,11 @@ void func_Matmul(const TensorView<T_FLOAT, MemoryLayout::NC>& input,
   Measurement::Start("MatMul");
 #endif
   T_UINT in_size = input.size();
-  T_UINT out_depth = output.size();
+  T_UINT out_channels = output.size();
 
   T_UINT index = 0;
   for (T_UINT d = 0; d < in_size; d++){
-    for (T_UINT kz = 0; kz < out_depth; kz++){
+    for (T_UINT kz = 0; kz < out_channels; kz++){
       output(0, kz) += input(0, d) * factor.data()[index];
       index++;
     }

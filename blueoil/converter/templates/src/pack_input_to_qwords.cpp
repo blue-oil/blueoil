@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 #include <limits.h>
 #include "global.h"
 #include "pack_input_to_qwords.h"
@@ -24,18 +24,18 @@ limitations under the License.
 #include <x86intrin.h>
 #endif
 
-void pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_width, size_t input_depth,
+void pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_width, size_t input_channels,
   size_t bits_per_input, QUANTIZED_PACKED output[]) {
 
   Measurement::Start("pack_input");
   constexpr size_t bits_per_word = sizeof(QUANTIZED_PACKED) * CHAR_BIT;
-  const size_t full_words_in_depth = input_depth / bits_per_word;
-  const size_t blocks_in_depth = (input_depth + bits_per_word - 1) / bits_per_word;
-  const size_t remainder_bits_in_depth = input_depth % bits_per_word;
+  const size_t full_words_in_channels = input_channels / bits_per_word;
+  const size_t blocks_in_channels = (input_channels + bits_per_word - 1) / bits_per_word;
+  const size_t remainder_bits_in_channels = input_channels % bits_per_word;
 
   const auto area = input_height * input_width;
 #ifdef USE_NEON
-  if (bits_per_input == 2 && input_depth % bits_per_word == 0) {
+  if (bits_per_input == 2 && input_channels % bits_per_word == 0) {
     const uint8_t coeff_ary[16] = {
       1, 2, 4, 8, 16, 32, 64, 128,
       1, 2, 4, 8, 16, 32, 64, 128,
@@ -44,9 +44,9 @@ void pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_
     const auto vone = vdupq_n_u8(1);
 #pragma omp parallel for
     for (size_t i = 0; i < area; ++i) {
-      for (size_t j = 0; j < full_words_in_depth; ++j) {
-        const auto v0 = vld1q_u8(input + i*blocks_in_depth*bits_per_word + j*bits_per_word +  0);
-        const auto v1 = vld1q_u8(input + i*blocks_in_depth*bits_per_word + j*bits_per_word + 16);
+      for (size_t j = 0; j < full_words_in_channels; ++j) {
+        const auto v0 = vld1q_u8(input + i*blocks_in_channels*bits_per_word + j*bits_per_word +  0);
+        const auto v1 = vld1q_u8(input + i*blocks_in_channels*bits_per_word + j*bits_per_word + 16);
         const auto l0 = vandq_u8(v0, vone);
         const auto l1 = vandq_u8(v1, vone);
         const auto m0 = vshrq_n_u8(v0, 1);
@@ -71,11 +71,11 @@ void pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_
 #endif
 
 #ifdef USE_AVX
-  if (bits_per_input == 2 && input_depth % bits_per_word == 0) {
+  if (bits_per_input == 2 && input_channels % bits_per_word == 0) {
 #pragma omp parallel for
     for (size_t i = 0; i < area; ++i) {
-      for (size_t j = 0; j < full_words_in_depth; ++j) {
-        const auto a = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + i*blocks_in_depth*bits_per_word + j*bits_per_word));
+      for (size_t j = 0; j < full_words_in_channels; ++j) {
+        const auto a = _mm256_loadu_si256(reinterpret_cast<__m256i*>(input + i*blocks_in_channels*bits_per_word + j*bits_per_word));
         const auto l = _mm256_movemask_epi8(_mm256_slli_epi16(a, 7));
         const auto m = _mm256_movemask_epi8(_mm256_slli_epi16(a, 6));
         output[i*bits_per_input + j*area*bits_per_input + 0] = QUANTIZED_PACKED(l);
@@ -88,27 +88,27 @@ void pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_
 #endif
 
   for (size_t i = 0; i < area; ++i) {
-    for (size_t j = 0; j < full_words_in_depth; ++j) {
+    for (size_t j = 0; j < full_words_in_channels; ++j) {
       for (size_t b = 0; b < bits_per_input; ++b) {
         QUANTIZED_PACKED tmp(0);
         for (size_t d = 0; d < bits_per_word; ++d) {
-          QUANTIZED_PACKED::base_t in = input[i*input_depth + j*bits_per_word + d];
+          QUANTIZED_PACKED::base_t in = input[i*input_channels + j*bits_per_word + d];
           tmp |= QUANTIZED_PACKED(((in >> b) & 1) << d);
         }
         output[i*bits_per_input + j*area*bits_per_input + b] = tmp;
       }
     }
 
-    if (!remainder_bits_in_depth)
+    if (!remainder_bits_in_channels)
       continue;
 
     for (size_t b = 0; b < bits_per_input; ++b) {
       QUANTIZED_PACKED tmp(0);
-      for (size_t d = 0; d < remainder_bits_in_depth; ++d) {
-        QUANTIZED_PACKED::base_t in = input[i*input_depth + full_words_in_depth*bits_per_word + d];
+      for (size_t d = 0; d < remainder_bits_in_channels; ++d) {
+        QUANTIZED_PACKED::base_t in = input[i*input_channels + full_words_in_channels*bits_per_word + d];
         tmp |= QUANTIZED_PACKED(((in >> b) & 1) << d);
       }
-      output[i*bits_per_input + full_words_in_depth*area*bits_per_input + b] = tmp;
+      output[i*bits_per_input + full_words_in_channels*area*bits_per_input + b] = tmp;
     }
   }
 
@@ -123,9 +123,9 @@ void pack_input_to_qwords(
   struct binary_convolution_parameters bcp)
 {
   struct convolution_parameters& p = bcp.normal_conv_params;
-  unsigned kernel_elems = p.kernel_height * p.kernel_width * p.kernel_depth;
+  unsigned kernel_elems = p.kernel_height * p.kernel_width * p.input_channels;
   unsigned im2col_input_elems = p.output_height * p.output_width * kernel_elems;
 
   pack_input(input, bcp.normal_conv_params.input_height, bcp.normal_conv_params.input_width,
-    bcp.normal_conv_params.kernel_depth, bcp.bin_input_bitwidth, output);
+    bcp.normal_conv_params.input_channels, bcp.bin_input_bitwidth, output);
 }

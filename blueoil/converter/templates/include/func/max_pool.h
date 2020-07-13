@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #ifndef DLK_FUNC_MAX_POOLING_H_INCLUDED
 #define DLK_FUNC_MAX_POOLING_H_INCLUDED
@@ -22,7 +22,7 @@ limitations under the License.
 struct max_pooling_parameters {
   T_UINT input_height;
   T_UINT input_width;
-  T_UINT input_depth;
+  T_UINT input_channels;
   T_UINT output_channels;
   T_UINT output_height;
   T_UINT output_width;

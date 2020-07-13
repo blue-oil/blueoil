@@ -64,7 +64,7 @@ def pass_transpose(graph: Graph) -> None:
        The fastest changing dimension is C
        N stands for batch size (on inference we assume is 1.
        H and W are the height and width respectively.
-       C stands for depth (aka channels)
+       C stands for channels)
 
     Args:
         graph (Graph): The input graph. It will be modified in-place.
@@ -272,7 +272,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
             max_v = max_vs[0]
 
         n = 2 ** nbit - 1
-        ch = conv_node.channel
+        ch = conv_node.channels
         # assume that the threshold values will be a 13-bit signed integer
         max_th_value = 2 ** 12 - 1
 
@@ -493,9 +493,9 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             conv_node.dtype = QUANTIZED_PACKED()
             height = conv_node.height
             width = conv_node.width
-            depth = conv_node.channel
-            depth_upper = (depth + b - 1) // b
-            conv_node.update_shape([depth_upper, height, width, 2, b], "ChHWBCl")
+            channels = conv_node.channels
+            channels_upper = (channels + b - 1) // b
+            conv_node.update_shape([channels_upper, height, width, 2, b], "ChHWBCl")
 
         # change the output data type of the quantizers
         conv_node.quantizer.dtype = PackedUint32()
@@ -505,9 +505,9 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             qtz.dtype = QUANTIZED_PACKED()
             height = qtz.height
             width = qtz.width
-            depth = qtz.channel
-            depth_upper = (depth + b - 1) // b
-            qtz.update_shape([depth_upper, height, width, 2, b], "ChHWBCl")
+            channels = qtz.channels
+            channels_upper = (channels + b - 1) // b
+            qtz.update_shape([channels_upper, height, width, 2, b], "ChHWBCl")
 
 
 def pass_propagate_datatypes(graph) -> None:
@@ -535,7 +535,7 @@ def pass_propagate_format(graph) -> None:
         if m.op_type != 'Conv' and m.preserve_quantization:
             if m.input_nodes[0].dimension == 'ChHWBCl':
                 b = 32
-                shape = [(m.channel + b - 1) // b, m.height, m.width, 2, b]
+                shape = [(m.channels + b - 1) // b, m.height, m.width, 2, b]
                 m.update_shape(shape, m.input_nodes[0].dimension)
 
 
