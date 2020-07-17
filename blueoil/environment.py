@@ -33,13 +33,13 @@ _CHECKPOINTS_DIR = os.path.join(OUTPUT_DIR, "{experiment_id}", "checkpoints")
 
 def set_data_dir(path):
     global DATA_DIR
-    DATA_DIR = os.path.abspath(path)
+    DATA_DIR = path if is_gcs_path(path) else os.path.abspath(path)
     os.environ["DATA_DIR"] = DATA_DIR
 
 
 def set_output_dir(path):
     global OUTPUT_DIR
-    OUTPUT_DIR = os.path.abspath(path)
+    OUTPUT_DIR = path if is_gcs_path(path) else os.path.abspath(path)
     os.environ["OUTPUT_DIR"] = OUTPUT_DIR
 
     global _EXPERIMENT_DIR, _TENSORBOARD_DIR, _CHECKPOINTS_DIR
@@ -105,3 +105,13 @@ def teardown_test_environment():
     _EXPERIMENT_DIR = os.path.join(OUTPUT_DIR, "{experiment_id}")
     _TENSORBOARD_DIR = os.path.join(OUTPUT_DIR, "{experiment_id}", "tensorboard")
     _CHECKPOINTS_DIR = os.path.join(OUTPUT_DIR, "{experiment_id}", "checkpoints")
+
+
+def is_gcs_path(path):
+    """Check argument string is GCS path or not
+    Args:
+        path: Path like string
+    Returns:
+        True when string is GCS path
+    """
+    return path[0:5] == "gs://"
