@@ -104,8 +104,6 @@ class TestSetDataDir(EnvironmentTestBase):
     def test_set_data_dir_with_gcs_path(self):
         path = "gs://dataset"
         environment.set_data_dir(path)
-
-        abs_path = os.path.abspath(path)
         assert environment.DATA_DIR == path
         assert os.environ["DATA_DIR"] == path
 
@@ -153,7 +151,5 @@ class TestSetOutputDir(EnvironmentTestBase):
     def test_set_output_dir_with_gcs_path(self):
         path = "gs://output"
         environment.set_output_dir(path)
-
-        abs_path = os.path.abspath(path)
         assert environment.OUTPUT_DIR == path
         assert os.environ["OUTPUT_DIR"] == path

@@ -110,7 +110,7 @@ def teardown_test_environment():
 def is_gcs_path(path):
     """Check argument string is GCS path or not
     Args:
-        path: Path like string
+        path: str
     Returns:
         True when string is GCS path
     """
