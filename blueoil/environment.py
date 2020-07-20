@@ -114,4 +114,4 @@ def is_gcs_path(path):
     Returns:
         True when string is GCS path
     """
-    return path[0:5] == "gs://"
+    return path.startswith("gs://")
