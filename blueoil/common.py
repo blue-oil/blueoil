@@ -16,7 +16,10 @@
 from __future__ import division
 
 import math
+import numpy as np
 from enum import Enum
+
+from blueoil.turbo_color_map import TURBO_CMAP_DATA
 
 
 class Tasks(Enum):
@@ -56,3 +59,45 @@ def get_color_map(length):
     # This function generate arbitrary length color map.
     color_map = color_map_base * int(math.ceil(length / len(color_map_base)))
     return color_map[:length]
+
+
+# For replacing the Matplotlib Jet colormap, we use the Turbo color map
+# https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html
+# The colormap allows for a large number of quantization levels:
+# https://tinyurl.com/ybm3kpql
+
+# Referred from the following gist:
+# https://gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
+# Copyright 2019 Google LLC.
+# SPDX-License-Identifier: Apache-2.0
+
+# Changes:
+# 1. Vectorized the implementation using numpy
+# 2. Use numpy.modf to get integer and float parts
+# 3. Provided an example in comments
+
+def apply_color_map(image):
+    turbo_cmap_data = np.asarray(TURBO_CMAP_DATA)
+    x = np.asarray(image)
+    x = x.clip(0., 1.)
+
+    # Use numpy.modf to get the integer and decimal parts of feature values
+    # in the input feature map (or heatmap) that has to be colored.
+    # Example:
+    #   >>> import numpy as np
+    #   >>> x = np.array([1.2, 2.3, 4.5, 20.45, 6.75, 8.88])
+    #   >>> f, i = np.modf(x)       # returns a tuple of length 2
+    #   >>> print(i.shape, f.shape)
+    #   (6,) (6,)
+    #   >>> print(i)
+    #   array([ 1.  2.  4. 20.  6.  8.])
+    #   >>> print(f)
+    #   array([0.2  0.3  0.5  0.45 0.75 0.88])
+    f, a = np.modf(x * 255.0)
+    a = a.astype(int)
+    b = (a + 1).clip(max=255)
+    image_colored = (
+        turbo_cmap_data[a]
+        + (turbo_cmap_data[b] - turbo_cmap_data[a]) * f[..., None]
+    )
+    return image_colored
