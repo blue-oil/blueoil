@@ -49,42 +49,10 @@ using QUANTIZED_PACKED_KERNEL = QuantizedPacked<{{ params.default_qword_dtype.cp
 #define KERNEL_ADDR (HW_BASE_ADDR+KERNEL_OFFSET)
 #define THRESHOLD_ADDR (HW_BASE_ADDR+THRESHOLD_OFFSET)
 
-{%- if config.activate_hard_quantization %}
-#define HARD_QUANTIZATION_ACTIVE
-{% endif %}
-
-{%- if config.threshold_skipping %}
-#define THRESHOLD_SKIPPING_ACTIVE
-{% endif %}
-
 #define NUM_OF_A2W1_THRESHOLD {{ 2**2 }}
 
-
-
-/********************************************************
-   parameters
-********************************************************/
-#define MAX_SIZE_INPUTS_PER_LAYER {{ params.max_size_inputs_per_layer }}
-#define MAX_SIZE_QINPUTS_PER_LAYER {{ params.max_size_qinputs_per_layer }}
-#define MAX_SIZE_KN2ROW_BUFFER_PER_LAYER {{ params.max_size_kn2row_buffer_per_layer }}
-#define MAX_SIZE_KN2ROW_COL_BLOCK {{ params.max_size_kn2row_col_block }}
-
-#define MAX_SIZE_KERNELS_PER_LAYER {{ params.max_size_kernels_per_layer }}
-#define MAX_SIZE_QKERNELS_PER_LAYER {{ params.max_size_qkernels_per_layer }}
-#define MAX_SIZE_QKERNELS_PER_PE {{ params.max_size_qkernels_per_pe }}
-
-#define MAX_SIZE_OUTPUTS_PER_LAYER {{ params.max_size_outputs_per_layer }}
-#define MAX_SIZE_QOUTPUTS_PER_LAYER {{ params.max_size_qoutputs_per_layer }}
-
-#define MAX_NBIT_QINPUT 2 // {{ params.max_nbit_qinput }}
-#define MAX_NBIT_KERNEL 1 // {{ params.max_nbit_qkernel }}
+// hardware requirement, not configurable
 #define MAX_IN_C 1024
-/********************************************************/
-
-void write_to_file(const char *filename, int id, volatile int32_t* data, int size);
-void write_to_file(const char *filename, int id, BIN_CONV_OUTPUT* data, int size);
-void write_to_file(const char *filename, int id, QUANTIZED_NOT_PACKED* data, int size);
-void write_to_file(const char *filename, int id, float* data, int size);
 
 #endif
 

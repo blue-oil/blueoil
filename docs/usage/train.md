@@ -10,6 +10,7 @@ Usage:
 Arguments:
   -c, --config TEXT         Path of config file.  [required]
   -e, --experiment_id TEXT  ID of this training.
+  --profile_step            Train step for memory and time profile.
   --help                    Show this message and exit.
 ```
 

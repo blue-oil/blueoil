@@ -28,11 +28,11 @@ void func_BatchNormalizationOptimized(const TensorView<T_FLOAT, MemoryLayout::NH
 
   const unsigned out_height = output.get_shape()[1];
   const unsigned out_width = output.get_shape()[2];
-  const unsigned out_depth = output.get_shape()[3];
+  const unsigned out_channels = output.get_shape()[3];
 
   for (T_UINT r = 0; r < out_height; r++) {
     for (T_UINT c = 0; c < out_width; c++) {
-      for (T_UINT d = 0; d < out_depth; d++) {
+      for (T_UINT d = 0; d < out_channels; d++) {
         output(0, r, c, d) = input(0, r, c, d) * scale(d) + bias(d);
       }
     }
