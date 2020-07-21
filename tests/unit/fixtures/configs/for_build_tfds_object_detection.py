@@ -18,19 +18,20 @@ from easydict import EasyDict
 
 from blueoil.common import Tasks
 from blueoil.networks.object_detection.lm_fyolo import LMFYoloQuantize
-from blueoil.datasets.delta_mark import ObjectDetectionBase
+from blueoil.datasets.open_images_v4 import OpenImagesV4BoundingBoxBase
 from blueoil.data_processor import Sequence
-from blueoil.pre_processor import (
-    ResizeWithGtBoxes,
-    PerImageStandardization,
+from blueoil.tfds_data_processor import TFDSProcessorSequence
+from blueoil.tfds_pre_processor import (
+    TFDSResizeWithGtBoxes,
+    TFDSPerImageStandardization,
 )
 from blueoil.post_processor import (
     FormatYoloV2,
     ExcludeLowScoreBox,
     NMS,
 )
-from blueoil.data_augmentor import (
-    FlipLeftRight,
+from blueoil.tfds_augmentor import (
+    TFDSFlipLeftRight,
 )
 from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
@@ -38,9 +39,9 @@ from blueoil.quantizations import (
 )
 
 
-class ObjectDetectionDataset(ObjectDetectionBase):
-    extend_dir = "custom_delta_mark_object_detection/for_train"
-    validation_extend_dir = "custom_delta_mark_object_detection/for_validation"
+class ObjectDetectionDataset(OpenImagesV4BoundingBoxBase):
+    extend_dir = "custom_open_images_v4_bounding_boxes/for_train"
+    validation_extend_dir = "custom_open_images_v4_bounding_boxes/for_validation"
 
 
 IS_DEBUG = False
@@ -70,9 +71,9 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-PRE_PROCESSOR = Sequence([
-    ResizeWithGtBoxes(IMAGE_SIZE),
-    PerImageStandardization()
+TFDS_PRE_PROCESSOR = TFDSProcessorSequence([
+    TFDSResizeWithGtBoxes(IMAGE_SIZE),
+    TFDSPerImageStandardization()
 ])
 
 anchors = [
@@ -109,9 +110,10 @@ NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
-DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([
-    FlipLeftRight(),
+DATASET.PRE_PROCESSOR = None
+DATASET.TFDS_PRE_PROCESSOR = TFDS_PRE_PROCESSOR
+DATASET.TFDS_AUGMENTOR = TFDSProcessorSequence([
+    TFDSFlipLeftRight()
 ])
 DATASET.TFDS_KWARGS = {
     "name": "tfds_object_detection",

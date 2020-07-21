@@ -66,11 +66,6 @@ class CamvidBase(SegmentationBase):
     ignore_class_idx = None
 
     @property
-    def available_subsets(self):
-        """Returns the list of available subsets."""
-        return ['train', 'validation']
-
-    @property
     def num_per_epoch(self):
         return len(self.files_and_annotations[0])
 
@@ -100,7 +95,7 @@ class CamvidBase(SegmentationBase):
 
         return image_files, label_files
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         image_files, label_files = self.files_and_annotations
 
         image = get_image(image_files[i])

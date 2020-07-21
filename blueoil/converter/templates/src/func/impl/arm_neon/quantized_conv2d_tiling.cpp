@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #include <cassert>
 #include <climits>
@@ -107,7 +107,7 @@ void QuantizedConv2DTiling(const tiling_input_t& input,
   const T_UINT kh = cp.kernel_height;
   const T_UINT kw = cp.kernel_width;
   const T_UINT in_bitwidth = 2;
-  const T_UINT in_channels = cp.kernel_depth;
+  const T_UINT in_channels = cp.input_channels;
   const T_UINT in_height = cp.input_height;
   const T_UINT in_width = cp.input_width;
   const T_UINT in_stride = (in_channels + InTypeBitWidth - 1) / InTypeBitWidth;

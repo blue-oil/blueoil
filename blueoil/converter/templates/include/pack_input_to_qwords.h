@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #ifndef DLK_PACK_INPUT_TO_QWORDS_H_INCLUDED
 #define DLK_PACK_INPUT_TO_QWORDS_H_INCLUDED
@@ -30,7 +30,7 @@ void pack_input_to_qwords(
   struct binary_convolution_parameters bcp);
 
 
-void pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_width, size_t input_depth,
+void pack_input(QUANTIZED_NOT_PACKED input[], size_t input_height, size_t input_width, size_t input_channels,
   size_t bits_per_input, QUANTIZED_PACKED output[]);
 
 #endif // DLK_PACK_INPUT_TO_QWORDS_H_INCLUDED

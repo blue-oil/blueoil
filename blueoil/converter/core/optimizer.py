@@ -17,17 +17,14 @@
 import math
 import warnings
 from collections import defaultdict
-from typing import Any, List, cast
 
 import numpy as np
 
-from blueoil.converter.core.data_types import QUANTIZED_NOT_PACKED, QUANTIZED_PACKED, \
-    QUANTIZED_PACKED_KERNEL, Int32, PackedUint32, Uint32
+from blueoil.converter.core.data_types import QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, PackedUint32
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from blueoil.converter.core.operators import Constant, Conv, Lookup, \
-    Operator, BatchNormalizationOptimized
-from  blueoil.converter.modules.packer import Packer
+from blueoil.converter.core.operators import Constant, Lookup, BatchNormalizationOptimized
+from blueoil.converter.modules.packer import Packer
 
 
 def pass_remove_identities(graph: Graph) -> None:
@@ -67,7 +64,7 @@ def pass_transpose(graph: Graph) -> None:
        The fastest changing dimension is C
        N stands for batch size (on inference we assume is 1.
        H and W are the height and width respectively.
-       C stands for depth (aka channels)
+       C stands for channels)
 
     Args:
         graph (Graph): The input graph. It will be modified in-place.
@@ -275,7 +272,7 @@ def pass_compute_thresholds(graph: Graph) -> None:
             max_v = max_vs[0]
 
         n = 2 ** nbit - 1
-        ch = conv_node.channel
+        ch = conv_node.channels
         # assume that the threshold values will be a 13-bit signed integer
         max_th_value = 2 ** 12 - 1
 
@@ -496,9 +493,9 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             conv_node.dtype = QUANTIZED_PACKED()
             height = conv_node.height
             width = conv_node.width
-            depth = conv_node.channel
-            depth_upper = (depth + b - 1) // b
-            conv_node.update_shape([depth_upper, height, width, 2, b], "ChHWBCl")
+            channels = conv_node.channels
+            channels_upper = (channels + b - 1) // b
+            conv_node.update_shape([channels_upper, height, width, 2, b], "ChHWBCl")
 
         # change the output data type of the quantizers
         conv_node.quantizer.dtype = PackedUint32()
@@ -508,9 +505,9 @@ def pass_quantize_convolutions(graph: Graph) -> None:
             qtz.dtype = QUANTIZED_PACKED()
             height = qtz.height
             width = qtz.width
-            depth = qtz.channel
-            depth_upper = (depth + b - 1) // b
-            qtz.update_shape([depth_upper, height, width, 2, b], "ChHWBCl")
+            channels = qtz.channels
+            channels_upper = (channels + b - 1) // b
+            qtz.update_shape([channels_upper, height, width, 2, b], "ChHWBCl")
 
 
 def pass_propagate_datatypes(graph) -> None:
@@ -538,7 +535,7 @@ def pass_propagate_format(graph) -> None:
         if m.op_type != 'Conv' and m.preserve_quantization:
             if m.input_nodes[0].dimension == 'ChHWBCl':
                 b = 32
-                shape = [(m.channel + b - 1) // b, m.height, m.width, 2, b]
+                shape = [(m.channels + b - 1) // b, m.height, m.width, 2, b]
                 m.update_shape(shape, m.input_nodes[0].dimension)
 
 
@@ -637,8 +634,13 @@ def pass_lookup(graph: Graph) -> None:
                     {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb}, dimension_format='ChHWBCl')
 
         get_nodes_in_branch(quantizer, placeholder[0], to_be_removed)
+
+        reserved_placeholder_ops = [
+            out_op for out_op in placeholder[0].output_op_list
+            if out_op not in to_be_removed
+        ]
         placeholder[0].remove_output('output')
-        placeholder[0].add_output('output', pe)
+        placeholder[0].add_outputs({'output': reserved_placeholder_ops})
         pe.add_outputs(quantizer.output_ops)
 
         output_op = quantizer.output_op_list[0]

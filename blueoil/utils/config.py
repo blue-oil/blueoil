@@ -44,7 +44,7 @@ REQUIEMNT_PARAMS_FOR_INFERENCE = [
     "IMAGE_SIZE",
     "BATCH_SIZE",
     "CLASSES",
-    "PRE_PROCESSOR",
+    ("PRE_PROCESSOR", "TFDS_PRE_PROCESSOR"),
     "POST_PROCESSOR",
 ]
 
@@ -283,26 +283,6 @@ def copy_to_experiment_dir(config_file):
     # copy config file to the experiment directory
     saved_config_file_path = _config_file_path_to_copy(config_file)
     gfile.copy(config_file, saved_config_file_path, overwrite=True)
-
-
-def init_config(config, training_id, recreate=False):
-    """Initialize config.
-
-    Set logging.
-    Train id embed to config directories.
-    """
-
-    # _init_logging(config)
-
-
-def restore_saved_image_size(config):
-    saved_config_file_path = _saved_config_file_path()
-    config = load(saved_config_file_path)
-
-    if hasattr(config, "IMAGE_SIZE"):
-        return config.IMAGE_SIZE
-
-    raise Exception("IMAGE_SIZE dont exists in file {}".format(saved_config_file_path))
 
 
 def merge(base_config, override_config):

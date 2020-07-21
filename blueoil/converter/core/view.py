@@ -16,7 +16,7 @@
 import copy
 from textwrap import dedent, indent
 
-from blueoil.converter.core.data_types import *
+from blueoil.converter.core.data_types import QUANTIZED_PACKED
 
 
 class View(object):
@@ -95,10 +95,11 @@ class View(object):
 
             ih = x_op.height
             iw = x_op.width
+            ic = x_op.channels
             oh = op.height
             ow = op.width
+            oc = op.channels
             b = 32
-            od = op.channel
             pad = op.pads[0]
             stride = op.strides[0]
             nbit_qinput = 8 if x_op.op_type == 'Input' else 2
@@ -108,9 +109,8 @@ class View(object):
 
                 kh = self.op.kernel_height
                 kw = self.op.kernel_width
-                kd = x_op.channel
-                k_elems = kh * kw * kd
-                od = ((od + b - 1) // b) * b
+                k_elems = kh * kw * ic
+                oc = ((oc + b - 1) // b) * b
 
                 inputs_string = self.inputs_to_string(op, input_ops)
 
@@ -132,11 +132,11 @@ class View(object):
                     f"""
                     Conv2D_struct.input_height = {ih};
                     Conv2D_struct.input_width = {iw};
+                    Conv2D_struct.input_channels = {ic};
                     Conv2D_struct.kernel_height = {kh};
                     Conv2D_struct.kernel_width = {kw};
-                    Conv2D_struct.kernel_depth = {kd};
                     Conv2D_struct.kernel_elements = {k_elems};
-                    Conv2D_struct.output_channels = {od};
+                    Conv2D_struct.output_channels = {oc};
                     Conv2D_struct.output_height = {oh};
                     Conv2D_struct.output_width = {ow};
                     Conv2D_struct.padding = {pad};
@@ -170,8 +170,8 @@ class View(object):
                 # weight order is followed by tensorflow: "NHWC"
                 kh = self.op.kernel_height
                 kw = self.op.kernel_width
-                kd = x_op.channel
-                k_elems = kh * kw * kd
+                ic = x_op.channels
+                k_elems = kh * kw * ic
 
                 inputs_string = self.inputs_to_string(op, input_ops)
 
@@ -179,11 +179,11 @@ class View(object):
                     f"""
                     Conv2D_struct.input_height = {ih};
                     Conv2D_struct.input_width = {iw};
+                    Conv2D_struct.input_channels = {ic};
                     Conv2D_struct.kernel_height = {kh};
                     Conv2D_struct.kernel_width = {kw};
-                    Conv2D_struct.kernel_depth = {kd};
                     Conv2D_struct.kernel_elements = {k_elems};
-                    Conv2D_struct.output_channels = {od};
+                    Conv2D_struct.output_channels = {oc};
                     Conv2D_struct.output_height = {oh};
                     Conv2D_struct.output_width = {ow};
                     Conv2D_struct.padding = {pad};
@@ -220,11 +220,11 @@ class View(object):
             x_op = input_ops['X']
             ih = x_op.height
             iw = x_op.width
-            id = x_op.channel
+            ic = x_op.channels
 
             oh = op.height
             ow = op.width
-            od = op.channel
+            oc = op.channels
 
             kh = op.kernel_height
             kw = op.kernel_width
@@ -239,12 +239,12 @@ class View(object):
                 f"""
                 MaxPool_struct.input_height = {ih};
                 MaxPool_struct.input_width = {iw};
-                MaxPool_struct.input_depth = {id};
+                MaxPool_struct.input_channels = {ic};
                 MaxPool_struct.kernel_height = {kh};
                 MaxPool_struct.kernel_width = {kw};
                 MaxPool_struct.kernel_depth = {kd};
                 MaxPool_struct.output_elements = {elems};
-                MaxPool_struct.output_channels = {od};
+                MaxPool_struct.output_channels = {oc};
                 MaxPool_struct.output_height = {oh};
                 MaxPool_struct.output_width = {ow};
                 MaxPool_struct.padding = {pad};
@@ -371,11 +371,11 @@ class View(object):
             x_op = input_ops['X']
             ih = x_op.height
             iw = x_op.width
-            id = x_op.channel
+            ic = x_op.channels
 
             oh = op.height
             ow = op.width
-            od = op.channel
+            oc = op.channels
 
             kh = op.kernel_height
             kw = op.kernel_width
@@ -388,12 +388,12 @@ class View(object):
                 f"""
                 AveragePool_struct.input_height = {ih};
                 AveragePool_struct.input_width = {iw};
-                AveragePool_struct.input_depth = {id};
+                AveragePool_struct.input_channels = {ic};
                 AveragePool_struct.kernel_depth = {kd};
                 AveragePool_struct.kernel_height = {kh};
                 AveragePool_struct.kernel_width = {kw};
                 AveragePool_struct.output_elements = {op.size};
-                AveragePool_struct.output_channels = {od};
+                AveragePool_struct.output_channels = {oc};
                 AveragePool_struct.output_height = {oh};
                 AveragePool_struct.output_width = {ow};
                 AveragePool_struct.padding = {pad};
@@ -458,7 +458,6 @@ class View(object):
             inputs_string = self.inputs_to_string(op, input_ops)
             shape_string = self.shape_to_string(op.shape)
 
-            number_of_inputs = len(input_ops)
             concat_input = {}
             for k, v in input_ops.items():
                 if not v.is_variable:
@@ -487,7 +486,7 @@ class View(object):
             bs = op.block_size
             x_op = input_ops['input']
             iw = x_op.width
-            ic = x_op.channel
+            ic = x_op.channels
 
             return self.format_string(
                 f"""
@@ -495,28 +494,21 @@ class View(object):
                 """
             )
         elif self.op.op_type == 'ResizeNearestNeighbor':
-
-            args1 = f"{inputs_string}, {op.name}"
-
             return self.format_string(
                 f"""
                 func_ResizeNearestNeighbor({inputs_string}, {outputs_string});
                 """
             )
-        elif self.op.op_type == 'Split':
+        elif self.op.op_type == 'Slice':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            ns = op.num_splits
-
-            depth_list_name = op.name + '_outputs_depth'
-            depth_list = ', '.join(map(str, [op.channel for _ in range(ns)]))
+            begin = op.begin
+            size = op.slice_size
 
             return self.format_string(
                 f"""
-                TensorView<{op.dtype.cpptype()}, MemoryLayout::{op.dimension}> {op.name}_ary[] = {{ {outputs_string} }};
-                T_UINT {depth_list_name}[] = {{ {depth_list} }};
-                func_Split({inputs_string}, {op.name}_ary, {depth_list_name}, {ns});
+                func_Slice({inputs_string}, {outputs_string}, {begin}, {size});
                 """
             )
         elif self.op.op_type == 'Pad':
@@ -582,7 +574,7 @@ class View(object):
         return ', '.join(map(lambda x: str(x), shape_copied))
 
     def params_to_string(self, params):
-        raise NotImplemented
+        raise NotImplementedError
 
     def raise_invalid_args_exception(self, op, input_ops, output_ops):
         error_message = self.format_string(

@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #ifndef OPERATORS_HEADER
 #define OPERATORS_HEADER
@@ -21,13 +21,13 @@ limitations under the License.
 #include <string>
 
 struct convolution_parameters {
+  T_UINT input_channels;
   T_UINT input_height;
   T_UINT input_width;
   T_UINT output_channels;
   T_UINT output_height;
   T_UINT output_width;
   T_UINT kernel_elements;
-  T_UINT kernel_depth;
   T_UINT kernel_height;
   T_UINT kernel_width;
   T_UINT stride_along_height;

@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #ifndef DLK_FUNC_QUANTIZED_CONV2D_H_INCLUDED
 #define DLK_FUNC_QUANTIZED_CONV2D_H_INCLUDED
@@ -46,7 +46,7 @@ void QuantizedConv2D(
   T_UINT padding = p.normal_conv_params.padding;
   T_UINT ih = p.normal_conv_params.input_height;
   T_UINT iw = p.normal_conv_params.input_width;
-  T_UINT ic = p.normal_conv_params.kernel_depth;
+  T_UINT ic = p.normal_conv_params.input_channels;
   T_UINT oc = p.normal_conv_params.output_channels;
   T_UINT maxa = (1 << p.n_bit) - 1;
   auto size = oc * ih * iw;

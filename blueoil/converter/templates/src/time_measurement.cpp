@@ -11,13 +11,13 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #include <algorithm>
 
 #include "time_measurement.h"
 
-std::map<std::string, std::vector<Measurement::measure> > Measurement::times;
+std::map<std::string, std::vector<Measurement::measure>> Measurement::times;
 std::vector<std::string> Measurement::current_context;
 std::vector<Measurement::Node*> Measurement::stack;
 std::vector<std::unique_ptr<Measurement::Node>> Measurement::roots;
@@ -60,7 +60,7 @@ void Measurement::Start(const std::string &measure_name)
 
 void Measurement::Stop()
 {
-  if(current_context.size() == 0 || times[current_context.back()].size() == 0) {
+  if(current_context.empty() || times[current_context.back()].empty()) {
     std::cout << "ERROR: wrong Start/Stop pairs" << std::endl;
     return;
   }

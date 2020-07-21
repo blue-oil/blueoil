@@ -85,7 +85,7 @@ class Ilsvrc2012(Base):
 
         return files, labels
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         filename = self.files[i]
 
         image = load_image(filename)

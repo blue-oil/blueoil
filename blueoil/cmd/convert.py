@@ -17,7 +17,7 @@ import os
 import shutil
 import subprocess
 
-from blueoil.cmd.export import run as run_export
+from blueoil.cmd.export import DEFAULT_INFERENCE_TEST_DATA_IMAGE, run as run_export
 from blueoil.converter.generate_project import run as run_generate_project
 
 
@@ -72,22 +72,52 @@ def get_output_directories(output_root_dir):
     return output_directories
 
 
-def strip_binary(output):
+def _build_options(arch, use_fpga, target):
+    return ("ARCH=" + arch, "USE_FPGA=" + use_fpga, "TYPE=" + target)
+
+
+def _output_binary_name(arch, use_fpga, target):
+    if target == "executable":
+        output = "lm_"
+    elif target in {"dynamic", "static"}:
+        output = "libdlk_"
+
+    output += arch
+
+    if use_fpga == "enable":
+        output += "_fpga"
+
+    if target == "executable":
+        output += ".elf"
+    elif target == "dynamic":
+        output += ".so"
+    elif target == "static":
+        output += ".a"
+
+    return output
+
+
+def strip_binary(arch, use_fpga, target):
     """Strip binary file.
 
     Args:
         output:
 
     """
+    # TODO: These operations should be performed in Makefile instead of here
 
-    if output in {"lm_x86.elf", "lm_x86_avx.elf"}:
-        subprocess.run(("strip", output))
-    elif output in {"libdlk_x86.so", "libdlk_x86_avx.so"}:
-        subprocess.run(("strip", "-x", "--strip-unneeded", output))
-    elif output in {"lm_arm.elf", "lm_fpga.elf"}:
-        subprocess.run(("arm-linux-gnueabihf-strip", output))
-    elif output in {"libdlk_arm.so", "libdlk_fpga.so"}:
-        subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
+    output = _output_binary_name(arch, use_fpga, target)
+
+    if arch in {"x86", "x86_avx"}:
+        if target == "executable":
+            subprocess.run(("strip", output))
+        elif target == "dynamic":
+            subprocess.run(("strip", "-x", "--strip-unneeded", output))
+    elif arch == "arm":
+        if target == "executable":
+            subprocess.run(("arm-linux-gnueabihf-strip", output))
+        elif target == "dynamic":
+            subprocess.run(("arm-linux-gnueabihf-strip", "-x", "--strip-unneeded", output))
 
 
 def make_all(project_dir, output_dir):
@@ -99,35 +129,31 @@ def make_all(project_dir, output_dir):
 
     """
 
-    make_list = [
-        ["lm_x86", "lm_x86.elf"],
-        ["lm_x86_avx", "lm_x86_avx.elf"],
-        ["lm_arm", "lm_arm.elf"],
-        ["lm_fpga", "lm_fpga.elf"],
-        ["lm_aarch64", "lm_aarch64.elf"],
-        ["lib_x86", "libdlk_x86.so"],
-        ["lib_x86_avx", "libdlk_x86_avx.so"],
-        ["lib_arm", "libdlk_arm.so"],
-        ["lib_fpga", "libdlk_fpga.so"],
-        ["lib_aarch64", "libdlk_aarch64.so"],
-        ["ar_x86", "libdlk_x86.a"],
-        ["ar_x86_avx", "libdlk_x86_avx.a"],
-        ["ar_arm", "libdlk_arm.a"],
-        ["ar_fpga", "libdlk_fpga.a"],
-        ["ar_aarch64", "libdlk_aarch64.a"],
-    ]
+    architectures = (
+        {"arch": "x86", "use_fpga": "disable"},
+        {"arch": "x86_avx", "use_fpga": "disable"},
+        {"arch": "arm", "use_fpga": "disable"},
+        {"arch": "arm", "use_fpga": "enable"},
+        {"arch": "aarch64", "use_fpga": "disable"},
+        {"arch": "aarch64", "use_fpga": "enable"},
+    )
+
+    targets = ("executable", "dynamic", "static")
+
     output_dir = os.path.abspath(output_dir)
     running_dir = os.getcwd()
     # Change current directory to project directory
     os.chdir(project_dir)
 
     # Make each target and move output files
-    for target, output in make_list:
-        subprocess.run(("make", "clean", "--quiet"))
-        subprocess.run(("make", target, "-j4", "--quiet"))
-        strip_binary(output)
-        output_file_path = os.path.join(output_dir, output)
-        os.rename(output, output_file_path)
+    for arch in architectures:
+        for target in targets:
+            subprocess.run(("make", "clean", "--quiet"))
+            subprocess.run(("make", "build", "-j4", "--quiet") + _build_options(**arch, target=target))
+            strip_binary(**arch, target=target)
+            output = _output_binary_name(**arch, target=target)
+            output_file_path = os.path.join(output_dir, output)
+            os.rename(output, output_file_path)
     # Return running directory
     os.chdir(running_dir)
 
@@ -137,15 +163,17 @@ def run(experiment_id,
         output_template_dir=None,
         image_size=(None, None),
         project_name=None,
+        test_image=DEFAULT_INFERENCE_TEST_DATA_IMAGE,
         save_npy_for_debug=True):
     """Convert from trained model.
 
     Args:
         experiment_id:
         restore_path:
-        output_template_dir:  (Default value = None)
-        image_size: (Default value = (None)
+        output_template_dir: (Default value = None)
+        image_size: (Default value = None)
         project_name: (Default value = None)
+        test_image: (Default value = DEFAULT_INFERENCE_TEST_DATA_IMAGE)
 
     Returns:
         str: Path of exported dir.
@@ -155,7 +183,7 @@ def run(experiment_id,
 
     # Export model
     if save_npy_for_debug:
-        export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size)
+        export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=test_image)
     else:
         export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=None)
 
@@ -201,6 +229,7 @@ def convert(
     template=None,
     image_size=(None, None),
     project_name=None,
+    test_image=DEFAULT_INFERENCE_TEST_DATA_IMAGE,
     save_npy_for_debug=True
 ):
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
@@ -210,4 +239,4 @@ def convert(
     else:
         restore_path = os.path.join(output_dir, experiment_id, 'checkpoints', checkpoint)
 
-    return run(experiment_id, restore_path, template, image_size, project_name, save_npy_for_debug)
+    return run(experiment_id, restore_path, template, image_size, project_name, test_image, save_npy_for_debug)

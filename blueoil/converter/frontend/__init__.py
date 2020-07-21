@@ -15,3 +15,5 @@
 # =============================================================================
 """Definition of dlk.io package."""
 from .tensorflow import TensorFlowIO
+
+__all__ = ["TensorFlowIO"]

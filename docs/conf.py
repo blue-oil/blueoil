@@ -66,6 +66,8 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
+    'autoapi.extension',
+    'sphinx_markdown_tables',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -193,6 +195,16 @@ texinfo_documents = [
      author, 'blueoil', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+
+# -- Options for Sphinx AutoAPI output ----------------------------------------------
+
+# Paths (relative or absolute) to the source code that you wish
+# to generate your API documentation from.
+autoapi_dirs = ['../blueoil/']
+
+# A list of patterns to ignore when finding files.
+autoapi_ignore = ['*migrations*', '*/blueoil/configs/*', '*/blueoil/templates/*']
 
 
 # -- Extension configuration -------------------------------------------------

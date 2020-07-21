@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #include "tensor_save.h"
 
@@ -50,22 +50,22 @@ void save_tensor(TensorView<T_FLOAT, MemoryLayout::C>& tensor, const std::string
 
 void save_tensor(TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& tensor, const std::string& name, int32_t suffix) {
   const auto& shape = tensor.get_shape();
-  const auto depth = shape[0];
+  const auto channels = shape[0];
   const auto area = shape[1] * shape[2];
-  const auto chunks = depth * area;
+  const auto chunks = channels * area;
   const auto pack_size = shape[4];
   const auto elements = chunks * pack_size;
   const auto bits = shape[3];
   const auto tmp = std::make_unique<float[]>(elements);
   const auto& buf = tensor.data();
   for (std::size_t i = 0; i < area; ++i) {
-    for (std::size_t d = 0; d < depth; ++d) {
+    for (std::size_t d = 0; d < channels; ++d) {
       for (std::size_t z = 0; z < pack_size; ++z) {
         float val = 0.0f;
         for (std::size_t bit = 0; bit < bits; ++bit) {
           val += static_cast<float>(((buf[d * area * bits + i * bits + bit].Raw() >> z) & 1) << bit);
         }
-        tmp[i * depth * pack_size + d * pack_size + z] = val;
+        tmp[i * channels * pack_size + d * pack_size + z] = val;
       }
     }
   }

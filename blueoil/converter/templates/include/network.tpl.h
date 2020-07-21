@@ -11,13 +11,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #ifndef NETWORK_H_INCLUDED
 #define NETWORK_H_INCLUDED
 
 #include <memory>
 #include "global.h"
+#include "parameters.h"
 #include "dma_buffer.h"
 
 #define SYM_PUBLIC __attribute__ ((visibility ("default")))
@@ -102,7 +103,7 @@ private:
   {% for qconv in graph.convs(quantized_only=True) -%}
   {%     if qconv.has_thresholds -%}
   {%         set b = 32 -%}
-  {%         set channels_padded = qconv.channel + (b - qconv.channel % b) % b -%}
+  {%         set channels_padded = qconv.channels + (b - qconv.channels % b) % b -%}
   const std::unique_ptr<BIN_CONV_OUTPUT[]> {{qconv.name}}_thresholds_converted = std::make_unique<BIN_CONV_OUTPUT[]>({{channels_padded}} * NUM_OF_A2W1_THRESHOLD);
   {%     else -%}
   const std::unique_ptr<BIN_CONV_OUTPUT[]> {{qconv.name}}_thresholds_converted;

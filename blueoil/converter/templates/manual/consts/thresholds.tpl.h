@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #ifndef INPUT_THRESHOLDS_H_INCLUDED
 #define INPUT_THRESHOLDS_H_INCLUDED
@@ -20,7 +20,7 @@ limitations under the License.
 
 {% for conv in quantized_convs %}
 
-extern BIN_CONV_OUTPUT {{ conv.name }}_thresholds[{{ conv.channel }} * NUM_OF_A2W1_THRESHOLD];
+extern BIN_CONV_OUTPUT {{ conv.name }}_thresholds[{{ conv.channels }} * NUM_OF_A2W1_THRESHOLD];
 
 {%- endfor %}
 

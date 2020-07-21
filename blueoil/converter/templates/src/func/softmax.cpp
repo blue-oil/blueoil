@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #include <cmath>
 #include <limits>
@@ -31,11 +31,14 @@ void func_Softmax(const TensorView<T_FLOAT, MemoryLayout::NC>& input,
     max_val = std::max(max_val, input(0, d));
 
   T_FLOAT sum = 0.f;
-  for(T_UINT d = 0; d < out_width; d++)
-    sum += std::exp(input(0, d) - max_val);
+  for(T_UINT d = 0; d < out_width; d++) {
+    T_FLOAT temp = std::exp(input(0, d) - max_val);
+    output(0, d) = temp;
+    sum += temp;
+  }
 
   for(T_UINT d = 0; d < out_width; d++)
-    output(0, d) = std::exp(input(0, d) - max_val) / sum;
+    output(0, d) /= sum;
 
   Measurement::Stop();
 }

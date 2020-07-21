@@ -77,8 +77,8 @@ Below is an example configuration.
   initial learning rate:  0.001
   choose learning rate schedule ({epochs} is the number of training epochs you entered before):  '3-step-decay' -> learning rate decrease by 1/10 on {epochs}/3 and {epochs}*2/3 and {epochs}-1
   enable data augmentation?  (Y/n):  Yes
-  Please choose augmentors:  done (5 selections)
--> select Brightness, Color, FlipLeftRight, Hue, SSDRandomCrop
+  Please choose augmentors:  done (4 selections)
+-> select Brightness, Color, FlipLeftRight, Hue
   apply quantization at the first layer? (Y/n):  no 
 ```
 
@@ -140,7 +140,7 @@ Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
     $ docker run --rm \
-        -e CUDA_VISIBLE_DEVICES=0 \
+        -e CUDA_VISIBLE_DEVICES=-1 \
         -e OUTPUT_DIR=/home/blueoil/saved \
         -v $(pwd)/saved:/home/blueoil/saved \
         blueoil_$(id -un):{TAG} \
@@ -152,6 +152,7 @@ Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 - Optimizes graph.
 - Generates source code for executable binary.
 - Compiles for x86, ARM and FPGA.
+- CUDA_VISIBLE_DEVICES=-1 means converting with CPU
 
 If conversion is successful, output files are generated under `./saved/{MODEL_NAME}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
 

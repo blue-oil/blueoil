@@ -28,7 +28,7 @@ def test_predict_classification():
 
     config_file = "unit/fixtures/configs/for_predict_classification.py"
     expriment_id = "test_predict_classification"
-    train_run(None, None, config_file, expriment_id, recreate=True)
+    train_run(config_file, expriment_id, recreate=True, profile_step=7)
 
     setup_test_environment()
 
@@ -39,7 +39,7 @@ def test_predict_object_detection():
 
     config_file = "unit/fixtures/configs/for_predict_object_detection.py"
     expriment_id = "test_predict_object_detection"
-    train_run(None, None, config_file, expriment_id, recreate=True)
+    train_run(config_file, expriment_id, recreate=True, profile_step=7)
 
     setup_test_environment()
 

@@ -1,4 +1,18 @@
 # -*- coding: utf-8 -*-
+# Copyright 2018 The Blueoil Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
 import functools
 import glob
 import json
@@ -53,7 +67,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
         num_max_boxes = 0
 
         for subset in cls.available_subsets:
-            obj = cls(subset=subset, base_path=base_path, is_shuffle=False)
+            obj = cls(subset=subset, base_path=base_path)
             gt_boxes_list = obj.bboxs
 
             subset_max = max([len(gt_boxes) for gt_boxes in gt_boxes_list])
@@ -74,23 +88,13 @@ class BDD100KObjectDetection(ObjectDetectionBase):
 
     def __init__(self,
                  subset="train",
-                 is_shuffle=True,
-                 enable_prefetch=False,
                  max_boxes=100,
-                 num_workers=None,
                  *args,
                  **kwargs):
 
         super().__init__(subset=subset, *args, **kwargs)
 
-        if enable_prefetch:
-            self.use_prefetch = True
-        else:
-            self.use_prefetch = False
-
-        self.is_shuffle = is_shuffle
         self.max_boxes = max_boxes
-        self.num_workers = num_workers
 
         subset_dir = "train" if subset == "train" else "val"
         self.img_dir = os.path.join(self.data_dir, "images", "100k", subset_dir)
@@ -139,7 +143,7 @@ class BDD100KObjectDetection(ObjectDetectionBase):
                 self.paths.append(img_paths[img_name])
                 self.bboxs.append(bbox)
 
-    def __getitem__(self, i, type=None):
+    def __getitem__(self, i):
         image_file_path = self.paths[i]
 
         image = load_image(image_file_path)

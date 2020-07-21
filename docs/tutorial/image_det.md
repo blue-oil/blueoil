@@ -47,8 +47,7 @@ choose task type:  object_detection
 choose network:  LMFYoloQuantize
 choose dataset format:  OpenImagesV4
 training dataset path:  /home/blueoil/openimages_face/
-set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.):  yes
-validation dataset path:  /home/blueoil/openimages_face/
+set validation dataset? (if answer no, the dataset will be separated for training and validation by 9:1 ratio.):  no
 batch size (integer):  16
 image size (integer x integer):  224x224
 how many epochs do you run training (integer):  1000
@@ -105,7 +104,7 @@ Convert trained model to executable binary files for x86, ARM, and FPGA.
 Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 
     $ docker run --rm \
-	    -e CUDA_VISIBLE_DEVICES=0 \
+	    -e CUDA_VISIBLE_DEVICES=-1 \
 	    -e OUTPUT_DIR=/home/blueoil/saved \
 	    -v $(pwd)/saved:/home/blueoil/saved \
 	    blueoil_$(id -un):{TAG} \
@@ -116,6 +115,7 @@ Currently, conversion for FPGA only supports Intel Cyclone® V SoC FPGA.
 - Optimizes graph.
 - Generates source code for executable binary.
 - Compiles for x86, ARM and FPGA.
+- CUDA_VISIBLE_DEVICES=-1 means converting with CPU
 
 If conversion is successful, output files are generated under `./saved/{MODEL_NAME}/export/save.ckpt-{Checkpoint No.}/{Image size}/output`.
 

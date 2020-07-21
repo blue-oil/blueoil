@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 /***************************************
  leapmind original
@@ -144,8 +144,8 @@ void func_LinearMidTreadHalfQuantizer(
   const auto in_shape = input.get_shape();
   const auto in_height = in_shape[1];
   const auto in_width = in_shape[2];
-  const auto in_depth = in_shape[3];
-  pack_input(buf, in_height, in_width, in_depth, nbit(), output.data());
+  const auto in_channels = in_shape[3];
+  pack_input(buf, in_height, in_width, in_channels, nbit(), output.data());
 
   Measurement::Stop();
 }

@@ -24,16 +24,15 @@ import yaml
 
 from blueoil import environment
 from blueoil.common import Tasks
-from blueoil.datasets.base import ObjectDetectionBase
+from blueoil.datasets.base import ObjectDetectionBase, SegmentationBase
 from blueoil.datasets.dataset_iterator import DatasetIterator
-from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection, TFDSSegmentation
 from blueoil.utils import config as config_util
 from blueoil.utils import executor
 from blueoil.utils import horovod as horovod_util
-from blueoil.utils import module_loader
 
 
-def _save_checkpoint(saver, sess, global_step, step):
+def _save_checkpoint(saver, sess, global_step):
     checkpoint_file = "save.ckpt"
     saver.save(
         sess,
@@ -51,6 +50,8 @@ def setup_dataset(config, subset, rank, local_rank):
     if tfds_kwargs:
         if issubclass(DatasetClass, ObjectDetectionBase):
             DatasetClass = TFDSObjectDetection
+        elif issubclass(DatasetClass, SegmentationBase):
+            DatasetClass = TFDSSegmentation
         else:
             DatasetClass = TFDSClassification
 
@@ -59,7 +60,7 @@ def setup_dataset(config, subset, rank, local_rank):
     return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch, local_rank=local_rank)
 
 
-def start_training(config):
+def start_training(config, profile_step):
     use_horovod = horovod_util.is_enabled()
     print("use_horovod:", use_horovod)
     if use_horovod:
@@ -95,21 +96,17 @@ def start_training(config):
                 **network_kwargs,
             )
 
-        global_step = tf.Variable(0, name="global_step", trainable=False)
         is_training_placeholder = tf.compat.v1.placeholder(tf.bool, name="is_training_placeholder")
 
         images_placeholder, labels_placeholder = model.placeholders()
 
         output = model.inference(images_placeholder, is_training_placeholder)
-        if config.TASK == Tasks.OBJECT_DETECTION:
-            loss = model.loss(output, labels_placeholder, global_step)
-        else:
-            loss = model.loss(output, labels_placeholder)
-        opt = model.optimizer(global_step)
+        loss = model.loss(output, labels_placeholder)
+        opt = model.optimizer()
         if use_horovod:
             # add Horovod Distributed Optimizer
             opt = hvd.DistributedOptimizer(opt)
-        train_op = model.train(loss, opt, global_step)
+        train_op = model.train(loss, opt)
         metrics_ops_dict, metrics_update_op = model.metrics(output, labels_placeholder)
         # TODO(wakisaka): Deal with many networks.
         model.summary(output, labels_placeholder)
@@ -166,9 +163,6 @@ def start_training(config):
         if config.IS_PRETRAIN:
             print("------- Load pretrain data ----------")
             pretrain_saver.restore(sess, os.path.join(config.PRETRAIN_DIR, config.PRETRAIN_FILE))
-            sess.run(tf.compat.v1.assign(global_step, 0))
-
-        last_step = 0
 
         # for recovery
         ckpt = tf.train.get_checkpoint_state(environment.CHECKPOINTS_DIR)
@@ -176,7 +170,7 @@ def start_training(config):
             print("--------- Restore last checkpoint -------------")
             saver.restore(sess, ckpt.model_checkpoint_path)
             # saver.recover_last_checkpoints(ckpt.model_checkpoint_path)
-            last_step = sess.run(global_step)
+            last_step = sess.run(model.global_step)
             # TODO(wakisaka): tensorflow v1.3 remain previous event log in tensorboard.
             # https://github.com/tensorflow/tensorflow/blob/r1.3/tensorflow/python/training/supervisor.py#L1072
             train_writer.add_session_log(SessionLog(status=SessionLog.START), global_step=last_step + 1)
@@ -187,7 +181,7 @@ def start_training(config):
         # broadcast variables from rank 0 to all other processes
         sess.run(bcast_global_variables_op)
 
-    last_step = sess.run(global_step)
+    last_step = sess.run(model.global_step)
 
     # Calculate max steps. The priority of config.MAX_EPOCHS is higher than config.MAX_STEPS.
     if "MAX_EPOCHS" in config:
@@ -208,16 +202,20 @@ def start_training(config):
             labels_placeholder: labels,
         }
 
-        if step * ((step + 1) % config.SUMMARISE_STEPS) == 0 and rank == 0:
-            # Runtime statistics for develop.
-            # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-            # run_metadata = tf.RunMetadata()
+        # Runtime statistics for develop.
+        if step == profile_step:
+            options = tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE)
+            run_meta = tf.compat.v1.RunMetadata()
+        else:
+            options = None
+            run_meta = None
 
+        if step * ((step + 1) % config.SUMMARISE_STEPS) == 0 and rank == 0:
             sess.run(reset_metrics_op)
             _, summary, _ = sess.run(
                 [train_op, summary_op, metrics_update_op], feed_dict=feed_dict,
-                # options=run_options,
-                # run_metadata=run_metadata,
+                options=options,
+                run_metadata=run_meta,
             )
             # train_writer.add_run_metadata(run_metadata, "step: {}".format(step + 1))
             train_writer.add_summary(summary, step + 1)
@@ -226,12 +224,15 @@ def start_training(config):
             train_writer.add_summary(metrics_summary, step + 1)
             train_writer.flush()
         else:
-            sess.run([train_op], feed_dict=feed_dict)
+            sess.run([train_op], feed_dict=feed_dict, options=options, run_metadata=run_meta)
+
+        if step == profile_step:
+            executor.profile_train_step(step, sess, run_meta)
 
         to_be_saved = step == 0 or (step + 1) == max_steps or (step + 1) % config.SAVE_CHECKPOINT_STEPS == 0
 
         if to_be_saved and rank == 0:
-            _save_checkpoint(saver, sess, global_step, step)
+            _save_checkpoint(saver, sess, model.global_step)
 
         if step == 0 or (step + 1) % config.TEST_STEPS == 0:
             # init metrics values
@@ -268,16 +269,9 @@ def start_training(config):
     print("Done")
 
 
-def run(network, dataset, config_file, experiment_id, recreate):
+def run(config_file, experiment_id, recreate, profile_step):
     environment.init(experiment_id)
     config = config_util.load(config_file)
-
-    if network:
-        network_class = module_loader.load_network_class(network)
-        config.NETWORK_CLASS = network_class
-    if dataset:
-        dataset_class = module_loader.load_dataset_class(dataset)
-        config.DATASET_CLASS = dataset_class
 
     if horovod_util.is_enabled():
         horovod_util.setup()
@@ -290,16 +284,16 @@ def run(network, dataset, config_file, experiment_id, recreate):
         config_util.copy_to_experiment_dir(config_file)
         config_util.save_yaml(environment.EXPERIMENT_DIR, config)
 
-    start_training(config)
+    start_training(config, profile_step)
 
 
-def train(config_file, experiment_id=None, recreate=False):
+def train(config_file, experiment_id=None, recreate=False, profile_step=-1):
     if not experiment_id:
         # Default model_name will be taken from config file: {model_name}.yml.
         model_name = os.path.splitext(os.path.basename(config_file))[0]
         experiment_id = '{}_{:%Y%m%d%H%M%S}'.format(model_name, datetime.now())
 
-    run(None, None, config_file, experiment_id, recreate)
+    run(config_file, experiment_id, recreate, profile_step)
 
     output_dir = os.environ.get('OUTPUT_DIR', 'saved')
     experiment_dir = os.path.join(output_dir, experiment_id)

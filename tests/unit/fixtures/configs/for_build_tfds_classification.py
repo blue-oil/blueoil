@@ -18,14 +18,14 @@ from easydict import EasyDict
 
 from blueoil.common import Tasks
 from blueoil.networks.classification.lmnet_v0 import LmnetV0Quantize
-from blueoil.datasets.delta_mark import ClassificationBase
-from blueoil.data_processor import Sequence
-from blueoil.pre_processor import (
-    Resize,
-    PerImageStandardization,
+from blueoil.datasets.image_folder import ImageFolderBase
+from blueoil.tfds_data_processor import TFDSProcessorSequence
+from blueoil.tfds_pre_processor import (
+    TFDSResize,
+    TFDSPerImageStandardization,
 )
-from blueoil.data_augmentor import (
-    FlipLeftRight,
+from blueoil.tfds_augmentor import (
+    TFDSFlipLeftRight,
 )
 from blueoil.quantizations import (
     binary_mean_scaling_quantizer,
@@ -33,9 +33,8 @@ from blueoil.quantizations import (
 )
 
 
-class ClassificationDataset(ClassificationBase):
-    extend_dir = "custom_delta_mark_classification/for_train"
-    validation_extend_dir = "custom_delta_mark_classification/for_validation"
+class ClassificationDataset(ImageFolderBase):
+    extend_dir = "dummy_classification"
 
 
 IS_DEBUG = False
@@ -43,7 +42,7 @@ IS_DEBUG = False
 NETWORK_CLASS = LmnetV0Quantize
 DATASET_CLASS = ClassificationDataset
 
-IMAGE_SIZE = [128, 128]
+IMAGE_SIZE = [28, 28]
 BATCH_SIZE = 1
 DATA_FORMAT = "NHWC"
 TASK = Tasks.CLASSIFICATION
@@ -64,9 +63,9 @@ PRETRAIN_VARS = []
 PRETRAIN_DIR = ""
 PRETRAIN_FILE = ""
 
-PRE_PROCESSOR = Sequence([
-    Resize(size=IMAGE_SIZE),
-    PerImageStandardization()
+TFDS_PRE_PROCESSOR = TFDSProcessorSequence([
+    TFDSResize(size=IMAGE_SIZE),
+    TFDSPerImageStandardization()
 ])
 POST_PROCESSOR = None
 
@@ -89,9 +88,11 @@ NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 DATASET = EasyDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
-DATASET.PRE_PROCESSOR = PRE_PROCESSOR
-DATASET.AUGMENTOR = Sequence([
-    FlipLeftRight(),
+DATASET.PRE_PROCESSOR = None
+
+DATASET.TFDS_PRE_PROCESSOR = TFDS_PRE_PROCESSOR
+DATASET.TFDS_AUGMENTOR = TFDSProcessorSequence([
+    TFDSFlipLeftRight()
 ])
 DATASET.TFDS_KWARGS = {
     "name": "tfds_classification",

@@ -13,10 +13,9 @@
 ### Tensorflow Ops with Limitations
 - **[tf.layers.AveragePooling2D](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/AveragePooling2D)**
     - Currently, support only `2D`.
-    - Do ***not*** support `kernel depth = 1`.
+    - Do ***not*** support `kernel depth != 1`.
 - **[tf.concat](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/concat)**
     - Do ***not*** support concat of mixed data types (e.g., quantized values and float values).
-    - All tensor channels must be equal. 
     - If inputs are quantized, requires `Each input channel size = multiple of 32`.
 - **[tf.layers.Conv2D](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/Conv2D)**
     - Support only convolution `2D`.
@@ -32,13 +31,13 @@
 - **[tf.linalg.matmul](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/linalg/matmul)**
     - Do ***not*** support `scalar`.
 - **[tf.layers.max_pooling2d](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/layers/max_pooling2d)**
-     - Currently, support only `2D`.
+    - Currently, support only `2D`.
+    - Do ***not*** support `kernel depth != 1`.
 - **[tf.pad](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/pad)**
     - Supports only `channel-wise paddings`.
 - **[tf.nn.space_to_depth](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/nn/space_to_depth)**
-    - Requires `output depth = (multiple of block_size^2 * 32)` or `(block_size^2 * {8, 16})`.
+    - For quantized tensor, requires `output depth = (multiple of block_size^2 * 32)` or `(block_size^2 * {8, 16})`.
 - **[tf.split](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/split)**
-    - Currently, all of output tensors must have `same` shape.
     - For quantized tensor, requires `number of channel of each output tensor = multiple of 32`.
 
 ###  Tensorflow Ops without Limitations

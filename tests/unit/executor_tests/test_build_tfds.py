@@ -20,7 +20,7 @@ from blueoil.cmd.build_tfds import run
 from blueoil.cmd.train import run as train_run
 from blueoil import environment
 from blueoil.datasets.dataset_iterator import DatasetIterator
-from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection, TFDSSegmentation
 from blueoil.utils import config as config_util
 
 _RUN_AS_A_SCRIPT = False
@@ -45,23 +45,21 @@ def test_build_tfds_classification():
 
     # Check if the builded dataset can be loaded with the same config file
     expriment_id = "tfds_classification"
-    train_run(None, None, config_file, expriment_id, recreate=True)
+    train_run(config_file, expriment_id, recreate=True, profile_step=7)
 
     # Check if the dataset was build correctly
-    train_data_num = 3
-    validation_data_num = 2
+    train_data_num = 27
+    validation_data_num = 3
     config = config_util.load(config_file)
 
     train_dataset = setup_dataset(TFDSClassification,
                                   subset="train",
                                   batch_size=config.BATCH_SIZE,
-                                  pre_processor=config.PRE_PROCESSOR,
                                   **config.DATASET.TFDS_KWARGS)
 
     validation_dataset = setup_dataset(TFDSClassification,
                                        subset="validation",
                                        batch_size=config.BATCH_SIZE,
-                                       pre_processor=config.PRE_PROCESSOR,
                                        **config.DATASET.TFDS_KWARGS)
 
     assert train_dataset.num_per_epoch == train_data_num
@@ -103,23 +101,21 @@ def test_build_tfds_object_detection():
 
     # Check if the builded dataset can be loaded with the same config file
     expriment_id = "tfds_object_detection"
-    train_run(None, None, config_file, expriment_id, recreate=True)
+    train_run(config_file, expriment_id, recreate=True, profile_step=7)
 
     # Check if the dataset was build correctly
-    train_data_num = 3
-    validation_data_num = 2
+    train_data_num = 10
+    validation_data_num = 16
     config = config_util.load(config_file)
 
     train_dataset = setup_dataset(TFDSObjectDetection,
                                   subset="train",
                                   batch_size=config.BATCH_SIZE,
-                                  pre_processor=config.PRE_PROCESSOR,
                                   **config.DATASET.TFDS_KWARGS)
 
     validation_dataset = setup_dataset(TFDSObjectDetection,
                                        subset="validation",
                                        batch_size=config.BATCH_SIZE,
-                                       pre_processor=config.PRE_PROCESSOR,
                                        **config.DATASET.TFDS_KWARGS)
 
     assert train_dataset.num_per_epoch == train_data_num
@@ -155,3 +151,61 @@ def test_build_tfds_object_detection():
         assert labels.shape[0] == config.BATCH_SIZE
         assert labels.shape[1] == num_max_boxes
         assert labels.shape[2] == 5
+
+
+def test_build_tfds_segmentation():
+    environment.setup_test_environment()
+
+    # Build TFDS Dataset
+    config_file = "unit/fixtures/configs/for_build_tfds_segmentation.py"
+    run(config_file, overwrite=True)
+
+    # Check if the builded dataset can be loaded with the same config file
+    expriment_id = "tfds_segmentation"
+    train_run(config_file, expriment_id, recreate=True, profile_step=7)
+
+    # Check if the dataset was build correctly
+    train_data_num = 5
+    validation_data_num = 5
+    config = config_util.load(config_file)
+
+    train_dataset = setup_dataset(TFDSSegmentation,
+                                  subset="train",
+                                  batch_size=config.BATCH_SIZE,
+                                  **config.DATASET.TFDS_KWARGS)
+
+    validation_dataset = setup_dataset(TFDSSegmentation,
+                                       subset="validation",
+                                       batch_size=config.BATCH_SIZE,
+                                       **config.DATASET.TFDS_KWARGS)
+
+    assert train_dataset.num_per_epoch == train_data_num
+    assert validation_dataset.num_per_epoch == validation_data_num
+
+    for _ in range(train_data_num):
+        images, labels = train_dataset.feed()
+
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == config.BATCH_SIZE
+        assert images.shape[1] == config.IMAGE_SIZE[0]
+        assert images.shape[2] == config.IMAGE_SIZE[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == config.BATCH_SIZE
+        assert labels.shape[1] == config.IMAGE_SIZE[0]
+        assert labels.shape[2] == config.IMAGE_SIZE[1]
+
+    for _ in range(validation_data_num):
+        images, labels = validation_dataset.feed()
+
+        assert isinstance(images, np.ndarray)
+        assert images.shape[0] == config.BATCH_SIZE
+        assert images.shape[1] == config.IMAGE_SIZE[0]
+        assert images.shape[2] == config.IMAGE_SIZE[1]
+        assert images.shape[3] == 3
+
+        assert isinstance(labels, np.ndarray)
+        assert labels.shape[0] == config.BATCH_SIZE
+        assert labels.shape[1] == config.IMAGE_SIZE[0]
+        assert labels.shape[2] == config.IMAGE_SIZE[1]

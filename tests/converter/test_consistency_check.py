@@ -14,9 +14,8 @@
 # limitations under the License.
 # =============================================================================
 """Test file for consistency checking in core.operators"""
-import importlib
 import unittest
-from typing import List, cast
+from typing import cast
 
 import numpy as np
 
@@ -40,7 +39,7 @@ class TestConsistencyCheck(unittest.TestCase):
             np.zeros([3])
         )
         input_ops = {'A': cast(Operator, a), 'B': cast(Operator, b)}
-        add = Add(
+        Add(
             'add1',
             [1, 3, 3],
             Float32(),
@@ -63,7 +62,7 @@ class TestConsistencyCheck(unittest.TestCase):
         )
         input_ops = {'A': cast(Operator, a), 'B': cast(Operator, b)}
         try:
-            add = Add(
+            Add(
                 'add1',
                 [1, 3, 3],
                 Float32(),
@@ -84,7 +83,7 @@ class TestConsistencyCheck(unittest.TestCase):
         )
         input_ops = {'X': cast(Operator, x)}
 
-        add = MaxPool(
+        MaxPool(
             'max_pool1',
             [1, 2, 2, 3],
             Float32(),
@@ -110,12 +109,12 @@ class TestConsistencyCheck(unittest.TestCase):
         )
         input_ops = {'X': cast(Operator, x), 'W': cast(Operator, w)}
 
-        add = Conv(
+        Conv(
             'conv_under_test',
             [1, 3, 3, 3],
             Float32(),
             input_ops,
-            pads=[1, 1, 2, 2],
+            pads=[1, 2, 1, 2],
             strides=[2, 2]
         )
 

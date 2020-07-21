@@ -39,7 +39,7 @@ class TestOperators(unittest.TestCase):
             np.zeros([1, 3, 3, 3])
         )
         inputs: Dict[str, Operator] = {i_names[0]: x}
-        m = MaxPool(
+        MaxPool(
             "MaxPool",
             [1, 2, 2, 3],
             Float32(),
@@ -78,7 +78,7 @@ class TestOperators(unittest.TestCase):
         self.assertEqual(c.batchsize, 1)
         self.assertEqual(c.height, 2)
         self.assertEqual(c.width, 2)
-        self.assertEqual(c.channel, 3)
+        self.assertEqual(c.channels, 3)
         self.assertEqual(c.kernel_height, 2)
         self.assertEqual(c.kernel_width, 2)
 

@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #pragma once
 #include <sys/mman.h>
@@ -99,7 +99,16 @@ public:
     // open device and map the memory
 
     int dev_fd;
-    dev_fd = open(device_file.c_str(), O_RDWR);
+
+    if(using_dma_cache)
+    {
+        dev_fd = open(device_file.c_str(), O_RDWR);
+    }
+    else
+    {
+        dev_fd = open(device_file.c_str(), O_RDWR | O_SYNC);
+    }
+
     if(dev_fd < 0)
     {
       std::cout << strerror(errno) << std::endl;
