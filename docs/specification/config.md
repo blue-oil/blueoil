@@ -14,6 +14,7 @@ Go to section:
 
 
 ## Contents
+
 |config name|type|value|usage|training|inference|export|
 |---|---|---|---|---|---|---|
 |IS_DEBUG|boolean|True, False|Set True to use debug mode. It will summary some histograms, use small dataset and step size.|○|○||
