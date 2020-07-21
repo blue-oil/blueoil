@@ -31,7 +31,7 @@ from blueoil.converter.core.optimizer import pass_remove_identities, \
     pass_transpose, pass_constant_folding, \
     pass_propagate_quantization_details_into_conv, pass_compute_thresholds, pass_pack_weights, \
     pass_quantize_convolutions, pass_propagate_datatypes, \
-    pass_propagate_format, pass_propagate_output_type_backward, \
+    pass_propagate_format, pass_insert_cast, \
     pass_lookup, pass_simplify_batchnorm
 from blueoil.converter import util
 
@@ -64,13 +64,12 @@ def optimize_graph_step(graph: Graph, config: Config) -> None:
         pass_pack_weights(graph)
         pass_quantize_convolutions(graph)
 
-    if config.threshold_skipping:
-        pass_propagate_output_type_backward(graph)
     pass_propagate_datatypes(graph)
     pass_propagate_format(graph)
 
     pass_constant_folding(graph)
     pass_simplify_batchnorm(graph)
+    pass_insert_cast(graph)
 
 
 def generate_code_step(graph: Graph, config: Config) -> None:

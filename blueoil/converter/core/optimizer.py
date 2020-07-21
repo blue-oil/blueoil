@@ -20,10 +20,10 @@ from collections import defaultdict
 
 import numpy as np
 
-from blueoil.converter.core.data_types import QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, PackedUint32
+from blueoil.converter.core.data_types import Float32, QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, PackedUint32
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.graph_pattern_matching import get_nodes_in_branch, sort_graph
-from blueoil.converter.core.operators import Constant, Lookup, BatchNormalizationOptimized
+from blueoil.converter.core.operators import Output, Cast, Constant, Lookup, BatchNormalizationOptimized
 from blueoil.converter.modules.packer import Packer
 
 
@@ -539,33 +539,59 @@ def pass_propagate_format(graph) -> None:
                 m.update_shape(shape, m.input_nodes[0].dimension)
 
 
-def pass_propagate_output_type_backward(graph: Graph) -> None:
-    """It is assumed that the output data type of a Graph is float.
-       We should propagate this assumption backwards from the output node of the graph to the
-       latest quantized convolution available.
-
-       There could be cases where the latest convolution node Q is a quantized convolution and we also apply
-       thresholds to its outputs. In this cases, the quantized convolution output data type should be float
-       even if thresholds are applied.
+def pass_insert_cast(graph: Graph) -> None:
+    """Insert Cast Operator if needed
 
     Args:
         graph (Graph): The input graph. It will be modified in-place.
 
     """
+    cast_idx = 0
     exec_list = sort_graph(graph)
+    for m in exec_list:
+        if m.dtype != QUANTIZED_PACKED():
+            continue
+        to_be_updated = {}
+        to_be_updated_names = []
+        for out_name, out_nodes in m.output_ops.items():
+            cast_needed = []
+            new_out_nodes = []
+            channels = m.channels
+            for out_node in out_nodes:
+                if out_node.preserve_quantization:
+                    if out_node.op_type != 'Conv' or out_node.is_quantized:
+                        new_out_nodes.append(out_node)
+                        continue
+                if isinstance(out_node, Output):  # need to shrink the number of output channels
+                    channels = out_node.channels
+                cast_needed.append(out_node)
+            if not cast_needed:
+                continue
+            shape = [1, m.height, m.width, channels]
+            cast_op = Cast(
+                f'automatic_cast_{cast_idx}',
+                shape,  # TODO(primenumber): fix shape
+                Float32(),
+                {'x': m},
+                'NHWC'
+            )
+            cast_idx += 1
+            for out_node in cast_needed:
+                cast_op.add_output('y', out_node)
+                in_names = []
+                for in_name, in_node in out_node.input_ops.items():
+                    if m == in_node:
+                        in_names.append(in_name)
+                for in_name in in_names:
+                    out_node.add_input(in_name, cast_op)
+            new_out_nodes.append(cast_op)
+            graph.add_op(cast_op)
+            to_be_updated_names.append(out_name)
+            to_be_updated.update({out_name: new_out_nodes})
 
-    def output_dtype_changer(node, otype):
-        for n in node.input_nodes:
-            if n.op_type == 'Conv' and n.is_quantized:
-                n.restore_shape()
-                n.dtype = otype
-                return
-            output_dtype_changer(n, otype)
-
-    # propagate output data type to the last quantized convolution
-    output_node = exec_list[-1]
-    output_type = output_node.dtype
-    output_dtype_changer(output_node, output_type)
+        for out_name in to_be_updated_names:
+            m.remove_output(out_name)
+        m.add_outputs(to_be_updated)
 
 
 def pass_lookup(graph: Graph) -> None:
