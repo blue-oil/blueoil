@@ -1,4 +1,4 @@
-/* Copyright 2018 The Blueoil Authors. All Rights Reserved.
+/* Copyright 2020 The Blueoil Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,4 +23,3 @@ void func_Cast(const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& input,
     const TensorView<T_FLOAT, MemoryLayout::NHWC>& output);
 
 #endif // DLK_FUNC_CAST_H_INCLUDED
-
