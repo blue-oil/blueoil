@@ -116,11 +116,11 @@ rootfs-docker:
 
 .PHONY: rootfs-armhf
 rootfs-armhf: rootfs-docker
-	docker run -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh armhf
+	docker run --privileged -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh armhf
 
 .PHONY: rootfs-arm64
 rootfs-arm64: rootfs-docker
-	docker run -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh arm64
+	docker run --privileged -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh arm64
 
 .PHONY: clean
 clean:

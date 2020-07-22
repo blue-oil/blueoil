@@ -7,6 +7,12 @@ This document explains scripts to generate rootfs for ARM CPU and how to use tho
 - Docker 18.09.0
 - bash
 
+## Prerequisite
+You need to install QEMU user mode emulation binaries.
+```
+apt install qemu-user-static
+```
+
 ## How to run the script
 
 The operation is defferent between 32bit and 64bit.
