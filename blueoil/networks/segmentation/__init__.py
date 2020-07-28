@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
 from .lm_segnet_v1 import LmSegnetV1, LmSegnetV1Quantize  # NOQA
 
 LmSegnet = LmSegnetV1
