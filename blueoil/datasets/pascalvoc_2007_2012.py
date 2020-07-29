@@ -132,7 +132,7 @@ class Pascalvoc20072012(ObjectDetectionBase):
 class Pascalvoc20072012ObjectDetectionPerson(Pascalvoc20072012):
     """"PASCAL VOC only person class for object detection.
     """
-    classes = ["person"]
+    classes = default_classes = ["person"]
     num_classes = len(classes)
 
     def __init__(
