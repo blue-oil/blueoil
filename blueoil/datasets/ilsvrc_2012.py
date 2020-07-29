@@ -56,8 +56,8 @@ class Ilsvrc2012(Base):
     @functools.lru_cache(maxsize=None)
     def classes(self):
         # wget https://raw.githubusercontent.com/Lasagne/Recipes/master/examples/resnet50/imagenet_classes.txt
-        linelist = [line.rstrip('\n') for line in open(os.path.join(self.data_dir, 'imagenet_classes.txt'))]
-        return linelist
+        with open(os.path.join(self.data_dir, 'imagenet_classes.txt')) as f:
+            return [line.rstrip('\n') for line in f]
 
     @property
     def num_per_epoch(self):
