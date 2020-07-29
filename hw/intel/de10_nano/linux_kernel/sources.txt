@@ -1,1 +1,0 @@
-https://github.com/terasic/linux-socfpga/archive/socfpga-4.5.zip
