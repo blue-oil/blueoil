@@ -1,9 +1,5 @@
-click==6.7
-easydict==1.6
-numpy==1.14.0
+click==7.0
+easydict==1.9
+numpy==1.18.1
 Pillow==6.2.2
-PyYAML==4.2b4
-
-# for python2
-enum34==1.1.6
-six==1.11.0
+PyYAML==5.3

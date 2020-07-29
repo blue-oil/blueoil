@@ -17,8 +17,8 @@ $ python run.py -i [your image file] -c ../models/meta.yaml -m ../models/lib/lib
 ```
 ## Prerequisites
 ```
-Python = 2.7, 3.5 and 3.6
-pip >= 9.0.1
+Python = 3.6
+pip >= 20.0
 ```
 
 # Camera Demo
@@ -26,8 +26,8 @@ pip >= 9.0.1
 ## Prerequisites
 
 ```
-Python = 2.7, 3.5 and 3.6
-pip >= 9.0.1
+Python = 3.6
+pip >= 20.0
 Opencv = 3.1.0
 python opencv = 2.4.9.1
 ```
@@ -52,8 +52,8 @@ $ python usb_camera_demo.py -c ../models/meta.yaml -m ../models/lib/libdlk_fpga.
 
 ## Prerequisites
 ```
-Python = 3.5, 3.6
-pip >= 9.0.1
+Python = 3.6
+pip >= 20.0
 ```
 
 ### Tensorflow
@@ -87,7 +87,7 @@ $ python usb_camera_demo.py -c ../models/meta.yaml -m minimal_graph_with_shape.p
 
 ## Prerequisites
 ```
-Python = 3.5, 3.6
+Python = 3.6
 Opencv >= 3.1.0
 python opencv >= 3.1.0
 ```
