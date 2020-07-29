@@ -15,6 +15,7 @@ RUN echo 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu bionic mai
 
 RUN apt-get update && apt-get install -y \
     cmake \
+    fonts-dejavu \
     locales\
     python3 \
     python3-dev \

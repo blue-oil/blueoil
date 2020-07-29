@@ -3,3 +3,7 @@ easydict==1.9
 numpy==1.18.1
 Pillow==6.2.2
 PyYAML==5.3
+
+# for python2
+enum34==1.1.6
+six==1.11.0
