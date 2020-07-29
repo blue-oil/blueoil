@@ -39,6 +39,7 @@ steps:
     agents:
     - "agent-type=fpga"
     - "env=production"
+    - "os=xenial"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
@@ -47,7 +48,28 @@ steps:
     agents:
     - "agent-type=fpga"
     - "env=production"
+    - "os=xenial"
     timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-dlk-arm"
+    label: "dlk: code_generation for arm(bionic)"
+    agents:
+    - "agent-type=fpga"
+    - "env=production"
+    - "os=bionic"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+    soft_fail: true
+  - command: "make test-dlk-arm_fpga"
+    label: "dlk: code_generation for arm_fpga(bionic)"
+    agents:
+    - "agent-type=fpga"
+    - "os=bionic"
+    - "env=production"
+    timeout_in_minutes: "30"
+    soft_fail: true
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: "make test-dlk-aarch64"
