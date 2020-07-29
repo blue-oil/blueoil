@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
 # this file exists for backward compatibility, to make it possible
 # to import by from `blueoil.networks.classification.lmnet_quantize import Lmnet`
 
