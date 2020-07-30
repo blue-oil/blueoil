@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 
 if [ $# -ne 1 ]; then
 	echo "Error: Number of argument should be 1"
@@ -41,5 +41,5 @@ chroot ${ROOTFS_DIR} /bin/bash /setting_after_chroot.sh
 
 # Here is after chroot
 rm ${ROOTFS_DIR}/setting_after_chroot.sh
-tar cvzf ${BUILD_DIR}/${OUTPUT_FNAME} -C ${BUILD_DIR} rootfs --remove-file
+tar czf ${BUILD_DIR}/${OUTPUT_FNAME} -C ${BUILD_DIR} rootfs --remove-file
 chmod a=rw ${BUILD_DIR}/${OUTPUT_FNAME}
