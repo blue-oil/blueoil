@@ -19,8 +19,6 @@ import os.path
 import xml.etree.ElementTree as ET
 
 import numpy as np
-import pandas as pd
-
 from blueoil.utils.image import load_image
 from blueoil.datasets.base import ObjectDetectionBase
 
@@ -184,16 +182,14 @@ class PascalvocBase(ObjectDetectionBase):
             raise ValueError("Must provide data_type = train or val or trainval or test")
 
         filename = os.path.join(self.imagesets_dir, data_type + ".txt")
-        df = pd.read_csv(
-            filename,
-            delim_whitespace=True,
-            header=None,
-            names=['image_id'])
+
+        with open(filename) as f:
+            image_ids = f.read().splitlines()
 
         if is_debug:
-            df = df[:50]
+            image_ids = image_ids[:50]
 
-        return df.image_id.tolist()
+        return image_ids
 
     def _files_and_annotations(self):
         raise NotImplementedError()
