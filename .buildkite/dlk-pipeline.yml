@@ -35,7 +35,7 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: "make test-dlk-arm"
-    label: "dlk: code_generation for arm"
+    label: "dlk: code_generation for arm(xenial)"
     agents:
     - "agent-type=fpga"
     - "env=production"
@@ -43,8 +43,9 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+    soft_fail: true
   - command: "make test-dlk-arm_fpga"
-    label: "dlk: code_generation for arm_fpga"
+    label: "dlk: code_generation for arm_fpga(xenial)"
     agents:
     - "agent-type=fpga"
     - "env=production"
@@ -52,6 +53,7 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+    soft_fail: true
   - command: "make test-dlk-arm"
     label: "dlk: code_generation for arm(bionic)"
     agents:
@@ -61,7 +63,6 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-    soft_fail: true
   - command: "make test-dlk-arm_fpga"
     label: "dlk: code_generation for arm_fpga(bionic)"
     agents:
@@ -69,7 +70,6 @@ steps:
     - "os=bionic"
     - "env=production"
     timeout_in_minutes: "30"
-    soft_fail: true
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: "make test-dlk-aarch64"

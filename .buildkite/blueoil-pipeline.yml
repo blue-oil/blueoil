@@ -116,6 +116,7 @@ steps:
     agents:
     - "agent-type=de10nano"
     - "env=benchmark"
+    - "os=bionic"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
