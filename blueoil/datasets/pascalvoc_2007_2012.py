@@ -19,8 +19,8 @@ import numpy as np
 
 from blueoil.utils.image import load_image
 from blueoil.datasets.base import ObjectDetectionBase
-from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007
-from blueoil.datasets.pascalvoc_2012 import Pascalvoc2012
+from blueoil.datasets.pascalvoc_2007 import Pascalvoc2007, Pascalvoc2007Person
+from blueoil.datasets.pascalvoc_2012 import Pascalvoc2012, Pascalvoc2012Person
 
 
 class Pascalvoc20072012(ObjectDetectionBase):
@@ -145,3 +145,20 @@ class Pascalvoc20072012ObjectDetectionPerson(Pascalvoc20072012):
             *args,
             **kwargs,
         )
+
+    def _init_files_and_annotations(self, *args, **kwargs):
+        """Create files and annotations."""
+        if self.subset == "train":
+            subset = "train_validation"
+        elif self.subset == "validation" or self.subset == "test":
+            subset = "test"
+
+        if subset == "train_validation":
+            pascalvoc_2007 = Pascalvoc2007Person(subset=subset, skip_difficult=self.skip_difficult, *args, **kwargs)
+            pascalvoc_2012 = Pascalvoc2012Person(subset=subset, skip_difficult=self.skip_difficult, *args, **kwargs)
+            self.files = pascalvoc_2007.files + pascalvoc_2012.files
+            self.annotations = pascalvoc_2007.annotations + pascalvoc_2012.annotations
+        elif subset == "test":
+            pascalvoc_2007 = Pascalvoc2007Person(subset=subset, skip_difficult=self.skip_difficult, *args, **kwargs)
+            self.files = pascalvoc_2007.files
+            self.annotations = pascalvoc_2007.annotations

@@ -83,3 +83,17 @@ class Pascalvoc2007(PascalvocBase):
         print("{} {} files and annotations are ready".format(self.__class__.__name__, self.subset))
 
         return files, gt_boxes_list
+
+
+class Pascalvoc2007Person(Pascalvoc2007):
+    classes = ["person"]
+
+    def __init__(
+            self,
+            *args,
+            **kwargs
+    ):
+        super().__init__(
+            *args,
+            **kwargs,
+        )
