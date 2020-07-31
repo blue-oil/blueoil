@@ -103,14 +103,14 @@ steps:
       DEVICE_TEST_LIB_NAME: 'libdlk_x86_avx.so'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
-      pip3 install -U pip
-      pip3 uninstall -y enum34
+      sudo pip3 install -U pip
+      sudo pip3 uninstall -y enum34
       pip3 install -r output_template/python/requirements.txt
       cd tests/device_tests && python3 test_device_e2e.py
     label: "inference on raspberry-pi(aarch64)"
     agents:
     - "agent-type=raspberry-pi"
-    - "env=benchmark"
+    - "os=bionic"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
@@ -125,7 +125,6 @@ steps:
     label: "inference on de10nano(arm)"
     agents:
     - "agent-type=de10nano"
-    - "env=benchmark"
     - "os=bionic"
     timeout_in_minutes: "30"
     env:
