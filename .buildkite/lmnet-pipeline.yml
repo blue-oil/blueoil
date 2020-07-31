@@ -31,7 +31,7 @@ steps:
   - command: "make test-blueoil-pep8"
     label: "pep8"
     agents:
-    - "agent-type=normal"
+    - "agent-type=container"
     - "env=production"
     timeout_in_minutes: "30"
     env:
@@ -39,7 +39,7 @@ steps:
   - command: "make test-blueoil-mypy"
     label: "mypy"
     agents:
-    - "agent-type=normal"
+    - "agent-type=container"
     - "env=production"
     timeout_in_minutes: "5"
     env:
