@@ -20,7 +20,7 @@ import warnings
 from termcolor import colored
 from abc import abstractmethod
 from itertools import dropwhile
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
 
 import numpy as np
 
@@ -339,8 +339,8 @@ class Operator(object):
 
     @property
     def is_scalar(self) -> bool:
-        """Return if this node is a scalar node (i.e. `ndim == 0`)."""
-        return self.ndim == 0
+        """Return if this node is a scalar node (i.e. `ndims == 0`)."""
+        return self.ndims == 0
 
     @property
     def height(self) -> int:
@@ -438,7 +438,7 @@ class Operator(object):
 
     @classmethod
     def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
-                    attrs: Dict[str, Any]) -> List[int]:
+                    attrs: Dict[str, Any]) -> Sequence[Optional[int]]:
         """Infer its output shape from inputs' shapes.
 
         This is actually an abstract method and should be overridden.
@@ -524,11 +524,11 @@ class Constant(Variable):
                  transposed_dimension_format: str = 'OHWI',
                  packed: bool = False,
                  actual_shape: List[int] = [],
-                 transposed_data: List[int] = None,
-                 transposed_shape: List[int] = None,
-                 kn2row_data: List[int] = None,
+                 transposed_data: Optional[List[int]] = None,
+                 transposed_shape: Optional[List[int]] = None,
+                 kn2row_data: Optional[List[int]] = None,
                  kn2row_dimension_format: str = 'HWOI',
-                 kn2row_shape: List[int] = None,) -> None:
+                 kn2row_shape: Optional[List[int]] = None,) -> None:
         """Init the variable.
 
         If the constant is hard quantized, data is packed and the actual shape
@@ -552,7 +552,7 @@ class Constant(Variable):
         return self._packed
 
     @property
-    def transposed_data(self) -> List[int]:
+    def transposed_data(self) -> Optional[List[int]]:
         """Return transposed data."""
         return self._transposed_data
 
@@ -561,11 +561,11 @@ class Constant(Variable):
         return self._transposed_dimension_format
 
     @property
-    def transposed_shape(self) -> List[int]:
+    def transposed_shape(self) -> Optional[List[int]]:
         return self._transposed_shape
 
     @property
-    def kn2row_data(self) -> List[int]:
+    def kn2row_data(self) -> Optional[List[int]]:
         return self._kn2row_data
 
     @property
@@ -573,7 +573,7 @@ class Constant(Variable):
         return self._kn2row_dimension_format
 
     @property
-    def kn2row_shape(self) -> List[int]:
+    def kn2row_shape(self) -> Optional[List[int]]:
         return self._kn2row_shape
 
 
@@ -681,13 +681,13 @@ class Quantizer(Operator):
     def scaling_factor(self) -> np.float32:
         return self._scaling_factor
 
-    @property
-    def preserve_quantization(self) -> bool:
-        return False
-
     @scaling_factor.setter
     def scaling_factor(self, val: np.float32) -> None:
         self._scaling_factor = val
+
+    @property
+    def preserve_quantization(self) -> bool:
+        return False
 
     @abstractmethod
     def binarizer(self, data: np.ndarray) -> np.ndarray:
@@ -2828,10 +2828,10 @@ class Pad(Operator):
 
     @classmethod
     def infer_shape(cls, lists: Dict[str, List[int]], format: str, input_formats: List[str],
-                    attrs: Dict[str, Any]) -> List[int]:
+                    attrs: Dict[str, Any]) -> List[Optional[int]]:
         a_shape = lists['A']
         padding_constant = attrs['padding_const']
-        new_shape = []
+        new_shape: List[Optional[int]] = []
         for padding, dim in zip(padding_constant, a_shape):
             if padding is None or dim is None or any((x is None for x in padding)):
                 new_shape.append(None)
