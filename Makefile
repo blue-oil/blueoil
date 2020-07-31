@@ -66,6 +66,11 @@ test-blueoil-pep8: build
 	# FIXME: blueoil/templates have a lot of errors with flake8
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil ./tests --exclude=templates"
 
+.PHONY: test-blueoil-mypy
+test-blueoil-mypy: build
+	# Check blueoil mypy
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "mypy blueoil"
+
 .PHONY: test-unit-main
 test-unit-main: build
 	# Run lmnet test with Python3.6
