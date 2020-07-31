@@ -27,7 +27,7 @@ lint:
 .PHONY: build
 build: deps
 	# Build docker image
-	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
+	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) -f docker/Dockerfile .
 
 .PHONY: setup-test
 setup-test:
