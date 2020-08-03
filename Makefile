@@ -25,10 +25,6 @@ install-gpu: install
 	pip3 install -e .[gpu]
 	pip3 install -e .[dist]
 
-.PHONY: lint
-lint:
-	flake8 ./blueoil ./tests --exclude=templates
-
 .PHONY: build
 build: deps
 	# Build docker image
@@ -62,17 +58,14 @@ test-keypoint-detection: build setup-test
 	# Run Blueoil test of keypoint-detection
 	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_keypoint_detection.py
 
-.PHONY: test-lmnet
-test-lmnet: test-blueoil-pep8 test-unit-main
-
-.PHONY: test-blueoil-pep8
-test-blueoil-pep8: install-dev
+.PHONY: test-lint
+test-lint: install-dev
 	# Check blueoil pep8
 	# FIXME: blueoil/templates have a lot of errors with flake8
 	flake8 ./blueoil ./tests --exclude=templates
 
-.PHONY: test-blueoil-mypy
-test-blueoil-mypy: install-dev
+.PHONY: test-mypy
+test-mypy: install-dev
 	# Check blueoil mypy
 	mypy blueoil
 
