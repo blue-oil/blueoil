@@ -120,7 +120,7 @@ class ObjectDetectionBase(Base, metaclass=ABCMeta):
     @property
     @abstractmethod
     def num_max_boxes(self):
-        """Returns conunt max box size of available subsets."""
+        """Return count max box size of available subsets."""
         pass
 
     def _fill_dummy_boxes(self, gt_boxes):
