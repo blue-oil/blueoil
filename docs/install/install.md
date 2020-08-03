@@ -3,22 +3,21 @@
 You need the following devices.
 
 - **Training server**
-    - Ubuntu Linux 16.04 (x86_64)
+    - Ubuntu Linux 18.04 (x86_64)
     - NVIDIA GPU with Architecture >= 3.0 (Kepler)
     - NVIDIA drivers >= 410.48
-    - Docker >=1.12 (or >=17.03.0)
-    - nvidia-docker >= 2.0
+    - Docker >= 19.03
+    - nvidia-container-runtime >= 3.2
 
     <br>Training by Blueoil is run on docker container with original docker image based on NVIDIA's [CUDA images](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA#requirements) (cuda:10.0-cudnn7-devel).
 
     The machine running the CUDA container only requires the NVIDIA driver, the CUDA toolkit doesn't have to be installed.
-
-    Please see the detail in the nvidia-docker's [prerequisites](https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(version-2.0)#prerequisites).
+    Please see the detail in the nvidia-container-runtime's [document](https://github.com/NVIDIA/nvidia-container-runtime).
 
 
 - **Your PC**
     - MicroSD card reader
-    - Installed xterm program
+    - xterm program installed
 
     <br>When you create Linux system on microSD card, you need a host system (Your PC).
     Also if you run inference on FPGA and you need to display the inference results, you should connect the host and the FPGA over LAN.
@@ -27,7 +26,7 @@ You need the following devices.
 - **FPGA Board**
     <br>We currently support the following
     - [DE10-Nano Kit](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&No=1046)
- (Ubuntu 16.04, distributed by Terasic)
+ (Base Ubuntu 16.04, distributed by Terasic, Ubuntu 18.04 as customized)
 
 ---
 

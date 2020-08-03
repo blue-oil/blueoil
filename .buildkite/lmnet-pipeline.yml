@@ -28,18 +28,18 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-  - command: "make test-blueoil-pep8"
+  - command: "make test-lint"
     label: "pep8"
     agents:
-    - "agent-type=normal"
+    - "agent-type=container"
     - "env=production"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-  - command: "make test-blueoil-mypy"
+  - command: "make test-mypy"
     label: "mypy"
     agents:
-    - "agent-type=normal"
+    - "agent-type=container"
     - "env=production"
     timeout_in_minutes: "5"
     env:
