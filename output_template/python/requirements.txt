@@ -1,6 +1,6 @@
-click==6.7
-easydict==1.6
-numpy==1.14.0
-Pillow==6.2.2
-PyYAML==4.2b4
-six==1.11.0
+click==7.1.2
+easydict==1.9
+numpy==1.19.1
+Pillow==7.2.
+PyYAML==5.3.1
+six==1.15.0
