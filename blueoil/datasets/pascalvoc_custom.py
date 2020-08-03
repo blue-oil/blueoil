@@ -13,7 +13,6 @@
 # limitations under the License.
 # =============================================================================
 import os
-import os.path
 
 from blueoil.datasets.pascalvoc_base import PascalvocBase
 
@@ -23,18 +22,11 @@ class PascalVOCCustom(PascalvocBase):
     available_subsets = []
     extend_dir = ""
 
-    def __init__(
-            self,
-            *args,
-            **kwargs
-    ):
-        PascalVOCCustom.classes = kwargs['classes']
-        PascalVOCCustom.available_subsets = kwargs['available_subsets']
-        PascalVOCCustom.extend_dir = kwargs['extend_dir']
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+    def __init__(self, classes, available_subsets, extend_dir, *args, **kwargs):
+        PascalVOCCustom.classes = classes
+        PascalVOCCustom.available_subsets = available_subsets
+        PascalVOCCustom.extend_dir = extend_dir
+        super().__init__(*args, **kwargs)
 
     @property
     def num_max_boxes(self):
