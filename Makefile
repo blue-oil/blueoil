@@ -62,7 +62,7 @@ test-keypoint-detection: build setup-test
 test-lint: install-dev
 	# Check blueoil pep8
 	# FIXME: blueoil/templates have a lot of errors with flake8
-	flake8 ./blueoil ./tests --exclude=templates
+	flake8 ./blueoil ./tests ./output_template/python --exclude=templates
 
 .PHONY: test-mypy
 test-mypy: install-dev

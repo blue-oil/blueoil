@@ -171,7 +171,7 @@ def run(model, config_file, port=80):
         server = ThreadedHTTPServer(('', port), MotionJpegHandler)
         print("server starting")
         server.serve_forever()
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         print("KeyboardInterrpt in server - ending server")
         stream.release()
         pool.terminate()
