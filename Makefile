@@ -27,7 +27,7 @@ lint:
 .PHONY: build
 build: deps
 	# Build docker image
-	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
+	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) -f docker/Dockerfile .
 
 .PHONY: setup-test
 setup-test:
@@ -65,6 +65,11 @@ test-blueoil-pep8: build
 	# Check blueoil pep8
 	# FIXME: blueoil/templates have a lot of errors with flake8
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil ./tests --exclude=templates"
+
+.PHONY: test-blueoil-mypy
+test-blueoil-mypy: build
+	# Check blueoil mypy
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "mypy blueoil"
 
 .PHONY: test-unit-main
 test-unit-main: build

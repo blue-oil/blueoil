@@ -16,8 +16,10 @@
 import itertools
 import os
 
+import csv
+from collections import OrderedDict
+
 import click
-import pandas as pd
 import pytablewriter
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 from tensorboard.backend.event_processing.io_wrapper import GetLogdirSubdirectories
@@ -32,7 +34,16 @@ def _get_metrics_keys(event_accumulator):
 def _value_step_list(event_accumulator, metrics_key):
     try:
         events = event_accumulator.Scalars(metrics_key)
-        return [(event.value, event.step) for event in events]
+        return [(event.step, event.value) for event in events]
+    except KeyError as e:
+        print("Key {} was not found in {}\n{}".format(metrics_key, event_accumulator.path, e))
+        return []
+
+
+def _step_list(event_accumulator, metrics_key):
+    try:
+        events = event_accumulator.Scalars(metrics_key)
+        return [event.step for event in events]
     except KeyError as e:
         print("Key {} was not found in {}\n{}".format(metrics_key, event_accumulator.path, e))
         return []
@@ -63,32 +74,40 @@ def output(tensorboard_dir, output_dir, metrics_keys, steps, output_file_base="m
 
     columns = [_column_name(event_accumulator, metrics_key)
                for event_accumulator, metrics_key in itertools.product(event_accumulators, metrics_keys)]
-    columns.sort()
-    df = pd.DataFrame([], columns=columns)
+
+    value_matrix = []
+
+    for metrics_key in metrics_keys:
+        if not value_matrix:
+            step_list = sorted(_step_list(event_accumulator, metrics_key), reverse=True)
+            value_matrix.append(step_list)
 
     for event_accumulator in event_accumulators:
         for metrics_key in metrics_keys:
             value_step_list = _value_step_list(event_accumulator, metrics_key)
-            for value, step in value_step_list:
-                column_name = _column_name(event_accumulator, metrics_key)
-                df.loc[step, column_name] = value
+            values_step_dict = dict(value_step_list)
 
-    if steps:
-        df = df[steps, :]
-
-    df = df.sort_index(ascending=False)
-
-    # index to column. and re-order column.
-    df["step"] = df.index
-    df = df[["step"] + columns]
+            for step in step_list:
+                if step not in values_step_dict:
+                    values_step_dict[step] = ''
+            sorted_value_step = OrderedDict(sorted(values_step_dict.items(), key=lambda x: x[0], reverse=True))
+            sorted_list = list(sorted_value_step.values())
+            value_matrix.append(sorted_list)
+    data_by_row = list(map(list, zip(*value_matrix)))
+    columns.insert(0, "step")
 
     output_csv = os.path.join(output_dir, "{}.csv".format(output_file_base))
-    df.to_csv(output_csv, index=False)
+
+    with open(output_csv, "w") as fp:
+        wr = csv.writer(fp)
+        wr.writerow(columns)
+        wr.writerows(data_by_row)
 
     output_md = os.path.join(output_dir, "{}.md".format(output_file_base))
     writer = pytablewriter.MarkdownTableWriter()
     writer.char_left_side_row = "|"  # fix for github
-    writer.from_dataframe(df)
+    writer.header_list = columns
+    writer.value_matrix = data_by_row
 
     with open(output_md, "w") as file_stream:
         writer.stream = file_stream
