@@ -3,22 +3,21 @@
 You need the following devices.
 
 - **Training server**
-    - Ubuntu Linux 16.04 (x86_64)
+    - Ubuntu Linux 18.04 (x86_64)
     - NVIDIA GPU with Architecture >= 3.0 (Kepler)
     - NVIDIA drivers >= 410.48
-    - Docker >=1.12 (or >=17.03.0)
-    - nvidia-docker >= 2.0
+    - Docker >= 19.03
+    - nvidia-container-runtime >= 3.2
 
     <br>Training by Blueoil is run on docker container with original docker image based on NVIDIA's [CUDA images](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA#requirements) (cuda:10.0-cudnn7-devel).
 
     The machine running the CUDA container only requires the NVIDIA driver, the CUDA toolkit doesn't have to be installed.
-
-    Please see the detail in the nvidia-docker's [prerequisites](https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(version-2.0)#prerequisites).
+    Please see the detail in the nvidia-container-runtime's [document](https://github.com/NVIDIA/nvidia-container-runtime).
 
 
 - **Your PC**
     - MicroSD card reader
-    - Installed xterm program
+    - xterm program installed
 
     <br>When you create Linux system on microSD card, you need a host system (Your PC).
     Also if you run inference on FPGA and you need to display the inference results, you should connect the host and the FPGA over LAN.
@@ -27,7 +26,7 @@ You need the following devices.
 - **FPGA Board**
     <br>We currently support the following
     - [DE10-Nano Kit](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&No=1046)
- (Ubuntu 16.04, distributed by Terasic)
+ (Base Ubuntu 16.04, distributed by Terasic, Ubuntu 18.04 as customized)
 
 ---
 
@@ -69,13 +68,13 @@ All example commands should work if you use Linux or macOS. If you are using a d
 ### Download Linux system image (On your PC)
 You can download an upt-to-date-for-Blueoil Linux system image by:
 
-    $ wget https://leapmind-public-storage.s3-ap-northeast-1.amazonaws.com/os_images/de10nano_ubuntu_TCAv2.img.gz
+    $ wget https://storage.googleapis.com/blueoil-asia-northeast1/os-images/de10nano_ubuntu_TCAv2.img.gz
 
 The downloaded file should contain the image "de10nano_ubuntu_TCAv2.img".
 Insert an empty microSD card (8GB+) into your PC and write the downloaded image to it.
 - Using Etcher [Recommended]
     - We recommend using the open source software [Etcher](https://www.balena.io/etcher/) to help you write the image on any platform.
-    
+
 - Using Linux terminal
     - Make sure to unmount the microSD with `umount` command before writing.
     - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`.
@@ -88,7 +87,7 @@ $ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/[your_target_name]
     - Make sure to unmount the microSD with `diskutil` command before writing.
     - Confirm the path name of the target microSD. It should be `/dev/[your_target_name]`.
     - To make the process faster, append an `r` in front of `[your_target_name]`.
-    - Type the following command:    
+    - Type the following command:
 ```
 $ cat de10nano_ubuntu_TCAv2.img.gz | gunzip | sudo dd of=/dev/r[your_target_name] bs=4m
 ```
@@ -152,11 +151,15 @@ Please remove the microSD from your host system after `dd` && `sync` operation h
 
 We need to update some files on the microSD.
 To update them, we need to perform a few copy operations.
+Please download sample files.
+
+    $ wget https://storage.googleapis.com/blueoil-asia-northeast1/de10_nano_sample.tar.gz
+    $ tar xzvf de10_nano_sample.tar.gz
 
 REQUIRED_FILES are shown below. These files are necessary for a later step.
 
 ```
-{Blueoil directory}/dlk/hw/intel/de10_nano/
+{Working directory}/de10_nano_sample/
  ├── linux_kernel/zImage
  ├── linux_kernel/kernel_modules.tar.gz
  └── dma/terasic_ubuntu_arm32/udmabuf.ko
@@ -169,7 +172,7 @@ REQUIRED_FILES are shown below. These files are necessary for a later step.
 
 Create and copy the required files to the `REQUIRED_FILES` directory.
 
-    $ cd {Blueoil directory}/hw/intel/de10_nano/
+    $ cd {Working directory}/de10_nano_sample/
     $ cp linux_kernel/zImage linux_kernel/kernel_modules.tar.gz dma/terasic_ubuntu_arm32/udmabuf.ko REQUIRED_FILES/
     $ cd {Blueoil directory}/output_files/fpga/
     $ cp soc_system.dtb soc_system.rbf preloader-mkpimage.bin REQUIRED_FILES/

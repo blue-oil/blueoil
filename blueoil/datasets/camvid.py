@@ -17,7 +17,6 @@ import functools
 import os.path
 
 import numpy as np
-import pandas as pd
 from PIL import Image
 
 from blueoil.common import get_color_map
@@ -80,15 +79,13 @@ class CamvidBase(SegmentationBase):
             text = "val.txt"
 
         filename = os.path.join(self.data_dir, text)
-        df = pd.read_csv(
-            filename,
-            delim_whitespace=True,
-            header=None,
-            names=['image_files', 'label_files'],
-        )
 
-        image_files = df.image_files.tolist()
-        label_files = df.label_files.tolist()
+        image_files, label_files = list(), list()
+        with open(filename) as f:
+            for line in f:
+                items = line.split()
+                image_files.append(items[0])
+                label_files.append(items[1])
 
         image_files = [filename.replace("/SegNet/CamVid", self.data_dir) for filename in image_files]
         label_files = [filename.replace("/SegNet/CamVid", self.data_dir) for filename in label_files]
@@ -182,15 +179,13 @@ class Camvid(CamvidBase):
             text = "val.txt"
 
         filename = os.path.join(self.data_dir, text)
-        df = pd.read_csv(
-            filename,
-            delim_whitespace=True,
-            header=None,
-            names=['image_files', 'label_files'],
-        )
 
-        image_files = df.image_files.tolist()
-        label_files = df.label_files.tolist()
+        image_files, label_files = list(), list()
+        with open(filename) as f:
+            for line in f:
+                items = line.split()
+                image_files.append(items[0])
+                label_files.append(items[1])
 
         image_files = [filename.replace("/SegNet/CamVid", self.data_dir) for filename in image_files]
         label_files = [filename.replace("/SegNet/CamVid", self.data_dir) for filename in label_files]
@@ -259,15 +254,13 @@ class CamvidCustom(StoragePathCustomizable, CamvidBase):
             text = "val.txt"
 
         filename = os.path.join(self.data_dir, text)
-        df = pd.read_csv(
-            filename,
-            delim_whitespace=True,
-            header=None,
-            names=['image_files', 'label_files'],
-        )
 
-        image_files = df.image_files.tolist()
-        label_files = df.label_files.tolist()
+        image_files, label_files = list(), list()
+        with open(filename) as f:
+            for line in f:
+                items = line.split()
+                image_files.append(items[0])
+                label_files.append(items[1])
 
         image_files = [os.path.join(self.data_dir, filename) for filename in image_files]
         label_files = [os.path.join(self.data_dir, filename) for filename in label_files]
