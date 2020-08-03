@@ -37,12 +37,12 @@ class PascalVOCCustom(PascalvocBase):
             return 42
 
     def _annotation_file_from_image_id(self, image_id):
-        annotation_file = os.path.join(self.annotations_dir, "{:06d}.xml".format(image_id))
+        annotation_file = os.path.join(self.annotations_dir, "{}.xml".format(image_id))
         return annotation_file
 
     def _image_file_from_image_id(self, image_id):
         """Return image file name of a image."""
-        return os.path.join(self.jpegimages_dir, "{:06d}.jpg".format(image_id))
+        return os.path.join(self.jpegimages_dir, "{}.jpg".format(image_id))
 
     def _files_and_annotations(self):
         """Create files and gt_boxes list."""
