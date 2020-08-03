@@ -63,6 +63,4 @@ class PascalVOCCustom(PascalvocBase):
         files = [self._image_file_from_image_id(image_id) for image_id in image_ids]
         gt_boxes_list = [self._gt_boxes_from_image_id(image_id) for image_id in image_ids]
 
-        print("{} {} files and annotations are ready".format(self.__class__.__name__, self.subset))
-
         return files, gt_boxes_list
