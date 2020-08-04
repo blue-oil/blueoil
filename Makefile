@@ -113,18 +113,6 @@ test-dlk-aarch64_fpga: build
 	# Run dlk test of code_generation for aarch64_fpga
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationAarch64Fpga"
 
-.PHONY: rootfs-docker
-rootfs-docker:
-	docker build -t $(IMAGE_NAME)_os -f docker/Dockerfile_make_os . #--no-cache=true
-
-.PHONY: rootfs-armhf
-rootfs-armhf: rootfs-docker
-	docker run --privileged -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh armhf
-
-.PHONY: rootfs-arm64
-rootfs-arm64: rootfs-docker
-	docker run --privileged -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh arm64
-
 .PHONY: clean
 clean:
 	# Clean created files
