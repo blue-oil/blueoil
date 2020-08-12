@@ -12,22 +12,23 @@ deps:
 
 .PHONY: install
 install: deps
-	pip install -e .[cpu,tests,docs]
-	pip install pycocotools==2.0.0
+	pip3 install -U pip
+	pip3 install -e .[cpu]
+	pip3 install pycocotools==2.0.0
+
+.PHONY: install-dev
+install-dev: deps install
+	pip3 install -e .[test,docs]
 
 .PHONY: install-gpu
 install-gpu: install
-	pip install -e .[gpu]
-	pip install -e .[dist]
-
-.PHONY: lint
-lint:
-	flake8 ./blueoil ./tests --exclude=templates
+	pip3 install -e .[gpu]
+	pip3 install -e .[dist]
 
 .PHONY: build
 build: deps
 	# Build docker image
-	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) --build-arg python_version="3.6.3" -f docker/Dockerfile .
+	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) -f docker/Dockerfile .
 
 .PHONY: setup-test
 setup-test:
@@ -57,14 +58,16 @@ test-keypoint-detection: build setup-test
 	# Run Blueoil test of keypoint-detection
 	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_keypoint_detection.py
 
-.PHONY: test-lmnet
-test-lmnet: test-blueoil-pep8 test-unit-main
-
-.PHONY: test-blueoil-pep8
-test-blueoil-pep8: build
+.PHONY: test-lint
+test-lint: install-dev
 	# Check blueoil pep8
 	# FIXME: blueoil/templates have a lot of errors with flake8
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil ./tests --exclude=templates"
+	flake8 ./blueoil ./tests ./output_template/python --exclude=templates
+
+.PHONY: test-mypy
+test-mypy: install-dev
+	# Check blueoil mypy
+	mypy blueoil
 
 .PHONY: test-unit-main
 test-unit-main: build
@@ -72,7 +75,7 @@ test-unit-main: build
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; pytest -n auto unit/"
 
 .PHONY: test-dlk
-test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64
+test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-x86_64_avx test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64 test-dlk-aarch64_fpga
 
 .PHONY: test-dlk-main
 test-dlk-main: build
@@ -83,6 +86,11 @@ test-dlk-main: build
 test-dlk-x86_64: build
 	# Run dlk test of code_generation for x86_64
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationX8664"
+
+.PHONY: test-dlk-x86_64_avx
+test-dlk-x86_64_avx: build
+	# Run dlk test of code_generation for x86_64_avx
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationX8664Avx"
 
 .PHONY: test-dlk-arm
 test-dlk-arm: build
@@ -100,17 +108,10 @@ test-dlk-aarch64: build
 	mkdir -p $(CWD)/output
 	docker run ${DOCKER_OPT} -v $(CWD)/output:/home/blueoil/output $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationAarch64"
 
-.PHONY: rootfs-docker
-rootfs-docker:
-	docker build -t $(IMAGE_NAME)_os -f docker/Dockerfile_make_os . #--no-cache=true
-
-.PHONY: rootfs-armhf
-rootfs-armhf: rootfs-docker
-	docker run -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh armhf
-
-.PHONY: rootfs-arm64
-rootfs-arm64: rootfs-docker
-	docker run -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh arm64
+.PHONY: test-dlk-aarch64_fpga
+test-dlk-aarch64_fpga: build
+	# Run dlk test of code_generation for aarch64_fpga
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationAarch64Fpga"
 
 .PHONY: clean
 clean:

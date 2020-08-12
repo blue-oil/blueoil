@@ -27,7 +27,7 @@ def test_train():
 
     config_file = "unit/fixtures/configs/for_train.py"
     expriment_id = "for_test"
-    run(config_file, expriment_id, recreate=True)
+    run(config_file, expriment_id, recreate=True, profile_step=7)
 
 
 if __name__ == '__main__':

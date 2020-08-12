@@ -68,12 +68,15 @@ steps:
       python3 -m venv blueoil_inference
       source blueoil_inference/bin/activate
       pip3 install -U pip
+      pip3 uninstall -y enum34
       pip3 install -r output_template/python/requirements.txt
       cd tests/device_tests && python3 test_device_e2e.py
-    label: "inference on ubuntu(x86)"
+    label: "inference on bionic x86"
     agents:
-    - "agent-type=normal"
+    - "agent-type=container"
     - "env=production"
+    - "arch=x86_64"
+    - "os=bionic"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
@@ -84,12 +87,15 @@ steps:
       python3 -m venv blueoil_inference
       source blueoil_inference/bin/activate
       pip3 install -U pip
+      pip3 uninstall -y enum34
       pip3 install -r output_template/python/requirements.txt
       cd tests/device_tests && python3 test_device_e2e.py
-    label: "inference on ubuntu(x86_avx)"
+    label: "inference on bionic x86_avx"
     agents:
-    - "agent-type=normal"
+    - "agent-type=container"
     - "env=production"
+    - "arch=x86_64"
+    - "os=bionic"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
@@ -97,12 +103,14 @@ steps:
       DEVICE_TEST_LIB_NAME: 'libdlk_x86_avx.so'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
+      sudo pip3 install -U pip
+      sudo pip3 uninstall -y enum34
       pip3 install -r output_template/python/requirements.txt
       cd tests/device_tests && python3 test_device_e2e.py
     label: "inference on raspberry-pi(aarch64)"
     agents:
     - "agent-type=raspberry-pi"
-    - "env=benchmark"
+    - "os=bionic"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
@@ -110,12 +118,14 @@ steps:
       DEVICE_TEST_LIB_NAME: 'libdlk_aarch64.so'
   - command: |
       buildkite-agent artifact download "tmp/*" ./ --build \${BUILDKITE_BUILD_ID}
-      sudo pip install -r output_template/python/requirements.txt --no-cache-dir
-      cd tests/device_tests && python test_device_e2e.py
+      sudo pip3 install -U pip
+      sudo pip3 uninstall -y enum34
+      sudo pip3 install -r output_template/python/requirements.txt --no-cache-dir
+      cd tests/device_tests && python3 test_device_e2e.py
     label: "inference on de10nano(arm)"
     agents:
     - "agent-type=de10nano"
-    - "env=benchmark"
+    - "os=bionic-new" #FIXME(kchygoe): Fix After new-packages test
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'

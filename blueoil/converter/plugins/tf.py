@@ -17,6 +17,7 @@
 
 import functools
 import importlib
+import copy
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Set, Tuple, Type
 
@@ -34,7 +35,7 @@ from blueoil.converter.core.operators import Operator, Conv, \
     MaxPool, AveragePool, Reshape, Softmax, Transpose, Relu, SpaceToDepth, \
     Mul, BinaryChannelWiseMeanScalingQuantizer, ConcatOnDepth, Maximum, \
     DepthToSpace, ResizeNearestNeighbor, \
-    Split, Pad, MatMul, Gather, Unique, Cast, Minimum, StridedSlice, Prod, Shape, LeakyRelu
+    Slice, Pad, MatMul, Gather, UniqueValue, UniqueIndex, Cast, Minimum, StridedSlice, Prod, Shape, LeakyRelu
 
 DLK_DTYPE_MAP: Dict[str, Optional[DataType]] = {
     # any
@@ -128,7 +129,15 @@ class Node(object):
     @property
     def inputs(self) -> List[str]:
         """Return the name of corresponding inputs to the node."""
-        return [x.replace('/', '_').replace('-', '_').split(':', 1)[0] for x in self.nd_.input]
+        def get_input_tuple(x: str) -> Tuple[str, int]:
+            ary = x.replace('/', '_').replace('-', '_').split(':', 1)
+            if len(ary) == 1:
+                return (ary[0], 0)
+            elif len(ary) == 2:
+                return (ary[0], int(ary[1]))
+            else:
+                raise AssertionError(f'Failed to parse input name: {x}')
+        return [get_input_tuple(x) for x in self.nd_.input]
 
     @property
     def tensor_type(self):
@@ -146,8 +155,8 @@ class Node(object):
             raise UnsupportedDataType(f'Type {dtype_str} is not supported.')
         return DLK_DTYPE_MAP[dtype_str]
 
-    def get_shape(self) -> List[int]:
-        """Get the output shape info."""
+    def get_shapes(self) -> List[List[int]]:
+        """Get the output shapes info."""
         out_shapes = []
         shapes = self.nd_.attr.get('_output_shapes')
         if shapes:
@@ -159,11 +168,11 @@ class Node(object):
         else:
             raise ValueError(f'{self.name} does not have output shapes.')
 
-        if len(out_shapes) > 1 and self.nd_.op == 'Split':
-            if not out_shapes[1:] == out_shapes[:-1]:
-                raise ValueError(f'{self.name} does not have identical output(s) shape.')
+        return out_shapes
 
-        return out_shapes[0]
+    def get_shape(self) -> List[int]:
+        """Get the output shape info."""
+        return self.get_shapes()[0]
 
     def get_format(self):
         """Get the output data format info."""
@@ -314,7 +323,15 @@ class Output(object):
     @property
     def inputs(self) -> List[str]:
         """Return the name of corresponding inputs to the node."""
-        return [x.replace('/', '_').replace('-', '_') for x in self.out_.input]
+        def get_input_tuple(x: str) -> Tuple[str, int]:
+            ary = x.replace('/', '_').replace('-', '_').split(':', 1)
+            if len(ary) == 1:
+                return (ary[0], 0)
+            elif len(ary) == 2:
+                return (ary[0], int(ary[1]))
+            else:
+                raise AssertionError(f'Failed to parse input name: {x}')
+        return [get_input_tuple(x) for x in self.out_.input]
 
     @property
     def node_def_object(self):
@@ -404,12 +421,12 @@ class Importer(object):
         return dlk_op_type if dlk_op_type else op_type
 
     def create_new_op(self, node: Any, op_dic: Dict[str, Operator], current_format: str,
-                      input_format_list: List[str], nodes_to_remove) -> Operator:
+                      input_format_list: List[str], nodes_to_remove) -> List[Operator]:
         """Create new operators with Node, Input(Constant), Output."""
-        new_op: Operator
+        new_ops: List[Operator] = []
 
         if isinstance(node, Node):  # operator nodes
-            new_op = self.create_new_node(node, op_dic, current_format, input_format_list, nodes_to_remove)
+            new_ops = self.create_new_node(node, op_dic, current_format, input_format_list, nodes_to_remove)
 
         else:  # Input, Output or Constant
             shape: List[int] = list(map(int, node.get_shape()))
@@ -418,35 +435,35 @@ class Importer(object):
             if isinstance(node, Input):
                 if node.is_placeholder:  # op_type = 'Input'
                     shape = list(map(int, node.get_shape()))
-                    new_op = dlk_op.Input(
+                    new_ops.append(dlk_op.Input(
                         node.name,
                         shape,
                         dtype,
                         dimension_format=current_format
-                    )
+                    ))
 
                 else:  # op_type = 'Constant'
                     data = node.get_data()
-                    new_op = dlk_op.Constant(
+                    new_ops.append(dlk_op.Constant(
                         node.name,
                         dtype,
                         data,
                         dimension_format=current_format
-                    )
+                    ))
 
             elif isinstance(node, Output):  # op_type = 'Output'
                 # get input operator
                 input_ops = {k: op_dic[n.name] for n, k in zip(
                     self.find_inputs(node), dlk_op.Output.input_names)}
 
-                new_op = dlk_op.Output(
+                new_ops.append(dlk_op.Output(
                     node.name,
                     shape,
                     dtype,
                     input_ops,
-                )
+                ))
 
-        return new_op
+        return new_ops
 
     def add_all_nodes(self, graph: Graph) -> None:
         visited: Set[Any] = set()
@@ -508,8 +525,8 @@ class Importer(object):
                 return output_format, [input_format]
             else:
                 input_format_list = []
-                for node_name in node.inputs:
-                    node_object = self.node_dic[node_name]
+                for name, _idx in node.inputs:
+                    node_object = self.node_dic[name]
                     if not isinstance(node_object, Input):
                         node_object_format = node_object.get_format() if node_object.get_format() is not None else \
                             guess_node_format(node_object)
@@ -523,7 +540,7 @@ class Importer(object):
     def add_node_to_graph_recursive(self, current: Any,
                                     graph: Graph, visited: Set[Any],
                                     added: Dict[str, Operator],
-                                    data_format: str, nodes_to_remove) -> Operator:
+                                    data_format: str, nodes_to_remove) -> List[Operator]:
         if current in visited:
             return added[current.name]
             # return current
@@ -533,16 +550,18 @@ class Importer(object):
         current_format, input_formats = self._get_format(current, data_format)
         inputs = self.find_inputs(current)
         for in_put, in_format in zip(inputs, input_formats):
-            in_op = self.add_node_to_graph_recursive(in_put, graph, visited, added, in_format, nodes_to_remove)
-            added_op_dic[in_op.name] = in_op
+            in_ops = self.add_node_to_graph_recursive(in_put, graph, visited, added, in_format, nodes_to_remove)
+            for in_op in in_ops:
+                added_op_dic[in_op.name] = in_op
 
-        op = self.create_new_op(current, added_op_dic, current_format, input_formats, nodes_to_remove)
+        ops = self.create_new_op(current, added_op_dic, current_format, input_formats, nodes_to_remove)
 
-        graph.add_op(op)
+        for op in ops:
+            graph.add_op(op)
 
         visited.add(current)
-        added[op.name] = op
-        return op
+        added[current.name] = ops
+        return ops
 
     def construct_input_hash_table(self, node_list: List[Any], out_list: List[Any], input_list: List[Any]) \
             -> Dict[str, Any]:
@@ -552,21 +571,21 @@ class Importer(object):
             hash_table[x.name].append(x)
 
         for node in node_list + out_list:
-            for idx in node.inputs:
-                hash_table[node.name].append(self.node_dic[idx])
+            for name, _idx in node.inputs:
+                hash_table[node.name].append(self.node_dic[name])
 
         return hash_table
 
     def find_inputs(self, node: Any) -> List[Any]:
         inputs: List[Any] = []
         if not isinstance(node, Input):
-            for idx in node.inputs:
-                inputs.append(self.node_dic[idx])
+            for name, _idx in node.inputs:
+                inputs.append(self.node_dic[name])
 
         return inputs
 
     def create_new_node(self, node: Node, op_dic: Dict[str, Operator], current_format: str,
-                        input_format_list: List[str], nodes_to_remove) -> Operator:
+                        input_format_list: List[str], nodes_to_remove) -> List[Operator]:
         """Create a new operator node. This might be tooooo long code...
 
         Args:
@@ -587,14 +606,17 @@ class Importer(object):
             message = f'Operator {op_type} is not supported.'
             raise UnsupportedNode(message)
 
-        new_op: Operator
+        new_ops: List[Operator] = []
 
         def get_inputs(cdef: Type[Operator], current_node: Any) -> Dict[str, Operator]:
             input_names = cdef.input_names
             in_ops: Dict[str, Operator] = {}
             in_ops_order: List[int] = []
-            for n, op in zip(input_names, current_node.inputs):
-                in_ops[n] = op_dic[op]
+            for n, (name, idx) in zip(input_names, current_node.inputs):
+                if idx > 0:
+                    in_ops[n] = op_dic[f'{name}_{idx}']
+                else:
+                    in_ops[n] = op_dic[f'{name}']
                 in_ops_order.append(n)
             return in_ops, in_ops_order
 
@@ -661,7 +683,7 @@ class Importer(object):
                               'pads': pads}
                 shape = infer_shape(attributes)
 
-            new_op = Conv(
+            new_ops.append(Conv(
                 node.name,
                 shape,
                 dtype,
@@ -670,7 +692,7 @@ class Importer(object):
                 kernel_shape=[filt_h, filt_w],
                 strides=strides,
                 pads=pads,
-            )
+            ))
         elif op_type == 'BatchNormalization':
             epsilon = node.attribute('epsilon')[0]
             is_test = not node.attribute('is_training')
@@ -679,7 +701,7 @@ class Importer(object):
                 attributes = {'epsilon': epsilon, 'is_test': is_test}
                 shape = infer_shape(attributes)
 
-            new_op = BatchNormalization(
+            new_ops.append(BatchNormalization(
                 node.name,
                 shape,
                 dtype,
@@ -687,91 +709,91 @@ class Importer(object):
                 dimension_format=current_format,
                 epsilon=epsilon,
                 is_test=is_test,
-            )
+            ))
         elif op_type == 'Add':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Add(
+            new_ops.append(Add(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format
-            )
+            ))
         elif op_type == 'Sub':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Sub(
+            new_ops.append(Sub(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format
-            )
+            ))
         elif op_type == 'Identity':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Identity(
+            new_ops.append(Identity(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'LinearMidTreadHalfQuantizer':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = LinearMidTreadHalfQuantizer(
+            new_ops.append(LinearMidTreadHalfQuantizer(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'BinaryMeanScalingQuantizer':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = BinaryMeanScalingQuantizer(
+            new_ops.append(BinaryMeanScalingQuantizer(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'Reshape':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Reshape(
+            new_ops.append(Reshape(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format
-            )
+            ))
         elif op_type == 'Softmax':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Softmax(
+            new_ops.append(Softmax(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format
-            )
+            ))
         elif op_type == 'MaxPool':
 
             kernel_shape = node.attribute('ksize')[0][1:3]
@@ -813,7 +835,7 @@ class Importer(object):
                 attributes = {'kernel_shape': kernel_shape, 'pads': pads, 'strides': strides}
                 shape = infer_shape(attributes)
 
-            new_op = MaxPool(
+            new_ops.append(MaxPool(
                 node.name,
                 shape,
                 dtype,
@@ -822,7 +844,7 @@ class Importer(object):
                 kernel_shape=kernel_shape,
                 pads=pads,
                 strides=strides,
-            )
+            ))
         elif op_type == 'AveragePool':
 
             kernel_shape = node.attribute('ksize')[0][1:3]
@@ -864,7 +886,7 @@ class Importer(object):
                 attributes = {'kernel_shape': kernel_shape, 'pads': pads, 'strides': strides}
                 shape = infer_shape(attributes)
 
-            new_op = AveragePool(
+            new_ops.append(AveragePool(
                 node.name,
                 shape,
                 dtype,
@@ -872,7 +894,7 @@ class Importer(object):
                 kernel_shape=kernel_shape,
                 pads=pads,
                 strides=strides,
-            )
+            ))
         elif op_type == 'Transpose':
 
             perm = node.attribute("perm")
@@ -881,25 +903,25 @@ class Importer(object):
                 attributes = {'perm': perm}
                 shape = infer_shape(attributes)
 
-            new_op = Transpose(
+            new_ops.append(Transpose(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 perm=perm,
-            )
+            ))
         elif op_type == 'Relu':
 
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Relu(
+            new_ops.append(Relu(
                 node.name,
                 shape,
                 dtype,
                 input_ops
-            )
+            ))
         elif op_type == 'LeakyRelu':
 
             alpha = node.attribute("alpha")[0]
@@ -908,14 +930,14 @@ class Importer(object):
                 attributes = {'alpha': alpha}
                 shape = infer_shape(attributes)
 
-            new_op = LeakyRelu(
+            new_ops.append(LeakyRelu(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
                 alpha=alpha,
-            )
+            ))
         elif op_type == 'SpaceToDepth':
             bs = node.attribute('block_size')
             if not bs:
@@ -925,72 +947,72 @@ class Importer(object):
                 attributes = {'block_size': bs[0]}
                 shape = infer_shape(attributes)
 
-            new_op = SpaceToDepth(
+            new_ops.append(SpaceToDepth(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
                 block_size=bs[0]
-            )
+            ))
         elif op_type == 'Mul':
 
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Mul(
+            new_ops.append(Mul(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'BinaryChannelWiseMeanScalingQuantizer':
 
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = BinaryChannelWiseMeanScalingQuantizer(
+            new_ops.append(BinaryChannelWiseMeanScalingQuantizer(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'ConcatOnDepth':
             axis = input_ops[input_ops_order[-1]]
             if current_format.index('C') != axis:
-                ValueError('f{op_type} {node.name} concatenation is only supported on the depth axis')
+                ValueError('f{op_type} {node.name} concatenation is only supported on the channel axis')
 
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = ConcatOnDepth(
+            new_ops.append(ConcatOnDepth(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
 
             input_axis_name = input_ops_order[-1]
-            nodes_to_remove.append(new_op.input_ops[input_axis_name])
-            new_op.remove_input(input_axis_name)
+            nodes_to_remove.append(new_ops[0].input_ops[input_axis_name])
+            new_ops[0].remove_input(input_axis_name)
         elif op_type == 'Maximum':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Maximum(
+            new_ops.append(Maximum(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'DepthToSpace':
             bs = node.attribute('block_size')
             if not bs:
@@ -1000,157 +1022,171 @@ class Importer(object):
                 attributes = {'block_size': bs[0]}
                 shape = infer_shape(attributes)
 
-            new_op = DepthToSpace(
+            new_ops.append(DepthToSpace(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
                 block_size=bs[0]
-            )
+            ))
         elif op_type == 'ResizeNearestNeighbor':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = ResizeNearestNeighbor(
+            new_ops.append(ResizeNearestNeighbor(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'Split':
             num_split = node.attribute('num_split')[0]
 
             if not isinstance(num_split, int):
                 raise ValueError(f'{op_type} {node.name} only supports integer value')
 
-            if not shape:
-                attributes = {'split': num_split}
-                shape = infer_shape(attributes)
+            shapes = node.get_shapes()
 
-            new_op = Split(
-                node.name,
-                shape,
-                dtype,
-                input_ops,
-                dimension_format=current_format,
-                num_split=num_split
-            )
+            ch_idx = current_format.index('C')
+            begin = 0
+            for idx, shape in enumerate(shapes):
+                name = f'{node.name}_{idx}' if idx > 0 else node.name
+                new_ops.append(Slice(
+                    name,
+                    shape,
+                    dtype,
+                    copy.copy(input_ops),
+                    begin,
+                    shape[ch_idx],
+                    dimension_format=current_format
+                ))
+                begin += shape[ch_idx]
             input_axis_name = input_ops_order[0]
-            nodes_to_remove.append(new_op.input_ops[input_axis_name])
-            new_op.remove_input(input_axis_name)
+            nodes_to_remove.append(input_ops[input_axis_name])
+            for op in new_ops:
+                op.remove_input(input_axis_name)
         elif op_type == 'Pad':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Pad(
+            new_ops.append(Pad(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'MatMul':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = MatMul(
+            new_ops.append(MatMul(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'Gather':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Gather(
+            new_ops.append(Gather(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'Unique':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Unique(
-                node.name,
-                shape,
-                dtype,
-                input_ops,
-                dimension_format=current_format,
-            )
+            new_ops = [
+                UniqueValue(
+                    node.name,
+                    shape,
+                    dtype,
+                    input_ops,
+                    dimension_format=current_format,
+                ),
+                UniqueIndex(
+                    f'{node.name}_1',
+                    shape,
+                    dtype,
+                    input_ops,
+                    dimension_format=current_format,
+                )
+            ]
         elif op_type == 'Cast':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Cast(
+            new_ops.append(Cast(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'Minimum':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Minimum(
+            new_ops.append(Minimum(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'StridedSlice':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = StridedSlice(
+            new_ops.append(StridedSlice(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'Prod':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Prod(
+            new_ops.append(Prod(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         elif op_type == 'Shape':
             if not shape:
                 attributes = {}
                 shape = infer_shape(attributes)
 
-            new_op = Shape(
+            new_ops.append(Shape(
                 node.name,
                 shape,
                 dtype,
                 input_ops,
                 dimension_format=current_format,
-            )
+            ))
         else:
             raise UnsupportedNode(
                 f'TensorFlow importer cannot convert {op_type} operator node!')
 
-        return new_op
+        return new_ops

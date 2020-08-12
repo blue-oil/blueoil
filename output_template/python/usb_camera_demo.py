@@ -88,18 +88,23 @@ def infer_loop(q_input, q_output):
         result, _, _ = run_inference(img, nn, pre_process, post_process)
         q_output.put((result, fps, img_orig))
 
+
 def show_object_detection(img, result, fps, window_height, window_width, config):
     window_img = resize(img, size=[window_height, window_width])
 
     input_width = config.IMAGE_SIZE[1]
     input_height = config.IMAGE_SIZE[0]
-    window_img = add_rectangle(config.CLASSES,
-        window_img, result, (input_height, input_width)
+    window_img = add_rectangle(
+        config.CLASSES,
+        window_img,
+        result,
+        (input_height, input_width),
     )
     img = add_fps(window_img, fps)
 
     window_name = "Object Detection Demo"
     cv2.imshow(window_name, window_img)
+
 
 def show_classification(img, result, fps, window_height, window_width, config):
     window_img = resize(img, size=[window_height, window_width])
@@ -112,9 +117,11 @@ def show_classification(img, result, fps, window_height, window_width, config):
     window_name = "Classification Demo"
     cv2.imshow(window_name, window_img)
 
+
 def show_semantic_segmentation(img, result, fps, window_height, window_width, config):
     orig_img = resize(img, size=[window_height, window_width])
 
+    colormap = np.array(get_color_map(len(config.CLASSES)), dtype=np.uint8)
     seg_img = label_to_color_image(result, colormap)
     seg_img = cv2.resize(seg_img, dsize=(window_width, window_height))
     window_img = cv2.addWeighted(orig_img, 1, seg_img, 0.8, 0)
@@ -122,6 +129,7 @@ def show_semantic_segmentation(img, result, fps, window_height, window_width, co
 
     window_name = "Semantic Segmentation Demo"
     cv2.imshow(window_name, window_img)
+
 
 def show_keypoint_detection(img, result, fps, window_height, window_width, config):
     window_img = resize(img, size=[window_height, window_width])
@@ -133,6 +141,7 @@ def show_keypoint_detection(img, result, fps, window_height, window_width, confi
 
     window_name = "Keypoint Detection Demo"
     cv2.imshow(window_name, window_img)
+
 
 def capture_loop(q_input):
     camera_width = 320
@@ -152,6 +161,7 @@ def capture_loop(q_input):
             old = prev.popleft()
             fps = count_frames / (now - old)
             q_input.put((img, fps))
+
 
 def run_impl(config):
     # Set variables

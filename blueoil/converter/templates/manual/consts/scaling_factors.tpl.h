@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #ifndef SCALING_FACTORS_H_INCLUDED
 #define SCALING_FACTORS_H_INCLUDED
@@ -28,7 +28,7 @@ extern T_FLOAT {{ conv.name }};
 
 {% elif conv.quantizer.op_type == 'BinaryChannelWiseMeanScalingQuantizer' -%}
 
-extern T_FLOAT {{ conv.name }}[{{ conv.depth }}];
+extern T_FLOAT {{ conv.name }}[{{ conv.channels }}];
 
 {% else -%}
 

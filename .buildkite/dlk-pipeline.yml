@@ -26,18 +26,48 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-  - command: "make test-dlk-arm"
-    label: "dlk: code_generation for arm"
+  - command: "make test-dlk-x86_64_avx"
+    label: "dlk: code_generation for x86_64_avx"
     agents:
-    - "agent-type=fpga"
+    - "agent-type=normal"
     - "env=production"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
-  - command: "make test-dlk-arm_fpga"
-    label: "dlk: code_generation for arm_fpga"
+  - command: "make test-dlk-arm"
+    label: "dlk: code_generation for arm(xenial)"
     agents:
     - "agent-type=fpga"
+    - "env=production"
+    - "os=xenial"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+    soft_fail: true
+  - command: "make test-dlk-arm_fpga"
+    label: "dlk: code_generation for arm_fpga(xenial)"
+    agents:
+    - "agent-type=fpga"
+    - "env=production"
+    - "os=xenial"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+    soft_fail: true
+  - command: "make test-dlk-arm"
+    label: "dlk: code_generation for arm(bionic)"
+    agents:
+    - "agent-type=fpga"
+    - "env=production"
+    - "os=bionic"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-dlk-arm_fpga"
+    label: "dlk: code_generation for arm_fpga(bionic)"
+    agents:
+    - "agent-type=fpga"
+    - "os=bionic"
     - "env=production"
     timeout_in_minutes: "30"
     env:
@@ -53,6 +83,14 @@ steps:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
     artifact_paths:
     - "output/TestCodeGenerationAarch64/**/*"
+  - command: "make test-dlk-aarch64_fpga"
+    label: "dlk: code_generation for aarch64_fpga"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: |
       buildkite-agent artifact download "output/TestCodeGenerationAarch64/*" ./ --build ${BUILDKITE_BUILD_ID}
       python3 tests/device_tests/test_device.py
@@ -61,6 +99,7 @@ steps:
     agents:
     - "agent-type=raspberry-pi"
     - "env=production"
+    - "os=bionic"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'

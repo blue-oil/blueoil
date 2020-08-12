@@ -120,3 +120,20 @@ def metrics_summary_op(metrics_ops_dict):
         ]
 
     return tf.compat.v1.summary.merge(metrics_summaries)
+
+
+def profile_train_step(step, sess, run_meta):
+    profiler = tf.compat.v1.profiler.Profiler(sess.graph)
+    profiler.add_step(step, run_meta)
+    opts = (tf.compat.v1.profiler.ProfileOptionBuilder(
+            tf.compat.v1.profiler.ProfileOptionBuilder.time_and_memory())
+            .with_step(step)
+            .select(["bytes"])
+            .order_by("bytes")
+            .build())
+    file_path = os.path.join(environment.EXPERIMENT_DIR, "training_profile_memory")
+    opts["output"] = "file:outfile={}".format(file_path)
+    profiler.profile_name_scope(options=opts)
+    timeline_path = os.path.join(environment.EXPERIMENT_DIR, "training_profile_timeline_step")
+    opts["output"] = "timeline:outfile={}".format(timeline_path)
+    profiler.profile_name_scope(options=opts)

@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-==============================================================================*/
+=============================================================================*/
 
 #include <cmath>
 #include <memory>
@@ -31,18 +31,18 @@ void func_BatchNormalizationOptimized(const TensorView<T_FLOAT, MemoryLayout::NH
   const auto out_shape = output.get_shape();
   T_UINT out_height = out_shape[1];
   T_UINT out_width = out_shape[2];
-  T_UINT out_depth = out_shape[3];
+  T_UINT out_channels = out_shape[3];
 
   T_UINT size = out_height * out_width;
 
 // TODO(nlpng): remove use of OpenMP library
 #pragma omp parallel for
   for (T_UINT f = 0; f < size; f++) {
-    T_FLOAT *in_temp = input.data() + f * out_depth;
-    T_FLOAT *out_temp = output.data() + f * out_depth;
+    T_FLOAT *in_temp = input.data() + f * out_channels;
+    T_FLOAT *out_temp = output.data() + f * out_channels;
 
     T_UINT d = 0;
-    for (; d + 3 < out_depth; d += 4) {
+    for (; d + 3 < out_channels; d += 4) {
       const auto scale_v = vld1q_f32(scale.data() + d);
       const auto shift_v = vld1q_f32(bias.data() + d);
       const auto in_v = vld1q_f32(in_temp);
@@ -51,7 +51,7 @@ void func_BatchNormalizationOptimized(const TensorView<T_FLOAT, MemoryLayout::NH
       out_temp += 4;
     }
 
-    for (; d < out_depth; d++) {
+    for (; d < out_channels; d++) {
       *out_temp++ = *in_temp++ * scale(d) + bias(d);
     }
   }

@@ -101,6 +101,12 @@ class TestSetDataDir(EnvironmentTestBase):
         assert environment.DATA_DIR == abs_path
         assert os.environ["DATA_DIR"] == abs_path
 
+    def test_set_data_dir_with_gcs_path(self):
+        path = "gs://dataset"
+        environment.set_data_dir(path)
+        assert environment.DATA_DIR == path
+        assert os.environ["DATA_DIR"] == path
+
 
 class TestSetOutputDir(EnvironmentTestBase):
     def test_set_output_dir(self):
@@ -141,3 +147,9 @@ class TestSetOutputDir(EnvironmentTestBase):
         assert environment.CHECKPOINTS_DIR == os.path.join(
             abs_path, experiment_id, "checkpoints",
         )
+
+    def test_set_output_dir_with_gcs_path(self):
+        path = "gs://output"
+        environment.set_output_dir(path)
+        assert environment.OUTPUT_DIR == path
+        assert os.environ["OUTPUT_DIR"] == path
