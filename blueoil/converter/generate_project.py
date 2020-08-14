@@ -57,7 +57,7 @@ def optimize_graph_step(graph: Graph, config: Config) -> None:
     pass_transpose(graph)
 
     if config.activate_hard_quantization:
-        pass_lookup(graph)
+        pass_lookup(graph, config)
         pass_propagate_quantization_details_into_conv(graph)
         if config.threshold_skipping:
             pass_compute_thresholds(graph)
