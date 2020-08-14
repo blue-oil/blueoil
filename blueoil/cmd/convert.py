@@ -19,6 +19,7 @@ import subprocess
 
 from blueoil.cmd.export import DEFAULT_INFERENCE_TEST_DATA_IMAGE, run as run_export
 from blueoil.converter.generate_project import run as run_generate_project
+from blueoil.pre_processor import DivideBy255
 
 
 def create_output_directory(output_root_dir, output_template_dir=None):
@@ -194,7 +195,7 @@ def run(experiment_id,
     activate_hard_quantization = True
     threshold_skipping = True
     cache_dma = True
-    use_divide_by_255 = 'DivideBy255' in config.PRE_PROCESSOR
+    use_divide_by_255 = any(isinstance(proc, DivideBy255) for proc in config.PRE_PROCESSOR.processors)
 
     # Generate project
     run_generate_project(
