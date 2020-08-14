@@ -184,9 +184,13 @@ def run(experiment_id,
 
     # Export model
     if save_npy_for_debug:
-        export_dir, config = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=test_image)
+        export_dir, config = run_export(
+            experiment_id, restore_path=restore_path, image_size=image_size, image=test_image
+        )
     else:
-        export_dir, config = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=None)
+        export_dir, config = run_export(
+            experiment_id, restore_path=restore_path, image_size=image_size, image=None
+        )
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")
