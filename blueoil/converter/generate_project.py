@@ -103,7 +103,8 @@ def run(input_path: str,
         activate_hard_quantization: bool,
         threshold_skipping: bool = False,
         debug: bool = False,
-        cache_dma: bool = False):
+        cache_dma: bool = False,
+        use_divide_by_255: bool = True):
 
     output_dlk_test_dir = path.join(dest_dir_path, f'{project_name}.test')
     optimized_pb_path = path.join(dest_dir_path, f'{project_name}')
@@ -116,7 +117,8 @@ def run(input_path: str,
                     optimized_pb_path=optimized_pb_path,
                     output_pj_path=output_project_path,
                     debug=debug,
-                    cache_dma=cache_dma)
+                    cache_dma=cache_dma,
+                    use_divide_by_255=use_divide_by_255)
 
     dest_dir_path = path.abspath(dest_dir_path)
     util.make_dirs(dest_dir_path)
