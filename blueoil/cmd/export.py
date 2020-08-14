@@ -161,7 +161,7 @@ yaml: {}, {}
     print(message)
     print("finish")
 
-    return main_output_dir
+    return main_output_dir, config
 
 
 def run(experiment_id,
