@@ -181,13 +181,21 @@ def run(input_path: str,
     default=False,
     help="use cached DMA buffers",
 )
+@click.option(
+    "-div",
+    "--use_divide_by_255",
+    is_flag=True,
+    default=True,
+    help="use DivideBy255 pre-processor",
+)
 def main(input_path,
          output_path,
          project_name,
          activate_hard_quantization,
          threshold_skipping,
          debug,
-         cache_dma):
+         cache_dma,
+         use_divide_by_255):
 
     click.echo('start running')
     run(input_path=input_path,
@@ -196,7 +204,8 @@ def main(input_path,
         activate_hard_quantization=activate_hard_quantization,
         threshold_skipping=threshold_skipping,
         debug=debug,
-        cache_dma=cache_dma)
+        cache_dma=cache_dma,
+        use_divide_by_255=use_divide_by_255)
 
 
 if __name__ == '__main__':
