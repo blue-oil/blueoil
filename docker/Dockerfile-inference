@@ -37,8 +37,5 @@ RUN chmod 777 /home/blueoil/output_template/python/
 
 FROM blueoil-inference AS blueoil-inference-dev
 
-# Install packages for development
-RUN pip install -r /home/blueoil/output_template/python/dev-requirements.txt
-
 # Copy files for test
 COPY tests tests

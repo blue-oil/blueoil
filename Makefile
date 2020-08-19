@@ -83,7 +83,7 @@ test-unit-main: build
 .PHONY: test-unit-inference
 test-unit-inference: build-inference
 	# Run inference test with Python3.6
-	docker run ${DOCKER_OPT} $(INFERENCE_IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/output_template/
+	docker run ${DOCKER_OPT} $(INFERENCE_IMAGE_NAME):$(BUILD_VERSION) python3 -m unittest discover tests/output_template/
 
 .PHONY: test-dlk
 test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-x86_64_avx test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64 test-dlk-aarch64_fpga
