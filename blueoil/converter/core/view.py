@@ -533,7 +533,7 @@ class View(object):
             if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            use_divide_by_255 = "true" if self.op.use_divide_by_255 else "false"
+            use_divide_by_255 = str(self.op.use_divide_by_255).lower()  # C++'s bool literal is true/false, not True/False
 
             return self.format_string(
                 f"""
