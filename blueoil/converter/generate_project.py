@@ -182,9 +182,8 @@ def run(input_path: str,
     help="use cached DMA buffers",
 )
 @click.option(
-    "-div",
-    "--use_divide_by_255",
-    is_flag=True,
+    "-div/-no-div",
+    "--use_divide_by_255/--no_use_divide_by_255",
     default=True,
     help="use DivideBy255 pre-processor",
 )
