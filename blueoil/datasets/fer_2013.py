@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2020 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,21 +75,16 @@ class FER2013(Base):
     def _load_data(self, path):
         # Load the label and image data from csv
         lines = _load_csv(path)
-        # private test data is used for user's test
         train = [line for line in lines if line[2] == "Training"]
         public_test = [line for line in lines if line[2] == "PublicTest"]
-        #private_test = [line for line in lines if line[2] == "PrivateTest"]
 
         train_num = len(train)
         public_test_num = len(public_test)
-        #private_test_num = len(private_test)
 
         train_images = [None] * train_num
         train_labels = [None] * train_num
         public_test_images = [None] * public_test_num
         public_test_labels = [None] * public_test_num
-        #private_test_images = [None] * private_test_num
-        #private_test_labels = [None] * private_test_num
 
         for i in range(train_num):
             train_images[i] = train[i][1].split(' ')
@@ -98,9 +92,6 @@ class FER2013(Base):
         for i in range(public_test_num):
             public_test_images[i] = public_test[i][1].split(' ')
             public_test_labels[i] = public_test[i][0]
-        #for i in range(private_test_num):
-        #    private_test_images[i] = private_test[i][1].split(' ')
-        #    private_test_labels[i] = private_test[i][0]
         
         return (train_images, train_labels), (public_test_images, public_test_labels)
 
