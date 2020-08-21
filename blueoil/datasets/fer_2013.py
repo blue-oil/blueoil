@@ -90,8 +90,13 @@ class FER2013(Base):
     def _load_data(self, path):
         # Load the label and image data from csv
         lines = _load_csv(path)
-        train = [line for line in lines if line[2] == "Training"]
-        public_test = [line for line in lines if line[2] == "PublicTest"]
+        train = []
+        public_test = []
+        for line in lines:
+            if line[2] == "Training":
+                train.append(line)
+            elif line[2] == "PublicTest":
+                public_test.append(line)
 
         train_num = len(train)
         public_test_num = len(public_test)
