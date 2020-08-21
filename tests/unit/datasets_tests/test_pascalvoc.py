@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2020 The Blueoil Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +55,7 @@ def test_pascalvoc_2007_2012():
                                    [[190, 67, 145, 307, 14]]]
 
 
-def test_pascalvoccustom_object_detection():
+def test_pascalvoccustom():
     classes = ['person']
     available_subsets = ['train', 'validation', 'test', 'train_validation']
     extend_dir = 'PASCALVOC_2007/VOCdevkit/VOC2007'
