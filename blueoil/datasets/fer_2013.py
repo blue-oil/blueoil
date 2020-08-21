@@ -31,6 +31,21 @@ def _load_csv(path):
 
 
 class FER2013(Base):
+    """
+    Dataset loader class for loading FER2013 format csv.
+
+    FER2013 format csv:
+        emotion,pixels,Usage
+        e1,pixels1,usage1
+        e2,pixels2,usage2
+        ...
+
+        where
+          e      : a integer in [0, 6]
+          pixels : 48 x 48 integers in [0, 255] separated with one space
+          usage  : a string, one of Training or PublicTest or PrivateTest
+    """
+
     classes = [
         "Angry",
         "Disgust",
