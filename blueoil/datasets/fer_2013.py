@@ -95,36 +95,34 @@ class FER2013(Base):
 
         train_num = len(train)
         public_test_num = len(public_test)
+        image_size = self.image_size
 
-        train_images = [None] * train_num
-        train_labels = [None] * train_num
-        public_test_images = [None] * public_test_num
-        public_test_labels = [None] * public_test_num
+        train_images = np.empty((train_num, image_size, image_size), dtype=np.uint8)
+        train_labels = np.empty(train_num, dtype=np.uint8)
+        public_test_images = np.empty((public_test_num, image_size, image_size), dtype=np.uint8)
+        public_test_labels = np.empty(public_test_num, dtype=np.uint8)
 
         for i in range(train_num):
-            train_images[i] = train[i][1].split(' ')
+            train_images[i] = np.array(train[i][1].split(' '), np.uint8).reshape((image_size, image_size))
             train_labels[i] = train[i][0]
         for i in range(public_test_num):
-            public_test_images[i] = public_test[i][1].split(' ')
+            public_test_images[i] = np.array(public_test[i][1].split(' '), np.uint8).reshape((image_size, image_size))
             public_test_labels[i] = public_test[i][0]
         
         return (train_images, train_labels), (public_test_images, public_test_labels)
 
     @functools.lru_cache(maxsize=None)
     def _images_and_labels(self):
-        images = []
-        labels = []
+        images = np.empty([0, self.image_size, self.image_size])
+        labels = np.empty([0])
         for path in self._all_files():
             (train_imgs, train_lbls), (test_imgs, test_lbls) = self._load_data(path)
             if self.subset == "train":
-                images += train_imgs
-                labels += train_lbls
+                images = np.concatenate([images, train_imgs])
+                labels = np.concatenate([labels, train_lbls])
             else:
-                images += test_imgs
-                labels += test_lbls
-
-        images = np.array(images, np.uint8).reshape((len(images), self.image_size, self.image_size))
-        labels = np.array(labels, np.uint8)
+                images = np.concatenate([images, test_imgs])
+                labels = np.concatenate([labels, test_lbls])
 
         if self.subset == "train":
             images, labels = shuffle(images, labels, seed=0)
