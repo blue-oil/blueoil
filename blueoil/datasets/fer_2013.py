@@ -113,7 +113,7 @@ class FER2013(Base):
         for i in range(public_test_num):
             public_test_images[i] = np.array(public_test[i][1].split(' '), np.uint8).reshape((image_size, image_size))
             public_test_labels[i] = public_test[i][0]
-        
+
         return (train_images, train_labels), (public_test_images, public_test_labels)
 
     @functools.lru_cache(maxsize=None)
@@ -140,7 +140,7 @@ class FER2013(Base):
             all_csv_files.append(csv_path)
 
         return all_csv_files
-    
+
     def __getitem__(self, i):
         image = self.images[i]
         label = self.labels[i]
