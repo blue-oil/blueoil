@@ -23,9 +23,7 @@ def test_fer2013():
     dataset = FER2013()
     assert len(dataset.classes) == 7
     assert dataset.available_subsets == ['train', 'test']
-    images, labels = dataset._images_and_labels()
-    assert len(images) == 1
-    assert len(labels) == len(images)
-    assert images[0].shape[0] == dataset.image_size
-    assert images[0].shape[1] == dataset.image_size
-    assert labels[0] == 0
+    assert len(dataset) == 1
+    assert dataset[0][0].shape[0] == dataset.image_size
+    assert dataset[0][0].shape[1] == dataset.image_size
+    assert dataset[0][1] == 0
