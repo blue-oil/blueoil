@@ -59,19 +59,8 @@ class FER2013(Base):
     available_subsets = ["train", "test"]
     extend_dir = "FER2013"
 
-    def __init__(
-        self,
-        subset="train",
-        batch_size=100,
-        *args,
-        **kwargs
-    ):
-        super().__init__(
-            subset=subset,
-            batch_size=batch_size,
-            *args,
-            **kwargs
-        )
+    def __init__(self, subset="train", batch_size=100, *args, **kwargs):
+        super().__init__(subset=subset, batch_size=batch_size, *args, **kwargs)
         self.images, self.labels = self._images_and_labels()
 
     @property
