@@ -78,7 +78,7 @@ test-mypy: install-dev
 .PHONY: test-unit-main
 test-unit-main: build
 	# Run lmnet test with Python3.6
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; pytest -n auto unit/"
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; coverage run --source=blueoil --omit=../blueoil/converter/* -m pytest -n auto unit/; coverage report -m"
 
 .PHONY: test-unit-inference
 test-unit-inference: build-inference
@@ -91,7 +91,7 @@ test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-x86_64_avx test-dlk-arm test-dl
 .PHONY: test-dlk-main
 test-dlk-main: build
 	# Run dlk test
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest tests/converter --ignore=tests/converter/test_code_generation.py"
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "coverage run --source=blueoil/converter -m pytest tests/converter --ignore=tests/converter/test_code_generation.py; coverage report -m"
 
 .PHONY: test-dlk-x86_64
 test-dlk-x86_64: build
