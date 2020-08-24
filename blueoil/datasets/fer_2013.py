@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-import functools
 import os
 import csv
 from glob import glob
@@ -86,7 +85,6 @@ class FER2013(Base):
 
         return len(self.images)
 
-    @functools.lru_cache(maxsize=None)
     def _load_data(self, path):
         # Load the label and image data from csv
         lines = _load_csv(path)
@@ -116,7 +114,6 @@ class FER2013(Base):
 
         return (train_images, train_labels), (public_test_images, public_test_labels)
 
-    @functools.lru_cache(maxsize=None)
     def _images_and_labels(self):
         images = np.empty([0, self.image_size, self.image_size])
         labels = np.empty([0])
@@ -135,7 +132,7 @@ class FER2013(Base):
         return images, labels
 
     def _all_files(self):
-        return glob(os.path.join(self.data_dir, "*.csv")):
+        return glob(os.path.join(self.data_dir, "*.csv"))
 
     def __getitem__(self, i):
         return (self.images[i], self.labels[i])
