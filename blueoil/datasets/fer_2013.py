@@ -138,10 +138,7 @@ class FER2013(Base):
         return glob(os.path.join(self.data_dir, "*.csv")):
 
     def __getitem__(self, i):
-        image = self.images[i]
-        label = self.labels[i]
-
-        return (image, label)
+        return (self.images[i], self.labels[i])
 
     def __len__(self):
         return self.num_per_epoch
