@@ -135,11 +135,7 @@ class FER2013(Base):
         return images, labels
 
     def _all_files(self):
-        all_csv_files = []
-        for csv_path in glob(os.path.join(self.data_dir, "*.csv")):
-            all_csv_files.append(csv_path)
-
-        return all_csv_files
+        return glob(os.path.join(self.data_dir, "*.csv")):
 
     def __getitem__(self, i):
         image = self.images[i]
