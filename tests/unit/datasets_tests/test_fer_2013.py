@@ -28,4 +28,4 @@ def test_fer2013():
     assert dataset[0][0].shape[0] == dataset.image_size
     assert dataset[0][0].shape[1] == dataset.image_size
     assert dataset[0][0].shape[2] == 3
-    assert (dataset[0][1] == np.eye(dataset.num_classes)[0]).all()
+    assert (dataset[0][1] == np.array([1, 0, 0, 0, 0, 0, 0])).all()
