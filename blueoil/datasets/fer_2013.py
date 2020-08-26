@@ -74,19 +74,18 @@ class FER2013(Base):
 
         return len(self.images)
 
-    def _load_data(self, path, data_type):
+    def _load_data(self, path, subset):
         # Load the label and image data from csv
         lines = _load_csv(path)
 
-        target = ""
-        if data_type == "train":
+        if subset == "train":
             target = "Training"
-        elif data_type == "validation":
+        elif subset == "validation":
             target = "PublicTest"
-        elif data_type == "test":
+        elif subset == "test":
             target = "PrivateTest"
         else:
-            raise ValueError("Must provide data_type = train or validation or test")
+            raise ValueError("Must provide subset = train or validation or test")
 
         data = [line for line in lines if line[2] == target]
         data_num = len(data)
@@ -96,10 +95,10 @@ class FER2013(Base):
         labels = np.empty(data_num, dtype=np.uint8)
         for i in range(data_num):
             tmp_img = np.array(data[i][1].split(' '), np.uint8).reshape((image_size, image_size))
-            # convert grayscale to RGB
+            # network.Base class requires that image data have 3-channels
             images[i] = np.stack((tmp_img, ) * 3, axis=-1)
             labels[i] = data[i][0]
-        # convert to one hot
+        # convert to one hot encoding
         labels = np.eye(self.num_classes)[labels]
 
         return (images, labels)
@@ -108,9 +107,9 @@ class FER2013(Base):
         images = np.empty([0, self.image_size, self.image_size, 3])
         labels = np.empty([0, self.num_classes])
         for path in self._all_files():
-            (curr_imgs, curr_lbls) = self._load_data(path, self.subset)
-            images = np.concatenate([images, curr_imgs])
-            labels = np.concatenate([labels, curr_lbls])
+            (tmp_images, tmp_labels) = self._load_data(path, self.subset)
+            images = np.concatenate([images, tmp_images])
+            labels = np.concatenate([labels, tmp_labels])
 
         if self.subset == "train":
             images, labels = shuffle(images, labels, seed=0)
