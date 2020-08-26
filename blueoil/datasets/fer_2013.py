@@ -95,7 +95,8 @@ class FER2013(Base):
         labels = np.empty(data_num, dtype=np.uint8)
         for i in range(data_num):
             tmp_img = np.array(data[i][1].split(' '), np.uint8).reshape((image_size, image_size))
-            # network.Base class requires that image data have 3-channels
+            # expand a 1-channel image into 3-channels one
+            # because network.Base class requires that image data have 3-channels
             images[i] = np.stack((tmp_img, ) * 3, axis=-1)
             labels[i] = data[i][0]
         # convert to one hot encoding
