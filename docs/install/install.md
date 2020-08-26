@@ -105,6 +105,20 @@ Login to the board via serial.
     - The path name of your FPGA board should look similar to `/dev/ttyUSB0`.
 - In macOS
     - The path name of your FPGA board should look similar to `/dev/tty.usbserial-A106I1IY`.
+
+First, change the permission of your board to `666`.
+```
+$ sudo chmod 666 /dev/[your_fpga_board]
+```
+If you don't want to change it every time, you can also do the following.
+You can use the `lsusb` command to check the vendor id and product id of your board(like `XXXX:YYYY`).
+Then edit `/etc/udev/rule.d/50=usb=serial.rules` like below.
+```
+SUBSYSTEM=="tty", ATTRS{idVendor}=="XXXX", ATTRS{idProduct}=="YYYY", MODE="0666"
+```
+
+After you change the permission of your board, you can connect via serial.
+
 ```
 $ sudo cu -l  /dev/[your_fpga_board]  -s 115200
 
