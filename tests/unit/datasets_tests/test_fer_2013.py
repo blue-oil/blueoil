@@ -13,6 +13,7 @@
 # limitations under the License.
 # =============================================================================
 import pytest
+import numpy as np
 
 from blueoil.datasets.fer_2013 import FER2013
 
@@ -22,8 +23,9 @@ pytestmark = pytest.mark.usefixtures("set_test_environment")
 def test_fer2013():
     dataset = FER2013()
     assert len(dataset.classes) == 7
-    assert dataset.available_subsets == ['train', 'test']
+    assert dataset.available_subsets == ['train', 'validation', 'test']
     assert len(dataset) == 1
     assert dataset[0][0].shape[0] == dataset.image_size
     assert dataset[0][0].shape[1] == dataset.image_size
-    assert dataset[0][1] == 0
+    assert dataset[0][0].shape[2] == 3
+    assert (dataset[0][1] == np.array([1, 0, 0, 0, 0, 0, 0])).all()
