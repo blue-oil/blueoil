@@ -32,7 +32,8 @@ class Config(object):
                  optimized_pb_path=None,
                  output_pj_path=None,
                  debug: bool = False,
-                 cache_dma: bool = False
+                 cache_dma: bool = False,
+                 use_divide_by_255: bool = True,
                  ) -> None:
         """Init the config object."""
         self.activate_hard_quantization: bool = activate_hard_quantization
@@ -43,6 +44,7 @@ class Config(object):
         self.output_pj_path: str = output_pj_path
         self.__debug: bool = debug
         self.__cache_dma: bool = cache_dma
+        self.__use_divide_by_255: bool = use_divide_by_255
 
     @property
     def pre_processor(self) -> str:
@@ -63,3 +65,7 @@ class Config(object):
     @property
     def cache(self) -> bool:
         return self.__cache_dma
+
+    @property
+    def use_divide_by_255(self) -> bool:
+        return self.__use_divide_by_255

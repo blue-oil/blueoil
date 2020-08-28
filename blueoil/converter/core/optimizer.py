@@ -20,6 +20,7 @@ from collections import defaultdict
 
 import numpy as np
 
+from blueoil.converter.core.config import Config
 from blueoil.converter.core.data_types import Float32, QUANTIZED_PACKED, QUANTIZED_PACKED_KERNEL, PackedUint32
 from blueoil.converter.core.graph import Graph
 from blueoil.converter.core.graph_pattern_matching import get_nodes_in_branch, sort_graph
@@ -594,7 +595,7 @@ def pass_insert_cast(graph: Graph) -> None:
         m.add_outputs(to_be_updated)
 
 
-def pass_lookup(graph: Graph) -> None:
+def pass_lookup(graph: Graph, config: Config) -> None:
     """Lookup.
 
     Args:
@@ -657,7 +658,8 @@ def pass_lookup(graph: Graph) -> None:
         n, h, w, c = quantizer.shape
         shape = [1, h, w, 2, word_size]
         pe = Lookup('Lookup', shape, QUANTIZED_PACKED(),
-                    {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb}, dimension_format='ChHWBCl')
+                    {'input': placeholder[0], 'lsb': pe_lsb, 'msb': pe_msb}, dimension_format='ChHWBCl',
+                    use_divide_by_255=config.use_divide_by_255)
 
         get_nodes_in_branch(quantizer, placeholder[0], to_be_removed)
 
