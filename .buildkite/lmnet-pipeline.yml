@@ -28,6 +28,14 @@ steps:
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
+  - command: "make test-unit-inference"
+    label: "inference"
+    agents:
+    - "agent-type=normal"
+    - "env=production"
+    timeout_in_minutes: "30"
+    env:
+      BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: "make test-lint"
     label: "pep8"
     agents:

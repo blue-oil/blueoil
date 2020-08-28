@@ -1,4 +1,5 @@
 IMAGE_NAME:=blueoil_$$(id -un)
+INFERENCE_IMAGE_NAME:=blueoil_inference_$$(id -un)
 BUILD_VERSION:=$(shell git describe --tags --always --dirty --match="v*" 2> /dev/null || cat $(CURDIR/.version 2> /dev/null || echo v0))
 DOCKER_OPT:=--rm -it -u $$(id -u):$$(id -g) -e CUDA_VISIBLE_DEVICES=-1
 CWD:=$$(pwd)
@@ -29,6 +30,11 @@ install-gpu: install
 build: deps
 	# Build docker image
 	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) -f docker/Dockerfile .
+
+.PHONY: build-inference
+build-inference: deps
+	# Build docker image
+	docker build -t $(INFERENCE_IMAGE_NAME):$(BUILD_VERSION) -f docker/Dockerfile-inference .
 
 .PHONY: setup-test
 setup-test:
@@ -72,7 +78,12 @@ test-mypy: install-dev
 .PHONY: test-unit-main
 test-unit-main: build
 	# Run lmnet test with Python3.6
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; pytest -n auto unit/"
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; pytest --cov=../blueoil --cov-report term-missing --cov-config=unit/.coveragerc -n auto unit/"
+
+.PHONY: test-unit-inference
+test-unit-inference: build-inference
+	# Run inference test with Python3.6
+	docker run ${DOCKER_OPT} $(INFERENCE_IMAGE_NAME):$(BUILD_VERSION) python3 -m unittest discover tests/output_template/
 
 .PHONY: test-dlk
 test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-x86_64_avx test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64 test-dlk-aarch64_fpga
@@ -80,7 +91,7 @@ test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-x86_64_avx test-dlk-arm test-dl
 .PHONY: test-dlk-main
 test-dlk-main: build
 	# Run dlk test
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest tests/converter --ignore=tests/converter/test_code_generation.py"
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest --cov=blueoil/converter --cov-report term-missing tests/converter --ignore=tests/converter/test_code_generation.py"
 
 .PHONY: test-dlk-x86_64
 test-dlk-x86_64: build
