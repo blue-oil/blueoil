@@ -218,7 +218,7 @@ Tensor ResizeVertical_BiLinear(const Tensor &tensor, const int height) {
   return dstTensor;
 }
 
-Tensor Resize(const Tensor& image, const int width, const int height,
+Tensor Resize(const Tensor& image, const int height, const int width,
               const enum ResizeFilter filter) {
   auto shape = image.shape();
   int channels = shape[2];

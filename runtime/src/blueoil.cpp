@@ -66,12 +66,14 @@ int Tensor::shapeVolume() {
 }
 
 int Tensor::offsetVolume(const std::vector<int>& indices) const {
-  int offset = 0, size = data_.size();
-  int i = 0;
-  for (auto itr = indices.begin(); itr != indices.end(); ++itr, ++i) {
-    size /= shape_[i];
-    offset += (*itr) * size;
+  int offset = 0;
+  int size = 1;
+
+  for (int i = shape_.size() - 1; i >= 0; --i) {
+    offset += indices[i] * size;
+    size *= shape_[i]; 
   }
+
   return offset;
 }
 
@@ -131,6 +133,11 @@ void Tensor::erase(std::vector<int> indices_first, std::vector<int> indices_last
   if (indices_first.size() != indices_last.size()) {
     throw std::invalid_argument("indice_first.size != indices_last.size");
   }
+
+  if (std::find(shape_.begin(), shape_.end(), 0) != shape_.end()) {
+    return;
+  }
+
   auto offset_first = offsetVolume(indices_first);
   auto offset_last = offsetVolume(indices_last);
   auto offset_diff = offset_last - offset_first;
