@@ -56,7 +56,7 @@ class FER2013(Base):
     ]
     image_size = 48
     num_classes = len(classes)
-    available_subsets = ["train", "test"]
+    available_subsets = ["train", "validation", "test"]
     extend_dir = "FER2013"
 
     def __init__(self, subset="train", batch_size=100, *args, **kwargs):
@@ -77,43 +77,40 @@ class FER2013(Base):
     def _load_data(self, path):
         # Load the label and image data from csv
         lines = _load_csv(path)
-        train = []
-        public_test = []
-        for line in lines:
-            if line[2] == "Training":
-                train.append(line)
-            elif line[2] == "PublicTest":
-                public_test.append(line)
 
-        train_num = len(train)
-        public_test_num = len(public_test)
+        if self.subset == "train":
+            target = "Training"
+        elif self.subset == "validation":
+            target = "PublicTest"
+        elif self.subset == "test":
+            target = "PrivateTest"
+        else:
+            raise ValueError("Must provide subset = train or validation or test")
+
+        data = [line for line in lines if line[2] == target]
+        data_num = len(data)
         image_size = self.image_size
 
-        train_images = np.empty((train_num, image_size, image_size), dtype=np.uint8)
-        train_labels = np.empty(train_num, dtype=np.uint8)
-        public_test_images = np.empty((public_test_num, image_size, image_size), dtype=np.uint8)
-        public_test_labels = np.empty(public_test_num, dtype=np.uint8)
+        images = np.empty((data_num, image_size, image_size, 3), dtype=np.uint8)
+        labels = np.empty(data_num, dtype=np.uint8)
+        for i in range(data_num):
+            tmp_img = np.array(data[i][1].split(' '), np.uint8).reshape((image_size, image_size))
+            # expand a 1-channel image into 3-channels one
+            # because network.Base class requires that image data have 3-channels
+            images[i] = np.stack((tmp_img, ) * 3, axis=-1)
+            labels[i] = data[i][0]
+        # convert to one hot encoding
+        labels = np.eye(self.num_classes)[labels]
 
-        for i in range(train_num):
-            train_images[i] = np.array(train[i][1].split(' '), np.uint8).reshape((image_size, image_size))
-            train_labels[i] = train[i][0]
-        for i in range(public_test_num):
-            public_test_images[i] = np.array(public_test[i][1].split(' '), np.uint8).reshape((image_size, image_size))
-            public_test_labels[i] = public_test[i][0]
-
-        return (train_images, train_labels), (public_test_images, public_test_labels)
+        return (images, labels)
 
     def _images_and_labels(self):
-        images = np.empty([0, self.image_size, self.image_size])
-        labels = np.empty([0])
+        images = np.empty([0, self.image_size, self.image_size, 3])
+        labels = np.empty([0, self.num_classes])
         for path in self._all_files():
-            (train_imgs, train_lbls), (test_imgs, test_lbls) = self._load_data(path)
-            if self.subset == "train":
-                images = np.concatenate([images, train_imgs])
-                labels = np.concatenate([labels, train_lbls])
-            else:
-                images = np.concatenate([images, test_imgs])
-                labels = np.concatenate([labels, test_lbls])
+            (tmp_images, tmp_labels) = self._load_data(path)
+            images = np.concatenate([images, tmp_images])
+            labels = np.concatenate([labels, tmp_labels])
 
         if self.subset == "train":
             images, labels = shuffle(images, labels, seed=0)
