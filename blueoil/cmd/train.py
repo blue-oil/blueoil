@@ -194,6 +194,7 @@ def start_training(config, profile_step):
         max_steps = int(train_dataset.num_per_epoch / config.BATCH_SIZE * config.MAX_EPOCHS)
     else:
         max_steps = config.MAX_STEPS
+    max_steps = max(1, max_steps)
 
     progbar = Progbar(max_steps)
     if rank == 0:
