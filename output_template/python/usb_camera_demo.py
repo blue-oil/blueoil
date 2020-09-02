@@ -24,10 +24,12 @@ import sys
 from multiprocessing import Process, Queue
 from time import sleep
 from collections import deque
+import queue
 
 import click
 import cv2
 import numpy as np
+from threading import Thread, Lock, Condition
 
 from blueoil.common import get_color_map
 from lmnet.nnlib import NNLib
@@ -49,44 +51,92 @@ from blueoil.visualize import (
 from blueoil.pre_processor import resize
 
 
-nn = None
-pre_process = None
-post_process = None
+def _phase_method_decorator(func):
+    def wrapper(*args):
+        slf = args[0]
+        if slf.terminate_program:
+            return True
+        return func(*args)
+    return wrapper
 
 
-def init_camera(camera_width, camera_height):
-    if hasattr(cv2, 'cv'):
-        vc = cv2.VideoCapture(0)
-        vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
-        vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
-        vc.set(cv2.cv.CV_CAP_PROP_FPS, 60)
-    else:
-        vc = cv2.VideoCapture(0)
-        vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
-        vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
-        vc.set(cv2.CAP_PROP_FPS, 60)
+class PhaseManager:
+    """
+    There are 3 threads in this program
 
-    return vc
+    1. Capture thread: This thread reads the image from camera
+    2. Infer thread: This thread runs the NN and predicts
+    3. Main thread: This thread draws a image, a fps, a prediction result, etc... on window
+
+    This class manages which thread to run, and holds shared-data
+    """
+    def __init__(self):
+        self._captured_queue = queue.Queue()
+        self._infered_queue = queue.Queue()
+        self.cv = Condition()
+        self.terminate_program = False
+
+    @_phase_method_decorator
+    def is_capture_phase(self):
+        return (self._captured_queue.empty() and
+                self._infered_queue.empty())
+
+    @_phase_method_decorator
+    def is_infer_phase(self):
+        return not self._captured_queue.empty()
+
+    @_phase_method_decorator
+    def is_draw_phase(self):
+        return not self._infered_queue.empty()
+
+    def push_captured_result(self, img):
+        self._captured_queue.put(img)
+
+    def pop_captured_result(self):
+        return self._captured_queue.get()
+
+    def push_infered_result(self, img, pred):
+        self._infered_queue.put((img, pred))
+
+    def pop_infered_result(self):
+        return self._infered_queue.get()
 
 
-def add_class_label(canvas,
-                    text="Hello",
-                    font=cv2.FONT_HERSHEY_SIMPLEX,
-                    font_scale=0.42,
-                    font_color=(140, 40, 200),
-                    line_type=1,
-                    dl_corner=(50, 50)):
-    cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
+class FPSCalculator:
+    """
+    Calculate current FPS
+    FPS is calculated by last 10 values which is returned by time.perf_counter
+    time.pref_counter is assumed to be called when the main thread is drawing a image
+    """
+    def __init__(self, count_frame):
+        self.count_frame = count_frame
+        prev1 = time.perf_counter()
+        self._prev = deque([prev1] * self.count_frame)
 
+    def _measure(self, begin, end):
+        elapsed = end - begin
+        return self.count_frame / elapsed
 
-def infer_loop(q_input, q_output):
-    global nn, pre_process, post_process
-    nn.init()
-    while True:
-        img_orig, fps = q_input.get()
-        img = cv2.cvtColor(img_orig, cv2.COLOR_BGR2RGB)
-        result, _, _ = run_inference(img, nn, pre_process, post_process)
-        q_output.put((result, fps, img_orig))
+    def _get_front(self):
+        ret = self._prev.popleft()
+        self._prev.appendleft(ret)
+        return ret
+
+    def _get_back(self):
+        ret = self._prev.pop()
+        self._prev.pop(ret)
+        return ret
+
+    def update(self):
+        old = self._prev.popleft()
+        now = time.perf_counter()
+        self._prev.append(now)
+        return self._measure(old, now)
+
+    def get(self):
+        begin = self._get_front()
+        end = self._get_back()
+        return self._measure(begin, end)
 
 
 def show_object_detection(img, result, fps, window_height, window_width, config):
@@ -143,40 +193,7 @@ def show_keypoint_detection(img, result, fps, window_height, window_width, confi
     cv2.imshow(window_name, window_img)
 
 
-def capture_loop(q_input):
-    camera_width = 320
-    camera_height = 240
-
-    vc = init_camera(camera_width, camera_height)
-
-    count_frames = 10
-    prev_1 = time.clock()
-    prev = deque([prev_1] * count_frames)
-
-    while True:
-        valid, img = vc.read()
-        if valid:
-            now = time.clock()
-            prev.append(now)
-            old = prev.popleft()
-            fps = count_frames / (now - old)
-            q_input.put((img, fps))
-
-
-def run_impl(config):
-    # Set variables
-    q_input = Queue(2)
-    q_output = Queue(4)
-
-    p_capture = Process(target=capture_loop, args=(q_input,))
-    p_capture.start()
-
-    p_infer = Process(target=infer_loop, args=(q_input, q_output))
-    p_infer.start()
-
-    window_width = 320
-    window_height = 240
-
+def get_show_handle(config):
     show_handles_table = {
         "IMAGE.OBJECT_DETECTION": show_object_detection,
         "IMAGE.CLASSIFICATION": show_classification,
@@ -184,19 +201,122 @@ def run_impl(config):
         "IMAGE.KEYPOINT_DETECTION": show_keypoint_detection
     }
     show_handle = show_handles_table[config.TASK]
+    return show_handle
 
-    #  ----------- Beginning of Main Loop ---------------
+
+nn = None
+pre_process = None
+post_process = None
+phase_manager = PhaseManager()
+
+
+def init_camera(camera_width, camera_height):
+    if hasattr(cv2, 'cv'):
+        vc = cv2.VideoCapture(0)
+        vc.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, camera_width)
+        vc.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, camera_height)
+        vc.set(cv2.cv.CV_CAP_PROP_FPS, 60)
+    else:
+        vc = cv2.VideoCapture(0)
+        vc.set(cv2.CAP_PROP_FRAME_WIDTH, camera_width)
+        vc.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_height)
+        vc.set(cv2.CAP_PROP_FPS, 60)
+
+    return vc
+
+
+def add_class_label(canvas,
+                    text="Hello",
+                    font=cv2.FONT_HERSHEY_SIMPLEX,
+                    font_scale=0.42,
+                    font_color=(140, 40, 200),
+                    line_type=1,
+                    dl_corner=(50, 50)):
+    cv2.putText(canvas, text, dl_corner, font, font_scale, font_color, line_type)
+
+
+def capture_loop():
+    global phase_manager
+
+    camera_width = 320
+    camera_height = 240
+
+    vc = init_camera(camera_width, camera_height)
+    cv = phase_manager.cv
+
     while True:
-        if not q_output.empty():
-            result, fps, img = q_output.get()
-            show_handle(img, result, fps, window_height, window_width, config)
+        with cv:
+            while not phase_manager.is_capture_phase():
+                cv.wait()
+            if phase_manager.terminate_program:
+                return
+            cv.acquire()
+            while True:
+                valid, img = vc.read()
+                if valid:
+                    phase_manager.push_captured_result(img)
+                    break
+                else:
+                    sleep(0.01)
+            cv.release()
+            cv.notify_all()
+
+
+def infer_loop():
+    global phase_manager, nn, pre_process, post_process
+
+    nn.init()
+    cv = phase_manager.cv
+
+    while True:
+        with cv:
+            while not phase_manager.is_infer_phase():
+                cv.wait()
+            if phase_manager.terminate_program:
+                return
+            cv.acquire()
+            img_orig = phase_manager.pop_captured_result()
+            img = img_orig
+            # img = _adjust_image(img_orig)
+            pred, _, _ = run_inference(img, nn, pre_process, post_process)
+            phase_manager.push_infered_result(img_orig, pred)
+            cv.release()
+            cv.notify_all()
+
+
+def main_loop(config):
+    global phase_manager, nn, pre_process, post_process
+
+    window_width = 320
+    window_height = 240
+    fps_calculator = FPSCalculator(10)
+    show_handle = get_show_handle(config)
+    cv = phase_manager.cv
+    th_capture = Thread(target=capture_loop)
+    th_infer = Thread(target=infer_loop)
+
+    th_capture.start()
+    th_infer.start()
+
+    while True:
+        with cv:
+            while not phase_manager.is_draw_phase():
+                cv.wait()
+            cv.acquire()
+            img, pred = phase_manager.pop_infered_result()
+            fps = fps_calculator.update()
+            show_handle(img, pred, fps, window_height, window_width, config)
             key = cv2.waitKey(1)    # Wait for 1ms
             if key == 27:           # ESC to quit
-                sleep(1.0)          # Wait for worker's current task is finished
-                p_capture.terminate()
-                p_infer.terminate()
-                return
-    # --------------------- End of main Loop -----------------------
+                phase_manager.terminate_program = True
+                cv.release()
+                cv.notify_all()     # Notify other threads to terminate
+                break
+            cv.release()
+            cv.notify_all()
+
+    th_capture.join()
+    th_infer.join()
 
 
 def run(model, config_file):
@@ -224,7 +344,7 @@ def run(model, config_file):
         from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
         nn = TensorflowGraphRunner(model)
 
-    run_impl(config)
+    main_loop(config)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
