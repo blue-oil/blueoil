@@ -74,15 +74,15 @@ class FER2013(Base):
 
         return len(self.images)
 
-    def _load_data(self, path, subset):
+    def _load_data(self, path):
         # Load the label and image data from csv
         lines = _load_csv(path)
 
-        if subset == "train":
+        if self.subset == "train":
             target = "Training"
-        elif subset == "validation":
+        elif self.subset == "validation":
             target = "PublicTest"
-        elif subset == "test":
+        elif self.subset == "test":
             target = "PrivateTest"
         else:
             raise ValueError("Must provide subset = train or validation or test")
@@ -108,7 +108,7 @@ class FER2013(Base):
         images = np.empty([0, self.image_size, self.image_size, 3])
         labels = np.empty([0, self.num_classes])
         for path in self._all_files():
-            (tmp_images, tmp_labels) = self._load_data(path, self.subset)
+            (tmp_images, tmp_labels) = self._load_data(path)
             images = np.concatenate([images, tmp_images])
             labels = np.concatenate([labels, tmp_labels])
 

@@ -57,7 +57,7 @@ def optimize_graph_step(graph: Graph, config: Config) -> None:
     pass_transpose(graph)
 
     if config.activate_hard_quantization:
-        pass_lookup(graph)
+        pass_lookup(graph, config)
         pass_propagate_quantization_details_into_conv(graph)
         if config.threshold_skipping:
             pass_compute_thresholds(graph)
@@ -103,7 +103,8 @@ def run(input_path: str,
         activate_hard_quantization: bool,
         threshold_skipping: bool = False,
         debug: bool = False,
-        cache_dma: bool = False):
+        cache_dma: bool = False,
+        use_divide_by_255: bool = True):
 
     output_dlk_test_dir = path.join(dest_dir_path, f'{project_name}.test')
     optimized_pb_path = path.join(dest_dir_path, f'{project_name}')
@@ -116,7 +117,8 @@ def run(input_path: str,
                     optimized_pb_path=optimized_pb_path,
                     output_pj_path=output_project_path,
                     debug=debug,
-                    cache_dma=cache_dma)
+                    cache_dma=cache_dma,
+                    use_divide_by_255=use_divide_by_255)
 
     dest_dir_path = path.abspath(dest_dir_path)
     util.make_dirs(dest_dir_path)
@@ -179,13 +181,20 @@ def run(input_path: str,
     default=False,
     help="use cached DMA buffers",
 )
+@click.option(
+    "-div/-no-div",
+    "--use_divide_by_255/--no_use_divide_by_255",
+    default=True,
+    help="use DivideBy255 pre-processor",
+)
 def main(input_path,
          output_path,
          project_name,
          activate_hard_quantization,
          threshold_skipping,
          debug,
-         cache_dma):
+         cache_dma,
+         use_divide_by_255):
 
     click.echo('start running')
     run(input_path=input_path,
@@ -194,7 +203,8 @@ def main(input_path,
         activate_hard_quantization=activate_hard_quantization,
         threshold_skipping=threshold_skipping,
         debug=debug,
-        cache_dma=cache_dma)
+        cache_dma=cache_dma,
+        use_divide_by_255=use_divide_by_255)
 
 
 if __name__ == '__main__':

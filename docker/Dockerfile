@@ -9,10 +9,6 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
     CUDA_HOME=/usr/local/cuda-10.0 \
     DEBIAN_FRONTEND=noninteractive
 
-# Add source list entry for GCC 9
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 60C317803A41BA51845E371A1E9377A2BA9EF27F
-RUN echo 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu bionic main' | tee /etc/apt/sources.list.d/ubuntu-toolchain-r-ubuntu-test.list
-
 RUN apt-get update && apt-get install -y \
     cmake \
     fonts-dejavu \
@@ -30,8 +26,8 @@ RUN apt-get update && apt-get install -y \
     make \
     build-essential \
     wget \
-    g++-9 \
-    crossbuild-essential-arm64 \
+    g++-8 \
+    g++-8-aarch64-linux-gnu \
     g++-8-arm-linux-gnueabihf \
     openssh-client \
     openssh-server \
@@ -39,7 +35,9 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
 RUN ln -s /usr/bin/arm-linux-gnueabihf-g++-8 /usr/bin/arm-linux-gnueabihf-g++
+RUN ln -s /usr/bin/aarch64-linux-gnu-g++-8 /usr/bin/aarch64-linux-gnu-g++
 
 # Install OpenSSH for MPI to communicate between containers
 RUN mkdir -p /var/run/sshd
