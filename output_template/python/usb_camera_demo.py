@@ -70,6 +70,7 @@ class PhaseManager:
 
     This class manages which thread to run, and holds shared-data
     """
+
     def __init__(self):
         self._captured_queue = queue.Queue()
         self._infered_queue = queue.Queue()
@@ -108,6 +109,7 @@ class FPSCalculator:
     FPS is calculated by last 10 values which is returned by time.perf_counter
     time.pref_counter is assumed to be called when the main thread is drawing a image
     """
+
     def __init__(self, count_frame):
         self.count_frame = count_frame
         prev1 = time.perf_counter()
