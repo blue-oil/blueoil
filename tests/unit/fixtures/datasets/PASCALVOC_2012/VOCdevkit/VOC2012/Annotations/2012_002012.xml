@@ -1,0 +1,43 @@
+<annotation>
+	<filename>2012_002012.jpg</filename>
+	<folder>VOC2012</folder>
+	<object>
+		<name>person</name>
+		<actions>
+			<jumping>0</jumping>
+			<other>0</other>
+			<phoning>1</phoning>
+			<playinginstrument>0</playinginstrument>
+			<reading>0</reading>
+			<ridingbike>0</ridingbike>
+			<ridinghorse>0</ridinghorse>
+			<running>0</running>
+			<takingphoto>0</takingphoto>
+			<usingcomputer>0</usingcomputer>
+			<walking>0</walking>
+		</actions>
+		<bndbox>
+			<xmax>336</xmax>
+			<xmin>191</xmin>
+			<ymax>375</ymax>
+			<ymin>68</ymin>
+		</bndbox>
+		<difficult>0</difficult>
+		<pose>Unspecified</pose>
+		<point>
+			<x>258</x>
+			<y>190</y>
+		</point>
+	</object>
+	<segmented>0</segmented>
+	<size>
+		<depth>3</depth>
+		<height>375</height>
+		<width>500</width>
+	</size>
+	<source>
+		<annotation>PASCAL VOC2012</annotation>
+		<database>The VOC2012 Database</database>
+		<image>flickr</image>
+	</source>
+</annotation>

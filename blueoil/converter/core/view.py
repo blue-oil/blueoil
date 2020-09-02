@@ -533,7 +533,14 @@ class View(object):
             if len(input_ops) != 3:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)
 
-            return self.format_string(f"""func_Lookup({inputs_string}, {outputs_string});""")
+            # C++'s bool literal is true/false, not True/False
+            use_divide_by_255 = str(self.op.use_divide_by_255).lower()
+
+            return self.format_string(
+                f"""
+                func_Lookup({inputs_string}, {outputs_string}, {use_divide_by_255});
+                """
+            )
         elif self.op.op_type == 'Cast':
             if len(input_ops) != 1:
                 self.raise_invalid_args_exception(op, input_ops, output_ops)

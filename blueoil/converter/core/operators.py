@@ -3117,6 +3117,17 @@ class Lookup(Quantizer):
     _input_names = ['input', 'lsb', 'msb']
     _output_names = ['output']
 
+    def __init__(self,
+                 name: str,
+                 shape: List[int],
+                 dtype: DataType,
+                 input_ops: Ops,
+                 dimension_format: str = 'NHWC',
+                 use_divide_by_255: bool = True) -> None:
+        """Init the quantization operator."""
+        self._use_divide_by_255 = use_divide_by_255
+        super().__init__(name, shape, dtype, input_ops, dimension_format=dimension_format)
+
     def _check_consistency(self) -> None:
         super()._check_consistency()
 
@@ -3131,6 +3142,10 @@ class Lookup(Quantizer):
     @property
     def max_v(self) -> float:
         return 2.0
+
+    @property
+    def use_divide_by_255(self) -> bool:
+        return self._use_divide_by_255
 
 
 class Prod(Operator):

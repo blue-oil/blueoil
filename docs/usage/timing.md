@@ -11,7 +11,7 @@ As an example:
 ```
 import numpy
 
-# Load an imput image from file.
+# Load an input image from file.
 input = load_img("input_image.png")
 
 #Run the network.

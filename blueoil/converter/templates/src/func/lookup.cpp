@@ -23,7 +23,8 @@ limitations under the License.
 void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
     const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::TC>& lsb,
     const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::TC>& msb,
-    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output) {
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
+    const bool use_divide_by_255) {
   const auto in_shape = input.get_shape();
   const auto h = in_shape[1];
   const auto w = in_shape[2];
@@ -53,12 +54,17 @@ void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
     const auto v2 = _mm256_insertf128_ps(vl2, vh2, 1);
     const auto tmp0 = _mm256_shuffle_ps(v1, v2, _MM_SHUFFLE(2, 1, 3, 2));
     const auto tmp1 = _mm256_shuffle_ps(v0, v1, _MM_SHUFFLE(1, 0, 2, 1));
-    const auto r = _mm256_shuffle_ps(v0, tmp0, _MM_SHUFFLE(2, 0, 3, 0));
-    const auto g = _mm256_shuffle_ps(tmp1, tmp0, _MM_SHUFFLE(3, 1, 2, 0));
-    const auto b = _mm256_shuffle_ps(tmp1, v2, _MM_SHUFFLE(3, 0, 3, 1));
-    const auto ri = _mm256_cvtps_epi32(_mm256_mul_ps(r, coeff));
-    const auto gi = _mm256_cvtps_epi32(_mm256_mul_ps(g, coeff));
-    const auto bi = _mm256_cvtps_epi32(_mm256_mul_ps(b, coeff));
+    auto r = _mm256_shuffle_ps(v0, tmp0, _MM_SHUFFLE(2, 0, 3, 0));
+    auto g = _mm256_shuffle_ps(tmp1, tmp0, _MM_SHUFFLE(3, 1, 2, 0));
+    auto b = _mm256_shuffle_ps(tmp1, v2, _MM_SHUFFLE(3, 0, 3, 1));
+    if (use_divide_by_255) {
+      r = _mm256_mul_ps(r, coeff);
+      g = _mm256_mul_ps(g, coeff);
+      b = _mm256_mul_ps(b, coeff);
+    }
+    const auto ri = _mm256_cvtps_epi32(r);
+    const auto gi = _mm256_cvtps_epi32(g);
+    const auto bi = _mm256_cvtps_epi32(b);
     const auto lr = _mm256_i32gather_epi32(reinterpret_cast<const int32_t*>(lsb_ptr), ri, 4);
     const auto lg = _mm256_i32gather_epi32(reinterpret_cast<const int32_t*>(lsb_ptr), gi, 4);
     const auto lb = _mm256_i32gather_epi32(reinterpret_cast<const int32_t*>(lsb_ptr), bi, 4);
@@ -81,16 +87,24 @@ void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
   in_ptr += count_floor * 3;
   out_ptr += count_floor * 2;
   for (std::size_t i = count_floor; i < count; ++i) {
-    int r = int(*in_ptr++ * 255.0);
-    int g = int(*in_ptr++ * 255.0);
-    int b = int(*in_ptr++ * 255.0);
+    float r = *in_ptr++;
+    float g = *in_ptr++;
+    float b = *in_ptr++;
+    if (use_divide_by_255) {
+      r *= 255.0f;
+      g *= 255.0f;
+      b *= 255.0f;
+    }
+    size_t ri = static_cast<size_t>(r);
+    size_t gi = static_cast<size_t>(g);
+    size_t bi = static_cast<size_t>(b);
 
-    auto r_lsb = lsb_ptr[r];
-    auto g_lsb = lsb_ptr[g];
-    auto b_lsb = lsb_ptr[b];
-    auto r_msb = msb_ptr[r];
-    auto g_msb = msb_ptr[g];
-    auto b_msb = msb_ptr[b];
+    auto r_lsb = lsb_ptr[ri];
+    auto g_lsb = lsb_ptr[gi];
+    auto b_lsb = lsb_ptr[bi];
+    auto r_msb = msb_ptr[ri];
+    auto g_msb = msb_ptr[gi];
+    auto b_msb = msb_ptr[bi];
 
     *out_ptr++ = QUANTIZED_PACKED((b_lsb.Raw() << 20) | (g_lsb.Raw() << 10) | r_lsb.Raw());
     *out_ptr++ = QUANTIZED_PACKED((b_msb.Raw() << 20) | (g_msb.Raw() << 10) | r_msb.Raw());
@@ -99,16 +113,24 @@ void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
   int len = h * w;
 #pragma omp parallel for
   for(int i = 0; i < len; i++) {
-    int r = int(in_ptr[i * 3 + 0] * 255.0f);
-    int g = int(in_ptr[i * 3 + 1] * 255.0f);
-    int b = int(in_ptr[i * 3 + 2] * 255.0f);
+    float r = in_ptr[i * 3 + 0];
+    float g = in_ptr[i * 3 + 1];
+    float b = in_ptr[i * 3 + 2];
+    if (use_divide_by_255) {
+      r *= 255.0f;
+      g *= 255.0f;
+      b *= 255.0f;
+    }
+    size_t ri = static_cast<size_t>(r);
+    size_t gi = static_cast<size_t>(g);
+    size_t bi = static_cast<size_t>(b);
 
-    auto r_lsb = lsb_ptr[r];
-    auto g_lsb = lsb_ptr[g];
-    auto b_lsb = lsb_ptr[b];
-    auto r_msb = msb_ptr[r];
-    auto g_msb = msb_ptr[g];
-    auto b_msb = msb_ptr[b];
+    auto r_lsb = lsb_ptr[ri];
+    auto g_lsb = lsb_ptr[gi];
+    auto b_lsb = lsb_ptr[bi];
+    auto r_msb = msb_ptr[ri];
+    auto g_msb = msb_ptr[gi];
+    auto b_msb = msb_ptr[bi];
 
     out_ptr[i * 2 + 0] = QUANTIZED_PACKED((b_lsb.Raw() << 20) | (g_lsb.Raw() << 10) | r_lsb.Raw());
     out_ptr[i * 2 + 1] = QUANTIZED_PACKED((b_msb.Raw() << 20) | (g_msb.Raw() << 10) | r_msb.Raw());

@@ -1,4 +1,5 @@
 IMAGE_NAME:=blueoil_$$(id -un)
+INFERENCE_IMAGE_NAME:=blueoil_inference_$$(id -un)
 BUILD_VERSION:=$(shell git describe --tags --always --dirty --match="v*" 2> /dev/null || cat $(CURDIR/.version 2> /dev/null || echo v0))
 DOCKER_OPT:=--rm -it -u $$(id -u):$$(id -g) -e CUDA_VISIBLE_DEVICES=-1
 CWD:=$$(pwd)
@@ -12,22 +13,28 @@ deps:
 
 .PHONY: install
 install: deps
-	pip install -e .[cpu,tests,docs]
-	pip install pycocotools==2.0.0
+	pip3 install -U pip
+	pip3 install -e .[cpu]
+	pip3 install pycocotools==2.0.0
+
+.PHONY: install-dev
+install-dev: deps install
+	pip3 install -e .[test,docs]
 
 .PHONY: install-gpu
 install-gpu: install
-	pip install -e .[gpu]
-	pip install -e .[dist]
-
-.PHONY: lint
-lint:
-	flake8 ./blueoil ./tests --exclude=templates
+	pip3 install -e .[gpu]
+	pip3 install -e .[dist]
 
 .PHONY: build
 build: deps
 	# Build docker image
 	docker build -t $(IMAGE_NAME):$(BUILD_VERSION) -f docker/Dockerfile .
+
+.PHONY: build-inference
+build-inference: deps
+	# Build docker image
+	docker build -t $(INFERENCE_IMAGE_NAME):$(BUILD_VERSION) -f docker/Dockerfile-inference .
 
 .PHONY: setup-test
 setup-test:
@@ -57,24 +64,26 @@ test-keypoint-detection: build setup-test
 	# Run Blueoil test of keypoint-detection
 	docker run ${DOCKER_OPT} -v $(CWD)/tmp:/home/blueoil/tmp $(IMAGE_NAME):$(BUILD_VERSION) pytest -n auto tests/e2e/test_keypoint_detection.py
 
-.PHONY: test-lmnet
-test-lmnet: test-blueoil-pep8 test-unit-main
-
-.PHONY: test-blueoil-pep8
-test-blueoil-pep8: build
+.PHONY: test-lint
+test-lint: install-dev
 	# Check blueoil pep8
 	# FIXME: blueoil/templates have a lot of errors with flake8
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "flake8 ./blueoil ./tests --exclude=templates"
+	flake8 ./blueoil ./tests ./output_template/python --exclude=templates
 
-.PHONY: test-blueoil-mypy
-test-blueoil-mypy: build
+.PHONY: test-mypy
+test-mypy: install-dev
 	# Check blueoil mypy
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "mypy blueoil"
+	mypy blueoil
 
 .PHONY: test-unit-main
 test-unit-main: build
 	# Run lmnet test with Python3.6
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; pytest -n auto unit/"
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "cd tests; pytest --cov=../blueoil --cov-report term-missing --cov-config=unit/.coveragerc -n auto unit/"
+
+.PHONY: test-unit-inference
+test-unit-inference: build-inference
+	# Run inference test with Python3.6
+	docker run ${DOCKER_OPT} $(INFERENCE_IMAGE_NAME):$(BUILD_VERSION) python3 -m unittest discover tests/output_template/
 
 .PHONY: test-dlk
 test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-x86_64_avx test-dlk-arm test-dlk-arm_fpga test-dlk-aarch64 test-dlk-aarch64_fpga
@@ -82,7 +91,7 @@ test-dlk: test-dlk-main test-dlk-x86_64 test-dlk-x86_64_avx test-dlk-arm test-dl
 .PHONY: test-dlk-main
 test-dlk-main: build
 	# Run dlk test
-	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest tests/converter --ignore=tests/converter/test_code_generation.py"
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest --cov=blueoil/converter --cov-report term-missing tests/converter --ignore=tests/converter/test_code_generation.py"
 
 .PHONY: test-dlk-x86_64
 test-dlk-x86_64: build
@@ -114,18 +123,6 @@ test-dlk-aarch64: build
 test-dlk-aarch64_fpga: build
 	# Run dlk test of code_generation for aarch64_fpga
 	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) /bin/bash -c "pytest -n auto tests/converter/test_code_generation.py::TestCodeGenerationAarch64Fpga"
-
-.PHONY: rootfs-docker
-rootfs-docker:
-	docker build -t $(IMAGE_NAME)_os -f docker/Dockerfile_make_os . #--no-cache=true
-
-.PHONY: rootfs-armhf
-rootfs-armhf: rootfs-docker
-	docker run --privileged -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh armhf
-
-.PHONY: rootfs-arm64
-rootfs-arm64: rootfs-docker
-	docker run --privileged -v $(CWD)/make_os/build:/build -it $(IMAGE_NAME)_os /build/make_rootfs.sh arm64
 
 .PHONY: clean
 clean:

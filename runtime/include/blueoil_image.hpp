@@ -29,7 +29,7 @@ enum ResizeFilter {
 
 Tensor LoadImage(const std::string filename);
 
-Tensor Resize(const Tensor& image, const int width, const int height,
+Tensor Resize(const Tensor& image, const int height, const int width,
               const enum ResizeFilter filter);
 
 }  // namespace image

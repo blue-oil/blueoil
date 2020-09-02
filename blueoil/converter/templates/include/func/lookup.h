@@ -22,6 +22,7 @@ limitations under the License.
 void func_Lookup(const TensorView<float, MemoryLayout::NHWC>& input,
     const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::TC>& lsb,
     const TensorView<QUANTIZED_PACKED_KERNEL, MemoryLayout::TC>& msb,
-    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output);
+    const TensorView<QUANTIZED_PACKED, MemoryLayout::ChHWBCl>& output,
+    const bool use_divide_by_255);
 
 #endif // DLK_FUNC_LOOKUP_H_INCLUDED

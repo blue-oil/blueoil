@@ -99,6 +99,7 @@ steps:
     agents:
     - "agent-type=raspberry-pi"
     - "env=production"
+    - "os=bionic"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
