@@ -16,6 +16,7 @@
 from datetime import datetime
 import math
 import os
+import sys
 
 import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
@@ -194,7 +195,9 @@ def start_training(config, profile_step):
         max_steps = int(train_dataset.num_per_epoch / config.BATCH_SIZE * config.MAX_EPOCHS)
     else:
         max_steps = config.MAX_STEPS
-    max_steps = max(1, max_steps)
+    if max_steps < 1:
+        print("The max_steps is less than 1, consider reduce BATCH_SIZE. exit.")
+        sys.exit(1)
 
     progbar = Progbar(max_steps)
     if rank == 0:
