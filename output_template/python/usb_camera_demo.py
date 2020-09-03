@@ -21,7 +21,6 @@ from __future__ import unicode_literals
 import time
 import os
 import sys
-from multiprocessing import Process, Queue
 from time import sleep
 from collections import deque
 import queue
@@ -29,7 +28,7 @@ import queue
 import click
 import cv2
 import numpy as np
-from threading import Thread, Lock, Condition
+from threading import Thread, Condition
 
 from blueoil.common import get_color_map
 from lmnet.nnlib import NNLib
