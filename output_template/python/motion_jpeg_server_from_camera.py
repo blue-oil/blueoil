@@ -13,18 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from io import BytesIO
 from multiprocessing import Pool
 import os
 import signal
 import sys
-from SocketServer import ThreadingMixIn
+from socketserver import ThreadingMixIn
 
 import click
 
@@ -75,6 +70,8 @@ class MotionJpegHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'multipart/x-mixed-replace; boundary=jpgboundary')
         self.end_headers()
 
+        visualizer = _visualizer(config.TASK)
+
         while True:
             try:
                 pool_result.wait()
@@ -86,20 +83,7 @@ class MotionJpegHandler(BaseHTTPRequestHandler):
                     camera_img = stream.read()
                     pool_result = pool.apply_async(_run_inference, (camera_img, ))
 
-                else:
-                    result = None
-
-                if result is not None:
-                    result = result[0]
-                    if config.TASK == "IMAGE.CLASSIFICATION":
-                        image = visualize_classification(window_img, result, config)
-
-                    if config.TASK == "IMAGE.OBJECT_DETECTION":
-                        image = visualize_object_detection(window_img, result, config)
-
-                    if config.TASK == "IMAGE.SEMANTIC_SEGMENTATION":
-                        image = visualize_semantic_segmentation(window_img, result, config)
-
+                    image = visualizer(window_img, result[0], config)
                     draw_fps(image, fps, fps_only_network)
                     tmp = BytesIO()
                     image.save(tmp, "JPEG")
@@ -116,6 +100,19 @@ class MotionJpegHandler(BaseHTTPRequestHandler):
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
+
+
+def _visualizer(task):
+    if task == "IMAGE.CLASSIFICATION":
+        return visualize_classification
+
+    if task == "IMAGE.OBJECT_DETECTION":
+        return visualize_object_detection
+
+    if task == "IMAGE.SEMANTIC_SEGMENTATION":
+        return visualize_semantic_segmentation
+
+    raise ValueError(f"Not supported TASK type: {task}")
 
 
 def _run_inference(inputs):
