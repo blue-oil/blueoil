@@ -193,11 +193,14 @@ def start_training(config, profile_step):
     # Calculate max steps. The priority of config.MAX_EPOCHS is higher than config.MAX_STEPS.
     if "MAX_EPOCHS" in config:
         max_steps = int(train_dataset.num_per_epoch / config.BATCH_SIZE * config.MAX_EPOCHS)
+        if max_steps < 1:
+            print("The max_steps is less than 1, consider reduce BATCH_SIZE. exit.")
+            sys.exit(1)
     else:
         max_steps = config.MAX_STEPS
-    if max_steps < 1:
-        print("The max_steps is less than 1, consider reduce BATCH_SIZE. exit.")
-        sys.exit(1)
+        if max_steps < 1:
+            print("The max_steps is less than 1, consider set MAX_STEPS greater than 0. exit.")
+            sys.exit(1)
 
     progbar = Progbar(max_steps)
     if rank == 0:
