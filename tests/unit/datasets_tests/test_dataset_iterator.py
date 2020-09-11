@@ -62,6 +62,9 @@ def test_dataset_iterator_batch_order():
         assert np.all(images == prefetch_images)
         assert np.all(labels == prefetch_labels)
 
+    prefetch_dataset_iterator.close()
+    dataset_iterator.close()
+
 
 if __name__ == '__main__':
     from blueoil import environment
