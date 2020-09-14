@@ -25,6 +25,7 @@ from blueoil import environment
 from blueoil.datasets.base import ObjectDetectionBase
 from blueoil.datasets.dataset_iterator import DatasetIterator
 from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection
+from blueoil.io import file_io
 from blueoil.utils import config as config_util
 from blueoil.utils import executor
 from blueoil.utils.predict_output.writer import save_json
@@ -55,7 +56,7 @@ def evaluate(config, restore_path, output_dir):
         restore_file = executor.search_restore_filename(environment.CHECKPOINTS_DIR)
         restore_path = os.path.join(environment.CHECKPOINTS_DIR, restore_file)
 
-    if not os.path.exists("{}.index".format(restore_path)):
+    if not file_io.exists("{}.index".format(restore_path)):
         raise Exception("restore file {} dont exists.".format(restore_path))
 
     if output_dir is None:
