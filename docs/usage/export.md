@@ -28,7 +28,7 @@ Options:
                                   input image size height and width. if it is
                                   not provided, it restore from saved
                                   experiment config. e.g. --image_size 320 320
-  --images TEXT                   path of target images
+  --image TEXT                    path of target images
   -c, --config_file TEXT          config file path. override saved experiment
                                   config.
   -h, --help                      Show this message and exit.
