@@ -14,8 +14,6 @@
 # limitations under the License.
 # =============================================================================
 """Inference results visualization (decoration) functions and helpers."""
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import numpy as np
 import PIL.Image
 import PIL.ImageDraw
