@@ -58,7 +58,7 @@ def test_mkdir():
 
 def test_makedirs():
     with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(os.path.join(d, "test"), "test")
+        path = os.path.join(d, "test", "test")
         file_io.makedirs(path)
         assert os.path.isdir(path)
 
