@@ -21,11 +21,7 @@ from PIL import Image
 from tensorflow.io import gfile
 
 
-def _is_local_path(path: str) -> bool:
-    for p in {"gs://", "s3://", "hdfs://"}:
-        if path.startswith(p):
-            return False
-    return True
+_supported_protocol = ("gs://", "s3://", "hdfs://")
 
 
 class File(gfile.GFile):
@@ -39,7 +35,7 @@ def exists(path: str) -> bool:
 
 
 def abspath(path: str) -> str:
-    return os.path.abspath(path) if _is_local_path(path) else path
+    return path if path.startswith(_supported_protocol) else os.path.abspath(path)
 
 
 def mkdir(path: str):
