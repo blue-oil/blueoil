@@ -129,3 +129,7 @@ clean:
 	# Clean created files
 	docker rmi  $(IMAGE_NAME):$(BUILD_VERSION)
 	rm -rf tmp/*
+
+.PHONY: test-converter-unit
+test-converter-unit: build
+	docker run ${DOCKER_OPT} $(IMAGE_NAME):$(BUILD_VERSION) sh tests/converter/unit-test/unit-test.sh
