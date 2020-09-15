@@ -159,7 +159,7 @@ def convert(experiment_id, checkpoint, template, image_size, project_name, outpu
     )
 
     click.echo('Output files are generated in {}'.format(export_output_root_dir))
-    click.echo('Please see {}/README.md to run prediction'.format(export_output_root_dir))
+    click.echo('Please see README.md in {} to run prediction'.format(export_output_root_dir))
 
 
 @main.command(help='Predict by using trained model.')

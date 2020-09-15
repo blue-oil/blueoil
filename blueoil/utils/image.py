@@ -14,12 +14,13 @@
 # limitations under the License.
 # =============================================================================
 import numpy as np
-import PIL.Image
+
+from blueoil.io import file_io
 
 
 def load_image(filename, convert_rgb=True):
     """Returns numpy array of an image"""
-    image = PIL.Image.open(filename)
+    image = file_io.load_image(filename)
 
     #  sometime image data is gray.
     if convert_rgb:

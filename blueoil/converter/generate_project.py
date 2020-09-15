@@ -135,6 +135,8 @@ def run(input_path: str,
     generate_code_step(graph, config)
     click.echo(f'generate code step: done!')
 
+    return dest_dir_path
+
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option(

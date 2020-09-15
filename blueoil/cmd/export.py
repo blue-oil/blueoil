@@ -22,6 +22,7 @@ import numpy as np
 import tensorflow as tf
 
 from blueoil import environment
+from blueoil.io import file_io
 from blueoil.utils.image import load_image
 from blueoil.utils import config as config_util
 from blueoil.utils import executor
@@ -41,15 +42,13 @@ def _pre_process(raw_image, pre_processor, data_format):
 
 
 def _save_all_operation_outputs(image_path, output_dir, image, raw_image, all_outputs, image_size):
-    shutil.copy(image_path, os.path.join(output_dir))
-    tmp_image = PIL.Image.open(image_path)
-    tmp_image.save(os.path.join(output_dir, "raw_image.png"))
-    np.save(os.path.join(output_dir, "raw_image.npy"), raw_image)
-
-    np.save(os.path.join(output_dir, "preprocessed_image.npy"), image)
+    tmp_image = file_io.load_image(image_path)
+    file_io.save_image(os.path.join(output_dir, "raw_image.png"), tmp_image)
+    file_io.save_npy(os.path.join(output_dir, "raw_image.npy"), raw_image)
+    file_io.save_npy(os.path.join(output_dir, "preprocessed_image.npy"), image)
 
     for _output in all_outputs:
-        np.save(os.path.join(output_dir, "{}.npy".format(_output['name'])), _output['val'])
+        file_io.save_npy(os.path.join(output_dir, "{}.npy".format(_output['name'])), _output['val'])
 
 
 def _minimal_operations(sess):
@@ -70,14 +69,14 @@ def _export(config, restore_path, image_path):
 
     print("Restore from {}".format(restore_path))
 
-    if not os.path.exists("{}.index".format(restore_path)):
+    if not file_io.exists("{}.index".format(restore_path)):
         raise Exception("restore file {} dont exists.".format(restore_path))
 
     output_root_dir = os.path.join(environment.EXPERIMENT_DIR, "export")
     output_root_dir = os.path.join(output_root_dir, os.path.basename(restore_path))
 
-    if not os.path.exists(output_root_dir):
-        os.makedirs(output_root_dir)
+    if not file_io.exists(output_root_dir):
+        file_io.makedirs(output_root_dir)
 
     graph = tf.Graph()
     ModelClass = config.NETWORK_CLASS
@@ -106,16 +105,16 @@ def _export(config, restore_path, image_path):
     saver.restore(sess, restore_path)
 
     main_output_dir = os.path.join(output_root_dir, "{}x{}".format(config.IMAGE_SIZE[0], config.IMAGE_SIZE[1]))
-    if not os.path.exists(main_output_dir):
-        os.makedirs(main_output_dir)
+    if not file_io.exists(main_output_dir):
+        file_io.makedirs(main_output_dir)
 
     # save inference values as npy files for runtime inference test and debug.
     if image_path:
         all_ops = _minimal_operations(sess)
         inference_values_output_dir = os.path.join(main_output_dir, "inference_test_data")
 
-        if not os.path.exists(inference_values_output_dir):
-            os.makedirs(inference_values_output_dir)
+        if not file_io.exists(inference_values_output_dir):
+            file_io.makedirs(inference_values_output_dir)
 
         raw_image = load_image(image_path)
         image = _pre_process(raw_image, config.PRE_PROCESSOR, config.DATA_FORMAT)

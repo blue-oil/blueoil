@@ -14,14 +14,12 @@
 # limitations under the License.
 # =============================================================================
 """Module of TensorFlow IO."""
-from os import path
-
 from tensorflow.core.framework import graph_pb2
 
 from blueoil.converter.core.graph import Graph
+from blueoil.converter.frontend.base import BaseIO
 from blueoil.converter.plugins.tf import Importer
-
-from .base import BaseIO
+from blueoil.io import file_io
 
 
 class TensorFlowIO(BaseIO):
@@ -41,9 +39,8 @@ class TensorFlowIO(BaseIO):
         # load tensorflow model
         graph_def = graph_pb2.GraphDef()
         try:
-            f = open(path.abspath(pb_path), "rb")
-            graph_def.ParseFromString(f.read())
-            f.close()
+            with file_io.File(file_io.abspath(pb_path), mode="rb") as f:
+                graph_def.ParseFromString(f.read())
         except IOError:
             print("Could not open file. Creating a new one.")
 

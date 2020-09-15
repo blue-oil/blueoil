@@ -16,9 +16,11 @@
 import os
 import shutil
 import subprocess
+import tempfile
 
 from blueoil.cmd.export import DEFAULT_INFERENCE_TEST_DATA_IMAGE, run as run_export
 from blueoil.converter.generate_project import run as run_generate_project
+from blueoil.io import file_io
 from blueoil.pre_processor import DivideBy255
 
 
@@ -202,7 +204,7 @@ def run(experiment_id,
     use_divide_by_255 = any(isinstance(proc, DivideBy255) for proc in config.PRE_PROCESSOR.processors)
 
     # Generate project
-    run_generate_project(
+    project_base_dir = run_generate_project(
         input_path=input_pb_path,
         dest_dir_path=export_dir,
         project_name=project_name,
@@ -212,22 +214,27 @@ def run(experiment_id,
         use_divide_by_255=use_divide_by_255
     )
 
-    # Create output dir from template
-    output_root_dir = os.path.join(export_dir, "output")
-    output_directories = create_output_directory(output_root_dir, output_template_dir)
-
-    # Save meta.yaml to model output dir
-    shutil.copy(os.path.join(export_dir, "meta.yaml"), output_directories.get("model_dir"))
-
-    # Save minimal_graph_with_shape.pb to model output dir for TensforflowGraphRunner
-    shutil.copy(os.path.join(export_dir, "minimal_graph_with_shape.pb"), output_directories.get("model_dir"))
-
-    # Make
     project_dir_name = "{}.prj".format(project_name)
-    project_dir = os.path.join(export_dir, project_dir_name)
-    make_all(project_dir, output_directories.get("library_dir"))
+    project_dir = os.path.join(project_base_dir, project_dir_name)
 
-    return output_root_dir
+    # Create output dir from template
+    with tempfile.TemporaryDirectory() as t:
+        temp_output_root_dir = os.path.join(t, "output")
+        output_directories = create_output_directory(temp_output_root_dir, output_template_dir)
+
+        # Save meta.yaml to model output dir
+        file_io.copy(os.path.join(export_dir, "meta.yaml"), output_directories["model_dir"])
+
+        # Save minimal_graph_with_shape.pb to model output dir for TensforflowGraphRunner
+        file_io.copy(os.path.join(export_dir, "minimal_graph_with_shape.pb"), output_directories["model_dir"])
+
+        # Make
+        make_all(project_dir, output_directories["library_dir"])
+        temp_output_file = shutil.make_archive(temp_output_root_dir, 'gztar', t)
+        output_file = os.path.join(export_dir, os.path.basename(temp_output_file))
+        file_io.copy(temp_output_file, export_dir)
+
+    return output_file
 
 
 def convert(
