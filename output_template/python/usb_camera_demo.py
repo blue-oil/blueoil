@@ -13,11 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import time
 import os
 import sys
@@ -150,13 +145,13 @@ def capture_loop(q_input):
     vc = init_camera(camera_width, camera_height)
 
     count_frames = 10
-    prev_1 = time.clock()
+    prev_1 = time.perf_counter()
     prev = deque([prev_1] * count_frames)
 
     while True:
         valid, img = vc.read()
         if valid:
-            now = time.clock()
+            now = time.perf_counter()
             prev.append(now)
             old = prev.popleft()
             fps = count_frames / (now - old)

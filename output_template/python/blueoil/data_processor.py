@@ -17,7 +17,6 @@ import pprint
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
-import six
 
 
 class Sequence:
@@ -65,8 +64,7 @@ class Sequence:
                 process.image_size = image_size
 
 
-@six.add_metaclass(ABCMeta)
-class Processor():
+class Processor(metaclass=ABCMeta):
 
     @abstractmethod
     def __call__(self, **kwargs):
