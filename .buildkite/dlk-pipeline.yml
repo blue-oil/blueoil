@@ -35,26 +35,6 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: "make test-dlk-arm"
-    label: "dlk: code_generation for arm(xenial)"
-    agents:
-    - "agent-type=fpga"
-    - "env=production"
-    - "os=xenial"
-    timeout_in_minutes: "30"
-    env:
-      BUILDKITE_CLEAN_CHECKOUT: 'true'
-    soft_fail: true
-  - command: "make test-dlk-arm_fpga"
-    label: "dlk: code_generation for arm_fpga(xenial)"
-    agents:
-    - "agent-type=fpga"
-    - "env=production"
-    - "os=xenial"
-    timeout_in_minutes: "30"
-    env:
-      BUILDKITE_CLEAN_CHECKOUT: 'true'
-    soft_fail: true
-  - command: "make test-dlk-arm"
     label: "dlk: code_generation for arm(bionic)"
     agents:
     - "agent-type=fpga"
@@ -73,7 +53,7 @@ steps:
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'
   - command: "make test-dlk-aarch64"
-    label: "dlk: code_generation for aarch64"
+    label: "dlk: code_generation for aarch64(bionic)"
     key: "build_aarch64"
     agents:
     - "agent-type=normal"
@@ -94,7 +74,7 @@ steps:
   - command: |
       buildkite-agent artifact download "output/TestCodeGenerationAarch64/*" ./ --build ${BUILDKITE_BUILD_ID}
       python3 tests/device_tests/test_device.py
-    label: "dlk: run binary on aarch64"
+    label: "dlk: run binary on aarch64(bionic)"
     depends_on: "build_aarch64"
     agents:
     - "agent-type=raspberry-pi"

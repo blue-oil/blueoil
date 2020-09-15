@@ -125,7 +125,7 @@ steps:
     label: "inference on de10nano(arm)"
     agents:
     - "agent-type=de10nano"
-    - "os=bionic-new" #FIXME(kchygoe): Fix After new-packages test
+    - "os=bionic"
     timeout_in_minutes: "30"
     env:
       BUILDKITE_CLEAN_CHECKOUT: 'true'

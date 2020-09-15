@@ -299,7 +299,7 @@ class TestCodeGenerationBase(TestCaseDLKBase):
 
         remote_output_file = join(output_path, "remote.out")
         run_and_check(
-            ["ssh", f"root@{host}", f"cd ~/automated_testing/; python {testing_code_name}"],
+            ["ssh", f"root@{host}", f"cd ~/automated_testing/; python3 {testing_code_name}"],
             output_path,
             remote_output_file,
             join(output_path, "remote.err"),
