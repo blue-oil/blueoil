@@ -124,11 +124,11 @@ def start_training(config, profile_step):
 
         saver = tf.compat.v1.train.Saver(max_to_keep=config.KEEP_CHECKPOINT_MAX)
 
-        with file_io.File(os.path.join(environment.EXPERIMENT_DIR, "pretrain_vars.txt"), 'w') as pretrain_vars_file:
+        with file_io.File(os.path.join(environment.EXPERIMENT_DIR, "pretrain_vars.txt"), mode="w") as f:
             train_vars = tf.compat.v1.trainable_variables()
-            pretrain_vars_file.write("[\n")
-            pretrain_vars_file.write("".join("    '%s',\n" % var.name for var in train_vars))
-            pretrain_vars_file.write("]\n")
+            f.write("[\n")
+            f.write("".join("    '%s',\n" % var.name for var in train_vars))
+            f.write("]\n")
 
         if config.IS_PRETRAIN:
             all_vars = tf.compat.v1.global_variables()
