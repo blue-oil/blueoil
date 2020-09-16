@@ -4,7 +4,7 @@ Profiling a trained model.
 If it exists unquantized layers, use `-uql` to point it out.
 
 ```
-# python blueoil/cmd/profile_model.py -h
+# python3 blueoil/cmd/profile_model.py -h
 Usage: profile_model.py [OPTIONS]
 
   Profiling a trained model.
@@ -27,6 +27,6 @@ Options:
 ```
 
 e.g.
-`python blueoil/cmd/profile_model.py -i lmnet_cifar10 --restore_path saved/lmnet_cifar10/checkpoints/save.ckpt-99001 --bit 2 -uql conv1 -uql conv7`
+`python3 blueoil/cmd/profile_model.py -i lmnet_cifar10 --restore_path saved/lmnet_cifar10/checkpoints/save.ckpt-99001 --bit 2 -uql conv1 -uql conv7`
 
-`python blueoil/cmd/executor/profile_model.py -c configs/core/classification/lmnet_cifar10.py --bit 1`
+`python3 blueoil/cmd/executor/profile_model.py -c configs/core/classification/lmnet_cifar10.py --bit 1`

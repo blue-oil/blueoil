@@ -3,7 +3,7 @@ Main evaluation script is `blueoil/cmd/evaluate.py`.
 When you start doing evaluation, you need to specify some (required) options.
 You can see the option descriptions with `-h` flag.
 ```
-# python blueoil/cmd/evaluate.py -h
+# python3 blueoil/cmd/evaluate.py -h
 Usage: evaluate.py [OPTIONS]
 
 Options:
