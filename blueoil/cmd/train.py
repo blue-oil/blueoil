@@ -16,6 +16,7 @@
 from datetime import datetime
 import math
 import os
+import sys
 
 import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
@@ -122,6 +123,12 @@ def start_training(config, profile_step):
 
         saver = tf.compat.v1.train.Saver(max_to_keep=config.KEEP_CHECKPOINT_MAX)
 
+        with open(os.path.join(environment.EXPERIMENT_DIR, "pretrain_vars.txt"), 'w') as pretrain_vars_file:
+            train_vars = tf.compat.v1.trainable_variables()
+            pretrain_vars_file.writelines("[\n")
+            pretrain_vars_file.writelines("    '%s',\n" % var.name for var in train_vars)
+            pretrain_vars_file.writelines("]\n")
+
         if config.IS_PRETRAIN:
             all_vars = tf.compat.v1.global_variables()
             pretrain_var_list = [
@@ -186,8 +193,14 @@ def start_training(config, profile_step):
     # Calculate max steps. The priority of config.MAX_EPOCHS is higher than config.MAX_STEPS.
     if "MAX_EPOCHS" in config:
         max_steps = int(train_dataset.num_per_epoch / config.BATCH_SIZE * config.MAX_EPOCHS)
+        if max_steps < 1:
+            print("The max_steps is less than 1, consider reduce BATCH_SIZE. exit.", file=sys.stderr)
+            sys.exit(1)
     else:
         max_steps = config.MAX_STEPS
+        if max_steps < 1:
+            print("The max_steps is less than 1, consider set MAX_STEPS greater than 0. exit.", file=sys.stderr)
+            sys.exit(1)
 
     progbar = Progbar(max_steps)
     if rank == 0:

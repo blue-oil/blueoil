@@ -19,6 +19,7 @@ import subprocess
 
 from blueoil.cmd.export import DEFAULT_INFERENCE_TEST_DATA_IMAGE, run as run_export
 from blueoil.converter.generate_project import run as run_generate_project
+from blueoil.pre_processor import DivideBy255
 
 
 def create_output_directory(output_root_dir, output_template_dir=None):
@@ -183,9 +184,13 @@ def run(experiment_id,
 
     # Export model
     if save_npy_for_debug:
-        export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=test_image)
+        export_dir, config = run_export(
+            experiment_id, restore_path=restore_path, image_size=image_size, image=test_image
+        )
     else:
-        export_dir = run_export(experiment_id, restore_path=restore_path, image_size=image_size, image=None)
+        export_dir, config = run_export(
+            experiment_id, restore_path=restore_path, image_size=image_size, image=None
+        )
 
     # Set arguments
     input_pb_path = os.path.join(export_dir, "minimal_graph_with_shape.pb")
@@ -194,6 +199,7 @@ def run(experiment_id,
     activate_hard_quantization = True
     threshold_skipping = True
     cache_dma = True
+    use_divide_by_255 = any(isinstance(proc, DivideBy255) for proc in config.PRE_PROCESSOR.processors)
 
     # Generate project
     run_generate_project(
@@ -202,7 +208,8 @@ def run(experiment_id,
         project_name=project_name,
         activate_hard_quantization=activate_hard_quantization,
         threshold_skipping=threshold_skipping,
-        cache_dma=cache_dma
+        cache_dma=cache_dma,
+        use_divide_by_255=use_divide_by_255
     )
 
     # Create output dir from template

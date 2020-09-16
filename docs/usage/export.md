@@ -5,8 +5,8 @@ In the case with `images` option, create each layer output value npy files in `e
 
 * Load config file from saved experiment dir.
 * Export config file to yaml. See also [Config specification](../specification/config.md).
-  * `config.yaml` can be used for training and evaluation in python. i.e. [classification.yaml](../../blueoil/configs/example/classification.yaml) is exported from [classification.py](../../blueoil/configs/example/classification.py)
-  * `meta.yaml` include only few parameter for application such as demo. i.e. [classification_meta.yaml](../../blueoil/configs/example/classification_meta.yaml) is exported from [classification.py](../../blueoil/configs/example/classification.py)
+  * `config.yaml` can be used for training and evaluation in python. i.e. [classification.yaml](https://github.com/blue-oil/blueoil/blob/master/blueoil/configs/example/classification.yaml) is exported from [classification.py](https://github.com/blue-oil/blueoil/blob/master/blueoil/configs/example/classification.py)
+  * `meta.yaml` include only few parameter for application such as demo. i.e. [classification_meta.yaml](https://github.com/blue-oil/blueoil/blob/master/blueoil/configs/example/classification_meta.yaml) is exported from [classification.py](https://github.com/blue-oil/blueoil/blob/master/blueoil/configs/example/classification.py)
 * Save the model protocol buffer files (tf) for DLK converter.
 * Output each layer npy files for DLK converter debug.
 * Write summary in tensorboard `export` dir.
@@ -28,7 +28,7 @@ Options:
                                   input image size height and width. if it is
                                   not provided, it restore from saved
                                   experiment config. e.g. --image_size 320 320
-  --images TEXT                   path of target images
+  --image TEXT                    path of target images
   -c, --config_file TEXT          config file path. override saved experiment
                                   config.
   -h, --help                      Show this message and exit.

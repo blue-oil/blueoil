@@ -13,18 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from io import BytesIO
 from multiprocessing import Pool
 import os
 import signal
 import sys
-from SocketServer import ThreadingMixIn
+from socketserver import ThreadingMixIn
 
 import click
 
@@ -69,11 +64,15 @@ class MotionJpegHandler(BaseHTTPRequestHandler):
         fps_only_network = 0.0
 
         camera_img = stream.read()
-        pool_result = pool.apply_async(_run_inference, (camera_img, ))
+        pool_result = pool.apply_async(_run_inference, (camera_img,))
 
         self.send_response(200)
-        self.send_header('Content-type', 'multipart/x-mixed-replace; boundary=jpgboundary')
+        self.send_header(
+            "Content-type", "multipart/x-mixed-replace; boundary=jpgboundary"
+        )
         self.end_headers()
+
+        visualizer = _visualizer(config.TASK)
 
         while True:
             try:
@@ -84,27 +83,14 @@ class MotionJpegHandler(BaseHTTPRequestHandler):
                     result, fps, fps_only_network = pool_result.get()
 
                     camera_img = stream.read()
-                    pool_result = pool.apply_async(_run_inference, (camera_img, ))
+                    pool_result = pool.apply_async(_run_inference, (camera_img,))
 
-                else:
-                    result = None
-
-                if result is not None:
-                    result = result[0]
-                    if config.TASK == "IMAGE.CLASSIFICATION":
-                        image = visualize_classification(window_img, result, config)
-
-                    if config.TASK == "IMAGE.OBJECT_DETECTION":
-                        image = visualize_object_detection(window_img, result, config)
-
-                    if config.TASK == "IMAGE.SEMANTIC_SEGMENTATION":
-                        image = visualize_semantic_segmentation(window_img, result, config)
-
+                    image = visualizer(window_img, result[0], config)
                     draw_fps(image, fps, fps_only_network)
                     tmp = BytesIO()
                     image.save(tmp, "JPEG")
 
-                self.send_header('Content-type', 'image/jpeg')
+                self.send_header("Content-type", "image/jpeg")
                 self.end_headers()
                 self.wfile.write(tmp.getvalue())
 
@@ -116,6 +102,19 @@ class MotionJpegHandler(BaseHTTPRequestHandler):
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
+
+
+def _visualizer(task):
+    if task == "IMAGE.CLASSIFICATION":
+        return visualize_classification
+
+    if task == "IMAGE.OBJECT_DETECTION":
+        return visualize_object_detection
+
+    if task == "IMAGE.SEMANTIC_SEGMENTATION":
+        return visualize_semantic_segmentation
+
+    raise ValueError(f"Not supported TASK type: {task}")
 
 
 def _run_inference(inputs):
@@ -137,22 +136,26 @@ def run(model, config_file, port=80):
     global nn, pre_process, post_process, config, stream, pool
 
     filename, file_extension = os.path.splitext(model)
-    supported_files = ['.so', '.pb']
+    supported_files = [".so", ".pb"]
 
     if file_extension not in supported_files:
-        raise Exception("""
+        raise Exception(
+            """
             Unknown file type. Got %s%s.
             Please check the model file (-m).
             Only .pb (protocol buffer) or .so (shared object) file is supported.
-            """ % (filename, file_extension))
+            """
+            % (filename, file_extension)
+        )
 
-    if file_extension == '.so':  # Shared library
+    if file_extension == ".so":  # Shared library
         nn = NNLib()
         nn.load(model)
 
-    elif file_extension == '.pb':  # Protocol Buffer file
+    elif file_extension == ".pb":  # Protocol Buffer file
         # only load tensorflow if user wants to use GPU
         from lmnet.tensorflow_graph_runner import TensorflowGraphRunner
+
         nn = TensorflowGraphRunner(model)
 
     nn = NNLib()
@@ -168,10 +171,10 @@ def run(model, config_file, port=80):
     pool = Pool(processes=1, initializer=_init_worker)
 
     try:
-        server = ThreadedHTTPServer(('', port), MotionJpegHandler)
+        server = ThreadedHTTPServer(("", port), MotionJpegHandler)
         print("server starting")
         server.serve_forever()
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         print("KeyboardInterrpt in server - ending server")
         stream.release()
         pool.terminate()
@@ -182,13 +185,13 @@ def run(model, config_file, port=80):
     return
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.option(
     "-m",
     "-l",
     "--model",
     type=click.Path(exists=True),
-    help=u"""
+    help="""
         Inference Model filename
         (-l is deprecated please use -m instead)
     """,
@@ -198,15 +201,10 @@ def run(model, config_file, port=80):
     "-c",
     "--config_file",
     type=click.Path(exists=True),
-    help=u"Config file Path",
+    help="Config file Path",
     default="../models/meta.yaml",
 )
-@click.option(
-    "-p",
-    "--port",
-    default=80,
-    help="Port number of motion jpege server."
-)
+@click.option("-p", "--port", default=80, help="Port number of motion jpege server.")
 def main(model, config_file, port):
     """Serve motion jpeg server from video camera source.
 
@@ -220,7 +218,7 @@ def main(model, config_file, port):
 
 def _check_deprecated_arguments():
     argument_list = sys.argv
-    if '-l' in argument_list:
+    if "-l" in argument_list:
         print("Deprecated warning: -l is deprecated please use -m instead")
 
 

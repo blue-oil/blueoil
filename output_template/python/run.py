@@ -135,7 +135,7 @@ def run_prediction(input_image, model, config_file, trial=1):
     pre_process = build_pre_process(config.PRE_PROCESSOR)
     post_process = build_post_process(config.POST_PROCESSOR)
 
-    # call functions once to exclude the first result which include some initializations 
+    # call functions once to exclude the first result which include some initializations
     init_output = _pre_process(image_data, pre_process, config.DATA_FORMAT)
     init_output = _run(nn, init_output)
     init_output = _post_process(init_output, post_process)

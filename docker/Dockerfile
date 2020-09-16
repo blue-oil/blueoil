@@ -1,23 +1,17 @@
-FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu16.04 AS base
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04 AS base
 
 LABEL maintainer="admin@blueoil.org"
 
 # TensorBoard
 EXPOSE 6006
 
-# Python version settings
-ARG python_version="3.6.10"
-
 ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH} \
     CUDA_HOME=/usr/local/cuda-10.0 \
-    PYENV_ROOT=/usr/local/pyenv
-
-# Add source list entry for GCC 9
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 60C317803A41BA51845E371A1E9377A2BA9EF27F
-RUN echo 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu xenial main' | tee /etc/apt/sources.list.d/ubuntu-toolchain-r-ubuntu-test-xenial.list
+    DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
     cmake \
+    fonts-dejavu \
     locales\
     python3 \
     python3-dev \
@@ -25,32 +19,25 @@ RUN apt-get update && apt-get install -y \
     python3-wheel \
     python3-pil \
     libjpeg8-dev \
+    libpng-dev \
     zlib1g-dev \
-    python3-matplotlib \
     liblapack-dev \
     git \
     make \
     build-essential \
-    libssl-dev \
-    libbz2-dev \
-    libreadline-dev \
-    libsqlite3-dev \
     wget \
-    libncurses5-dev \
-    libncursesw5-dev \
-    liblzma-dev \
-    xz-utils \
-    tk-dev \
-    g++-9 \
-    crossbuild-essential-arm64 \
-    g++-5-arm-linux-gnueabihf \
+    g++-8 \
+    g++-8-aarch64-linux-gnu \
+    g++-8-arm-linux-gnueabihf \
     openssh-client \
     openssh-server \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
+RUN ln -s /usr/bin/arm-linux-gnueabihf-g++-8 /usr/bin/arm-linux-gnueabihf-g++
+RUN ln -s /usr/bin/aarch64-linux-gnu-g++-8 /usr/bin/aarch64-linux-gnu-g++
 
 # Install OpenSSH for MPI to communicate between containers
 RUN mkdir -p /var/run/sshd
@@ -60,22 +47,6 @@ RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
-
-# Install pyenv and virtualenv to deal with different python versions
-# This is to avoid InvocationError which occurs at running tox test by changing python version with pyenv global/local command
-# See also https://github.com/pyenv/pyenv-virtualenv/issues/202
-RUN git clone https://github.com/yyuu/pyenv.git $PYENV_ROOT && \
-    git clone https://github.com/yyuu/pyenv-virtualenv.git $PYENV_ROOT/plugins/pyenv-virtualenv
-
-# Pyenv and pyenv virtualenv environment settings
-ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
-RUN eval "$(pyenv init -)" && \
-    eval "$(pyenv virtualenv-init -)"
-
-# Setup python virtualenv
-RUN pyenv install ${python_version} && \
-    pyenv virtualenv -p python${python_version%.*} ${python_version} python${python_version%.*} && \
-    pyenv global python${python_version%.*}
 
 # Install OpenMPI
 RUN mkdir /tmp/openmpi && \
@@ -96,7 +67,7 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
     echo "btl_tcp_if_exclude = lo,docker0" >> /usr/local/etc/openmpi-mca-params.conf
 
 WORKDIR /home/blueoil
-RUN pip install -U pip setuptools
+RUN pip3 install -U pip setuptools
 
 FROM base AS blueoil-base
 
@@ -119,7 +90,6 @@ RUN pip install pycocotools==2.0.0
 # we cannot customize the path of this temporal directory...
 RUN mkdir /.horovod && chmod 777 /.horovod
 
-
 FROM blueoil-base AS blueoil-dev
 
 # Copy blueoil test code to docker image
@@ -128,9 +98,6 @@ COPY tests /home/blueoil/tests
 # Add permission for all users
 RUN chmod 777 /home/blueoil
 RUN chmod 777 /home/blueoil/tests
-
-# enable blueoil command
-RUN pyenv rehash
 
 # Setup entrypoint
 COPY docker/docker-entrypoint.sh /
