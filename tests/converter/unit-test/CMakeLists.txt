@@ -24,9 +24,12 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
                         "${gmock_SOURCE_DIR}/include")
 endif()
 
+set(CONVERTER
+    "../../../../blueoil/converter/templates/src/time_measurement.cpp")
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 file(GLOB_RECURSE EXECUTE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
-add_executable(converter_unit_test ${EXECUTE})
+add_executable(converter_unit_test ${EXECUTE} ${CONVERTER})
 target_compile_features(${EXECUTE_FILE} PRIVATE cxx_std_14)
 
 target_link_libraries(${EXECUTE_FILE} gtest gmock_main)

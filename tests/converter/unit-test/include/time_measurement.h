@@ -1,4 +1,5 @@
-/* Copyright 2020 The Blueoil Authors. All Rights Reserved.  
+/* Copyright 2020 The Blueoil Authors. All Rights Reserved.
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -12,16 +13,5 @@ See the License for the specific language governing permissions and
 limitations under the License.
 =============================================================================*/
 #pragma once
-#include <algorithm>
 
-namespace helper{
-    template<class RandomAccessRange>
-    void sort(RandomAccessRange& rng){
-        std::sort(std::begin(rng), std::end(rng));
-    }
-
-    template<class RandomAccessRange, class Compare>
-    void sort(RandomAccessRange& rng, Compare comp){
-        std::sort(std::begin(rng), std::end(rng), comp);
-    }
-} // namespace helper
+#include "../../../../blueoil/converter/templates/include/time_measurement.h"
