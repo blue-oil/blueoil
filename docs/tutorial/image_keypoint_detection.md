@@ -61,7 +61,7 @@ If configuration finishes, the configuration file is generated in the `keypoint_
 Train your model by running `blueoil train` with a model configuration.
 
     $ docker run --rm \
-        --gpus device=0 \
+        --gpus '"device=0"' \
         -e DATA_DIR=/home/blueoil \
         -e OUTPUT_DIR=/home/blueoil/saved \
         -v /storage/dataset/MSCOCO_2017:/home/blueoil/MSCOCO_2017 \
@@ -71,7 +71,7 @@ Train your model by running `blueoil train` with a model configuration.
         blueoil train -c config/keypoint_detection_demo.py
 
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
-Change the value of `--gpus device=<gpu indices>` according to your environment. 
+Change the value of `--gpus '"device=<gpu indices>"'` according to your environment. 
 For detail check the official [documentation](https://docs.docker.com/config/containers/resource_constraints/#gpu).
 
 When training has started, the training log and checkpoints are generated under `./saved/{MODEL_NAME}`.

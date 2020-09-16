@@ -97,7 +97,7 @@ If configuration finishes, the configuration file is generated in the `camvid.py
 Train your model by running `blueoil train` command with model configuration.
 
     $ docker run --rm \
-	    --gpus device=0 \
+	    --gpus '"device=0"' \
 	    -v $(pwd)/CamVid:/home/blueoil/CamVid \
 	    -v $(pwd)/config:/home/blueoil/config \
 	    -v $(pwd)/saved:/home/blueoil/saved \
@@ -105,7 +105,7 @@ Train your model by running `blueoil train` command with model configuration.
 	    blueoil train -c config/camvid.py
 
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
-Change the value of `--gpus device=<gpu indices>` according to your environment. 
+Change the value of `--gpus '"device=<gpu indices>"'` according to your environment. 
 For detail check the official [documentation](https://docs.docker.com/config/containers/resource_constraints/#gpu).
 
 When training has started, the training log and checkpoints are generated under `./saved/{MODEL_NAME}`.
