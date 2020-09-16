@@ -2,7 +2,7 @@
 
 
 ```
-$ python blueoil/cmd/main.py train -c config/test.py
+$ python3 blueoil/cmd/main.py train -c config/test.py
 
 Usage:
   main.py train [OPTIONS]
@@ -14,9 +14,9 @@ Arguments:
   --help                    Show this message and exit.
 ```
 
-`python blueoil/cmd/main.py train` command runs actual training.
+`python3 blueoil/cmd/main.py train` command runs actual training.
 
-Before running `python blueoil/cmd/main.py train`, make sure you've already put training/test data in the proper location, as defined in the configuration file.
+Before running `python3 blueoil/cmd/main.py train`, make sure you've already put training/test data in the proper location, as defined in the configuration file.
 
 If you want to stop training, you should press `Ctrl + C` or kill the `blueoil train` processes. You can restart training from saved checkpoints by setting `experiment_id` to be the same as an existing id.
 

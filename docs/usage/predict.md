@@ -9,7 +9,7 @@ Save the predictions npy, json, images results to output dir.
 The output predictions Tensor(npy) and json format depends on task type. Plsease see [Output Data Specification](../specification/output_data.md).
 
 ```
-# python blueoil/cmd/main.py predict --help
+# python3 blueoil/cmd/main.py predict --help
 Usage: main.py predict [OPTIONS]
 
   Predict by using trained model.

@@ -1,10 +1,10 @@
 # Generate a configuration file
 
-You can generate your configuration file interactively by running `python blueoil/cmd/main.py init`.
+You can generate your configuration file interactively by running `python3 blueoil/cmd/main.py init`.
 
-    $ python blueoil/cmd/main.py init
+    $ python3 blueoil/cmd/main.py init
 
-`python blueoil/cmd/main.py init` generates a configuration file used to train your new model.
+`python3 blueoil/cmd/main.py init` generates a configuration file used to train your new model.
 
 Below is an example.
 ```
