@@ -1,7 +1,7 @@
 # Convert your training result to FPGA ready format
 
 ```
-$ python blueoil/cmd/main.py convert -e test_20180101000000
+$ python3 blueoil/cmd/main.py convert -e test_20180101000000
 
 Usage:
   main.py convert [OPTIONS]
@@ -15,6 +15,6 @@ Usage:
     --help                          Show this message and exit.
 ```
 
-`python blueoil/cmd/main.py convert` command converts trained models to executable binary files for x86, ARM Cortex-A9, and FPGA.
+`python3 blueoil/cmd/main.py convert` command converts trained models to executable binary files for x86, ARM Cortex-A9, and FPGA.
 
 
