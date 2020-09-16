@@ -12,7 +12,7 @@ In the case with `images` option, create each layer output value npy files in `e
 * Write summary in tensorboard `export` dir.
 
 ```
-# python blueoil/cmd/export.py -h
+# python3 blueoil/cmd/export.py -h
 Usage: export.py [OPTIONS]
 
   Exporting a trained model to proto buffer files and meta config yaml.
@@ -35,4 +35,4 @@ Options:
 ```
 
 e.g.
-`python blueoil/cmd/export.py -i lmnet_cifar10 --restore_path saved/lmnet_cifar10/checkpoints/save.ckpt-99001 --images apple_128.png --images apple.png --image_size 128 192`
+`python3 blueoil/cmd/export.py -i lmnet_cifar10 --restore_path saved/lmnet_cifar10/checkpoints/save.ckpt-99001 --images apple_128.png --images apple.png --image_size 128 192`
