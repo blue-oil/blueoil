@@ -116,8 +116,6 @@ Train your model by running `blueoil train` with model configuration.
 Just like init, set the value of `{TAG}` to the value obtained by `docker images`.
 Change the value of `--gpu device=<gpu indices>` according to your environment. 
 For detail check the official [documentation](https://docs.docker.com/config/containers/resource_constraints/#gpu).
-> For old docker versions use `--runtime=nvidia` with `-e CUDA_VISIBLE_DEVICES=<gpu indices>` environment variable
-> instead of `--gpu device=<gpu indices>`.
 
 When training has started, the training log and checkpoints are generated under `./saved/{MODEL_NAME}`.
 The value of `{MODEL_NAME}` will be `{Configuration file}_{TIMESTAMP}`.
