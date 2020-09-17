@@ -47,11 +47,22 @@ namespace dlk_test
     auto aex = std::max<T_IN>(std::abs(exp), 1);
     auto abs_diff = std::abs(input - exp);
     auto tol = tolerance<T_IN> * aex;
-    diff = abs_diff / aex;
-    if(abs_diff < tol)
+    if(std::is_integral<T_IN>::value)
     {
-      diff = T_IN();
-      return true;
+      diff = abs_diff;
+      if(abs_diff == T_IN())
+      {
+        return true;
+      }
+    }
+    else
+    { 
+      diff = abs_diff / aex;
+      if(abs_diff < tol)
+      {
+        diff = T_IN();
+        return true;
+      }
     }
     return false;
   }
