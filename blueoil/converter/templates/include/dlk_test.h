@@ -41,28 +41,27 @@ namespace dlk_test
   template<class T>static constexpr T tolerance = 0.00001;
 
   template<class T_IN, class T_RES>
-  inline bool same(T_IN input, T_RES expected, T_IN& diff)
+  inline auto same(T_IN input, T_RES expected, T_IN& diff)
+    ->std::enable_if_t<std::is_integral<T_IN>::value, bool>
+  {
+    auto exp = T_IN(expected);
+    diff = std::abs(input - exp);
+    return diff == T_IN();
+  }
+
+  template<class T_IN, class T_RES>
+  inline auto same(T_IN input, T_RES expected, T_IN& diff)
+    ->std::enable_if_t<!std::is_integral<T_IN>::value, bool>
   {
     auto exp = T_IN(expected);
     auto aex = std::max<T_IN>(std::abs(exp), 1);
     auto abs_diff = std::abs(input - exp);
     auto tol = tolerance<T_IN> * aex;
-    if(std::is_integral<T_IN>::value)
+    diff = abs_diff / aex;
+    if(abs_diff < tol)
     {
-      diff = abs_diff;
-      if(abs_diff == T_IN())
-      {
-        return true;
-      }
-    }
-    else
-    { 
-      diff = abs_diff / aex;
-      if(abs_diff < tol)
-      {
         diff = T_IN();
         return true;
-      }
     }
     return false;
   }
