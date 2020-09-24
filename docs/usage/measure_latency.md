@@ -31,7 +31,7 @@ Options:
 
 e.g.
 ```
-$ python blueoil/cmd/measure_latency.py -c configs/core/object_detection/lm_fyolo_quantize_pascalvoc_2007_2012.py -n 20 --image_size 160 160
+$ python3 blueoil/cmd/measure_latency.py -c configs/core/object_detection/lm_fyolo_quantize_pascalvoc_2007_2012.py -n 20 --image_size 160 160
 
 ...
 ---- measure latency result ----
