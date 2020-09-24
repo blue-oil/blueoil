@@ -19,12 +19,12 @@ from abc import ABCMeta
 
 import yaml
 from easydict import EasyDict
-from tensorflow.io import gfile
 from yaml.representer import Representer
 
 from blueoil.data_processor import Processor, Sequence
 from blueoil import environment
 from blueoil.common import Tasks
+from blueoil.io import file_io
 
 PARAMS_FOR_EXPORT = [
     "DATA_FORMAT",
@@ -68,7 +68,7 @@ def _saved_config_file_path():
     ]
 
     for filepath in filepaths:
-        if os.path.isfile(filepath):
+        if file_io.exists(filepath):
             return filepath
 
     raise FileNotFoundError("Config file not found: '{}'".format("' nor '".join(filepaths)))
@@ -128,7 +128,7 @@ def load(config_file):
 
 def _load_py(config_file):
     config = {}
-    with gfile.GFile(config_file) as config_file_stream:
+    with file_io.File(config_file) as config_file_stream:
         source = config_file_stream.read()
         exec(source, globals(), config)
 
@@ -205,7 +205,7 @@ def _save_meta_yaml(output_dir, config):
         )
         meta_dict['CLASSES'] = train_dataset.classes
 
-    with gfile.GFile(os.path.join(file_path), 'w') as f:
+    with file_io.File(os.path.join(file_path), mode='w') as f:
         yaml.dump(meta_dict, f, default_flow_style=False, Dumper=Dumper)
 
     return file_path
@@ -230,7 +230,7 @@ def _save_config_yaml(output_dir, config):
         )
         config_dict['CLASSES'] = train_dataset.classes
 
-    with gfile.GFile(os.path.join(output_dir, file_name), 'w') as outfile:
+    with file_io.File(os.path.join(output_dir, file_name), mode='w') as outfile:
         yaml.dump(config_dict, outfile, default_flow_style=False, Dumper=Dumper)
 
     return file_path
@@ -243,8 +243,8 @@ def save_yaml(output_dir, config):
     2. 'meta.yaml' for application. The yaml's keys defined by `PARAMS_FOR_EXPORT`.
     """
 
-    if not gfile.exists(output_dir):
-        gfile.makedirs(output_dir)
+    if not file_io.exists(output_dir):
+        file_io.makedirs(output_dir)
 
     config_yaml_path = _save_config_yaml(output_dir, config)
     meta_yaml_path = _save_meta_yaml(output_dir, config)
@@ -253,7 +253,7 @@ def save_yaml(output_dir, config):
 
 
 def _load_yaml(config_file):
-    with gfile.GFile(config_file) as config_file_stream:
+    with file_io.File(config_file) as config_file_stream:
         config = yaml.load(config_file_stream, Loader=yaml.Loader)
 
     # use only upper key.
@@ -282,7 +282,7 @@ def display(config):
 def copy_to_experiment_dir(config_file):
     # copy config file to the experiment directory
     saved_config_file_path = _config_file_path_to_copy(config_file)
-    gfile.copy(config_file, saved_config_file_path, overwrite=True)
+    file_io.copy(config_file, saved_config_file_path, overwrite=True)
 
 
 def merge(base_config, override_config):
