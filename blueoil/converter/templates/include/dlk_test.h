@@ -38,22 +38,32 @@ struct Diff {
 
 namespace dlk_test
 {
-  static const T_FLOAT tolerance = 0.00001;
+  template<class T>static constexpr T tolerance = 0.00001;
 
   template<class T_IN, class T_RES>
-  inline bool same(T_IN input, T_RES result, T_IN& diff)
+  inline auto same(T_IN input, T_RES expected, T_IN& diff)
+    ->std::enable_if_t<std::is_integral<T_IN>::value, bool>
   {
-    T_INT diff_ = input - T_IN(result);
-    diff = diff_;
-    return diff_ == 0;
+    auto exp = T_IN(expected);
+    diff = std::abs(input - exp);
+    return diff == T_IN();
   }
 
-  template<>
-  inline bool same(T_FLOAT input, T_FLOAT result, T_FLOAT& diff)
+  template<class T_IN, class T_RES>
+  inline auto same(T_IN input, T_RES expected, T_IN& diff)
+    ->std::enable_if_t<!std::is_integral<T_IN>::value, bool>
   {
-    T_FLOAT diff_ = std::abs(input - result);
-    diff = (tolerance > diff_) ? 0 : diff_;
-    return diff == 0;
+    auto exp = T_IN(expected);
+    auto aex = std::max<T_IN>(std::abs(exp), 1);
+    auto abs_diff = std::abs(input - exp);
+    auto tol = tolerance<T_IN> * aex;
+    diff = abs_diff / aex;
+    if(abs_diff < tol)
+    {
+        diff = T_IN();
+        return true;
+    }
+    return false;
   }
 
   template<class T>
