@@ -103,7 +103,7 @@ Connect the board to your host system using a mini-b USB cable.
 Login to the board via serial.
 - On Linux
     - The path name of your FPGA board should look similar to `/dev/ttyUSB0`.
-- In macOS
+- On macOS
     - The path name of your FPGA board should look similar to `/dev/tty.usbserial-A106I1IY`.
 
 First, change the permission of your board to `666`.
