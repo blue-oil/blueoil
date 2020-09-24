@@ -77,8 +77,8 @@ class ObjectDetectionBuilder(tfds.core.GeneratorBasedBuilder):
                     "bbox": tfds.features.BBox(
                         ymin / height,
                         xmin / width,
-                        (ymin + h) / height,
-                        (xmin + w) / width,
+                        min((ymin + h) / height, 1.0),
+                        min((xmin + w) / width, 1.0),
                     )
                 }
                 for xmin, ymin, w, h, label in annotations
