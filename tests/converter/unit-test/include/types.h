@@ -12,6 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 =============================================================================*/
-#pragma once
+#ifndef CONVERTER_UNITTEST_TYPES_H
+#define CONVERTER_UNITTEST_TYPES_H
 
 #include "../../../../blueoil/converter/templates/include/types.h"
+#endif // CONVERTER_UNITTEST_TYPES_H

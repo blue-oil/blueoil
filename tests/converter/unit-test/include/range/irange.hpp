@@ -11,7 +11,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 =============================================================================*/
-#pragma once
+#ifndef CONVERTER_UNITTEST_RANGE_IRANGE_HPP
+#define CONVERTER_UNITTEST_RANGE_IRANGE_HPP
 
 // Notice(kajihara):
 //  This is now a helper header for converter-unit-test.
@@ -84,3 +85,4 @@ namespace helper{
         return irange(T(), last);
     }
 } // namespace helper
+#endif // CONVERTER_UNITTEST_RANGE_IRANGE_HPP

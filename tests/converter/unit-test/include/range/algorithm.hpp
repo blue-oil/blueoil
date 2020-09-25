@@ -11,7 +11,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 =============================================================================*/
-#pragma once
+#ifndef CONVERTER_UNITTEST_RANGE_ALGORITHM_HPP
+#define CONVERTER_UNITTEST_RANGE_ALGORITHM_HPP
 #include <algorithm>
 
 namespace helper{
@@ -25,3 +26,4 @@ namespace helper{
         std::sort(std::begin(rng), std::end(rng), comp);
     }
 } // namespace helper
+#endif // CONVERTER_UNITTEST_RANGE_ALGORITHM_HPP
