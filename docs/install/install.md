@@ -66,7 +66,7 @@ You need a PC which has a microSD card reader.
 All example commands should work if you use Linux or macOS. If you are using a different system, the necessary commands may be different.
 
 ### Download Linux system image (On your PC)
-You can download an upt-to-date-for-Blueoil Linux system image by:
+You can download an up-to-date-for-Blueoil Linux system image by:
 
     $ wget https://storage.googleapis.com/blueoil-asia-northeast1/os-images/de10nano/ubuntu1804/v0.3/de10nano_ubuntu_1804.img.gz
 
@@ -103,7 +103,7 @@ Connect the board to your host system using a mini-b USB cable.
 Login to the board via serial.
 - On Linux
     - The path name of your FPGA board should look similar to `/dev/ttyUSB0`.
-- In macOS
+- On macOS
     - The path name of your FPGA board should look similar to `/dev/tty.usbserial-A106I1IY`.
 
 First, change the permission of your board to `666`.
