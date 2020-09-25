@@ -28,6 +28,7 @@ from blueoil.common import Tasks
 from blueoil.datasets.base import ObjectDetectionBase, SegmentationBase
 from blueoil.datasets.dataset_iterator import DatasetIterator
 from blueoil.datasets.tfds import TFDSClassification, TFDSObjectDetection, TFDSSegmentation
+from blueoil.io import file_io
 from blueoil.utils import config as config_util
 from blueoil.utils import executor
 from blueoil.utils import horovod as horovod_util
@@ -123,11 +124,11 @@ def start_training(config, profile_step):
 
         saver = tf.compat.v1.train.Saver(max_to_keep=config.KEEP_CHECKPOINT_MAX)
 
-        with open(os.path.join(environment.EXPERIMENT_DIR, "pretrain_vars.txt"), 'w') as pretrain_vars_file:
+        with file_io.File(os.path.join(environment.EXPERIMENT_DIR, "pretrain_vars.txt"), mode="w") as f:
             train_vars = tf.compat.v1.trainable_variables()
-            pretrain_vars_file.writelines("[\n")
-            pretrain_vars_file.writelines("    '%s',\n" % var.name for var in train_vars)
-            pretrain_vars_file.writelines("]\n")
+            f.write("[\n")
+            f.write("".join("    '%s',\n" % var.name for var in train_vars))
+            f.write("]\n")
 
         if config.IS_PRETRAIN:
             all_vars = tf.compat.v1.global_variables()
@@ -312,10 +313,10 @@ def train(config_file, experiment_id=None, recreate=False, profile_step=-1):
     experiment_dir = os.path.join(output_dir, experiment_id)
     checkpoint = os.path.join(experiment_dir, 'checkpoints', 'checkpoint')
 
-    if not tf.io.gfile.exists(checkpoint):
+    if not file_io.exists(checkpoint):
         raise Exception('Checkpoints are not created in {}'.format(experiment_dir))
 
-    with tf.io.gfile.GFile(checkpoint) as stream:
+    with file_io.File(checkpoint) as stream:
         data = yaml.load(stream, Loader=yaml.Loader)
     checkpoint_name = os.path.basename(data['model_checkpoint_path'])
 
