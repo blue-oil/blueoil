@@ -1924,7 +1924,7 @@ class Reshape(Operator):
 
     @property
     def preserve_quantization(self) -> bool:
-        return True
+        return False
 
 
 class Softmax(Operator):
