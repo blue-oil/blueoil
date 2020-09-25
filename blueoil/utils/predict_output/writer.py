@@ -16,8 +16,7 @@
 import logging
 import os
 
-import numpy as np
-
+from blueoil.io import file_io
 from blueoil.utils.predict_output.output import ImageFromJson
 from blueoil.utils.predict_output.output import JsonOutput
 
@@ -67,9 +66,9 @@ def save_npy(dest, outputs, step):
         raise ValueError("step must be integer.")
 
     filepath = os.path.join(dest, "npy", "{}.npy".format(step))
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    file_io.makedirs(os.path.dirname(filepath))
 
-    np.save(filepath, outputs)
+    file_io.save_npy(filepath, outputs)
 
     logger.info("save npy: {}".format(filepath))
 
@@ -90,9 +89,9 @@ def save_json(dest, json, step):
         raise ValueError("step must be integer.")
 
     filepath = os.path.join(dest, "json", "{}.json".format(step))
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    file_io.makedirs(os.path.dirname(filepath))
 
-    with open(filepath, "w") as f:
+    with file_io.File(filepath, mode="w") as f:
         f.write(json)
 
     logger.info("save json: {}".format(filepath))
@@ -115,8 +114,8 @@ def save_materials(dest, materials, step):
 
     for filename, content in materials:
         filepath = os.path.join(dest, "images", "{}".format(step), filename)
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        file_io.makedirs(os.path.dirname(filepath))
 
-        content.save(filepath)
+        file_io.save_image(filepath, content)
 
         logger.info("save image: {}".format(filepath))
