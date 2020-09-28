@@ -16,9 +16,9 @@
 from importlib import import_module
 
 import yaml
-from easydict import EasyDict
 
 from blueoil.data_processor import Sequence
+from blueoil.utils.smartdict import SmartDict
 from blueoil import post_processor, pre_processor
 
 
@@ -29,7 +29,7 @@ def load_yaml(config_file):
         config_file (str): Path of the configuration file.
 
     Returns:
-        EasyDict: Dictionary object of loaded configuration file.
+        SmartDict: Dictionary object of loaded configuration file.
 
     Examples:
         >>> config = load_yaml("/path/of/meta.yaml")
@@ -37,7 +37,7 @@ def load_yaml(config_file):
     with open(config_file) as config_file_stream:
         config = yaml.load(config_file_stream, Loader=yaml.Loader)
     # use only upper key.
-    return EasyDict({k: v for k, v in config.items() if k.isupper()})
+    return SmartDict({k: v for k, v in config.items() if k.isupper()})
 
 
 def build_pre_process(pre_processor_config):

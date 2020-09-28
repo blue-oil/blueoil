@@ -18,7 +18,7 @@ import pprint
 from abc import ABCMeta
 
 import yaml
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 from yaml.representer import Representer
 
 from blueoil.data_processor import Processor, Sequence
@@ -109,7 +109,7 @@ def check_config(config, mode="inference"):
 def load(config_file):
     """dynamically load a config file as module.
 
-    Return: EasyDict object
+    Return: SmartDict object
     """
     filename, file_extension = os.path.splitext(config_file)
     if file_extension.lower() in '.py':
@@ -133,7 +133,7 @@ def _load_py(config_file):
         exec(source, globals(), config)
 
     # use only upper key.
-    return EasyDict({
+    return SmartDict({
         key: value
         for key, value in config.items()
         if key.isupper()
@@ -141,11 +141,11 @@ def _load_py(config_file):
 
 
 def _easy_dict_to_dict(config):
-    if isinstance(config, EasyDict):
+    if isinstance(config, SmartDict):
         config = dict(config)
 
     for key, value in config.items():
-        if isinstance(value, EasyDict):
+        if isinstance(value, SmartDict):
             value = dict(value)
             _easy_dict_to_dict(value)
         config[key] = value
@@ -259,14 +259,14 @@ def _load_yaml(config_file):
     # use only upper key.
     keys = [key for key in config.keys() if key.isupper()]
     config_dict = {key: config[key] for key in keys}
-    config = EasyDict(config_dict)
+    config = SmartDict(config_dict)
     return config
 
 
 def load_from_experiment():
     """Load saved experiment config as module.
 
-    Return: EasyDict object
+    Return: SmartDict object
     """
     config_file = _saved_config_file_path()
     return load(config_file)
@@ -288,12 +288,12 @@ def copy_to_experiment_dir(config_file):
 def merge(base_config, override_config):
     """merge config.
 
-    Return: merged config (EasyDict object).
+    Return: merged config (SmartDict object).
     """
 
-    result = EasyDict(base_config)
+    result = SmartDict(base_config)
     for k, v in override_config.items():
-        if type(v) is EasyDict:
+        if type(v) is SmartDict:
             v = merge(base_config[k], override_config[k])
 
         result[k] = v

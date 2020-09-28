@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 import tensorflow as tf
 
 from blueoil.common import Tasks
@@ -68,7 +68,7 @@ PRE_PROCESSOR = Sequence([
 ])
 POST_PROCESSOR = None
 
-NETWORK = EasyDict()
+NETWORK = SmartDict()
 NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.compat.v1.train.piecewise_constant
@@ -83,7 +83,7 @@ NETWORK.DATA_FORMAT = DATA_FORMAT
 NETWORK.WEIGHT_DECAY_RATE = 0.00004
 
 # dataset
-DATASET = EasyDict()
+DATASET = SmartDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
