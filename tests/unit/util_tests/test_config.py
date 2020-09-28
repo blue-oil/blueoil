@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 
 from blueoil.utils import config as config_util
 
 
 def test_merge():
 
-    base_config = EasyDict({"a": "aa", "nest": EasyDict({"b": "bb", "c": "cc"}), "d": "dd"})
-    override_config = EasyDict({"a": "_a", "nest": EasyDict({"b": "_b"})})
+    base_config = SmartDict({"a": "aa", "nest": SmartDict({"b": "bb", "c": "cc"}), "d": "dd"})
+    override_config = SmartDict({"a": "_a", "nest": SmartDict({"b": "_b"})})
 
-    expected = EasyDict({"a": "_a", "nest": EasyDict({"b": "_b", "c": "cc"}), "d": "dd"})
+    expected = SmartDict({"a": "_a", "nest": SmartDict({"b": "_b", "c": "cc"}), "d": "dd"})
 
     config = config_util.merge(base_config, override_config)
     assert config == expected

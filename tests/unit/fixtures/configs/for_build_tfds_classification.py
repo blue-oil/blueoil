@@ -14,7 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import tensorflow as tf
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 
 from blueoil.common import Tasks
 from blueoil.networks.classification.lmnet_v0 import LmnetV0Quantize
@@ -69,7 +69,7 @@ TFDS_PRE_PROCESSOR = TFDSProcessorSequence([
 ])
 POST_PROCESSOR = None
 
-NETWORK = EasyDict()
+NETWORK = SmartDict()
 NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
@@ -85,7 +85,7 @@ NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
 # dataset
-DATASET = EasyDict()
+DATASET = SmartDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = None

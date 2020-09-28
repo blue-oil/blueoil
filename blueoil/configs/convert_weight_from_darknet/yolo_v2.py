@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 
 from blueoil.common import Tasks
 from blueoil.networks.object_detection.yolo_v2 import YoloV2
@@ -69,7 +69,7 @@ POST_PROCESSOR = Sequence([
     NMS(iou_threshold=nms_iou_threshold, max_output_size=nms_max_output_size, classes=CLASSES,),
 ])
 
-NETWORK = EasyDict()
+NETWORK = SmartDict()
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
@@ -79,7 +79,7 @@ NETWORK.NMS_IOU_THRESHOLD = nms_iou_threshold
 NETWORK.NMS_MAX_OUTPUT_SIZE = nms_max_output_size
 
 # dataset
-DATASET = EasyDict()
+DATASET = SmartDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR

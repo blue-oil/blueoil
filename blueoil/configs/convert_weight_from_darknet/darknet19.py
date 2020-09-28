@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 
 from blueoil.common import Tasks
 from blueoil.networks.classification.darknet import Darknet
@@ -49,13 +49,13 @@ PRE_PROCESSOR = Sequence([
 ])
 POST_PROCESSOR = None
 
-NETWORK = EasyDict()
+NETWORK = SmartDict()
 NETWORK.IMAGE_SIZE = IMAGE_SIZE
 NETWORK.BATCH_SIZE = BATCH_SIZE
 NETWORK.DATA_FORMAT = DATA_FORMAT
 
 # dataset
-DATASET = EasyDict()
+DATASET = SmartDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
