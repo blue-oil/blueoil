@@ -140,21 +140,21 @@ def _load_py(config_file):
     })
 
 
-def _easy_dict_to_dict(config):
+def _smart_dict_to_dict(config):
     if isinstance(config, SmartDict):
         config = dict(config)
 
     for key, value in config.items():
         if isinstance(value, SmartDict):
             value = dict(value)
-            _easy_dict_to_dict(value)
+            _smart_dict_to_dict(value)
         config[key] = value
     return config
 
 
 def _save_meta_yaml(output_dir, config):
     output_file_name = 'meta.yaml'
-    config_dict = _easy_dict_to_dict(config)
+    config_dict = _smart_dict_to_dict(config)
 
     meta_dict = {key: value for key, value in config_dict.items() if key in PARAMS_FOR_EXPORT}
 
@@ -213,7 +213,7 @@ def _save_meta_yaml(output_dir, config):
 
 def _save_config_yaml(output_dir, config):
     file_name = 'config.yaml'
-    config_dict = _easy_dict_to_dict(config)
+    config_dict = _smart_dict_to_dict(config)
     file_path = os.path.join(output_dir, file_name)
 
     class Dumper(yaml.Dumper):
