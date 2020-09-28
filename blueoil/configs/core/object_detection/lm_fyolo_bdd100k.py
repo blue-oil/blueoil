@@ -14,7 +14,7 @@
 # limitations under the License.
 # =============================================================================
 import tensorflow as tf
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 
 from blueoil.common import Tasks
 from blueoil.data_augmentor import (Brightness, Color, Contrast, FlipLeftRight,
@@ -79,7 +79,7 @@ POST_PROCESSOR = Sequence([
         max_output_size=nms_max_output_size, classes=CLASSES,),
 ])
 
-NETWORK = EasyDict()
+NETWORK = SmartDict()
 NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.MomentumOptimizer
 NETWORK.OPTIMIZER_KWARGS = {"momentum": 0.9}
 NETWORK.LEARNING_RATE_FUNC = tf.compat.v1.train.piecewise_constant
@@ -112,7 +112,7 @@ NETWORK.NMS_MAX_OUTPUT_SIZE = nms_max_output_size
 NETWORK.LOSS_WARMUP_STEPS = int(8000 / BATCH_SIZE)
 
 # dataset
-DATASET = EasyDict()
+DATASET = SmartDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
