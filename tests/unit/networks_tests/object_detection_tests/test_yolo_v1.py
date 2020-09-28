@@ -16,7 +16,7 @@
 import numpy as np
 import pytest
 import tensorflow as tf
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 
 from blueoil.cmd.train import start_training
 from blueoil import environment
@@ -266,7 +266,7 @@ def test_convert_boxes_space_inverse():
 
 def test_training():
     """Test only that no error raised."""
-    config = EasyDict()
+    config = SmartDict()
 
     config.NETWORK_CLASS = YoloV1
     config.DATASET_CLASS = Pascalvoc2007
@@ -283,12 +283,12 @@ def test_training():
     config.TASK = Tasks.OBJECT_DETECTION
 
     # network model config
-    config.NETWORK = EasyDict()
+    config.NETWORK = SmartDict()
     config.NETWORK.IMAGE_SIZE = config.IMAGE_SIZE
     config.NETWORK.BATCH_SIZE = config.BATCH_SIZE
 
     # daasegt config
-    config.DATASET = EasyDict()
+    config.DATASET = SmartDict()
     config.DATASET.PRE_PROCESSOR = ResizeWithGtBoxes(config.IMAGE_SIZE)
     config.DATASET.BATCH_SIZE = config.BATCH_SIZE
 

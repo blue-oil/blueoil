@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 import numpy as np
 import PIL.Image
 
@@ -42,7 +42,7 @@ def test_classification():
     """Verify just image is changed."""
     input_image = PIL.Image.new("RGB", size=(100, 200))
     results = np.array([0.1, 0.3, 0.4, 0.2])
-    config = EasyDict({"CLASSES": ["a", "b", "c", "d"]})
+    config = SmartDict({"CLASSES": ["a", "b", "c", "d"]})
 
     result_image = visualize_classification(np.array(input_image), results, config)
 
@@ -53,7 +53,7 @@ def test_object_detection():
     """Verify just image is changed."""
     input_image = PIL.Image.new("RGB", size=(100, 200))
     results = np.array([[32, 20, 10, 5, 2, 0.5], [2, 4, 2, 4, 1, 0.5]])
-    config = EasyDict({"IMAGE_SIZE": (64, 64), "CLASSES": ["a", "b", "c", "d"]})
+    config = SmartDict({"IMAGE_SIZE": (64, 64), "CLASSES": ["a", "b", "c", "d"]})
 
     result_image = visualize_object_detection(np.array(input_image), results, config)
 
@@ -64,7 +64,7 @@ def test_semantic_segmentation():
     """Verify just image is changed."""
     input_image = PIL.Image.new("RGB", size=(100, 200))
     results = np.random.random_sample(size=(64, 64, 4))
-    config = EasyDict({"IMAGE_SIZE": (64, 64), "CLASSES": ["a", "b", "c", "d"]})
+    config = SmartDict({"IMAGE_SIZE": (64, 64), "CLASSES": ["a", "b", "c", "d"]})
 
     result_image = visualize_semantic_segmentation(np.array(input_image), results, config)
 

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 import pytest
 import tensorflow as tf
 
@@ -43,7 +43,7 @@ pytestmark = pytest.mark.usefixtures("reset_default_graph", "set_test_environmen
 def test_training():
     """Test only no error raised."""
 
-    config = EasyDict()
+    config = SmartDict()
 
     config.NETWORK_CLASS = LmSinglePoseV1Quantize
     config.DATASET_CLASS = MscocoSinglePersonKeypoints
@@ -61,7 +61,7 @@ def test_training():
     config.TASK = Tasks.KEYPOINT_DETECTION
 
     # network model config
-    config.NETWORK = EasyDict()
+    config.NETWORK = SmartDict()
     config.NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
     config.NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
     config.NETWORK.IMAGE_SIZE = config.IMAGE_SIZE
@@ -75,7 +75,7 @@ def test_training():
     config.NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
     # daasegt config
-    config.DATASET = EasyDict()
+    config.DATASET = SmartDict()
     config.DATASET.PRE_PROCESSOR = Sequence([
         ResizeWithJoints(image_size=config.IMAGE_SIZE),
         JointsToGaussianHeatmap(image_size=config.IMAGE_SIZE, stride=2),

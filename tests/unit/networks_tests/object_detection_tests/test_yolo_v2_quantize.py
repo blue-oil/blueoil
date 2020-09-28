@@ -15,7 +15,7 @@
 # =============================================================================
 import pytest
 import tensorflow as tf
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 
 from blueoil.cmd.train import start_training
 from blueoil import environment
@@ -37,7 +37,7 @@ pytestmark = pytest.mark.usefixtures("reset_default_graph", "set_test_environmen
 def test_training():
     """Test only no error raised."""
 
-    config = EasyDict()
+    config = SmartDict()
 
     config.NETWORK_CLASS = YoloV2Quantize
     config.DATASET_CLASS = Pascalvoc2007
@@ -54,7 +54,7 @@ def test_training():
     config.TASK = Tasks.OBJECT_DETECTION
 
     # network model config
-    config.NETWORK = EasyDict()
+    config.NETWORK = SmartDict()
     config.NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
     config.NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
     config.NETWORK.IMAGE_SIZE = config.IMAGE_SIZE
@@ -68,7 +68,7 @@ def test_training():
     config.NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
     # daasegt config
-    config.DATASET = EasyDict()
+    config.DATASET = SmartDict()
     config.DATASET.PRE_PROCESSOR = ResizeWithGtBoxes(config.IMAGE_SIZE)
     config.DATASET.BATCH_SIZE = config.BATCH_SIZE
 

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 import tensorflow as tf
 
 from blueoil.common import Tasks
@@ -101,7 +101,7 @@ TUNE_SPACE = {
     ),
 }
 
-NETWORK = EasyDict()
+NETWORK = SmartDict()
 NETWORK.OPTIMIZER_CLASS = None
 NETWORK.OPTIMIZER_KWARGS = {}
 NETWORK.LEARNING_RATE_FUNC = None
@@ -117,7 +117,7 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 NETWORK.WEIGHT_QUANTIZER = binary_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
-DATASET = EasyDict()
+DATASET = SmartDict()
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT
 DATASET.PRE_PROCESSOR = PRE_PROCESSOR
