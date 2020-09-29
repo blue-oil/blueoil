@@ -273,7 +273,7 @@ void Network::get_output_shape(int32_t *shape)
   std::copy(output_shape, output_shape + output_rank, shape);
 }
 
-bool Network::run(float *network_input, float *network_output)
+bool Network::run(void *network_input, void *network_output)
 {
   struct convolution_parameters Conv2D_struct;
   struct binary_convolution_parameters binConv2D_struct;
@@ -293,7 +293,8 @@ bool Network::run(float *network_input, float *network_output)
     {{- len -}},
     {%- endfor %}
   };
-  TensorView<{{ graph_input.dtype.cpptype() }}, MemoryLayout::{{ graph_input.dimension }}> {{ graph_input.name }}_output(network_input, {{ graph_input.name }}_shape);
+  TensorView<{{ graph_input.dtype.cpptype() }}, MemoryLayout::{{ graph_input.dimension }}> {{ graph_input.name }}_output(
+    reinterpret_cast<{{ graph_input.dtype.cpptype() }}*>(network_input), {{ graph_input.name }}_shape);
   {{ '\n' -}}
 
   {% for node in graph.non_variables -%}
@@ -334,7 +335,10 @@ bool Network::run(float *network_input, float *network_output)
 
   // TODO: support multiple output
   {% for out_k in graph_output.output_ops.keys() -%}
-  std::copy({{ graph_output.name }}_{{ out_k }}.data(), {{ graph_output.name }}_{{ out_k }}.data() + {{ graph_output.view.size_in_words_as_cpp }}, network_output);
+  std::copy(
+    {{ graph_output.name }}_{{ out_k }}.data(), 
+    {{ graph_output.name }}_{{ out_k }}.data() + {{ graph_output.view.size_in_words_as_cpp }}, 
+    reinterpret_cast<decltype({{ graph_output.name }}_{{ out_k }}.data())>(network_output));
   {% endfor -%}
 
   return true;
