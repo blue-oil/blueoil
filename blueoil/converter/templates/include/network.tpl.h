@@ -37,7 +37,7 @@ public:
     void get_input_shape(int32_t *shape);
     void get_output_shape(int32_t *shape);
 
-    bool run(float *network_input, float *network_output);
+    bool run(void *network_input, void *network_output);
 
 private:
     // declarations
