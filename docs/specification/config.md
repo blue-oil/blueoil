@@ -3,7 +3,6 @@
 Go to section:
 
 * [Config](#config)
-* [Config yaml](#config-yaml)
 * [Meta yaml](#meta-yaml)
 
 # Config
@@ -47,17 +46,6 @@ Go to section:
 |DATASET.AUGMENTOR|Sequence|Sequence([...])|Sequence of augmentors.|○|||
 |DATASET.DATA_FORMAT|string|DATA_FORMAT|Data format. Normally same to DATA_FORMAT.|○|||
 |||||||
-
-# Config yaml
-Config yaml file has following Unstandard YAML [pyyaml](https://pyyaml.org/) defined tags:
-
-|tag|arg|python type|
-|---|---|---|
-|`!!python/name:`|module.cls|module.cls definition|
-|`!!python/object:`|module.cls|module.cls instance|
-
-You should remove these tags before using without python (pyyaml).
-i.e. [classification.yaml](https://github.com/blue-oil/blueoil/blob/master/blueoil/configs/example/classification.yaml)
 
 # Meta yaml
 The meta yaml file is created from config python file, that is only include `export` column parameter.
