@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 import tensorflow as tf
 
 from blueoil.common import Tasks
@@ -84,7 +84,7 @@ POST_PROCESSOR = Sequence([
 
 step_per_epoch = 149813 // BATCH_SIZE
 
-NETWORK = EasyDict()
+NETWORK = SmartDict()
 NETWORK.OPTIMIZER_CLASS = tf.compat.v1.train.AdamOptimizer
 NETWORK.OPTIMIZER_KWARGS = {}
 NETWORK.LEARNING_RATE_FUNC = tf.compat.v1.train.piecewise_constant
@@ -104,7 +104,7 @@ NETWORK.ACTIVATION_QUANTIZER_KWARGS = {
 NETWORK.WEIGHT_QUANTIZER = binary_channel_wise_mean_scaling_quantizer
 NETWORK.WEIGHT_QUANTIZER_KWARGS = {}
 
-DATASET = EasyDict()
+DATASET = SmartDict()
 DATASET.IMAGE_SIZE = IMAGE_SIZE
 DATASET.BATCH_SIZE = BATCH_SIZE
 DATASET.DATA_FORMAT = DATA_FORMAT

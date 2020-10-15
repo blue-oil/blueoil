@@ -16,7 +16,7 @@
 import numpy as np
 import pytest
 import tensorflow as tf
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 
 from blueoil.cmd.train import start_training
 from blueoil import environment
@@ -38,7 +38,7 @@ class DummyCamvid(Camvid):
 
 def test_training():
     """Verify only that no error raised."""
-    config = EasyDict()
+    config = SmartDict()
 
     config.NETWORK_CLASS = LMBiSeNet
     config.DATASET_CLASS = DummyCamvid
@@ -55,7 +55,7 @@ def test_training():
     config.TASK = Tasks.SEMANTIC_SEGMENTATION
 
     # network model config
-    config.NETWORK = EasyDict()
+    config.NETWORK = SmartDict()
     config.NETWORK.OPTIMIZER_CLASS = tf.train.AdamOptimizer
     config.NETWORK.OPTIMIZER_KWARGS = {"learning_rate": 0.001}
     config.NETWORK.IMAGE_SIZE = config.IMAGE_SIZE
@@ -63,7 +63,7 @@ def test_training():
     config.NETWORK.DATA_FORMAT = "NHWC"
 
     # daasegt config
-    config.DATASET = EasyDict()
+    config.DATASET = SmartDict()
     config.DATASET.PRE_PROCESSOR = Resize(config.IMAGE_SIZE)
     config.DATASET.BATCH_SIZE = config.BATCH_SIZE
     config.DATASET.DATA_FORMAT = "NHWC"

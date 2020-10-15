@@ -31,7 +31,7 @@ def visualize_classification(image, post_processed, config):
         image (np.ndarray): A inference input RGB image to be draw.
         post_processed (np.ndarray): A one batch output of model be already applied post process.
             format is defined at https://github.com/blue-oil/blueoil/blob/master/lmnet/docs/specification/output_data.md
-        config (EasyDict): Inference config.
+        config (SmartDict): Inference config.
 
     Returns:
         PIL.Image.Image: drawn image object.
@@ -66,7 +66,7 @@ def visualize_object_detection(image, post_processed, config):
         image (np.ndarray): A inference input RGB image to be draw.
         post_processed (np.ndarray): A one batch output of model be already applied post process.
             format is defined at https://github.com/blue-oil/blueoil/blob/master/lmnet/docs/specification/output_data.md
-        config (EasyDict): Inference config.
+        config (SmartDict): Inference config.
 
     Returns:
         PIL.Image.Image: drawn image object.
@@ -108,7 +108,7 @@ def visualize_semantic_segmentation(image, post_processed, config):
         image (np.ndarray): A inference input RGB image to be draw.
         post_processed (np.ndarray): A one batch output of model be already applied post process.
             format is defined at https://github.com/blue-oil/blueoil/blob/master/lmnet/docs/specification/output_data.md
-        config (EasyDict): Inference config.
+        config (SmartDict): Inference config.
 
     Returns:
         PIL.Image.Image: drawn image object.

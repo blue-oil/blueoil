@@ -52,7 +52,7 @@ extern "C" __attribute__ ((visibility ("default"))) void network_get_output_shap
   nn->get_output_shape(shape);
 }
 
-extern "C" __attribute__ ((visibility ("default"))) void network_run(Network *nn, float *input, float *output)
+extern "C" __attribute__ ((visibility ("default"))) void network_run(Network *nn, void *input, void *output)
 {
   nn->run(input, output);
 }

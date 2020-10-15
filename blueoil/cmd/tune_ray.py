@@ -20,7 +20,7 @@ import os
 import click
 import six
 import tensorflow as tf
-from easydict import EasyDict
+from blueoil.utils.smartdict import SmartDict
 
 import ray
 from blueoil.datasets.base import ObjectDetectionBase
@@ -265,19 +265,19 @@ def run(config_file, tunable_id, local_dir):
     register_trainable(tunable_id, TrainTunable)
     lm_config = config_util.load(config_file)
 
-    def easydict_to_dict(config):
-        if isinstance(config, EasyDict):
+    def smartdict_to_dict(config):
+        if isinstance(config, SmartDict):
             config = dict(config)
 
         for key, value in config.items():
-            if isinstance(value, EasyDict):
+            if isinstance(value, SmartDict):
                 value = dict(value)
-                easydict_to_dict(value)
+                smartdict_to_dict(value)
             config[key] = value
         return config
 
-    tune_space = easydict_to_dict(lm_config['TUNE_SPACE'])
-    tune_spec = easydict_to_dict(lm_config['TUNE_SPEC'])
+    tune_space = smartdict_to_dict(lm_config['TUNE_SPACE'])
+    tune_spec = smartdict_to_dict(lm_config['TUNE_SPEC'])
     tune_spec['run'] = tunable_id
     tune_spec['config'] = {'lm_config': os.path.join(os.getcwd(), config_file)}
     tune_spec['local_dir'] = local_dir
