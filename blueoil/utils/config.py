@@ -15,8 +15,6 @@
 # =============================================================================
 import os
 import pprint
-from abc import ABCMeta
-
 import yaml
 from blueoil.utils.smartdict import SmartDict
 

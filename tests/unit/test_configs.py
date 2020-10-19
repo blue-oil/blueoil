@@ -18,7 +18,6 @@ import os
 
 import pytest
 
-from blueoil import environment
 from blueoil.utils.config import _load_py, check_config
 
 pytestmark = pytest.mark.usefixtures("set_test_environment")
