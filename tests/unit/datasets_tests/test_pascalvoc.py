@@ -29,7 +29,7 @@ def test_pascalvoc_2007():
     assert dataset.available_subsets == ['train', 'validation', 'test', 'train_validation']
     assert dataset._files_and_annotations() == (
         ['unit/fixtures/datasets/PASCALVOC_2007/VOCdevkit/VOC2007/JPEGImages/000085.jpg'],
-        [[[21, 69, 232, 257, 14], [337, 11, 162, 187, 14]]]
+        [[[5, 103, 212, 174, 8], [21, 69, 232, 257, 14]]]
     )
 
 
@@ -51,7 +51,7 @@ def test_pascalvoc_2007_2012():
         'unit/fixtures/datasets/PASCALVOC_2007/VOCdevkit/VOC2007/JPEGImages/000085.jpg',
         'unit/fixtures/datasets/PASCALVOC_2012/VOCdevkit/VOC2012/JPEGImages/2012_002012.jpg'
     ]
-    assert dataset.annotations == [[[21, 69, 232, 257, 14], [337, 11, 162, 187, 14]],
+    assert dataset.annotations == [[[5, 103, 212, 174, 8], [21, 69, 232, 257, 14]],
                                    [[190, 67, 145, 307, 14]]]
 
 
@@ -64,7 +64,7 @@ def test_pascalvoccustom():
     assert dataset.available_subsets == available_subsets
     assert dataset._files_and_annotations() == (
         ['unit/fixtures/datasets/PASCALVOC_2007/VOCdevkit/VOC2007/JPEGImages/000085.jpg'],
-        [[[21, 69, 232, 257, 0], [337, 11, 162, 187, 0]]])
+        [[[21, 69, 232, 257, 0]]])
 
     classes = ['person']
     available_subsets = ['train', 'validation', 'train_validation']

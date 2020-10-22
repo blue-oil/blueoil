@@ -129,10 +129,10 @@ class PascalvocBase(ObjectDetectionBase):
             for e in list(obj):
                 if e.tag == "bndbox":
                     # subtract 1 to make boxes 0-based coordinate.
-                    ymin = int(e.find("ymin").text) - 1
-                    xmin = int(e.find("xmin").text) - 1
-                    ymax = int(e.find("ymax").text) - 1
-                    xmax = int(e.find("xmax").text) - 1
+                    ymin = float(e.find("ymin").text) - 1
+                    xmin = float(e.find("xmin").text) - 1
+                    ymax = float(e.find("ymax").text) - 1
+                    xmax = float(e.find("xmax").text) - 1
 
                     w = xmax - xmin
                     h = ymax - ymin
