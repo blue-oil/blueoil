@@ -21,7 +21,7 @@
 		<name>chair</name>
 		<pose>Unspecified</pose>
 		<truncated>1</truncated>
-		<difficult>1</difficult>
+		<difficult>0</difficult>
 		<bndbox>
 			<xmin>6</xmin>
 			<ymin>104</ymin>
@@ -47,17 +47,17 @@
 		<truncated>1</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>22</xmin>
-			<ymin>70</ymin>
-			<xmax>254</xmax>
-			<ymax>327</ymax>
+			<xmin>22.</xmin>
+			<ymin>70.</ymin>
+			<xmax>254.</xmax>
+			<ymax>327.</ymax>
 		</bndbox>
 	</object>
 	<object>
 		<name>person</name>
 		<pose>Unspecified</pose>
 		<truncated>1</truncated>
-		<difficult>0</difficult>
+		<difficult>1</difficult>
 		<bndbox>
 			<xmin>338</xmin>
 			<ymin>12</ymin>

@@ -17,10 +17,10 @@
 			<walking>0</walking>
 		</actions>
 		<bndbox>
-			<xmax>336</xmax>
-			<xmin>191</xmin>
-			<ymax>375</ymax>
-			<ymin>68</ymin>
+			<xmax>336.</xmax>
+			<xmin>191.</xmin>
+			<ymax>375.</ymax>
+			<ymin>68.</ymin>
 		</bndbox>
 		<difficult>0</difficult>
 		<pose>Unspecified</pose>
