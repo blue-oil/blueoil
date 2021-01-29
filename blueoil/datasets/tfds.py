@@ -86,6 +86,7 @@ class TFDSMixin:
             data_dir,
             image_size,
             download=False,
+            local_rank=None,
             num_max_boxes=None,
             tfds_pre_processor=None,
             tfds_augmentor=None,
@@ -117,6 +118,7 @@ class TFDSMixin:
         self.tfds_pre_processor = tfds_pre_processor
         self.tfds_augmentor = tfds_augmentor
         self._image_size = image_size
+        self._local_rank = local_rank if local_rank is not None else -1
         self._num_max_boxes = num_max_boxes
         self._format_dataset()
 
@@ -218,8 +220,18 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
 
     @classmethod
     @functools.lru_cache(maxsize=None)
-    def count_max_boxes(cls, builder):
-        sess = tf.compat.v1.Session()
+    def count_max_boxes(cls, builder, local_rank):
+        session_config = tf.compat.v1.ConfigProto()
+        if local_rank != -1:
+            # For distributed training
+            session_config = tf.compat.v1.ConfigProto(
+                gpu_options=tf.compat.v1.GPUOptions(
+                    allow_growth=True,
+                    visible_device_list=str(local_rank)
+                )
+            )
+
+        sess = tf.compat.v1.Session(config=session_config)
         max_boxes = 0
 
         for split in builder.info.splits:
@@ -248,7 +260,7 @@ class TFDSObjectDetection(TFDSMixin, ObjectDetectionBase):
     @property
     def num_max_boxes(self):
         if self._num_max_boxes is None:
-            self._num_max_boxes = self.__class__.count_max_boxes(self._builder)
+            self._num_max_boxes = self.__class__.count_max_boxes(self._builder, self._local_rank)
 
         return self._num_max_boxes
 

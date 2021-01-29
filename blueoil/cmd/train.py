@@ -57,7 +57,7 @@ def setup_dataset(config, subset, rank, local_rank):
         else:
             DatasetClass = TFDSClassification
 
-    dataset = DatasetClass(subset=subset, **dataset_kwargs, **tfds_kwargs)
+    dataset = DatasetClass(subset=subset, local_rank=local_rank, **dataset_kwargs, **tfds_kwargs)
     enable_prefetch = dataset_kwargs.pop("enable_prefetch", False)
     return DatasetIterator(dataset, seed=rank, enable_prefetch=enable_prefetch, local_rank=local_rank)
 
