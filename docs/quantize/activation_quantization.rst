@@ -19,7 +19,7 @@ _________________________________________________________________
 This quantization creates a linear mid tread half quantizer.
 If ``backward`` is provided, this ``backward`` will be used in backpropagation.
 
-This quantization method is DoReFa-Net [1]_ activation quantization variant, the differencce from DoReFa-Net is to be able to change ``max_value``.
+This quantization method is DoReFa-Net [1]_ activation quantization variant, the difference from DoReFa-Net is to be able to change ``max_value``.
 
 Forward is:
 

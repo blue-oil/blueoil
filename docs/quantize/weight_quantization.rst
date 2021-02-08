@@ -37,7 +37,7 @@ ________________________________________________________________________________
 This quantization creates a binary channel wise mean scaling quantizer.
 If ``backward`` is provided, this ``backward`` will be used in backpropagation.
 
-This method is varient of XNOR-Net [1]_ weight quantization, the differencce from XNOR-Net is backward function.
+This method is varient of XNOR-Net [1]_ weight quantization, the difference from XNOR-Net is backward function.
 
 Forward is:
 

@@ -28,7 +28,7 @@ def linear_mid_tread_half_quantizer(
         This quantization creates a linear mid tread half quantizer.
         If `backward` is provided, this `backward` will be used in backpropagation.
 
-        This quantization method is DoReFa-Net [1]_ activation quantization variant, the differencce from DoReFa-Net [1]_ is to be able to change `max_value`.
+        This quantization method is DoReFa-Net [1]_ activation quantization variant, the difference from DoReFa-Net [1]_ is to be able to change `max_value`.
 
         `op_type` is ``LinearMidTreadHalfQuantizer``.
 

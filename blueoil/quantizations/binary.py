@@ -26,7 +26,7 @@ def binary_channel_wise_mean_scaling_quantizer(
         This quantization creates a binary channel wise mean scaling quantizer.
         If `backward` is provided, this `backward` will be used in backpropagation.
 
-        This method is varient of XNOR-Net [1]_ weight quantization, the differencce from XNOR-Net [1]_ is backward function.
+        This method is varient of XNOR-Net [1]_ weight quantization, the difference from XNOR-Net [1]_ is backward function.
 
         `op_type` is ``BinaryChannelWiseMeanScalingQuantizer``.
 
