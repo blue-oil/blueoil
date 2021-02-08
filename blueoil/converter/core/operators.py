@@ -743,14 +743,14 @@ class BinaryMeanScalingQuantizer(Quantizer):
     def run_forward(self) -> np.ndarray:
         in_data = self.input_ops['input'].data
         self._scaling_factor = np.mean(np.abs(in_data))
-        self._data = np.sign(in_data)
+        self._data = np.where((in_data >= 0), 1.0, -1.0)
 
         return self._data * self._scaling_factor
 
     def run_forward_no_scaling_factor(self) -> np.ndarray:
         in_data = self.input_ops['input'].data
         self._scaling_factor = np.mean(np.abs(in_data))
-        self._data = np.sign(in_data)
+        self._data = np.where((in_data >= 0), 1.0, -1.0)
 
         return self._data
 
@@ -2442,7 +2442,7 @@ class BinaryChannelWiseMeanScalingQuantizer(Quantizer):
     def run_forward(self) -> np.ndarray:
         in_data = self.input_ops['input'].data
         self._scaling_factor = np.mean(np.abs(in_data), axis=(1, 2, 3)).astype(np.float32)
-        self._data = np.sign(in_data)
+        self._data = np.where((in_data >= 0), 1.0, -1.0)
 
         scaling = copy.deepcopy(self._scaling_factor)
         extra_dims = tuple(np.ones((len(self._data.shape) - len(scaling.shape)), dtype=np.int32))
@@ -2453,7 +2453,7 @@ class BinaryChannelWiseMeanScalingQuantizer(Quantizer):
     def run_forward_no_scaling_factor(self) -> np.ndarray:
         in_data = self.input_ops['input'].data
         self._scaling_factor = np.mean(np.abs(in_data), axis=(1, 2, 3)).astype(np.float32)
-        self._data = np.sign(in_data)
+        self._data = np.where((in_data >= 0), 1.0, -1.0)
         return self._data
 
     def binarizer(self, data: np.ndarray) -> np.ndarray:
