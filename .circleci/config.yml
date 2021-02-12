@@ -18,7 +18,7 @@ jobs:
             - html
   deploy:
     docker:
-      - image: circleci/node:8
+      - image: circleci/node:14.15.4
     working_directory: ~/repo
     steps:
       - checkout
