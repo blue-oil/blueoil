@@ -64,11 +64,6 @@ def get_color_map(length):
 # The colormap allows for a large number of quantization levels:
 # https://tinyurl.com/ybm3kpql
 
-# Referred from the following gist:
-# https://gist.github.com/mikhailov-work/ee72ba4191942acecc03fe6da94fc73f
-# Copyright 2019 Google LLC.
-# SPDX-License-Identifier: Apache-2.0
-
 # Changes:
 # 1. Vectorized the implementation using numpy
 # 2. Use numpy.modf to get integer and float parts
