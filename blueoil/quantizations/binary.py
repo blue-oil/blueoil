@@ -26,7 +26,7 @@ def binary_channel_wise_mean_scaling_quantizer(
         This quantization creates a binary channel wise mean scaling quantizer.
         If `backward` is provided, this `backward` will be used in backpropagation.
 
-        This method is varient of XNOR-Net [1]_ weight quantization, the differencce from XNOR-Net [1]_ is backward function.
+        This method is varient of XNOR-Net [1]_ weight quantization, the difference from XNOR-Net [1]_ is backward function.
 
         `op_type` is ``BinaryChannelWiseMeanScalingQuantizer``.
 
@@ -87,7 +87,7 @@ def binary_channel_wise_mean_scaling_quantizer(
         scaling_factor = tf.reduce_mean(tf.abs(x), axis=[0, 1, 2])
         # TODO(wakisaka): tensorflow raise error.
         # tf.compat.v1.summary.histogram("scaling_factor", scaling_factor)
-        quantized = tf.sign(x) * scaling_factor
+        quantized = tf.where_v2((x >= 0), 1.0, -1.0) * scaling_factor
         return quantized
 
     return _forward
@@ -160,6 +160,6 @@ def binary_mean_scaling_quantizer(
 
         """
         expectation = tf.reduce_mean(tf.abs(x))
-        return tf.sign(x) * expectation
+        return tf.where_v2((x >= 0), 1.0, -1.0) * expectation
 
     return _forward
