@@ -131,10 +131,7 @@ Hit enter, and you can login using the following information:
 When the board is booted with the above image, around 300 MB will be available.
 But if one wants to expand the root partition to fill the whole free space available they can do this by running the following commands:
 
-    root@DE10_NANO:~# cd ~
-    root@DE10_NANO:~# ./expand_rootfs.sh
-    root@DE10_NANO:~# partprobe /dev/mmcblk0
-    root@DE10_NANO:~# ./resize2fs_once
+    ubuntu@ubuntu:~$ sudo bash /root/expand_rootfs.sh
 
 ---
 
