@@ -143,16 +143,16 @@ def _export(config, restore_path, image_path):
         _save_all_operation_outputs(
             image_path, inference_values_output_dir, image, raw_image, all_outputs, config.IMAGE_SIZE)
 
-    yaml_names = config_util.save_yaml(main_output_dir, config)
+    yaml_name = config_util.save_yaml(main_output_dir, config)
     pb_name = executor.save_pb_file(sess, main_output_dir)
 
     message = """
-Create pb and yaml files in: {}
+Create pb and yaml file in: {}
 pb: {}
-yaml: {}, {}
+yaml: {}
 """.format(main_output_dir,
            pb_name,
-           *yaml_names)
+           yaml_name)
 
     if image_path:
         message += "Create npy files in under `inference_test_data` folder \n"
@@ -232,7 +232,7 @@ def run(experiment_id,
     help="config file path. override saved experiment config.",
 )
 def main(experiment_id, restore_path, image_size, image, config_file):
-    """Exporting a trained model to proto buffer files and meta config yaml.
+    """Exporting a trained model to proto buffer files and meta yaml.
 
     In the case with `image` option, create each layer output value npy files into
     `export/{restore_path}/{image_size}/inference_test_data/**.npy` as expected value for inference test and debug.

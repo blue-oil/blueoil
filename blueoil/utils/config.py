@@ -15,11 +15,8 @@
 # =============================================================================
 import os
 import pprint
-from abc import ABCMeta
-
 import yaml
 from blueoil.utils.smartdict import SmartDict
-from yaml.representer import Representer
 
 from blueoil.data_processor import Processor, Sequence
 from blueoil import environment
@@ -62,16 +59,11 @@ REQUIEMNT_PARAMS_FOR_TRAINING = REQUIEMNT_PARAMS_FOR_INFERENCE + [
 
 
 def _saved_config_file_path():
-    filepaths = [
-        os.path.join(environment.EXPERIMENT_DIR, filename)
-        for filename in ('config.py', 'config.yaml')
-    ]
+    filepath = os.path.join(environment.EXPERIMENT_DIR, 'config.py')
+    if file_io.exists(filepath):
+        return filepath
 
-    for filepath in filepaths:
-        if file_io.exists(filepath):
-            return filepath
-
-    raise FileNotFoundError("Config file not found: '{}'".format("' nor '".join(filepaths)))
+    raise FileNotFoundError("Config file not found: '{}'".format(filepath))
 
 
 def _config_file_path_to_copy(config_file):
@@ -79,11 +71,9 @@ def _config_file_path_to_copy(config_file):
 
     if file_extension.lower() in '.py':
         filename = 'config.py'
-    elif file_extension.lower() in ('.yml', '.yaml'):
-        filename = 'config.yaml'
     else:
         raise ValueError('Config file type is not supported.'
-                         'Should be .py, .yaml or .yml. Received {}.'.format(file_extension))
+                         'Should be .py. Received {}.'.format(file_extension))
 
     return os.path.join(environment.EXPERIMENT_DIR, filename)
 
@@ -114,11 +104,9 @@ def load(config_file):
     filename, file_extension = os.path.splitext(config_file)
     if file_extension.lower() in '.py':
         loader = _load_py
-    elif file_extension.lower() in ('.yml', '.yaml'):
-        loader = _load_yaml
     else:
         raise ValueError('Config file type is not supported.'
-                         'Should be .py, .yaml or .yml. Received {}.'.format(file_extension))
+                         'Should be .py. Received {}.'.format(file_extension))
     config = loader(config_file)
 
     check_config(config)
@@ -211,56 +199,14 @@ def _save_meta_yaml(output_dir, config):
     return file_path
 
 
-def _save_config_yaml(output_dir, config):
-    file_name = 'config.yaml'
-    config_dict = _smart_dict_to_dict(config)
-    file_path = os.path.join(output_dir, file_name)
-
-    class Dumper(yaml.Dumper):
-        def ignore_aliases(self, data):
-            return True
-    Dumper.add_representer(ABCMeta, Representer.represent_name)
-
-    if type(config_dict['CLASSES']) != list:
-        DatasetClass = config.DATASET_CLASS
-        dataset_kwargs = dict((key.lower(), val) for key, val in config.DATASET.items())
-        train_dataset = DatasetClass(
-            subset="train",
-            **dataset_kwargs,
-        )
-        config_dict['CLASSES'] = train_dataset.classes
-
-    with file_io.File(os.path.join(output_dir, file_name), mode='w') as outfile:
-        yaml.dump(config_dict, outfile, default_flow_style=False, Dumper=Dumper)
-
-    return file_path
-
-
 def save_yaml(output_dir, config):
-    """Save two yaml files.
-
-    1. 'config.yaml' is duplication of python config file as yaml.
-    2. 'meta.yaml' for application. The yaml's keys defined by `PARAMS_FOR_EXPORT`.
-    """
-
+    """Save yaml file 'meta.yaml' for application. Keys are defined by `PARAMS_FOR_EXPORT`."""
     if not file_io.exists(output_dir):
         file_io.makedirs(output_dir)
 
-    config_yaml_path = _save_config_yaml(output_dir, config)
     meta_yaml_path = _save_meta_yaml(output_dir, config)
 
-    return config_yaml_path, meta_yaml_path
-
-
-def _load_yaml(config_file):
-    with file_io.File(config_file) as config_file_stream:
-        config = yaml.load(config_file_stream, Loader=yaml.Loader)
-
-    # use only upper key.
-    keys = [key for key in config.keys() if key.isupper()]
-    config_dict = {key: config[key] for key in keys}
-    config = SmartDict(config_dict)
-    return config
+    return meta_yaml_path
 
 
 def load_from_experiment():

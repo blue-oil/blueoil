@@ -18,8 +18,7 @@ import os
 
 import pytest
 
-from blueoil import environment
-from blueoil.utils.config import _load_py, check_config, save_yaml
+from blueoil.utils.config import _load_py, check_config
 
 pytestmark = pytest.mark.usefixtures("set_test_environment")
 
@@ -45,63 +44,6 @@ def test_example_config():
         check_config(config, "inference")
 
 
-def test_example_classification_config_yaml():
-    """Test that export config and meta yaml from example classification config python."""
-
-    config_file = os.path.join("..", "blueoil", "configs", "example", "classification.py")
-
-    config = _load_py(config_file)
-
-    config_yaml = os.path.join("..", "blueoil", "configs", "example", "classification.yaml")
-
-    config_meta = os.path.join("..", "blueoil", "configs", "example", "classification_meta.yaml")
-
-    environment.init("test_example_classification_config_yaml")
-    saved_config, saved_meta = save_yaml(environment.EXPERIMENT_DIR, config)
-
-    print(saved_meta)
-    with open(config_yaml) as f:
-        expected = f.read()
-    with open(saved_config) as f:
-        data = f.read()
-        assert expected == data
-
-    with open(config_meta) as f:
-        expected = f.read()
-    with open(saved_meta) as f:
-        data = f.read()
-        assert expected == data
-
-
-def test_example_object_detection_config_yaml():
-    """Test that export config and meta yaml from example object_detection config python."""
-
-    config_file = os.path.join("..", "blueoil", "configs", "example", "object_detection.py")
-
-    config = _load_py(config_file)
-
-    config_yaml = os.path.join("..", "blueoil", "configs", "example", "object_detection.yaml")
-
-    config_meta = os.path.join("..", "blueoil", "configs", "example", "object_detection_meta.yaml")
-
-    environment.init("test_example_object_detection_config_yaml")
-    saved_config, saved_meta = save_yaml(environment.EXPERIMENT_DIR, config)
-
-    with open(config_yaml) as f:
-        expected = f.read()
-    with open(saved_config) as f:
-        data = f.read()
-        assert expected == data
-
-    with open(config_meta) as f:
-        expected = f.read()
-    with open(saved_meta) as f:
-        data = f.read()
-        assert expected == data
-
-
 if __name__ == '__main__':
     test_core_configs()
     test_example_config()
-    test_example_classification_config_yaml()
-    test_example_object_detection_config_yaml()
