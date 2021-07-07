@@ -28,17 +28,25 @@ def batch_norm(
         *args,
         **kwargs
 ):
+    if "data_format" in kwargs:
+        axis = -1 if kwargs["data_format"] == 'NHWC' else 1
+        kwargs.pop("data_format")
+    else:
+        axis = -1
 
-    output = tf.contrib.layers.batch_norm(
+    output = tf.compat.v1.layers.batch_normalization(
         inputs,
-        updates_collections=None,
-        is_training=is_training,
-        scope=name,
-        activation_fn=activation,
+        axis=axis,
+        training=is_training,
+        name=name,
         scale=scale,
         *args,
         **kwargs,
     )
+
+    if activation:
+        output = activation(output)
+
     return output
 
 
@@ -50,12 +58,14 @@ def conv2d(
     strides=1,
     padding="SAME",
     activation=tf.nn.relu,
+    kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(
+        scale=1.0, mode="fan_avg", distribution="uniform"),
     is_debug=False,
     *args,
     **kwargs
 ):
 
-    output = tf.layers.conv2d(
+    output = tf.compat.v1.layers.conv2d(
         name=name,
         inputs=inputs,
         filters=filters,
@@ -89,14 +99,15 @@ def fully_connected(
         flattened_shape = reduce(lambda x, y: x*y, shape[1:])  # shp[1].value * shp[2].value * shp[3].value
         inputs = tf.reshape(inputs, [-1, flattened_shape], name=name + "_reshape")
 
-    output = tf.contrib.layers.fully_connected(
-        scope=name,
-        inputs=inputs,
-        num_outputs=filters,
-        activation_fn=activation,
+    output = tf.keras.layers.Dense(
+        filters,
+        activation=activation,
+        name=name,
+        kernel_initializer=tf.compat.v1.keras.initializers.VarianceScaling(
+            scale=1.0, mode="fan_avg", distribution="uniform"),
         *args,
         **kwargs,
-    )
+    )(inputs)
 
     if is_debug:
         tf.compat.v1.summary.histogram(name + "/output", output)
@@ -115,7 +126,7 @@ def max_pooling2d(
     **kwargs
 ):
 
-    output = tf.layers.max_pooling2d(
+    output = tf.compat.v1.layers.max_pooling2d(
         name=name,
         inputs=inputs,
         pool_size=pool_size,
@@ -160,7 +171,7 @@ def average_pooling2d(
     **kwargs
 ):
 
-    output = tf.layers.average_pooling2d(
+    output = tf.compat.v1.layers.average_pooling2d(
         name=name,
         inputs=inputs,
         pool_size=pool_size,
