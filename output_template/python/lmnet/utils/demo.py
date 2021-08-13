@@ -47,19 +47,18 @@ def add_fps(orig, fps):
     return orig
 
 
-def check_range(upper, lower, checked_val):
-    if upper < checked_val:
-        checked_val = upper
-    elif lower > checked_val:
-        checked_val = lower
-    return checked_val
+def clamp(lower, upper, target):
+    if target < lower:
+        return lower
+    if upper < target:
+        return upper
+    return target
 
 
 def add_rectangle(classes, orig, preds, pred_shape):
     orig_h, orig_w = orig.shape[:2]
     locs = [pred[:, 0:4] for pred in preds]
-    labels_n = np.array([pred[:, 4] for pred in preds]).astype(np.int)  # TODO magic-number
-    labels_n = labels_n.flatten()
+    labels_n = np.array([pred[:, 4] for pred in preds]).astype(np.int).flatten()  # TODO magic-number
 
     labels = [classes[i_label] for i_label in labels_n]
     scores = preds[0][:, 5]
@@ -71,10 +70,10 @@ def add_rectangle(classes, orig, preds, pred_shape):
     for idx, loc in enumerate(locs):
         t, b, le, r = ltwh_to__tblr(loc)
 
-        le = check_range(orig_w, 0, le)
-        r = check_range(orig_w, 0, r)
-        t = check_range(orig_h, 0, t)
-        b = check_range(orig_h, 0, b)
+        le = clamp(0, orig_w, le)
+        r = clamp(0, orig_w, r)
+        t = clamp(0, orig_h, t)
+        b = clamp(0, orig_h, b)
 
         color_r = COLORS[labels_n[idx] % len(COLORS)]
         thick = 2
